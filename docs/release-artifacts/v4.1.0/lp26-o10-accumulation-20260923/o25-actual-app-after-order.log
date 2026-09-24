@@ -1,0 +1,6 @@
+[timeline-query-mode] {"unplacedUnit":"file","knownUnit":"mapping","maxTopItems":4096,"maxLeafItems":8192,"maxBytes":67108864}
+[fixture-keyframe-proof] {"boundaryPts":"8333333333","timeBase":"1/15360","duration":"30.000000","keyframeCount":4}
+[fail] current actual app: bind EPERM 127.0.0.1
+[timeline-page-observation-status] {"cycles":0,"invalid":0,"summaries":[]}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-7K8m1P","bytes":23309952,"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+{"mode":"current-actual-app","timelineUnplacedUnit":"file","terminalObservations":[],"passed":0,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"boundaryDiagnosticPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true},"elapsedMs":865}

@@ -1,0 +1,90 @@
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.887917ms)
+✔ LP25-C10 http-auth 실제 producer 총계 수용·구형 및 불일치 거부 (0.194708ms)
+✔ LP25-C10 http-lifecycle 실제 producer 총계 수용·구형 및 불일치 거부 (0.052959ms)
+✔ LP20-X01 실제 종료 producer의 정상 두 결과를 수용 (0.099375ms)
+✔ LP20-X02 schema 누락는 정상 종료로 승인하지 않음 (0.154875ms)
+✔ LP20-X02 schema 불일치는 정상 종료로 승인하지 않음 (0.116458ms)
+✔ LP20-X02 반복 종료는 정상 종료로 승인하지 않음 (0.080125ms)
+✔ LP20-X02 PID 누락는 정상 종료로 승인하지 않음 (0.072417ms)
+✔ LP20-X02 exit 비정상는 정상 종료로 승인하지 않음 (0.069458ms)
+✔ LP20-X02 signal 관측는 정상 종료로 승인하지 않음 (0.087792ms)
+✔ LP20-X02 종료 미관측는 정상 종료로 승인하지 않음 (0.060125ms)
+✔ LP20-X02 stop 오류는 정상 종료로 승인하지 않음 (0.065958ms)
+✔ LP20-X02 강제 종료는 정상 종료로 승인하지 않음 (0.097958ms)
+✔ LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음 (0.053584ms)
+✔ LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음 (0.048709ms)
+✔ LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음 (0.04925ms)
+✔ LP20-X02 archive 불가는 정상 종료로 승인하지 않음 (0.059208ms)
+✔ LP20-X02 ports 누락는 정상 종료로 승인하지 않음 (0.04475ms)
+✔ LP20-X02 port 수 부족는 정상 종료로 승인하지 않음 (0.041583ms)
+✔ LP20-X02 port kind 중복는 정상 종료로 승인하지 않음 (0.0455ms)
+✔ LP20-X02 port 미해제는 정상 종료로 승인하지 않음 (0.055709ms)
+✔ LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음 (0.045542ms)
+✔ LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음 (0.043667ms)
+✔ LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음 (0.0435ms)
+✔ LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음 (0.0605ms)
+✔ LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음 (0.0955ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.185708ms)
+✔ LP26-O12 느린 timeline 뒤에도 같은 경계를 빠르게 재관측하고 창 이탈은 거부 (0.149334ms)
+✔ LP26-O13 고정 fixture의 실제 키프레임만 조기 이벤트 기준으로 수용 (0.078916ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.327083ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.020916ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.019334ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.020125ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.019208ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.028292ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.02525ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.047875ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.128791ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.376584ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.154166ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.137791ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.116291ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.138333ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.061625ms)
+✔ LP25-O04 group members survive full collection and literal two output validation (0.072916ms)
+✖ S11-O25-01 bounded group members do not consume the top-level item budget (0.295666ms)
+✔ S11-O25-02 group members above the separate bound are rejected before consumption (0.682125ms)
+✔ LP25-O04 within group duplicate rejects grouped page before completion consumer (0.05875ms)
+✔ LP25-O04 across groups duplicate rejects grouped page before completion consumer (0.031375ms)
+✔ LP25-O04 member collides with outer ID rejects grouped page before completion consumer (0.02775ms)
+✔ LP25-O04 missing members rejects grouped page before completion consumer (0.028791ms)
+✔ LP25-O04 empty members rejects grouped page before completion consumer (0.026666ms)
+✖ LP25-O04 leaf cap rejects grouped page before completion consumer (0.191875ms)
+✔ LP25-O04 members byte cap rejects grouped page before completion consumer (0.038417ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 52
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.063167
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_integration.test.mjs:158:1
+✖ S11-O25-01 bounded group members do not consume the top-level item budget (0.295666ms)
+  Error: page-bound-leaf-limit
+      at pageBound (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_app_helpers.mjs:147:46)
+      at allTimelinePages (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_app_helpers.mjs:174:30)
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:160:16)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    code: 'page-bound-leaf-limit',
+    diagnostic: { leaves: 4111, maxItems: 4096 }
+  }
+
+test at scripts/internal/recording_current_integration.test.mjs:180:3
+✖ LP25-O04 leaf cap rejects grouped page before completion consumer (0.191875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:182:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /page-bound-leaf-limit/,
+    operator: 'rejects',
+    diff: 'simple'
+  }

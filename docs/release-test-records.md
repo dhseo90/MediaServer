@@ -43564,3 +43564,32 @@ artifact/hash, 모든 command exit/count, repair/rerun 이력은 Task 8 report�
 | 실제 30분·UI·녹화 120분 | 이번 누적 단기 범위 밖 | 각각 별도 릴리즈 gate | 이번 O24 결과로 대체 불가 |
 | 현행 5단계 통합 | 누적 단기 검증 뒤 별도 실행 | 이 절에서 미실행 | O24로 현재 통합 PASS 주장 불가 |
 | 자원 추세 | 실제 RSS와 저장량은 측정, 합격 미확인 | 계속 생산 중인 관측이며 `resourceTrendPass=false` | 누수 없음·120분 자원 PASS 주장 불가 |
+
+## v4.1.0 S11 O25 실제 앱 전체 페이지 경계 보완 실행 전 정의 (2026-09-24)
+
+독자: S11 통합 검증 담당자. 수명: v4.1.0 통합 마감까지. 현행 5단계의 첫 4단계는 통과했으나 실제 앱 두 번째 기동에서 최상위 43개 이하의 타임라인 안에 그룹 구성원 4,111개가 있어 기존 단일 4,096개 상한이 `page-bound-leaf-limit`를 냈다. 이 결과는 실패로 보존한다. 제품 출력·공개 API는 바꾸지 않는다. 다음 검사는 서로 다른 단위의 상한을 분리해도 전체 페이지의 byte cap, 중복 ID, total/offset/변경 감지를 유지하는지 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S11-O25-01 | 최상위와 그룹 구성원 상한 분리 | 최상위 4,096개·구성원 8,192개를 각각 검사, 실제 관측 4,111개 규모의 페이지는 빠짐없이 소비 | v4.1.0 |
+| S11-O25-02 | 새 상한 반례 | 구성원 8,193개는 거부하고 최상위 초과·중복 ID·바이트 초과·페이지 중간 변경 거부를 유지 | v4.1.0 |
+| S11-O25-03 | 실제 앱과 전체 통합 | 집중 검사 뒤 동일 실제 앱 조건, 성공 시 현행 5단계 전체와 파일 해시·재기동·정리를 확인 | v4.1.0 |
+| S11-O25-04 | 이벤트 렌더 대기 순서 | 원본 준비가 역순이더라도 이미 준비된 작업은 최초 내구 접수 순서로 렌더하며 실행 중 작업 선점·미준비 작업 대기는 하지 않는다. 동시각 안정성과 queue node 소유 보존 검사 | v4.1.0 |
+
+이 등록은 통과 기록이 아니다. 이전 실행 원출력·정리 및 수정 전/후 결과는 후속 실행 결과에 연결한다. 30분·UI·120분은 이 단기 검증의 대체 대상이 아니다.
+
+### S11 O25 실행 결과와 실패 이력
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S11-O25-01 최초 실제 통합 | `./server.sh verify-v410-recording-foundation --current-integration`: 앞 4단계 통과, 두 번째 실제 앱의 4,111개 그룹 구성원에서 `page-bound-leaf-limit` | fail |
+| S11-O25-01/02 예상 RED | 4,111개 허용·8,193개 거부 반례 등록 후 집중 검사 52/2 | fail |
+| S11-O25-01/02 영향 검사 첫 보완 | 기존 별도 관측 검사도 새 상한의 명시적 작은 한계를 전달해야 함을 확인, 82/1 | fail |
+| S11-O25-01/02 집중 재검증 | `node --test scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_observation.test.mjs`, 83/83, exit 0. 최상위 4,096·구성원 8,192·64MiB와 중복/오프셋 거부 유지 | pass |
+| S11-O25-03 페이지 보완 후 실제 앱 | `node scripts/internal/verify_recording_current_app.mjs`, 두 번째 기동의 페이지 경계는 통과. 첫 접수 작업이 세 작업 뒤에 렌더되어 기존 30초 완료 관측 전에 종료, `work-cancelled`; 양 기동 프로세스·포트·임시 root 정리 | fail |
+| S11-O25-03 격리 환경 준비 | 동일 명령의 sandbox 실행은 localhost bind `EPERM`으로 제품 실행 전 실패; root 23,309,952바이트 삭제 확인. 제품 회귀로 분류하지 않음 | fail |
+| S11-O25-04 렌더 순서·영향 | `./server.sh build` exit 0; `bash scripts/internal/verify_recording_derived_event_integration.sh` exit 0, 준비 완료 작업의 접수 순서·동시각 안정성·node 소유 검사와 기존 이벤트 통합 48+1+1+2+2+2개 검사 통과, root 16,548,641바이트 삭제 | pass |
+| S11-O25-03 동일 실제 앱 재확인 | 격리 localhost 승인 실행 exit 0, 27/27. 두 기동 각각 완전 출력 2개, HTTP 200·파일 해시, 기존 자료 보존·새 참조 분리, 정상 exit 0·포트 폐쇄·root 399,405,928바이트 삭제 | pass |
+| S11-O25-03 현행 5단계 | `./server.sh verify-v410-recording-foundation --current-integration` exit 0. HTTP API 35·인증 40·수명 10·기본 구성 46·실제 앱 27개, 총 158개 검사와 전 단계 정리 통과. HTTP 378건 중 최대 3,392ms로 기존 4초 이내, 실제 앱 root 395,045,654바이트 삭제 | pass |
+
+개별 성공 assertion 162행(준비 fixture 4행 포함)은 [O25 개별 결과](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o25-results.md)와 현행 5단계 원출력에 보존한다. 이전 페이지 실패, 이후 작업 대기 실패, 권한 실패 및 중간 집중 검사 실패를 최종 PASS로 지우지 않는다. 공개 API·녹화 파일 형식·기존 4초 HTTP 및 30초 작업 관측 상한은 변경하지 않았다. `currentIntegrationExecutionPass=true`는 현행 통합의 실행 완료만 뜻하며 `fullFoundationPass=false`, `resourceTrendPass=false`, `uiFulltestPass=false`는 유지한다. O24의 장시간 자원 추세 판정, 최종 코드에 대한 30분·영향 UI·120분 및 release action은 이 결과로 대체하지 않는다. token start/end/consumed는 전용 집계가 없어 미집계이고, 현행 통합 elapsed 146,779ms는 원출력 기준이다.
