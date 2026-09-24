@@ -98,6 +98,7 @@ add_library(media_server_runtime STATIC
     src/recording/gstreamer_segment_writer.cpp
     src/recording/recording_file_evidence.cpp
     src/recording/recording_journal.cpp
+    src/recording/recording_generation_manifest.cpp
     src/recording/recording_media_inspector.cpp
     src/recording/recording_finalize_recovery.cpp
     src/recording/recording_startup_recovery.cpp

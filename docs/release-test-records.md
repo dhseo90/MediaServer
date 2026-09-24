@@ -10,7 +10,7 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 미착수 | manifest·snapshot·증분·과거 증거 원자 게시와 중단 복구의 독립 반례 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·구성 파일 결박·원자 게시 helper는 focused PASS. 실제 snapshot·증분·과거 증거 생성과 제품 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 미착수 | 새 단위의 증분 적용과 과거 상세 무재처리 계측 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -25,6 +25,59 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | B01-D01 | 계약·roadmap·기록 링크 | `./server.sh verify-docs-links`의 exit·문서/링크/오류 수 대조 | v4.1.0 |
 | B01-D02 | 문서 자산 영향 | `./server.sh verify-docs-ui-assets`의 exit·10개 개별 결과 대조 | v4.1.0 |
 | B01-D03 | 변경 공백 | `git diff --check` exit 확인 | v4.1.0 |
+
+### B-02 구현 전 단기 검사 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-B01 | 전체 제품 빌드 | `./server.sh build`에 신규 source 포함, 실제 exit와 출력 확인 | v4.1.0 |
+| B02-R01 | 실행 연결 | `./server.sh verify-v410-recording-generation`의 6개 시나리오·cleanup 대조 | v4.1.0 |
+| B02-D01 | 문서 링크 | `./server.sh verify-docs-links`의 exit·링크 오류 수 확인 | v4.1.0 |
+| B02-D02 | 문서 자산 | `./server.sh verify-docs-ui-assets`의 exit·개별 10건 확인 | v4.1.0 |
+| B02-D03 | 변경 공백 | `git diff --check` exit 확인 | v4.1.0 |
+| B02-M01 | manifest 왕복 | canonical 직렬화·엄격 파싱·같은 값 재직렬화 | v4.1.0 |
+| B02-M02 | 값·경로 거부 | 중복/미지원 필드, 잘못된 숫자, 상위·임의·symlink 경로 | v4.1.0 |
+| B02-M03 | 참조 파일 결박 | snapshot·증분·증거의 누락·다른 세대·길이·digest 변조 | v4.1.0 |
+| B02-M04 | 원자 게시 | stage/file/dir sync와 rename의 게시 순서, rename 후 sync 실패 시 내구 결과 불확실 판정 | v4.1.0 |
+| B02-M05 | 실패 보존 | 게시 전 실패와 기존 manifest byte 불변 | v4.1.0 |
+| B02-M06 | crypto 미지원 | 신규 형식 fail-closed, 기존 형식 비변경 | v4.1.0 |
+
+### B-02 manifest 첫 구현 단위 결과
+
+첫 `bash scripts/internal/verify_recording_generation_manifest.sh`는 암호화 사용 5개 시나리오
+PASS 뒤 암호화 미사용 빌드에서 미사용 선언 `kManifest`·`kStage`·`Write`가 `-Werror`로
+거부되어 exit1이었다. 선언을 지원 분기로 제한한 뒤 동일 명령은 exit0, M01~M05 44개
+assertion·M06 4개 assertion 모두 통과했다. 처음 `./server.sh verify-v410-recording-generation`은
+실행 파일 mode 누락으로 `missing internal script` exit1이었다. mode 수정 뒤 dispatch도
+exit0으로 통과했다. 두 준비 실패는 제품의 예상 RED 또는 B-02 제품 회귀로 계산하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-M01 | canonical manifest store/세대/구성 값 왕복, 3 assertion | pass |
+| B02-M02 | 중복·혼합 세대·상위 경로·수치/크기 상한·root symlink, 12 assertion | pass |
+| B02-M03 | 구성 파일 누락·symlink·hardlink·길이·동일 크기 변조·active prefix, 10 assertion | pass |
+| B02-M04 | 원자 게시·세대 교체·active tail 구분·게시 후 fsync 실패 불확실, 8 assertion | pass |
+| B02-M05 | 이전 manifest 보존·pending stage·publisher 경합·소유 임시 root 정리, 11 assertion | pass |
+| B02-M06 | OpenSSL 미사용 빌드의 serialize/parse/publish/read 거부, 4 assertion | pass |
+| B02-B01 | `./server.sh build`, 신규 source 포함 configure/build exit0 | pass |
+| B02-R01 | `./server.sh verify-v410-recording-generation`, 6/6 시나리오·cleanup removed=true, exit0 | pass |
+| B02-D01 | `./server.sh verify-docs-links`, 328문서·12777링크·197anchor·오류0, exit0 | pass |
+| B02-D02 | `./server.sh verify-docs-ui-assets`, 개별 10/10·실패0, exit0 | pass |
+| B02-D03 | `git diff --check`, exit0·출력 없음 | pass |
+
+[검증 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/b02-manifest.log)와
+[빌드 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/b02-build.log)를 보존한다.
+두 파일은 도구 응답을 전사한 것으로 직접 캡처한 raw stream이 아니다. 최초 두 실패의 raw
+stream도 저장소에 보존하지 못했다. 현재 제품의 journal·catalog는 신규 helper를 호출하지
+않으며 이 결과는 B-02 전체나 B-03~B-08 완료 증거가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `media-server-generation-manifest.*`·`recording-generation-*` | 소유 임시 빌드·fixture | 미계측 | runner/fixture 소유 조건 후 삭제 | 마지막 결과 `removed=true`, 실행 TMPDIR의 두 이름 패턴 부재 확인 | B02-R01 출력·후속 `find` |
+| `docs/release-artifacts/v4.1.0/s11-b-generation-20260925/` | 비민감 결과 전사 2개 | 356B+387B=743B | 보존 | 저장소 소유, 직접 raw stream은 아님 | 위 개별 판정·`wc -c` |
+
+이번 B-02 focused 실행의 token start/end/consumed는 집계 source가 없어 미집계, 명령별
+elapsed는 도구 대기 시간만 관측했으므로 제품 실행 지표로 사용하지 않는다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
