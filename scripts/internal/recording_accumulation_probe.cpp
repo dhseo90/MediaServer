@@ -6,6 +6,10 @@
 #include "recording_accumulation_counter.h"
 #include "recording_checkpoint_validation.h"
 #include "recording_process_memory_probe.h"
+#include <atomic>
+#include <map>
+#include <thread>
+#include <unordered_set>
 namespace {
 void Need(bool ok,const char* code){if(!ok)throw std::runtime_error(code);}
 void Pass(const char* code){std::cout<<"[pass] "<<code<<'\n';}
@@ -52,9 +56,99 @@ void Generate(const std::filesystem::path& root,const std::vector<unsigned>& cou
  Need(std::filesystem::remove(original.file),"seed-media-remove");Pass("LP26-O10-A02 typed segment binding tombstone serialization and seed file verification");Memory("generated");
 }
 std::size_t Resident(RecordingCatalog& catalog){std::size_t n=0;for(const auto& value:catalog.source_bindings_)n+=bool(value.second.resident);return n;}
+void NeedExactTimeline(RecordingCatalog& catalog,const RecordingTimelineResult& first,unsigned count,std::string* error){
+ Need(first.v2_projection&&first.total+first.unplaced_total==count&&first.items.size()==first.total,"timeline-exact-total");
+ std::unordered_set<std::string> ids,items;
+ const auto collect=[&](const RecordingTimelineItem& row){
+  Need(row.catalog_state=="deleted"&&!row.playable&&row.kind=="continuous"&&
+       ids.insert(row.segment_id).second&&items.insert(row.item_id).second,"timeline-deleted-or-duplicate");
+ };
+ for(const auto& row:first.items)collect(row);
+ std::size_t offset=0;
+ while(offset<first.unplaced_total){
+  RecordingTimelineResult page;
+  if(offset==0)page=first;
+  else Need(catalog.SnapshotTimelineV2({"probe-channel",0,std::numeric_limits<std::int64_t>::max(),offset,1000},&page,error),
+            "timeline-page");
+  Need(page.v2_projection&&page.total==first.total&&page.unplaced_total==first.unplaced_total&&
+       page.unplaced_items.size()==std::min<std::size_t>(1000,first.unplaced_total-offset),"timeline-page-shape");
+  for(const auto& row:page.unplaced_items)collect(row);
+  offset+=page.unplaced_items.size();
+ }
+ Need(ids.size()==count&&items.size()==count,"timeline-exact-id-count");
+ for(unsigned i=1;i<=count;++i)Need(ids.count("lp10-segment-"+std::to_string(i))==1,"timeline-expected-segment-id");
+}
+void DumpWorkerCosts(const std::map<std::string,fc::Metric>& metrics){
+ for(const auto& [name,m]:metrics)std::cout<<"[cost] operation=checkpoint-manual-writer scope="<<name<<" count="<<m.count
+  <<" inclusive_ns="<<m.inclusive<<" exclusive_ns="<<m.exclusive<<'\n';
+}
+std::uint64_t CostCount(const std::map<std::string,fc::Metric>& metrics,const char* suffix){
+ std::uint64_t total=0;const std::string needle=suffix;
+ for(const auto& [name,m]:metrics)if(name.size()>=needle.size()&&name.compare(name.size()-needle.size(),needle.size(),needle)==0)total+=m.count;
+ return total;
+}
+std::uint64_t CostInclusiveNs(const std::map<std::string,fc::Metric>& metrics,const char* suffix){
+ std::uint64_t total=0;const std::string needle=suffix;
+ for(const auto& [name,m]:metrics)if(name.size()>=needle.size()&&name.compare(name.size()-needle.size(),needle.size(),needle)==0)total+=m.inclusive;
+ return total;
+}
 template<class F>void Measure(const char* stage,F&& call){
  std::cout<<"[probe-stage] "<<stage<<" begin\n";fc::enabled=true;const auto begin=Clock::now();const bool ok=call();const auto us=Us(begin);fc::enabled=false;
  fc::Dump(stage);std::cout<<"[probe-wall] {\"stage\":\""<<stage<<"\",\"elapsedUs\":"<<us<<",\"ok\":"<<(ok?"true":"false")<<"}\n";Memory(stage);Need(ok,"catalog-oracle");
+}
+std::size_t AutomaticCheckpointDue(RecordingCatalog& catalog){
+ std::map<std::string,fc::Metric> automatic_costs;
+ std::size_t automatic_appends=0,automatic_payload_bytes=0;bool automatic_ok=true;std::string error;
+ std::uint64_t max_public_call_elapsed_us=0;const auto automatic_started=Clock::now();
+ fc::enabled=true;
+ while(automatic_payload_bytes<1024U*1024U){
+   AnalysisObservationV2 observation;const auto suffix=std::to_string(automatic_appends++);
+   observation.observation_id="lp10-auto-observation-"+suffix;observation.source_id="probe-source";observation.channel_id="probe-channel";
+   observation.analysis_namespace="probe-tap";observation.stream_epoch_id="probe-epoch";observation.pts=1000000+automatic_appends;
+   observation.locator_reason="unresolved";observation.track_id="probe-track-"+suffix;observation.class_label="person";
+   observation.confidence=.5;observation.bbox={.1,.1,.2,.2};observation.selection_reasons={"interval"};
+   observation.first_seen_pts=observation.pts;observation.last_seen_pts=observation.pts;observation.created_at_ms=1789204000000LL+automatic_appends;
+   automatic_payload_bytes+=SerializeAnalysisObservationV2(observation).size();
+   const auto entered=Clock::now();const bool appended=catalog.PutObservationV2(std::move(observation),&error);
+   max_public_call_elapsed_us=std::max(max_public_call_elapsed_us,static_cast<std::uint64_t>(Us(entered)));
+   if(!appended){automatic_ok=false;break;}
+ }
+ automatic_costs=fc::Take();fc::enabled=false;
+ const auto automatic_elapsed=Us(automatic_started);
+ const auto noop_attempts=CostCount(automatic_costs,"journal.TryAutomaticCheckpointNoop");
+ const auto full_fallbacks=CostCount(automatic_costs,"catalog.CheckpointLocked");
+ const auto full_checkpoint_us=CostInclusiveNs(automatic_costs,"catalog.CheckpointLocked")/1000;
+ const auto writes=CostCount(automatic_costs,"checkpoint.write"),no_writes=CostCount(automatic_costs,"checkpoint.noWrite");
+ const auto observations=catalog.QueryObservationsV2("probe-channel");
+ Need(observations.size()==automatic_appends,"automatic-public-observation-count");
+ std::cout<<"[automatic-checkpoint-path] {\"testId\":\"LP26-O14-A\",\"operation\":\"public-put-observation-v2\",\"automaticCheckpointDuePath\":true"
+          <<",\"httpRequest\":false,\"appendCount\":"<<automatic_appends<<",\"publicPayloadBytes\":"<<automatic_payload_bytes
+          <<",\"ok\":"<<(automatic_ok?"true":"false")<<",\"elapsedUs\":"<<automatic_elapsed<<",\"noopAttempts\":"<<noop_attempts
+          <<",\"fullFallbacks\":"<<full_fallbacks<<",\"fullCheckpointInclusiveUs\":"<<full_checkpoint_us
+          <<",\"maxPublicCallElapsedUs\":"<<max_public_call_elapsed_us<<",\"physicalWrites\":"<<writes<<",\"noWriteEvents\":"<<no_writes<<"}\n";
+ Need(automatic_ok&&(noop_attempts>0||full_fallbacks>0),"automatic-checkpoint-due-path-oracle");
+ Pass("LP26-O14-A public PutObservationV2 automatic CheckpointDue path classified");
+ return automatic_appends;
+}
+void Automatic(const std::filesystem::path& root,unsigned count){
+ std::size_t automatic_appends=0;
+ {
+  RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));std::string error;
+  Need(journal.Open(&error)&&catalog.Open(&error),"automatic-open");
+  Need(catalog.segments_v2_.size()==count&&catalog.tombstones_v2_.size()==count,"automatic-shape");
+  automatic_appends=AutomaticCheckpointDue(catalog);
+ }
+ RecordingJournal reopened_journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog reopened(reopened_journal,Store::Options(root));std::string error;
+ Need(reopened_journal.Open(&error)&&reopened.Open(&error),"automatic-reopen");
+ const auto report=reopened.recovery_report();const auto observations=reopened.QueryObservationsV2("probe-channel");
+ Need(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0&&
+      observations.size()==automatic_appends,"automatic-reopen-count");
+ std::unordered_set<std::string> observation_ids;for(const auto& observation:observations)observation_ids.insert(observation.observation_id);
+ for(std::size_t i=0;i<automatic_appends;++i)Need(observation_ids.count("lp10-auto-observation-"+std::to_string(i))==1,"automatic-reopen-id");
+ std::cout<<"[automatic-checkpoint-reopen] {\"testId\":\"LP26-O14-A\",\"sameRoot\":true,\"observationCount\":"<<observations.size()
+          <<",\"corruptLines\":"<<report.corrupt_line_count<<",\"projectionErrors\":"<<report.projection_error_count
+          <<",\"writerCleanupErrors\":"<<report.writer_cleanup_error_count<<"}\n";
+ Pass("LP26-O14-A public observation recovery exact IDs and zero corruption");
 }
 void Catalog(const std::filesystem::path& root,unsigned count){
  RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));std::string error;
@@ -62,6 +156,10 @@ void Catalog(const std::filesystem::path& root,unsigned count){
  const auto r=catalog.recovery_report();Need(r.corrupt_line_count==0&&r.projection_error_count==0&&r.writer_cleanup_error_count==0&&catalog.segments_v2_.size()==count&&catalog.tombstones_v2_.size()==count&&catalog.mutation_ids_.size()==count*4,"strict-recovery-count");
  std::cout<<"[catalog-shape] {\"sources\":"<<count<<",\"records\":"<<catalog.mutation_ids_.size()<<",\"deleted\":"<<catalog.tombstones_v2_.size()<<",\"residentBindings\":"<<Resident(catalog)<<"}\n";Pass("LP26-O10-A02 strict Open exact4N and deletedN zero recovery errors");
  Need(catalog.IsDeletedSegmentId("lp10-segment-1")&&!catalog.FindSourceBinding("lp10-segment-1"),"deleted-public-guard");
+ RecordingTimelineResult timeline;
+ Measure("timeline-projection",[&]{return catalog.SnapshotTimelineV2(
+   {"probe-channel",0,std::numeric_limits<std::int64_t>::max(),0,1000},&timeline,&error);});
+ NeedExactTimeline(catalog,timeline,count,&error);Pass("LP26-O14-B exact timeline count and deleted rows");
  Measure("cold-binding",[&]{std::lock_guard<std::mutex> lock(catalog.mu_);for(const auto i:{1U,count}){RecordingCatalog::SourceBindingHandle value;
    if(!catalog.AcquireSourceBindingOwnedLocked("lp10-segment-"+std::to_string(i),&value,&error)||!value||value->samples.size()!=60)return false;}return true;});
  for(unsigned run=1;run<=2;++run){lp10::records=lp10::first=0;const bool cacheBefore=bool(catalog.checkpoint_cache_);
@@ -71,6 +169,37 @@ void Catalog(const std::filesystem::path& root,unsigned count){
   Need(lp10::records==count*4&&(run==1?applied==count*4:(cacheBefore?applied==0:applied==count*4)),"cache-reuse-oracle");
  }
  Pass("LP26-O10-C02 cache prefix or full fallback exact oracle");
+ if(count==2049){
+  // 이 호출은 HTTP/자동 CheckpointDue가 아닌 명시적 수동 Checkpoint다. cache를 비워 full replay를 요구한다.
+  catalog.checkpoint_cache_.reset();
+  std::atomic<bool> writer_entered{false},writer_finished{false};bool checkpoint_ok=false;std::string checkpoint_error;
+  std::uint64_t writer_elapsed=0;std::size_t writer_records=0,writer_reused_prefix=0;std::map<std::string,fc::Metric> writer_costs;
+  std::thread writer([&]{
+   lp10::records=lp10::first=0;fc::enabled=true;writer_entered.store(true,std::memory_order_release);const auto started=Clock::now();
+   checkpoint_ok=catalog.Checkpoint(&checkpoint_error);writer_elapsed=Us(started);writer_records=lp10::records;writer_reused_prefix=lp10::first;
+   writer_costs=fc::Take();fc::enabled=false;writer_finished.store(true,std::memory_order_release);
+  });
+  while(!writer_entered.load(std::memory_order_acquire))std::this_thread::yield();
+  bool writer_lock_owner_observed=false;
+  for(unsigned i=0;i<1000&&!writer_finished.load(std::memory_order_acquire);++i){if(!catalog.mu_.try_lock()){writer_lock_owner_observed=true;break;}
+   catalog.mu_.unlock();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
+  RecordingTimelineResult concurrent;const auto started=Clock::now();
+  const bool queried=writer_lock_owner_observed&&catalog.SnapshotTimelineV2(
+    {"probe-channel",0,std::numeric_limits<std::int64_t>::max(),0,1000},&concurrent,&error);
+  const auto reader_elapsed=Us(started);writer.join();DumpWorkerCosts(writer_costs);
+  const auto writer_applied=writer_records-writer_reused_prefix;
+  std::cout<<"[manual-checkpoint-contention] {\"testId\":\"LP26-O14-A\",\"sources\":"<<count<<",\"operation\":\"manual-checkpoint\",\"automaticCheckpointDue\":false,\"httpRequest\":false"
+           <<",\"writerCallEntered\":true,\"writerLockOwnerObserved\":"<<(writer_lock_owner_observed?"true":"false")
+           <<",\"readerAttemptedWhileWriterHeldLock\":"<<(writer_lock_owner_observed?"true":"false")
+           <<",\"writerOk\":"<<(checkpoint_ok?"true":"false")<<",\"writerElapsedUs\":"<<writer_elapsed
+           <<",\"writerOriginalRecords\":"<<writer_records<<",\"writerReusedPrefix\":"<<writer_reused_prefix<<",\"writerOriginalApplied\":"<<writer_applied
+           <<",\"readerOk\":"<<(queried?"true":"false")<<",\"readerElapsedUs\":"<<reader_elapsed
+           <<",\"readerTimelineTotal\":"<<concurrent.total<<",\"readerTimelineUnplacedTotal\":"<<concurrent.unplaced_total<<"}\n";
+  Need(writer_lock_owner_observed&&checkpoint_ok&&queried&&writer_records==count*4&&writer_reused_prefix==0&&writer_applied==count*4,
+       "manual-full-checkpoint-contention-oracle");
+  NeedExactTimeline(catalog,concurrent,count,&error);Pass("LP26-O14-A manual full checkpoint and same-lock timeline measurement");
+
+ }
 }
 }
 int main(int argc,char** argv){std::cout<<std::unitbuf;try{
@@ -78,6 +207,7 @@ int main(int argc,char** argv){std::cout<<std::unitbuf;try{
  if((argc==3||argc==4)&&std::string(argv[1])=="--generate"){
   std::vector<unsigned> counts{16U,1020U,2049U};if(argc==4){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2049,"count");counts={static_cast<unsigned>(count)};}Generate(argv[2],counts);return 0;}
  if(argc==4&&std::string(argv[1])=="--catalog"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2049,"count");Catalog(argv[2],count);return 0;}
+ if(argc==4&&std::string(argv[1])=="--automatic"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");Automatic(argv[2],count);return 0;}
  return 2;
  }catch(const std::exception& error){const std::string code=error.what();const bool safe=!code.empty()&&code.size()<80&&code.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-")==std::string::npos;
   std::cerr<<"[fail] LP26-O10 native "<<(safe?code:"stage-or-oracle")<<'\n';return 1;}}

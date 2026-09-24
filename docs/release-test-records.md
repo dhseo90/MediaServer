@@ -1,4 +1,79 @@
-# Release Test Records
+# 릴리즈 테스트 기록
+
+## v4.1.0 S11 LP26-O14 누적 지연 원인 분리
+
+독자: 녹화 저장·검증 담당자. 수명: 이번 S11 원인 확정과 후속 영향 검증. 기록 기준은 AGENTS.md다.
+이번 안정화 검사만 사전등록한다. 30분·120분·UI 전수는 미실행이며 이 결과로 대체하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O14-A | 실제 호출별 비용·분기 구분 | 수동 전체 체크포인트와 자동 no-op/부적격 전체 처리의 진입 조건, 같은 호출의 잠금 소유·대기·전체 시간을 따로 기록하고 실제 HTTP 추적과 대조 | v4.1.0 |
+| LP26-O14-B | 타임라인 정확성 | 누적 삭제 원본의 정확한 ID·개수, 누락/중복/재생 허용 오류를 거부 | v4.1.0 |
+| LP26-O14-C | 계측 출처 | instrumented 제품 소스와 연결 정적 archive의 현재성·hash를 확인하고 불일치하면 성능 판정 거부 | v4.1.0 |
+
+기존 [수동 동시성 실패 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)의 8.435488초는 타임라인 호출 전체 값이다.
+직전 순차 실행의 8.428초 잠금 점유·3.829초 읽기·4.470초 재적용을 같은 호출의 세부값으로 합산하지 않는다.
+이전 [실제 앱 지연 추적](release-artifacts/v4.1.0/s11-preparation-mapping/latency-7b820213-4e1a-4f2f-86c9-0399ec607c75.json)은 타임라인 약 4.013초이며 느린 전체 체크포인트 범위가 없다.
+따라서 수동 반례는 운영 HTTP 실패의 원인 확정이 아니고, 자동 경로의 도달성은 별도 확인 대상이다.
+실행 결과·초기 실패·정리·증거 한계는 아래 행과 원출력에서 구분한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-O14-A 수동 전체 처리·동시 조회 | [공개 경로 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-public-diagnostic.log): 2,049개 삭제 원본에서 수동 체크포인트 8.410초·동시 타임라인 호출 8.418초. 실제 HTTP나 자동 경로로 전용하지 않음 | pass |
+| LP26-O14-A 공개 자동 no-op·복구 | 같은 원출력: 공개 관측 1,526건, 자동 no-op 1회·전체 재작성 0회, 최대 단일 공개 호출 18.508ms, 재개방 뒤 ID 전수·손상/투영/정리 오류 0 | pass |
+| LP26-O14-B 타임라인 정확성 | 같은 원출력: 삭제 원본 2,049개 ID·총계·중복 없음·비재생 상태 확인 | pass |
+| LP26-O14-C 출처·정리 | 같은 원출력: instrumented 소스 hash와 현재 `media_server_runtime` archive hash 기록, subprocess 정상 종료·격리 root 부재 확인 | pass |
+| LP26-O14 실제 HTTP 집중 | 최초 격리 실행은 localhost bind EPERM으로 요청 전 중단·root 정리. [허용 재실행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-latency-focused-authorized.log)은 타임라인 HTTP 114개·최대 967ms, 프로세스 exit0·포트/root 정리 | pass |
+| LP26-O14 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration.log)·[개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): HTTP API 35, 인증 40, lifecycle 10, default 46, 실제 앱 27개 모두 통과. 두 기동의 실제 출력2개씩·HTTP/해시·재기동 보존·정리 확인. `currentIntegrationExecutionPass=true`; `fullFoundationPass=false` 유지 | pass |
+
+자동 전체 재작성의 **공개 API 도달성은 미확인**이다. 이전 내부 합성 입력은 별도 [실패·보완 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)으로 보존한다.
+위 pass는 표시한 검사 범위에만 적용한다. 실제 HTTP 4초와 5단계 통합은 이번 집중 실행에서 통과했지만 장시간·UI·버전 전체 PASS가 아니다.
+
+## v4.1.0 S11 LP26-O12 누적 안전성·현행 통합
+
+LP26-O13 실행 전 정의: 두 번째 기동의 원본 영속 순서·선택 segment hash·원본
+시작/종료 PTS·tap 최신 PTS를 최대 512행/30초 관찰한다.
+`node scripts/internal/verify_recording_current_app.mjs --diagnose-restart-boundary`의
+격리 실제 앱 실행·종료·root 정리를 확인한다. 예상 결과는 원본 전이와 tap 시점의
+관계를 분류할 수 있는 직접 값 확보이며, 두 출력/재기동 통합 PASS가 아니다.
+LP26-O13 후속 실행 전 정의: 기존 `S11-CI07/08/11` 검사에서 고정 격리 입력 파일의
+키프레임/timebase/30초 길이를 ffprobe로 확인하고 첫 8.333초 경계만 두 기동의 조기 이벤트 기준으로 사용한다. 두 번째 기동
+EventRecord·새 원본/출력 2개·HTTP/해시·정상 종료와 기존 파일 불변을 직접 대조한다.
+실패 복제본 진단은 첫 기동 archive 사본과 분리한 해당 기동의 종료 후 복제본을 쓰며,
+정리 성공/실패를 별도 확인한다. 시간제한·HTTP 4초 기준을 완화하지 않는다.
+S11-CI11 추가 실행 전 정의: 동일 분석 프레임의 실제 dispatch 참조를 원본 EventRecord에서
+수집하고, 검증된 서버 완료 추적상 모든 작업이 complete/failed 종단 상태에 도달하고 저장소에 남은 하드링크가
+없는 안정 구간을 제품의 원본 대기 상한 60초 안에 관측한다. 기존 선택 출력 30초·HTTP 4초는 유지한다.
+이 정착 판정은 선택 출력 완료 이후 병렬 파생 작업의 종료 전 상태를 확인하는 별도 단계다. 이후 두 기동 종료·동일 바이트/해시 복제본
+복구를 확인한다. 선택한 작업의 두 출력 PASS만으로 다른 작업의 publication 정착을
+대체하지 않으며 제한 시간 초과 또는 소유/링크 모순은 FAIL이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O12-01 | 보존 안전성 회귀 | 현행 v2 보존의 pin·hold·참조·삭제 및 GST 지원/미지원 경계 | v4.1.0 |
+| LP26-O12-02 | 손상·복구 회귀 | 손상/ID 충돌 거부, SQLite 재투영/fallback, 재개방·중단 경계 | v4.1.0 |
+| LP26-O12-03 | 실제 현행 통합 | HTTP API·Auth·lifecycle·default·실제 이벤트 출력2개/해시/재기동 5단계 | v4.1.0 |
+
+실행 전 정의다. 기존 O10 최종 synthetic 2,049개 복구12.127초와 O11 실제 앱30초의
+유효 증거만 범위대로 사용한다. 1,020개 원본의 동시 실제 HTTP 부하 및 120분
+자원 추세는 그 증거로 대체하지 않는다. 순서대로 단기 검사 후 실패 시 뒤 단계는
+건너뛰며, 첫 실패·정리·미실행을 결과표에 보존한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-O12-01 GST 보존 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-retention-v2.log): 22/22, 소유 root 삭제 | pass |
+| LP26-O12-01 GST 미지원 보존 | 같은 원출력: 2/2, 소유 root 삭제 | pass |
+| LP26-O12-02 손상·SQLite fallback | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-corruption.log): 92/92, 소유 root 삭제 | pass |
+| LP26-O12-02 복구 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-recovery.log): 40/40, 소유 root 삭제 | pass |
+| LP26-O12-03 첫 실제 앱 통합 | [최초 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-current-integration.log): 선택 참조의 출력 관측 제한 초과, 앞 4단계 PASS | fail |
+| LP26-O12-03 두 번째 실제 앱 통합 | [재검증 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-current-integration-r2.log): 첫 기동 출력2개·HTTP·해시 PASS, 두 번째 기동 원본 경계 포착 FAIL; 최초 cleanup FAIL 뒤 소유 root 사후 삭제 | fail |
+| LP26-O12-03 세 번째 실제 앱 통합 | [재검증 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-current-integration-r3.log): 첫 기동 출력2개·HTTP·해시 PASS, 두 번째 기동 동일 경계 포착 FAIL; 모든 프로세스·포트·root 정리 PASS | fail |
+| LP26-O13 단독 실제 앱 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o13-current-integration-r7.log): 두 기동 실제 EventRecord·완전 출력2개·HTTP/해시·복구·정리, 개별 27/27 | pass |
+| LP26-O13 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o13-full-integration.log): 앞 네 단계 통과 후 실제 앱 두 번째 기동 타임라인 GET 4,001ms로 HTTP 4초 제한 초과, 전체 통합 미완료 | fail |
+
+결과와 개별 실패 경과는 [O12 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md)을 참조한다.
+실제 1,020개 동시 HTTP, 최종 30분·120분·UI 풀테스트는 이 실행에서 **미실행**이며
+위 pass를 해당 영역의 완료 증거로 사용하지 않는다. 현행 5단계 통합은 미완료다.
 
 ## v4.1.0 S11 LP26-O11 상태 용량 집계
 

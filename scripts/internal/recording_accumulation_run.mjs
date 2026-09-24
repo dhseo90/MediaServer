@@ -41,7 +41,9 @@ try{
     await run(['--catalog',dir,String(sources)],15000);
     const actualCheckpointRotation=fs.statSync(file).ino!==before;
     if(!actualCheckpointRotation){fs.copyFileSync(file,file+'.owned-copy',fs.constants.COPYFILE_EXCL);fs.renameSync(file+'.owned-copy',file);}
-    console.log('[probe-rotation] '+JSON.stringify({sources,actualCheckpointRotation,identicalBytesReplacement:!actualCheckpointRotation}));drain(observer,sources,'rotated');observer.close();
+    console.log('[probe-rotation] '+JSON.stringify({sources,actualCheckpointRotation,identicalBytesReplacement:!actualCheckpointRotation}));drain(observer,sources,'rotated');
+    if(sources===2049)await run(['--automatic',dir,String(sources)],30000);
+    observer.close();
   }
   let rejected=false;try{normalizeCurrentRows(normalizer,['{"schema":"invalid"}']);}catch(error){rejected=error.message==='observer-native-rejected';}
   if(!rejected)throw Error('corrupt-oracle');console.log('[pass] LP26-O10-E01 malformed mutation rejected');

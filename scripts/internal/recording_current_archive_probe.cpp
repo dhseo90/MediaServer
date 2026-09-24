@@ -190,7 +190,7 @@ int main(int argc,char** argv){
         const bool state=diagnostic&&std::string(argv[4])=="--diagnose-state";
         Require(argc==4||(diagnostic&&(std::string(argv[4])=="--diagnose-failed"||replay||basic||completeness||state)),"arguments");
         const fs::path root=argv[1];const std::string index=argv[2],reference=argv[3];
-        Require(index=="1"||index=="2","copy-index");
+        Require(index=="1"||index=="2"||index=="3","copy-index");
         struct stat st{};Require(lstat(root.c_str(),&st)==0&&S_ISDIR(st.st_mode)&&st.st_uid==getuid()&&(st.st_mode&0777)==0700,"owned-root");
         Require(root.filename().string().rfind("media-server-current-integration-",0)==0&&fs::canonical(root)==root,"root-containment");
         const auto copy=root/("projection-copy-"+index)/"recordings";

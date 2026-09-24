@@ -24,7 +24,8 @@ export function createCompletionTraceCollector(){
       rows.push(value);
     }
     if(Buffer.byteLength(pending)>2*1024*1024)reject('completion-line-cap');
-  },finish(){if(failure)throw Error(failure);if(pending.startsWith(prefix))reject('completion-partial');return rows.slice();},
+  },snapshot(){if(failure)throw Error(failure);return rows.slice();},
+  finish(){if(failure)throw Error(failure);if(pending.startsWith(prefix))reject('completion-partial');return rows.slice();},
   status(){return {status:failure?'invalid':rows.some(x=>x.event===14)?'loss':'observed',code:failure??'none',rows:rows.length,bytes};}};
 }
 export function summarizeCompletion(rows,reference){

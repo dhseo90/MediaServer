@@ -1,5 +1,410 @@
 # LP26-O10 격리 누적 선행 진단 결과
 
+## LP26-O14 누적 경로 분리와 현행 통합 재확인
+
+독자/유지주기: S11 저장·HTTP 지연 원인 대조와 이후 장시간 검증까지. 아래는 이전 O13 실패를 소급 삭제하지 않는 현재 집중 검증 결과다.
+
+- 수동 전체 체크포인트와 동시 타임라인은 2,049개 삭제 원본에서 각 약 8.41초였다. 실제 HTTP 또는 자동 처리의 값이 아니다. 공개 `PutObservationV2` 1,526건으로 자동 진입한 경우는 no-op 1회·전체 재작성 0회였고, 동일 root 재개방에서 ID·손상 0을 확인했다. 자동 전체 재작성의 정상 공개 도달성은 미확인이다. [상세](o14-contention.md) · [원출력](o14-public-diagnostic.log)
+- 현행 실제 HTTP 집중 검사는 타임라인 114개 전부 기존 4초 이내(최대 967ms), exit0·포트/root 정리 통과. 최초 sandbox bind EPERM은 환경 준비 실패로 보존한다. [원출력](o14-latency-focused-authorized.log)
+- 현행 5단계 통합은 API 35·인증 40·lifecycle 10·default 46·실제 앱 27개를 모두 통과했다. 두 기동 각각 실제 완전 출력 2개·HTTP200/해시·재기동 보존·정상 종료/정리를 확인했다. summary의 `currentIntegrationExecutionPass=true`이고 `fullFoundationPass=false`이므로 S11 전체·120분·UI PASS는 아니다. [원출력](o14-full-integration.log)
+
+이번 턴 제품 로직 변경은 없다. 기존 타임라인 소유권 색인 변경은 현재 HEAD에 이미 포함돼 있으며, 다른 실행 부하의 결과 차이를 단일 수정의 인과효과로 단정하지 않는다.
+
+## LP26-O13 재기동 경계 원인·한정 재검증
+
+독자/유지주기: S11 실제 앱 통합 실패 원인과 실패 이력을 보존한다. 이 절은 전체 통합 PASS가 아니다.
+
+| 실행 | 직접 관측 | 판정·후속 |
+| --- | --- | --- |
+| `--diagnose-restart-boundary` | 첫 기동 실제 출력 2개 이후 재기동 30초 관측 106표본. 이전 기동 끝 25초와 새 기동 시작 0초가 원본 순서에 함께 남고, 확정 원본 끝과 tap PTS의 250~500ms 창은 0회. 프로세스 exit0·포트 종료·격리 루트 104,936,583B 삭제 | 이전 epoch의 최신 원본을 재기동 tap PTS와 비교한 검증기 선행 조건 오류 확인. 제품 결함은 이 관측으로 확정하지 않음. [원출력](o13-restart-boundary.log) |
+| 다음 경계 25초 실제 앱 | 첫 기동 25.333초 이벤트 참조는 생성됐으나 30초 안에 두 출력 미관측. 프로세스 exit0·포트 종료·격리 루트 94,614,343B 삭제 | 실패 보존. fixture EOS에 가까운 세 번째 경계는 두 출력 검증의 안정된 선행 조건이 아님. [원출력](o13-current-integration.log) |
+| 두 번째 경계 16.667초 실제 앱 | 첫 기동 완전 출력 2개·HTTP200·해시·종료·재기동 기존 출력 2개 HTTP200 통과. 두 번째 기동은 17.0초 이벤트 후 새 작업 완료가 30초 내 관측되지 않아 실패. 종료 직전 작업은 `failed`; 종료 후 격리 복제본에서 `job-remux: work-cancelled` 확인 | 작업 취소는 검증기 시간초과 뒤 서버 종료에 따른 결과이므로 최초 대기 원인으로 단정하지 않음. 첫 기동의 완료 소요 약 25.4초, 두 번째는 요청 후 약 29.2초에 준비 전이하여 기존 30초 관측 안에 remux 완료 여유가 없었음. [원출력](o13-current-integration-r2.log) |
+| 두 번째 경계 실패 정리 | 두 제품 프로세스 exit0·포트 종료. 첫 기동 때 만든 `projection-copy-1`을 두 번째 기동 실패 진단에 재사용해 복제본 불일치로 안전한 상태 기록 실패. 원출력의 격리 루트 239,081,304B가 남음. 종료 후 새 `projection-copy-2`에서 선택 참조 1건의 `failed` 상태·source 2·planned output 2·receipt 2·실제 output 0을 직접 대조. 원출력·상태·실패 코드 보존 후 루트 소유자·0700·실경로를 확인하고 해당 루트만 삭제, 부재 재확인(exit 0) | 원본 복제본의 시점 혼동은 검증기 결함. 재기동의 작업 미완료와 구분한다. 최초 cleanup FAIL 이력은 유지 |
+| 재기동 조기 트리거 실제 앱 | 첫 기동 16.933초 완전 파일 2개, 재기동은 첫 기동의 확정된 8.333초 fixture 경계를 힌트로 8.633초 실제 이벤트를 발생시킴. 두 번째 기동도 완전 파일 2개·HTTP200·해시·기존 파일 불변·두 프로세스 exit0/포트 종료까지 확인 | `archiveProbe(2)`에서 전체 store의 `archive-not-regular-single-link`로 실패하므로 최종 통합 PASS 아님. [원출력](o13-current-integration-r3.log) |
+| 재기동 조기 트리거 정리 진단 | 종료된 격리 저장소를 읽기 전용으로 확인: 파생 job 상태 `complete` 4, `failed` 1, `committed` 1. 마지막 committed job의 최종 파일 2개와 임시 파일 2개가 각각 동일 inode 하드링크(`nlink=2`)라 전체 store를 단일 링크만 허용하는 archive 검사와 충돌. 원출력의 임시 루트 180,100,905B가 진단 실패 뒤 남음. 원출력·상태 집계·링크 수 보존 뒤 루트 소유자·0700·실경로 확인, 해당 루트만 삭제·부재 확인(exit0) | 선택한 새 이벤트의 출력 성공과 **다른 동시 작업**의 커밋/정리 미완료를 구분해야 함. 서버 종료 전에 파생 publication의 정착을 확인하고 그 뒤 archive 검사 필요. 최초 cleanup FAIL 이력 유지 |
+| 같은 경계 정착 보완 후 실제 앱 | 첫 기동 17.033초 이벤트 참조·intent까지 확인, 30초 안 두 출력 미관측. 종료 후 안전한 복제본 상태 진단은 선택 작업 `complete`·출력 2개를 확인했지만 실행 중 관측 FAIL은 유지. 프로세스 exit0·포트 종료·격리 루트 195,828,612B 삭제 | 키프레임 16.667초 경계의 자연 원본 대기와 렌더가 30초 검사 창에 근접한다. 시간제한은 늘리지 않고 실제 입력 키프레임 8.333초를 두 기동 모두에 사용하도록 선행 조건을 바꾼다. [원출력](o13-current-integration-r4.log) |
+| 입력 키프레임 8.333초 실제 앱 | ffprobe로 고정 입력의 0/8.333/16.667/25초 키프레임과 30초 길이를 확인. 첫 기동 실제 이벤트·완전 출력2개·HTTP200 후, 별도 archive 정착 15초 조건에 걸려 재기동 미실행. 종료 추적상 같은 프레임 4개 작업은 기동 후 약 23.8/29.4/34.9/40.0초에 모두 complete. 프로세스 exit0·포트 종료·격리 루트 176,520,003B 삭제 | 15초는 선택 출력 관측 뒤 다른 직렬 작업의 종료를 보기에 부족한 검증기 신규 기준이었다. 선택 출력 30초·HTTP 4초는 유지, 종료 전 정착은 제품의 원본 대기 60초 상한에 결박하고 상태별 계측 추가. [원출력](o13-current-integration-r5.log) |
+| 정착 대기 보완 후 실제 앱 | 첫 기동 실제 두 출력·복제본 바이트/해시·복구 PASS, 재기동 새 이벤트 두 출력·HTTP200 PASS. 두 번째 정착 조회에서 타임라인 전체 file-group의 펼친 멤버 상한 4,096개가 걸려 `page-bound`로 FAIL. 종료 후 두 프로세스 exit0·포트 종료·루트 413,448,824B 삭제 | 전체 타임라인의 안전 상한을 늘리지 않고 기존 서버 완료 추적의 행별 종단 상태와 저장소 단일 링크 검사만 정착 판정에 사용. [원출력](o13-current-integration-r6.log) |
+| 완료 추적 정착 보완 후 단독 실제 앱 | `node scripts/internal/verify_recording_current_app.mjs` exit 0, 개별 27/27. 두 기동 각각 실제 EventRecord·완전 출력 2개·HTTP200·파일 해시와 기존 파일 불변·archive 복구 확인. 두 프로세스 exit0·포트 종료·격리 루트 393,949,346B 삭제 | 단독 실제 앱 범위 PASS. 전체 5단계 통합·누적 자원·장시간/UI PASS로 확대하지 않음. [원출력](o13-current-integration-r7.log) |
+| 현행 5단계 통합 | `./server.sh verify-v410-recording-foundation --current-integration` exit 1. HTTP API 35/35, Auth 40/40, lifecycle 10/10, default 구성 46/46 통과. 실제 앱 두 번째 기동의 타임라인 GET 15번째가 HTTP 응답 헤더 4,001ms로 기존 4초 제한을 초과. 해당 단계 19 pass/1 fail, `fullFoundationPass=false`. 두 프로세스 exit0·포트 종료·격리 루트 376,531,172B 삭제 | 전체 통합 FAIL. 반복 실행하지 않고 같은 요청의 지연 증거로 분기: Query 약 3,994ms 중 Finish 약 2,366ms, catalog projection 잠금 점유 약 1,628ms, 잠금 대기 합계 약 1,657ms, 응답 직렬화 약 18ms. 잠금·매체 검증의 비용 개선 계약이 필요하며 HTTP 제한 연장이나 재생 안전성 완화는 하지 않음. [원출력](o13-full-integration.log), [지연 추적](../s11-preparation-mapping/latency-7b820213-4e1a-4f2f-86c9-0399ec607c75.json) |
+
+이 검사에는 외부 서비스·실기기를 사용하지 않았다. HTTP 개별 응답 제한 4초, 제품의 원본 대기 상한 60초는 바꾸지 않았다.
+토큰 start/end/consumed는 이 실행의 집계 제공이 없어 미집계다. 실제 경과는 각 원출력의 마지막 요약을 따른다.
+
+## LP26-O12 실제 통합 재검증 진행 중: 실패·정리 기록
+
+독자/유지주기: S11 4번 집중 회귀의 최초 실패와 한정 재검증을 보존한다.
+완료 판정이 아니다. 최종 제품 범위·전체 릴리즈 gate는 미확인이다.
+`o12-recovery.log`의 두 행끝 공백은 Git 공백 검사 때문에 표시본에서만 제거했다. 원출력 바이트는 [압축본](o12-recovery.log.gz)에 보존했다.
+
+| 실행 | 관측 결과 | 원출력 |
+| --- | --- | --- |
+| 첫 `--current-integration` | 앞 네 단계 PASS. 실제 앱의 선택 참조는 네 번째 직렬 렌더 작업으로 15.549초 대기했고, 관측 제한 종료 직후 job complete·출력2개를 복제본에서 확인했다. 타임라인의 두 출력 관측은 FAIL로 유지 | [첫 실행](o12-current-integration.log) |
+| 첫 실행 정리 | 실제 앱 프로세스 exit0·HTTP/RTSP 포트 종료·격리 root 172,594,186B 삭제 확인 | [첫 실행](o12-current-integration.log) |
+| 두 번째 `--current-integration` | 검증기를 dispatch 응답 첫 이벤트 선택으로 바꾸고 같은 시간 제한으로 재검증. 첫 기동 실제 출력2개·HTTP200·파일 해시·원본 불변·정상 종료 PASS. 두 번째 기동 기존 출력2개 HTTP200 뒤 좁은 경계 포착이 `interior-source-boundary-timeout`으로 FAIL; 새 이벤트/출력·전체 통합 PASS 아님 | [두 번째 실행](o12-current-integration-r2.log) |
+| 두 번째 실행 정리 | 두 제품 프로세스 exit0·포트 종료. 진단기가 첫 기동 참조를 두 번째 기동 실패에 사용해 state evidence를 확보하지 못했고, 격리 root 104,744,895B가 남아 최초 cleanup FAIL. 원출력·요약 보존과 소유자/경로 확인 후 해당 root만 삭제하고 부재 재확인(exit0). 최초 FAIL은 유지 | [두 번째 실행](o12-current-integration-r2.log) |
+| 세 번째 `--current-integration` | 같은 경계에서 tap PTS를 8회까지 빠르게 재관측하고 이전 기동 참조를 초기화한 뒤 원래 제한으로 실행. 첫 기동 출력2개·HTTP200·해시·기존 데이터 재조회 PASS. 두 번째 기동에서 동일 `interior-source-boundary-timeout`으로 FAIL. 따라서 좁은 창만이 원인이라는 가설은 불충분하며 전체 통합은 미완료 | [세 번째 실행](o12-current-integration-r3.log) |
+| 세 번째 실행 정리 | 두 제품 프로세스 exit0·HTTP/RTSP 포트 종료, 격리 root 105,119,536B 삭제·부재 확인. 진단은 해당 기동의 참조 부재로 미실행이며 첫 기동 참조를 오용하지 않음 | [세 번째 실행](o12-current-integration-r3.log) |
+
+두 번째 기동은 source finalize가 진행됐고 새 epoch도 발생했다. 타임라인 조회가 약 0.5초여서
+좁은 tap PTS 창 누락을 의심했지만, 창 안 재관측 후에도 같은 실패가 반복됐다. 최신 원본의
+epoch/순서와 tap PTS가 같은 축인지, 재기동 시 원본 선택이 맞는지 직접 계측해야 한다.
+이는 제품 결함 확정도, 검증기 PASS도 아니다. 같은 전체 검사를 근거 없이 반복하지 않는다.
+HTTP 4초·복구 15초 기준은 변경하지 않았다. token start/end/consumed는 집계 제공이 없어 미집계.
+LP26-O12 경계 재관측 자체검사의 첫 fixture는 250ms 하한값을 실패로 잘못 예상해
+50/51 FAIL이었다. 하한 포함 계약대로 입력을 249.999999ms로 바로잡고 동일 검사를 재실행해 51/51 PASS했다.
+이는 실제 앱 통합 PASS를 대체하지 않는다.
+
+### LP26-O12 실행 개별 결과 전수
+
+아래 행은 원출력의 `[pass]`·`[fail]` 전수다. 실행하지 않은 항목은 이 표에 넣지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| o12-current-integration.log:4 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:48 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:97 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:98 | D3D-07 valid MP4 free atom64MiB·최종 physical/hash 검증 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:114 | D02-03 동일 source/channel/ns immutable snapshot 전달 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:115 | D02-03 다른 channel 증거 혼합 거부 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:116 | D02-03 stop namespace 증거 삭제 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:117 | D02-03 cache capacity 이전 namespace eviction · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:118 | D02-03 전체 stop 후 publication/query 거부 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:119 | D02-01 신규 root 자동 내구 store identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:120 | D02-01 재개방 동일 store identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:121 | D02-01 서로 다른 root 난수 identity 구별 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:122 | D02-02 managed lease 동시 소유 거부 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:123 | D02-01 명시 ID 기존 계약 유지 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:124 | D02-02 명시 ID 충돌 원본 marker 보존 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:125 | D02-02 같은 init 내구 ID 복구 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:126 | D02-02 legacy nonempty 변환·삭제 거부 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:127 | D02-02 손상/unknown marker 덮어쓰기 거부 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:128 | D02-06 실제 H264 입력 준비 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:131 | D02-05 실제 V2 finalized startup 미디어 전수 검사 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:132 | D02-05 실제 V2 size/hash 손상 감지·catalog Mark · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:133 | D02-10 default 준비16s·500ms·33회 예산 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:134 | D02-10 overflow 요청은60s/121회 capped 사유 보존 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:135 | D02-06 on 구성의 동일 managed store/catalog writer 결박 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:136 | D02-07 빈 저장소 runtime 복구 함수 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:137 | D02-06 off managed 형식 유지·미디어 비생산 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:138 | D02-04/11 raw key→numeric 참조·history null provider 접수·공개 record 불변 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:139 | D02-11 raw stream/channel/sourcecontext 모순은 신규 저장·접수 없음 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:142 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:143 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:144 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:145 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:146 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:147 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:149 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:150 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:151 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:152 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:153 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:154 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:155 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:156 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:158 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:159 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:167 | D02-04/10 실제 default10s+post5s 후행 finalize·동시 실제decoder cache·2출력 decode · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:169 | D02-01 crypto-off OS CSPRNG 생성/재개방 identity · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:170 | D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:173 | D02-07 runtime startup committed-parent recovery/보호/물리검사 순서 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:176 | D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:178 | D02-07 runtime startup intent recovery/보호/물리검사 순서 · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:201 | S11-CI09 product-1 healthy isolated ICE · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:541 | S11-CI07 run1 actual tuple EventRecord reference · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:1185 | LP03-B diagnostic copy bytes/hash exact · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-current-integration.log:1188 | LP03-B original unchanged after diagnostic · [원출력](o12-current-integration.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:2 | truncated open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:3 | truncated uncommitted before append · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:4 | truncated append:  · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:5 | truncated valid2 and next ID preserved · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:6 | truncated quarantine byte exact · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:7 | truncated restart no mutation · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:8 | truncated second append retained · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:9 | truncated no redundant archive · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:10 | complete-no-lf open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:11 | complete-no-lf uncommitted before append · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:12 | complete-no-lf append:  · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:13 | complete-no-lf valid2 and next ID preserved · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:14 | complete-no-lf quarantine byte exact · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:15 | complete-no-lf restart no mutation · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:16 | complete-no-lf second append retained · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:17 | complete-no-lf no redundant archive · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:18 | empty journal is valid · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:19 | empty append retained · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:20 | large newline prefix byte preserved · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:21 | middle corrupt line preserved and valid entries read · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:22 | directory quarantine journal open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:23 | directory quarantine failure original unchanged · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:24 | symlink quarantine journal open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:25 | symlink quarantine failure original unchanged · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:26 | hardlink quarantine journal open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:27 | hardlink quarantine failure original unchanged · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:28 | exact quarantine journal open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:29 | existing exact quarantine restart reuse · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:30 | journal symlink refused · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:31 | journal hardlink refused · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:32 | inode pin open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:33 | replacement inode append/reopen/replay refused · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:34 | catalog refuses failed journal Replay · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:35 | user parent symlink refused · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:36 | parent traversal refused · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:37 | deleted journal initial open · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:38 | deleted journal reopen does not recreate · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:39 | deleted parent reopen does not recreate · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:40 | macOS tmp system alias allowed · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-recovery.log:41 | oversized tail fails closed with original bytes · [원출력](o12-recovery.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:4 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:48 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:97 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:98 | D3D-07 valid MP4 free atom64MiB·최종 physical/hash 검증 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:114 | D02-03 동일 source/channel/ns immutable snapshot 전달 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:115 | D02-03 다른 channel 증거 혼합 거부 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:116 | D02-03 stop namespace 증거 삭제 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:117 | D02-03 cache capacity 이전 namespace eviction · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:118 | D02-03 전체 stop 후 publication/query 거부 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:119 | D02-01 신규 root 자동 내구 store identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:120 | D02-01 재개방 동일 store identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:121 | D02-01 서로 다른 root 난수 identity 구별 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:122 | D02-02 managed lease 동시 소유 거부 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:123 | D02-01 명시 ID 기존 계약 유지 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:124 | D02-02 명시 ID 충돌 원본 marker 보존 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:125 | D02-02 같은 init 내구 ID 복구 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:126 | D02-02 legacy nonempty 변환·삭제 거부 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:127 | D02-02 손상/unknown marker 덮어쓰기 거부 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:128 | D02-06 실제 H264 입력 준비 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:131 | D02-05 실제 V2 finalized startup 미디어 전수 검사 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:132 | D02-05 실제 V2 size/hash 손상 감지·catalog Mark · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:133 | D02-10 default 준비16s·500ms·33회 예산 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:134 | D02-10 overflow 요청은60s/121회 capped 사유 보존 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:135 | D02-06 on 구성의 동일 managed store/catalog writer 결박 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:136 | D02-07 빈 저장소 runtime 복구 함수 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:137 | D02-06 off managed 형식 유지·미디어 비생산 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:138 | D02-04/11 raw key→numeric 참조·history null provider 접수·공개 record 불변 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:139 | D02-11 raw stream/channel/sourcecontext 모순은 신규 저장·접수 없음 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:142 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:143 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:144 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:145 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:146 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:147 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:149 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:150 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:151 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:152 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:153 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:154 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:155 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:156 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:158 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:159 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:167 | D02-04/10 실제 default10s+post5s 후행 finalize·동시 실제decoder cache·2출력 decode · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:169 | D02-01 crypto-off OS CSPRNG 생성/재개방 identity · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:170 | D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:173 | D02-07 runtime startup committed-parent recovery/보호/물리검사 순서 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:176 | D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:178 | D02-07 runtime startup intent recovery/보호/물리검사 순서 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:197 | S11-CI09 product-1 healthy isolated ICE · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:456 | S11-CI07 run1 actual tuple EventRecord reference · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:782 | S11-CI07 run1 literal two output files all pages · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:784 | S11-CI07 run1 output1 HTTP200 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:786 | S11-CI07 run1 output2 HTTP200 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:791 | S11-CI08 product-1 exit0 ports returned · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:792 | S11-CI11 copy1 bytes/hash exact before Open · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:793 | S11-CI11 copy1 same-axis request two sources typed proof · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:794 | S11-CI11 original1 unchanged by copy recovery · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:795 | S11-CI07 output owned regular hash dj-d1f4bd090f2d25fb2c22c3efccfb35514044a3539953e58f24b251eb386a8621-o0 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:796 | S11-CI07 output owned regular hash dj-d1f4bd090f2d25fb2c22c3efccfb35514044a3539953e58f24b251eb386a8621-o1 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:820 | S11-CI09 product-2 healthy isolated ICE · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:825 | S11-CI08 retained output HTTP200 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:827 | S11-CI08 retained output HTTP200 · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r3.log:1061 | current actual app: interior-source-boundary-timeout · [원출력](o12-current-integration-r3.log) | fail | 최초·반복 실패 유지 |
+| o12-current-integration-r3.log:1065 | S11-CI08 product-2 exit0 ports returned · [원출력](o12-current-integration-r3.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:1 | B01 V2 tombstone preserves immutable segment without legacy UTC range · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:2 | B02 V2 state records reject malformed payload entity and duplicate conflicts · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:3 | B03 V2 pending corrupt and deleted overlays never mutate finalized payload · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:4 | B04 V2 invalid transitions and finalize retries cannot resurrect state · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:5 | B05 V2 checkpoint and restart preserve overlay tombstone and SQLite parity · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:6 | B06 V2 capacity deletion follows durable order despite reversed UTC · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:7 | B07 mixed legacy and multiple stores use deterministic nonchronological ordering · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:8 | B08 V2 age expiry uses all known mapping ends plus uncertainty rounded upward · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:9 | B09 V2 unknown or overflowing age remains capacity eligible · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:10 | B10 V2 class quotas and disk reserve remain separated · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:11 | B11 V2 pin and hold protect deletion and corruption · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:12 | B12 V2 pending and corrupt bytes remain charged but are not automatic victims · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:13 | B13 V2 apply persists pending before unlink and tombstone after unlink · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:14 | B14 V2 interrupted deletion recovers without resurrection · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:15 | B15 V2 corrupt cleanup requires explicit manual reason · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:16 | B16 V2 continuous media with unknown UTC resolves a healthy held fd · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:17 | B17 V2 wrong channel event and fallback collision cannot expose media · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:18 | B18 V2 missing symlink and multiple hardlink media reject without hold leak · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:19 | B19 V2 same size corruption and invalid container reject without hold leak · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:20 | B20 V2 deletion and playback hold races have one safe winner · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:21 | B21 borrowed fd inspection preserves caller ownership and detects file changes · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:22 | B23 legacy store port refuses unsupported V2 deletion · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:24 | B22 V2 playback is unavailable without GStreamer · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-retention-v2.log:25 | B23 legacy store port refuses unsupported V2 deletion · [원출력](o12-retention-v2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:4 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:48 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:97 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:98 | D3D-07 valid MP4 free atom64MiB·최종 physical/hash 검증 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:114 | D02-03 동일 source/channel/ns immutable snapshot 전달 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:115 | D02-03 다른 channel 증거 혼합 거부 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:116 | D02-03 stop namespace 증거 삭제 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:117 | D02-03 cache capacity 이전 namespace eviction · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:118 | D02-03 전체 stop 후 publication/query 거부 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:119 | D02-01 신규 root 자동 내구 store identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:120 | D02-01 재개방 동일 store identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:121 | D02-01 서로 다른 root 난수 identity 구별 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:122 | D02-02 managed lease 동시 소유 거부 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:123 | D02-01 명시 ID 기존 계약 유지 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:124 | D02-02 명시 ID 충돌 원본 marker 보존 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:125 | D02-02 같은 init 내구 ID 복구 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:126 | D02-02 legacy nonempty 변환·삭제 거부 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:127 | D02-02 손상/unknown marker 덮어쓰기 거부 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:128 | D02-06 실제 H264 입력 준비 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:131 | D02-05 실제 V2 finalized startup 미디어 전수 검사 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:132 | D02-05 실제 V2 size/hash 손상 감지·catalog Mark · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:133 | D02-10 default 준비16s·500ms·33회 예산 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:134 | D02-10 overflow 요청은60s/121회 capped 사유 보존 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:135 | D02-06 on 구성의 동일 managed store/catalog writer 결박 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:136 | D02-07 빈 저장소 runtime 복구 함수 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:137 | D02-06 off managed 형식 유지·미디어 비생산 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:138 | D02-04/11 raw key→numeric 참조·history null provider 접수·공개 record 불변 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:139 | D02-11 raw stream/channel/sourcecontext 모순은 신규 저장·접수 없음 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:142 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:143 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:144 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:145 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:146 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:147 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:149 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:150 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:151 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:152 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:153 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:154 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:155 | D02-06 off/on 재개방 동일 store identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:156 | D02-07 실제 producer 시작 전 runtime 복구 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:158 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:159 | D02-08 실제 source/session 종료 owner0 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:167 | D02-04/10 실제 default10s+post5s 후행 finalize·동시 실제decoder cache·2출력 decode · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:169 | D02-01 crypto-off OS CSPRNG 생성/재개방 identity · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:170 | D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:173 | D02-07 runtime startup committed-parent recovery/보호/물리검사 순서 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:176 | D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:178 | D02-07 runtime startup intent recovery/보호/물리검사 순서 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:197 | S11-CI09 product-1 healthy isolated ICE · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:533 | S11-CI07 run1 actual tuple EventRecord reference · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:862 | S11-CI07 run1 literal two output files all pages · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:864 | S11-CI07 run1 output1 HTTP200 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:866 | S11-CI07 run1 output2 HTTP200 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:871 | S11-CI08 product-1 exit0 ports returned · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:872 | S11-CI11 copy1 bytes/hash exact before Open · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:873 | S11-CI11 copy1 same-axis request two sources typed proof · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:874 | S11-CI11 original1 unchanged by copy recovery · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:875 | S11-CI07 output owned regular hash dj-b4306e48e6127a063b0f474937b2f2084d82c1fcd733d6bdbbaf6c0715b48b24-o0 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:876 | S11-CI07 output owned regular hash dj-b4306e48e6127a063b0f474937b2f2084d82c1fcd733d6bdbbaf6c0715b48b24-o1 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:900 | S11-CI09 product-2 healthy isolated ICE · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:905 | S11-CI08 retained output HTTP200 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:907 | S11-CI08 retained output HTTP200 · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:1111 | current actual app: interior-source-boundary-timeout · [원출력](o12-current-integration-r2.log) | fail | 최초·반복 실패 유지 |
+| o12-current-integration-r2.log:1115 | S11-CI08 product-2 exit0 ports returned · [원출력](o12-current-integration-r2.log) | pass | 해당 개별 assertion |
+| o12-current-integration-r2.log:2165 | LP03-B diagnostic unavailable · [원출력](o12-current-integration-r2.log) | fail | 최초·반복 실패 유지 |
+| o12-corruption.log:2 | journal open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:3 | catalog seed open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:4 | seed finalized · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:5 | corruption durable append · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:6 | catalog replay open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:7 | corruption replay lifecycle is Corrupt · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:8 | fallback journal open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:9 | fallback catalog open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:10 | fallback seed base · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:11 | fallback resolved locator literal segment UTC PTS · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:12 | fallback observation stored before corruption · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:13 | fallback observation locator initially available · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:14 | fallback unknown ID and reason refused noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:15 | fallback acquire hold · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:16 | fallback held corruption refused noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:17 | fallback release hold · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:18 | fallback mark corruption · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:19 | fallback repeat corruption noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:20 | fallback only lifecycle changed bytes identity preserved · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:21 | fallback corrupt media location blocked · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:22 | fallback V2 locator revoked · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:23 | fallback pending link segments seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:24 | fallback pending link seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:25 | fallback pending source output refused noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:26 | fallback event link metadata preserved · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:27 | fallback deletion-pending deletion seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:28 | fallback deletion-pending mark rejected noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:29 | fallback deletion-done deletion seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:30 | fallback tombstone seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:31 | fallback deletion-done mark rejected noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:32 | fallback identical finalized replay seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:33 | fallback conflicting finalized seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:34 | fallback entity mismatch seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:35 | fallback invalid first valid later same mutation ID seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:36 | fallback malformed and deletion-priority seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:37 | fallback same mutation ID different payload seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:38 | fallback restart · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:39 | fallback restart never resurrects corrupt identity · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:40 | fallback query keeps corrupt pending excludes deleted · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:41 | fallback deletion priority and unknown no creation · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:42 | fallback invalid mutations diagnosed exact count · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:43 | sqlite journal open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:44 | sqlite catalog open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:45 | sqlite seed base · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:46 | sqlite resolved locator literal segment UTC PTS · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:47 | sqlite observation stored before corruption · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:48 | sqlite observation locator initially available · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:49 | sqlite unknown ID and reason refused noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:50 | sqlite acquire hold · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:51 | sqlite held corruption refused noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:52 | sqlite release hold · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:53 | sqlite mark corruption · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:54 | sqlite repeat corruption noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:55 | sqlite only lifecycle changed bytes identity preserved · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:56 | sqlite corrupt media location blocked · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:57 | sqlite V2 locator revoked · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:58 | sqlite SQL lifecycle corrupt · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:59 | sqlite SQL codecs_json original metadata · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:60 | sqlite pending link segments seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:61 | sqlite pending link seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:62 | sqlite pending source output refused noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:63 | sqlite event link metadata preserved · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:64 | sqlite deletion-pending deletion seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:65 | sqlite deletion-pending mark rejected noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:66 | sqlite deletion-done deletion seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:67 | sqlite tombstone seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:68 | sqlite deletion-done mark rejected noappend · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:69 | sqlite identical finalized replay seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:70 | sqlite conflicting finalized seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:71 | sqlite entity mismatch seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:72 | sqlite invalid first valid later same mutation ID seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:73 | sqlite malformed and deletion-priority seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:74 | sqlite same mutation ID different payload seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:75 | sqlite restart · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:76 | sqlite restart never resurrects corrupt identity · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:77 | sqlite query keeps corrupt pending excludes deleted · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:78 | sqlite deletion priority and unknown no creation · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:79 | sqlite invalid mutations diagnosed exact count · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:80 | sqlite restart SQL lifecycle parity · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:81 | sqlite SQL deletion precedence · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:82 | sqlite rebuild excludes rejected envelopes · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:83 | sqlite invalid first valid later SQL exact binding · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:84 | sqlite projection failover seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:85 | sqlite SQLite failure trigger · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:86 | sqlite projection failure keeps durable memory state · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:87 | sqlite remove projection trigger · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:88 | sqlite fallback restart SQL repaired · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:89 | order journal open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:90 | order corruption-before-create-after seed · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:91 | order catalog open · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:92 | order memory corrupt · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+| o12-corruption.log:93 | identical envelope accepted ordinal SQL parity · [원출력](o12-corruption.log) | pass | 해당 개별 assertion |
+
 ### 문서 마감 검증
 
 기록 담당 실행: `./server.sh verify-docs-links` exit0(318md/12065local links/22images/174anchors/fail0),

@@ -17,10 +17,10 @@ test('LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle',()=>{
 });
 test('LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서',()=>{
   const events=[],tracker=plan.stageTracker(e=>events.push(e));
-  for(const stage of ['recovery','cold-binding','checkpoint-cold','checkpoint-repeat']){
+  for(const stage of ['recovery','timeline-projection','cold-binding','checkpoint-cold','checkpoint-repeat']){
     tracker.line('[probe-stage] '+stage+' begin');tracker.line('[probe-wall] '+JSON.stringify({stage,elapsedUs:15000000,ok:true}));
   }
-  tracker.finish();assert.equal(events.length,8);
+  tracker.finish();assert.equal(events.length,10);
   const over=plan.stageTracker(()=>{});over.line('[probe-stage] recovery begin');
   assert.throws(()=>over.line('[probe-wall] '+JSON.stringify({stage:'recovery',elapsedUs:15000001,ok:true})),/stage-time-cap/);
   assert.throws(()=>plan.stageTracker(()=>{}).line('[probe-stage] checkpoint-repeat begin'),/stage-sequence/);

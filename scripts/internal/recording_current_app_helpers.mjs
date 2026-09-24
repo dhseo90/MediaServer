@@ -25,6 +25,31 @@ export function failedWindowGate(sourceEnd,tapPts){
   need(tapPts<=16900000000n,'reproduction-frame-missed');
   return sourceEnd===16500000000n&&tapPts>=16766666666n;
 }
+// 타임라인 조회가 짧은 분석 PTS 창보다 오래 걸릴 수 있다. 같은 확정 원본 경계를
+// 유지한 채 tap만 짧게 재관측하고, 창을 지나면 다음 경계를 조회한다.
+export async function observeInteriorBoundary(sourceEnd,readPts,{pause=()=>Promise.resolve(),attempts=8}={}){
+  need(typeof sourceEnd==='bigint'&&sourceEnd>=0n&&Number.isSafeInteger(attempts)&&attempts>=1&&attempts<=8,'interior-boundary-input');
+  for(let i=0;i<attempts;++i){
+    const pts=await readPts();
+    if(pts!==null){
+      need(Number.isSafeInteger(pts)&&pts>=0,'interior-boundary-pts');
+      const delta=BigInt(pts)-sourceEnd;
+      if(delta>=250000000n&&delta<=500000000n)return {pts,delta};
+      if(delta>500000000n)return null;
+    }
+    if(i+1<attempts)await pause();
+  }
+  return null;
+}
+// 통합 검증 전용 고정 fixture의 실제 키프레임 증거만 소비한다.
+// 제품 원본/UTC 변환이나 임의 시간 보정에 사용하지 않는다.
+export function fixtureFirstKeyframeBoundary(probe){
+  need(probe&&Array.isArray(probe.streams)&&probe.streams.length===1&&probe.streams[0].time_base==='1/15360'&&
+    probe.streams[0].duration==='30.000000'&&Array.isArray(probe.frames)&&probe.frames.length===4,'fixture-keyframes-shape');
+  const stamps=probe.frames.map(frame=>frame.best_effort_timestamp);
+  need(stamps.every(Number.isSafeInteger)&&stamps.every((stamp,index)=>stamp===index*128000),'fixture-keyframes-changed');
+  return 128000n*1000000000n/15360n;
+}
 export function requireFailedWindowDispatch(pts){need(pts===16900000000,'reproduction-dispatch-mismatch');}
 // HTTP 지연 관측 전용이다. 요청 완전성·복수 출력 합격으로 사용하지 않는다.
 export function latencyTransitionOutputs(page,eventId,referenceId){

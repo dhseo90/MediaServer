@@ -43,7 +43,7 @@ export function completedCurrentStep(step,result){
     return {id:step.id,checks:46,exit:0,cleanup:true};
   }
   const s=JSON.parse(one(lines,'{"mode":"current-actual-app"'));
-  requireValue(s.actualEventPass===true&&s.restartPass===true&&s.expectedOutputCount===2&&Array.isArray(s.observedOutputCounts)&&s.observedOutputCounts.length===2&&s.observedOutputCounts.every(n=>n===2)&&s.failed===0&&s.passed===25,'actual-app-summary');
+  requireValue(s.actualEventPass===true&&s.restartPass===true&&s.expectedOutputCount===2&&Array.isArray(s.observedOutputCounts)&&s.observedOutputCounts.length===2&&s.observedOutputCounts.every(n=>n===2)&&s.failed===0&&s.passed===27,'actual-app-summary');
   requireValue(s.cleanup?.rootAbsent===true&&s.cleanup?.failureCount===0,'actual-app-cleanup');
   requireValue(Array.isArray(s.cleanup.processes)&&s.cleanup.processes.length===2&&s.cleanup.processes.every(normalActualProcess),'actual-app-process-cleanup');
   return {id:step.id,checks:s.passed,exit:0,cleanup:true};

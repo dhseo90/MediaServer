@@ -37,6 +37,11 @@ pkg-config --modversion gstreamer-1.0 sqlite3 openssl
 shasum -a 256 "$probe_scripts/recording_accumulation_probe.cpp" "$probe_scripts/recording_accumulation_run.mjs" "$probe_scripts/recording_accumulation_prepare.mjs" "$probe_scripts/recording_current_observer.mjs"
 node "$probe_scripts/recording_catalog_cost_probe_instrument.cjs" "$probe_repo" "$probe_root"
 node "$probe_scripts/recording_accumulation_prepare.mjs" "$probe_repo" "$probe_root"
+cmake --build "$probe_repo/build-gst-onnx" --target media_server_runtime --parallel 2
+runtime_archive="$probe_repo/build-gst-onnx/libmedia_server_runtime.a"
+test -f "$runtime_archive"
+printf '[linked-archive] testId=LP26-O14-C source=cmake-target:media_server_runtime archive=%s sha256=%s\n' \
+ "$runtime_archive" "$(shasum -a 256 "$runtime_archive" | awk '{print $1}')"
 read -r -a probe_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0 sqlite3 openssl)"
 node "$probe_scripts/recording_catalog_cost_bounded.cjs" 60 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread \
  -I"$probe_root/include" -I"$probe_repo/include" -I"$probe_root" -I"$probe_scripts" -I"$probe_repo/src/recording" \
@@ -45,7 +50,8 @@ node "$probe_scripts/recording_catalog_cost_bounded.cjs" 60 "${CXX:-c++}" -std=c
  "$probe_root/recording_catalog.cpp" "$probe_root/recording_journal.cpp" "$probe_root/recording_contracts.cpp" \
  "$probe_repo/src/recording/recording_finalize_recovery.cpp" "$probe_repo/src/recording/recording_file_evidence.cpp" "$probe_repo/src/recording/recording_media_inspector.cpp" \
  "$probe_repo/src/recording/recording_derived_job.cpp" "$probe_repo/src/recording/recording_derived_job_ready.cpp" \
- "$probe_repo/src/recording/retention_coordinator.cpp" "$probe_repo/src/domain/strict_json.cpp" "${probe_flags[@]}" -lz -o "$probe_root/probe"
+ "$probe_repo/src/recording/retention_coordinator.cpp" "$probe_repo/src/domain/strict_json.cpp" \
+ "$probe_repo/build-gst-onnx/libmedia_server_runtime.a" "${probe_flags[@]}" -lz -o "$probe_root/probe"
 read -r -a probe_link < "$probe_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
 probe_libs=();probe_found=0
 for token in "${probe_link[@]}";do

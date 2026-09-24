@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runCurrentIntegration,completedCurrentStep,currentSteps} from './recording_current_integration_suite.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
-import {allTimelinePages,eventOutputs,verifyRestart} from './recording_current_app_helpers.mjs';
+import {allTimelinePages,eventOutputs,verifyRestart,observeInteriorBoundary,fixtureFirstKeyframeBoundary} from './recording_current_app_helpers.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 const ids=['http-api','http-auth','http-lifecycle','default-composition','actual-app'];
 async function producedCleanup(pid){
@@ -18,7 +18,7 @@ const outputs={
   'http-auth':'[S06 HTTP AUTH] checks=40 fail=0 actualUiActions=NOT_RUN\n'+cleanup,
   'http-lifecycle':'[S06 HTTP lifecycle] checks=10 fail=0 codecPlayback=NOT_RUN\n'+cleanup,
   'default-composition':'[summary] pass=24 fail=0\n[summary] pass=16 fail=0\n[summary] pass=1 fail=0\n'+Array.from({length:46},(_,i)=>`[pass] case-${i}`).join('\n')+'\n[process] committed child exit=23 expected=23\n[process] blocked child exit=23 expected=23\n[cleanup] path=/unit bytes=1 removed=true\n',
-  'actual-app':JSON.stringify({mode:'current-actual-app',passed:25,failed:0,actualEventPass:true,restartPass:true,expectedOutputCount:2,observedOutputCounts:[2,2],cleanup:{rootAbsent:true,failureCount:0,processes:actualProcesses}})+'\n'
+  'actual-app':JSON.stringify({mode:'current-actual-app',passed:27,failed:0,actualEventPass:true,restartPass:true,expectedOutputCount:2,observedOutputCounts:[2,2],cleanup:{rootAbsent:true,failureCount:0,processes:actualProcesses}})+'\n'
 };
 test('S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박',async()=>{
   const called=[];const r=await runCurrentIntegration(async step=>{called.push(step.id);return {exit:0,stdout:outputs[step.id]};});
@@ -62,9 +62,29 @@ test('S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·
   const tuple=dispatchTuple(response,tap,'9102'),row={eventId:'new',streamId:'raw-stream',channelId:'raw-stream',eventType:'presence',trackId:2,updateTime:2000,metadata:{schema:'media-server.va.event-record.metadata.v1',ruleId:'9102',pts:2000000000}};
   assert.equal(correlatedEvent([row],new Set(),tuple).eventId,'new');
   assert.equal(dispatchTuple({...response,tapId:'other'},tap,'9102'),null);
+  const multiple={...response,events:[{ruleId:'9102',type:'presence',object:{trackId:4}},{ruleId:'9102',type:'presence',object:{trackId:2}}]};
+  assert.equal(dispatchTuple(multiple,tap,'9102').trackId,2);
+  assert.equal(dispatchTuple(multiple,tap,'9102',{firstDispatched:true}).trackId,4);
   assert.equal(correlatedEvent([row],new Set(['new']),tuple),undefined);
   for(const change of [{streamId:'other'},{channelId:'other'},{trackId:3},{updateTime:2001},{metadata:{...row.metadata,ruleId:'wrong'}},{metadata:{...row.metadata,pts:2}},{metadata:{...row.metadata,schema:'unknown'}}])assert.equal(correlatedEvent([{...row,...change}],new Set(),tuple),undefined);
   assert.throws(()=>correlatedEvent([row,{...row,eventId:'another'}],new Set(),tuple));
+});
+test('LP26-O12 느린 timeline 뒤에도 같은 경계를 빠르게 재관측하고 창 이탈은 거부',async()=>{
+  const samples=[8100000000,8249999999,8380000000],calls=[];
+  const selected=await observeInteriorBoundary(8000000000n,async()=>{calls.push('read');return samples.shift();},{pause:async()=>{calls.push('pause');}});
+  assert.deepEqual(selected,{pts:8380000000,delta:380000000n});
+  assert.deepEqual(calls,['read','pause','read','pause','read']);
+  let reads=0;
+  assert.equal(await observeInteriorBoundary(8000000000n,async()=>{reads++;return 8600000000;}),null);
+  assert.equal(reads,1);
+  assert.equal(await observeInteriorBoundary(8000000000n,async()=>null,{attempts:1}),null);
+  await assert.rejects(()=>observeInteriorBoundary(8000000000n,async()=>Number.MAX_SAFE_INTEGER+1),/interior-boundary-pts/);
+});
+test('LP26-O13 고정 fixture의 실제 키프레임만 조기 이벤트 기준으로 수용',()=>{
+  const probe={streams:[{time_base:'1/15360',duration:'30.000000'}],frames:[0,128000,256000,384000].map(best_effort_timestamp=>({best_effort_timestamp}))};
+  assert.equal(fixtureFirstKeyframeBoundary(probe),8333333333n);
+  assert.throws(()=>fixtureFirstKeyframeBoundary({...probe,frames:[...probe.frames.slice(0,2),{best_effort_timestamp:255999},probe.frames[3]]}),/fixture-keyframes-changed/);
+  assert.throws(()=>fixtureFirstKeyframeBoundary({...probe,streams:[{time_base:'1/15360',duration:'29.000000'}]}),/fixture-keyframes-shape/);
 });
 for(const [name,change] of [
   ['nonzero',r=>({...r,exit:1})],['signal',r=>({...r,signal:'SIGTERM'})],['output-limit',r=>({...r,error:'child-output-limit'})],

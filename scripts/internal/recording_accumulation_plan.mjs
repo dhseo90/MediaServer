@@ -6,7 +6,7 @@ export function assertDrain(value,sources){
 }
 export function assertRotation(value){if(value.fresh!==0||value.rotations<1)throw Error('rotation-oracle');}
 export function stageTracker(notify){
-  const stages=['recovery','cold-binding','checkpoint-cold','checkpoint-repeat'];let index=0,active=null;
+  const stages=['recovery','timeline-projection','cold-binding','checkpoint-cold','checkpoint-repeat'];let index=0,active=null;
   return {line(line){
     if(line.startsWith('[probe-stage] ')){
       const stage=line.slice(14).replace(/ begin$/,'');
