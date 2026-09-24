@@ -1,14 +1,17 @@
 // 파일 용도: 기존 실제 앱 dispatch/EventRecord 상관 규칙을 공유한다. 원장·시간축 변환 없음.
-export function dispatchTuple(response, tap, ruleId, {firstDispatched=false}={}) {
+export function dispatchTuple(response, tap, ruleId, {selectionBasis='lowest-track-id-stable-reference'}={}) {
   if (response.tapId !== tap.tapId || response.result?.sourceKey !== tap.streamKey ||
       !Number.isSafeInteger(response.result?.pts)) return null;
   const events = (response.events || []).filter(e => e.ruleId === ruleId && e.type === 'presence' &&
     Number.isSafeInteger(e.object?.trackId));
-  // 실제 앱 통합 검사는 dispatch 응답의 선두 이벤트를 사전에 고른다. 복수 객체의
-  // trackId 정렬로 뒤쪽 작업을 선택해 직렬 렌더 대기 시간을 합산하지 않는다.
-  if (!firstDispatched) events.sort((a, b) => a.object.trackId - b.object.trackId);
+  if(!['lowest-track-id-stable-reference','first-dispatch-stable-reference'].includes(selectionBasis))throw Error('dispatch-selection-basis');
+  // first-dispatch는 reference 정체성을 고정할 뿐 render queue 순서를 뜻하지 않는다.
+  // 어느 기준이든 한 번 선택한 뒤 느리다는 이유로 다른 작업으로 교체하지 않는다.
+  if(selectionBasis==='lowest-track-id-stable-reference')events.sort((a, b) => a.object.trackId - b.object.trackId);
   if (!events.length) return null;
-  return {source: tap.streamKey, pts: response.result.pts, ruleId, trackId: events[0].object.trackId, type: events[0].type};
+  const selected=events[0],selectedDispatchOrdinal=(response.events || []).indexOf(selected);
+  return {source: tap.streamKey, pts: response.result.pts, ruleId, trackId:selected.object.trackId, type:selected.type,
+    selectionBasis,candidateCount:events.length,selectedDispatchOrdinal};
 }
 export function correlatedEvent(rows, excluded, tuple) {
   const matches = rows.filter(x => x.eventId && !excluded.has(x.eventId) &&

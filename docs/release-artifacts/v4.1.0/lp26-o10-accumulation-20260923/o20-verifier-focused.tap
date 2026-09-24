@@ -1,0 +1,496 @@
+TAP version 13
+# Subtest: S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박
+ok 1 - S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박
+  ---
+  duration_ms: 1.244167
+  type: 'test'
+  ...
+# Subtest: LP25-C10 http-auth 실제 producer 총계 수용·구형 및 불일치 거부
+ok 2 - LP25-C10 http-auth 실제 producer 총계 수용·구형 및 불일치 거부
+  ---
+  duration_ms: 0.211542
+  type: 'test'
+  ...
+# Subtest: LP25-C10 http-lifecycle 실제 producer 총계 수용·구형 및 불일치 거부
+ok 3 - LP25-C10 http-lifecycle 실제 producer 총계 수용·구형 및 불일치 거부
+  ---
+  duration_ms: 0.042083
+  type: 'test'
+  ...
+# Subtest: LP20-X01 실제 종료 producer의 정상 두 결과를 수용
+ok 4 - LP20-X01 실제 종료 producer의 정상 두 결과를 수용
+  ---
+  duration_ms: 0.115292
+  type: 'test'
+  ...
+# Subtest: LP20-X02 schema 누락는 정상 종료로 승인하지 않음
+ok 5 - LP20-X02 schema 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.154625
+  type: 'test'
+  ...
+# Subtest: LP20-X02 schema 불일치는 정상 종료로 승인하지 않음
+ok 6 - LP20-X02 schema 불일치는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.096291
+  type: 'test'
+  ...
+# Subtest: LP20-X02 반복 종료는 정상 종료로 승인하지 않음
+ok 7 - LP20-X02 반복 종료는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.089208
+  type: 'test'
+  ...
+# Subtest: LP20-X02 PID 누락는 정상 종료로 승인하지 않음
+ok 8 - LP20-X02 PID 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.064375
+  type: 'test'
+  ...
+# Subtest: LP20-X02 exit 비정상는 정상 종료로 승인하지 않음
+ok 9 - LP20-X02 exit 비정상는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.067625
+  type: 'test'
+  ...
+# Subtest: LP20-X02 signal 관측는 정상 종료로 승인하지 않음
+ok 10 - LP20-X02 signal 관측는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.089875
+  type: 'test'
+  ...
+# Subtest: LP20-X02 종료 미관측는 정상 종료로 승인하지 않음
+ok 11 - LP20-X02 종료 미관측는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.06325
+  type: 'test'
+  ...
+# Subtest: LP20-X02 stop 오류는 정상 종료로 승인하지 않음
+ok 12 - LP20-X02 stop 오류는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.059417
+  type: 'test'
+  ...
+# Subtest: LP20-X02 강제 종료는 정상 종료로 승인하지 않음
+ok 13 - LP20-X02 강제 종료는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.091292
+  type: 'test'
+  ...
+# Subtest: LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음
+ok 14 - LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.06125
+  type: 'test'
+  ...
+# Subtest: LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음
+ok 15 - LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.0515
+  type: 'test'
+  ...
+# Subtest: LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음
+ok 16 - LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.050375
+  type: 'test'
+  ...
+# Subtest: LP20-X02 archive 불가는 정상 종료로 승인하지 않음
+ok 17 - LP20-X02 archive 불가는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.052042
+  type: 'test'
+  ...
+# Subtest: LP20-X02 ports 누락는 정상 종료로 승인하지 않음
+ok 18 - LP20-X02 ports 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.048667
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 수 부족는 정상 종료로 승인하지 않음
+ok 19 - LP20-X02 port 수 부족는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.044125
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port kind 중복는 정상 종료로 승인하지 않음
+ok 20 - LP20-X02 port kind 중복는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.042708
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 미해제는 정상 종료로 승인하지 않음
+ok 21 - LP20-X02 port 미해제는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.055917
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음
+ok 22 - LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.048334
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음
+ok 23 - LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.04075
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음
+ok 24 - LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.039958
+  type: 'test'
+  ...
+# Subtest: LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음
+ok 25 - LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.059583
+  type: 'test'
+  ...
+# Subtest: LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음
+ok 26 - LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.061417
+  type: 'test'
+  ...
+# Subtest: S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부
+ok 27 - S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부
+  ---
+  duration_ms: 0.186916
+  type: 'test'
+  ...
+# Subtest: LP26-O12 느린 timeline 뒤에도 같은 경계를 빠르게 재관측하고 창 이탈은 거부
+ok 28 - LP26-O12 느린 timeline 뒤에도 같은 경계를 빠르게 재관측하고 창 이탈은 거부
+  ---
+  duration_ms: 0.147167
+  type: 'test'
+  ...
+# Subtest: LP26-O13 고정 fixture의 실제 키프레임만 조기 이벤트 기준으로 수용
+ok 29 - LP26-O13 고정 fixture의 실제 키프레임만 조기 이벤트 기준으로 수용
+  ---
+  duration_ms: 0.088458
+  type: 'test'
+  ...
+# Subtest: S11-CI02 nonzero 실패 후 나머지 미실행
+ok 30 - S11-CI02 nonzero 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.354458
+  type: 'test'
+  ...
+# Subtest: S11-CI02 signal 실패 후 나머지 미실행
+ok 31 - S11-CI02 signal 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.063208
+  type: 'test'
+  ...
+# Subtest: S11-CI02 output-limit 실패 후 나머지 미실행
+ok 32 - S11-CI02 output-limit 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.039375
+  type: 'test'
+  ...
+# Subtest: S11-CI02 summary-missing 실패 후 나머지 미실행
+ok 33 - S11-CI02 summary-missing 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.033875
+  type: 'test'
+  ...
+# Subtest: S11-CI02 summary-duplicate 실패 후 나머지 미실행
+ok 34 - S11-CI02 summary-duplicate 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.024583
+  type: 'test'
+  ...
+# Subtest: S11-CI02 cleanup-failed 실패 후 나머지 미실행
+ok 35 - S11-CI02 cleanup-failed 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.027167
+  type: 'test'
+  ...
+# Subtest: S11-CI02 port-missing 실패 후 나머지 미실행
+ok 36 - S11-CI02 port-missing 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.024875
+  type: 'test'
+  ...
+# Subtest: S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리
+ok 37 - S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리
+  ---
+  duration_ms: 0.064084
+  type: 'test'
+  ...
+# Subtest: S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부
+ok 38 - S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부
+  ---
+  duration_ms: 0.156708
+  type: 'test'
+  ...
+# Subtest: S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup
+ok 39 - S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup
+  ---
+  duration_ms: 4.523875
+  type: 'test'
+  ...
+# Subtest: S11-CI05 누락·중복item·불안정total·truncated·cap 거부
+ok 40 - S11-CI05 누락·중복item·불안정total·truncated·cap 거부
+  ---
+  duration_ms: 0.1935
+  type: 'test'
+  ...
+# Subtest: S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부
+ok 41 - S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부
+  ---
+  duration_ms: 0.128791
+  type: 'test'
+  ...
+# Subtest: S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부
+ok 42 - S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부
+  ---
+  duration_ms: 0.237
+  type: 'test'
+  ...
+# Subtest: S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리
+ok 43 - S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리
+  ---
+  duration_ms: 0.182875
+  type: 'test'
+  ...
+# Subtest: S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부
+ok 44 - S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부
+  ---
+  duration_ms: 0.082708
+  type: 'test'
+  ...
+# Subtest: LP25-O04 group members survive full collection and literal two output validation
+ok 45 - LP25-O04 group members survive full collection and literal two output validation
+  ---
+  duration_ms: 0.094208
+  type: 'test'
+  ...
+# Subtest: LP25-O04 within group duplicate rejects grouped page before completion consumer
+ok 46 - LP25-O04 within group duplicate rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.07525
+  type: 'test'
+  ...
+# Subtest: LP25-O04 across groups duplicate rejects grouped page before completion consumer
+ok 47 - LP25-O04 across groups duplicate rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.042834
+  type: 'test'
+  ...
+# Subtest: LP25-O04 member collides with outer ID rejects grouped page before completion consumer
+ok 48 - LP25-O04 member collides with outer ID rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.034291
+  type: 'test'
+  ...
+# Subtest: LP25-O04 missing members rejects grouped page before completion consumer
+ok 49 - LP25-O04 missing members rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.031292
+  type: 'test'
+  ...
+# Subtest: LP25-O04 empty members rejects grouped page before completion consumer
+ok 50 - LP25-O04 empty members rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.031792
+  type: 'test'
+  ...
+# Subtest: LP25-O04 leaf cap rejects grouped page before completion consumer
+ok 51 - LP25-O04 leaf cap rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.039625
+  type: 'test'
+  ...
+# Subtest: LP25-O04 members byte cap rejects grouped page before completion consumer
+ok 52 - LP25-O04 members byte cap rejects grouped page before completion consumer
+  ---
+  duration_ms: 0.039375
+  type: 'test'
+  ...
+# Subtest: LP22-O01 optional page observation preserves values and captures every page
+ok 53 - LP22-O01 optional page observation preserves values and captures every page
+  ---
+  duration_ms: 1.145167
+  type: 'test'
+  ...
+# Subtest: LP22-O02 callback exceptions do not replace original page failure
+ok 54 - LP22-O02 callback exceptions do not replace original page failure
+  ---
+  duration_ms: 0.273
+  type: 'test'
+  ...
+# Subtest: LP22-O03 same total ready complete mixture retains individual page states
+ok 55 - LP22-O03 same total ready complete mixture retains individual page states
+  ---
+  duration_ms: 0.257792
+  type: 'test'
+  ...
+# Subtest: LP22-O04 changed totals fail then a fresh cycle fetches every page again
+ok 56 - LP22-O04 changed totals fail then a fresh cycle fetches every page again
+  ---
+  duration_ms: 0.479
+  type: 'test'
+  ...
+# Subtest: LP22-O05 late complete observation cannot erase the original transition timeout
+ok 57 - LP22-O05 late complete observation cannot erase the original transition timeout
+  ---
+  duration_ms: 0.217583
+  type: 'test'
+  ...
+# Subtest: LP22-O04 wait keeps late successful return and reports its client deadline overrun
+ok 58 - LP22-O04 wait keeps late successful return and reports its client deadline overrun
+  ---
+  duration_ms: 0.099459
+  type: 'test'
+  ...
+# Subtest: LP26-O19 strict actual-app gate rejects late successful page return without losing observation
+ok 59 - LP26-O19 strict actual-app gate rejects late successful page return without losing observation
+  ---
+  duration_ms: 0.093125
+  type: 'test'
+  ...
+# Subtest: LP26-O20-A page bounds report exact fixed code and safe counts, distinct from O18 timeout
+ok 60 - LP26-O20-A page bounds report exact fixed code and safe counts, distinct from O18 timeout
+  ---
+  duration_ms: 0.252791
+  type: 'test'
+  ...
+# Subtest: LP22-O06 diagnostic report failure remains explicit without hiding primary error
+ok 61 - LP22-O06 diagnostic report failure remains explicit without hiding primary error
+  ---
+  duration_ms: 0.108083
+  type: 'test'
+  ...
+# Subtest: LP25-O01 complete page survives later total change while full collection fails
+ok 62 - LP25-O01 complete page survives later total change while full collection fails
+  ---
+  duration_ms: 0.271333
+  type: 'test'
+  ...
+# Subtest: LP25-O01 changed page is independently validated and observed before total mismatch
+ok 63 - LP25-O01 changed page is independently validated and observed before total mismatch
+  ---
+  duration_ms: 0.113
+  type: 'test'
+  ...
+# Subtest: LP25-O01 cross-page duplicate with stable total remains fatal
+ok 64 - LP25-O01 cross-page duplicate with stable total remains fatal
+  ---
+  duration_ms: 0.106541
+  type: 'test'
+  ...
+# Subtest: LP25-O01 cross-page duplicate with total change retains retry reason
+ok 65 - LP25-O01 cross-page duplicate with total change retains retry reason
+  ---
+  duration_ms: 0.063375
+  type: 'test'
+  ...
+# Subtest: LP25-O02 ready complete mixture is observed but never promoted to complete full page
+ok 66 - LP25-O02 ready complete mixture is observed but never promoted to complete full page
+  ---
+  duration_ms: 0.129709
+  type: 'test'
+  ...
+# Subtest: LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors
+ok 67 - LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors
+  ---
+  duration_ms: 0.066542
+  type: 'test'
+  ...
+# Subtest: LP25-O02 reference conflict after complete cannot disappear behind prior terminal observation
+ok 68 - LP25-O02 reference conflict after complete cannot disappear behind prior terminal observation
+  ---
+  duration_ms: 0.067042
+  type: 'test'
+  ...
+# Subtest: LP25-O02 job conflict after complete cannot disappear behind prior terminal observation
+ok 69 - LP25-O02 job conflict after complete cannot disappear behind prior terminal observation
+  ---
+  duration_ms: 0.041083
+  type: 'test'
+  ...
+# Subtest: LP25-O02 state conflict after complete cannot disappear behind prior terminal observation
+ok 70 - LP25-O02 state conflict after complete cannot disappear behind prior terminal observation
+  ---
+  duration_ms: 0.054875
+  type: 'test'
+  ...
+# Subtest: LP25-O02 failed conflict after complete cannot disappear behind prior terminal observation
+ok 71 - LP25-O02 failed conflict after complete cannot disappear behind prior terminal observation
+  ---
+  duration_ms: 0.048167
+  type: 'test'
+  ...
+# Subtest: LP25-O02 media conflict after complete cannot disappear behind prior terminal observation
+ok 72 - LP25-O02 media conflict after complete cannot disappear behind prior terminal observation
+  ---
+  duration_ms: 0.061417
+  type: 'test'
+  ...
+# Subtest: LP25-O03 complete observation cannot erase a following HTTP failure
+ok 73 - LP25-O03 complete observation cannot erase a following HTTP failure
+  ---
+  duration_ms: 0.079
+  type: 'test'
+  ...
+# Subtest: LP25-O03 no terminal state retains original thirty second wait timeout
+ok 74 - LP25-O03 no terminal state retains original thirty second wait timeout
+  ---
+  duration_ms: 0.074958
+  type: 'test'
+  ...
+# Subtest: LP25-O02 terminal retention stays bounded across cycles and does not retain group members
+ok 75 - LP25-O02 terminal retention stays bounded across cycles and does not retain group members
+  ---
+  duration_ms: 0.10525
+  type: 'test'
+  ...
+# Subtest: LP26-O20-C independent terminal observation and full-page eligibility are both mandatory
+ok 76 - LP26-O20-C independent terminal observation and full-page eligibility are both mandatory
+  ---
+  duration_ms: 0.057917
+  type: 'test'
+  ...
+# Subtest: LP25-O04 invalid offset page is rejected before strict consumer
+ok 77 - LP25-O04 invalid offset page is rejected before strict consumer
+  ---
+  duration_ms: 0.046292
+  type: 'test'
+  ...
+# Subtest: LP25-O04 invalid limit page is rejected before strict consumer
+ok 78 - LP25-O04 invalid limit page is rejected before strict consumer
+  ---
+  duration_ms: 0.0365
+  type: 'test'
+  ...
+# Subtest: LP25-O04 invalid count page is rejected before strict consumer
+ok 79 - LP25-O04 invalid count page is rejected before strict consumer
+  ---
+  duration_ms: 0.034292
+  type: 'test'
+  ...
+# Subtest: LP25-O04 invalid duplicate page is rejected before strict consumer
+ok 80 - LP25-O04 invalid duplicate page is rejected before strict consumer
+  ---
+  duration_ms: 0.036416
+  type: 'test'
+  ...
+# Subtest: LP25-O04 invalid truncated page is rejected before strict consumer
+ok 81 - LP25-O04 invalid truncated page is rejected before strict consumer
+  ---
+  duration_ms: 0.031167
+  type: 'test'
+  ...
+1..81
+# tests 81
+# suites 0
+# pass 81
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.280458

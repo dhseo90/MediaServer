@@ -63,8 +63,12 @@ test('S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·
   assert.equal(correlatedEvent([row],new Set(),tuple).eventId,'new');
   assert.equal(dispatchTuple({...response,tapId:'other'},tap,'9102'),null);
   const multiple={...response,events:[{ruleId:'9102',type:'presence',object:{trackId:4}},{ruleId:'9102',type:'presence',object:{trackId:2}}]};
-  assert.equal(dispatchTuple(multiple,tap,'9102').trackId,2);
-  assert.equal(dispatchTuple(multiple,tap,'9102',{firstDispatched:true}).trackId,4);
+  const selected=dispatchTuple(multiple,tap,'9102');
+  assert.equal(selected.trackId,2);assert.equal(selected.selectionBasis,'lowest-track-id-stable-reference');
+  assert.equal(selected.candidateCount,2);assert.equal(selected.selectedDispatchOrdinal,1);
+  const first=dispatchTuple(multiple,tap,'9102',{selectionBasis:'first-dispatch-stable-reference'});
+  assert.equal(first.trackId,4);assert.equal(first.selectionBasis,'first-dispatch-stable-reference');assert.equal(first.selectedDispatchOrdinal,0);
+  assert.throws(()=>dispatchTuple(multiple,tap,'9102',{selectionBasis:'unknown'}),/dispatch-selection-basis/);
   assert.equal(correlatedEvent([row],new Set(['new']),tuple),undefined);
   for(const change of [{streamId:'other'},{channelId:'other'},{trackId:3},{updateTime:2001},{metadata:{...row.metadata,ruleId:'wrong'}},{metadata:{...row.metadata,pts:2}},{metadata:{...row.metadata,schema:'unknown'}}])assert.equal(correlatedEvent([{...row,...change}],new Set(),tuple),undefined);
   assert.throws(()=>correlatedEvent([row,{...row,eventId:'another'}],new Set(),tuple));
@@ -157,7 +161,7 @@ for(const [name,groups,options,code] of [
   ['member collides with outer ID',[groupedOutput('one',['one'])],{},'duplicate-item'],
   ['missing members',[{...output('one'),rangeBasis:'file-group'}],{},'group-members'],
   ['empty members',[groupedOutput('one',[])],{},'group-members'],
-  ['leaf cap',[groupedOutput('one',['m1','m2','m3'])],{maxItems:2},'page-bound'],
+  ['leaf cap',[groupedOutput('one',['m1','m2','m3'])],{maxItems:2},'page-bound-leaf-limit'],
   ['members byte cap',[groupedOutput('one',['x'.repeat(1000)])],{maxBytes:800},'page-byte-cap']
 ])test(`LP25-O04 ${name} rejects grouped page before completion consumer`,async()=>{
   let consumed=0;

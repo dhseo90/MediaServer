@@ -85,11 +85,11 @@ export async function boundedUntil(label,fn,{now=()=>performance.now(),pause,bud
   while(now()<end){budget();const result=await fn();if(result)return result;await pause(100);}
   throw Error(label+'-timeout');
 }
-export async function observeTransitionWait(run,{now=()=>performance.now(),ordinal,report=()=>{},invalid=()=>{},referenceSha256,processOrdinal,deadlineMs=30000}={}){
+export async function observeTransitionWait(run,{now=()=>performance.now(),ordinal,report=()=>{},invalid=()=>{},referenceSha256,processOrdinal,deadlineMs=30000,strictDeadline=false,timeoutLabel='transition'}={}){
   const started=now(),before=ordinal();let outcome='error';
   const send=row=>{try{report(row);}catch{invalid();}};
   send({kind:'start',referenceSha256,processOrdinal,clientAtMs:started,deadlineMs,beforeTimelineOrdinal:before});
-  try{const value=await run();outcome='complete';return value;}
+  try{const value=await run();if(strictDeadline&&now()-started>deadlineMs)throw Error(timeoutLabel+'-timeout');outcome='complete';return value;}
   catch(error){outcome=typeof error?.message==='string'&&error.message.endsWith('-timeout')?'timeout':'error';throw error;}
   finally{const ended=now(),last=ordinal();send({kind:'end',referenceSha256,processOrdinal,clientAtMs:ended,elapsedMs:ended-started,deadlineMs,returnedAfterBudget:ended-started>deadlineMs,outcome,firstTimelineOrdinal:last>before?before+1:null,lastTimelineOrdinal:last>before?last:null});}
 }

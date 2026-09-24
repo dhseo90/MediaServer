@@ -126,6 +126,16 @@ export function captureFailureEvidence({diagnose,collect,replay,evidencePath}){
   try{preserve(evidencePath+'.replay.json',result);status.replayEvidenceStatus='preserved';}catch{status.replayEvidenceStatus='failed';}
   return status;
 }
+// 조회 대기가 먼저 끝난 뒤 작업이 failed로 전이된 경우, 당시 실패로 소급하지 않고
+// 사후 복제본의 고정 코드만 독립 보존한다. 상세 재현 예산을 요구하지 않는다.
+export function captureBasicFailureEvidence({diagnose,evidencePath}){
+  const result={diagnosticStatus:'not-run',evidenceStatus:'not-run',cleanupAllowed:false};let value;
+  try{value=basic(diagnose());result.diagnosticStatus='complete';}
+  catch(error){result.diagnosticStatus=error?.code==='ETIMEDOUT'?'timeout':'failed';return result;}
+  try{preserve(evidencePath,{diagnostic:value});result.evidenceStatus='preserved';result.cleanupAllowed=true;}
+  catch{result.evidenceStatus='failed';}
+  return result;
+}
 export function removeDiagnosticRoot(root,expected,evidencePreserved){
   if(!evidencePreserved)throw Error('evidence-not-preserved');
   const actual=fs.lstatSync(root,{bigint:true});

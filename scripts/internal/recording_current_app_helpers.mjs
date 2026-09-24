@@ -144,17 +144,24 @@ export async function measuredHttpResponse({route,method='GET',request,report,ma
   }
 }
 function need(ok,reason){if(!ok)throw Error(reason);}
+function pageBound(code,details){const error=Error(code);error.code=code;error.diagnostic=details;throw error;}
 export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxBytes=64*1024*1024,observe,consumePage}={}){
   // 관측 callback 실패는 원래 페이지 결과/예외를 덮지 않는다.
   const notify=event=>{try{observe?.(event);}catch{}};
   try{
   need(Number.isSafeInteger(limit)&&limit>0&&limit<=1000,'page-limit');
+  need(Number.isSafeInteger(maxItems)&&maxItems>0&&maxItems<=4096,'page-item-limit');
+  need(Number.isSafeInteger(maxBytes)&&maxBytes>0&&maxBytes<=64*1024*1024,'page-byte-limit');
   const items=[],unplacedItems=[],seen=new Set();let total,unplacedTotal,bytes=0,leaves=0;
   for(let offset=0;;offset+=limit){
     const page=await fetchPage(offset,limit);
     notify({kind:'page',offset,page});
     need(page&&!page.truncated&&Number.isSafeInteger(page.total)&&page.total>=0&&Number.isSafeInteger(page.unplacedTotal)&&page.unplacedTotal>=0,'page-total');
-    need(page.total+page.unplacedTotal<=maxItems&&page.offset===offset&&page.limit===limit,'page-bound');
+    const topLevel=Number.isSafeInteger(page.total+page.unplacedTotal)?page.total+page.unplacedTotal:null;
+    if(page.total>maxItems||page.unplacedTotal>maxItems||topLevel===null||topLevel>maxItems)pageBound('page-bound-top-limit',{topLevel,maxItems});
+    if(page.offset!==offset||page.limit!==limit)pageBound('page-bound-offset-limit',
+      {expectedOffset:offset,observedOffset:Number.isSafeInteger(page.offset)?page.offset:null,
+        expectedLimit:limit,observedLimit:Number.isSafeInteger(page.limit)?page.limit:null});
     const pageIds=new Set();
     const identify=item=>{need(item&&typeof item.itemId==='string'&&item.itemId.length>0&&!pageIds.has(item.itemId),'duplicate-item');pageIds.add(item.itemId);};
     for(const [key,count] of [['items',page.total],['unplacedItems',page.unplacedTotal]]){
@@ -164,10 +171,10 @@ export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxByt
         if(item.rangeBasis==='file-group'){
           need(Array.isArray(item.members)&&item.members.length>0,'group-members');
           leaves+=item.members.length;
-          need(leaves<=maxItems,'page-bound');
+          if(leaves>maxItems)pageBound('page-bound-leaf-limit',{leaves,maxItems});
           for(const member of item.members){identify(member);need(!Object.hasOwn(member,'members'),'group-members');}
         }else{need(!Object.hasOwn(item,'members'),'group-members');leaves++;}
-        need(leaves<=maxItems,'page-bound');
+        if(leaves>maxItems)pageBound('page-bound-leaf-limit',{leaves,maxItems});
         bytes+=Buffer.byteLength(JSON.stringify(item));need(bytes<=maxBytes,'page-byte-cap');
       }
     }
@@ -179,7 +186,15 @@ export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxByt
     items.push(...page.items);unplacedItems.push(...page.unplacedItems);
     if(offset+limit>=Math.max(total,unplacedTotal)){notify({kind:'complete'});return {total,unplacedTotal,items,unplacedItems};}
   }
-  }catch(error){notify({kind:'failure',code:error?.message==='page-total-changed'?'page-total-changed':'page-failure'});throw error;}
+  }catch(error){const bounded=['page-bound-top-limit','page-bound-offset-limit','page-bound-leaf-limit'].includes(error?.code);
+    notify({kind:'failure',code:error?.message==='page-total-changed'?'page-total-changed':bounded?error.code:'page-failure',...(bounded?{details:error.diagnostic}:{})});throw error;}
+}
+// 독립 terminal 관측은 전체 페이지 적격을 대신하지 않고, 전체 페이지 성공도 terminal 관측을 대신하지 않는다.
+export function requireCompletionEvidence(outputs,terminalStatus,fullPageStatus){
+  need(Array.isArray(outputs)&&outputs.length===2,'expected-two-output-files');
+  need(terminalStatus?.terminalObserved===true&&!terminalStatus.invalid,'independent-terminal-observation-missing');
+  need(fullPageStatus==='complete','full-page-eligibility-missing');
+  return outputs;
 }
 function decimal(value){need(typeof value==='string'&&/^-?(0|[1-9]\d*)$/.test(value),'precision-string');return BigInt(value);}
 export function eventOutputs(page,eventId,referenceId){

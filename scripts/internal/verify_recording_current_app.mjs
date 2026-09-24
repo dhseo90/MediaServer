@@ -9,9 +9,9 @@ import {fileURLToPath} from 'node:url';
 import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
 import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
-import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,createTerminalObservation} from './recording_current_app_helpers.mjs';
+import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,createTerminalObservation,requireCompletionEvidence} from './recording_current_app_helpers.mjs';
 import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources,observeInteriorBoundary,fixtureFirstKeyframeBoundary} from './recording_current_app_helpers.mjs';
-import {captureFailureEvidence,captureCompletenessEvidence,captureStateEvidence,removeDiagnosticRoot,runDiagnosticProbe,createWriterEvidenceCollector} from './recording_failure_capture.mjs';
+import {captureFailureEvidence,captureBasicFailureEvidence,captureCompletenessEvidence,captureStateEvidence,removeDiagnosticRoot,runDiagnosticProbe,createWriterEvidenceCollector} from './recording_failure_capture.mjs';
 import {createLatencyTraceCollector,preserveLatencyEvidence} from './recording_latency_trace.mjs';
 import {createProcessCleanup,processStartEvidence} from './recording_process_cleanup.mjs';
 import {createSelectionTraceCollector,matchSelectionTrace,reportSelectionTraceFailure} from './recording_selection_trace.mjs';
@@ -125,7 +125,11 @@ async function timeline(app,consumePage){
   return allTimelinePages(async(offset,limit)=>{
     try{return await request(app,'GET',`/ops/api/recordings/timeline?channelId=9101&startTimeMs=${queryStart}&endTimeMs=${queryEnd}&offset=${offset}&limit=${limit}&unplacedUnit=${timelineUnplacedUnit}`);}
     finally{cycle.ordinal(app.timelineSequence);}
-  },{observe:cycle.observe,consumePage});
+  },{observe:event=>{
+    if(event.kind==='failure'&&['page-bound-top-limit','page-bound-offset-limit','page-bound-leaf-limit'].includes(event.code))
+      console.log('[timeline-page-bound] '+JSON.stringify({processOrdinal:app.ordinal,code:event.code,...event.details}));
+    cycle.observe(event);
+  },consumePage});
 }
 function rule(id,enabled=true){return {id,priority:100,enabled,match:{sourceKind:'file',route:'http'},analysis:{classes:['person']},event:{type:'presence',minConfidence:0.25,region:{type:'polygon',points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}]}},eventActions:{highlight:{enabled:true,mode:'blink',target:'matched-object',durationMs:1500,color:'#00ff00'},post:{enabled:false,method:'POST',url:'',payloadFormat:'media-server.va.event.v1'}}};}
 async function collectEvent(app,index,{fixtureBoundary=null}={}){
@@ -158,8 +162,10 @@ async function collectEvent(app,index,{fixtureBoundary=null}={}){
       return Boolean(selected);
     },30000);
     await request(app,'PUT',`/lab/analysis/rules/${ruleId}`,rule(ruleId));
-    await until('actual-dispatch',async()=>{tuple=dispatchTuple(await request(app,'GET',`/lab/analysis/taps/${tap.tapId}/events?dispatch=1`),tap,ruleId,{firstDispatched:true});return tuple;},15000);
-    console.log('[dispatch-timing] '+JSON.stringify({run:index,pts:String(tuple.pts)}));
+    await until('actual-dispatch',async()=>{tuple=dispatchTuple(await request(app,'GET',`/lab/analysis/taps/${tap.tapId}/events?dispatch=1`),tap,ruleId,
+      {selectionBasis:'first-dispatch-stable-reference'});return tuple;},15000);
+    console.log('[dispatch-timing] '+JSON.stringify({run:index,pts:String(tuple.pts),selectionBasis:tuple.selectionBasis,
+      candidateCount:tuple.candidateCount,selectedDispatchOrdinal:tuple.selectedDispatchOrdinal}));
     if(reproduceFailedWindow)requireFailedWindowDispatch(tuple.pts);
     event=await until('durable-event',()=>correlatedEvent(events(),prior,tuple),10000);
     check(event.recordingLinkId&&event.channelId===tap.streamKey,`S11-CI07 run${index} actual tuple EventRecord reference`);
@@ -185,6 +191,7 @@ async function collectEvent(app,index,{fixtureBoundary=null}={}){
       const referenceSha256=crypto.createHash('sha256').update(event.recordingLinkId).digest('hex');let outcome='error';
       try{
         const value=await observeTransitionWait(run,{ordinal:()=>app.timelineSequence,referenceSha256,processOrdinal:app.ordinal,deadlineMs:30000,
+          strictDeadline:true,timeoutLabel:latencyOnly?'latency-transition':'complete-two-outputs',
           report:row=>console.log('[transition-observation] '+JSON.stringify({...row,scope:latencyOnly?'terminal-observation':'full-page-two-outputs'})),invalid:()=>{transitionObservationInvalid++;}});
         outcome='complete';return value;
       }catch(error){outcome=error.message.endsWith('-timeout')?'timeout':'error';throw error;}
@@ -211,7 +218,8 @@ async function collectEvent(app,index,{fixtureBoundary=null}={}){
       observe(page,e.message);
       if(['event-absent','event-not-complete','page-total-changed','expected-two-output-files'].includes(e.message))return false;throw e;}},30000));
     }catch(e){if(lastState)console.log('[timeline-final-state] '+lastState);throw e;}
-    check(rows.length===2,`S11-CI07 run${index} literal two output files all pages`);
+    requireCompletionEvidence(rows,terminal.status(),fullPageStatus);
+    check(rows.length===2,`S11-CI07 run${index} literal two output files all pages and independent terminal observation`);
     const outputs=[];for(const row of rows){const r=await response(app,row.playbackUrl);check(r.status===200&&r.bytes.length>0,`S11-CI07 run${index} output${outputs.length+1} HTTP200`);outputs.push({id:row.segmentId,hash:crypto.createHash('sha256').update(r.bytes).digest('hex'),bytes:r.bytes.length});}
     return {eventId:event.eventId,referenceId:event.recordingLinkId,jobId:rows[0].jobId,outputs,
       ruleId,tuplePts:tuple.pts};
@@ -361,14 +369,16 @@ if(needsDiagnostic&&processes.every(app=>app.archiveSafe))try{
   const evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`state-${crypto.randomUUID()}.json`);
   let diagnosedState=null;
   const stateResult=captureStateEvidence({collect:()=>{const value=probe(diagnosticIndex,'--diagnose-state');diagnosedState=value.state;return value;},evidencePath,expectedReferenceSha256:crypto.createHash('sha256').update(diagnosticReference).digest('hex')});
-  console.log('[job-state-diagnostic] '+JSON.stringify({...stateResult,evidenceFile:path.basename(evidencePath),detailRequested:Boolean(failedReference||completedReference||(stateResult.cleanupAllowed&&diagnosedState==='complete'))}));
+  console.log('[job-state-diagnostic] '+JSON.stringify({...stateResult,evidenceFile:path.basename(evidencePath),detailRequested:Boolean(failedReference||completedReference||(stateResult.cleanupAllowed&&['complete','failed'].includes(diagnosedState)))}));
   if(!stateResult.cleanupAllowed)throw Error('state-evidence-unavailable');
   diagnosticCleanupAllowed=true;
-  if(failedReference||completedReference||diagnosedState==='complete'){
+  if(failedReference||completedReference||['complete','failed'].includes(diagnosedState)){
     const detailPath=evidencePath+'.detail.json';
-    const result=failedReference?captureFailureEvidence({diagnose:()=>probe(diagnosticIndex,'--diagnose-basic'),collect:()=>probe(diagnosticIndex,'--diagnose-failed'),replay:()=>probe(replayIndex,'--replay-failed'),evidencePath:detailPath}):captureCompletenessEvidence({collect:()=>probe(diagnosticIndex,'--diagnose-completeness'),evidencePath:detailPath});
+    const result=failedReference?captureFailureEvidence({diagnose:()=>probe(diagnosticIndex,'--diagnose-basic'),collect:()=>probe(diagnosticIndex,'--diagnose-failed'),replay:()=>probe(replayIndex,'--replay-failed'),evidencePath:detailPath}):
+      diagnosedState==='failed'?captureBasicFailureEvidence({diagnose:()=>probe(diagnosticIndex,'--diagnose-basic'),evidencePath:detailPath}):
+      captureCompletenessEvidence({collect:()=>probe(diagnosticIndex,'--diagnose-completeness'),evidencePath:detailPath});
     diagnosticCleanupAllowed=result.cleanupAllowed;
-    console.log('[job-diagnostic] '+JSON.stringify({...result,evidenceFile:path.basename(detailPath)}));
+    console.log('[job-diagnostic] '+JSON.stringify({...result,evidenceFile:path.basename(detailPath),basis:diagnosedState==='failed'&&!failedReference?'offline-after-wait-failure':'observed-during-wait'}));
     if(failedReference?(result.diagnosticEvidenceStatus!=='preserved'||result.replayStatus!=='complete'||result.replayEvidenceStatus!=='preserved'):result.evidenceStatus!=='preserved')failed++;
   }
   check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');

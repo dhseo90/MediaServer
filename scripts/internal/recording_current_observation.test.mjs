@@ -44,6 +44,30 @@ test('LP22-O04 wait keeps late successful return and reports its client deadline
   const result=await observeTransitionWait(()=>boundedUntil('wait',async()=>{ordinal++;now=30001;return value;},{now:()=>now,deadline:180000,pause:async()=>{},budget:()=>{}}),{now:()=>now,ordinal:()=>ordinal,report:x=>rows.push(x)});
   assert.equal(result,value);assert.equal(rows.at(-1).outcome,'complete');assert.equal(rows.at(-1).returnedAfterBudget,true);assert.equal(rows.at(-1).elapsedMs,30001);assert.equal(rows.at(-1).firstTimelineOrdinal,5);
 });
+test('LP26-O19 strict actual-app gate rejects late successful page return without losing observation',async()=>{
+  let now=0,ordinal=4;const rows=[];
+  await assert.rejects(observeTransitionWait(()=>boundedUntil('complete-two-outputs',async()=>{
+    ordinal++;now=30001;return [{segmentId:'out'}];
+  },{now:()=>now,deadline:180000,pause:async()=>{},budget:()=>{}}),
+  {now:()=>now,ordinal:()=>ordinal,report:x=>rows.push(x),strictDeadline:true,timeoutLabel:'complete-two-outputs'}),/complete-two-outputs-timeout/);
+  assert.equal(rows.at(-1).outcome,'timeout');assert.equal(rows.at(-1).returnedAfterBudget,true);
+  assert.equal(rows.at(-1).elapsedMs,30001);assert.equal(rows.at(-1).firstTimelineOrdinal,5);
+});
+test('LP26-O20-A page bounds report exact fixed code and safe counts, distinct from O18 timeout',async()=>{
+  const cases=[
+    ['page-bound-top-limit',()=>({...page(),total:3,unplacedTotal:0}),{maxItems:2},d=>assert.deepEqual(d,{topLevel:3,maxItems:2})],
+    ['page-bound-offset-limit',()=>({...page(),offset:1}),{},d=>assert.deepEqual(d,{expectedOffset:0,observedOffset:1,expectedLimit:1,observedLimit:1})],
+    ['page-bound-leaf-limit',()=>({...page(),items:[{itemId:'group',rangeBasis:'file-group',members:[{itemId:'m1'},{itemId:'m2'}]}]}),{maxItems:1},d=>assert.deepEqual(d,{leaves:2,maxItems:1})]
+  ];
+  for(const [code,make,options,diagnostic] of cases){const observed=[];
+    await assert.rejects(allTimelinePages(async()=>make(),{limit:1,...options,observe:value=>observed.push(value)}),error=>error.code===code&&error.message===code);
+    assert.equal(observed.at(-1).kind,'failure');assert.equal(observed.at(-1).code,code);diagnostic(observed.at(-1).details);
+  }
+  let now=0;
+  await assert.rejects(observeTransitionWait(()=>boundedUntil('complete-two-outputs',async()=>{now=30001;return false;},
+    {now:()=>now,deadline:180000,pause:async()=>{},budget:()=>{}}),
+    {now:()=>now,ordinal:()=>1,strictDeadline:true,timeoutLabel:'complete-two-outputs'}),error=>error.message==='complete-two-outputs-timeout'&&!error.code);
+});
 test('LP22-O06 diagnostic report failure remains explicit without hiding primary error',async()=>{
   const original=Error('primary');const o=createTimelineObservation({report:()=>{throw Error('diagnostic');}}),c=o.begin(1);
   await assert.rejects(allTimelinePages(async()=>{throw original;},{observe:c.observe}),e=>e===original);
@@ -120,6 +144,13 @@ test('LP25-O02 terminal retention stays bounded across cycles and does not retai
   assert.ok(observation.outputs().every(row=>!Object.hasOwn(row,'members')));
   assert.throws(()=>observation.consume(terminalPage(0,1,terminalRow('ninth'))),/terminal-observation-cap/);
   assert.equal(observation.status().terminalObserved,true);assert.equal(observation.status().invalid,true);
+});
+test('LP26-O20-C independent terminal observation and full-page eligibility are both mandatory',()=>{
+  const outputs=[terminalRow('out1'),terminalRow('out2')],status={terminalObserved:true,invalid:false};
+  assert.equal(helpers.requireCompletionEvidence(outputs,status,'complete'),outputs);
+  assert.throws(()=>helpers.requireCompletionEvidence(outputs,{terminalObserved:false,invalid:false},'complete'),/independent-terminal-observation-missing/);
+  assert.throws(()=>helpers.requireCompletionEvidence(outputs,status,'page-total-changed'),/full-page-eligibility-missing/);
+  assert.throws(()=>helpers.requireCompletionEvidence(outputs.slice(0,1),status,'complete'),/expected-two-output-files/);
 });
 for(const [name,change] of [
   ['offset',p=>({...p,offset:9})],['limit',p=>({...p,limit:2})],['count',p=>({...p,items:[]})],
