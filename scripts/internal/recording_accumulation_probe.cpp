@@ -6,10 +6,16 @@
 #include "recording_accumulation_counter.h"
 #include "recording_checkpoint_validation.h"
 #include "recording_process_memory_probe.h"
+#ifdef MEDIA_SERVER_ACCUMULATION_OWNERSHIP
+#include "recording_catalog_comparison_ownership.h"
+#endif
 #include <atomic>
 #include <map>
 #include <thread>
 #include <unordered_set>
+#ifdef MEDIA_SERVER_ACCUMULATION_OWNERSHIP
+#include <openssl/evp.h>
+#endif
 namespace {
 void Need(bool ok,const char* code){if(!ok)throw std::runtime_error(code);}
 void Pass(const char* code){std::cout<<"[pass] "<<code<<'\n';}
@@ -276,12 +282,62 @@ void Catalog(const std::filesystem::path& root,unsigned count){
 
  }
 }
+#ifdef MEDIA_SERVER_ACCUMULATION_OWNERSHIP
+std::string BindingFingerprint(const std::vector<std::string>& values){EVP_MD_CTX* context=EVP_MD_CTX_new();Need(context&&EVP_DigestInit_ex(context,EVP_sha256(),nullptr)==1,"ownership-hash-init");
+ for(const auto& value:values){const auto size=std::to_string(value.size())+":";Need(EVP_DigestUpdate(context,size.data(),size.size())==1&&EVP_DigestUpdate(context,value.data(),value.size())==1,"ownership-hash-update");}
+ std::array<unsigned char,EVP_MAX_MD_SIZE> digest{};unsigned length=0;Need(EVP_DigestFinal_ex(context,digest.data(),&length)==1&&length==32,"ownership-hash-final");EVP_MD_CTX_free(context);
+ static constexpr char hex[]="0123456789abcdef";std::string result;result.reserve(length*2);for(unsigned i=0;i<length;++i){result.push_back(hex[digest[i]>>4]);result.push_back(hex[digest[i]&15]);}return result;}
+void Ownership(const std::filesystem::path& root,unsigned count){
+ const unsigned reader_count=std::min<unsigned>(count,8U);std::vector<std::string> expected(reader_count);std::vector<std::uintptr_t> first_addresses(reader_count);
+ unsigned sameObject=0,requeryAddressMatches=0,expiredWeak=0,requeryDistinctAddresses=0;std::size_t heldDistinctObjects=0;std::string error;
+ {
+  RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));
+  Measure("ownership-open",[&]{return journal.Open(&error)&&catalog.Open(&error);});
+  const auto report=catalog.recovery_report();Need(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0,"ownership-recovery");
+  lp17::Observe("pre-checkpoint",count,&catalog);
+  RecordingTimelineResult timeline;Measure("ownership-timeline",[&]{return catalog.SnapshotTimelineV2(
+    {"probe-channel",0,std::numeric_limits<std::int64_t>::max(),0,1000},&timeline,&error);});NeedExactTimeline(catalog,timeline,count,&error);
+  lp17::Owned snapshot;snapshot.segments=timeline.items.size()+timeline.unplaced_items.size();lp17::Emit("snapshot-held","snapshot",snapshot);
+  std::vector<RecordingCatalog::SourceBindingHandle> first,second;std::vector<std::weak_ptr<const RecordingSourceBindingV1>> weak;first.reserve(reader_count);second.reserve(reader_count);weak.reserve(reader_count*2);
+  Measure("ownership-acquire",[&]{std::lock_guard<std::mutex> lock(catalog.mu_);for(unsigned i=0;i<reader_count;++i){const auto id="lp10-segment-"+std::to_string(i+1);RecordingCatalog::SourceBindingHandle a,b;
+    if(!catalog.AcquireSourceBindingOwnedLocked(id,&a,&error)||!a||a->segment_id!=id||a->samples.size()!=60||catalog.tombstones_v2_.count(id)!=1)return false;
+    expected[i]=SerializeRecordingSourceBindingV1(*a);first_addresses[i]=reinterpret_cast<std::uintptr_t>(a.get());
+    if(!catalog.AcquireSourceBindingOwnedLocked(id,&b,&error)||!b||SerializeRecordingSourceBindingV1(*b)!=expected[i])return false;
+    sameObject+=a.get()==b.get();weak.push_back(a);weak.push_back(b);first.push_back(std::move(a));second.push_back(std::move(b));}return true;});
+  for(unsigned i=0;i<reader_count;++i){const auto id="lp10-segment-"+std::to_string(i+1);Need(catalog.IsDeletedSegmentId(id)&&!catalog.FindSourceBinding(id),"ownership-deleted-public-guard");}
+  lp17::Observe("handles-held",count,&catalog);timeline={};lp17::Owned released;lp17::Emit("snapshot-released","snapshot",released);
+  std::unordered_set<const RecordingSourceBindingV1*> heldObjects;for(const auto& value:first)heldObjects.insert(value.get());for(const auto& value:second)heldObjects.insert(value.get());
+  heldDistinctObjects=heldObjects.size();Measure("ownership-release",[&]{first.clear();second.clear();for(const auto& value:weak)expiredWeak+=value.expired();if(expiredWeak!=weak.size())return false;lp17::Observe("handles-released",count,&catalog);std::unordered_set<const RecordingSourceBindingV1*> addresses;std::lock_guard<std::mutex> lock(catalog.mu_);
+    for(unsigned i=0;i<reader_count;++i){const auto id="lp10-segment-"+std::to_string(i+1);RecordingCatalog::SourceBindingHandle value;
+      if(!catalog.AcquireSourceBindingOwnedLocked(id,&value,&error)||!value||value->samples.size()!=60||SerializeRecordingSourceBindingV1(*value)!=expected[i])return false;
+      requeryAddressMatches+=reinterpret_cast<std::uintptr_t>(value.get())==first_addresses[i];addresses.insert(value.get());}requeryDistinctAddresses=addresses.size();return true;});
+  lp17::Observe("requery-released",count,&catalog);
+  Measure("ownership-checkpoint",[&]{return catalog.Checkpoint(&error);});lp17::Observe("post-checkpoint",count,&catalog);
+ }
+ std::cout<<"[ownership-lifecycle] {\"testIds\":[\"O28-M01\",\"O28-M02\"],\"sources\":"<<count<<",\"readers\":"<<reader_count
+          <<",\"samplesPerBinding\":60,\"mediaFiles\":0,\"sameObject\":"<<sameObject<<",\"requeryAddressMatches\":"<<requeryAddressMatches
+          <<",\"heldDistinctObjects\":"<<heldDistinctObjects<<",\"expiredWeak\":"<<expiredWeak<<",\"requeryDistinctAddresses\":"<<requeryDistinctAddresses<<",\"bindingSha256\":\""<<BindingFingerprint(expected)<<"\""
+          <<",\"serializedEqual\":true,\"deleted\":true,\"snapshotReleased\":true,\"handlesReleased\":true,\"wholeHeapAttributed\":false,\"rssLeakProven\":false}\n";
+ Pass("O28-M01/M02 bounded reader ownership lifecycle");
+}
+void OwnershipReopen(const std::filesystem::path& root,unsigned count){const unsigned reader_count=std::min<unsigned>(count,8U);std::vector<std::string> serialized;serialized.reserve(reader_count);std::string error;
+ RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));
+ Measure("ownership-reopen",[&]{if(!journal.Open(&error)||!catalog.Open(&error))return false;std::lock_guard<std::mutex> lock(catalog.mu_);for(unsigned i=0;i<reader_count;++i){const auto id="lp10-segment-"+std::to_string(i+1);RecordingCatalog::SourceBindingHandle a,b;
+   if(!catalog.AcquireSourceBindingOwnedLocked(id,&a,&error)||!a||a->samples.size()!=60||!catalog.AcquireSourceBindingOwnedLocked(id,&b,&error)||!b||SerializeRecordingSourceBindingV1(*a)!=SerializeRecordingSourceBindingV1(*b))return false;serialized.push_back(SerializeRecordingSourceBindingV1(*a));}return true;});
+ for(unsigned i=0;i<reader_count;++i){const auto id="lp10-segment-"+std::to_string(i+1);Need(catalog.IsDeletedSegmentId(id)&&!catalog.FindSourceBinding(id),"ownership-reopen-deleted-public-guard");}
+ lp17::Observe("fresh-reopen",count,&catalog);std::cout<<"[ownership-reopen] {\"sources\":"<<count<<",\"readers\":"<<reader_count<<",\"samplesPerBinding\":60,\"bindingSha256\":\""<<BindingFingerprint(serialized)<<"\",\"serializedEqual\":true,\"deleted\":true}\n";
+}
+#endif
 }
 int main(int argc,char** argv){std::cout<<std::unitbuf;try{
  if(argc==2&&std::string(argv[1])=="--bounds"){Bounds();return 0;}
  if((argc==3||argc==4)&&std::string(argv[1])=="--generate"){
   std::vector<unsigned> counts{16U,1020U,2048U,2049U};if(argc==4){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2048||count==2049,"count");counts={static_cast<unsigned>(count)};}Generate(argv[2],counts);return 0;}
  if(argc==4&&std::string(argv[1])=="--catalog"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2048||count==2049,"count");Catalog(argv[2],count);return 0;}
+#ifdef MEDIA_SERVER_ACCUMULATION_OWNERSHIP
+ if(argc==4&&std::string(argv[1])=="--ownership"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2048||count==2049,"count");Ownership(argv[2],count);return 0;}
+ if(argc==4&&std::string(argv[1])=="--ownership-reopen"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2048||count==2049,"count");OwnershipReopen(argv[2],count);return 0;}
+#endif
  if(argc==4&&std::string(argv[1])=="--automatic"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");Automatic(argv[2],count);return 0;}
  if(argc==4&&std::string(argv[1])=="--automatic-full"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");AutomaticFull(argv[2],count);return 0;}
  if(argc==4&&std::string(argv[1])=="--automatic-full-reopen"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");AutomaticFullReopen(argv[2],count);return 0;}

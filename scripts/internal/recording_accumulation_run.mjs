@@ -1,30 +1,30 @@
 // 파일 용도: LP26-O10 bounded 단회 측정과 관측기 독립 oracle. 실제 longrun이 아니다.
 import fs from 'node:fs';import path from 'node:path';import {spawn,spawnSync} from 'node:child_process';
 import {CurrentRecordingObserver,normalizeCurrentRows} from './recording_current_observer.mjs';
-import {casePlan,assertDrain,assertRotation,stageTracker} from './recording_accumulation_plan.mjs';
+import {casePlan,assertDrain,assertRotation,stageTracker,ownershipStageTracker,ownershipCollector} from './recording_accumulation_plan.mjs';
 import {sourceManifest,accumulationStoreReceipt,accumulationParentFailure,accumulationProcessDiagnostic,preserveAccumulationReceipt} from './recording_archive_diagnostic_profile.mjs';
 const root=process.argv[2],binary=path.join(root,'probe'),normalizer=path.join(root,'normalize'),metrics=path.join(root,'metrics');
 if(!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(path.basename(root))||fs.realpathSync(root)!==root||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-root');
 const start=performance.now();let bytes=0,completed=false,parentFailureCode=null,activeGroups=0,groupsClosed=true;const readers=[],processes=[];
-const selected=process.argv[3];if(selected!==undefined&&!['16','1020','2048','2049'].includes(selected))throw Error('selected-case');
+const selected=process.argv[3],ownership=process.argv[4]==='ownership';if(selected!==undefined&&!['16','1020','2048','2049'].includes(selected))throw Error('selected-case');if(process.argv[4]!==undefined&&!ownership||ownership&&!selected)throw Error('selected-mode');
 const manifestEntries=[{name:'accumulation-source',file:new URL('./recording_accumulation_probe.cpp',import.meta.url).pathname},{name:'accumulation-runner',file:new URL('./recording_accumulation_run.mjs',import.meta.url).pathname},
-  {name:'diagnostic-profile',file:new URL('./recording_archive_diagnostic_profile.mjs',import.meta.url).pathname},{name:'probe-binary',file:binary},{name:'native-binary',file:normalizer},{name:'metrics-binary',file:metrics}],manifestBefore=sourceManifest(manifestEntries);
+  {name:'diagnostic-profile',file:new URL('./recording_archive_diagnostic_profile.mjs',import.meta.url).pathname},{name:'ownership-header',file:new URL('./recording_catalog_comparison_ownership.h',import.meta.url).pathname},{name:'ownership-instrument',file:new URL('./recording_catalog_comparison_instrument.cjs',import.meta.url).pathname},{name:'probe-binary',file:binary},{name:'native-binary',file:normalizer},{name:'metrics-binary',file:metrics}],manifestBefore=sourceManifest(manifestEntries);
 function size(p){const s=fs.lstatSync(p);return s.isDirectory()?fs.readdirSync(p).reduce((n,k)=>n+size(path.join(p,k)),0):s.size;}
 function resources(){const diskBytes=size(root),rssBytes=process.memoryUsage().rss;if(diskBytes>=448*1024*1024||rssBytes>1073741824)throw Error('resource-cap');return {diskBytes,parentRssBytes:rssBytes};}
 function safeResources(){try{return resources();}catch{return {diskBytes:null,parentRssBytes:null,resourceStatus:'unavailable'};}}
-function run(args,timeoutMs){return new Promise((resolve,reject)=>{
+function run(args,timeoutMs,collector=null){return new Promise((resolve,reject)=>{
   const child=spawn(binary,args,{stdio:['ignore','pipe','pipe'],detached:true});activeGroups++;let stopped=null,force,peakRssBytes=0,metricsUnavailable=0;
-  const catalog=args[0]==='--catalog';let stageTimer,pending='';
+  const catalog=args[0]==='--catalog'||args[0]==='--ownership'||args[0]==='--ownership-reopen';let stageTimer,pending='';
   const begin=performance.now();
   const stop=reason=>{stopped??=reason;try{process.kill(-child.pid,'SIGTERM');}catch{}if(!force)force=setTimeout(()=>{try{process.kill(-child.pid,'SIGKILL');}catch{}},2000);};
-  const stageWatch=catalog?stageTracker(event=>{clearTimeout(stageTimer);if(event.state==='begin'&&!stopped)stageTimer=setTimeout(()=>stop('stage-time-cap'),15000);}):null;
+  const stageWatch=catalog?(args[0].startsWith('--ownership')?event=>ownershipStageTracker(event,args[0]==='--ownership-reopen'):stageTracker)(event=>{clearTimeout(stageTimer);if(event.state==='begin'&&!stopped)stageTimer=setTimeout(()=>stop('stage-time-cap'),15000);}):null;
   const technicalCapMs=catalog?65000:timeoutMs;
   const timer=setTimeout(()=>stop(catalog?'technical-process-cap':'time-cap'),technicalCapMs);
   const memory=setInterval(()=>{try{resources();const r=spawnSync(metrics,[String(child.pid)],{encoding:'utf8',timeout:1000,maxBuffer:16384});
     if(r.status===0){const m=JSON.parse(r.stdout);if(m.valid&&m.rssBytes>0){peakRssBytes=Math.max(peakRssBytes,m.rssBytes);if(m.rssBytes>1073741824)stop('rss-cap');}else metricsUnavailable++;}else metricsUnavailable++;
   }catch{stop('resource-observer');}},250);
   for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{bytes+=chunk.length;if(bytes>4*1024*1024){stop('output-cap');return;}process.stdout.write(chunk);
-    if(stream===child.stdout&&stageWatch&&!stopped){pending+=chunk.toString();let at;while((at=pending.indexOf('\n'))>=0){const line=pending.slice(0,at);pending=pending.slice(at+1);try{stageWatch.line(line);}catch{stop('stage-oracle');break;}}if(pending.length>65536)stop('stage-line-cap');}});
+    if(stream===child.stdout&&(stageWatch||collector)&&!stopped){pending+=chunk.toString();let at;while((at=pending.indexOf('\n'))>=0){const line=pending.slice(0,at);pending=pending.slice(at+1);try{stageWatch?.line(line);collector?.line(line);}catch{stop('stage-oracle');break;}}if(pending.length>65536)stop('stage-line-cap');}});
   child.on('error',()=>stop('spawn-error'));
   child.on('close',(exit,signal)=>{clearTimeout(timer);clearTimeout(stageTimer);clearTimeout(force);clearInterval(memory);
     activeGroups--;let groupClosed=false;try{process.kill(-child.pid,0);}catch(error){groupClosed=error?.code==='ESRCH';}groupsClosed&&=groupClosed;
@@ -43,6 +43,7 @@ function drain(observer,count,phase){const begin=performance.now(),before=resour
 try{
   if(!selected)await run(['--bounds'],15000);await run(['--generate',root,...(selected?[selected]:[])],60000);
   for(const {sources} of casePlan().filter(item=>!selected||item.sources===Number(selected))){
+    if(ownership){const dir=path.join(root,'case-'+sources),collector=ownershipCollector(sources);await run(['--ownership',dir,String(sources)],15000,collector);await run(['--ownership-reopen',dir,String(sources)],15000,collector);const result=collector.finish();console.log('[ownership-summary] '+JSON.stringify({sources,ownerRows:result.owners.length,readers:result.initial.readers,bindingSha256:result.initial.bindingSha256,wholeHeapAttributed:false,rssLeakProven:false}));continue;}
     const dir=path.join(root,'case-'+sources),file=path.join(dir,'recording-v2-mutations.jsonl'),observer=new CurrentRecordingObserver(dir,normalizer);readers.push(observer);
     drain(observer,sources,'initial');const before=fs.statSync(file).ino;
     await run(['--catalog',dir,String(sources)],15000);
@@ -59,5 +60,5 @@ try{
   completed=true;console.log('[summary] '+JSON.stringify({completed:true,elapsedMs:performance.now()-start,...resources(),performancePass:false,longrunPass:false,uiPass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));
 }catch(error){parentFailureCode??=accumulationParentFailure(error);console.log('[fail] LP26-O10 '+parentFailureCode);process.exitCode=1;}
 finally{for(const observer of readers)observer.close();let receiptPreserved=false;try{const manifestUnchanged=JSON.stringify(sourceManifest(manifestEntries))===JSON.stringify(manifestBefore),storeManifest=accumulationStoreReceipt(root,selected??null),firstFailureIndex=processes.findIndex(item=>item.status!==0||item.signal!==null||item.stop!==null||!item.groupClosed),saved=preserveAccumulationReceipt({evidencePath:process.env.MEDIA_SERVER_ACCUMULATION_RECEIPT,receipt:{schema:'media-server.recording-accumulation-receipt.v1',profile:'accumulation-probe',outcome:completed&&parentFailureCode===null?'pass':'fail',selectedCase:selected??null,parentFailureCode,groupClosed:activeGroups===0&&groupsClosed,manifestUnchanged,processes,firstFailureIndex:firstFailureIndex<0?null:firstFailureIndex,
-    command:{name:'recording-accumulation-run',args:selected?[selected]:[]},storeManifest,manifest:manifestBefore,rawPathsPublished:false}});receiptPreserved=saved.preserved;fs.writeFileSync(path.join(root,'.receipt-preserved'),saved.sha256,{flag:'wx',mode:0o600});console.log('[probe-receipt] '+JSON.stringify({...saved,rawPathsPublished:false}));}catch{process.exitCode=1;console.log('[fail] LP26-O10 receipt-preservation');}
+    command:{name:'recording-accumulation-run',args:selected?[selected,...(ownership?['ownership']:[])]:[]},storeManifest,manifest:manifestBefore,rawPathsPublished:false}});receiptPreserved=saved.preserved;fs.writeFileSync(path.join(root,'.receipt-preserved'),saved.sha256,{flag:'wx',mode:0o600});console.log('[probe-receipt] '+JSON.stringify({...saved,rawPathsPublished:false}));}catch{process.exitCode=1;console.log('[fail] LP26-O10 receipt-preservation');}
   console.log('[probe-reader-cleanup] '+JSON.stringify({readers:readers.length,closed:true,groupsClosed:activeGroups===0&&groupsClosed,receiptPreserved,elapsedMs:performance.now()-start,...safeResources()}));}

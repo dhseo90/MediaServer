@@ -1,0 +1,38 @@
+{
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kMisBJ",
+  "dev": 16777234,
+  "ino": 159357048,
+  "birth": "2026-09-24T11:27:12.551Z",
+  "bytes": 32,
+  "files": [
+    {
+      "relative": "case-1020/journal",
+      "bytes": 4,
+      "sha256": "f296867839c8befafed32b55a7c11ab4ad14387d2434b970a55237d537bc9353"
+    },
+    {
+      "relative": "case-16/journal",
+      "bytes": 2,
+      "sha256": "b17ef6d19c7a5b1ee83b907c595526dcb1eb06db8227d650d5dda0a9f4ce8cd9"
+    },
+    {
+      "relative": "case-2048/journal",
+      "bytes": 4,
+      "sha256": "bfa0ec8bdf2946547879d50a68687ea32e2fa628db187357415858b633d194d9"
+    },
+    {
+      "relative": "case-2049/journal",
+      "bytes": 4,
+      "sha256": "c7bf117459b946244dc57d552cabfe3329feb70dddd1584aec7419ecf290dca6"
+    }
+  ],
+  "symlinks": [
+    "tool-link",
+    "case-2048/bad"
+  ],
+  "symlinkTargetsUntouched": true,
+  "lsofExit": 1,
+  "provenance": "O28-C04 numeric case fixture; exact case bytes+two rejection links match stage3 fs.lexistsSync finally failure",
+  "rawDataNeeded": false,
+  "absent": true
+}

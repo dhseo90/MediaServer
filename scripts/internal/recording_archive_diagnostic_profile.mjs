@@ -59,7 +59,7 @@ export function summarizeSpawnDiagnostic(result,{elapsedMs=0}={}){
     lastOpenedPhase:lastOpened,lastCompletedPhase:lastCompleted,traceStatus,traceLoss:['complete','incomplete','loss'].includes(traceStatus)?trace.loss:null,rawOutputPublished:false};
 }
 const receiptProfiles=new Set(['current-observer-snapshot','accumulation-probe']);
-const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','diagnostic-profile','probe-binary','metrics-binary']);
+const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','diagnostic-profile','ownership-header','ownership-instrument','probe-binary','metrics-binary']);
 const safeTreeItem=value=>value&&Object.keys(value).sort().join(',')==='bytes,pathSha256,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&/^[a-f0-9]{64}$/.test(value.pathSha256)&&/^[a-f0-9]{64}$/.test(value.sha256);
 const safeTree=value=>value&&typeof value==='object'&&Object.keys(value).sort().join(',')==='bytes,count,items,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&Number.isSafeInteger(value.count)&&value.count>0&&/^[a-f0-9]{64}$/.test(value.sha256)&&Array.isArray(value.items)&&value.items.length<=4096&&value.items.every(safeTreeItem);
 export function receiptTree(snapshot){requireSafe(snapshot&&Array.isArray(snapshot.entries)&&snapshot.entries.length<=4096,'receipt-tree');return {bytes:snapshot.bytes,count:snapshot.count,sha256:snapshot.sha256,items:snapshot.entries.map(item=>({pathSha256:hash(item.relative),bytes:item.bytes,sha256:item.sha256}))};}
@@ -101,9 +101,9 @@ export function preserveDiagnosticReceipt({evidencePath,receipt}){
   requireSafe(receipt.sourceTree.sha256===receipt.copyTree.sha256&&JSON.stringify(receipt.sourceTree.items)===JSON.stringify(receipt.copyTree.items),'receipt-copy-binding');
   preserve(evidencePath,{receipt});const bytes=fs.readFileSync(evidencePath);requireSafe(JSON.parse(bytes).receipt.schema===receipt.schema,'receipt-readback');return {preserved:true,bytes:bytes.length,sha256:hash(bytes)};
 }
-const accumulationModes=new Set(['--bounds','--generate','--catalog','--automatic','--automatic-full','--automatic-full-reopen']);
+const accumulationModes=new Set(['--bounds','--generate','--catalog','--ownership','--ownership-reopen','--automatic','--automatic-full','--automatic-full-reopen']);
 const accumulationStops=new Set(['stage-time-cap','technical-process-cap','time-cap','rss-cap','resource-observer','output-cap','stage-oracle','stage-line-cap','spawn-error','stage-incomplete','process-group-open','native-stage-failed','unknown']);
-const accumulationParentFailures=new Set([...accumulationStops,'drain-oracle','rotation-oracle','fresh-count','observation-gap','observer-backlog-cap','corrupt-oracle','resource-cap','unknown']);
+const accumulationParentFailures=new Set([...accumulationStops,'drain-oracle','rotation-oracle','fresh-count','observation-gap','observer-backlog-cap','corrupt-oracle','ownership-lifecycle','resource-cap','unknown']);
 export function accumulationParentFailure(error){const value=typeof error?.message==='string'?error.message:null;return accumulationParentFailures.has(value)?value:'unknown';}
 export function accumulationProcessDiagnostic({mode,selectedCase=null,status=null,signal=null,stop=null,elapsedMs=0,groupClosed=false}){return {mode:accumulationModes.has(mode)?mode:'unknown',selectedCase:[null,'16','1020','2048','2049'].includes(selectedCase)?selectedCase:null,
   status:Number.isSafeInteger(status)?status:null,signal:safeSignal(signal),stop:stop===null?null:accumulationStops.has(stop)?stop:'unknown',elapsedMs:Number.isFinite(elapsedMs)&&elapsedMs>=0?Math.round(elapsedMs):null,groupClosed:groupClosed===true};}
@@ -117,7 +117,11 @@ export function preserveAccumulationReceipt({evidencePath,receipt}){
   const firstFailureIndex=receipt.processes.findIndex(item=>item.status!==0||item.signal!==null||item.stop!==null||!item.groupClosed);
   requireSafe((receipt.outcome==='pass')===(firstFailureIndex<0&&receipt.parentFailureCode===null)&&receipt.firstFailureIndex===(firstFailureIndex<0?null:firstFailureIndex)&&
     receipt.groupClosed===receipt.processes.every(item=>item.groupClosed),'accumulation-outcome');
-  requireSafe(receipt.command&&Object.keys(receipt.command).sort().join(',')==='args,name'&&receipt.command.name==='recording-accumulation-run'&&JSON.stringify(receipt.command.args)===JSON.stringify(receipt.selectedCase?[receipt.selectedCase]:[]),'accumulation-command');
+  const ownershipCommand=Boolean(receipt.selectedCase)&&JSON.stringify(receipt.command?.args)===JSON.stringify([receipt.selectedCase,'ownership']);
+  const ownershipProcesses=receipt.processes.filter(item=>item.mode.startsWith('--ownership'));
+  requireSafe(receipt.command&&Object.keys(receipt.command).sort().join(',')==='args,name'&&receipt.command.name==='recording-accumulation-run'&&
+    (ownershipCommand||JSON.stringify(receipt.command.args)===JSON.stringify(receipt.selectedCase?[receipt.selectedCase]:[]))&&
+    (!ownershipCommand&&ownershipProcesses.length===0||ownershipCommand&&(receipt.outcome==='pass'?ownershipProcesses.map(item=>item.mode).join(',')==='--ownership,--ownership-reopen':['','--ownership','--ownership,--ownership-reopen'].includes(ownershipProcesses.map(item=>item.mode).join(',')))),'accumulation-command');
   requireSafe(Array.isArray(receipt.manifest)&&receipt.manifest.length>=4&&receipt.manifest.length<=10&&new Set(receipt.manifest.map(x=>x.name)).size===receipt.manifest.length&&receipt.manifest.every(x=>Object.keys(x).sort().join(',')==='bytes,name,sha256'&&manifestNames.has(x.name)&&Number.isSafeInteger(x.bytes)&&x.bytes>=0&&/^[a-f0-9]{64}$/.test(x.sha256)),'accumulation-manifest');
   preserve(evidencePath,{receipt});const bytes=fs.readFileSync(evidencePath);return {preserved:true,bytes:bytes.length,sha256:hash(bytes)};
 }

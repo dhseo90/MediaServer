@@ -175,7 +175,101 @@ receipt 대상은 `case-16/1020/2048/2049` 저장소로 한정했다. 의존성 
 | --- | --- | --- | --- | --- | --- |
 | TMPDIR `media-server-catalog-cost.4Htlkm` | 큰 합성 저장소·계측 빌드 | 80,816,657바이트 | 사후 증거·소유/불변/종료 확인 후 exact root 삭제 | 부재 확인, 원자료 자체는 삭제·동일 생성법 보존 | `o28-stage3-run1-cleanup.json` |
 | TMPDIR `media-server-catalog-cost.dsznZZ` | 보완 후 case16 | 15,388,335바이트 | 검증된 receipt 후 wrapper 정리 | removed=true | case16 원로그·receipt |
-| stage3 pure roots·alias | 자체검사 합성 자료 | 개별 원출력 | finally/후속 소유 확인 정리 | 잔여0 | focused 원로그 |
+| stage3 pure roots·alias | 자체검사 합성 자료 | 개별 원출력 | finally/후속 소유 확인 정리 | 당시 잔여0 보고는 정정. 아래 kMisBJ 잔여를 후속 확인·정리 | focused 원로그·추가 정리 기록 |
 
 3번의 진단 도구 보완과 관측 판정은 마쳤다. 실제 앱의 HTTP4초·snapshot전체15초·O26 RSS 원인은 아직
 해결 완료가 아니다. 다음 4번은 제품 수정 없이 같은 생성법의 메모리 소유자만 분리한다.
+
+### 4번 소유 메모리 분리 — 실행 관측
+
+`bash scripts/internal/verify_recording_accumulation_probe.sh --ownership-case N`을 16→1020→2048→2049 순서로 실행했다.
+기존 comparison의 31열 계측을 재사용했고 기본 cost 진입은 별도 유지했다. 각 실행은 생성→소유 수명→별도 프로세스
+재개방→receipt→정리를 포함한다. 네 최종 실행 모두 exit0, 각 소유 출력26행, 최대8 ID/16개 동시 상세 객체였다.
+모든 상세 객체의 weak16개가 해제 후 만료됐고, 재조회와 새 프로세스의 직렬화 SHA256은 일치했다.
+삭제 ID가 공개 `FindSourceBinding`으로 반환되지 않는 경계도 최초/새 프로세스에서 확인했다.
+
+| 원본 | checkpoint 뒤 journal 부분량 | live 부분량 | shadow/prefix 부분량 | checkpoint 뒤 RSS | 새 프로세스 재개방 RSS |
+| --- | --- | --- | --- | --- | --- |
+| 16 | 39,296 | 28,416 | 28,416 / 4,608 | 32,964,608 | 32,325,632 |
+| 1,020 | 2,505,120 | 1,811,520 | 1,811,520 / 293,760 | 200,720,384 | 173,359,104 |
+| 2,048 | 5,029,888 | 3,637,248 | 3,637,248 / 589,824 | 371,097,600 | 316,424,192 |
+| 2,049 | 5,032,344 | 3,639,024 | 0 / 0 | 368,885,760 | 316,948,480 |
+
+단위는 바이트다. 부분량은 기존 계측의 stringCapacity+vectorCapacityBytes+entryStorageBytes+locationStorageBytes만
+합친 값이다. map/node/allocator/라이브러리/일시 객체를 포함한 전체 heap이 아니며 RSS와 빼서 미확인 부분의 주인을
+단정하지 않는다. journal/live/shadow/prefix의 실제 공유 상세는 기존 owner 집합으로 중복 집계를 피한다.
+reader가 별도로 잡은16개 객체와 검증용 canonical 문자열은 이 표의 catalog 강한 소유량에 포함되지 않는다.
+snapshot 관측은 실제 소유 첫 페이지(최대1000행)의 개수이며 전체 timeline 건수를 실제 할당량으로 사용하지 않았다.
+
+네 규모 모두 journal 행이 cold였고 live/존재하는 shadow의 상세 resident binding은0이었다.
+2,049에서는 checkpoint cache가 아예 없어도 RSS가 약369MB였고 새 프로세스에서는 약317MB였다.
+따라서 이 입력에서 RSS 전체를 checkpoint cache 또는 살아 있는 binding 상세로 설명할 수 없다.
+한편 live의 thin binding/segment/tombstone·mutation index는 계속 남아 있다. 재개방 뒤 shadow/prefix는0으로 돌아갔다.
+일시 할당의 잔존·allocator 특성·다른 heap 소유의 귀속은 이번 부분 관측만으로 확정하지 않았다.
+
+새 프로세스 Open+8개 ID 재확인은 0.140/6.640/13.353/13.391초였다. 각 단계15초 경계는 통과했으나
+생존 영상·이벤트 작업이 없는 합성 입력이고, 실제 앱 snapshot전체15초·HTTP4초·녹화120분은 여전히 미실행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR `media-server-catalog-cost.P7l0cw` | 최종16개 소유 비교 | 15,571,837바이트 | receipt 확인 후 wrapper 정리 | absent=true | case16-run3 |
+| TMPDIR `media-server-catalog-cost.d6kSJk` | 1020개 소유 비교 | 27,431,598바이트 | 동일 | absent=true | case1020-run1 |
+| TMPDIR `media-server-catalog-cost.Pb7oMU` | 2048개 소유 비교 | 39,597,926바이트 | 동일 | absent=true | case2048-run1 |
+| TMPDIR `media-server-catalog-cost.dTl83e` | 2049개 소유 비교 | 39,612,963바이트 | 동일 | absent=true | case2049-run1 |
+
+각 파일의 환경·제품 원문/임시 계측 hash·runtime archive hash·자식 종료·receipt를 원출력에 보존한다.
+네 규모를 하나의 실제 서버 장시간 검증이라고 하지 않는다. 원출력에서 미세한 RSS 차이를 통계적 개선율로 해석하지 않는다.
+
+### 4번 보완·회귀·정리 판정
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 최초 사전 RED | plan7개 중5 PASS/2 FAIL·exit1, ownership 미구현 assertion | fail |
+| 최초 focused | 42개 중38 PASS/4 FAIL·exit1. 새 검사 아닌 기존 LP17 H06/07/08/H11 process 관측 실패 | fail |
+| 동일 process 검사 | 승인된 process 관측 권한으로 `node --test scripts/internal/recording_catalog_comparison.test.mjs` 15/15·exit0. 기존 oracle/코드 변경 없음 | pass |
+| 작은 native 최초 | ownership-case16 run1·exit1, 관측 카운터 block scope 컴파일 오류. 제품 호출 전 실패 | fail |
+| 작은 native 두 번째 | run2·exit1, native 두 자식 모두 status0이나 collector가 동시 객체16개를8개 상한으로 오판. parent 사유는 당시 unknown | fail |
+| 최종 focused | plan/profile27/27·exit0. 공유8/독립16, owner/memory 누락, 해시/개수 모순, 실패 prefix와 기본 command 보존 반례 포함 | pass |
+| 네 규모 소유 비교 | case16 run3/1020/2048/2049 각각 exit0·12/28/46/46초. 각 native·receipt·root 정리 완료 | pass |
+| 기본 cost 연결 최초 | `--case 16`·exit2, Bash3 `set -u`에서 빈 macro 배열 준비 실패 | fail |
+| 기본 cost 연결 보완 | 같은 명령 run2·exit0·11초. 기본 macro를 명시했고 cost 계측/의미는 유지 | pass |
+
+동일 원인 재발도 별도로 정정한다. 2번에서 확인했던 process 관측 권한 조건을 4번 첫 묶음에 제대로 적용하지
+못해 기존 네 반례가 다시 실패했다. 이후 권한 실행 PASS는 그 새 실행의 종료만 증명하며 첫 실행을 소급 정리하지 않는다.
+메인 최종 점검에서 합성 `setInterval` 자식 PID41242/PPID1/PGID41240 잔류를 발견했다. 생성 시각20:45:19는
+실패 로그 생성 시각과 같았고, exact 합성 command hash·repo cwd·단독 group을 대조해 이번 검사의 잔류로 판단했다.
+당시 로그에는 PID가 없다는 한계는 남긴다. 메인이 해당 PID만 TERM한 뒤 PID/group 모두 ESRCH를 직접 확인했다.
+증거는 `o28-stage4-descendant-cleanup.json`이다. 파일 정리 성공을 프로세스 종료로 확대했던 담당자의 보고를 정정한다.
+
+3번의 `잔여0`도 정정한다. 후속 검사에서 발견한 kMisBJ는 case16/1020/2048/2049 숫자14바이트와 /dev/null 거부
+검사용 symlink2개(18바이트)가 정확히 일치하는 O28-C04 fixture였다. 당시 `fs.lexistsSync` finally 실패와 구조가
+일치하고 dev/ino/uid/mode·열린 FD 부재를 확인해 메인이 제거했다. 원출력/hash와 새 직접 부재 증거를 보존했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR `media-server-catalog-cost.dLrVct` | compile 실패 준비물 | 524KiB | canonical 경로·FD 부재 확인 후 삭제 | absent=true | run1-cleanup JSON. basename 결속은 당시 도구 출력에만 존재 |
+| TMPDIR `media-server-catalog-cost.UhPDos` | collector 실패 합성 자료 | 15,236KiB | 실패 receipt 보존 뒤 삭제 | absent=true | run2-cleanup JSON·동일 이름 receipt |
+| TMPDIR `media-server-catalog-cost.5Lv5bJ` | Bash 준비 실패 자료 | 512KiB | FD 부재 확인 뒤 삭제 | absent=true | cost-case16-run1-cleanup JSON. basename 결속은 당시 도구 출력에만 존재 |
+| TMPDIR `media-server-catalog-cost.kMisBJ` | 3번 자체검사 누락 잔여 | 파일/링크32바이트, 디렉터리 제외 | exact 내용/소유/FD 대조 후 삭제 | 부재 직접 확인, link target는 미변경 | `o28-stage3-late-fixture-cleanup.json` |
+| PID41242/PGID41240 | 최초 LP17 관측 실패의 합성 자식으로 사후 판단 | 파일 없음 | exact command·시각·cwd·group 대조 뒤 PID만 TERM | PID/group ESRCH | descendant-cleanup JSON |
+
+compile 실패 root의 초기 cleanup 두 번은 `/var`와 canonical `/private/var` 불일치로 거부됐다.
+그 두 실패의 별도 원출력 파일은 없고 도구 출력만 있으며 추정 복원하지 않는다. 최종 cleanup JSON은 그 횟수와
+성공한 사후 부재만 보존한다. 이 자료 누락을 제품 실패나 진단 비교 PASS로 사용하지 않는다.
+개별 테스트·관측값은 [4번 전수표](o28-stage4-items.md.gz)와 각 stage4 원로그에 보존한다.
+
+메인 최종 확인: `o28-final-cleanup-audit.json`의 확인된8개 root 부재·현재 exact 합성 자식0.
+이는 사후 현재 상태의 직접 증거이고 최초 실패 당시의 종료 증거를 소급 생성하지 않는다.
+`o28-stage4-main-static.log`의 각 명령은 모두 exit0이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| plan 구문 | `node --check scripts/internal/recording_accumulation_plan.mjs` | pass |
+| plan 검사 구문 | `node --check scripts/internal/recording_accumulation_plan.test.mjs` | pass |
+| prepare 구문 | `node --check scripts/internal/recording_accumulation_prepare.mjs` | pass |
+| runner 구문 | `node --check scripts/internal/recording_accumulation_run.mjs` | pass |
+| profile 구문 | `node --check scripts/internal/recording_archive_diagnostic_profile.mjs` | pass |
+| profile 검사 구문 | `node --check scripts/internal/recording_archive_diagnostic_profile.test.mjs` | pass |
+| wrapper 구문 | `bash -n scripts/internal/verify_recording_accumulation_probe.sh` | pass |
+| 문서 링크 | `./server.sh verify-docs-links` | pass |
+| 공백 | `git diff --check` | pass |

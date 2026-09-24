@@ -1,0 +1,57 @@
+✔ LP26-O10-A01 4N 독립 규모와 최대 bound (0.538208ms)
+✔ O28-C01 2048 CLI·receipt 허용과 unknown case 거부가 정적으로 연결 (0.998125ms)
+✔ LP26-O10-B01 정확한 네 type·count·partial/backlog oracle (0.123125ms)
+✔ LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle (0.049292ms)
+✔ LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서 (0.281417ms)
+✖ O28-M01 ownership 수명 단계는 별도 allowlist와 동일 15초 경계를 쓴다 (0.3275ms)
+✖ O28-M01/M02 ownership CLI·collector·receipt 연결은 최대8 reader와 내용 oracle을 고정한다 (1.771458ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 5
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.983
+
+✖ failing tests:
+
+test at scripts/internal/recording_accumulation_plan.test.mjs:35:1
+✖ O28-M01 ownership 수명 단계는 별도 allowlist와 동일 15초 경계를 쓴다 (0.3275ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_plan.test.mjs:36:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_accumulation_plan.test.mjs:43:1
+✖ O28-M01/M02 ownership CLI·collector·receipt 연결은 최대8 reader와 내용 oracle을 고정한다 (1.771458ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(wrapper.includes('--ownership-case'))
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_plan.test.mjs:45:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,36 @@
+[command] {"cmd":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--check","scripts/internal/recording_accumulation_plan.mjs"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":20}
+[command] {"cmd":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--check","scripts/internal/recording_accumulation_plan.test.mjs"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":19}
+[command] {"cmd":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--check","scripts/internal/recording_accumulation_prepare.mjs"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":18}
+[command] {"cmd":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--check","scripts/internal/recording_accumulation_run.mjs"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":19}
+[command] {"cmd":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--check","scripts/internal/recording_archive_diagnostic_profile.mjs"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":19}
+[command] {"cmd":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--check","scripts/internal/recording_archive_diagnostic_profile.test.mjs"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":18}
+[command] {"cmd":"bash","args":["-n","scripts/internal/verify_recording_accumulation_probe.sh"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":2}
+[command] {"cmd":"./server.sh","args":["verify-docs-links"]}
+
+== Docs link verification summary ==
+- markdown files: 328
+- local links: 12753
+- local images: 22
+- local anchors: 186
+- indexed docs: 76
+- index coverage exclusions: 244
+- failures: 0
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":155}
+[command] {"cmd":"git","args":["diff","--check"]}
+
+[command-result] {"exit":0,"signal":null,"elapsedMs":31}

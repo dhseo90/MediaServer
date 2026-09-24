@@ -1,0 +1,258 @@
+2b2f3b1e6f800480268b06670a3f5b744e260ac3
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+1.28.1
+3.51.0
+3.6.2
+e3e1c89b73ab1e7bd499f946743de6b58510ffc0bc31cd118dacae0e2e6455d6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_probe.cpp
+3d2026706fa46f3410c9cf5738e5a99b83eee0af3348ea2f4892960af46774f3  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_run.mjs
+e87ecfef8ef5c0f92c9c13a0808b8e003ae8c1bb4542377dea010fbdebc98f4a  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_prepare.mjs
+38563a6a840cd3a2a12dca161b0e6861c9cec34e01cadfd91e868bf43096cdf3  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observer.mjs
+[source] file=recording_catalog.cpp original_sha256=9e2b0f90839c23d15a6122feb609af8f14d0f7e3ff56cbde13861b0b9cfd36ae instrumented_sha256=de9cad6b8ac20ee940511824f9730c4fcb81c09515e18363f70a974286d6a612
+[source] file=recording_journal.cpp original_sha256=f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373 instrumented_sha256=ff9a0f46233ce42a859332e5388742a3775252cc400afa16afe77c1b9d2f4114
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a instrumented_sha256=92354b974d664c88be430781853811b0f67dee67813667b3bf0fca7b2204b707
+[pass] FC01 exact insertion checks count=110
+[lp17] {"kind":"instrument","file":"recording_catalog.h","originalSha256":"49250e6ff55304e97bd0d27c275da08b1d8f7c378a80357d891ec0fde383bc78","instrumentedSha256":"0456cc7e71948099fa2e8cb1da98d32653c477f681bdb1836d27896d39367337"}
+[lp17] {"kind":"instrument","file":"recording_journal.h","originalSha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c","instrumentedSha256":"27a3503cc19779cc924ae7f21a160ce885d7da981555ed27f7ff5a93b67be4b6"}
+[lp17] {"kind":"instrument","file":"recording_catalog.cpp","originalSha256":"de9cad6b8ac20ee940511824f9730c4fcb81c09515e18363f70a974286d6a612","instrumentedSha256":"eec53eb2826a45e8c76120f3faa2cbdecffbaff2718f4b515ca668ab54fb950a"}
+[lp17] {"kind":"instrument","file":"recording_journal.cpp","originalSha256":"ff9a0f46233ce42a859332e5388742a3775252cc400afa16afe77c1b9d2f4114","instrumentedSha256":"69dd8246d7833b37661c991d1871a5f791700944bafc41464ca63ac44a2c6b1a"}
+[lp17] {"kind":"instrumentSummary","exactEdits":7,"cacheChange":"retention-and-reuse-only"}
+[probe-instrument] {"catalogSha256":"1e520b2793519be0721868c17815bd5637a089e25f9a3a7a7d65105d69227624","exactCacheInsertion":1,"productFilesChanged":false}
+[100%] Built target media_server_runtime
+[linked-archive] testId=LP26-O14-C source=cmake-target:media_server_runtime archive=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a sha256=b68aa4c78b860c2e199d25aea264e75f3805240c6306e016e7db49a03665717b
+[bounded-exit] code=0 signal=none timeout=false
+[bounded-exit] code=0 signal=none timeout=false
+[bounded-exit] code=0 signal=none timeout=false
+[pass] seed FE02 writer start
+[pass] seed FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=26093 input_aus=60 segments=1
+[fixture-shape] {"sources":2049,"records":8196,"journalBytes":38420091,"cacheChargeBytes":38526639,"expectedCacheAdmission":false,"mediaFiles":0,"samplesPerSource":60}
+[pass] LP26-O10-A02 typed segment binding tombstone serialization and seed file verification
+[probe-rss] {"stage":"generated","currentBytes":43859968,"peakBytes":44040192}
+[probe-process] {"mode":"--generate","selectedCase":"2049","status":0,"signal":null,"stop":null,"elapsedMs":3612,"groupClosed":true,"peakObservedRssBytes":43859968,"metricsUnavailable":0,"stageLimitMs":null,"technicalCapMs":60000,"diskBytes":53605138,"parentRssBytes":71991296}
+[probe-stage] ownership-open begin
+[cost] operation=ownership-open scope=catalog.lock.hold count=1 inclusive_ns=11075535458 exclusive_ns=113833
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked count=1 inclusive_ns=11075421625 exclusive_ns=19570817
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked count=8196 inclusive_ns=4740883724 exclusive_ns=2022374650
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1985 inclusive_ns=2425152749 exclusive_ns=2175233195
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1985 inclusive_ns=249919554 exclusive_ns=5937460
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1985 inclusive_ns=243982094 exclusive_ns=243982094
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2049 inclusive_ns=293356325 exclusive_ns=39913471
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=253442854 exclusive_ns=5250954
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=248191900 exclusive_ns=248191900
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked count=1 inclusive_ns=4643531167 exclusive_ns=50233502
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked count=8196 inclusive_ns=4593296998 exclusive_ns=1868233463
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=2049 inclusive_ns=2418995616 exclusive_ns=2168645140
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=250350476 exclusive_ns=5370520
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=244979956 exclusive_ns=244979956
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1 count=64 inclusive_ns=21359007 exclusive_ns=13724591
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=64 inclusive_ns=7634416 exclusive_ns=139288
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=64 inclusive_ns=7495128 exclusive_ns=7495128
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2049 inclusive_ns=284708912 exclusive_ns=38176731
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=246532181 exclusive_ns=4837386
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=241694795 exclusive_ns=241694795
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.lock.hold count=1 inclusive_ns=333 exclusive_ns=333
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.lock.wait count=1 inclusive_ns=334 exclusive_ns=334
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReadCatalogReplay count=1 inclusive_ns=4886917 exclusive_ns=3657292
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReadCatalogReplay/journal.ReadCheckpointRecords count=1 inclusive_ns=1229625 exclusive_ns=1229625
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked count=1 inclusive_ns=1561274333 exclusive_ns=878519411
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/catalog.ReadCatalogReplay count=1 inclusive_ns=4878083 exclusive_ns=3611416
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/catalog.ReadCatalogReplay/journal.ReadCheckpointRecords count=1 inclusive_ns=1266667 exclusive_ns=1266667
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=1985 inclusive_ns=659823305 exclusive_ns=424168109
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1985 inclusive_ns=235655196 exclusive_ns=4573167
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1985 inclusive_ns=231082029 exclusive_ns=231082029
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/journal.SerializeRecordingMutationV1 count=12294 inclusive_ns=18053534 exclusive_ns=18053534
+[cost] operation=ownership-open scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReleaseInactiveDetailsLocked count=1 inclusive_ns=105274667 exclusive_ns=105274667
+[cost] operation=ownership-open scope=catalog.lock.wait count=1 inclusive_ns=375 exclusive_ns=375
+[cost] operation=ownership-open scope=journal.Open count=1 inclusive_ns=1462779625 exclusive_ns=2875
+[cost] operation=ownership-open scope=journal.Open/journal.OpenManagedLocked count=1 inclusive_ns=1462776750 exclusive_ns=197833
+[cost] operation=ownership-open scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked count=1 inclusive_ns=1462578917 exclusive_ns=132225065
+[cost] operation=ownership-open scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.IndexRecord count=8196 inclusive_ns=97325773 exclusive_ns=74029026
+[cost] operation=ownership-open scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.IndexRecord/journal.SerializeRecordingMutationV1 count=16392 inclusive_ns=23296747 exclusive_ns=23296747
+[cost] operation=ownership-open scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.ParseRecordingMutationV1 count=8196 inclusive_ns=1233028079 exclusive_ns=1233028079
+[probe-wall] {"stage":"ownership-open","elapsedUs":12538320,"ok":true}
+[probe-rss] {"stage":"ownership-open","currentBytes":243056640,"peakBytes":243056640}
+[lp17] {"kind":"memory","stage":"pre-checkpoint","sources":2049,"currentRssBytes":243056640,"peakRssBytes":243056640}
+[lp17] {"kind":"owner-packed","version":1,"stage":"pre-checkpoint","owner":"journal","values":[8196,0,0,0,2568126,2934168,786432,0,0,0,0,0,0,0,38526639,0,0,0,0,0,0,0,0,0,8196,0,0,0,0,0,1704768]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"pre-checkpoint","owner":"live","values":[8196,0,0,4098,1866426,2458800,688464,0,4098,2049,2049,0,0,0,71951811,0,0,122940,0,0,8196,71951811,8196,0,0,0,2049,0,0,491760,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"pre-checkpoint","owner":"shadow","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"pre-checkpoint","owner":"prefix","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[probe-stage] ownership-timeline begin
+[probe-wall] {"stage":"ownership-timeline","elapsedUs":9107,"ok":true}
+[probe-rss] {"stage":"ownership-timeline","currentBytes":246054912,"peakBytes":246054912}
+[lp17] {"kind":"owner-packed","version":1,"stage":"snapshot-held","owner":"snapshot","values":[0,0,0,0,0,0,0,0,2049,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[probe-stage] ownership-acquire begin
+[cost] operation=ownership-acquire scope=contracts.ParseRecordingSourceBindingV1 count=16 inclusive_ns=18609668 exclusive_ns=16680668
+[cost] operation=ownership-acquire scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1929000 exclusive_ns=41084
+[cost] operation=ownership-acquire scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1887916 exclusive_ns=1887916
+[cost] operation=ownership-acquire scope=contracts.SerializeRecordingSourceBindingV1 count=16 inclusive_ns=5283752 exclusive_ns=3412254
+[cost] operation=ownership-acquire scope=contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1871498 exclusive_ns=35249
+[cost] operation=ownership-acquire scope=contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1836249 exclusive_ns=1836249
+[cost] operation=ownership-acquire scope=contracts.ValidateRecordingSourceBindingForSegment count=16 inclusive_ns=2137586 exclusive_ns=286460
+[cost] operation=ownership-acquire scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1851126 exclusive_ns=36335
+[cost] operation=ownership-acquire scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1814791 exclusive_ns=1814791
+[cost] operation=ownership-acquire scope=journal.EnvelopeIdentity count=16 inclusive_ns=146711 exclusive_ns=94628
+[cost] operation=ownership-acquire scope=journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=16 inclusive_ns=52083 exclusive_ns=52083
+[cost] operation=ownership-acquire scope=journal.ParseRecordingMutationV1 count=16 inclusive_ns=6282916 exclusive_ns=6282916
+[cost] operation=ownership-acquire scope=journal.locatedRawRead.bytes count=266576 inclusive_ns=0 exclusive_ns=0
+[cost] operation=ownership-acquire scope=journal.locatedRawRead.calls count=16 inclusive_ns=0 exclusive_ns=0
+[probe-wall] {"stage":"ownership-acquire","elapsedUs":44026,"ok":true}
+[probe-rss] {"stage":"ownership-acquire","currentBytes":246153216,"peakBytes":246153216}
+[lp17] {"kind":"memory","stage":"handles-held","sources":2049,"currentRssBytes":246153216,"peakRssBytes":246153216}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-held","owner":"journal","values":[8196,0,0,0,2568126,2934168,786432,0,0,0,0,0,0,0,38526639,0,0,0,0,0,0,0,0,0,8196,0,0,0,0,0,1704768]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-held","owner":"live","values":[8196,0,0,4098,1866426,2458800,688464,0,4098,2049,2049,0,0,0,71951811,0,0,122940,0,0,8196,71951811,8196,0,0,0,2049,0,0,491760,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-held","owner":"shadow","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-held","owner":"prefix","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"snapshot-released","owner":"snapshot","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[probe-stage] ownership-release begin
+[lp17] {"kind":"memory","stage":"handles-released","sources":2049,"currentRssBytes":246153216,"peakRssBytes":246153216}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-released","owner":"journal","values":[8196,0,0,0,2568126,2934168,786432,0,0,0,0,0,0,0,38526639,0,0,0,0,0,0,0,0,0,8196,0,0,0,0,0,1704768]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-released","owner":"live","values":[8196,0,0,4098,1866426,2458800,688464,0,4098,2049,2049,0,0,0,71951811,0,0,122940,0,0,8196,71951811,8196,0,0,0,2049,0,0,491760,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-released","owner":"shadow","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"handles-released","owner":"prefix","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[cost] operation=ownership-release scope=contracts.ParseRecordingSourceBindingV1 count=8 inclusive_ns=9408459 exclusive_ns=8364000
+[cost] operation=ownership-release scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=8 inclusive_ns=1044459 exclusive_ns=20001
+[cost] operation=ownership-release scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=8 inclusive_ns=1024458 exclusive_ns=1024458
+[cost] operation=ownership-release scope=contracts.SerializeRecordingSourceBindingV1 count=8 inclusive_ns=2654167 exclusive_ns=1711167
+[cost] operation=ownership-release scope=contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=8 inclusive_ns=943000 exclusive_ns=17123
+[cost] operation=ownership-release scope=contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=8 inclusive_ns=925877 exclusive_ns=925877
+[cost] operation=ownership-release scope=contracts.ValidateRecordingSourceBindingForSegment count=8 inclusive_ns=1104668 exclusive_ns=145084
+[cost] operation=ownership-release scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=8 inclusive_ns=959584 exclusive_ns=18876
+[cost] operation=ownership-release scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=8 inclusive_ns=940708 exclusive_ns=940708
+[cost] operation=ownership-release scope=journal.EnvelopeIdentity count=8 inclusive_ns=70624 exclusive_ns=47959
+[cost] operation=ownership-release scope=journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=8 inclusive_ns=22665 exclusive_ns=22665
+[cost] operation=ownership-release scope=journal.ParseRecordingMutationV1 count=8 inclusive_ns=3207498 exclusive_ns=3207498
+[cost] operation=ownership-release scope=journal.locatedRawRead.bytes count=133288 inclusive_ns=0 exclusive_ns=0
+[cost] operation=ownership-release scope=journal.locatedRawRead.calls count=8 inclusive_ns=0 exclusive_ns=0
+[probe-wall] {"stage":"ownership-release","elapsedUs":23460,"ok":true}
+[probe-rss] {"stage":"ownership-release","currentBytes":246153216,"peakBytes":246153216}
+[lp17] {"kind":"memory","stage":"requery-released","sources":2049,"currentRssBytes":246153216,"peakRssBytes":246153216}
+[lp17] {"kind":"owner-packed","version":1,"stage":"requery-released","owner":"journal","values":[8196,0,0,0,2568126,2934168,786432,0,0,0,0,0,0,0,38526639,0,0,0,0,0,0,0,0,0,8196,0,0,0,0,0,1704768]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"requery-released","owner":"live","values":[8196,0,0,4098,1866426,2458800,688464,0,4098,2049,2049,0,0,0,71951811,0,0,122940,0,0,8196,71951811,8196,0,0,0,2049,0,0,491760,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"requery-released","owner":"shadow","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"requery-released","owner":"prefix","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[probe-stage] ownership-checkpoint begin
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold count=1 inclusive_ns=6579725542 exclusive_ns=69042
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=6579656500 exclusive_ns=12655833
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/cache.fullReplay count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ReleaseInactiveDetailsLocked count=1 inclusive_ns=101297292 exclusive_ns=101297292
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.lock.hold count=1 inclusive_ns=542 exclusive_ns=542
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.lock.wait count=1 inclusive_ns=292 exclusive_ns=292
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords count=1 inclusive_ns=1298824583 exclusive_ns=1958
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords count=1 inclusive_ns=1298822625 exclusive_ns=42787792
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.EnvelopeIdentity count=8196 inclusive_ns=29079952 exclusive_ns=18212218
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=8196 inclusive_ns=10867734 exclusive_ns=10867734
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.ParseRecordingMutationV1 count=8196 inclusive_ns=1226954881 exclusive_ns=1226954881
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=2120250 exclusive_ns=2120250
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=4420825542 exclusive_ns=4771297
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=8196 inclusive_ns=4416054245 exclusive_ns=1790875809
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=2049 inclusive_ns=2349731009 exclusive_ns=2107284949
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=242446060 exclusive_ns=4968844
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=237477216 exclusive_ns=237477216
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2049 inclusive_ns=275447427 exclusive_ns=36010680
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=239436747 exclusive_ns=4873505
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=234563242 exclusive_ns=234563242
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=403845083 exclusive_ns=2056250
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.candidateFields count=1 inclusive_ns=2160041 exclusive_ns=2160041
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write count=1 inclusive_ns=51656417 exclusive_ns=22920063
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write/journal.EnvelopeIdentity count=8196 inclusive_ns=28736354 exclusive_ns=18515815
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=8196 inclusive_ns=10220539 exclusive_ns=10220539
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=337348750 exclusive_ns=330544844
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords/journal.SerializeRecordingMutationV1 count=4098 inclusive_ns=6803906 exclusive_ns=6803906
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=10623625 exclusive_ns=7280815
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=4098 inclusive_ns=3342810 exclusive_ns=3342810
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=340087083 exclusive_ns=55208
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=340031875 exclusive_ns=333225244
+[cost] operation=ownership-checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords/journal.SerializeRecordingMutationV1 count=4098 inclusive_ns=6806631 exclusive_ns=6806631
+[cost] operation=ownership-checkpoint scope=catalog.lock.wait count=1 inclusive_ns=125 exclusive_ns=125
+[cost] operation=ownership-checkpoint scope=journal.locatedRawRead.bytes count=38420091 inclusive_ns=0 exclusive_ns=0
+[cost] operation=ownership-checkpoint scope=journal.locatedRawRead.calls count=8196 inclusive_ns=0 exclusive_ns=0
+[probe-wall] {"stage":"ownership-checkpoint","elapsedUs":6579727,"ok":true}
+[probe-rss] {"stage":"ownership-checkpoint","currentBytes":368885760,"peakBytes":368885760}
+[lp17] {"kind":"memory","stage":"post-checkpoint","sources":2049,"currentRssBytes":368885760,"peakRssBytes":368885760}
+[lp17] {"kind":"owner-packed","version":1,"stage":"post-checkpoint","owner":"journal","values":[8196,0,0,0,2568126,2934168,393408,0,0,0,0,0,0,0,38526639,0,0,0,0,0,0,0,0,0,8196,0,0,0,0,0,1704768]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"post-checkpoint","owner":"live","values":[8196,0,0,4098,1866426,2458800,688464,0,4098,2049,2049,0,0,0,71951811,0,0,122940,0,0,8196,71951811,8196,0,0,0,2049,0,0,491760,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"post-checkpoint","owner":"shadow","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"post-checkpoint","owner":"prefix","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[ownership-lifecycle] {"testIds":["O28-M01","O28-M02"],"sources":2049,"readers":8,"samplesPerBinding":60,"mediaFiles":0,"sameObject":0,"requeryAddressMatches":0,"heldDistinctObjects":16,"expiredWeak":16,"requeryDistinctAddresses":8,"bindingSha256":"094ef11c898b15e090a8295f4d77f226fdba8b00000eea49326eee67ba334763","serializedEqual":true,"deleted":true,"snapshotReleased":true,"handlesReleased":true,"wholeHeapAttributed":false,"rssLeakProven":false}
+[pass] O28-M01/M02 bounded reader ownership lifecycle
+[probe-process] {"mode":"--ownership","selectedCase":"2049","status":0,"signal":null,"stop":null,"elapsedMs":19255,"groupClosed":true,"peakObservedRssBytes":368885760,"metricsUnavailable":0,"stageLimitMs":15000,"technicalCapMs":65000,"diskBytes":39612899,"parentRssBytes":73498624}
+[probe-stage] ownership-reopen begin
+[cost] operation=ownership-reopen scope=catalog.lock.hold count=1 inclusive_ns=10623250833 exclusive_ns=113874
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked count=1 inclusive_ns=10623136959 exclusive_ns=18216605
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked count=8196 inclusive_ns=4433702521 exclusive_ns=1865904522
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1985 inclusive_ns=2290558906 exclusive_ns=2055015269
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1985 inclusive_ns=235543637 exclusive_ns=4967617
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1985 inclusive_ns=230576020 exclusive_ns=230576020
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2049 inclusive_ns=277239093 exclusive_ns=36500900
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=240738193 exclusive_ns=4918723
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=235819470 exclusive_ns=235819470
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked count=1 inclusive_ns=4502558083 exclusive_ns=49517908
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked count=8196 inclusive_ns=4453039717 exclusive_ns=1791572208
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=2049 inclusive_ns=2364045424 exclusive_ns=2120659864
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=243385560 exclusive_ns=4915443
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=238470117 exclusive_ns=238470117
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1 count=64 inclusive_ns=21069538 exclusive_ns=13627748
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=64 inclusive_ns=7441790 exclusive_ns=139755
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=64 inclusive_ns=7302035 exclusive_ns=7302035
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2049 inclusive_ns=276352547 exclusive_ns=36208765
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2049 inclusive_ns=240143782 exclusive_ns=4655170
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2049 inclusive_ns=235488612 exclusive_ns=235488612
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.lock.hold count=1 inclusive_ns=208 exclusive_ns=208
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.lock.wait count=1 inclusive_ns=250 exclusive_ns=250
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReadCatalogReplay count=1 inclusive_ns=6791750 exclusive_ns=5565375
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReadCatalogReplay/journal.ReadCheckpointRecords count=1 inclusive_ns=1226375 exclusive_ns=1226375
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked count=1 inclusive_ns=1556317833 exclusive_ns=870864015
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/catalog.ReadCatalogReplay count=1 inclusive_ns=7210000 exclusive_ns=5971458
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/catalog.ReadCatalogReplay/journal.ReadCheckpointRecords count=1 inclusive_ns=1238542 exclusive_ns=1238542
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=1985 inclusive_ns=660411146 exclusive_ns=423607077
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1985 inclusive_ns=236804069 exclusive_ns=4607273
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1985 inclusive_ns=232196796 exclusive_ns=232196796
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/journal.SerializeRecordingMutationV1 count=12294 inclusive_ns=17832672 exclusive_ns=17832672
+[cost] operation=ownership-reopen scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReleaseInactiveDetailsLocked count=1 inclusive_ns=105550167 exclusive_ns=105550167
+[cost] operation=ownership-reopen scope=catalog.lock.wait count=1 inclusive_ns=209 exclusive_ns=209
+[cost] operation=ownership-reopen scope=contracts.ParseRecordingSourceBindingV1 count=16 inclusive_ns=18378249 exclusive_ns=16458083
+[cost] operation=ownership-reopen scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1920166 exclusive_ns=42038
+[cost] operation=ownership-reopen scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1878128 exclusive_ns=1878128
+[cost] operation=ownership-reopen scope=contracts.SerializeRecordingSourceBindingV1 count=24 inclusive_ns=7873331 exclusive_ns=5054708
+[cost] operation=ownership-reopen scope=contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=24 inclusive_ns=2818623 exclusive_ns=52454
+[cost] operation=ownership-reopen scope=contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=24 inclusive_ns=2766169 exclusive_ns=2766169
+[cost] operation=ownership-reopen scope=contracts.ValidateRecordingSourceBindingForSegment count=16 inclusive_ns=2215917 exclusive_ns=288501
+[cost] operation=ownership-reopen scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1927416 exclusive_ns=39582
+[cost] operation=ownership-reopen scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1887834 exclusive_ns=1887834
+[cost] operation=ownership-reopen scope=journal.EnvelopeIdentity count=16 inclusive_ns=138334 exclusive_ns=102171
+[cost] operation=ownership-reopen scope=journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=16 inclusive_ns=36163 exclusive_ns=36163
+[cost] operation=ownership-reopen scope=journal.Open count=1 inclusive_ns=2711735334 exclusive_ns=2625
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked count=1 inclusive_ns=2711732709 exclusive_ns=205084
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked count=1 inclusive_ns=2711527625 exclusive_ns=82416982
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.IndexRecord count=8196 inclusive_ns=83735794 exclusive_ns=70094315
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.IndexRecord/journal.SerializeRecordingMutationV1 count=12294 inclusive_ns=13641479 exclusive_ns=13641479
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.ParseRecordingMutationV1 count=8196 inclusive_ns=2545374849 exclusive_ns=1397162233
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.ParseRecordingMutationV1/journal.ParseRecordingMutationV1 count=4098 inclusive_ns=1140485962 exclusive_ns=1140485962
+[cost] operation=ownership-reopen scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.ParseRecordingMutationV1/journal.SerializeRecordingMutationV1 count=4098 inclusive_ns=7726654 exclusive_ns=7726654
+[cost] operation=ownership-reopen scope=journal.ParseRecordingMutationV1 count=16 inclusive_ns=15745001 exclusive_ns=9469582
+[cost] operation=ownership-reopen scope=journal.ParseRecordingMutationV1/journal.ParseRecordingMutationV1 count=16 inclusive_ns=6226459 exclusive_ns=6226459
+[cost] operation=ownership-reopen scope=journal.ParseRecordingMutationV1/journal.SerializeRecordingMutationV1 count=16 inclusive_ns=48960 exclusive_ns=48960
+[cost] operation=ownership-reopen scope=journal.locatedRawRead.bytes count=151436 inclusive_ns=0 exclusive_ns=0
+[cost] operation=ownership-reopen scope=journal.locatedRawRead.calls count=16 inclusive_ns=0 exclusive_ns=0
+[probe-wall] {"stage":"ownership-reopen","elapsedUs":13391023,"ok":true}
+[probe-rss] {"stage":"ownership-reopen","currentBytes":316948480,"peakBytes":316948480}
+[lp17] {"kind":"memory","stage":"fresh-reopen","sources":2049,"currentRssBytes":316948480,"peakRssBytes":316948480}
+[lp17] {"kind":"owner-packed","version":1,"stage":"fresh-reopen","owner":"journal","values":[8196,0,0,0,2568126,2934168,786432,0,0,0,0,0,0,0,38526639,0,0,0,0,0,0,0,0,0,8196,0,0,0,0,0,1704768]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"fresh-reopen","owner":"live","values":[8196,0,0,4098,1866426,2458800,688464,0,4098,2049,2049,0,0,0,71951811,0,0,122940,0,0,8196,71951811,8196,0,0,0,2049,0,0,491760,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"fresh-reopen","owner":"shadow","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[lp17] {"kind":"owner-packed","version":1,"stage":"fresh-reopen","owner":"prefix","values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[ownership-reopen] {"sources":2049,"readers":8,"samplesPerBinding":60,"bindingSha256":"094ef11c898b15e090a8295f4d77f226fdba8b00000eea49326eee67ba334763","serializedEqual":true,"deleted":true}
+[probe-process] {"mode":"--ownership-reopen","selectedCase":"2049","status":0,"signal":null,"stop":null,"elapsedMs":13441,"groupClosed":true,"peakObservedRssBytes":316915712,"metricsUnavailable":0,"stageLimitMs":15000,"technicalCapMs":65000,"diskBytes":39612899,"parentRssBytes":73564160}
+[ownership-summary] {"sources":2049,"ownerRows":26,"readers":8,"bindingSha256":"094ef11c898b15e090a8295f4d77f226fdba8b00000eea49326eee67ba334763","wholeHeapAttributed":false,"rssLeakProven":false}
+[pass] LP26-O10-E01 malformed mutation rejected
+[summary] {"completed":true,"elapsedMs":36675.116916000006,"diskBytes":39612899,"parentRssBytes":73580544,"performancePass":false,"longrunPass":false,"uiPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[probe-receipt] {"preserved":true,"bytes":2834,"sha256":"fba25491ae3794019bb77229f72bbde790485f05e080bfe2aeec10c8226964bd","rawPathsPublished":false}
+[probe-reader-cleanup] {"readers":0,"closed":true,"groupsClosed":true,"receiptPreserved":true,"elapsedMs":36699.105666,"diskBytes":39612963,"parentRssBytes":74153984}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.dTl83e","bytes":39612963,"absent":true}
+[exit] code=0 elapsed_seconds=46 source=bash-SECONDS token_usage=unavailable

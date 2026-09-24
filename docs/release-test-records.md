@@ -43798,3 +43798,10 @@ RSS는 녹화 중 623,722,496바이트, 비활성 직후 623,673,344, 유휴 20�
 사후 증거 확보·제품 불변·FD 부재 확인 후 80,816,657바이트 임시 root 삭제를 확인했다.
 [3번 개별 결과](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage3-items.md.gz)와
 [비용·한계·최초 실패](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)에 보존한다.
+
+4번 마감: 소유 비교 16/1020/2048/2049 및 기본 cost16 최종 exit0, 최종 focused27/27·process15/15.
+최초 compile/collector/Bash 준비 실패와 제한 process 관측4실패를 보존했다. 메인 사후 확인에서 발견한3번
+fixture 잔여와4번 합성 자식을 정리하고 초기 cleanup 보고를 정정했다. 사후 증거를 당시 증거로 바꾸지 않았다.
+[4번 전수표](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage4-items.md.gz)와
+[직접 수치·정리·자료 누락](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)을 따른다.
+제품 변경·실제 앱/장시간 검증은 없다. RSS 전체 귀속과 O26 최초 snapshot 실패는 미확정이다.
