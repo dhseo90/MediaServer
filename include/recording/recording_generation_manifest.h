@@ -38,8 +38,15 @@ RecordingGenerationPublishResult PublishRecordingGenerationManifest(
     const std::filesystem::path& root, const RecordingGenerationManifest&, std::string* error);
 bool ReadRecordingGenerationManifest(const std::filesystem::path& root,
     RecordingGenerationReadResult*, std::string* error);
+// snapshot/identity/evidence 불변 파일의 bytes를 독립 검증해 읽는다. active는 허용하지 않는다.
+// 호출자는 immutable 조건과 managed lease를 유지해야 한다. 파일 쓰기/삭제/제품 Open 연결 없음.
+// descriptor 1GiB 상한과 caller admission을 읽기 전에 적용하며 실패 output은 불변이다.
+bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
+    const RecordingGenerationFile&, std::uint64_t byte_admission, std::string* output, std::string* error);
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 void RecordingGenerationFailNextDirectorySyncForTest();
+// 실제 파일 읽기 후 최종 결박 검사 직전의 일회성 fixture hook이다.
+void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)());
 #endif
 // DurabilityUncertain은 rename 후 directory fsync 또는 재결박 실패다.
 // 호출자는 쓰기를 차단하고 재open해야 하며 이전 manifest 보존을 가정하지 않는다.

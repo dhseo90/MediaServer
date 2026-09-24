@@ -101,6 +101,15 @@ payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증
 | B02-G01 | 초기 열기 충돌 | v1 원본 불변·정상 reopen, manifest 이름 공존과 v2/손상 marker의 Open 거부 | v4.1.0 |
 | B02-G02 | 열기 후 변조 차단 | 열린 v1의 manifest 출현/marker 교체 후 lease·append·replay 거부와 원본 불변 | v4.1.0 |
 
+### B-02 불변 세대 파일 안전 읽기 구현 전 검사 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-I01 | 불변 파일 원문 읽기 | 허용 고정 이름 3종의 실제 bytes와 size/SHA descriptor 일치 | v4.1.0 |
+| B02-I02 | 소유·경로 | root/file symlink·hardlink·임의 경로/이름·세대 숫자 비정규/0·교체 거부. 현재 manifest 세대와의 대조는 별도 | v4.1.0 |
+| B02-I03 | 손상·상한 | 크기/hash/누락/admission/1GiB 상한과 실패 output 불변 | v4.1.0 |
+| B02-I04 | crypto-off | 파일 digest 확인 API fail-closed, 기존 v1 비변경 | v4.1.0 |
+
 ### B-02 현재 catalog snapshot 값 형식 단위 결과
 
 실행 전 위의 S01~S05·SR01을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`은
@@ -159,6 +168,38 @@ token start/end/consumed는 집계 source가 없어 미집계다.
 | `/private/tmp/media-server-b02-guard-run.j5WH3N` | 첫 focused 로그 전용 root | 로그 14,508바이트 | 첫 결과 count 기록 후 로그 삭제·빈 root 제거 | 부재 확인 | 첫 실행 G01/G02 pass, 보완 전 세부 반례 누락을 기록 |
 | `/private/tmp/media-server-b02-guard-recheck.Ux4Liu` | 재검증 로그 전용 root | 로그 14,555바이트 | SHA 일치 중앙 원출력 보존 후 로그 삭제·빈 root 제거 | 부재 확인 | 최종 원출력은 위 artifact |
 | `/private/tmp/media-server-b02-guard-build.0lY4uq` | runner build root | 27,676,116바이트 | runner 자체 정리 | 부재 확인 | 최종 focused 로그 cleanup 행 |
+
+### B-02 불변 세대 파일 안전 읽기 단위 결과
+
+첫 실행 뒤 I02 사전등록의 “현재 manifest와 다른 세대” 표현이 descriptor 단독 API의 입력보다
+넓은 것을 메인이 발견했다. 현재 manifest와의 대조는 후속 제품 Open의 책임으로 명확히
+정정하고 같은 focused 명령을 재실행했다. 최종 원출력은
+[focused.log](release-artifacts/v4.1.0/b02-immutable-read-20260925/focused.log),
+SHA-256 `849e1c6f3ecbb010018a32b6ab3c7c888a9258d5d44a4b9af7202d985d47ddab`이다.
+`./server.sh verify-v410-recording-generation` exit0, crypto-on M01~M05+I01~I03
+8/8, crypto-off M06+I04 2/2, cleanup `removed=true`였다. byte admission·digest·
+nofollow/inode/size/time/root 재결박과 실패 output 불변을 검사한 독립 reader이며
+제품 B Open·archive locator 사용·전체 복구는 미구현이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-I01 | snapshot/identity/evidence 고정 이름 원문 bytes, 빈 불변 파일 digest; 4 assertion | pass |
+| B02-I02 | 비정규 basename·세대 번호/slot, admission·형식 상한; 14 assertion | pass |
+| B02-I03 | 크기/hash/누락·symlink/hardlink·파일/root 교체; 9 assertion | pass |
+| B02-I04 | crypto-off fail-closed, 실패 출력 불변; 1 assertion | pass |
+
+영향 확인: `./server.sh build` exit0, `./server.sh verify-project-inventory`
+18/18(기능 행 986개), `./server.sh verify-docs-links` markdown 328개·local links
+12,781개·failures0, `./server.sh verify-docs-ui-assets` 10/10이었다. 인벤토리
+출력은 표시 한도에서 잘렸으므로 전체 986개 원문 확인으로 확대하지 않는다.
+실제 서버·계정·포트·영상은 생성하지 않았다. token start/end/consumed는 집계 source가
+없어 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-b02-immutable-run.LsNOKS` | 첫 focused 로그 root | 로그 576바이트 | SHA 일치 중앙 원출력 보존 후 로그·빈 root 제거 | 부재 확인 | 첫 실행 뒤 사전등록 표현 정정, 같은 검증 재실행 |
+| 해당 runner 소유 build/fixture root | 소유 임시 build | runner 출력상 크기 미기록 | runner 정리 | cleanup `removed=true` | 최종 focused 출력 |
+| 실행 중 `xcrun_db` | 도구 임시 cache | 499바이트 | 소유권 확인 후 제거 | 부재 확인(담당자) | 첫 실행 담당자 기록 |
 
 ### B-02 manifest 첫 구현 단위 결과
 

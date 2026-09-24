@@ -1,0 +1,13 @@
+[pass] B02-M01 canonical roundtrip assertions=3
+[pass] B02-M02 invalid values and paths assertions=12
+[pass] B02-M03 file binding assertions=10
+[pass] B02-M04 publication assertions=8
+[pass] B02-M05 failure preservation and cleanup assertions=11
+[pass] B02-I01 verified immutable bytes assertions=4
+[pass] B02-I02 immutable name and admission assertions=14
+[pass] B02-I03 immutable file and root binding assertions=9
+[summary] pass=8 fail=0
+[pass] B02-M06 crypto-off assertions=4
+[pass] B02-I04 immutable crypto-off assertions=1
+[summary] pass=2 fail=0
+[cleanup] removed=true

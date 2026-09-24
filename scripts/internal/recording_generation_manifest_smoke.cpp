@@ -23,6 +23,16 @@ void Write(const std::filesystem::path& path, const std::string& bytes) {
     file << bytes;
     if (!file) throw std::runtime_error("fixture write failed");
 }
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+std::filesystem::path immutable_hook_path;
+bool immutable_hook_root=false, immutable_hook_ran=false;
+void ReplaceImmutableFixture() {
+    std::filesystem::rename(immutable_hook_path,immutable_hook_path.string()+".saved");
+    if(immutable_hook_root)std::filesystem::create_directory(immutable_hook_path);
+    else Write(immutable_hook_path,"abc");
+    immutable_hook_ran=true;
+}
+#endif
 #endif
 recording::RecordingGenerationManifest Manifest(std::uint64_t generation) {
     recording::RecordingGenerationManifest m;
@@ -38,12 +48,14 @@ recording::RecordingGenerationManifest Manifest(std::uint64_t generation) {
 } // namespace
 int main() {
     using namespace recording;
-    std::array<bool, 6> results{true, true, true, true, true, true};
-    std::array<unsigned, 6> assertions{};
-    const std::array<const char*, 6> names{
+    std::array<bool, 10> results{};results.fill(true);
+    std::array<unsigned, 10> assertions{};
+    const std::array<const char*, 10> names{
         "B02-M01 canonical roundtrip", "B02-M02 invalid values and paths",
         "B02-M03 file binding", "B02-M04 publication",
-        "B02-M05 failure preservation and cleanup", "B02-M06 crypto-off"};
+        "B02-M05 failure preservation and cleanup", "B02-M06 crypto-off",
+        "B02-I01 verified immutable bytes", "B02-I02 immutable name and admission",
+        "B02-I03 immutable file and root binding", "B02-I04 immutable crypto-off"};
     const auto check = [&](unsigned group, bool ok, const char* detail) {
         ++assertions[group - 1];
         results[group - 1] = results[group - 1] && ok;
@@ -60,6 +72,9 @@ int main() {
     check(6, PublishRecordingGenerationManifest("/invalid", manifest, &error) ==
                  RecordingGenerationPublishResult::NotPublished, "publish unsupported");
     check(6, !ReadRecordingGenerationManifest("/invalid", &read, &error), "read unsupported");
+    std::string immutable="unchanged";
+    check(10,!ReadVerifiedRecordingGenerationImmutable("/invalid",manifest.snapshot,3,&immutable,&error)&&
+        immutable=="unchanged"&&error.find("unsupported")!=std::string::npos,"immutable unsupported and unchanged");
 #else
     check(1, SerializeRecordingGenerationManifest(manifest, &raw, &error), "serialize");
     check(1, ParseRecordingGenerationManifest(raw, &parsed, &error), "parse");
@@ -101,6 +116,57 @@ int main() {
     check(5, owned, "initial fixture ownership");
     try {
         if (!owned) throw std::runtime_error("fixture ownership unavailable");
+        const auto immutable_root=root/"immutable";
+        std::filesystem::create_directory(immutable_root);
+        std::string immutable;
+        for(const char* name:{"snapshot-1.jsonl","identity-1.jsonl","evidence-1-0.jsonl"}) {
+            Write(immutable_root/name,"abc");
+            check(7,ReadVerifiedRecordingGenerationImmutable(immutable_root,{name,3,abc_hash},3,&immutable,&error)&&
+                immutable=="abc","three fixed immutable families");
+        }
+        Write(immutable_root/"identity-2.jsonl","");
+        check(7,ReadVerifiedRecordingGenerationImmutable(immutable_root,{"identity-2.jsonl",0,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},1,&immutable,&error)&&immutable.empty(),"empty immutable digest");
+        const auto reject_immutable=[&](const RecordingGenerationFile& file,std::uint64_t admission=3) {
+            immutable="unchanged";
+            return !ReadVerifiedRecordingGenerationImmutable(immutable_root,file,admission,&immutable,&error)&&immutable=="unchanged";
+        };
+        for(const char* name:{"active-1.jsonl","../identity-1.jsonl","/identity-1.jsonl","identity-0.jsonl",
+            "identity-01.jsonl","snapshot-+1.jsonl","evidence-1-00.jsonl","evidence-1--1.jsonl",
+            "identity-18446744073709551616.jsonl","evidence-1-18446744073709551616.jsonl"})
+            check(8,reject_immutable({name,3,abc_hash}),"unsafe/noncanonical basename");
+        check(8,reject_immutable({"identity-1.jsonl",3,abc_hash},2),"caller byte admission");
+        check(8,reject_immutable({"identity-1.jsonl",0,abc_hash},0),"zero admission");
+        check(8,reject_immutable({"identity-1.jsonl",1024ULL*1024*1024+1,abc_hash},1024ULL*1024*1024+1),"1GiB bound before allocation");
+        check(8,reject_immutable({"identity-1.jsonl",3,std::string(64,'A')}),"lowercase digest");
+        check(9,reject_immutable({"identity-1.jsonl",2,abc_hash}),"exact file size");
+        check(9,reject_immutable({"identity-1.jsonl",3,std::string(64,'a')}),"digest mismatch");
+        check(9,reject_immutable({"identity-9.jsonl",3,abc_hash}),"missing file");
+        std::filesystem::create_symlink("identity-1.jsonl",immutable_root/"identity-3.jsonl");
+        check(9,reject_immutable({"identity-3.jsonl",3,abc_hash}),"file symlink");
+        std::filesystem::create_hard_link(immutable_root/"identity-1.jsonl",immutable_root/"hardlink");
+        check(9,reject_immutable({"identity-1.jsonl",3,abc_hash}),"file hardlink");
+        std::filesystem::remove(immutable_root/"hardlink");
+        std::filesystem::create_directory(immutable_root/"identity-4.jsonl");
+        check(9,reject_immutable({"identity-4.jsonl",0,abc_hash}),"nonregular directory");
+        std::filesystem::create_directory_symlink(immutable_root,root/"immutable-alias");
+        immutable="unchanged";
+        check(9,!ReadVerifiedRecordingGenerationImmutable(root/"immutable-alias",{"identity-1.jsonl",3,abc_hash},3,&immutable,&error)&&
+            immutable=="unchanged","root symlink");
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+        immutable_hook_path=immutable_root/"identity-1.jsonl";immutable_hook_root=false;immutable_hook_ran=false;
+        RecordingGenerationImmutableBeforeBindingForTest(ReplaceImmutableFixture);
+        check(9,reject_immutable({"identity-1.jsonl",3,abc_hash})&&immutable_hook_ran,"same-bytes inode replacement after read");
+        std::filesystem::remove(immutable_hook_path);
+        std::filesystem::rename(immutable_hook_path.string()+".saved",immutable_hook_path);
+        immutable_hook_path=immutable_root;immutable_hook_root=true;immutable_hook_ran=false;
+        RecordingGenerationImmutableBeforeBindingForTest(ReplaceImmutableFixture);
+        check(9,reject_immutable({"identity-1.jsonl",3,abc_hash})&&immutable_hook_ran,"root replacement after read");
+        std::filesystem::remove(immutable_hook_path);
+        std::filesystem::rename(immutable_hook_path.string()+".saved",immutable_hook_path);
+#else
+        check(9,false,"fixture requires immutable binding hook");
+#endif
         for (std::uint64_t generation : {1, 2, 3}) {
             const auto item = Manifest(generation);
             Write(root / item.snapshot.name, "abc"); Write(root / item.active.name, "abc");
@@ -175,7 +241,7 @@ int main() {
         check(3, !reread(), "symlink manifest rejected");
     } catch (const std::exception& exception) {
         std::cerr << exception.what() << '\n';
-        for (unsigned group : {3, 4, 5}) check(group, false, "fixture aborted");
+        for (unsigned group : {3, 4, 5, 7, 8, 9}) check(group, false, "fixture aborted");
     }
     struct stat current{}, current_parent{};
     const bool still_owned = owned && root.parent_path() == parent &&

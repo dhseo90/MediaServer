@@ -81,6 +81,24 @@ bool ParseFile(const std::string& raw,RecordingGenerationFile* f,std::string* er
     return true;
 }
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+bool CanonicalUnsigned(const std::string& text,bool positive) {
+    std::uint64_t value=0;
+    const auto parsed=std::from_chars(text.data(),text.data()+text.size(),value);
+    return parsed.ec==std::errc{}&&parsed.ptr==text.data()+text.size()&&
+        (!positive||value>0)&&text==std::to_string(value);
+}
+bool ImmutableName(const std::string& name) {
+    if(name.size()<7||name.compare(name.size()-6,6,".jsonl")!=0)return false;
+    for(const std::string prefix:{"snapshot-","identity-"}) {
+        if(name.rfind(prefix,0)==0)
+            return CanonicalUnsigned(name.substr(prefix.size(),name.size()-prefix.size()-6),true);
+    }
+    if(name.rfind("evidence-",0)!=0)return false;
+    const auto separator=name.find('-',9);
+    return separator!=std::string::npos&&separator<name.size()-6&&
+        CanonicalUnsigned(name.substr(9,separator-9),true)&&
+        CanonicalUnsigned(name.substr(separator+1,name.size()-separator-7),false);
+}
 struct Fd {
     int n{-1};
     explicit Fd(int value=-1):n(value){}
@@ -161,6 +179,7 @@ bool VerifyAll(int root,const RecordingGenerationManifest& m,bool durable=false,
 }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 thread_local bool fail_directory_sync=false;
+thread_local void (*immutable_before_binding)()=nullptr;
 #endif
 bool SyncPublishedDirectory(int fd){
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
@@ -321,7 +340,73 @@ bool ReadRecordingGenerationManifest(const std::filesystem::path& root,Recording
     (void)root;return false;
 #endif
 }
+bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
+    const RecordingGenerationFile& descriptor,std::uint64_t byte_admission,std::string* output,std::string* error) {
+    if(!Supported(error))return false;
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    if(!output||!byte_admission||descriptor.size>byte_admission||descriptor.size>kFileLimit||
+       descriptor.size>std::numeric_limits<std::size_t>::max()||
+       descriptor.size>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())||
+       !Hex(descriptor.sha256)||!ImmutableName(descriptor.name))
+        return Fail(error,"immutable descriptor/admission invalid");
+    try {
+        Fd dir(Root(root));
+        if(dir.n<0)return Fail(error,"immutable root unsafe");
+        Fd file(::openat(dir.n,descriptor.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+        struct stat before{};
+        if(file.n<0||!Regular(file.n,&before)||static_cast<std::uint64_t>(before.st_size)!=descriptor.size||
+           !Same(dir.n,descriptor.name.c_str(),file.n,before)||!RootSame(root,dir.n))
+            return Fail(error,"immutable file binding/size invalid");
+        std::string bytes(static_cast<std::size_t>(descriptor.size),'\0');
+        std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+        if(!digest||EVP_DigestInit_ex(digest.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"immutable digest initialization failed");
+        std::size_t offset=0;
+        while(offset<bytes.size()) {
+            const auto wanted=std::min<std::size_t>(65536,bytes.size()-offset);
+            ssize_t count;
+            do { count=::pread(file.n,bytes.data()+offset,wanted,static_cast<off_t>(offset)); } while(count<0&&errno==EINTR);
+            if(count<=0||EVP_DigestUpdate(digest.get(),bytes.data()+offset,static_cast<std::size_t>(count))!=1)
+                return Fail(error,"immutable read/digest failed");
+            offset+=static_cast<std::size_t>(count);
+        }
+        unsigned char hash_bytes[32];unsigned length=0;
+        if(EVP_DigestFinal_ex(digest.get(),hash_bytes,&length)!=1||length!=32)return Fail(error,"immutable digest final failed");
+        constexpr char hex[]="0123456789abcdef";
+        std::string hash;
+        for(auto c:hash_bytes){hash+=hex[c>>4];hash+=hex[c&15];}
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+        const auto hook=immutable_before_binding;immutable_before_binding=nullptr;
+        if(hook)hook();
+#endif
+        struct stat after{};
+        if(hash!=descriptor.sha256||!Regular(file.n,&after)||
+           !Same(dir.n,descriptor.name.c_str(),file.n,before)||!RootSame(root,dir.n))
+            return Fail(error,"immutable hash/final binding mismatch");
+#if defined(__APPLE__)
+        const bool unchanged=before.st_mtimespec.tv_sec==after.st_mtimespec.tv_sec&&before.st_mtimespec.tv_nsec==after.st_mtimespec.tv_nsec&&
+            before.st_ctimespec.tv_sec==after.st_ctimespec.tv_sec&&before.st_ctimespec.tv_nsec==after.st_ctimespec.tv_nsec;
+#else
+        const bool unchanged=before.st_mtim.tv_sec==after.st_mtim.tv_sec&&before.st_mtim.tv_nsec==after.st_mtim.tv_nsec&&
+            before.st_ctim.tv_sec==after.st_ctim.tv_sec&&before.st_ctim.tv_nsec==after.st_ctim.tv_nsec;
+#endif
+        if(!unchanged)return Fail(error,"immutable content changed during read");
+        *output=std::move(bytes);
+        if(error)error->clear();
+        return true;
+    } catch(...) {return Fail(error,"immutable read resource failure");}
+#else
+    (void)root;(void)descriptor;(void)byte_admission;(void)output;
+    return false;
+#endif
+}
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)()){
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    immutable_before_binding=hook;
+#else
+    (void)hook;
+#endif
+}
 void RecordingGenerationFailNextDirectorySyncForTest(){
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
     fail_directory_sync=true;
