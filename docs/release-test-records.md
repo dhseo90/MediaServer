@@ -43593,3 +43593,18 @@ artifact/hash, 모든 command exit/count, repair/rerun 이력은 Task 8 report�
 | S11-O25-03 현행 5단계 | `./server.sh verify-v410-recording-foundation --current-integration` exit 0. HTTP API 35·인증 40·수명 10·기본 구성 46·실제 앱 27개, 총 158개 검사와 전 단계 정리 통과. HTTP 378건 중 최대 3,392ms로 기존 4초 이내, 실제 앱 root 395,045,654바이트 삭제 | pass |
 
 개별 성공 assertion 162행(준비 fixture 4행 포함)은 [O25 개별 결과](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o25-results.md)와 현행 5단계 원출력에 보존한다. 이전 페이지 실패, 이후 작업 대기 실패, 권한 실패 및 중간 집중 검사 실패를 최종 PASS로 지우지 않는다. 공개 API·녹화 파일 형식·기존 4초 HTTP 및 30초 작업 관측 상한은 변경하지 않았다. `currentIntegrationExecutionPass=true`는 현행 통합의 실행 완료만 뜻하며 `fullFoundationPass=false`, `resourceTrendPass=false`, `uiFulltestPass=false`는 유지한다. O24의 장시간 자원 추세 판정, 최종 코드에 대한 30분·영향 UI·120분 및 release action은 이 결과로 대체하지 않는다. token start/end/consumed는 전용 집계가 없어 미집계이고, 현행 통합 elapsed 146,779ms는 원출력 기준이다.
+
+### S11 O25 inventory 사후 연결 및 영향 재검증
+
+`docs/project-feature-test-inventory.md`에 누락된 O25-01~04를 각각 연결했다. 이는 앞선 158개 통합 검사의 소급 승인이나 재실행이 아니다. fixture의 inventory SHA만 갱신했고 기존 reviewed 986개 항목의 내용 해시는 전후 동일하다. 등록 후 영향 검사는 별도로 다시 실행했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| O25 inventory 최초 검사 | `./server.sh verify-project-inventory`, 등록 뒤 fixture SHA 미갱신으로 17 pass/1 fail. 원인 확인 뒤 SHA 한 필드만 보완 | fail |
+| O25 inventory 재검사 | 같은 명령, exit 0, 18/18, featureRows 986 | pass |
+| O25 coverage | `./server.sh verify-feature-inventory-coverage`, exit 0, 8/8, 986/986, missing 0 | pass |
+| O25 페이지·관측 영향 | `node --test scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_observation.test.mjs`, exit 0, 83/83. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o25-rereg-focused.tap.gz) | pass |
+| O25 렌더 순서·이벤트 영향 | `bash scripts/internal/verify_recording_derived_event_integration.sh`, exit 0, O25-04 및 기존 단계 48+1+1+2+2+2 모두 pass. 소유 root 16,548,919바이트 제거. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o25-rereg-event.log.gz) | pass |
+| O25 문서 검사 | `./server.sh verify-docs-links` 325개 문서·12,733개 로컬 링크·실패 0; `./server.sh verify-docs-ui-assets` 10/10; `git diff --check` exit 0 | pass |
+
+이번 영향 검사는 실제 앱·30분·120분·UI를 실행하지 않았다. 위 명령의 최초 시작 시각은 별도 수집하지 않아 미확인, 검사 종료 확인 시각은 2026-09-24 16:57 KST이다. token start/end/consumed는 전용 집계가 없어 미집계, source는 도구 실행 결과다. 이전 O25 실제 앱·현행 5단계의 유효성은 변경 범위 대조로 별도 판정한다.
