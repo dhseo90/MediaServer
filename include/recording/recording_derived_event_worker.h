@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <deque>
 #include <functional>
+#include <list>
 #include <memory>
 #include <thread>
 
@@ -76,6 +77,17 @@ struct DerivedEventWorkerOptions {
     std::size_t source_max_attempts{121};
 };
 DerivedEventWorkerOptions RecordingRuntimeEventBudget(std::int64_t segment_ms,std::int64_t post_ms);
+namespace detail {
+// 이미 준비된 대기 작업에만 적용한다. 같은 접수 시각은 기존 순서를 보존하고
+// 활성 렌더를 선점하거나 아직 준비되지 않은 오래된 요청 때문에 대기하지 않는다.
+template <class Ready> void OrderRenderReadyTail(std::list<Ready>& queue) noexcept {
+    if(queue.empty())return;
+    auto newest=queue.end();--newest;
+    for(auto it=queue.begin();it!=newest;++it)if(newest->pending.submitted<it->pending.submitted){
+        queue.splice(it,queue,newest);return;
+    }
+}
+}
 class DerivedEventWorker {
 public:
     DerivedEventWorker(RecordingCatalog&,RetentionCoordinator&,DerivedJobService&,DerivedEventWorkerOptions);
@@ -108,7 +120,7 @@ private:
     std::mutex mu_,stop_mu_,admission_mu_;
     std::condition_variable cv_;
     std::deque<Pending> queue_;
-    std::deque<RenderPending> render_queue_;
+    std::list<RenderPending> render_queue_;
     std::unordered_set<std::string> inflight_;
     std::unordered_map<std::string,std::string> statuses_;
     std::deque<std::string> status_order_;

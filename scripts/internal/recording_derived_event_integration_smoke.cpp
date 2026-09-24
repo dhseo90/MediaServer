@@ -6,6 +6,7 @@
 #include "analysis/raw_video_decoder.h"
 #include <condition_variable>
 #include <iostream>
+#include <iterator>
 #include <thread>
 #include <fcntl.h>
 #include <unistd.h>
@@ -708,6 +709,17 @@ int DiagnosticMode(const std::filesystem::path& root,bool no_crypto){
     std::cout<<"[summary] pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
 }
 int main(int argc,char** argv){
+    if(argc==3&&std::string(argv[2])=="ready-order"){
+        struct Ready {struct Pending {std::chrono::steady_clock::time_point submitted;} pending;int id;};
+        std::list<Ready> ready;
+        const auto at=[](int n){return std::chrono::steady_clock::time_point{}+std::chrono::milliseconds(n);};
+        const auto add=[&](int id,int time){ready.push_back({{at(time)},id});recording::detail::OrderRenderReadyTail(ready);};
+        add(2,2);const auto* original=&ready.front();add(3,3);add(1,1);add(4,2);
+        std::vector<int> order;for(const auto& entry:ready)order.push_back(entry.id);
+        const bool stable=order==std::vector<int>({1,2,4,3})&&original==&*std::next(ready.begin());
+        std::cout<<(stable?"[pass] ":"[fail] ")<<"S11-O25-04 준비된 이벤트는 접수 순서·동시각 안정성·node 소유 유지\n";
+        return stable?0:1;
+    }
     if(argc==3&&(std::string(argv[2])=="diagnostics"||std::string(argv[2])=="diagnostics-no-crypto"))return DiagnosticMode(std::filesystem::path(argv[1])/"diagnostics",std::string(argv[2])=="diagnostics-no-crypto");
     if(argc==3&&std::string(argv[2])=="caps")return CapMode(std::filesystem::path(argv[1])/"cap-case");
     if(argc==3&&std::string(argv[2])=="cancel")return CancelMode(std::filesystem::path(argv[1])/"cancel-case");

@@ -251,7 +251,10 @@ void DerivedEventWorker::Loop() {
                     static_assert(std::is_nothrow_move_assignable_v<DerivedJobIntentV1>);
                     if(result==Evaluation::Retry){queue_.emplace_back();queue_.back()=std::move(pending);}
                     else {render_queue_.emplace_back();render_queue_.back().pending=std::move(pending);render_queue_.back().intent=std::move(intent);
-                        completion::Point(completion::Event::Queued,render_queue_.back().pending.reference.reference_id,render_queue_.back().intent.job_id);}
+                        completion::Point(completion::Event::Queued,render_queue_.back().pending.reference.reference_id,render_queue_.back().intent.job_id);
+                        // 원본 준비 순서는 접수 순서와 다를 수 있다. 실행 중인 작업은 건드리지 않고,
+                        // 이미 준비된 작업끼리만 최초 접수 순서로 정렬해 오래된 이벤트의 후순위 역전을 막는다.
+                        detail::OrderRenderReadyTail(render_queue_);}
                     cv_.notify_all();continue;
                 }
             }
@@ -416,7 +419,7 @@ void DerivedEventWorker::StopAndDrain() {
     // resolution/provider 잠금을 보유하지 않은 상태에서 단일 join한다.
     if(worker_.joinable())worker_.join();
     if(renderer_.joinable())renderer_.join();
-    std::deque<Pending> pending;std::deque<RenderPending> ready;
+    std::deque<Pending> pending;std::list<RenderPending> ready;
     {std::lock_guard lock(mu_);pending.swap(queue_);ready.swap(render_queue_);}
     for(auto& p:pending){Status(p.reference.reference_id,"derived-worker-stopped");Finish(p);}
     for(auto& r:ready){Status(r.pending.reference.reference_id,"derived-worker-stopped");Finish(r.pending);}

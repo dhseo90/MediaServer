@@ -38,6 +38,7 @@ fi
  "$SCRIPT_DIR/recording_derived_event_integration_smoke.cpp" \
  ${EXTRA_SOURCES[@]+"${EXTRA_SOURCES[@]}"} \
  "${LINK_LIBS[@]}" -o "$RUN_DIR/check"
+"$RUN_DIR/check" "$RUN_DIR" ready-order
 if [[ "$MODE" == --diagnostics-only ]];then "$RUN_DIR/check" "$RUN_DIR" diagnostics;exit $?;fi
 if [[ "$MODE" == --diagnostics-no-crypto ]];then "$RUN_DIR/check" "$RUN_DIR" diagnostics-no-crypto;exit $?;fi
 "$RUN_DIR/check" "$RUN_DIR"
