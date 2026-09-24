@@ -46,6 +46,7 @@ test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거�
   assert(n>0);assert.equal(occurrences(source,'recording::latency::Lock lock('),n);
   const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/recording_catalog_cost_probe_instrument.cjs'),repo,output],{env,encoding:'utf8',timeout:10000});assert.equal(r.status,0,r.stderr);
   const instrumented=fs.readFileSync(path.join(output,'recording_catalog.cpp'),'utf8');
+  const journal=fs.readFileSync(path.join(output,'recording_journal.cpp'),'utf8');
   const wait='fc::Measure("catalog.lock.wait",[&]{lock.lock();});',hold='fc::Scope fc_hold("catalog.lock.hold");';
   const pair='std::unique_lock<std::mutex> lock(mu_,std::defer_lock);'+wait+hold;
   const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),0);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),n);assert.equal(occurrences(text,'catalog.lock.hold'),n);};
@@ -53,6 +54,8 @@ test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거�
   assert.throws(()=>exact(instrumented.replace(pair,'')));
   assert.throws(()=>exact(instrumented.replace(pair,pair+pair)));
   assert.throws(()=>exact(instrumented.replace(hold,'')));
+  for(const scope of ['catalog.OpenLocked','catalog.ReadCatalogReplay','catalog.PreflightV2Locked','catalog.RebuildSqliteLocked','catalog.ReleaseInactiveDetailsLocked'])assert(instrumented.includes('fc_scope("'+scope+'")'));
+  for(const scope of ['journal.Open','journal.OpenManagedLocked','journal.LoadManagedStateLocked'])assert(journal.includes('fc_scope("'+scope+'")'));
   console.log('[wrapper-pairs] '+JSON.stringify({input:n,pairs:occurrences(instrumented,pair),wait:occurrences(instrumented,wait),hold:occurrences(instrumented,hold),remaining:0}));
   const duplicate=spawnSync(process.execPath,[path.join(repo,'scripts/internal/recording_catalog_cost_probe_instrument.cjs'),repo,output],{env:{...env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1'},encoding:'utf8',timeout:10000});assert.equal(duplicate.status,1);assert.match(duplicate.stderr,/requires latency trace disabled/);
 });

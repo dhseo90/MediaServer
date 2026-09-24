@@ -59,10 +59,17 @@ export function summarizeSpawnDiagnostic(result,{elapsedMs=0}={}){
     lastOpenedPhase:lastOpened,lastCompletedPhase:lastCompleted,traceStatus,traceLoss:['complete','incomplete','loss'].includes(traceStatus)?trace.loss:null,rawOutputPublished:false};
 }
 const receiptProfiles=new Set(['current-observer-snapshot','accumulation-probe']);
-const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','probe-binary','metrics-binary']);
+const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','diagnostic-profile','probe-binary','metrics-binary']);
 const safeTreeItem=value=>value&&Object.keys(value).sort().join(',')==='bytes,pathSha256,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&/^[a-f0-9]{64}$/.test(value.pathSha256)&&/^[a-f0-9]{64}$/.test(value.sha256);
 const safeTree=value=>value&&typeof value==='object'&&Object.keys(value).sort().join(',')==='bytes,count,items,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&Number.isSafeInteger(value.count)&&value.count>0&&/^[a-f0-9]{64}$/.test(value.sha256)&&Array.isArray(value.items)&&value.items.length<=4096&&value.items.every(safeTreeItem);
 export function receiptTree(snapshot){requireSafe(snapshot&&Array.isArray(snapshot.entries)&&snapshot.entries.length<=4096,'receipt-tree');return {bytes:snapshot.bytes,count:snapshot.count,sha256:snapshot.sha256,items:snapshot.entries.map(item=>({pathSha256:hash(item.relative),bytes:item.bytes,sha256:item.sha256}))};}
+export function accumulationStoreReceipt(root,selectedCase=null){
+  diagnosticRootIdentity(root,path.dirname(root),'accumulation-probe');const cases=selectedCase===null?['16','1020','2048','2049']:[selectedCase];
+  requireSafe(cases.every(value=>['16','1020','2048','2049'].includes(value)),'accumulation-case');let bytes=0,count=0;const items=[],trees=[];
+  for(const value of cases){const snapshot=snapshotTree(path.join(root,'case-'+value));bytes+=snapshot.bytes;count+=snapshot.count;requireSafe(bytes<=536870912&&count<=4096,'accumulation-store-cap');
+    trees.push({case:value,sha256:snapshot.sha256,bytes:snapshot.bytes,count:snapshot.count});for(const item of snapshot.entries){requireSafe(items.length<4096,'accumulation-store-cap');items.push({pathSha256:hash('case-'+value+'/'+item.relative),bytes:item.bytes,sha256:item.sha256});}}
+  return {bytes,count,sha256:hash(JSON.stringify(trees)),items};
+}
 export function diagnosticRootIdentity(root,parent,profile){
   const patterns={'current-observer-snapshot':/^media-server-current-observer-copy-[A-Za-z0-9_-]+$/,'accumulation-probe':/^media-server-catalog-cost\.[A-Za-z0-9]+$/};
   requireSafe(patterns[profile]&&path.resolve(root)===root&&path.dirname(root)===parent&&patterns[profile].test(path.basename(root)),'diagnostic-root-profile');
@@ -98,13 +105,13 @@ const accumulationModes=new Set(['--bounds','--generate','--catalog','--automati
 const accumulationStops=new Set(['stage-time-cap','technical-process-cap','time-cap','rss-cap','resource-observer','output-cap','stage-oracle','stage-line-cap','spawn-error','stage-incomplete','process-group-open','native-stage-failed','unknown']);
 const accumulationParentFailures=new Set([...accumulationStops,'drain-oracle','rotation-oracle','fresh-count','observation-gap','observer-backlog-cap','corrupt-oracle','resource-cap','unknown']);
 export function accumulationParentFailure(error){const value=typeof error?.message==='string'?error.message:null;return accumulationParentFailures.has(value)?value:'unknown';}
-export function accumulationProcessDiagnostic({mode,selectedCase=null,status=null,signal=null,stop=null,elapsedMs=0,groupClosed=false}){return {mode:accumulationModes.has(mode)?mode:'unknown',selectedCase:[null,'16','1020','2049'].includes(selectedCase)?selectedCase:null,
+export function accumulationProcessDiagnostic({mode,selectedCase=null,status=null,signal=null,stop=null,elapsedMs=0,groupClosed=false}){return {mode:accumulationModes.has(mode)?mode:'unknown',selectedCase:[null,'16','1020','2048','2049'].includes(selectedCase)?selectedCase:null,
   status:Number.isSafeInteger(status)?status:null,signal:safeSignal(signal),stop:stop===null?null:accumulationStops.has(stop)?stop:'unknown',elapsedMs:Number.isFinite(elapsedMs)&&elapsedMs>=0?Math.round(elapsedMs):null,groupClosed:groupClosed===true};}
-function safeAccumulationProcess(value){return value&&Object.keys(value).sort().join(',')==='elapsedMs,groupClosed,mode,selectedCase,signal,status,stop'&&accumulationModes.has(value.mode)&&[null,'16','1020','2049'].includes(value.selectedCase)&&
+function safeAccumulationProcess(value){return value&&Object.keys(value).sort().join(',')==='elapsedMs,groupClosed,mode,selectedCase,signal,status,stop'&&accumulationModes.has(value.mode)&&[null,'16','1020','2048','2049'].includes(value.selectedCase)&&
   (value.status===null||Number.isSafeInteger(value.status))&&(value.signal===null||value.signal==='unknown'||/^SIG[A-Z0-9]+$/.test(value.signal))&&(value.stop===null||accumulationStops.has(value.stop))&&(value.elapsedMs===null||Number.isSafeInteger(value.elapsedMs)&&value.elapsedMs>=0)&&typeof value.groupClosed==='boolean';}
 export function preserveAccumulationReceipt({evidencePath,receipt}){
   requireSafe(receipt&&Object.keys(receipt).sort().join(',')==='command,firstFailureIndex,groupClosed,manifest,manifestUnchanged,outcome,parentFailureCode,processes,profile,rawPathsPublished,schema,selectedCase,storeManifest'&&receipt.schema==='media-server.recording-accumulation-receipt.v1'&&receipt.profile==='accumulation-probe'&&
-    ['pass','fail'].includes(receipt.outcome)&&[null,'16','1020','2049'].includes(receipt.selectedCase)&&(receipt.parentFailureCode===null||accumulationParentFailures.has(receipt.parentFailureCode))&&typeof receipt.groupClosed==='boolean'&&typeof receipt.manifestUnchanged==='boolean'&&receipt.rawPathsPublished===false&&safeTree(receipt.storeManifest),'accumulation-receipt');
+    ['pass','fail'].includes(receipt.outcome)&&[null,'16','1020','2048','2049'].includes(receipt.selectedCase)&&(receipt.parentFailureCode===null||accumulationParentFailures.has(receipt.parentFailureCode))&&typeof receipt.groupClosed==='boolean'&&typeof receipt.manifestUnchanged==='boolean'&&receipt.rawPathsPublished===false&&safeTree(receipt.storeManifest),'accumulation-receipt');
   requireSafe(Array.isArray(receipt.processes)&&receipt.processes.length>0&&receipt.processes.length<=32&&receipt.processes.every(safeAccumulationProcess)&&
     (receipt.firstFailureIndex===null||Number.isSafeInteger(receipt.firstFailureIndex)&&receipt.firstFailureIndex>=0&&receipt.firstFailureIndex<receipt.processes.length),'accumulation-processes');
   const firstFailureIndex=receipt.processes.findIndex(item=>item.status!==0||item.signal!==null||item.stop!==null||!item.groupClosed);

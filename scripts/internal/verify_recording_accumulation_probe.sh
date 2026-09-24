@@ -3,8 +3,8 @@
 set -euo pipefail
 probe_selection=""
 if [[ "$#" == 1 && "$1" == --run ]];then :
-elif [[ "$#" == 2 && "$1" == --case && "$2" =~ ^(16|1020|2049)$ ]];then probe_selection="$2"
-else echo 'usage: accumulation-probe --run | --case 16|1020|2049' >&2; exit 2;fi
+elif [[ "$#" == 2 && "$1" == --case && "$2" =~ ^(16|1020|2048|2049)$ ]];then probe_selection="$2"
+else echo 'usage: accumulation-probe --run | --case 16|1020|2048|2049' >&2; exit 2;fi
 probe_scripts="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 probe_repo="$(cd "$probe_scripts/../.." && pwd)"
 probe_root="$(mktemp -d "${TMPDIR:-/tmp}/media-server-catalog-cost.XXXXXX")"

@@ -1,0 +1,86 @@
+✔ LP26-O10-A01 4N 독립 규모와 최대 bound (0.498083ms)
+✔ O28-C01 2048 CLI·receipt 허용과 unknown case 거부가 정적으로 연결 (0.779542ms)
+✔ LP26-O10-B01 정확한 네 type·count·partial/backlog oracle (0.121167ms)
+✔ LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle (0.049916ms)
+✔ LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서 (0.285458ms)
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":4206,"removed":true}
+[profile-selftest-cleanup] {"bytes":1954,"removed":true}
+[profile-selftest-cleanup] {"bytes":1967,"removed":true}
+[profile-selftest-cleanup] {"bytes":110,"removed":true}
+[profile-selftest-cleanup] {"bytes":4197,"removed":true}
+[profile-selftest-cleanup] {"bytes":1338,"removed":true}
+[profile-selftest-cleanup] {"bytes":1332,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (0.867125ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.14675ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (8.985333ms)
+✔ O28-D01 child termination classes and bounded metadata remain distinct (0.291917ms)
+✔ O28-D02 missing partial malformed loss and incomplete traces never synthesize completion (0.172458ms)
+✔ O28-R01 known failure와 timeout receipt를 원문 없이 immutable 선보존 (24.907208ms)
+✔ O28-R02 partial trace는 검증된 prefix/open phase만 receipt에 보존 (7.765375ms)
+✔ O28-R02 loss row는 고정형만 receipt에 보존 (8.9255ms)
+✔ O28-R03 source manifest symlink와 receipt schema 변조를 fail closed (1.175375ms)
+✔ O28-R04 동일 입력 receipt 재실행 동등성과 cleanup proof 네 조건 (17.468791ms)
+✔ O28-R04 accumulation receipt는 최초 실패·미종료 group·고정 진단을 결속 (8.43725ms)
+✔ O28-R04 parent drain 실패는 성공 child와 별도로 receipt에 보존 (10.079375ms)
+[profile-selftest-cleanup] {"bytes":6,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-native] {"compileExit":0,"runExit":0,"sourceSha256":"ba5448b720bb359358ab71258daaeec685769e654260b4a1131cd357d460a078","binarySha256":"b4771dcf6756427cd4b7ceb6d31812f009ac3100c4788e2e6cac0c6877b625f3"}
+[profile-selftest-cleanup] {"bytes":56503,"removed":true}
+✔ O28-R04 실제 synthetic child group의 열린 상태와 종료를 구분 (3.755542ms)
+✔ O28-R04 source manifest는 실행 전 snapshot과 동일 길이 사후 변조를 구분 (0.706875ms)
+✖ O28-C04 accumulation store receipt는 case 저장소만 결속하고 root 도구 symlink는 제외 (2.09025ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (5.578ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.789417ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (292.891583ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":495838,"sha256":"1446d8b4b8bb20229344216b566ab374ce0358995ae53de4836774b189de7a64"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487333,"sha256":"8ef2dfaad6a89c5a0dc94289ab22018edb0c0dcc042972139955aa7c78182d31"}
+[wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-MSWO5l","bytes":528047,"removed":true}
+✔ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (129.638625ms)
+✔ LP26-O09-C03 slow flag만으로 trace 활성화 금지 (2.723833ms)
+✔ LP13-T01 collector 존재 (0.088792ms)
+✔ LP13-T01 disabled/invalid null 무출력 (33.123209ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (41.467709ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (41.841875ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (44.2645ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (44.842792ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (36.634209ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (5.588208ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (13.3035ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (37.831375ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (69.885334ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (290.152042ms)
+✔ LP13-T03 tls-cap 손실 명시 (1.997292ms)
+✔ LP13-T03 cap 손실 명시 (23.82475ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (11.860541ms)
+✔ LP13-T04 enum 거부 (0.095709ms)
+✔ LP13-T04 numeric 거부 (0.030625ms)
+✔ LP13-T04 time 거부 (0.022417ms)
+✔ LP13-T04 count 거부 (0.022167ms)
+✔ LP13-T04 linecap 거부 (0.032667ms)
+✔ LP13-T04 incomplete 거부 (0.016833ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (64.088959ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 46
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1203.667834
+
+✖ failing tests:
+
+test at scripts/internal/recording_archive_diagnostic_profile.test.mjs:65:1
+✖ O28-C04 accumulation store receipt는 case 저장소만 결속하고 root 도구 symlink는 제외 (2.09025ms)
+  TypeError: fs.lexistsSync is not a function
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:65:1076)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

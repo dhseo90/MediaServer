@@ -1,0 +1,159 @@
+1ccb89bbacaae82197442ce92e3b4e691e5298a6
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+1.28.1
+3.51.0
+3.6.2
+70399e014d60ce1ad028a8fb4400d6a1056375c6aec1aa0839a09923ff4b31f1  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_probe.cpp
+a363c1b3856bf9fd026d8b5df3e9ef335ac7bdddc82c7a89729f538aef3bc5b3  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_run.mjs
+4f0fde3cf381bc0d4d545b87589e5f0c5a7ee5ea35dbdb894a90a44db5545ea5  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_prepare.mjs
+38563a6a840cd3a2a12dca161b0e6861c9cec34e01cadfd91e868bf43096cdf3  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observer.mjs
+[source] file=recording_catalog.cpp original_sha256=9e2b0f90839c23d15a6122feb609af8f14d0f7e3ff56cbde13861b0b9cfd36ae instrumented_sha256=de9cad6b8ac20ee940511824f9730c4fcb81c09515e18363f70a974286d6a612
+[source] file=recording_journal.cpp original_sha256=f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373 instrumented_sha256=ff9a0f46233ce42a859332e5388742a3775252cc400afa16afe77c1b9d2f4114
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a instrumented_sha256=92354b974d664c88be430781853811b0f67dee67813667b3bf0fca7b2204b707
+[pass] FC01 exact insertion checks count=110
+[probe-instrument] {"catalogSha256":"75d9d99671b4d474925d7996b06bd8ac06427ba20d2781356edd45194dce9d3a","exactCacheInsertion":1,"productFilesChanged":false}
+[100%] Built target media_server_runtime
+[linked-archive] testId=LP26-O14-C source=cmake-target:media_server_runtime archive=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a sha256=b68aa4c78b860c2e199d25aea264e75f3805240c6306e016e7db49a03665717b
+[bounded-exit] code=0 signal=none timeout=false
+[bounded-exit] code=0 signal=none timeout=false
+[bounded-exit] code=0 signal=none timeout=false
+[pass] seed FE02 writer start
+[pass] seed FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=25360 input_aus=60 segments=1
+[fixture-shape] {"sources":16,"records":64,"journalBytes":299331,"cacheChargeBytes":300163,"expectedCacheAdmission":true,"mediaFiles":0,"samplesPerSource":60}
+[pass] LP26-O10-A02 typed segment binding tombstone serialization and seed file verification
+[probe-rss] {"stage":"generated","currentBytes":43778048,"peakBytes":43941888}
+[probe-process] {"mode":"--generate","selectedCase":"16","status":0,"signal":null,"stop":null,"elapsedMs":1903,"groupClosed":true,"peakObservedRssBytes":29573120,"metricsUnavailable":0,"stageLimitMs":null,"technicalCapMs":60000,"diskBytes":15300824,"parentRssBytes":71958528}
+[pass] LP26-O10-B 16 initial exact-count-prefix
+[probe-drain] {"sources":16,"phase":"initial","elapsedMs":436.94495800000004,"polls":1,"fresh":64,"rotations":0,"before":{"diskBytes":15300824,"parentRssBytes":72155136},"after":{"diskBytes":15300824,"parentRssBytes":73154560},"nativeTimeoutMs":3000,"observationLimitMs":15000,"performancePass":false}
+[probe-stage] recovery begin
+[cost] operation=recovery scope=catalog.lock.hold count=1 inclusive_ns=60584459 exclusive_ns=109500
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked count=1 inclusive_ns=60474959 exclusive_ns=3545090
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked count=64 inclusive_ns=9172411 exclusive_ns=7015662
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=16 inclusive_ns=2156749 exclusive_ns=283458
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1873291 exclusive_ns=40084
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1833207 exclusive_ns=1833207
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked count=1 inclusive_ns=40475666 exclusive_ns=352748
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked count=64 inclusive_ns=40122543 exclusive_ns=14271006
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=16 inclusive_ns=18379794 exclusive_ns=16501253
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1878541 exclusive_ns=42458
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1836083 exclusive_ns=1836083
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1 count=16 inclusive_ns=5338163 exclusive_ns=3480455
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1857708 exclusive_ns=37624
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1820084 exclusive_ns=1820084
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=16 inclusive_ns=2133580 exclusive_ns=285665
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1847915 exclusive_ns=38081
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1809834 exclusive_ns=1809834
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.lock.hold count=1 inclusive_ns=167 exclusive_ns=167
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.PreflightV2Locked/catalog.lock.wait count=1 inclusive_ns=208 exclusive_ns=208
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReadCatalogReplay count=1 inclusive_ns=184334 exclusive_ns=33292
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReadCatalogReplay/journal.ReadCheckpointRecords count=1 inclusive_ns=151042 exclusive_ns=151042
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked count=1 inclusive_ns=6281458 exclusive_ns=5948119
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/catalog.ReadCatalogReplay count=1 inclusive_ns=160791 exclusive_ns=15207
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/catalog.ReadCatalogReplay/journal.ReadCheckpointRecords count=1 inclusive_ns=145584 exclusive_ns=145584
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.RebuildSqliteLocked/journal.SerializeRecordingMutationV1 count=96 inclusive_ns=172548 exclusive_ns=172548
+[cost] operation=recovery scope=catalog.lock.hold/catalog.OpenLocked/catalog.ReleaseInactiveDetailsLocked count=1 inclusive_ns=816000 exclusive_ns=816000
+[cost] operation=recovery scope=catalog.lock.wait count=1 inclusive_ns=250 exclusive_ns=250
+[cost] operation=recovery scope=journal.Open count=1 inclusive_ns=12857458 exclusive_ns=8458
+[cost] operation=recovery scope=journal.Open/journal.OpenManagedLocked count=1 inclusive_ns=12849000 exclusive_ns=210792
+[cost] operation=recovery scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked count=1 inclusive_ns=12638208 exclusive_ns=1189497
+[cost] operation=recovery scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.IndexRecord count=64 inclusive_ns=1490958 exclusive_ns=1285083
+[cost] operation=recovery scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.IndexRecord/journal.SerializeRecordingMutationV1 count=128 inclusive_ns=205875 exclusive_ns=205875
+[cost] operation=recovery scope=journal.Open/journal.OpenManagedLocked/journal.LoadManagedStateLocked/journal.ParseRecordingMutationV1 count=64 inclusive_ns=9957753 exclusive_ns=9957753
+[probe-wall] {"stage":"recovery","elapsedUs":73448,"ok":true}
+[probe-rss] {"stage":"recovery","currentBytes":31473664,"peakBytes":31473664}
+[catalog-shape] {"sources":16,"records":64,"deleted":16,"residentBindings":0}
+[pass] LP26-O10-A02 strict Open exact4N and deletedN zero recovery errors
+[probe-stage] timeline-projection begin
+[probe-wall] {"stage":"timeline-projection","elapsedUs":163,"ok":true}
+[probe-rss] {"stage":"timeline-projection","currentBytes":31653888,"peakBytes":31653888}
+[pass] LP26-O14-B exact timeline count and deleted rows
+[probe-stage] cold-binding begin
+[cost] operation=cold-binding scope=contracts.ParseRecordingSourceBindingV1 count=2 inclusive_ns=2342125 exclusive_ns=2106083
+[cost] operation=cold-binding scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=236042 exclusive_ns=5624
+[cost] operation=cold-binding scope=contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=230418 exclusive_ns=230418
+[cost] operation=cold-binding scope=contracts.ValidateRecordingSourceBindingForSegment count=2 inclusive_ns=271167 exclusive_ns=36625
+[cost] operation=cold-binding scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=234542 exclusive_ns=4750
+[cost] operation=cold-binding scope=contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=229792 exclusive_ns=229792
+[cost] operation=cold-binding scope=journal.EnvelopeIdentity count=2 inclusive_ns=21709 exclusive_ns=14335
+[cost] operation=cold-binding scope=journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=2 inclusive_ns=7374 exclusive_ns=7374
+[cost] operation=cold-binding scope=journal.ParseRecordingMutationV1 count=2 inclusive_ns=857876 exclusive_ns=857876
+[probe-wall] {"stage":"cold-binding","elapsedUs":4953,"ok":true}
+[probe-rss] {"stage":"cold-binding","currentBytes":31686656,"peakBytes":31686656}
+[probe-stage] checkpoint-cold begin
+[cost] operation=checkpoint-cold scope=catalog.lock.hold count=1 inclusive_ns=57088083 exclusive_ns=61125
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=57026958 exclusive_ns=3397333
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ReleaseInactiveDetailsLocked count=1 inclusive_ns=1607708 exclusive_ns=1607708
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords count=1 inclusive_ns=10215083 exclusive_ns=1041
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords count=1 inclusive_ns=10214042 exclusive_ns=521371
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.EnvelopeIdentity count=64 inclusive_ns=229001 exclusive_ns=142331
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=64 inclusive_ns=86670 exclusive_ns=86670
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.ParseRecordingMutationV1 count=64 inclusive_ns=9463670 exclusive_ns=9463670
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=15667 exclusive_ns=15667
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=34928292 exclusive_ns=35624
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=64 inclusive_ns=34892668 exclusive_ns=14212171
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=16 inclusive_ns=18524623 exclusive_ns=16594122
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1930501 exclusive_ns=41082
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1889419 exclusive_ns=1889419
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=16 inclusive_ns=2155874 exclusive_ns=296084
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=16 inclusive_ns=1859790 exclusive_ns=42708
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=16 inclusive_ns=1817082 exclusive_ns=1817082
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=3828792 exclusive_ns=104959
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.candidateFields count=1 inclusive_ns=11041 exclusive_ns=11041
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write count=1 inclusive_ns=839667 exclusive_ns=621501
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write/journal.EnvelopeIdentity count=64 inclusive_ns=218166 exclusive_ns=142300
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=64 inclusive_ns=75866 exclusive_ns=75866
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=2793875 exclusive_ns=2739916
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords/journal.SerializeRecordingMutationV1 count=32 inclusive_ns=53959 exclusive_ns=53959
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=79250 exclusive_ns=53042
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=32 inclusive_ns=26208 exclusive_ns=26208
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=3034083 exclusive_ns=49208
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=2984875 exclusive_ns=2935206
+[cost] operation=checkpoint-cold scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords/journal.SerializeRecordingMutationV1 count=32 inclusive_ns=49669 exclusive_ns=49669
+[cost] operation=checkpoint-cold scope=catalog.lock.wait count=1 inclusive_ns=125 exclusive_ns=125
+[probe-wall] {"stage":"checkpoint-cold","elapsedUs":57090,"ok":true}
+[probe-rss] {"stage":"checkpoint-cold","currentBytes":32784384,"peakBytes":32784384}
+[cache-path] {"run":1,"originalRecords":64,"reusedPrefix":0,"originalApplied":64,"cacheBefore":false,"cacheAfter":true,"residentBindings":0}
+[probe-stage] checkpoint-repeat begin
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold count=1 inclusive_ns=28917709 exclusive_ns=53459
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=28864250 exclusive_ns=6545958
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ReleaseInactiveDetailsLocked count=1 inclusive_ns=1568042 exclusive_ns=1568042
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords count=1 inclusive_ns=20483500 exclusive_ns=1042
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords count=1 inclusive_ns=20482458 exclusive_ns=518129
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.EnvelopeIdentity count=64 inclusive_ns=220247 exclusive_ns=142287
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=64 inclusive_ns=77960 exclusive_ns=77960
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.ParseRecordingMutationV1 count=64 inclusive_ns=19744082 exclusive_ns=10917541
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.ParseRecordingMutationV1/journal.ParseRecordingMutationV1 count=32 inclusive_ns=8769501 exclusive_ns=8769501
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.ReadCheckpointRecords/journal.ReadCheckpointRecords/journal.ParseRecordingMutationV1/journal.SerializeRecordingMutationV1 count=32 inclusive_ns=57040 exclusive_ns=57040
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=11625 exclusive_ns=11625
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=185000 exclusive_ns=95751
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.candidateFields count=1 inclusive_ns=10416 exclusive_ns=10416
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.noWrite count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=19375 exclusive_ns=19375
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=59458 exclusive_ns=33167
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=32 inclusive_ns=26291 exclusive_ns=26291
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=70125 exclusive_ns=51083
+[cost] operation=checkpoint-repeat scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=19042 exclusive_ns=19042
+[cost] operation=checkpoint-repeat scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[probe-wall] {"stage":"checkpoint-repeat","elapsedUs":28919,"ok":true}
+[probe-rss] {"stage":"checkpoint-repeat","currentBytes":32849920,"peakBytes":32849920}
+[cache-path] {"run":2,"originalRecords":64,"reusedPrefix":64,"originalApplied":0,"cacheBefore":true,"cacheAfter":true,"residentBindings":0}
+[pass] LP26-O10-C02 cache prefix or full fallback exact oracle
+[probe-process] {"mode":"--catalog","selectedCase":"16","status":0,"signal":null,"stop":null,"elapsedMs":208,"groupClosed":true,"peakObservedRssBytes":null,"metricsUnavailable":0,"stageLimitMs":15000,"technicalCapMs":65000,"diskBytes":15388271,"parentRssBytes":73334784}
+[probe-rotation] {"sources":16,"actualCheckpointRotation":true,"identicalBytesReplacement":false}
+[pass] LP26-O10-B 16 rotated exact-count-prefix
+[probe-drain] {"sources":16,"phase":"rotated","elapsedMs":132.89766699999973,"polls":1,"fresh":0,"rotations":1,"before":{"diskBytes":15388271,"parentRssBytes":73400320},"after":{"diskBytes":15388271,"parentRssBytes":73433088},"nativeTimeoutMs":3000,"observationLimitMs":15000,"performancePass":false}
+[pass] LP26-O10-E01 malformed mutation rejected
+[summary] {"completed":true,"elapsedMs":2780.62875,"diskBytes":15388271,"parentRssBytes":73433088,"performancePass":false,"longrunPass":false,"uiPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[probe-receipt] {"preserved":true,"bytes":2440,"sha256":"08c14fb06216618d9c94c2faec261b109e1e3bfa5606a980849f23624dd07e98","rawPathsPublished":false}
+[probe-reader-cleanup] {"readers":1,"closed":true,"groupsClosed":true,"receiptPreserved":true,"elapsedMs":2793.6919169999996,"diskBytes":15388335,"parentRssBytes":73744384}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.dsznZZ","bytes":15388335,"absent":true}
+[exit] code=0 elapsed_seconds=12 source=bash-SECONDS token_usage=unavailable

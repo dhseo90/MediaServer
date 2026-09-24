@@ -43783,7 +43783,7 @@ RSS는 녹화 중 623,722,496바이트, 비활성 직후 623,673,344, 유휴 20�
 | O28-C03 | 체크포인트·조회 비용 | 같은 원장의 cold/repeat 후보와 prefix 적용 개수, 재읽기·검증·직렬화·잠금·조회 비용 대조. 2049의 기존 수동/자동 full/no-op 경로를 구분하며 실제 HTTP로 부르지 않음 | v4.1.0 |
 | O28-C04 | 판정·실패 수명 | 단계별15초·catalog 기술상한65초·준비60초·RSS1GiB·disk448MiB·출력4MiB 유지. 실패 시 최초진단/receipt/자료 유지, 같은 조건 자동 반복 금지. 입력 생성/계측 오류와 실제 비용 초과를 구분 | v4.1.0 |
 | O28-M01 | 메모리 소유 분리 | 기존 31열 owner 계측을 재사용하여 journal/live/shadow/prefix의 resident/cold/weak·부분논리량과 RSS를 기록. 동일 객체 중복 합산 금지, 전체 heap/RSS 귀속으로 확대하지 않음 | v4.1.0 |
-| O28-M02 | reader 수명·재개방 | 작은 입력→1020→2048/2049에서 상세 handle 획득·동일 handle 재획득·해제·재조회, snapshot 해제, 새 프로세스 Open을 비교. 제품은 reader를 소유한다고 오인하지 않으며 ID/삭제·샘플 수 oracle 유지 | v4.1.0 |
+| O28-M02 | reader 수명·재개방 | 작은 입력→1020→2048/2049에서 최대8개 ID의 상세 handle 획득·같은 ID 재획득의 객체 공유 여부·해제·재조회, snapshot 해제, 새 프로세스 Open을 비교. 현재 strict 재획득이 새 객체를 만들 수 있으므로 pointer 동일성을 요구하지 않고 ID/삭제·60샘플·직렬화 동등성을 검사 | v4.1.0 |
 
 각 단기 실행은 실제 종료 상세·상한·source/build·파일 manifest 및 정리 결과를 보존한다. 원래 O26의 생존 영상 6개와 샘플 분포는 이 fixture에 없으므로 snapshot 실패의 동일 재현이나 실제 앱/RSS 최종 판정으로 사용하지 않는다. 정상 진단으로 관측된 비용 초과도 제품 PASS가 아니며 이후 실행을 자동 진행하지 않는다.
 
@@ -43792,3 +43792,9 @@ RSS는 녹화 중 623,722,496바이트, 비활성 직후 623,673,344, 유휴 20�
 [O28 단계별 보고](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)와
 [2번 개별 5,480행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage2-items.md.gz)에 보존한다.
 제품 최적화·실제 앱/장시간 검증은 미실행이며 3~4번은 이제 선수 조건을 충족했다.
+
+3번 마감: focused47/47·작은 case16 전체 exit0, receipt/정리 통과. 큰 네 규모 비교 본문은 완료됐으나
+최초 receipt 범위 오류로 전체 exit1을 유지한다. 보완 영향은 마감 수집기에 한정하여 큰 비교는 반복하지 않았다.
+사후 증거 확보·제품 불변·FD 부재 확인 후 80,816,657바이트 임시 root 삭제를 확인했다.
+[3번 개별 결과](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage3-items.md.gz)와
+[비용·한계·최초 실패](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)에 보존한다.

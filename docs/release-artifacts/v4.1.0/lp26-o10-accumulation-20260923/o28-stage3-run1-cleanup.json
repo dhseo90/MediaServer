@@ -1,0 +1,10 @@
+{
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4Htlkm",
+  "bytes": 80816657,
+  "removed": true,
+  "postRunReceiptVerified": true,
+  "sourceAndRuntimeUnchanged": true,
+  "binaryHashesTiming": "post-run-only",
+  "originalRunExit": 1,
+  "reason": "확정된 receipt scope 결함은 별도 반례·작은 E2E로 검증; 비용 원출력·재현식·사후 manifest 보존 후 합성 자료 정리"
+}

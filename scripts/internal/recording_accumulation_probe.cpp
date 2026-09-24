@@ -202,7 +202,7 @@ void AutomaticFull(const std::filesystem::path& root,unsigned count){
           <<",\"allCatalogLockHoldSumUs\":"<<all_catalog_lock_hold_sum_us<<",\"readCheckpointRecordsMaxUs\":"<<read_us
           <<",\"prepareCheckpointMaxUs\":"<<prepare_us<<",\"originalSemanticReplayMaxUs\":"<<replay_us
           <<",\"candidateSemanticMaxUs\":"<<candidate_us<<",\"sameSequenceMaxUs\":"<<compare_us
-          <<",\"commitCheckpointMaxUs\":"<<commit_us<<",\"cachePhaseInstrumented\":false,\"releasePhaseInstrumented\":false"
+          <<",\"commitCheckpointMaxUs\":"<<commit_us<<",\"cachePhaseInstrumented\":true,\"releasePhaseInstrumented\":true"
           <<",\"maxPublicOperationUs\":"<<max_public_operation_us<<",\"elapsedUs\":"<<elapsed<<"}\n";
  Need(full_fallbacks>0,"public-full-checkpoint-fallback");
  Pass("LP26-O14-D public normal lifecycle automatic full fallback classified");
@@ -280,8 +280,8 @@ void Catalog(const std::filesystem::path& root,unsigned count){
 int main(int argc,char** argv){std::cout<<std::unitbuf;try{
  if(argc==2&&std::string(argv[1])=="--bounds"){Bounds();return 0;}
  if((argc==3||argc==4)&&std::string(argv[1])=="--generate"){
-  std::vector<unsigned> counts{16U,1020U,2049U};if(argc==4){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2049,"count");counts={static_cast<unsigned>(count)};}Generate(argv[2],counts);return 0;}
- if(argc==4&&std::string(argv[1])=="--catalog"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2049,"count");Catalog(argv[2],count);return 0;}
+  std::vector<unsigned> counts{16U,1020U,2048U,2049U};if(argc==4){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2048||count==2049,"count");counts={static_cast<unsigned>(count)};}Generate(argv[2],counts);return 0;}
+ if(argc==4&&std::string(argv[1])=="--catalog"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2048||count==2049,"count");Catalog(argv[2],count);return 0;}
  if(argc==4&&std::string(argv[1])=="--automatic"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");Automatic(argv[2],count);return 0;}
  if(argc==4&&std::string(argv[1])=="--automatic-full"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");AutomaticFull(argv[2],count);return 0;}
  if(argc==4&&std::string(argv[1])=="--automatic-full-reopen"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");AutomaticFullReopen(argv[2],count);return 0;}

@@ -1,0 +1,106 @@
+✔ LP26-O10-A01 4N 독립 규모와 최대 bound (0.900708ms)
+✔ O28-C01 2048 CLI·receipt 허용과 unknown case 거부가 정적으로 연결 (1.304125ms)
+✔ LP26-O10-B01 정확한 네 type·count·partial/backlog oracle (0.19525ms)
+✔ LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle (0.059ms)
+✔ LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서 (0.323916ms)
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":4206,"removed":true}
+[profile-selftest-cleanup] {"bytes":1954,"removed":true}
+[profile-selftest-cleanup] {"bytes":1967,"removed":true}
+[profile-selftest-cleanup] {"bytes":110,"removed":true}
+[profile-selftest-cleanup] {"bytes":4197,"removed":true}
+[profile-selftest-cleanup] {"bytes":1338,"removed":true}
+[profile-selftest-cleanup] {"bytes":1332,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (0.749042ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.133667ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (12.011333ms)
+✔ O28-D01 child termination classes and bounded metadata remain distinct (0.409791ms)
+✔ O28-D02 missing partial malformed loss and incomplete traces never synthesize completion (0.205417ms)
+✔ O28-R01 known failure와 timeout receipt를 원문 없이 immutable 선보존 (24.885083ms)
+✔ O28-R02 partial trace는 검증된 prefix/open phase만 receipt에 보존 (9.86675ms)
+✔ O28-R02 loss row는 고정형만 receipt에 보존 (8.764875ms)
+✔ O28-R03 source manifest symlink와 receipt schema 변조를 fail closed (1.188708ms)
+✔ O28-R04 동일 입력 receipt 재실행 동등성과 cleanup proof 네 조건 (16.291917ms)
+✔ O28-R04 accumulation receipt는 최초 실패·미종료 group·고정 진단을 결속 (9.461042ms)
+✔ O28-R04 parent drain 실패는 성공 child와 별도로 receipt에 보존 (8.909875ms)
+[profile-selftest-cleanup] {"bytes":6,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-native] {"compileExit":0,"runExit":0,"sourceSha256":"ba5448b720bb359358ab71258daaeec685769e654260b4a1131cd357d460a078","binarySha256":"b4771dcf6756427cd4b7ceb6d31812f009ac3100c4788e2e6cac0c6877b625f3"}
+[profile-selftest-cleanup] {"bytes":56503,"removed":true}
+✔ O28-R04 실제 synthetic child group의 열린 상태와 종료를 구분 (3.423459ms)
+✔ O28-R04 source manifest는 실행 전 snapshot과 동일 길이 사후 변조를 구분 (1.15375ms)
+✖ O28-C04 accumulation store receipt는 case 저장소만 결속하고 root 도구 symlink는 제외 (2.47575ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.455333ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.795875ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (488.190583ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":495777,"sha256":"5b04eebe5ee556bc082e39a02d56203bb3deac2ef1f8bb41c26fa8dc07f0fc5b"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1486842,"sha256":"fb0ee1643558e77bddae1755c7da2a9936e90b8acce4c40454b078a0581cd136"}
+[wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-6OfQTk","bytes":528047,"removed":true}
+✔ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (333.838625ms)
+✔ LP26-O09-C03 slow flag만으로 trace 활성화 금지 (6.984084ms)
+✔ LP13-T01 collector 존재 (0.234292ms)
+✔ LP13-T01 disabled/invalid null 무출력 (45.914584ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (43.4225ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (44.611ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (44.932792ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (39.847625ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (41.772541ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (5.583667ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (18.054167ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (46.429084ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (71.075209ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (288.195375ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.765541ms)
+✔ LP13-T03 cap 손실 명시 (24.396167ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (11.561833ms)
+✔ LP13-T04 enum 거부 (0.104208ms)
+✔ LP13-T04 numeric 거부 (0.033709ms)
+✔ LP13-T04 time 거부 (0.024833ms)
+✔ LP13-T04 count 거부 (0.025167ms)
+✔ LP13-T04 linecap 거부 (0.040792ms)
+✔ LP13-T04 incomplete 거부 (0.01875ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (64.972166ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 46
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1444.705875
+
+✖ failing tests:
+
+test at scripts/internal/recording_archive_diagnostic_profile.test.mjs:65:1
+✖ O28-C04 accumulation store receipt는 case 저장소만 결속하고 root 도구 symlink는 제외 (2.47575ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /diagnostic-root-profile/. Input:
+  
+  'Error: directory-owner'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:65:903)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: directory-owner
+        at requireSafe (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:14:44)
+        at directory (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:125:51)
+        at diagnosticRootIdentity (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:76:15)
+        at accumulationStoreReceipt (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:67:3)
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:65:914
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:65:903)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25),
+    expected: /diagnostic-root-profile/,
+    operator: 'throws',
+    diff: 'simple'
+  }

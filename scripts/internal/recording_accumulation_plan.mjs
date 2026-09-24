@@ -1,5 +1,5 @@
 // 파일 용도: LP26-O10 독립 계수 oracle. 제품 성능 합격 기준을 만들지 않는다.
-export const casePlan=()=>[16,1020,2049].map(sources=>({sources,records:sources*4}));
+export const casePlan=()=>[16,1020,2048,2049].map(sources=>({sources,records:sources*4}));
 export function assertDrain(value,sources){
   if(value.mutationCount!==sources*4||value.partialBytes!==0||value.backlog!==false||
     ['recording_order_reserved','segment_v2_bound_finalized','segment_v2_state','segment_v2_deleted'].some(k=>value.typeCounts[k]!==sources))throw Error('drain-oracle');

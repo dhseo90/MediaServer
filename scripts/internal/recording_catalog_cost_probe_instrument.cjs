@@ -10,7 +10,7 @@ function fn(s,name,label,expected=1){const escaped=name.replace(/[.*+?^${}()|[\]
 for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_contracts.cpp','recording_checkpoint_validation.h']){
  const original=fs.readFileSync(path.join(repo,'src/recording',file),'utf8');let s=original;
  if(file==='recording_catalog.cpp'){
-  for(const name of ['CheckpointLocked','AppendAndApplyLocked','ValidateBoundLocked','CommitBoundLocked','ApplyMutationLocked','ProjectMutationSqliteLocked','ProjectionSignatureLocked'])s=fn(s,'RecordingCatalog::'+name,'catalog.'+name);
+  for(const name of ['OpenLocked','ReadCatalogReplay','PreflightV2Locked','RebuildSqliteLocked','ReleaseInactiveDetailsLocked','CheckpointLocked','AppendAndApplyLocked','ValidateBoundLocked','CommitBoundLocked','ApplyMutationLocked','ProjectMutationSqliteLocked','ProjectionSignatureLocked'])s=fn(s,'RecordingCatalog::'+name,'catalog.'+name);
   s=replace(s,'journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views)','fc::Measure("checkpoint.ReadCheckpointRecords",[&]{return journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views);})');
   s=replace(s,"for(std::size_t i=first;i<original.size();++i)\n            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_,&derived_jobs_,proof,views[i])){\n                if(!before->derived_job_state_authoritative_)derived_job_state_authoritative_=false;\n                return false;\n            }","if(!fc::Measure(\"checkpoint.originalSemantic\",[&]{for(std::size_t i=first;i<original.size();++i){\n            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_,&derived_jobs_,proof,views[i])){\n                if(!before->derived_job_state_authoritative_)derived_job_state_authoritative_=false;\n                return false;\n            }}return true;}))return false;");
   s=replace(s,'identical=detail::SameCheckpointSequence(original,candidate);','identical=detail::SameCheckpointSequence(original,candidate);fc::Event(identical?"candidate.identical":"candidate.different");');
@@ -24,7 +24,7 @@ for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_co
  }
  if(file==='recording_journal.cpp'){
   for(const name of ['SerializeRecordingMutationV1','ParseRecordingMutationV1','EnvelopeIdentity','IndexRecord','CompactRecords','JournalBytes'])s=fn(s,name,'journal.'+name);
-  for(const name of ['ReadCheckpointRecords','PrepareCheckpoint','CommitCheckpoint','TryAutomaticCheckpointNoop','AppendOwned','Replay'])s=fn(s,'RecordingJournal::'+name,'journal.'+name);
+  for(const name of ['Open','OpenManagedLocked','LoadManagedStateLocked','ReadCheckpointRecords','PrepareCheckpoint','CommitCheckpoint','TryAutomaticCheckpointNoop','AppendOwned','Replay'])s=fn(s,'RecordingJournal::'+name,'journal.'+name);
   s=replace(s,'if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");','if(!fc::Measure("checkpoint.candidateFields",[&]{return expected.size()==candidate.size()&&detail::SameCheckpointPrefix(expected,candidate);}))return Fail(error,"checkpoint 후보 필드 불일치");');
   s=replace(s,'if(bytes.size()>=managed_state_->bytes)return true;','if(bytes.size()>=managed_state_->bytes){fc::Event("checkpoint.noWrite");return true;}fc::Scope fc_write("checkpoint.write");');
  }

@@ -114,3 +114,68 @@ Node summary의 tests/pass/fail과 전수 행수를 직접 대조했다. asserti
 위 단계의 root 보존 기능이 실제 실패 데이터에 적용됐다는 주장은 하지 않으며, 실제 적용은 다음 누적 실행에서 확인한다.
 
 token start/end/consumed: 전용 집계가 제공되지 않아 미집계. elapsed/source는 각 실행 로그에 보존한다.
+
+### 3번 최초 누적 비교 — 본문 관측과 마감 실패 분리
+
+`bash scripts/internal/verify_recording_accumulation_probe.sh --run`은 제품 계측 본문을 195,743ms에 끝냈지만
+receipt 생성이 실패하여 전체 exit 1(205초)이다. 원출력은 `o28-stage3-accumulation-run1-20260924.log`다.
+실패 원인은 전체 임시 root를 데이터 tree로 검사하여 GST plugin symlink를 `tree-owner`로 거부한 것이다.
+이 안전장치를 완화하지 않고 case 저장소와 도구/의존성 경계를 분리한다. 큰 누적 비교를 자동 반복하지 않는다.
+
+| 원본/행 | 최초 journal 바이트 | 논리 cache charge | 엄격 복구 | cold checkpoint | repeat checkpoint | repeat 의미 재적용 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 16 / 64 | 299,331 | 300,163 | 0.074초 | 0.057초 | 0.030초 | 0행 |
+| 1,020 / 4,080 | 19,113,993 | 19,167,033 | 5.980초 | 3.544초 | 1.799초 | 0행 |
+| 2,048 / 8,192 | 38,401,329 | 38,507,825 | 12.123초 | 7.128초 | 3.623초 | 0행 |
+| 2,049 / 8,196 | 38,420,091 | 38,526,639 | 12.133초 | 6.600초 | 7.171초 | 8,196행 |
+
+같은 실행의 같은 seed(원본당60샘플), 전부 삭제/생존 영상0개/이벤트 작업0개다. 단계별15초를 통과했으나
+native snapshot 전체15초, HTTP4초, 실제 녹화120분 PASS는 아니다. 64MiB/+1은 admission 함수의 산술 반례이고
+64MiB의 유효 저장소 전체 실행이 아니다. 정상 fallback을 기능 오류로 부르지 않는다.
+
+2,049개 복구 12.133초 중 journal Open 1.461초, catalog Open 10.672초였다. catalog 안에서는 preflight 4.535초,
+정상 Apply 4.453초, SQLite rebuild 1.556초가 관측됐다(inclusive이므로 그 하위 scope와 중복 합산하지 않음).
+preflight의 binding Parse 2,049회 뒤 정상 Apply에서도 1,985회 Parse가 발생했다. 직접 코드의 복구 재사용
+`limit=64`와 일치한다. 작은 입력의 재사용 성공을 누적 전체의 중복 제거로 확장할 수 없다.
+`ReadCatalogReplay` 자체 값 복제 구간의 exclusive 약3.51ms는 이 실행의 주된 시간 원인이 아니었다.
+
+8,192행 repeat는 의미 재적용0행이어도 원장 재읽기2.599초를 포함해3.623초였다. 8,196행 repeat는 재읽기2.592초와
+의미 재적용4.450초로7.171초였다. 즉 cache 경계를 넘을 때 비용이 불연속적으로 커지고, 경계 안에서도 전체 재읽기 비용은 남는다.
+실제 public reserve/finalize/delete 96회에서는 자동 full checkpoint1회7.670초(재읽기2.689초·의미 재적용4.765초),
+수동 full checkpoint와 같은 mutex의 timeline 조회는7.186초가 관측됐다. 이 마지막 값은 HTTP 요청이 아니다.
+
+여기까지의 수치는 종료 로그가 남은 본문 관측이다. 전체 실행의 receipt/cleanup 실패를 PASS로 바꾸지 않는다.
+측정 당시 binary hash가 원출력에 없으므로 이후 확보하는 hash는 사후값으로만 기록한다.
+
+### 3번 보완·판정 마감
+
+receipt 대상은 `case-16/1020/2048/2049` 저장소로 한정했다. 의존성 symlink는 데이터가 아니며,
+저장소 내부 symlink/외부 경로 거부는 그대로 유지했다. 고친 마감 경로는 case16 전체 실행으로 확인했다.
+큰 실행의 비용 본문·source hash는 유효한 진단 관측으로 유지하되 전체 실행 PASS로 승격하지 않는다.
+이 변경은 제품 계측 결과를 바꾸지 않아 큰 비교를 재실행하지 않았다(AGENTS 7.6.2 부분 영향 판정).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 사전 정의 RED | focused 42/46·exit 1, 2048 case·추가 scope·기존 receipt 범위의 예상 불일치 | fail |
+| 첫 구현 | focused 46/46·exit 0 | pass |
+| 누적 본문과 마감 | 네 규모 본문 완료·자식 모두 status0/group 종료, 전체 receipt `tree-owner`·exit1 | fail |
+| receipt 자체검사 보완 중 | 46/47·exit1 세 번: 정확 오류 이름 불일치 → 고정 alias 잔류 → 존재하지 않는 fs API. 실제 준비 결함이며 RED 아님 | fail |
+| receipt 자체검사 최종 | helper 18/18, 전체 focused 47/47·exit0 | pass |
+| case16 전체 | 동일 wrapper `--case 16`·exit0, native/관측/receipt/정리 완료. 비용 본문 2,781ms | pass |
+| 최종 정적 검사 | plan5/5, JS/bash 구문·diff exit0 | pass |
+| 메인 문서 검사 | `./server.sh verify-docs-links` exit0·328문서/12,750링크/실패0, `git diff --check` exit0 | pass |
+
+큰 입력 사후 자료는 `o28-stage3-run1-post-run-receipt.json`에 별도 저장했다. 자동 receipt 복구 여부는 false이며
+사후 binary hash를 실행 당시 값으로 둔갑시키지 않았다. 네 case 33파일·65,815,282바이트의 총 hash는
+`4e24d17f29629b36b537cbe7cd506dcada64a9a3c631e03efa451ccd426822f6`이다.
+메인이 원자료·원로그·binary hash, 제품 소스와 runtime 불변, root uid/mode/dev/ino, 열린 FD 부재를 대조한 뒤
+정리했다. 최초 exit1은 유지한다. 개별 검사는 [3번 전수표](o28-stage3-items.md.gz)와 원로그에 보존한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR `media-server-catalog-cost.4Htlkm` | 큰 합성 저장소·계측 빌드 | 80,816,657바이트 | 사후 증거·소유/불변/종료 확인 후 exact root 삭제 | 부재 확인, 원자료 자체는 삭제·동일 생성법 보존 | `o28-stage3-run1-cleanup.json` |
+| TMPDIR `media-server-catalog-cost.dsznZZ` | 보완 후 case16 | 15,388,335바이트 | 검증된 receipt 후 wrapper 정리 | removed=true | case16 원로그·receipt |
+| stage3 pure roots·alias | 자체검사 합성 자료 | 개별 원출력 | finally/후속 소유 확인 정리 | 잔여0 | focused 원로그 |
+
+3번의 진단 도구 보완과 관측 판정은 마쳤다. 실제 앱의 HTTP4초·snapshot전체15초·O26 RSS 원인은 아직
+해결 완료가 아니다. 다음 4번은 제품 수정 없이 같은 생성법의 메모리 소유자만 분리한다.

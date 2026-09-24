@@ -1,0 +1,175 @@
+✖ LP26-O10-A01 4N 독립 규모와 최대 bound (0.89325ms)
+✖ O28-C01 2048 CLI·receipt 허용과 unknown case 거부가 정적으로 연결 (2.671042ms)
+✔ LP26-O10-B01 정확한 네 type·count·partial/backlog oracle (0.54925ms)
+✔ LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle (0.086542ms)
+✔ LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서 (0.30425ms)
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":4206,"removed":true}
+[profile-selftest-cleanup] {"bytes":1954,"removed":true}
+[profile-selftest-cleanup] {"bytes":1967,"removed":true}
+[profile-selftest-cleanup] {"bytes":110,"removed":true}
+[profile-selftest-cleanup] {"bytes":4197,"removed":true}
+[profile-selftest-cleanup] {"bytes":5,"removed":true}
+[profile-selftest-cleanup] {"bytes":1332,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (0.779666ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.148208ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (11.614792ms)
+✔ O28-D01 child termination classes and bounded metadata remain distinct (0.39975ms)
+✔ O28-D02 missing partial malformed loss and incomplete traces never synthesize completion (0.175958ms)
+✔ O28-R01 known failure와 timeout receipt를 원문 없이 immutable 선보존 (27.369667ms)
+✔ O28-R02 partial trace는 검증된 prefix/open phase만 receipt에 보존 (8.529083ms)
+✔ O28-R02 loss row는 고정형만 receipt에 보존 (8.966333ms)
+✔ O28-R03 source manifest symlink와 receipt schema 변조를 fail closed (1.093333ms)
+✔ O28-R04 동일 입력 receipt 재실행 동등성과 cleanup proof 네 조건 (16.542375ms)
+✖ O28-R04 accumulation receipt는 최초 실패·미종료 group·고정 진단을 결속 (2.432541ms)
+✔ O28-R04 parent drain 실패는 성공 child와 별도로 receipt에 보존 (10.121416ms)
+[profile-selftest-cleanup] {"bytes":6,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-native] {"compileExit":0,"runExit":0,"sourceSha256":"ba5448b720bb359358ab71258daaeec685769e654260b4a1131cd357d460a078","binarySha256":"b4771dcf6756427cd4b7ceb6d31812f009ac3100c4788e2e6cac0c6877b625f3"}
+[profile-selftest-cleanup] {"bytes":56503,"removed":true}
+✔ O28-R04 실제 synthetic child group의 열린 상태와 종료를 구분 (4.065625ms)
+✔ O28-R04 source manifest는 실행 전 snapshot과 동일 길이 사후 변조를 구분 (0.776292ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.129083ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.907166ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (526.970083ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":496945,"sha256":"95e89ca90caa72803aa303b2202b751fc0036ed2e9c55a16771f2a39e37b4298"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487251,"sha256":"ed4116d9484a19375fc2d3d8215449a362133d2a184f1dbc7866c4842b335d8e"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-kLma39","bytes":527657,"removed":true}
+✔ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (275.33425ms)
+✔ LP26-O09-C03 slow flag만으로 trace 활성화 금지 (5.685667ms)
+✔ LP13-T01 collector 존재 (0.213875ms)
+✔ LP13-T01 disabled/invalid null 무출력 (45.806334ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (37.2965ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (45.139416ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (45.296042ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (42.905167ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (46.292917ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (5.322792ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (15.146208ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (36.158375ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (70.751083ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (299.90625ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.6855ms)
+✔ LP13-T03 cap 손실 명시 (25.158125ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (12.515959ms)
+✔ LP13-T04 enum 거부 (0.094375ms)
+✔ LP13-T04 numeric 거부 (0.033208ms)
+✔ LP13-T04 time 거부 (0.025125ms)
+✔ LP13-T04 count 거부 (0.023208ms)
+✔ LP13-T04 linecap 거부 (0.020417ms)
+✔ LP13-T04 incomplete 거부 (0.018334ms)
+✖ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (35.984541ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 42
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1447.003291
+
+✖ failing tests:
+
+test at scripts/internal/recording_accumulation_plan.test.mjs:5:1
+✖ LP26-O10-A01 4N 독립 규모와 최대 bound (0.89325ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      [
+        16,
+        64
+      ],
+  ...
+      [
+  -     2048,
+  -     8192
+  -   ],
+  -   [
+        2049,
+        8196
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_plan.test.mjs:7:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 16, 64 ], [ 1020, 4080 ], [ 2049, 8196 ] ],
+    expected: [ [ 16, 64 ], [ 1020, 4080 ], [ 2048, 8192 ], [ 2049, 8196 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_accumulation_plan.test.mjs:9:1
+✖ O28-C01 2048 CLI·receipt 허용과 unknown case 거부가 정적으로 연결 (2.671042ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(source.includes('2048'))
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_plan.test.mjs:11:44)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_archive_diagnostic_profile.test.mjs:61:1
+✖ O28-R04 accumulation receipt는 최초 실패·미종료 group·고정 진단을 결속 (2.432541ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      elapsedMs: 4,
+      groupClosed: false,
+      mode: '--catalog',
+  +   selectedCase: null,
+  -   selectedCase: '2048',
+      signal: null,
+      status: 0,
+      stop: 'time-cap'
+    }
+  
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:61:700
+      at owned (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:16:14)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:61:68)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { mode: '--catalog', selectedCase: null, status: 0, signal: null, stop: 'time-cap', elapsedMs: 4, groupClosed: false },
+    expected: { mode: '--catalog', selectedCase: '2048', status: 0, signal: null, stop: 'time-cap', elapsedMs: 4, groupClosed: false },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_latency_trace.test.mjs:40:1
+✖ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (35.984541ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(instrumented.includes('fc_scope("'+scope+'")'))
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_latency_trace.test.mjs:57:170)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
