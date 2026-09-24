@@ -91,3 +91,16 @@
 | 이번 단기 실행 임시 산출물 | 정리 확인 | O23 두 제품 프로세스 정상 종료·포트/root 부재. O21 첫 계측의 권한·계측 충돌은 별도 실패로 보존하고 소유 root 정리 | 단기 cleanup 증거로만 사용 | [O23 원출력](../lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz) |
 
 이번 목록은 후속 실행·제품 변경·외부 릴리즈 작업에 대한 새 승인이 아니다. 현재 버전 완료 조건만 정리한다.
+
+## 이번 집중 검증 임시 산출물 정리
+
+원출력은 `docs/release-artifacts/v4.1.0/` 아래에 보존했고, terminal 원문 로그 15개는 내용 보존 gzip으로 약 268KiB에 압축했다. 아래는 검증기가 소유한 격리 root만 적는다. 다른 사용자 자료·운영 저장소는 삭제하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-W2iVBH` | O21 실제 앱 | 397,914,204바이트 | 계측 충돌 후 PID 부재·소유권·비링크를 확인하고 해당 root만 제거 | 수동 제거·부재 확인, 원출력은 실패로 보존 | [O21 원출력](../lp26-o10-accumulation-20260923/o21-targeted-actual-app.log.gz) |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-py5HFT` | O22 실제 앱 | 375,854,587바이트 | 검증기 정리 | root 부재·실패 0 | [O22 원출력](../lp26-o10-accumulation-20260923/o22-targeted-actual-app.log.gz) |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-5u0IJc` | O23 실제 앱 | 398,618,017바이트 | 검증기 정리 | root 부재·실패 0 | [O23 원출력](../lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz) |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.jzAlUL` | O23 권한 실패 집중 검사 | 약 372KiB | 프로세스 부재·소유권·비링크 확인 뒤 정확한 root 제거 | 수동 제거·부재 확인 | [첫 집중 실패](lp22-read-context-green-lp22-media-lp26-o23-a.txt) |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.lyX5Op` | O23 첫 권한 확장 | 10,674,614바이트 | 검증기 정리 | 제거 확인 | [첫 권한 확장](lp22-read-context-green-lp22-media-lp26-o23-b.txt) |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.AnEg9V` | O23 집중 재검증 | 10,674,614바이트 | 검증기 정리 | 제거 확인 | [집중 PASS](lp22-read-context-green-lp22-media-lp26-o23-c.txt) |
