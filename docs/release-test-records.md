@@ -43469,3 +43469,45 @@ artifact/hash, 모든 command exit/count, repair/rerun 이력은 Task 8 report�
 | 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
 | --- | --- | --- | --- |
 | C 실제 브라우저/D08 | 실제 영상 재생·시각·브라우저 조작 | 사용자 명시 제외 | Node VM/DOM 결과는 실제 브라우저 재생 PASS가 아님 |
+## v4.1.0 S11 체크포인트 중 상태 조회 집중 검사 실행 전 정의 (2026-09-24)
+
+이 항목은 체크포인트 잠금으로 인한 상태 조회 지연 보완의 사전 등록이다. 아래 결과는 아직 미실행이며 PASS가 아니다. 실행은 격리 저장소의 집중 검사와 관련 저장·복구 회귀로 제한한다. 실제 앱 HTTP 4초·누적 규모·통합 검증은 별도 단계에서 판정한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S11-STATUS-SNAPSHOT-01 | 체크포인트 중 일관된 상태 조회 | 체크포인트가 catalog 잠금을 점유하는 동안 동일 적용 상태의 mode·recovery·용량 snapshot으로 상태를 제공하고 공개 JSON 계약이 바뀌지 않는지 확인 | v4.1.0 |
+| S11-STATUS-SNAPSHOT-02 | 임의 잠금 경합에서 대체 금지 | 체크포인트 이외의 catalog 잠금 경합에는 이전 snapshot을 반환하지 않는지 확인 | v4.1.0 |
+| S11-STATUS-SNAPSHOT-03 | 활성 경계와 실패 차단 | 정상·실패·예외 탈출에서 활성 표식을 정리하고 stale·권위 상실·손상 입력을 정상 상태로 위장하지 않는지 확인 | v4.1.0 |
+| S11-STATUS-SNAPSHOT-04 | 현재 동적 상태 유지 | 채널 녹화 활성·storageBlocked·인증 범위 투영을 조회 시점의 값으로 확인 | v4.1.0 |
+| S11-STATUS-SNAPSHOT-05 | 저장 경로 불변 | 동시 적용·삭제·재개방과 동일 길이 변조·inode 교체 반례에서 snapshot이 저장·보존·timeline 판정을 변경하지 않는지 확인 | v4.1.0 |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 실제 HTTP·누적 규모·통합 | S11 체크포인트 상태 조회의 운영 지연·장기 자원·실제 이벤트 결과 | 이 절의 실행 전 정의에는 포함되지 않음 | 집중 검사 통과만으로 4초 HTTP·16/32/누적 비용·5단계 통합 PASS를 주장하지 않음 |
+
+### 집중 실행과 영향 회귀 (2026-09-24)
+
+첫 실행은 새 API 부재의 예상 RED(exit 1), 첫 GREEN 시도는 fixture의 SQLite 경로 불일치(exit 2), 다음은 hook 삽입·강제 실패 표식의 검사 장치 결함으로 10 pass/4 fail(exit 1)이었다. 그 뒤 같은 SIGSEGV(exit 139)가 두 번 발생했다. 출력 flush 진단에서 앞의 13개 assertion 통과 후 마지막 인증 필터 검사 전, 테스트 provider가 삭제된 채널의 용량 map iterator를 역참조한 원인을 확인했다. 제품 코드 결함으로 바꾸지 않았으며 그 한 줄을 수정했다. 앞선 시도의 원출력은 별도 파일로 보존되지 않았고 각 임시 root는 검사 장치의 cleanup으로 제거되었다고 담당자가 보고했다. 이 결과들은 최종 PASS의 대체 증거가 아니다.
+
+최종 `./scripts/internal/verify_recording_status_snapshot.sh`는 exit 0, pass 14/fail 0, 약 7.8초였다. 검사의 소유 root `media-server-status-snapshot.vIlYWo`는 실행 종료 때 6,169,266바이트를 정리하고 `removed=true`를 출력했다. 검사 환경은 격리된 managed journal/SQLite와 로컬 C++ 빌드이며 실제 운영 HTTP 부하는 아니다. 제품에서 달라진 실패 응답은 catalog authority가 없거나 체크포인트 실패가 확정된 경우 기존의 가능했던 잘못된 200 대신 503으로 닫는 것이다. 정상·SQLite fallback의 공개 JSON/schema/auth/scope 의미는 유지하며, 실제 상태 HTTP와 누적 규모는 후속 단계에서 확인한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S11-STATUS-SNAPSHOT-01 fixture | 성공 mutation과 소유 저장소 생성 | pass |
+| S11-STATUS-SNAPSHOT-01 정상 snapshot | mode/recovery/용량의 단일 현재 상태 | pass |
+| S11-STATUS-SNAPSHOT-01 활성 진입 | 체크포인트 중 상태 전용 경계 | pass |
+| S11-STATUS-SNAPSHOT-04 체크포인트 중 응답 | 현재 active/storageBlocked, 용량 및 공개 JSON 유지 | pass |
+| S11-STATUS-SNAPSHOT-01 종료 | 성공 체크포인트·active 해제 | pass |
+| S11-STATUS-SNAPSHOT-02 일반 잠금 진입 | 비체크포인트 경합 fixture | pass |
+| S11-STATUS-SNAPSHOT-02 대체 금지 | 일반 잠금에서는 이전 snapshot으로 즉시 응답하지 않음 | pass |
+| S11-STATUS-SNAPSHOT-02 재개 | 잠금 해제 뒤 정상 경로·hold 복구 | pass |
+| S11-STATUS-SNAPSHOT-03 실패 진입 | 체크포인트 실패 fixture | pass |
+| S11-STATUS-SNAPSHOT-03 응답 직전 경계 | provider 지연 중 실패 게시 | pass |
+| S11-STATUS-SNAPSHOT-03 stale 거부 | 실패 확정 뒤 503, 후속 snapshot 거부 | pass |
+| S11-STATUS-SNAPSHOT-03 재검증 | 성공 체크포인트 뒤 poison 해소 | pass |
+| S11-STATUS-SNAPSHOT-05 현재 mutation | 손상 전이 뒤 채널 용량 후보 제거 | pass |
+| S11-STATUS-SNAPSHOT-04 권한 | 허용되지 않은 채널 비노출 | pass |
+
+영향 회귀: `./server.sh build` exit 0; `./server.sh verify-v410-recording-catalog` exit 0, 234/0 및 crypto-off 3개·연결 9개; `./server.sh verify-v410-recording-observations` exit 0, S07 core failures 0 및 후속 위치 검사 10개; `./server.sh verify-v410-recording-retention` exit 0, 56/0. `./server.sh verify-v410-recording-timeline` 첫 시도는 기능 검사 뒤 로컬 HTTP listen `EPERM`으로 exit 1, 소유 root cleanup PASS였으며 제품 회귀 PASS가 아니다. 같은 명령을 로컬 포트 권한으로 재실행하여 exit 0, HTTP API 35/0·AUTH 40/0·전송 수명 10/0, 각 서버 정상 종료·포트 닫힘·root 부재를 확인했다. 실제 UI·30분·120분·누적 1,020개·현행 통합은 이번 영향 회귀에서 미실행이다. token start/end/consumed는 전용 집계가 없어 미집계이며 elapsed는 위 실제 명령 출력/도구 경과를 따른다.
+
+추가 원장 영향 회귀 `node scripts/internal/verify_recording_immutable_ownership.mjs green lp26-binding-d journal-cold`는 현재 catalog 소스와 원장 소스 해시를 결속하고 exit 0·26/26·matched=true였다. 동일 크기 원장 변조·inode 교체·세대 불일치, cold raw Parse와 시작/종료 결박, 원본 불변을 [개별 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-d.txt)으로 보존했다. 소유 임시 root 22,389,601바이트 제거·부재 PASS. 이 회귀는 실제 상태 HTTP의 4초 기준을 대신하지 않는다.

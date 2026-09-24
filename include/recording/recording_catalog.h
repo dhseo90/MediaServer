@@ -3,6 +3,8 @@
 #pragma once
 
 #include <cstdint>
+#include <atomic>
+#include <condition_variable>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -31,6 +33,20 @@ struct RecordingCatalogRecoveryReport {
     std::size_t writer_cleanup_error_count{0};
     bool sqlite_quarantined{false};
     std::filesystem::path sqlite_quarantine_path;
+};
+
+struct RecordingCatalogStatusCapacity {
+    std::uint64_t continuous_bytes{0};
+    std::uint64_t event_bytes{0};
+};
+
+// HTTP 상태 응답 전용 불변 값이다. 보존·삭제·admission·timeline 입력으로 재사용하지 않는다.
+struct RecordingCatalogStatusSnapshot {
+    std::string catalog_mode;
+    RecordingCatalogRecoveryReport recovery;
+    std::unordered_map<std::string, RecordingCatalogStatusCapacity> channels;
+    // 공개 JSON에는 노출하지 않는 응답 완료 직전 검증 세대다.
+    std::uint64_t checkpoint_generation{0};
 };
 
 struct RecordingOrphanReport {
@@ -135,6 +151,8 @@ public:
     bool RecoverFinalizedSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, bool* inserted, std::string* error);
     std::string catalog_mode() const;
     RecordingCatalogRecoveryReport recovery_report() const;
+    bool SnapshotStatus(RecordingCatalogStatusSnapshot* result, std::string* error) const;
+    bool ValidateStatusSnapshot(const RecordingCatalogStatusSnapshot& snapshot) const;
     RecordingOrphanReport InspectOrphans() const;
     RetentionSnapshot RetentionSnapshot() const;
     // startup 내부 전용: 경로 유효성과 무관하게 모든 Finalized metadata의 잠금 snapshot.
@@ -368,6 +386,15 @@ private:
     };
     std::unique_ptr<CheckpointProjectionCache> checkpoint_cache_;
     bool CheckpointLocked(bool recover_only, std::string* error,const DerivedJobContentProof* proof=nullptr);
+    bool BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result, std::string* error) const;
+    struct RetentionSnapshot RetentionSnapshotLocked() const;
+    struct CheckpointStatusGuard {
+        RecordingCatalog& catalog;
+        bool active{false},success{false};
+        explicit CheckpointStatusGuard(RecordingCatalog& value) noexcept;
+        ~CheckpointStatusGuard();
+        CheckpointStatusGuard(const CheckpointStatusGuard&)=delete;
+    };
     bool ValidateManagedCandidateLocked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     std::vector<std::string> ProjectionSignatureLocked() const;
     bool PreflightV2Locked(const RecordingJournalReplayResult& replay, std::string* error,
@@ -416,6 +443,14 @@ private:
     mutable bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;
+    mutable std::shared_ptr<const RecordingCatalogStatusSnapshot> checkpoint_status_snapshot_;
+    mutable std::atomic<bool> checkpoint_status_active_{false};
+    mutable std::atomic<bool> checkpoint_status_poisoned_{false};
+    mutable std::atomic<std::uint64_t> checkpoint_status_generation_{0};
+    mutable std::atomic<std::uint64_t> checkpoint_status_failure_generation_{0};
+    mutable std::atomic<std::uint64_t> checkpoint_status_success_generation_{0};
+    mutable std::mutex checkpoint_status_wait_mu_;
+    mutable std::condition_variable checkpoint_status_wait_cv_;
     std::unordered_set<std::string> mutation_ids_;
     // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
     std::unordered_map<std::string, RecordingMutationLink> accepted_segment_state_mutations_;

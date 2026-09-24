@@ -126,16 +126,18 @@ std::optional<RecordingByteRange> ParseRecordingByteRange(const std::string& hea
 ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthorizer& authorize, bool include_global_observations) const {
     recording::latency::Scope status_scope(recording::latency::Operation::Query,recording::latency::Source::Application,__LINE__);
     std::vector<RecordingChannelStatus> channels;
+    recording::RecordingCatalogStatusSnapshot catalog_status;
     const auto available=[&]{
         recording::latency::Scope provider_scope(recording::latency::Operation::Finish,recording::latency::Source::Application,__LINE__);
-        return authorize && status_provider_ && status_provider_(&channels);
+        return authorize && status_provider_ && catalog_.SnapshotStatus(&catalog_status,nullptr) &&
+               status_provider_(catalog_status,&channels);
     }();
     if (!available)
         return {503, "Service Unavailable", "{\"error\":\"recording status unavailable\"}"};
-    const auto recovery = catalog_.recovery_report();
+    const auto& recovery = catalog_status.recovery;
     std::ostringstream out;
-    out << std::boolalpha << "{\"enabled\":" << enabled_ << ",\"catalogMode\":" << Quote(catalog_.catalog_mode())
-        << ",\"degraded\":" << (catalog_.catalog_mode() != "sqlite-primary" || recovery.projection_error_count != 0 ||
+    out << std::boolalpha << "{\"enabled\":" << enabled_ << ",\"catalogMode\":" << Quote(catalog_status.catalog_mode)
+        << ",\"degraded\":" << (catalog_status.catalog_mode != "sqlite-primary" || recovery.projection_error_count != 0 ||
                                      recovery.corrupt_line_count != 0 || recovery.writer_cleanup_error_count != 0)
         << ",\"recovery\":{\"corruptLines\":" << recovery.corrupt_line_count
         << ",\"projectionErrors\":" << recovery.projection_error_count
@@ -164,6 +166,8 @@ ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthor
             << ",\"lastError\":" << Quote(status.last_error) << '}';
     }
     out << '}';
+    if(!catalog_.ValidateStatusSnapshot(catalog_status))
+        return {503, "Service Unavailable", "{\"error\":\"recording status unavailable\"}"};
     return {200, "OK", out.str()};
 }
 

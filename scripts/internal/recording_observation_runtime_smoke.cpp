@@ -49,7 +49,7 @@ int main() {
         recording::RecordingCatalog catalog(journal,{"runtime-status.sqlite3",".",false}); catalog.Open(&catalog_error);
         recording::RecordingReadService reader(catalog,".");
         ingress::RecordingApplicationService service(reader,catalog,true,
-            [](auto* channels){ channels->push_back({"scope-channel","Scope",true,true,false,0,0,0,0}); return true; },
+            [](const auto&,auto* channels){ channels->push_back({"scope-channel","Scope",true,true,false,0,0,0,0}); return true; },
             []{ recording::AnalysisObservationProjector::Status s; s.critical_rejected=7; s.last_error="critical-queue-full"; return s; });
         Check(service.Status([](const auto&){return true;}).body.find("observations")==std::string::npos,"runtime-status-limited-scope");
         Check(service.Status([](const auto&){return true;},true).body.find("\"criticalRejected\":7")!=std::string::npos,"runtime-status-global-scope");

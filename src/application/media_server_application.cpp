@@ -453,11 +453,10 @@ int RunMediaServerApplication(int argc, char** argv) {
     recording::RecordingReadService recording_reads(recording_catalog, config.analysis_event_clip_dir);
     ingress::RecordingApplicationService recording_api(
         recording_reads, recording_catalog, config.recording_enabled,
-        [&recording_catalog, &recording_sessions, &recording_retention](auto* output) {
+        [&recording_sessions, &recording_retention](const auto& catalog_status, auto* output) {
             std::vector<ingress::SourceViewApplicationService::SourceRecord> sources;
             std::vector<ingress::SourceViewApplicationService::PublishedViewRecord> views;
             if (!ingress::SourceViewApplicationService::Instance().Snapshot(&sources, &views, nullptr)) return false;
-            const auto snapshot = recording_catalog.RetentionSnapshot();
             for (const auto& source : sources) {
                 ingress::RecordingChannelStatus status;
                 status.channel_id = source.source_id;
@@ -467,11 +466,10 @@ int RunMediaServerApplication(int argc, char** argv) {
                 status.storage_blocked = recording_retention.ChannelStatus(source.source_id).storage_blocked;
                 status.continuous_max_bytes = source.recording.continuous_max_bytes;
                 status.event_max_bytes = source.recording.event_max_bytes;
-                for (const auto& candidate : snapshot.candidates) {
-                    if (candidate.Channel() != source.source_id) continue;
-                    auto& bytes = candidate.Class() == recording::RecordingRetentionClass::Event
-                                      ? status.event_bytes : status.continuous_bytes;
-                    bytes += std::min(candidate.Size(), std::numeric_limits<std::uint64_t>::max() - bytes);
+                const auto usage=catalog_status.channels.find(source.source_id);
+                if(usage!=catalog_status.channels.end()){
+                    status.continuous_bytes=usage->second.continuous_bytes;
+                    status.event_bytes=usage->second.event_bytes;
                 }
                 output->push_back(std::move(status));
             }

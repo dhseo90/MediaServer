@@ -721,6 +721,38 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     std::sort(result.begin(),result.end());return result;
 }
 
+RecordingCatalog::CheckpointStatusGuard::CheckpointStatusGuard(RecordingCatalog& value) noexcept : catalog(value) {
+    try {
+        RecordingCatalogStatusSnapshot snapshot;
+        if(!catalog.BuildStatusSnapshotLocked(&snapshot,nullptr))return;
+        const auto prior=catalog.checkpoint_status_generation_.fetch_add(1,std::memory_order_acq_rel);
+        if(prior==std::numeric_limits<std::uint64_t>::max()){
+            catalog.checkpoint_status_poisoned_.store(true,std::memory_order_release);return;
+        }
+        snapshot.checkpoint_generation=prior+1;
+        std::atomic_store_explicit(&catalog.checkpoint_status_snapshot_,
+            std::make_shared<const RecordingCatalogStatusSnapshot>(std::move(snapshot)),std::memory_order_release);
+        catalog.checkpoint_status_active_.store(true,std::memory_order_release);active=true;
+        catalog.checkpoint_status_wait_cv_.notify_all();
+    }catch(...){catalog.checkpoint_status_poisoned_.store(true,std::memory_order_release);}
+}
+RecordingCatalog::CheckpointStatusGuard::~CheckpointStatusGuard() {
+    if(!active)return;
+    const auto snapshot=std::atomic_load_explicit(&catalog.checkpoint_status_snapshot_,std::memory_order_acquire);
+    const auto generation=snapshot?snapshot->checkpoint_generation:0;
+    if(success){
+        catalog.checkpoint_status_success_generation_.store(generation,std::memory_order_release);
+        catalog.checkpoint_status_poisoned_.store(false,std::memory_order_release);
+    }else{
+        catalog.checkpoint_status_failure_generation_.store(generation,std::memory_order_release);
+        catalog.checkpoint_status_poisoned_.store(true,std::memory_order_release);
+    }
+    catalog.checkpoint_status_active_.store(false,std::memory_order_release);
+    std::atomic_store_explicit(&catalog.checkpoint_status_snapshot_,
+        std::shared_ptr<const RecordingCatalogStatusSnapshot>{},std::memory_order_release);
+    catalog.checkpoint_status_wait_cv_.notify_all();
+}
+
 bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) {
     if(recover_only)proof=nullptr;
     recording::latency::Scope latency_scope(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__,false);
@@ -733,6 +765,7 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     if(recover_only)cached.reset();
     if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
         return Fail(error,"managed checkpoint 소유권/지원 없음");
+    CheckpointStatusGuard checkpoint_status(*this);
     RecordingMutationHandles candidate;
     RecordingJournalOwnedViews candidate_views;
     RecordingCheckpointReadSnapshotHandle read_snapshot;
@@ -810,7 +843,8 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     before.reset();after.reset();
     if(!measured(__LINE__,[&]{return journal_.CommitCheckpoint(this,candidate,recover_only,error,read_snapshot);}))return false; // commit
     if(next)checkpoint_cache_=std::move(next);
-    if(!measured(__LINE__,[&]{return ReleaseInactiveDetailsLocked(nullptr,error);})){checkpoint_cache_.reset();return false;}return true; // release
+    if(!measured(__LINE__,[&]{return ReleaseInactiveDetailsLocked(nullptr,error);})){checkpoint_cache_.reset();return false;}
+    checkpoint_status.success=true;return true; // release
 }
 
 bool RecordingCatalog::ReadCatalogReplay(RecordingMutationHandles* owned,RecordingJournalReplayResult* replay,
@@ -932,7 +966,9 @@ bool RecordingCatalog::OpenLocked(std::string* error) {
         }
     }
     opened_ = true;
-    return !journal_.managed_||ReleaseInactiveDetailsLocked(nullptr,error);
+    if(journal_.managed_&&!ReleaseInactiveDetailsLocked(nullptr,error))return false;
+    checkpoint_status_poisoned_.store(false,std::memory_order_release);
+    return true;
 }
 
 std::string RecordingCatalog::catalog_mode() const {
@@ -943,6 +979,58 @@ std::string RecordingCatalog::catalog_mode() const {
 RecordingCatalogRecoveryReport RecordingCatalog::recovery_report() const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     return recovery_report_;
+}
+
+bool RecordingCatalog::BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result,std::string* error) const {
+    if(result)*result={};
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))
+        return Fail(error,"recording status snapshot 미확인");
+    const auto retention=RetentionSnapshotLocked();
+    if(!retention.authoritative)return Fail(error,"recording status capacity 미확인");
+    result->catalog_mode=catalog_mode_;result->recovery=recovery_report_;
+    for(const auto& candidate:retention.candidates){
+        auto& channel=result->channels[candidate.Channel()];
+        auto& bytes=candidate.Class()==RecordingRetentionClass::Event?channel.event_bytes:channel.continuous_bytes;
+        bytes+=std::min(candidate.Size(),std::numeric_limits<std::uint64_t>::max()-bytes);
+    }
+    if(error)error->clear();return true;
+}
+
+bool RecordingCatalog::SnapshotStatus(RecordingCatalogStatusSnapshot* result,std::string* error) const {
+    if(result)*result={};if(!result)return Fail(error,"recording status output 없음");
+    auto backoff=std::chrono::milliseconds(1);
+    for(;;){
+        if(checkpoint_status_poisoned_.load(std::memory_order_acquire))return Fail(error,"recording status checkpoint 실패");
+        std::unique_lock<std::mutex> lock(mu_,std::try_to_lock);
+        if(lock.owns_lock())return BuildStatusSnapshotLocked(result,error);
+        if(checkpoint_status_active_.load(std::memory_order_acquire)){
+            const auto snapshot=std::atomic_load_explicit(&checkpoint_status_snapshot_,std::memory_order_acquire);
+            if(snapshot&&!checkpoint_status_poisoned_.load(std::memory_order_acquire)&&
+               checkpoint_status_active_.load(std::memory_order_acquire)){
+                *result=*snapshot;
+                if(ValidateStatusSnapshot(*result)){if(error)error->clear();return true;}
+                *result={};return Fail(error,"recording status checkpoint snapshot 무효");
+            }
+        }
+        std::unique_lock<std::mutex> wait_lock(checkpoint_status_wait_mu_);
+        checkpoint_status_wait_cv_.wait_for(wait_lock,backoff,[&]{
+            return checkpoint_status_active_.load(std::memory_order_acquire)||
+                   checkpoint_status_poisoned_.load(std::memory_order_acquire);
+        });
+        backoff=std::min(backoff*2,std::chrono::milliseconds(8));
+    }
+}
+
+bool RecordingCatalog::ValidateStatusSnapshot(const RecordingCatalogStatusSnapshot& snapshot) const {
+    if(checkpoint_status_poisoned_.load(std::memory_order_acquire))return false;
+    const auto generation=snapshot.checkpoint_generation;
+    if(generation==0)return true;
+    if(checkpoint_status_failure_generation_.load(std::memory_order_acquire)>=generation)return false;
+    if(checkpoint_status_active_.load(std::memory_order_acquire)){
+        const auto current=std::atomic_load_explicit(&checkpoint_status_snapshot_,std::memory_order_acquire);
+        if(current&&current->checkpoint_generation==generation)return true;
+    }
+    return checkpoint_status_success_generation_.load(std::memory_order_acquire)>=generation;
 }
 
 bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
@@ -2714,8 +2802,7 @@ std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const
     return result;
 }
 
-RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked() const {
     struct RetentionSnapshot snapshot;
     snapshot.authoritative=opened_&&derived_job_state_authoritative_&&CanWriteLocked(nullptr);
     if(!snapshot.authoritative)snapshot.error="catalog reservation snapshot 미확인";
@@ -2762,6 +2849,11 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
         snapshot.candidates.push_back(std::move(candidate));
     }
     return snapshot;
+}
+
+RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    return RetentionSnapshotLocked();
 }
 
 std::optional<EventRecordingLinkV1> RecordingCatalog::FindEventLinkByEventId(

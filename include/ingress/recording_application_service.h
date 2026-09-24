@@ -33,7 +33,8 @@ struct RecordingChannelStatus {
 class RecordingApplicationService {
 public:
     using ChannelAuthorizer = std::function<bool(const std::string&)>;
-    using StatusProvider = std::function<bool(std::vector<RecordingChannelStatus>*)>;
+    using StatusProvider = std::function<bool(const recording::RecordingCatalogStatusSnapshot&,
+                                              std::vector<RecordingChannelStatus>*)>;
     using ObservationStatusProvider = std::function<recording::AnalysisObservationProjector::Status()>;
     RecordingApplicationService(recording::RecordingReadService& reader,
                                 recording::RecordingCatalog& catalog,
