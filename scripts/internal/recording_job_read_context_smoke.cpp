@@ -9,6 +9,73 @@ std::string ReadBytes(const std::filesystem::path& path){std::ifstream f(path,st
 using Context=recording::RecordingCatalog::JobReadContext;
 using JobHandle=recording::RecordingCatalog::DerivedJobHandle;
 void WriteBytes(const std::filesystem::path& path,const std::string& bytes){std::ofstream f(path,std::ios::binary|std::ios::trunc);f.write(bytes.data(),bytes.size());if(!f)throw std::runtime_error("fixture-write");}
+recording::DerivedJobIntentV1 Variant(Store& store,const recording::DerivedJobIntentV1& base,const std::string& suffix){
+    recording::DerivedRecordingSelection selection;std::string error;
+    if(!recording::RestoreDerivedJobSelection(base,&selection,&error))throw std::runtime_error(error);
+    selection.reference.reference_id=base.reference.reference_id+"-"+suffix;
+    selection.reference.owner_id=base.reference.owner_id+"-"+suffix;
+    selection.reference.analysis_namespace=base.reference.analysis_namespace+"-"+suffix;
+    std::vector<recording::DerivedSourceEvidence> sources;
+    for(const auto& source:base.sources)sources.push_back({source.segment,source.binding,false});
+    recording::DerivedJobIntentV1 intent;
+    if(!recording::BuildDerivedJobIntent(selection,sources,base.reserved_bytes,base.created_at_ms+1,&intent,&error))throw std::runtime_error(error);
+    recording::RetentionCoordinator retention(store.catalog,[&]{return store.catalog.RetentionSnapshot();},[](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},[](const auto&,auto*){return false;},{0,1,store.root});
+    if(!retention.UpdateChannelPolicy(intent.reference.channel_id,{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error)||
+       !retention.AdmitDerivedJob(store.catalog,intent,base.created_at_ms+1).accepted)throw std::runtime_error("variant-admission");
+    recording::DerivedJobService service(store.catalog,store.journal,{store.root,30000,{}});
+    if(!service.Run(intent.job_id).complete)throw std::runtime_error("variant-run");
+    return intent;
+}
+template<class Check> void CandidateLifetime(const std::filesystem::path& root,Check check){
+    const auto path=root/"candidate-lifetime";std::string a_body;std::vector<std::weak_ptr<const recording::DerivedJobRecordV1>> released;std::size_t a_parse_baseline=0;
+    {
+        Store store(path);auto a=PrepareMedia(store,false,"channel-a","candidate-a-0");
+        {recording::DerivedJobService service(store.catalog,store.journal,{store.root,30000,{}});if(!service.Run(a.job_id).complete)throw std::runtime_error("candidate-a0");}
+        std::vector<recording::DerivedJobIntentV1> jobs{a};for(int i=1;i<9;++i)jobs.push_back(Variant(store,a,"v"+std::to_string(i)));
+        auto b=PrepareMedia(store,false,"channel-b","candidate-b-0");
+        {recording::DerivedJobService service(store.catalog,store.journal,{store.root,30000,{}});if(!service.Run(b.job_id).complete)throw std::runtime_error("candidate-b0");}
+        recording::RecordingReadService reader(store.catalog);ingress::RecordingApplicationService app(reader,store.catalog,true,{});
+        const auto query=[](const std::string& channel){return std::unordered_map<std::string,std::string>{{"channelId",channel},{"startTimeMs","1789200000000"},{"endTimeMs","1789200003000"}};};
+        job_read_probe::enabled=true;job_read_probe::parses=0;job_read_probe::strict_only=true;
+        const auto strict_a=app.Timeline(query("channel-a"),[](const auto&){return true;});const auto strict_parses=job_read_probe::parses;
+        job_read_probe::strict_only=false;job_read_probe::parses=0;
+        const auto first_a=app.Timeline(query("channel-a"),[](const auto&){return true;});const auto first_parses=job_read_probe::parses;a_parse_baseline=first_parses;
+        job_read_probe::parses=0;const auto second_a=app.Timeline(query("channel-a"),[](const auto&){return true;});const auto second_parses=job_read_probe::parses;job_read_probe::enabled=false;
+        bool a_cache=store.catalog.timeline_read_candidates_.entries.size()==8&&store.catalog.timeline_read_candidates_.charge<=8U*1024U*1024U;
+        for(const auto& entry:store.catalog.timeline_read_candidates_.entries)a_cache&=entry.job&&entry.job->intent.reference.channel_id=="channel-a";
+        bool files=true,holds=true;for(const auto& job:jobs)for(const auto& output:job.outputs){files&=std::filesystem::exists(store.root/output.final_relpath);const auto held=store.catalog.hold_counts_.find(output.output_id);holds&=held==store.catalog.hold_counts_.end()||held->second==0;}
+        std::cout<<"[candidate-diagnostic] {\"phase\":\"C\",\"strictStatus\":"<<strict_a.status<<",\"firstStatus\":"<<first_a.status<<",\"secondStatus\":"<<second_a.status<<",\"bodiesEqual\":"<<(strict_a.body==first_a.body&&first_a.body==second_a.body)<<",\"strictParses\":"<<strict_parses<<",\"firstParses\":"<<first_parses<<",\"secondParses\":"<<second_parses<<",\"cached\":"<<a_cache<<",\"cacheEntries\":"<<store.catalog.timeline_read_candidates_.entries.size()<<",\"cacheCharge\":"<<store.catalog.timeline_read_candidates_.charge<<",\"files\":"<<files<<",\"holds\":"<<holds<<"}\n";
+        check(strict_a.status==200&&first_a.status==200&&second_a.status==200&&strict_a.body==first_a.body&&first_a.body==second_a.body&&
+              strict_parses>first_parses&&first_parses>=8&&second_parses+8==first_parses&&a_cache&&files&&holds,"LP26-O23-C nine complete jobs bounded with strict overflow and unchanged files holds");
+        a_body=first_a.body;
+        job_read_probe::strict_only=true;const auto strict_b=app.Timeline(query("channel-b"),[](const auto&){return true;});job_read_probe::strict_only=false;
+        job_read_probe::enabled=true;job_read_probe::parses=0;const auto seen_b=app.Timeline(query("channel-b"),[](const auto&){return true;});const auto b_parses=job_read_probe::parses;
+        bool b_published=store.catalog.timeline_read_candidates_.entries.size()==1;
+        for(const auto& entry:store.catalog.timeline_read_candidates_.entries)b_published&=entry.job&&entry.job->intent.reference.channel_id=="channel-b";
+        job_read_probe::parses=0;const auto again_a=app.Timeline(query("channel-a"),[](const auto&){return true;});const auto again_a_parses=job_read_probe::parses;job_read_probe::enabled=false;
+        bool a_republished=store.catalog.timeline_read_candidates_.entries.size()==8;
+        for(const auto& entry:store.catalog.timeline_read_candidates_.entries)a_republished&=entry.job&&entry.job->intent.reference.channel_id=="channel-a";
+        std::cout<<"[candidate-diagnostic] {\"phase\":\"D\",\"strictStatus\":"<<strict_b.status<<",\"seenStatus\":"<<seen_b.status<<",\"bodiesEqual\":"<<(strict_b.body==seen_b.body)<<",\"bParses\":"<<b_parses<<",\"bPublished\":"<<b_published<<",\"againStatus\":"<<again_a.status<<",\"againBodyEqual\":"<<(again_a.body==a_body)<<",\"againParses\":"<<again_a_parses<<",\"aRepublished\":"<<a_republished<<"}\n";
+        check(strict_b.status==200&&seen_b.status==200&&strict_b.body==seen_b.body&&b_parses==1&&b_published&&again_a.status==200&&again_a.body==a_body&&again_a_parses==first_parses&&a_republished,
+              "LP26-O23-D channel A B A replaces relevant bounded candidates and revalidates");
+        const auto prime_b=app.Timeline(query("channel-b"),[](const auto&){return true;});
+        if(prime_b.status!=200||store.catalog.timeline_read_candidates_.entries.size()!=1)throw std::runtime_error("candidate-b-prime");
+        const auto& output=b.outputs.front();auto segment=store.catalog.FindSegmentV2ById(output.output_id);const auto location=store.catalog.FindSegmentMediaLocation(output.output_id);std::string error;
+        recording::RecordingTombstoneV2 tomb;tomb.tombstone_id="candidate-delete";tomb.segment=*segment;tomb.deletion_reason="event-capacity";tomb.deleted_at_ms=30;
+        const bool deleted=segment&&location&&store.catalog.RequestDeletion(output.output_id,tomb.deletion_reason,&error)&&std::filesystem::remove(location->first/location->second)&&store.catalog.CompleteDeletionV2(tomb,&error);
+        job_read_probe::enabled=true;job_read_probe::parses=0;const auto after_delete=app.Timeline(query("channel-b"),[](const auto&){return true;});const auto delete_parses=job_read_probe::parses;job_read_probe::enabled=false;
+        const auto held=store.catalog.hold_counts_.find(output.output_id);
+        check(deleted&&after_delete.status==200&&delete_parses==1&&!reader.ResolveMedia("channel-b",output.output_id)&&
+              (held==store.catalog.hold_counts_.end()||held->second==0),"LP26-O23-E deletion invalidates candidates and rejects stale playback");
+        for(const auto& entry:store.catalog.timeline_read_candidates_.entries)released.push_back(entry.job);
+    }
+    bool expired=true;for(const auto& job:released)expired&=job.expired();
+    Store reopened(path);recording::RecordingReadService reader(reopened.catalog);ingress::RecordingApplicationService app(reader,reopened.catalog,true,{});
+    job_read_probe::enabled=true;job_read_probe::parses=0;const auto response=app.Timeline({{"channelId","channel-a"},{"startTimeMs","1789200000000"},{"endTimeMs","1789200003000"}},[](const auto&){return true;});const auto parses=job_read_probe::parses;job_read_probe::enabled=false;
+    std::cout<<"[candidate-diagnostic] {\"phase\":\"E-reopen\",\"expired\":"<<expired<<",\"status\":"<<response.status<<",\"bodyEqual\":"<<(response.body==a_body)<<",\"parses\":"<<parses<<",\"cacheEntries\":"<<reopened.catalog.timeline_read_candidates_.entries.size()<<",\"cacheCharge\":"<<reopened.catalog.timeline_read_candidates_.charge<<"}\n";
+    check(expired&&response.status==200&&response.body==a_body&&parses==a_parse_baseline&&reopened.catalog.timeline_read_candidates_.entries.size()==8&&
+          reopened.catalog.timeline_read_candidates_.charge<=8U*1024U*1024U,"LP26-O23-E reopen releases old residents and strictly rebuilds bounded candidates");
+}
 template<class Check> void Negatives(Store& store,const recording::DerivedJobIntentV1& intent,Check check){
     const recording::RecordingTimelineQuery q{"probe-channel",1789200000000LL,1789200003000LL,0,100};
     recording::RecordingReadService reader(store.catalog);std::string error;
@@ -180,6 +247,7 @@ int main(int argc,char** argv){
         std::cout<<"[read-context-count] {\"firstParses\":"<<first_parses<<",\"secondParses\":"<<job_read_probe::parses<<"}\n";
 #if LP22_JOB_READ_CONTEXT
         Negatives(store,intent,check);
+        CandidateLifetime(std::filesystem::path(argv[1]),check);
 #endif
     }catch(...){job_read_probe::enabled=false;++fail;std::cout<<"[fail] LP22-M00 fixed fixture preparation failure\n";}
     std::cout<<"[summary] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {classifyReadContext,readContextLabels,readContextNegativeLabels} from './verify_recording_job_read_context.mjs';
-const result=mode=>({code:mode==='red'?1:0,signal:null,stopReason:null,groupClean:true,stdout:(mode==='red'?readContextLabels:[...readContextLabels,...readContextNegativeLabels]).map((x,i)=>`[${mode==='red'&&i===2?'fail':'pass'}] ${x}`).join('\n')+`\n[read-context-count] {"firstParses":${mode==='red'?5:1},"secondParses":${mode==='red'?5:0}}\n[summary] pass=${mode==='red'?4:22} fail=${mode==='red'?1:0}\n`});
+const result=mode=>({code:mode==='red'?1:0,signal:null,stopReason:null,groupClean:true,stdout:(mode==='red'?readContextLabels:[...readContextLabels,...readContextNegativeLabels]).map((x,i)=>`[${mode==='red'&&i===2?'fail':'pass'}] ${x}`).join('\n')+`\n[read-context-count] {"firstParses":${mode==='red'?5:1},"secondParses":${mode==='red'?5:0}}\n[summary] pass=${mode==='red'?4:26} fail=${mode==='red'?1:0}\n`});
 test('LP22-RH01 exact RED and GREEN bind every label summary and actual parse counts',()=>{
   assert(classifyReadContext(result('red'),'red'));assert(classifyReadContext(result('green'),'green'));
   assert(!classifyReadContext({...result('red'),stdout:result('red').stdout.replace('"firstParses":5','"firstParses":0')},'red'));

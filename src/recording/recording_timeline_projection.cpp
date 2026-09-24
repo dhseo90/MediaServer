@@ -248,10 +248,16 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
     if(!result->v2_projection)return true;
     try {
         // 후보 복사는 선택적이다. 호출별 budget을 줄인 검사는 그대로 strict 경로를 사용한다.
-        if(context&&context->entries.empty()&&context->budget==timeline_read_candidates_.budget&&
-           timeline_read_candidates_.owner==this&&timeline_read_candidates_.charge<=context->budget){
-            try {context->entries=timeline_read_candidates_.entries;context->charge=timeline_read_candidates_.charge;
-                context->owner=this;}catch(...){context->entries.clear();context->charge=0;context->owner=nullptr;}
+        if(context&&context->entries.empty()){
+            const bool current=source_snapshot_revision_valid_&&timeline_read_candidates_.source_revision_valid&&
+                timeline_read_candidates_.source_revision==source_snapshot_revision_;
+            const bool reusable=context->budget==timeline_read_candidates_.budget&&timeline_read_candidates_.owner==this&&
+                timeline_read_candidates_.channel_id==query.channel_id&&current&&timeline_read_candidates_.charge<=context->budget;
+            if(reusable)try {context->entries=timeline_read_candidates_.entries;context->charge=timeline_read_candidates_.charge;}
+                catch(...){context->entries.clear();context->charge=0;}
+            else timeline_read_candidates_={};
+            context->owner=this;context->channel_id=query.channel_id;context->source_revision=source_snapshot_revision_;
+            context->source_revision_valid=source_snapshot_revision_valid_;
         }
         Collector collector(query);
         // 출력/참조 소유권은 이 catalog snapshot 안에서 한 번만 색인한다.
@@ -286,7 +292,9 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         collector.Finish(result);
         // 후보가 복사·할당되지 않아도 응답은 영향받지 않는다. 각 재사용은 AcquireJobForReadLocked의
         // 현재 원장 envelope/출처/상태 검사에서 다시 입증한다.
-        if(context&&context->owner==this&&context->entries.size()<=8&&context->charge<=context->budget){
+        if(context&&context->owner==this&&context->channel_id==query.channel_id&&context->source_revision_valid&&
+           source_snapshot_revision_valid_&&context->source_revision==source_snapshot_revision_&&
+           context->entries.size()<=8&&context->charge<=context->budget){
             try {timeline_read_candidates_=*context;}catch(...){}
         }
         if(error)error->clear();return true;

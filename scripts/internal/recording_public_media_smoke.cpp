@@ -7,27 +7,28 @@
 #include <fstream>
 #include <unistd.h>
 
-recording::DerivedJobIntentV1 PrepareMedia(Store& store,bool partial) {
+recording::DerivedJobIntentV1 PrepareMedia(Store& store,bool partial,
+    const std::string& channel="probe-channel",const std::string& reference_id="public-media-ref") {
     auto input=Encode(30,false,false);Shift(input,7000000000ULL);
     recording::GStreamerSegmentWriter::Options options(store.root,1000);
     options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
     recording::GStreamerSegmentWriter writer(options);std::string error;
-    if(!writer.Start("probe-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
+    if(!writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
     for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
     std::vector<recording::DerivedSourceEvidence> sources;
     for(const auto& segment:store.Segments())sources.push_back({segment,store.catalog.FindSourceBinding(segment.segment_id),false});
     analysis::DecodedIntervalCollector collector;
     for(const auto& p:input.packets){analysis::DecodedIntervalEvidence e;e.analysis_pts_ns=p.pts;e.duration_ns=p.observation->duration_ns;
         e.association={analysis::SourceAssociationQuality::TimestampMatch,analysis::OriginalSampleIdentity{p.observation->source_generation,p.observation->generation_order,p.observation->ordinal,p.track_id,*p.observation->pts_ns}};collector.Append(std::move(e));}
-    recording::RecordingConsumerReferenceV1 ref;ref.reference_id="public-media-ref";ref.kind="event";ref.owner_id="public-media-event";
-    ref.source_id="probe-channel";ref.channel_id="probe-channel";ref.analysis_namespace="public-media-ns";ref.analysis_track_id="track-1";
+    recording::RecordingConsumerReferenceV1 ref;ref.reference_id=reference_id;ref.kind="event";ref.owner_id=reference_id+"-event";
+    ref.source_id=channel;ref.channel_id=channel;ref.analysis_namespace=reference_id+"-ns";ref.analysis_track_id="track-1";
     ref.association_quality="timestamp-match";ref.original=recording::RecordingConsumerOriginalV1{"probe-generation-a",1,1,"video-0",7000000000ULL};
     ref.request=recording::RecordingConsumerRequestV1{"media-pts-ms",partial?6500:7000,8500,0,0};
     recording::DerivedRecordingSelection selection;recording::DerivedJobIntentV1 intent;
     if(!recording::SelectDerivedRecording(ref,*collector.Snapshot(ref.analysis_namespace),sources,nullptr,&selection,&error)||
        !recording::BuildDerivedJobIntent(selection,sources,8*1024*1024,10,&intent,&error))throw std::runtime_error(error);
     recording::RetentionCoordinator retention(store.catalog,[&]{return store.catalog.RetentionSnapshot();},[](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},[](const auto&,auto*){return false;},{0,1,store.root});
-    if(!retention.UpdateChannelPolicy("probe-channel",{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error)||!retention.AdmitDerivedJob(store.catalog,intent,10).accepted)throw std::runtime_error("intent admission");
+    if(!retention.UpdateChannelPolicy(channel,{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error)||!retention.AdmitDerivedJob(store.catalog,intent,10).accepted)throw std::runtime_error("intent admission");
     return intent;
 }
 std::uint64_t Holds(recording::RecordingCatalog& catalog,const std::string& id){

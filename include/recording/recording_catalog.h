@@ -275,6 +275,9 @@ private:
     struct JobReadContext {
         struct Entry { DerivedJobHandle job; RecordingMutationHandle envelope; RecordingMutationLink link; };
         const RecordingCatalog* owner{nullptr};
+        std::string channel_id;
+        std::uint64_t source_revision{0};
+        bool source_revision_valid{false};
         std::vector<Entry> entries;
         std::size_t charge{0};
         std::size_t budget{8U*1024U*1024U};

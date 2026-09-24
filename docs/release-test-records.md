@@ -43511,3 +43511,36 @@ artifact/hash, 모든 command exit/count, repair/rerun 이력은 Task 8 report�
 영향 회귀: `./server.sh build` exit 0; `./server.sh verify-v410-recording-catalog` exit 0, 234/0 및 crypto-off 3개·연결 9개; `./server.sh verify-v410-recording-observations` exit 0, S07 core failures 0 및 후속 위치 검사 10개; `./server.sh verify-v410-recording-retention` exit 0, 56/0. `./server.sh verify-v410-recording-timeline` 첫 시도는 기능 검사 뒤 로컬 HTTP listen `EPERM`으로 exit 1, 소유 root cleanup PASS였으며 제품 회귀 PASS가 아니다. 같은 명령을 로컬 포트 권한으로 재실행하여 exit 0, HTTP API 35/0·AUTH 40/0·전송 수명 10/0, 각 서버 정상 종료·포트 닫힘·root 부재를 확인했다. 실제 UI·30분·120분·누적 1,020개·현행 통합은 이번 영향 회귀에서 미실행이다. token start/end/consumed는 전용 집계가 없어 미집계이며 elapsed는 위 실제 명령 출력/도구 경과를 따른다.
 
 추가 원장 영향 회귀 `node scripts/internal/verify_recording_immutable_ownership.mjs green lp26-binding-d journal-cold`는 현재 catalog 소스와 원장 소스 해시를 결속하고 exit 0·26/26·matched=true였다. 동일 크기 원장 변조·inode 교체·세대 불일치, cold raw Parse와 시작/종료 결박, 원본 불변을 [개별 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-d.txt)으로 보존했다. 소유 임시 root 22,389,601바이트 제거·부재 PASS. 이 회귀는 실제 상태 HTTP의 4초 기준을 대신하지 않는다.
+
+## v4.1.0 S11 타임라인 후보 캐시 수명 집중 검사 실행 전 정의 (2026-09-24)
+
+독자: S11 녹화 조회·검증 담당자. 수명: 현재 누적 비용 판정까지. AGENTS.md의 테스트 정책을 따르며, 아래는 실행 전 정의이지 PASS가 아니다. 공개 타임라인·미디어 바이트·hold·원장 권위·최대 8작업/8MiB는 바꾸지 않는다. 30분·120분·실제 UI와 현행 통합은 이 검사로 대체하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O23-C | 9개 이상 완료 작업의 상한·fallback | 같은 채널의 Complete job 9개 이상에서 요청 간 후보 8건/8MiB 이내, 초과 작업 strict 경로, 공개 timeline/실제 파일/hold 동등을 독립 대조 | v4.1.0 |
+| LP26-O23-D | 채널 교대의 후보 수명 | A→B→A 조회에서 각 채널에 관련된 후보만 보관하고, A의 8건이 B의 후보 보관을 영구 차단하지 않으며 재조회마다 원장 envelope·출처·상태를 확인 | v4.1.0 |
+| LP26-O23-E | 삭제·재개방의 strong resident 해제 | 삭제와 같은 catalog 재Open 뒤 이전 강한 job/envelope 소유를 해제하고 stale 재생 없이 strict 재획득 또는 거부, charge/owner 정리를 확인 | v4.1.0 |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 실제 HTTP·장시간·UI | 누적 status 4초, 자원 증가 추세, 사용자 화면 | 이 집중 검사 비범위 | 후보 상한·수명 결과만으로 릴리즈 안정화 PASS 아님 |
+
+### 후보 수명 실행 결과 (2026-09-24)
+
+첫 `lp22-media-o23-red1`은 제품 assertion 전 macOS process observation `EPERM`, exit 1/groupClean=false인 환경 실패였다. 담당자가 정확한 소유 root `media-server-catalog-cost.skA8ce`의 uid·0700·비링크·열린 FD/프로세스 부재를 확인한 뒤 해당 root만 제거·부재를 확인했다. 로컬 프로세스 관측 권한으로 실행한 [RED2](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-o23-red2.txt)는 기존 22개 PASS 뒤 C/D 실패와 B 후보 미게시로 fixture 종료, exit 1·pass22/fail3·cleanup true였다. 원인은 전역 후보 8건이 채널을 구별하지 않아 B의 등록을 막는 것이다. [첫 수정 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-o23-green1.txt)에서도 C/D/재개방 기대가 실패해 exit 1·23/3이었다. 동일 실패를 반복 수정하지 않고 [수치 진단](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-o23-diagnostic.txt)을 한 번 추가했다.
+
+진단은 A의 9개 완료 작업에서 엄격 단독 조회 45회, 요청 내부 중복 제거 첫 조회 13회, 후보 8건 재사용 두 번째 조회 5회 파싱을 보였다. C/D/E의 고정 기대 11/3/9는 이 서로 다른 조회 방식을 혼동한 검사 결함이었다. 이후 [집중 재검사](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-o23-fixed.txt)는 동적 기대 수정 중 C 1건이 남아 exit 1·25/1이었다. strict 단독 조회가 첫 요청보다 더 많이 파싱함을 반영한 [최종 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-o23-final.txt)은 exit 0·26/26·source-unchanged true·groupClean true·임시 13,078,551바이트 removed=true였다. 앞의 실패·환경 중단은 최종 결과로 덮어쓰지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-O23-C | A의 완료 작업 9개, 공개 body/실제 파일/hold 동일, 후보 8건·244,116바이트 및 strict 초과 분기, 첫 조회 13→다음 조회 5 파싱 | pass |
+| LP26-O23-D | B 후보 1건 게시, A→B→A에서 A 후보 8건 재게시·현재 envelope/출처/상태 확인, 다시 A 파싱 13회 | pass |
+| LP26-O23-E 삭제 | B 출력 삭제 뒤 과거 재생 거부·hold 0, 현행 조회만 허용 | pass |
+| LP26-O23-E 재개방 | 이전 후보 weak 소멸, 새 catalog에서 A body 일치·strict 13회·후보 8건/244,116바이트 | pass |
+| LP22-RH01/RH02 | `node --test scripts/internal/recording_job_read_context.test.mjs`, 2/2·exit 0 | pass |
+| 기존 LP22-R01~R09와 O23 변조 반례 | 최종 focused의 앞 22행 모두 PASS, 동일 크기 원장 변조·authority 거부·hold 반환 포함. 개별 명칭과 원출력은 위 최종 원출력 | pass |
+| 기존 공개 미디어 회귀 | `bash scripts/internal/verify_recording_public_media.sh`, 46/46·exit 0·소유 root 9,324,416바이트 removed=true | pass |
+| 공개 조회·인증·전송 영향 회귀 | `./server.sh verify-v410-recording-timeline` 로컬 포트 권한 실행, exit 0, HTTP API 35/0·AUTH 40/0·lifecycle 10/0 및 서버/포트/root cleanup PASS | pass |
+
+테스트 범위는 실제 writer/파생 파일을 사용하는 격리 집중 검사다. 공개 타임라인/파일·ID·보존·인증 계약은 바꾸지 않았다. 실제 누적 상태 HTTP와 자원 추세, 현행 5단계, 30분/UI/120분은 이 결과로 PASS 처리하지 않는다. token start/end/consumed는 전용 집계가 없어 미집계이고 elapsed는 각 원출력의 compile/focused/cleanup 경과를 따른다.

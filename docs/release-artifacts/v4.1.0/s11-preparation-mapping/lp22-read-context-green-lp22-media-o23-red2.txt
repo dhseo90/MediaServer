@@ -1,0 +1,102 @@
+{"kind":"preflight","mode":"green","id":"lp22-media-o23-red2","source":[{"file":"include/recording/recording_catalog.h","sha256":"6a0ee23a373710c66ca6a2ecacd9d57c3eb77b710acd0737b70c2bd8f513dcf7"},{"file":"include/recording/recording_read_service.h","sha256":"d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"},{"file":"include/recording/recording_journal.h","sha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c"},{"file":"include/recording/recording_timeline.h","sha256":"1c737d60e4bc8926e5fad7ce2b33e0a7133bc3375c5fc70ccf5c67e584d12b2a"},{"file":"src/recording/recording_catalog.cpp","sha256":"9e2b0f90839c23d15a6122feb609af8f14d0f7e3ff56cbde13861b0b9cfd36ae"},{"file":"src/recording/recording_read_service.cpp","sha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"ee7897d75909e11e40e88cdd7251200e95e007bb2fad9779634f849094078e7b"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9"},{"file":"src/recording/recording_derived_job_context.h","sha256":"e6711094671a581428a405c930fe3cdf2558ea0cd86ba222249984dd672785f8"},{"file":"scripts/internal/recording_job_read_context_smoke.cpp","sha256":"a7bfab898926108c0cff5ff698c1d1161efcb25046be7a3f06569d2d8279454b"},{"file":"scripts/internal/recording_job_read_context_counter.h","sha256":"c5d7697ab17856a329575b84cdbf06064dcb07d97b1d6a4dac1fbc61ff5b14f9"},{"file":"scripts/internal/recording_job_read_context.test.mjs","sha256":"177d226d2be9e06081d4f5eb07b42cd83eadee06aace2ca04d21308609f460a0"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"4ff31ef333b754364007d7488f1597440f9b78f7e4040dce5a74a4ecc72ba241"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"f54db6d13c1b1d8018ccfd14ce8ea824f5530164ebb9179fa6db1e568850eae4"},{"file":"scripts/internal/verify_recording_job_read_context.mjs","sha256":"22a720a0c2128767f4923a91ff8cca31ad135f3833106ac79214c7bd64a8ebcf"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"runSeconds":60,"rss":1073741824,"disk":536870912,"output":2097152}}
+{"kind":"build-fingerprint","archiveSha256":"b87f76f91d8f42832e25ed63992a06b57e7b4ec3e937be5c3eab6dd1d20edcca","linkSha256":"a007ae9f62140bd01bad37ca260707ea20ef0ceac37ef07020d7e2b25236e1a7","serverSha256":"2f80e1f3f1015470c721daa9079fc271390794aa98bd397320ddde5122c01bb1","archiveMtimeMs":1790230477557.9282,"platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","originalSha256":"9e2b0f90839c23d15a6122feb609af8f14d0f7e3ff56cbde13861b0b9cfd36ae","instrumentedSha256":"4fdf8c3f38fd1b1892b992c30b91b4cdadd989d7ea265f423fdacb552b258995","insertions":1}
+{"kind":"copy","file":"recording_read_service.cpp","originalSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c","instrumentedSha256":"9936d1d3ae8a0293f7109e259939356c5fe0f7acd131f6144da5f20f2fe42f73","insertions":4}
+{"kind":"copy","file":"recording_timeline_projection.cpp","originalSha256":"ee7897d75909e11e40e88cdd7251200e95e007bb2fad9779634f849094078e7b","instrumentedSha256":"ee7897d75909e11e40e88cdd7251200e95e007bb2fad9779634f849094078e7b","insertions":0}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","originalSha256":"a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9","instrumentedSha256":"7795123fab392d3e65d641e4c980e4dd5e2eb4afe0a3be1e5932dc399c173b8f","insertions":2}
+{"kind":"command","phase":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_job_read_context_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","-DLP22_JOB_READ_CONTEXT=1","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_job_read_context_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/check"]}
+
+        4.04 real         3.85 user         0.24 sys
+           331563008  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               87168  page reclaims
+                 666  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   6  voluntary context switches
+                3034  involuntary context switches
+           100466816  instructions retired
+            46579970  cycles elapsed
+             3228008  peak memory footprint
+
+{"kind":"phase","name":"compile","pass":0,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":345620480,"observationFailure":null,"outputBytes":777,"elapsedMs":4058}
+{"kind":"focused-binary","sha256":"a74117024328698e11e9e814ff867451690a6f96ac8757c441de045417ee0699","bytes":7244424}
+{"kind":"command","phase":"focused","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; exec \"$3\" \"$2\"","read-context","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.WCdJTl/check"]}
+[pass] LP22-R01 fixture actual Complete two outputs
+[pass] LP22-R02 public timeline canonical and media bytes unchanged
+[pass] LP22-R03 same job two outputs parse strictly once per request
+[pass] LP22-R04 next request revalidates cold job
+[pass] LP22-R05 context and media holds released after request
+[read-context-count] {"firstParses":1,"secondParses":0}
+[pass] LP22-R06 changed saved envelope falls back to strict parsing
+[pass] LP22-R06 replaced current mutation rejects without stale reuse
+[pass] LP22-R06 same resident with invalid provenance retains strict validation
+[read-context-rejection] {"case":"state","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 changed current state rejects playback
+[read-context-rejection] {"case":"metadata","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 changed thin metadata rejects stale content
+[read-context-rejection] {"case":"source","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 changed current source segment rejects stale content
+[pass] LP22-R07 changed output path preserves strict rejection
+[read-context-rejection] {"case":"duplicate-owner","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 duplicate output owner rejects playback
+[pass] LP22-R07 deleted output rejects playback
+[pass] LP22-R08 byte budget fallback preserves full timeline and owned limit
+[pass] LP22-R08 job budget fallback preserves strict playback
+[pass] LP22-R08 admission allocation failure preserves authority and strict result
+[pass] LP22-R09 file tamper rejects and releases holds
+[pass] LP22-R09 media exception releases context and holds
+[pass] LP22-R09 same size journal tamper rejects and clears owned output
+[pass] LP22-R09 detached authority rejects cold context reuse
+[pass] LP26-O23 cross-request candidate rejects same-size journal tamper
+[fail] LP26-O23-C nine complete jobs bounded with strict overflow and unchanged files holds
+[fail] LP26-O23-D channel A B A replaces relevant bounded candidates and revalidates
+[fail] LP22-M00 fixed fixture preparation failure
+[summary] pass=22 fail=3
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+        4.81 real         3.83 user         0.51 sys
+           157089792  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               74099  page reclaims
+                  80  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                1903  messages sent
+                1844  messages received
+                   0  signals received
+                1420  voluntary context switches
+               11277  involuntary context switches
+         62611902212  instructions retired
+         14190663215  cycles elapsed
+            37028632  peak memory footprint
+
+{"kind":"phase","name":"focused","pass":22,"fail":3,"expected":false,"code":1,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":177422336,"observationFailure":null,"outputBytes":4310,"elapsedMs":4831}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":13078505,"removed":true}
