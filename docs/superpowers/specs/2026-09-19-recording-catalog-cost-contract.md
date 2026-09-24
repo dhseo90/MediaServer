@@ -131,6 +131,20 @@ snapshot의 의미 검증이나 과거 모든 mutation 전이의 재증명을 �
 검사만 통과한 상태는 사용 가능한 catalog가 아니며, 기존·새 active tail의 완결성과
 snapshot 의미 동등성이 확인돼야 새 세대를 게시할 수 있다.
 
+**과거 증거 참조 폐쇄.** manifest의 `evidence` 목록은 이번 세대에 새로 준비한 파일만
+포함한다. 이전 자료를 매 회전마다 이 목록에 다시 나열하거나 복사하지 않는다. 현재
+snapshot은 불변 최소 색인 head의 고정 이름·정확한 길이·SHA-256을 결박한다. 각 색인
+조각은 이전 조각의 검증 descriptor와 이번 세대에서 확정한 mutation의 최소 identity,
+예약/삭제 분류 및 상세 원문의 고정 locator·원본 파일 길이/digest를 기록한다. 조각의
+이름은 `identity-<generation>.jsonl`로 세대 번호에서 결정하고, 상세 archive의
+`evidence-<generation>-<slot>.jsonl`과 구분한다. 임의 경로를 따라가지 않는다. 재기동은 head부터 이전
+조각의 hash·세대 순서·중복/충돌을 검증하여 최소 색인을 재구성하고, 상세 원문 자체는
+사용 시 또는 전체 감사 때 확인한다. 현재 active 증분은 이 체인 밖의 미확정 tail로
+엄격 검증해 이어 붙인다. 회전 시 현재 active를 확정·봉인한 descriptor와 그 변경분만
+새 조각에 넣는다. 이는 이전 세대 증거를 새 manifest에 쓰지 않는 대신 필요한 영속
+참조를 잃지 않기 위한 계약이다. 색인 조각·snapshot 의미 코덱과 실제 제품 연결은
+아직 구현/검증되지 않았으며, 기존 helper의 `PrefixOnly` 결과로 대체하지 않는다.
+
 **복구·호환.** 새 manifest가 없으면 기존 관리 형식의 엄격한 Open 의미를 유지한다. 전환은
 기존 자료 전체를 한 번 검증하고 새 snapshot·증분·과거 증거와 독립 투영을 대조한 뒤에만
 새 manifest를 게시한다. 중단되면 기존 형식으로 다시 열 수 있어야 한다. 개발 전용 구형

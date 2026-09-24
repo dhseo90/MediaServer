@@ -1,5 +1,21 @@
 # 프로젝트 기능별 테스트 목록
 
+## S11 B-02 과거 identity 색인 조각 단위
+
+독자: 녹화 저장·검증 구현자. 수명: B안 과거 증거 참조 폐쇄부터 S11 영향 판정까지.
+아래는 구현·실행 전 반례 정의다. 독립 코덱 검증은 제품의 snapshot 결박·재기동 복구 또는
+장시간 검증을 대체하지 않는다. 결과는 [중앙 기록](release-test-records.md#v410-s11-b안-저장-구조-구현)을 따른다.
+
+| ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| B02-H01 | 값 왕복 | 빈/예약/일반 물리 행의 canonical·signed 시각·archive 위치와 재시도 multiplicity 보존 | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+| B02-H02 | locator 경계 | `identity-<세대>.jsonl`과 active/evidence 고정 이름, 세대·slot·offset/length·범위 및 중첩 거부 | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+| B02-H03 | identity·예약 | 동일 ID/identity 재시도와 각 ordinal 보존·최초 ordinal 도출, 다른 identity/tuple·역순 ordinal·store/request/entity 충돌 거부 | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+| B02-H04 | 엄격 JSON | schema·추가/중복 키·배열/escape/overflow·비정규 입력 거부와 실패 출력 불변 | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+| B02-H05 | 세대 체인 | 2세대 fixture와 3세대 이상 순차 검증, descriptor 길이/SHA·store/세대·ID/ordinal 결박, 메모리 상한 실패 구분 | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+| B02-H06 | crypto 미지원 | 값 코덱 범위와 digest 체인 fail-closed 구분 | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+| B02-HR01 | 색인 코덱 실행 연결 | `./server.sh verify-v410-recording-identity-shards`의 H01~H06·임시 자료 정리·exit | 미실행: 단기 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 색인 |
+
 ## S11 B-02 세대 manifest 저장 단위
 
 독자: 녹화 저장·검증 구현자. 수명: B안 형식 구현부터 S11 영향 판정까지.

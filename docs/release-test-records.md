@@ -10,7 +10,7 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시 및 세대 snapshot/새 증거/빈 active 파일 준비 helper는 focused PASS. 실제 snapshot 의미·증분·과거 증거 참조 폐쇄 및 제품 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비 및 과거 identity 조각의 독립 strict 코덱·체인 검사는 focused PASS. 실제 snapshot 의미·증분·제품 연결과 cold 원문 검증은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -64,6 +64,22 @@ manifest·snapshot 파일 신뢰, 기존 Open/Append/Checkpoint 연결과 복구
 | B03-O05 | strict JSON | schema/extra/중복키/타입/overflow·중첩 array/quoted comma/escape/비정규 거부, 실패 output 불변 | v4.1.0 |
 | B03-O06 | crypto 미사용 | no-OpenSSL 정상 왕복·오류 거부 | v4.1.0 |
 
+### B-02 과거 identity 색인 조각 구현 전 검사 정의
+
+이 검사는 이전 세대의 최소 identity·예약·상세 위치를 새 세대에 복제하지 않고 참조하기 위한
+독립 코덱 반례다. 최초 수용 ID와 동일 재시도의 물리 행 수를 구분한다. 제품 snapshot·manifest,
+Journal Open/Append/Checkpoint에 연결됐다는 증거가 아니며 해당 경로의 검증은 별개다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-H01 | 물리 행 값 왕복 | 빈/예약/일반 row의 canonical·signed time·archive 위치와 동일 재시도 multiplicity 보존 | v4.1.0 |
+| B02-H02 | 위치 경계 | 고정 identity/active/evidence 이름, 세대·slot·offset/length overflow·범위·중첩 거부 | v4.1.0 |
+| B02-H03 | ID·예약 의미 | 동일 composite 재시도/각 ordinal과 최초 ordinal 구분, 변경 identity/tuple·역순 ordinal·결박 충돌 거부 | v4.1.0 |
+| B02-H04 | 엄격 입력 | schema·추가/중복키·배열/escape/overflow·비정규 거부와 실패 output 불변 | v4.1.0 |
+| B02-H05 | 다세대 체인 | 2세대 반례 및 3세대 이상 descriptor 순차 읽기, 길이/SHA·store/세대·ID/ordinal·자원 상한 대조 | v4.1.0 |
+| B02-H06 | 암호화 미지원 | 값 코덱 범위와 digest 체인 fail-closed 분리 | v4.1.0 |
+| B02-HR01 | 실행 연결 | `./server.sh verify-v410-recording-identity-shards`, H01~H06 개별 결과·exit·임시 자료 정리 | v4.1.0 |
+
 ### B-02 manifest 첫 구현 단위 결과
 
 첫 `bash scripts/internal/verify_recording_generation_manifest.sh`는 암호화 사용 5개 시나리오
@@ -100,6 +116,35 @@ stream도 저장소에 보존하지 못했다. 현재 제품의 journal·catalog
 
 이번 B-02 focused 실행의 token start/end/consumed는 집계 source가 없어 미집계, 명령별
 elapsed는 도구 대기 시간만 관측했으므로 제품 실행 지표로 사용하지 않는다.
+
+### B-02 과거 identity 색인 코덱 단위 결과
+
+제품 Open/Append/Checkpoint는 이 코덱을 호출하지 않는다. 검증된 chain은 shard 바이트·길이·
+digest·최소 ID/예약 상태만 결박하고 archive 원문·snapshot 의미·실제 복구를 검증하지 않는다.
+crypto 미지원 빌드에서 값 코덱은 검사했으나 chain 검증은 거부된다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-H01 | 빈/예약/일반·동일 재시도 물리 행·signed 시각 canonical 왕복 | pass |
+| B02-H02 | 고정 이름·세대/slot·offset/length·중첩·중복 archive 거부 | pass |
+| B02-H03 | 동일 ID identity·예약 tuple·순서·충돌 및 receipt 분리 | pass |
+| B02-H04 | schema·중복/추가 키·수치 overflow·JSON escape/배열·비정규 거부·실패 output 불변 | pass |
+| B02-H05 | 2/3세대 순차 chain·길이/SHA·store/ID/ordinal·자원 상한·누락 이전 파일 거부 | pass |
+| B02-H06 | crypto-off 값 코덱 왕복, chain unsupported·loader 미호출·결과 불변 | pass |
+| B02-HR01 | `./server.sh verify-v410-recording-identity-shards`, H01~H06 각 PASS·exit0·cleanup removed=true | pass |
+| B02-B01 영향 검증 | `./server.sh build`, 신규 source 포함 exit0 | pass |
+| B02-R01/R02 영향 검증 | 기존 manifest M01~M06·파일 준비 F01~F06 각각 exit0·cleanup removed=true | pass |
+| B03-R01 영향 검증 | 기존 예약 코덱 O01~O06 exit0·cleanup removed=true | pass |
+| B02-S01 | `./server.sh verify-script-inventory`, 요약 12/12·exit0 | pass |
+| B02-I01 | `./server.sh verify-project-inventory`, 기존 feature 986행 불변·새 inventory hash 필드만 갱신, 요약 18/18·exit0. 도구 반환의 원출력 5,087행은 상한으로 절단 | pass |
+| B02-D01 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`, 328문서·12,779링크·199anchor·오류0·exit0 | pass |
+| B02-D02 | `./server.sh verify-docs-ui-assets`, 10/10·exit0 | pass |
+| B02-D03 | `git diff --check`, exit0 | pass |
+
+runner가 소유 임시 빌드 디렉터리의 부모·이름·소유를 확인해 삭제하고 부재를 검사했으며
+`removed=true`를 반환했다. 삭제 전 크기는 미계측이다. 상세 raw stream은 저장소에 캡처하지
+않았고 위 결과는 도구 출력 관측에 근거한다. token start/end/consumed는 집계 source가 없어
+미집계, elapsed는 제품 성능 지표로 미사용이다. 30분·UI·120분은 이번 단위에서 미실행이다.
 
 ### B-03 예약 이력 코덱 첫 구현 단위 결과
 
