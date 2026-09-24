@@ -1,0 +1,12 @@
+[command] {"cmd":"./server.sh","args":["verify-docs-links"]}
+
+== Docs link verification summary ==
+- markdown files: 328
+- local links: 12760
+- local images: 22
+- local anchors: 188
+- indexed docs: 76
+- index coverage exclusions: 244
+- failures: 0
+
+[command-result] {"cmd":"./server.sh","args":["verify-docs-links"],"status":0,"signal":null,"elapsedMs":166}

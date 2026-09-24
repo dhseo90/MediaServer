@@ -1,0 +1,18 @@
+[command] {"cmd":"./server.sh","args":["verify-feature-inventory-coverage"]}
+[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)
+[pass] inventory row count is stable
+[pass] inventory uses only the four approved test areas
+[pass] coverage docs and server command are wired
+[pass] exact implementation evidence manifest is valid
+[pass] all feature IDs have exact coverage targets
+[pass] negative missing-ID fixture fails
+[pass] SAFE-200 canonical coverage wording truthfulness boundary
+
+== Feature inventory coverage summary ==
+- featureRows: 986
+- covered: 986
+- missing: 0
+- pass: 8
+- fail: 0
+
+[command-result] {"cmd":"./server.sh","args":["verify-feature-inventory-coverage"],"status":0,"signal":null,"elapsedMs":77780}

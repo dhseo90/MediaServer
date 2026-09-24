@@ -8,10 +8,10 @@
 
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1 | 진단→자료 수명→누적 비용→소유 메모리→원인/수정안 순차 개발 | 진행 중 | 선수 단계 통과 전 후속 실행 없음 | 중앙 O28 실행 정의 |
-| 2 | 분할 커밋 | 진행 중 | 기존 O27 정리 `bddbdc12` 커밋. O28 각 단계는 검증·검토 후 분리 | Git commit |
-| 3 | 최종 푸시 가능 시 푸시 | 미실행 | 마지막에 범위 내 실패·미커밋·원격 상태를 확인 | AGENTS 5 |
-| 4 | 종합보고·후속 이슈 | 진행 중 | 확정·가설·미확정과 이번 분석 밖 실제 앱/장시간 판정 구분 | 아래 비교 계약 |
+| 1 | 진단→자료 수명→누적 비용→소유 메모리→원인/수정안 순차 개발 | 산출물 완료 | 도구·관련 검증·직접 분석. 제품 병목 해결 완료는 아님 | 아래 단계별 결과 |
+| 2 | 분할 커밋 | 1~4 수행, 보고 문서 별도 마감 | O27 `bddbdc12`, 진단 `e320d122`, 증거 정정 `bca2757d`, 자료 수명 `1ccb89bb`, 비용 `2b2f3b1e`, 소유 `93915a70` | Git commit |
+| 3 | 최종 푸시 가능 시 푸시 | 최종 명령 전 | 범위 내 보완·정리·기록 확인 후 개발 브랜치에만 조건부 push. 실제 수행은 최종 대화의 원격 결과를 따름 | AGENTS 5 |
+| 4 | 종합보고·후속 이슈 | 작성 완료 | 확정·가설·미확정과 제품 수정·실제 앱/장시간 미실행 구분 | 아래 5번 |
 
 제품 C++·저장 바이트·공개 API·미디어 경로는 바꾸지 않는다. 제품을 소유 임시 복제본으로 계측하며
 진단 도구 변경과 제품 성능 개선을 구분한다. 삭제된 O26 데이터는 복원할 수 없으므로 새 합성 입력에서
@@ -273,3 +273,67 @@ compile 실패 root의 초기 cleanup 두 번은 `/var`와 canonical `/private/v
 | wrapper 구문 | `bash -n scripts/internal/verify_recording_accumulation_probe.sh` | pass |
 | 문서 링크 | `./server.sh verify-docs-links` | pass |
 | 공백 | `git diff --check` | pass |
+
+## 5번 근본 원인 판정과 최소 후속 방향
+
+결론: 확인된 구조적 문제는 **누적 삭제 이력에 비례하는 전체 처리와 제한적 재사용의 조합**이다.
+작은 입력·cache 경계 안의 개선이 전체 누적 비용 해결을 뜻하지 않았다. 상세 resident 해제와 일부 재사용은
+작동하지만 역사 전체를 읽고 검증하는 경로가 남았다. 모든 기존 수정이 잘못됐다고 되돌릴 근거는 없으며,
+새 cache·상한 조정만 계속 추가하는 것도 이번 수치가 지지하지 않는다.
+
+| 판정 | 직접 근거 | 의미와 한계 |
+| --- | --- | --- |
+| 확정: 삭제 후 논리 이력 유지 | `CompactRecords`는 원본 행을 유지하고 일부 physical_json을 압축. [journal 코드](../../../../src/recording/recording_journal.cpp) | 디스크 압축·RAM 상세 해제·논리 이력 퇴역은 다름. ID 충돌/삭제/참조 증거를 무조건 삭제하면 안 됨 |
+| 확정: checkpoint 전체 재읽기 | `CheckpointLocked`→`ReadCheckpointRecords`; cache 안에서도 재읽기2.599초. [catalog 코드](../../../../src/recording/recording_catalog.cpp) | 같은 후보에도 전체 읽기 비용이 남음. 단회 관측이며 모든 장비의 보장값이 아님 |
+| 확정: cache 경계 비용 | [admission](../../../../src/recording/recording_checkpoint_validation.h)의8192행; repeat3.623→7.171초, 의미 재적용0→8196행 | 정상 fallback이며 손상 오류가 아님. 상한 확대는 비용 경계를 미룰 뿐 |
+| 확정: 복구 중복 파싱 | [RecoveryContentContext](../../../../include/recording/recording_catalog.h)의 limit64, preflight2049회 뒤 Apply1985회 | bounded 재사용은 전역 중복 제거가 아님. ReadCatalogReplay 값 복제 자체3.51ms를 주범으로 오인하지 않음 |
+| 확정: 상세 객체 해제 작동 | 네 규모 resident0·reader16개 weak만료, 새 프로세스 내용 hash동일 | 해당 입력/reader 결과이지 active job·streaming·전체 heap 누수 부재 증명은 아님 |
+| 확정: cache만으로 RSS 전체 설명 불가 | 2049의 shadow/prefix0에도 RSS약369MB, 새 프로세스약317MB | 부분 owner량은 전체 heap이 아님. 일시 할당/allocator/다른 소유의 귀속은 미확정 |
+| 위험 근거: 같은 mutex 조회 지연 | timeline7.186초·자동 checkpoint7.670초 | HTTP4초 위험의 잠금 근거. 이번에 실제 HTTP 실패를 재현한 것은 아님 |
+| 미확정: O26 최초 native 실패 | 당시 status/signal/error/phase 미보존·원본 삭제 | timeout/catalogOpen/media 중 어느 것도 확정 불가. 새 합성 비교는 동일 실패 재현이 아님 |
+
+### 반복 수정·재검증의 진행상 원인
+
+1. HTTP4초·전체 native snapshot15초·독립 probe 단계별15초·RSS를 다른 경계로 유지하지 못한 해석이 있었다.
+   한 경계의 PASS는 다른 경계의 해결 증거가 아니다.
+2. 작은 입력/warm cache와 all-deleted 합성 자료의 결과를 실제 영상·누적 복구로 확장하면 안 된다.
+   이번에는 cache 전후·cold·새 프로세스를 함께 확인했다.
+3. 실패 종료 정보와 원자료를 잃어 같은 원인이 해결됐는지 직접 대조할 수 없었다. 1~2번은 앞으로의 진단을
+   보완했지만 과거 자료를 복원한 것은 아니다.
+4. 이번 진단 개발에도 oracle·Bash 준비·이미 확인한 process 권한 재사용·cleanup 확인 누락이 있었다.
+   초기 실패와 원출력 누락을 위에 보존했다. 이 절차 실패는 새 제품 수정 사유도 제품 PASS도 아니다.
+
+### 후속 순서 — 제품 구현은 아직 착수하지 않음
+
+| 순서 | 우선순위 | 해야 할 일 | 완료 기준·예상 검증 | 범위 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | P0 | 저장 처리 수명·검증 경계 확정: 활성 상태, 삭제 이력의 최소 증거, ID 충돌/참조 보존 의무, cold 상세를 분리. 정상 checkpoint가 역사 전체를 매번 실체화하지 않는 방법 선택 | 저장 호환·손상 거부·참조·동시 변경 조건 고정. 저장 포맷/변조 감지 계약 변경이 필요하면 그 부분은 명시 결정 후 구현 | 직접 코드+관측에 따른 제안. 무조건 삭제·검사 생략·상한 확대 제외 |
+| 2 | P0 | 선택한 경계 안에서 복구·checkpoint 공동 보완: 같은 record의 엄격 파싱 결과를 수용/SQLite에 재사용하고 검증 작업과 짧은 원자 확정 경계를 분리 | 동일/변경 후보·8192경계·손상/ID충돌·pin/hold/참조·SQLite fallback·중단 복구 회귀. 동시 변경 시 안전한 재시도/거부 정의 | 제품 개발 제안. 단순64개 cache 확대나 checkpoint 비활성화가 아님 |
+| 3 | P0 | 수정 묶음 고정 후 같은 단기 자료로 비용·안전성 재판정, 이어 실제 영상이 남은 앱의 HTTP·종료 후 snapshot·자원 확인 | HTTP4초/관측15초/snapshot전체15초 각각 판정. 전체 RSS를 부분 owner량으로 대체하지 않음. 실패 시 이번 진단/receipt로 자료부터 확보 | 단기 검증 제안. O26 원자료 복구/원인 소급 확정 불가 |
+| 4 | P0 | S11 최종 증거 유효성 판정 및 남은 영향 UI·녹화120분 마감 | 유효 기존 증거 유지, 변경 영향만 재검증. 고정 코드의 장시간/UI 조건 확인 후 실행 | 기존 S11 후속, 이번에는 미실행. 외부 서비스/실기기 사용자 제외 유지 |
+
+1~2는 하나의 저장 처리 구조 보완 범위로 합의한 뒤 기능 단위로 구현한다. 작은 최적화마다 실제 앱·30분·UI·120분을
+재시작하지 않는다. 원장 내용/보존 의미를 바꾸는 선택은 이 분석만으로 확정하거나 실행하지 않는다.
+
+### 변경·미실행 및 푸시 판정 경계
+
+- 미완성 O26 단회 runner는 O27에서 제거했고 patch/실패 증거를 보존했다. 기존 유효 제품 수정은 유지했다.
+- O28은 검증기·자체검사·보존 기록 변경이다. `src/`·`include/`·공개 API·저장 바이트·시간/ID·미디어 정책 변경 없음.
+- runtime archive 대상 빌드와 작은 native 실행은 했으나 전체 제품 빌드·실제 앱·30분·UI·120분·릴리즈 실행은 하지 않았다.
+- 산출물·관련 단기·정리 마감 후 분석/도구 커밋의 개발 브랜치 push만 판정한다. O26 최초 실패·누적 제품 비용·
+  RSS 귀속·S11 전체 완료는 미해결로 유지하며 릴리즈 가능 판정이 아니다.
+- token start/end/consumed는 전용 실제 집계가 없어 미집계다. elapsed는 각 명령/native/wrapper 로그의 직접값을 쓴다.
+
+### 최종 관련 검사
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 문서 링크 | `./server.sh verify-docs-links`, exit0 | pass |
+| 문서 자산 | `./server.sh verify-docs-ui-assets`, 10/10·exit0 | pass |
+| 등록 정합 | `./server.sh verify-project-inventory`, 18/18·986행·exit0 | pass |
+| 실행 연결 | `./server.sh verify-feature-inventory-coverage`, 8/8·exit0 | pass |
+| 변경 공백 | `git diff --check`, exit0 | pass |
+
+원출력 `o28-final-*.log`와 [최종 개별 결과](o28-final-items.md.gz)를 보존한다.
+메인이 `git diff --name-only 009144c5 -- src include`가 비어 있음을 확인했다.
+단기 결과를 실제 제품 기능·장시간·UI 최종 PASS로 확대하지 않는다.

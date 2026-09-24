@@ -43805,3 +43805,10 @@ fixture 잔여와4번 합성 자식을 정리하고 초기 cleanup 보고를 정
 [4번 전수표](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage4-items.md.gz)와
 [직접 수치·정리·자료 누락](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)을 따른다.
 제품 변경·실제 앱/장시간 검증은 없다. RSS 전체 귀속과 O26 최초 snapshot 실패는 미확정이다.
+
+5번 분석 마감: 전체 이력 재읽기·8192행 cache 경계·복구64개 재사용 한계와 실제 reader 해제를 직접 대조했다.
+[O28 종합 판정](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md#5번-근본-원인-판정과-최소-후속-방향)을 따른다.
+제품 병목 수정·릴리즈 완료로 승격하지 않으며 이번 개발 브랜치 푸시는 검증기/분석 산출물 마감에 한정한다.
+
+최종 관련 검사: 문서 링크 exit0·자산10/10·등록18/18(986행)·실행 연결8/8·diff exit0.
+[개별 결과](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-final-items.md.gz)와 원로그를 보존한다.
