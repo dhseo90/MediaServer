@@ -7,7 +7,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {parsePhases,ownedRoot,snapshotTree,copyVerified,cleanupAllowed,cleanupProfile,exact,instrumentCatalog,instrumentProbe,safeOutput,targetHash,selectReference} from './recording_archive_diagnostic_profile.mjs';
+import {parsePhases,summarizeSpawnDiagnostic,ownedRoot,snapshotTree,copyVerified,cleanupAllowed,cleanupProfile,exact,instrumentCatalog,instrumentProbe,safeOutput,targetHash,selectReference} from './recording_archive_diagnostic_profile.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),parent=fs.realpathSync(os.tmpdir());
 const line=(kind,phase,id,atUs,elapsedUs=0)=>'[archive-phase] '+JSON.stringify({kind,phase,id,atUs,elapsedUs})+'\n';
 const complete=line('begin','catalog-open',1,0)+line('begin','open',2,1)+line('end','open',2,4,3)+line('end','catalog-open',1,5,5);
@@ -31,6 +31,23 @@ test('LP23-DH03 partial malformed unknown and secret-bearing trace rows reject',
   const dest=path.join(root,'state.json');assert.equal(safeOutput(JSON.stringify(value),true,dest).state,'complete');
   assert.throws(()=>safeOutput(JSON.stringify({...value,raw:secret}),true,path.join(root,'unsafe.json')));assert(!fs.existsSync(path.join(root,'unsafe.json')));
 }));
+test('O28-D01 child termination classes and bounded metadata remain distinct',()=>{
+  const base={stdout:'{}\n',stderr:complete,status:1,signal:null,error:undefined};
+  assert.deepEqual(summarizeSpawnDiagnostic(base,{elapsedMs:12.6}),{status:1,signal:null,errorCode:null,elapsedMs:13,outputBytes:Buffer.byteLength('{}\n'+complete),lastOpenedPhase:'open',lastCompletedPhase:'catalog-open',traceStatus:'complete',traceLoss:false,rawOutputPublished:false});
+  assert.equal(summarizeSpawnDiagnostic({...base,status:null,error:{code:'ETIMEDOUT'}}).errorCode,'timeout');
+  assert.equal(summarizeSpawnDiagnostic({...base,status:null,error:{code:'ENOBUFS'}}).errorCode,'output-cap');
+  assert.equal(summarizeSpawnDiagnostic({...base,status:null,error:{code:'ESECRET'},signal:'bad/path'}).errorCode,'unknown');
+  assert.equal(summarizeSpawnDiagnostic({...base,status:null,error:{code:'ESECRET'},signal:'bad/path'}).signal,'unknown');
+  assert.equal(summarizeSpawnDiagnostic({...base,status:null,signal:'SIGKILL'}).signal,'SIGKILL');
+});
+test('O28-D02 missing partial malformed loss and incomplete traces never synthesize completion',()=>{
+  assert.equal(summarizeSpawnDiagnostic({stdout:'',stderr:'',status:1}).traceStatus,'missing');
+  const partial=line('begin','catalog-open',1,0)+'[archive-phase] {"kind":"begin"';
+  const p=summarizeSpawnDiagnostic({stdout:'',stderr:partial,status:null,error:{code:'ETIMEDOUT'}});assert.equal(p.traceStatus,'partial');assert.equal(p.lastOpenedPhase,'catalog-open');assert.equal(p.lastCompletedPhase,null);
+  const malformed=summarizeSpawnDiagnostic({stdout:'',stderr:line('begin','catalog-open',1,0)+'[archive-phase] {bad}\n',status:1});assert.equal(malformed.traceStatus,'malformed');assert.equal(malformed.lastOpenedPhase,'catalog-open');
+  const incomplete=summarizeSpawnDiagnostic({stdout:'',stderr:line('begin','catalog-open',1,0),status:1});assert.equal(incomplete.traceStatus,'incomplete');assert.equal(incomplete.traceLoss,false);
+  const loss=summarizeSpawnDiagnostic({stdout:'',stderr:line('begin','catalog-open',1,0)+'[archive-phase] {"kind":"loss"}\n',status:1});assert.equal(loss.traceStatus,'loss');assert.equal(loss.traceLoss,true);
+});
 test('LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope',()=>owned(root=>{
   const source=path.join(root,'recordings');fs.mkdirSync(source,{mode:0o700});fs.mkdirSync(path.join(source,'empty'),{mode:0o700});
   fs.writeFileSync(path.join(source,'input.bin'),Buffer.from([0,10,13,255]),{mode:0o600});const before=snapshotTree(source);
@@ -51,11 +68,11 @@ test('LP23-DH06 exact instrumentation drift and trace bounds fail closed',()=>ow
   assert.throws(()=>exact('a a','a','b'));assert.throws(()=>exact('','a','b'));
   const catalog=fs.readFileSync(path.resolve(here,'../../src/recording/recording_catalog.cpp'),'utf8');
   const probe=fs.readFileSync(path.join(here,'recording_current_archive_probe.cpp'),'utf8');
-  assert(instrumentCatalog(catalog).includes('Phase::RebuildProject'));assert(instrumentProbe(probe).includes('copy,true)'));assert(instrumentProbe(probe,{jsonl:true}).includes('copy,false)'));
+  const instrumented=instrumentCatalog(catalog);assert(instrumented.includes('Phase::RebuildProject'));assert(instrumented.includes('Phase::RebuildPreflight'));assert(instrumentProbe(probe).includes('copy,true)'));assert(instrumentProbe(probe,{jsonl:true}).includes('copy,false)'));
   assert.throws(()=>instrumentCatalog(catalog.replace('bool RecordingCatalog::OpenLocked(std::string* error) {','changed')));
   const cpp=path.join(root,'collector.cpp'),binary=path.join(root,'collector');
   fs.writeFileSync(cpp,'#include "recording_archive_phase_trace.h"\nint main(){try{archive_phase::Scope s(archive_phase::Phase::Query);throw 1;}catch(...){}for(int i=0;i<200;++i){archive_phase::Scope s(archive_phase::Phase::Release);}return 0;}\n',{mode:0o600});
-  const env={PATH:process.env.PATH,TMPDIR:root,LANG:'C',LC_ALL:'C'};
+  const env={PATH:process.env.PATH,TMPDIR:root,LANG:'C',LC_ALL:'C',MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'};
   const compile=spawnSync('c++',['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+here,cpp,'-o',binary],{env,encoding:'utf8',timeout:30000,maxBuffer:131072});assert.equal(compile.status,0,'native collector compile');
   const run=spawnSync(binary,[],{env,encoding:'utf8',timeout:10000,maxBuffer:131072});assert.equal(run.status,0,'native collector exit');
   console.log('[profile-native] '+JSON.stringify({compileExit:compile.status,runExit:run.status,sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(cpp)).digest('hex'),binarySha256:crypto.createHash('sha256').update(fs.readFileSync(binary)).digest('hex')}));

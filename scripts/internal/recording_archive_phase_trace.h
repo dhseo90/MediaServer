@@ -11,7 +11,7 @@
 #include <cstdlib>
 namespace archive_phase {
 enum class Phase { JournalOpen,CatalogOpen,Open,OpenReplay,OpenPreflight,OpenApply,SqliteOpen,
-    Rebuild,RebuildReplay,RebuildPreflight,RebuildClear,RebuildProject,Release,Query,Output,Destruct,CatalogDestruct };
+    Rebuild,RebuildReplay,RebuildPreflight,RebuildClear,RebuildProject,Release,Query,Media,Digest,Output,Destruct,CatalogDestruct };
 inline const char* Name(Phase p) noexcept {
     switch(p){
 #define ARCHIVE_NAME(a,b) case Phase::a:return b;
@@ -20,7 +20,8 @@ inline const char* Name(Phase p) noexcept {
     ARCHIVE_NAME(OpenApply,"open-apply") ARCHIVE_NAME(SqliteOpen,"sqlite-open")
     ARCHIVE_NAME(Rebuild,"rebuild") ARCHIVE_NAME(RebuildReplay,"rebuild-replay") ARCHIVE_NAME(RebuildPreflight,"rebuild-preflight")
     ARCHIVE_NAME(RebuildClear,"rebuild-clear") ARCHIVE_NAME(RebuildProject,"rebuild-project")
-    ARCHIVE_NAME(Release,"release") ARCHIVE_NAME(Query,"query") ARCHIVE_NAME(Output,"output")
+    ARCHIVE_NAME(Release,"release") ARCHIVE_NAME(Query,"query") ARCHIVE_NAME(Media,"media")
+    ARCHIVE_NAME(Digest,"digest") ARCHIVE_NAME(Output,"output")
     ARCHIVE_NAME(Destruct,"destruct") ARCHIVE_NAME(CatalogDestruct,"catalog-destruct")
 #undef ARCHIVE_NAME
     }return "invalid";
@@ -30,6 +31,7 @@ inline std::mutex output_mutex;
 inline std::atomic<std::uint64_t> sequence{0};
 inline std::uint64_t rows=0,bytes=0;
 inline std::atomic<bool> lost{false};
+inline bool Enabled() noexcept {const char* value=std::getenv("MEDIA_SERVER_ARCHIVE_PHASE_TRACE");return value&&value[0]=='1'&&value[1]=='\0';}
 inline std::uint64_t Now() noexcept {return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-origin).count();}
 inline bool Write(const char* data,std::size_t size) noexcept {
     while(size){const auto n=::write(STDERR_FILENO,data,size);if(n<0&&errno==EINTR)continue;if(n<=0)return false;data+=n;size-=n;}return true;
@@ -39,6 +41,7 @@ inline void Loss() noexcept {
     Write(line,sizeof(line)-1);
 }
 inline void Emit(Phase phase,bool begin,std::uint64_t id,std::uint64_t started) noexcept {
+    if(!Enabled())return;
     try{std::lock_guard lock(output_mutex);if(lost)return;
         char line[256];const auto now=begin?started:Now();const int n=std::snprintf(line,sizeof(line),
             "[archive-phase] {\"kind\":\"%s\",\"phase\":\"%s\",\"id\":%llu,\"atUs\":%llu,\"elapsedUs\":%llu}\n",

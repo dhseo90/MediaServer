@@ -13,6 +13,7 @@ import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
 import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
 import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
+import {summarizeSpawnDiagnostic} from './recording_archive_diagnostic_profile.mjs';
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe',
   diagnoseFast=args.length===1&&args[0]==='--diagnose-status-1020',diagnoseOriginal=args.length===1&&args[0]==='--diagnose-status-1020-original',diagnose=diagnoseFast||diagnoseOriginal;
 const duration=short?30000:diagnoseFast?780000:diagnoseOriginal?1440000:parseLongrunArgs(args),repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -106,20 +107,24 @@ function snapshot(){
   if(processes.some(p=>!p.result?.archiveSafe))throw Error('snapshot-live-owner');
   const original=path.join(root,'recordings'),file=path.join(original,'recording-v2-mutations.jsonl'),before=fileHash(file);
   const copyRoot=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-current-observer-copy-')));fs.chmodSync(copyRoot,0o700);
-  const copy=path.join(copyRoot,'recordings');let copied=false;
+  const copy=path.join(copyRoot,'recordings');let copied=false,primary=null,result;
   try{
     // 원본의 검사 한도는 그대로 유지한다. 종료 후 복제는 별도 소유 root, 동일448MiB 상한이며 즉시 정리한다.
     if(size(original)>=448*1024*1024)throw Error('snapshot-byte-cap');
     fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true,force:false});copied=true;
     if(size(copy)>=448*1024*1024)throw Error('snapshot-byte-cap');
-    const r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,env:{PATH:process.env.PATH}});check(!r.error&&!r.signal&&r.status===0,'LP26-O05 stopped copy native catalog recovery');
-    const result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&result.deleted>0,'LP26-O05 native surviving and deleted states');
-    check(before===fileHash(file),'LP26-O05 original journal bytes unchanged');return result;
+    const childStart=performance.now(),r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,env:{PATH:process.env.PATH,MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'}});
+    console.log('[snapshot-process] '+JSON.stringify(summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart})));
+    check(!r.error&&!r.signal&&r.status===0,'LP26-O05 stopped copy native catalog recovery');
+    result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&result.deleted>0,'LP26-O05 native surviving and deleted states');
+    check(before===fileHash(file),'LP26-O05 original journal bytes unchanged');
+  }catch(error){primary=error;
   }finally{let bytes=null,reason=null;try{bytes=size(copyRoot);}catch{reason='size-unavailable';}
     try{fs.rmSync(copyRoot,{recursive:true});}catch{reason='remove-failed';}
     const absent=!fs.existsSync(copyRoot);console.log('[copy-cleanup] '+JSON.stringify({root:copyRoot,bytes,copied,absent,reason}));
     if(!absent)fs.writeFileSync(path.join(root,'cleanup-blocked'),'recovery copy cleanup unresolved\n',{mode:0o600});
-    check(absent&&reason===null,'LP26-O05 recovery copy cleanup');}
+    if(absent&&reason===null)check(true,'LP26-O05 recovery copy cleanup');else if(primary){failed++;console.log('[fail] LP26-O05 recovery copy cleanup');}else check(false,'LP26-O05 recovery copy cleanup');}
+  if(primary)throw primary;return result;
 }
 try{
   check(fs.statSync(path.join(repo,'build-gst-onnx/media_server')).isFile()&&(fs.statSync(path.join(repo,'build-gst-onnx/media_server')).mode&0o111)!==0,'LP26-O05 fixed current executable');

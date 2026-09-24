@@ -9,7 +9,7 @@ import {runBounded,treeBytes} from './recording_catalog_comparison_guard.mjs';
 import {captureStateEvidence,captureCompletenessEvidence} from './recording_failure_capture.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 export const targetHash='268a395031147be5bd22b4c3459cf4777478e0fbdf111c76b3918c1ea2cb24b9';
-export const phases=Object.freeze('journal-open catalog-open open open-replay open-preflight open-apply sqlite-open rebuild rebuild-replay rebuild-preflight rebuild-clear rebuild-project release query output destruct catalog-destruct'.split(' '));
+export const phases=Object.freeze('journal-open catalog-open open open-replay open-preflight open-apply sqlite-open rebuild rebuild-replay rebuild-preflight rebuild-clear rebuild-project release query media digest output destruct catalog-destruct'.split(' '));
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const requireSafe=(ok,code)=>{if(!ok)throw Error(code);};
 let deadline=Infinity;
@@ -30,6 +30,25 @@ export function parsePhases(stderr,{timeout=false}={}){
   requireSafe(!stderr.split('\n').at(-1).startsWith('[archive-phase] '),'phase-partial');
   requireSafe(rows.length>0&&(timeout||(!loss&&stack.length===0)),'phase-incomplete');
   return {rows,openPhases:stack.map(r=>({phase:r.phase,id:r.id,atUs:r.atUs})),loss,discardedLines:discarded,complete:!loss&&stack.length===0};
+}
+function bytes(value){return Buffer.isBuffer(value)?value.length:Buffer.byteLength(typeof value==='string'?value:'');}
+function safeSignal(value){return value===null||value===undefined?null:/^SIG[A-Z0-9]+$/.test(value)?value:'unknown';}
+function safeError(value){if(value===null||value===undefined)return null;if(value==='ETIMEDOUT')return 'timeout';if(value==='ENOBUFS')return 'output-cap';return 'unknown';}
+function tracePrefix(stderr){let prefix='',safe=null;
+  for(const line of stderr.split('\n').slice(0,-1)){const candidate=prefix+line+'\n';try{safe=parsePhases(candidate,{timeout:true});prefix=candidate;}catch{if(line.startsWith('[archive-phase] '))break;prefix=candidate;}}
+  return safe;
+}
+export function summarizeSpawnDiagnostic(result,{elapsedMs=0}={}){
+  const stderr=typeof result?.stderr==='string'?result.stderr:Buffer.isBuffer(result?.stderr)?result.stderr.toString('utf8'):'';
+  const phasePresent=stderr.includes('[archive-phase] '),partial=phasePresent&&!stderr.endsWith('\n')&&stderr.split('\n').at(-1).startsWith('[archive-phase] ');
+  let trace=null,traceStatus='missing';
+  if(phasePresent){try{trace=parsePhases(stderr,{timeout:true});traceStatus=trace.loss?'loss':trace.complete?'complete':'incomplete';}
+    catch{trace=tracePrefix(stderr);traceStatus=partial?'partial':'malformed';}}
+  const rows=trace?.rows??[],lastOpened=[...rows].reverse().find(row=>row.kind==='begin')?.phase??null,
+    lastCompleted=[...rows].reverse().find(row=>row.kind==='end')?.phase??null;
+  return {status:Number.isSafeInteger(result?.status)?result.status:null,signal:safeSignal(result?.signal),errorCode:safeError(result?.error?.code),
+    elapsedMs:Number.isFinite(elapsedMs)&&elapsedMs>=0?Math.round(elapsedMs):null,outputBytes:bytes(result?.stdout)+bytes(result?.stderr),
+    lastOpenedPhase:lastOpened,lastCompletedPhase:lastCompleted,traceStatus,traceLoss:['complete','incomplete','loss'].includes(traceStatus)?trace.loss:null,rawOutputPublished:false};
 }
 function stable(a,b){return a.dev===b.dev&&a.ino===b.ino&&a.size===b.size&&a.mtimeMs===b.mtimeMs&&a.ctimeMs===b.ctimeMs;}
 function directory(p,uid){const s=fs.lstatSync(p);requireSafe(s.isDirectory()&&!s.isSymbolicLink()&&s.uid===uid&&fs.realpathSync(p)===p,'directory-owner');return s;}
@@ -91,7 +110,7 @@ export function instrumentCatalog(text){
     body=decorate(body,'Open');body=exact(body,'    for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {','    { '+scope('OpenApply')+'\n    for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {');
     return exact(body,'    if (options_.prefer_sqlite && OpenSqliteLocked(error)) {','    }\n    if (options_.prefer_sqlite && OpenSqliteLocked(error)) {');});
   text=section(text,'bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {','bool RecordingCatalog::ProjectMutationSqliteLocked(',body=>{
-    body=decorate(body,'Rebuild');const clear=body.split('\n').filter(l=>l.includes('BEGIN; DELETE FROM recording_derived_accepted_references;'));requireSafe(clear.length===1,'instrument-clear');
+    body=decorate(body,'Rebuild');const clear=body.split('\n').filter(l=>l.includes('DELETE FROM recording_derived_accepted_references; DELETE FROM recording_derived_jobs;'));requireSafe(clear.length===1,'instrument-clear');
     body=exact(body,clear[0],'{ '+scope('RebuildClear')+'\n'+clear[0]+'\n}');
     body=exact(body,'    for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {','    { '+scope('RebuildProject')+'\n    for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {');
     return exact(body,'    return true;\n#endif','    }\n    return true;\n#endif');});return text;
@@ -138,7 +157,7 @@ async function main(){
     record({kind:'build',archiveSha256:hash(fs.readFileSync(archive)),serverSha256:hash(fs.readFileSync(server)),linkSha256:hash(fs.readFileSync(linkPath)),flagsSha256:hash(fs.readFileSync(path.join(build,'CMakeFiles/media_server_runtime.dir/flags.make'))),platform:process.platform,arch:process.arch,node:process.version});
     const copies=[];for(const [file,transform] of [['src/recording/recording_catalog.cpp',instrumentCatalog],['scripts/internal/recording_current_archive_probe.cpp',t=>instrumentProbe(t,{jsonl:flags.includes('--jsonl')})]]){
       const text=fs.readFileSync(path.join(repo,file),'utf8'),instrumented=transform(text),dest=path.join(root,path.basename(file));fs.writeFileSync(dest,instrumented,{mode:0o600});copies.push(dest);record({kind:'instrument',file,before:hash(text),after:hash(instrumented)});}
-    fs.mkdirSync(path.join(root,'tmp'),{mode:0o700});const env={PATH:process.env.PATH,TMPDIR:path.join(root,'tmp'),LANG:'C',LC_ALL:'C',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0'};
+    fs.mkdirSync(path.join(root,'tmp'),{mode:0o700});const env={PATH:process.env.PATH,TMPDIR:path.join(root,'tmp'),LANG:'C',LC_ALL:'C',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0',MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'};
     const cflags=execFileSync('pkg-config',['--cflags','gstreamer-app-1.0','openssl','sqlite3'],{env,encoding:'utf8',timeout:5000}).trim().split(/\s+/),binary=path.join(root,'archive-profile');
     const compileArgs=['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-DMEDIA_SERVER_USE_GSTREAMER=1','-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-I'+path.join(repo,'include'),'-I'+path.join(repo,'src/recording'),'-include',path.join(repo,'scripts/internal/recording_archive_phase_trace.h'),...cflags,...copies,archive,...link.slice(at+1),'-o',binary];
     record({kind:'command',phase:'compile',command:'c++',args:compileArgs});

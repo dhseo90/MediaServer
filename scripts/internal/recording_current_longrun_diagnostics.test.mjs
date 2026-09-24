@@ -43,3 +43,13 @@ test('LP26-O09-C02 slow 숫자행·완료/미완료·비밀 거부',()=>{
     const value=progress.slowTraceSummary(text,true);assert.equal(value.status,'unavailable');assert(!JSON.stringify(value).includes('DO_NOT_REPORT'));
   }
 });
+test('O28-D04 snapshot 진단이 판정 전 출력되고 최초 오류가 cleanup 뒤 재전파된다',()=>{
+  const source=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8'),start=source.indexOf('function snapshot()'),end=source.indexOf('\ntry{',start),body=source.slice(start,end);
+  assert(start>=0&&end>start);assert(body.indexOf("console.log('[snapshot-process] '")<body.indexOf("check(!r.error&&!r.signal&&r.status===0"));
+  assert(body.includes('}catch(error){primary=error;'));assert(body.includes('if(primary)throw primary;return result;'));
+});
+test('O28-D05 snapshot의 기존 15초·16KiB 상한과 성공 검사 계약을 유지한다',()=>{
+  const source=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8'),start=source.indexOf('function snapshot()'),end=source.indexOf('\ntry{',start),body=source.slice(start,end);
+  assert(body.includes("timeout:15000,maxBuffer:16384"));assert(body.includes("catalogRecovered===true&&result.available>0&&result.deleted>0"));
+  assert(body.includes("before===fileHash(file)"));assert(body.includes("MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'"));assert(!body.includes('r.stderr)'));
+});

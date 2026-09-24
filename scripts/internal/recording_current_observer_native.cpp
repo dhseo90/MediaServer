@@ -5,12 +5,14 @@
 #include "recording/recording_read_service.h"
 #include "domain/strict_json.h"
 #include "recording_media_test_fixture.h"
+#include "recording_archive_phase_trace.h"
 #include <openssl/evp.h>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <stdexcept>
 
 namespace {
@@ -59,19 +61,25 @@ int main(int argc,char** argv){try{
     if(argc==3&&std::string(argv[1])=="--snapshot"){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root)==root&&
         root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&std::filesystem::exists(root/".recording-store-format"));
-      recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{root,{}});
+      auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{root,{}});auto& journal=*journal_owner;
+      std::unique_ptr<recording::RecordingCatalog> catalog_owner;auto teardown=archive_phase::OnExit([&]{archive_phase::Scope scope(archive_phase::Phase::Destruct);catalog_owner.reset();journal_owner.reset();});
       recording::RecordingCatalog::Options options(root/"recording-catalog.sqlite3",root,true);options.enable_v2_storage=true;
-      recording::RecordingCatalog catalog(journal,options);std::string error;Require(journal.Open(&error)&&catalog.Open(&error));
+      catalog_owner=std::make_unique<recording::RecordingCatalog>(journal,options);auto& catalog=*catalog_owner;std::string error;
+      Require(archive_phase::Call(archive_phase::Phase::JournalOpen,[&]{return journal.Open(&error);})&&
+        archive_phase::Call(archive_phase::Phase::CatalogOpen,[&]{return catalog.Open(&error);}));
       const auto report=catalog.recovery_report();Require(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0);
       recording::RecordingReadService reader(catalog);std::vector<std::string> evidence;std::size_t deleted=0,available=0;
-      for(const auto& channel:{"9101","9201"}){recording::RecordingLocationCatalogSnapshot snapshot;Require(catalog.SnapshotLocationsV2(channel,&snapshot,&error));
+      std::vector<std::pair<std::string,recording::RecordingLocationCatalogSnapshot>> snapshots;
+      {archive_phase::Scope query(archive_phase::Phase::Query);for(const auto& channel:{"9101","9201"}){snapshots.emplace_back(channel,recording::RecordingLocationCatalogSnapshot{});Require(catalog.SnapshotLocationsV2(channel,&snapshots.back().second,&error));}}
+      {archive_phase::Scope media_scope(archive_phase::Phase::Media);
+      for(const auto& [channel,snapshot]:snapshots){
         for(const auto& s:snapshot.segments){const bool removed=catalog.IsDeletedSegmentId(s.segment_id);const auto media=reader.ResolveMedia(channel,s.segment_id);
           Require(removed?!media:bool(media));if(removed)++deleted;else ++available;
           evidence.push_back(Segment(s)+(removed?"deleted":"available"));}
         for(const auto& id:snapshot.deleted_segment_ids){Require(catalog.IsDeletedSegmentId(id)&&!reader.ResolveMedia(channel,id));++deleted;evidence.push_back(Hash(id)+"deleted");}
-      }
-      std::sort(evidence.begin(),evidence.end());std::string joined;for(const auto& e:evidence)joined+=e+'\n';
-      std::cout<<"{\"digest\":"<<Quote(Hash(joined))<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';return 0;
+      }}
+      std::string digest;{archive_phase::Scope digest_scope(archive_phase::Phase::Digest);std::sort(evidence.begin(),evidence.end());std::string joined;for(const auto& e:evidence)joined+=e+'\n';digest=Hash(joined);}
+      {archive_phase::Scope output_scope(archive_phase::Phase::Output);std::cout<<"{\"digest\":"<<Quote(digest)<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';std::cout.flush();Require(bool(std::cout));}return 0;
     }
     if(argc==3&&std::string(argv[1])=="--fixture"){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root.parent_path())==root.parent_path()&&

@@ -41,8 +41,14 @@ for token in "${observer_link[@]}";do
 done
 test "$observer_found" = 1
 read -r -a observer_flags <<<"$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite3)"
-"${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$observer_repo/include" "${observer_flags[@]}" \
+node --input-type=module - "$observer_repo" "$observer_run/catalog-instrumented.cpp" <<'NODE'
+import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
+const [repo,destination]=process.argv.slice(2),{instrumentCatalog}=await import(pathToFileURL(path.join(repo,'scripts/internal/recording_archive_diagnostic_profile.mjs'))),source=fs.readFileSync(path.join(repo,'src/recording/recording_catalog.cpp'),'utf8');
+fs.writeFileSync(destination,instrumentCatalog(source),{flag:'wx',mode:0o600});
+NODE
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$observer_repo/include" -I"$observer_repo/src/recording" "${observer_flags[@]}" \
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
+  -include "$observer_script/recording_archive_phase_trace.h" "$observer_run/catalog-instrumented.cpp" \
   "$observer_script/recording_current_observer_native.cpp" "${observer_libs[@]}" -o "$observer_run/normalize"
 if [[ "$1" == --self-test ]];then
   node "$observer_script/recording_current_observer.test.mjs" "$observer_run"

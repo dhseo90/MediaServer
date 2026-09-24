@@ -1,0 +1,36 @@
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (0.683667ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.138084ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (9.047833ms)
+✔ O28-D01 child termination classes and bounded metadata remain distinct (0.24625ms)
+✔ O28-D02 missing partial malformed loss and incomplete traces never synthesize completion (0.148ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.774125ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.892209ms)
+✖ LP23-DH06 exact instrumentation drift and trace bounds fail closed (1.688875ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.326
+
+✖ failing tests:
+
+test at scripts/internal/recording_archive_diagnostic_profile.test.mjs:67:1
+✖ LP23-DH06 exact instrumentation drift and trace bounds fail closed (1.688875ms)
+  Error: instrument-clear
+      at requireSafe (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:14:44)
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:113:147
+      at section (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:101:196)
+      at instrumentCatalog (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.mjs:112:8)
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:71:10
+      at owned (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:15:14)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_archive_diagnostic_profile.test.mjs:67:79)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
