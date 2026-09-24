@@ -1,8 +1,9 @@
 # Release Evidence Index
 
 - [2026-09-24 v4.1.0 릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260924.md):
-  LP26-O14 누적 공개 경로·실제 HTTP·5단계 통합 이후의 현재 기준. 녹화 전용 120분과
-  새 녹화 UI 전체 적격은 미완료다. 아래 과거 시점 기록을 현재 PASS로 승격하지 않는다.
+  LP26-O23 한정 실제 앱 재검증까지 반영한 현재 잔여 대조다. 과거 두 번째 기동의 30초 초과 반환을 발견해
+  [중앙 테스트 기록](release-test-records.md#v410-s11-lp26-o14-누적-지연-원인-분리)에서 과거 5단계 통합 PASS 증거를 정정했다.
+  이후 새 단기 27/27은 통과했지만 누적 체크포인트 4초 위험·현행 5단계 전체·녹화 전용 120분·새 녹화 UI 적격은 미완료다. 아래 과거 시점 기록을 현재 PASS로 승격하지 않는다.
 
 - [S11 녹화 장시간 저장량·입력 생성 진단](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md):
   범주별 계측 자체검사 5/5·입력 진단 7/7·짧은 실제 앱 71/71을 확인했다.

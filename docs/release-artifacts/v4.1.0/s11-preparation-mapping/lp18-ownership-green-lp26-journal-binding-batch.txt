@@ -1,0 +1,22 @@
+{"kind":"start","utc":"2026-09-24T02:11:08.592Z","mode":"green","id":"lp26-journal-binding-batch","suite":"journal-cold","source":[{"name":"include/recording/recording_catalog.h","sha256":"45a48609e3aed99ee5cc9639818b8accfb6c9a48b04934d5a0b279eee0fc9a6f"},{"name":"include/recording/recording_journal.h","sha256":"a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f"},{"name":"src/recording/recording_catalog.cpp","sha256":"2d4ff3953519de61e7c5e4d2cb89a0b6e8992c318611569702bc1e5459cb0d32"},{"name":"src/recording/recording_journal.cpp","sha256":"5aee2cf6d7a8e23a3d3965f2f7d4bb8715e33462924723f6c4a17fafcae4c8ef"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"689bbf7e327cfc36b9a99ccfc2afb2a6907076de948a86b1fb7520060acf54e5"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"8dec263adfcd20224f978447af08b54ec68ab665cda37882a9c529619a90f852"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"62fd73917d770217a2e658857f1c4e80e1c3b21a5f7c6806759babfbb21c10a4"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-cold"],"seconds":60}
+[instrument] location_exception_exact_insertions=3
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=5aee2cf6d7a8e23a3d3965f2f7d4bb8715e33462924723f6c4a17fafcae4c8ef location_journal_instrumented_sha256=3259fedb878065255652d5c6b06703105ffa6e8bb7fc2e303d0f5476ce791e7e
+[instrument] location_declarations=1,1 location_header_sha256=a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f
+[instrument] catalog_sha256=8180d4d7bcdcb266071bf4f20311ee501f5ed869919851b8b593510daa4d978f binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"45a48609e3aed99ee5cc9639818b8accfb6c9a48b04934d5a0b279eee0fc9a6f"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"5aee2cf6d7a8e23a3d3965f2f7d4bb8715e33462924723f6c4a17fafcae4c8ef"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"2d4ff3953519de61e7c5e4d2cb89a0b6e8992c318611569702bc1e5459cb0d32"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"62fd73917d770217a2e658857f1c4e80e1c3b21a5f7c6806759babfbb21c10a4"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"689bbf7e327cfc36b9a99ccfc2afb2a6907076de948a86b1fb7520060acf54e5"}
+
+{"kind":"phase","label":"build","exit":null,"signal":"SIGTERM","stopReason":"resource-observation","cleanup":false,"elapsedMs":258,"groupPeakRssBytes":0}
+{"kind":"failure","code":"LP18_PHASE_GUARD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","removed":false,"reason":"group-unconfirmed"}
+{"kind":"result","utc":"2026-09-24T02:11:08.853Z","mode":"green","matched":false,"productPass":false,"elapsedMs":262}

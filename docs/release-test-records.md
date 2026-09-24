@@ -12,6 +12,17 @@
 | LP26-O14-C | 계측 출처 | instrumented 제품 소스와 연결 정적 archive의 현재성·hash를 확인하고 불일치하면 성능 판정 거부 | v4.1.0 |
 | LP26-O14-D | 공개 삭제·자동 전체 처리 | 실제 새 ID의 예약·확정·삭제 요청·파일 부재·삭제 완료를 거쳐 자동 checkpoint no-op/전체 분기와 잠금/전체 시간을 구분한다. 수동 처리나 기존 삭제 ID 재요청은 합격 대체가 아니다 | v4.1.0 |
 | LP26-O14-E | 동일 root 재개방 안전성 | 자동 처리 뒤 기존·신규 삭제 ID와 관측 ID/개수를 정확히 대조하고 손상·투영·정리 오류 0을 확인한다 | v4.1.0 |
+| LP26-O15 | 실제 앱 상태 HTTP 누적 진단 | 격리 두 채널·1초 분할에서 원본 1,020개 도달까지 상태 API 4초, 표본 간격 15초, slow trace, 종료·포트/root 정리를 확인한다. 120분·자원 추세 PASS로 승격하지 않는다 | v4.1.0 |
+| LP26-O15-B | 이전 실패의 2초 분할 조건 대조 | 같은 두 채널·입력·128MiB/channel의 2초 분할에서 원본 1,020개, HTTP 4초, 표본 15초, slow trace·종료·정리를 확인한다. 1초 가속 결과나 120분으로 대체하지 않는다 | v4.1.0 |
+| LP26-O16 | 체크포인트 결박 최적화 영향 | cold 3행 Read→Prepare→Commit의 행별 raw/hash/strict Parse와 전체 결박 횟수, 변조·inode 교체·세대 불일치·crypto-off·재개방·삭제/ID 안전성을 검증하고 기존 2,049개 공개 정상 수명 비용과 대조한다 | v4.1.0 |
+| LP26-O17 | 수정 후 실제 2초 분할 재확인 | LP26-O15-B와 동일 누적 조건에서 원본 1,020개·HTTP 4초·표본 15초·체크포인트/잠금·정리를 확인한다. 120분/자원 추세/전체 UI로 승격하지 않는다 | v4.1.0 |
+| LP26-O18 | 통합 대기 실패의 사후 코드 보존 | 실제 30초 대기가 먼저 종료된 뒤 작업이 failed가 된 경우 당시 실패와 혼동하지 않고, 독립 복제본의 허용 코드만 보존한다. 미등록 원문·증거 저장 실패는 거부하고 cleanup을 차단한다 | v4.1.0 |
+| LP26-O19 | 통합 30초 늦은 반환 거부 | 실제 앱 통합의 비동기 전체 페이지 조회가 제한시간 뒤 성공한 반례를 timeout으로 판정하되 결과·지연 trace는 남긴다. 일반 helper의 기본 늦은 반환 정책은 유지한다 | v4.1.0 |
+| LP26-O20-A | 페이지 경계 진단 | 기존 상한과 누락·중복 거부를 유지하고 top/offset/leaf 조건을 고정 코드·비민감 숫자로 분리한다 | v4.1.0 |
+| LP26-O20-B | dispatch 선택 근거 | 첫 dispatch와 실제 render 순서를 동일시하지 않고 선택 대상·후보 수·순서를 고정한다 | v4.1.0 |
+| LP26-O20-C | 두 완료 증거 동시 필요 | 독립 terminal 관측과 적격 전체 페이지·완전 출력 2개가 함께 있어야 통과한다 | v4.1.0 |
+| LP26-O23-A | 요청 간 완료 작업 후보의 현재성 | 최대 8건·8MiB 후보의 원장 envelope·출처·상태를 매 호출 대조하고 동일 공개 응답·파일과 재파싱 감소를 확인한다 | v4.1.0 |
+| LP26-O23-B | 후보 안전 fallback | 동일 길이 원장 변조·권한 상실·상태/원본 변경·예산 0·할당 실패를 거부하거나 strict 경로로 복귀하며 hold와 후보 상한을 확인한다 | v4.1.0 |
 
 기존 [수동 동시성 실패 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)의 8.435488초는 타임라인 호출 전체 값이다.
 직전 순차 실행의 8.428초 잠금 점유·3.829초 읽기·4.470초 재적용을 같은 호출의 세부값으로 합산하지 않는다.
@@ -27,11 +38,35 @@
 | LP26-O14-C 출처·정리 | 같은 원출력: instrumented 소스 hash와 현재 `media_server_runtime` archive hash 기록, subprocess 정상 종료·격리 root 부재 확인 | pass |
 | LP26-O14-D 공개 자동 전체 처리 | [보존 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-public-full-diagnostic.log): 신규 96개 공개 예약→확정→삭제 요청→실제 파일 제거→삭제 완료에서 자동 full fallback 1회. 단일 checkpoint 최대 9,185,538µs(읽기 4,209,922µs, 원본 의미 재적용 4,757,683µs). 전체 lifecycle 잠금 합계 9,852,445µs는 단일 잠금 측정이 아니며 HTTP 요청 결과도 아님. 명령 exit 0, root 부재 | pass |
 | LP26-O14-E 자동 처리 후 재개방 | 같은 원출력: 동일 root의 기존 2,049개+신규 96개 삭제 ID와 관측 1,526개 ID를 전수·중복 없이 대조, 손상·투영·writer cleanup 오류 0. 복구 프로세스 exit 0 | pass |
+| LP26-O15 최초 실제 앱 누적 진단 | [실패 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic.log.gz): 영상 fixture 생성이 30초 상한에 걸려 서버 기동·HTTP 요청 전 중단(exit 1). stderr 491바이트의 원문은 비민감 분류에 없고 정리 때 폐기됐으므로 원인을 확정하지 않는다. 소유 root 부재 확인. 누적 status 및 120분 결과로 사용할 수 없음 | fail |
+| LP26-O15 권한 확장 1초 분할 진단 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic-authorized.log.gz): 영상 fixture 1,441ms, 원본 1,039개, 상태 HTTP 109건 모두 성공·최대 1,985ms, 표본 최대 간격 8,000.46ms. 자동 checkpoint 최대 3,269.78ms, 종료/포트/root 정리 PASS. 이전 2초 분할·12.7MB 원장과 달리 이번 원장은 8.81MB이므로 과거 실패 재현/120분 PASS로 승격하지 않음 | pass |
+| LP26-O15-B 권한 확장 2초 분할 원조건 진단 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic-original.log.gz): 영상 fixture 1,429ms, 원본 1,035개·원장 13,395,478바이트, 상태 HTTP 200건 모두 성공·최대 2,919ms·P95 917ms, 4초 제한 유지, 표본 최대 간격 11,277ms(<15초). 반면 checkpoint 최대 4,785ms, Catalog 잠금 최대 4,795ms, 원장 읽기 최대 4,089ms가 관측되어 요청이 겹치면 4초 초과할 위험이 남음. 실제 이전 시간초과는 재현되지 않았으며 원인 단정 불가. 프로세스 정상 종료·포트/UDP/root 정리 확인. 120분·자원 추세·최종 통합 PASS로 사용하지 않음 | pass |
+| LP26-O16 첫 표준 harness 중단 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-journal-binding-batch.txt): assertion·제품 실행 전 build 258ms에 resource-observation SIGTERM, exit1. `group-unconfirmed`으로 남은 소유 임시 root 444KiB는 소유권·사용 프로세스 부재를 확인한 뒤 정확한 경로만 삭제하고 부재 확인. 이 실행은 PASS 증거가 아님 | fail |
+| LP26-O16 cold/crypto-off 집중 검사 | 담당자의 격리 직접 build/run에서 cold 26/26, crypto-off 3/3, `media_server_runtime` 빌드 exit0. 행별 raw/hash/strict Parse 유지, 묶음 전체 결박 시작·끝, 동일 길이 변조·inode 교체·세대 불일치 반례 확인. 첫 harness 중단을 이 결과로 소급 PASS 처리하지 않음 | pass |
+| LP26-O16 2,049개 공개 정상 수명 비교 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-public-full-after-binding.log.gz): 명령 exit0, 공개 삭제 96회로 자동 full 1회, checkpoint 최대 7,718,849µs 중 원장 읽기 최대 2,733,829µs·원본 의미 재적용 최대 4,764,192µs. 이전 동일 probe 읽기 4,209,922µs보다 낮으나 2,049개 전체 잠금 4초 이내는 아님. 재개방 시 삭제 ID 2,145개·관측 ID 1,526개, 손상/투영/정리 오류0, 소유 root 부재. 실제 HTTP 결과로 사용하지 않음 | pass |
+| LP26-O16 catalog/SQLite·JSONL 회귀 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-catalog-regression.log.gz): `./server.sh verify-v410-recording-catalog` exit0, 본문 234/234·crypto-off 3/3, SQLite fallback·손상·삭제·hold·재개방 검사 포함, 임시 root 27,548,382바이트 삭제 확인 | pass |
+| LP26-O16 빌드 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-build.log.gz): `./server.sh build` exit0. 실제 앱 통합 PASS로 승격하지 않음 | pass |
+| LP26-O16 통합 최초 준비 | [실패 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-current-integration.log.gz): sandbox localhost bind EPERM으로 제품 요청 전 exit1, 소유 root 정리. 제품 회귀 판정 아님 | fail |
+| LP26-O16 권한 확장 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-current-integration-authorized.log.gz): 앞 네 단계 HTTP API35/35·인증40/40·lifecycle10/10·default46/46 통과. 실제 앱 두 번째 기동의 새 참조가 30초 전체 페이지 대기에서 완전 출력에 도달하지 않아 exit1·`currentIntegrationExecutionPass=false`; 프로세스 정상 종료·포트/root 정리. 기존 O14 PASS를 이번 변경의 통합 PASS로 승계하지 않음 | fail |
+| LP26-O18 사후 실패 코드 보존 자체검사 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o18-failure-capture-unit.log.gz): 허용/미등록 코드·기존 증거 충돌·정리 차단 포함 64/64, exit0. 실제 제품 통합 PASS 아님 | pass |
+| LP26-O18 실패 구간 한정 실제 앱 재현 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o18-targeted-actual-app.log.gz)·[사후 상태](release-artifacts/v4.1.0/s11-preparation-mapping/state-5fd4da16-e458-485c-8b49-b37d90379649.json)·[고정 코드](release-artifacts/v4.1.0/s11-preparation-mapping/state-5fd4da16-e458-485c-8b49-b37d90379649.json.detail.json): 두 번째 기동의 선택 작업은 대기 30.319초 내 출력 0개, 작업 전이에서 다른 3개 뒤 네 번째로 remux를 시작함. 서버 종료 뒤 사후 상태 `failed`, 코드 `job-remux: work-cancelled` 보존. 종료 전에 작업 자체가 실패했다는 증거는 아님. 첫 기동 출력2개·HTTP·해시, 두 기동 정상 종료·포트/UDP/root 정리 확인. 명령 exit1; 원출력은 stdout 위주로 보존되어 stderr 최초 메시지는 없으나 종료 summary·전이·사후 코드가 남음 | fail |
+| LP26-O19 30초 늦은 반환 엄격 판정 | [예상 RED](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o19-strict-deadline-red.log.gz): 기존 helper가 늦은 성공을 수용해 새 assertion만 실패(26 pass/1 fail). [GREEN](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o19-strict-deadline-green.log.gz): `observeTransitionWait`의 실제 앱 strict 선택에서 응답 뒤 초과를 timeout으로 판정하고 같은 지연 trace 유지, 27/27·exit0. 제품의 두 번째 기동 30초 미충족은 해결되지 않았고 현행 통합 재실행은 안 함 | pass |
+| LP26-O20-A 페이지 경계 고정 진단 | [등록 뒤 재실행 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o20-verifier-focused.tap) 60번: top/offset/leaf 실패 코드와 숫자를 각각 확인하고 O18 timeout과 구분. 기존 상한·중복 거부 유지. O16 실측 원인 확정은 다음 실제 앱 실행 전까지 미확인 | pass |
+| LP26-O20-B dispatch 선택 근거 | 같은 원출력 27번 S11-CI04: 기존 기본 최소 track ID와 실제 앱 첫 dispatch를 구분하고 후보 수·원래 순서를 확인. 선택 뒤 다른 reference로 변경하지 않음 | pass |
+| LP26-O20-C terminal·전체 페이지 동시 필요 | 같은 원출력 76번: 두 출력·독립 terminal·전체 페이지 중 하나라도 빠지면 거부. 첫 작성 시 `ordinal` callback 누락으로 focused 80/81 실패했으나 최초 원출력은 보존되지 않았고, 수정·사전등록 뒤 전체 81/81·exit0을 재실행. 실제 앱 통합 PASS는 미확인 | pass |
+| LP26-O21 첫 타임라인 계측 | [실패 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o21-targeted-actual-app.log.gz): 임시 계측이 Query phase를 중복 사용해 trace 수집기의 단일 phase 계약을 깨뜨림. 2기동 영상 생성 관측과 별개로 명령 exit1·latency evidence 무효. 소유 391MiB 임시 root는 프로세스 부재·소유권·비링크 확인 뒤 삭제. 제품 회귀로 판정하지 않음 | fail |
+| LP26-O22 한정 실제 앱 지연 | [실패 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o22-targeted-actual-app.log.gz): 계측 충돌 수정 뒤 두 번째 선택 출력은 결국 관측됐지만 32.367초로 기존 30초 초과·exit1. 16회 타임라인 snapshot의 잠금 합계 18.278초 중 작업 획득 13.628초·출력 계산 4.601초. trace 완전, 두 프로세스 정상 종료·소유 root 부재 | fail |
+| LP26-O23 최초 집중 실행 | [실패 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp26-o23-a.txt): 제품 assertion 전 process 관측 EPERM·exit1. 프로세스 부재·소유권/비링크를 확인해 372KiB 소유 root를 삭제. 제품 FAIL로 판정하지 않음 | fail |
+| LP26-O23-A/B 첫 권한 확장 | [실패 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp26-o23-b.txt): 21/22, 미디어 예외 뒤 요청-local 해제를 검사하던 기존 assertion이 새 bounded 후보 수명을 고려하지 않아 실패. 원본·hold 손상 증거는 없으며 root 정리됨. 이 결과를 PASS로 소급하지 않음 | fail |
+| LP26-O23-A/B 집중 재검증 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp26-o23-c.txt): 22/22·exit0. 두 번째 조회 본문 재파싱 0회, 동일 응답/미디어 바이트, 원장 동일 길이 변조·detach·상태/원본/경로 변경 거부, 8건·8MiB 상한과 hold 해제·소유 root 정리 확인 | pass |
+| LP26-O23 실제 앱·재기동 집중 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz): 첫/두 번째 기동 선택 출력 완료 20.214/22.548초(<30초), 타임라인 HTTP 각각 114/20건 최대 1.089/2.329초(<4초). 출력 각 2개·HTTP200/파일 해시·새 작업·기존 데이터 보존, 독립 terminal+전체 페이지, 27/27·exit0, 서버 exit0·포트/root 정리. 장시간·UI·누적 2,049개 checkpoint PASS로 확대하지 않음 | pass |
+| LP26-O23 catalog·SQLite/JSONL 영향 회귀 | `./server.sh verify-v410-recording-catalog`: 234/234 및 crypto-off 3/3·exit0, 소유 임시 root 정리. 이전 O16 실행과 독립된 현재 소스 결과 | pass |
 | LP26-O14 실제 HTTP 집중 | 최초 격리 실행은 localhost bind EPERM으로 요청 전 중단·root 정리. [허용 재실행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-latency-focused-authorized.log)은 타임라인 HTTP 114개·최대 967ms, 프로세스 exit0·포트/root 정리 | pass |
-| LP26-O14 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration.log)·[개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): HTTP API 35, 인증 40, lifecycle 10, default 46, 실제 앱 27개 모두 통과. 두 기동의 실제 출력2개씩·HTTP/해시·재기동 보존·정리 확인. `currentIntegrationExecutionPass=true`; `fullFoundationPass=false` 유지 | pass |
+| LP26-O14 현행 5단계 통합의 30초 판정 정정 | [당시 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration.log)·[당시 개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): 실행기는 HTTP API35·인증40·lifecycle10·default46·실제 앱27개와 `currentIntegrationExecutionPass=true`를 출력했으나, 두 번째 기동의 선택 출력 대기는 `elapsedMs=30596.638583`, `returnedAfterBudget=true`였다. `boundedUntil`의 비동기 반환 직후 30초 초과 거부가 없어 과거 PASS가 발생했다. 실제 출력/해시/정리는 보존하되 **30초 합격 및 전체 통합 PASS 증거로 사용할 수 없다**. 당시 실행 결과를 지우지 않고 판정만 정정한다 | fail |
 
-자동 전체 재작성의 **공개 API 도달성은 미확인**이다. 이전 내부 합성 입력은 별도 [실패·보완 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)으로 보존한다.
-위 pass는 표시한 검사 범위에만 적용한다. 실제 HTTP 4초와 5단계 통합은 이번 집중 실행에서 통과했지만 장시간·UI·버전 전체 PASS가 아니다.
+자동 전체 재작성은 공개 Catalog 삭제 수명으로 도달했지만, 그 구간과 실제 상태 HTTP 요청의 동시 겹침은 **미확인**이다. 이전 내부 합성 입력은 별도 [실패·보완 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)으로 보존한다.
+위 pass는 표시한 검사 범위에만 적용한다. 실제 HTTP 4초 집중 검사만 해당 범위에서 통과했다. 당시 5단계 통합 실행기의 PASS는 위 30초 초과 반례 때문에 무효이며 장시간·UI·버전 전체 PASS가 아니다.
+이번 O16 통합의 elapsed는 148,242ms, O18 한정 실제 앱 재현은 109,133ms다. 이 단기 실행의 `token start`·`token end`·`token consumed`는 전용 자동 집계가 제공되지 않아 미집계이며 `source`는 검증 명령 원출력이다. 사용량을 0으로 간주하지 않는다.
 
 ## v4.1.0 S11 LP26-O12 누적 안전성·현행 통합
 
@@ -2670,8 +2705,8 @@ LP22-R 초기 focused 실행 전 정의(제품 수정 전 예상 RED):
 | LP22-R01 fixture actual Complete two outputs | 실제자료 선수 | 기존PrepareMedia의Encode/실제writer/파생2출력 fixture 재사용 | v4.1.0 |
 | LP22-R02 public timeline canonical and media bytes unchanged | 결과 동등 | 기존strict 경로와전수DTO/canonical·파일 hash 대조 | v4.1.0 |
 | LP22-R03 same job two outputs parse strictly once per request | 중복 비용 RED | QueryTimeline 구간의 실제 ParseDerivedJobRecord 호출수: baseline예상5, 기대1에서유일FAIL | v4.1.0 |
-| LP22-R04 next request revalidates cold job | 요청 수명 | 다음호출은새strict획득; 요청간캐시없음 | v4.1.0 |
-| LP22-R05 context and media holds released after request | 정리 | 객체/hold잔존없음·원래파일불변 | v4.1.0 |
+| LP22-R04 next request revalidates cold job | 현재성 | 다음 호출의 현재 원장 envelope·출처·상태 재검증. 본문 재파싱은 같은 후보일 때 생략 가능 | v4.1.0 |
+| LP22-R05 context and media holds released after request | 정리 | 요청-local·hold 해제, 별도 완료 후보는 최대 8건/8MiB·원래 파일 불변 | v4.1.0 |
 
 신규 `recording_job_read_context_smoke.cpp`와 `verify_recording_job_read_context.mjs`는기존bounded 실행guard/소유root를재사용한다.
 catalog/read/timeline/recording_derived_job_ready.cpp의소유복제본에서실제Parse횟수를계수하며제품에는test hook을넣지않는다.
