@@ -1,5 +1,80 @@
 # 릴리즈 테스트 기록
 
+## v4.1.0 S11 O29 저장 처리 구조 선행 판정
+
+독자: 녹화 저장 구현·검증 담당자. 수명: O28 후속 구조 선택과 순차 구현의 실행 이력.
+정책은 AGENTS.md, 설계는 [누적 비용 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#o29-저장-처리-구조-선행-판정)이 기준이다.
+사용자는 후속 1~4번 순차 개발·분할 커밋·조건 충족 시 푸시를 승인했다. 메인은 1번 계약을 직접 검토하고,
+기존 단일 Sol/medium 담당자에게 복구/SQLite 경계의 읽기 검토만 위임했다. 하위 위임·제품 수정 지시는 없다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 저장 처리 계약 확정 | 경계 분석 완료·구조 선택 대기 | 현재 형식의 전체 원문 검증/파일 교체 비용과 복구 부분 게시 금지 확인. 영속 구조 변경 포함 여부 질문 | 누적 비용 계약 O29 절, `TryAutomaticCheckpointNoop`/`CommitCheckpoint`/`PreflightV2Locked` |
+| 2 | 복구·체크포인트 공동 구조 개선 | 미착수 | 1번의 형식/검출 경계를 임의 변경하지 않음 | 같은 계약의 대안 A/B |
+| 3 | 누적 비교 후 실제 앱 | 미실행 | 구현 전 O28 검사를 반복 실행하지 않음 | O28 비교 기록 유지 |
+| 4 | S11 증거·영향 UI/120분 마감 | 미실행 | 변경 경계 확정 후 유효성 판정. 외부 서비스/실기기 제외 유지 | AGENTS 7.6.2 |
+| 5 | 분할 커밋·조건부 푸시·보고 | 선행 문서 검사 통과·커밋 대상 확정 | 완료된 경계 분석만 분할 커밋. 제품 구현을 막는 계약 선택이 남아 전체 범위 푸시는 보류. 실제 hash/수행은 최종 대화에서 확인 | AGENTS 5장 |
+
+### 실행 전 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| O29-D01 | 계약/중앙 기록 링크 검사 | `./server.sh verify-docs-links`, 실제 exit와 원출력 보존 | v4.1.0 |
+| O29-D02 | 문서 자산 영향 확인 | `./server.sh verify-docs-ui-assets`, 실제 개별 결과와 exit 보존 | v4.1.0 |
+| O29-D03 | 변경 공백 확인 | `git diff --check`, 실제 exit 확인 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 문서 | 진행 대상 | 1번 선행 계약 기록 변경 | O29-D01~03 | 이번 개발 승인 포함 |
+| 안정화: 제품·실제 앱 | 조건부 진행 | 구조 선택·구현·반례 등록 뒤 실행 | 계약 O29 복구 안전 조건, O28 후속 2~3 | 개발 승인 있음, 선수조건 미충족 |
+| 30분 | 미진행 | 이번 선행 판정은 문서만 변경 | AGENTS 7.6.2 | 이번 단계 실행하지 않음 |
+| UI·녹화120분 | 조건부 진행 | 고정 제품 diff와 기존 증거 영향 판정 필요 | O28 후속 4, AGENTS 7.6.2 | 이번 단계 선수조건 미충족 |
+
+### 미실행·정리
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 제품·누적·실제 앱 | 빌드/안전 반례/규모 비교/HTTP·snapshot | 구조 선택 대기, 제품 변경 없음 | 제품 비용 개선 PASS 아님 |
+| 장시간·실제 UI | 30분/120분/UI 실행 | 선행 제품 개선·증거 영향 판정 미완료 | S11/릴리즈 PASS 아님 |
+
+`token start/end/consumed`: 전용 실제 집계가 없어 미집계. source는 로컬 명령/tool 결과다.
+별도 wall-clock 계측을 사전 구성하지 않아 묶음 elapsed는 미집계이며, 문서 도구 출력으로 제품 비용을 추정하지 않는다.
+현재 테스트 서버·임시 계정·임시 데이터 생성 없음. 제품 소스 `src/`·`include/` 변경 목록은 비어 있다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 없음 | 테스트 임시 자료/서버 | 없음 | 삭제 불필요 | 생성하지 않음 | 문서 도구만 실행 |
+| `release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-*.log` | 문서 검사 원출력 4개 | 1,429B(419/187/636/187B) | 보존 | 비민감 요약/정적 assertion, 실패 포함 | 아래 결과의 직접 원출력 |
+
+### 실제 결과와 최초 실패
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| O29-D01 최초 실행 | `./server.sh verify-docs-links`, exit1. 새 계약 제목의 anchor 1개 불일치. 뒤 검사 미진행 후 제목/링크를 단순한 일치 anchor로 보완. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-links.log) | fail |
+| O29-D01 수정 후 | 같은 명령 exit0, 328문서·12768링크·193anchor·오류0. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-links-rerun.log) | pass |
+| O29-D02 공개 대표 이미지 | README uses only representative product UI screenshots. 자산 명령 전체 exit0. [전수 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-assets.log) | pass |
+| O29-D02 영문 이미지 | English README uses English UI screenshots | pass |
+| O29-D02 공유 자산 | UI guide keeps product screenshots in the shared asset set | pass |
+| O29-D02 캡처 지침 | docs UI asset policy documents capture rules | pass |
+| O29-D02 manifest | managed UI asset manifest stays complete | pass |
+| O29-D02 캡처 소유 | capture script owns every documented UI asset | pass |
+| O29-D02 현행 캡처 목록 | docs capture covers current screenshots | pass |
+| O29-D02 낡은 baseline 배제 | representative screenshot docs do not point at stale visual baselines | pass |
+| O29-D02 PNG 자산 | docs UI asset directory contains managed PNG files | pass |
+| O29-D02 전체 영상 프레임 | VA documentation images keep full video frame bounds | pass |
+| O29-D03 공백 | `git diff --check`, exit0 | pass |
+| O29-D01 결과 기록 반영 후 | 같은 링크 명령 exit0, 328문서·12770링크·193anchor·오류0. 원출력은 같은 artifact 디렉터리의 `o29-docs-links-final.log` | pass |
+
+### 후속 실행 조건
+
+1. 저장 구조 변경 포함 여부를 결정한 뒤 1번 계약을 완결한다. 현재 호환 개선과 새 형식 선택을 혼동하지 않는다.
+2. 선택된 계약으로 복구/체크포인트를 공동 구현하고 사전등록 반례·관련 회귀를 통과한 단위만 커밋한다.
+3. 같은 작은/누적 자료로 비용·안전성 비교 후 실제 영상이 남은 앱에서 HTTP4초·관측15초·전체 snapshot15초를 별도 확인한다.
+4. 고정 diff를 근거로 S11 증거 유효성과 남은 UI·녹화120분 범위를 판정한다. 외부 서비스·실기기는 사용자 제외다.
+
+이는 계약 선택 대기로 인한 중단이며 새 제품 실패나 사용량 한도로 중단한 것이 아니다.
+기존 검사 재실행·제품 비용 개선·릴리즈 완료로 확대하지 않는다. 커밋/푸시 실행 결과는 최종 Git 확인 뒤 대화로 보고한다.
+
 ## v4.1.0 S11 LP26-O14 누적 지연 원인 분리
 
 독자: 녹화 저장·검증 담당자. 수명: 이번 S11 원인 확정과 후속 영향 검증. 기록 기준은 AGENTS.md다.
