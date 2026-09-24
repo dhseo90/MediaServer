@@ -6,6 +6,12 @@
 작업 정책은 AGENTS.md, 설계 계약은 [누적 비용 계약의 B안 절](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b안-구현-계약)이 기준이다.
 사용자는 B안을 순차 구현하고 관련 단위별 분할 커밋, 마지막에 조건부 푸시를 지시했다.
 O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 구현 PASS가 되지 않는다.
+후속 제품 연결 검토에서 기존 journal의 dense index와 B 전역 ordinal, active prefix,
+thin 상세 값의 결박, SQLite 복구 경계를 별도로 확정했다. [추가 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b안-구현-계약)은
+실제 Open/Append/Checkpoint 구현이나 검증 결과가 아니다. 이 문서 변경은
+`./server.sh verify-docs-links`(328개 문서·12,784개 로컬 링크·오류0),
+`./server.sh verify-docs-ui-assets`(10/10), `git diff --check`(exit0)로 확인했다.
+token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 자료는 없다.
 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |

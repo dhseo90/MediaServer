@@ -183,6 +183,32 @@ v1 marker 복구가 안전함이 입증될 때만 원자 복구한다. 존재 �
 측정한다. HTTP 4초, 관측 간격 15초, 복구 검사 15초의 기존 판정은 변경하지 않는다.
 작은 손상·충돌·중단 반례 → 누적 규모 → 실제 앱·관련 최종 검증 순서로 적용한다.
 
+**제품 연결 전 추가 결정.** 기존 `RecordingJournal`의 물리 벡터 index와 B의 전역 ordinal은
+같은 값으로 취급하지 않는다. 세대 active의 첫 완결 행에 `cutOrdinal`을 부여하고 다음
+완결 행마다 1씩 증가시킨다. 앞 세대의 빈 ordinal은 채우지 않으며 증가 overflow는 쓰기를
+거부한다. manifest가 결박한 active prefix 역시 snapshot에 들어간 과거가 아니라 active
+증분이므로 byte 0부터 digest를 확인한 뒤 tail까지 빠짐없이 엄격 적용한다. `Replay()` 같은
+명시적 전체 감사에서는 과거 물리 행을 순서대로 재방문할 수 있으나, 정상 Open·append·조회와
+checkpoint는 모든 과거 locator/상세를 벡터로 재구성하지 않는다. 정상 Open이 필요한 것은
+검증된 현재 상태·최소 identity/order·active 전체와 현재 상태가 참조하는 cold locator다.
+모든 과거 물리 행을 반환하는 새로운 상주 DTO는 만들지 않고, 필요한 명시 감사에 한해
+검증된 shard를 순회하는 bounded 방문 경계를 둔다. 현재 `first_acceptances`만으로 물리
+재시도·과거 원문 전수를 복원했다고 주장하지 않는다.
+
+현재 snapshot의 `source-binding`과 `derived-job` 행은 전체 상세 payload 복제물이 아니라
+현재 `SourceBindingEntry`·`DerivedJobEntry`의 얇은 값을 담는다. source 행은
+`id/channel/source/generation/track/order/sampleCount/latestMutationId`, job 행은
+`id/channel/reference/state/files/reservedBytes/outputIds/sourceIds/latestMutationId`를
+고정 schema·canonical 순서로 담는다. `latestMutationId`는 검증된 identity의 원문 locator에
+결박해야 한다. 사용 시 원문 해시·envelope·domain parser 결과를 얇은 값과 다시 대조한다.
+진행 중 job과 보호 판정에 필요한 상세는 Open 전에 취득·검증하고, 비활성 상세만 cold로
+남긴다. 단순 해시 또는 얇은 값만으로 상세의 정확성을 인정하지 않는다. 기존 mutation
+종류·payload/공개 API는 바꾸지 않는다.
+
+제품 전환은 journal의 archive/active ref 경계 → catalog 임시 projection·SQLite 재구축
+경계 → 기존 v1의 원문 보존 cutover·재open을 각각 검증한 뒤에만 기본 경로로 활성화한다.
+중간 단계가 파일 형식 단위 PASS여도 운영 가능한 B Open/Append/Checkpoint 완료는 아니다.
+
 ### LP24 복구 호출 내부의 제한된 내용 재사용
 
 후속1~6 승인 중1번은 Open의 반복 preflight/apply/SQLite 재투영 내용 비용을 대상으로 한다.
