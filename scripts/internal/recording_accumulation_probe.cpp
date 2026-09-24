@@ -92,6 +92,11 @@ std::uint64_t CostInclusiveNs(const std::map<std::string,fc::Metric>& metrics,co
  for(const auto& [name,m]:metrics)if(name.size()>=needle.size()&&name.compare(name.size()-needle.size(),needle.size(),needle)==0)total+=m.inclusive;
  return total;
 }
+std::uint64_t CostMaximumNs(const std::map<std::string,fc::Metric>& metrics,const char* suffix){
+ std::uint64_t maximum=0;const std::string needle=suffix;
+ for(const auto& [name,m]:metrics)if(name.size()>=needle.size()&&name.compare(name.size()-needle.size(),needle.size(),needle)==0)maximum=std::max(maximum,m.maximum);
+ return maximum;
+}
 template<class F>void Measure(const char* stage,F&& call){
  std::cout<<"[probe-stage] "<<stage<<" begin\n";fc::enabled=true;const auto begin=Clock::now();const bool ok=call();const auto us=Us(begin);fc::enabled=false;
  fc::Dump(stage);std::cout<<"[probe-wall] {\"stage\":\""<<stage<<"\",\"elapsedUs\":"<<us<<",\"ok\":"<<(ok?"true":"false")<<"}\n";Memory(stage);Need(ok,"catalog-oracle");
@@ -149,6 +154,76 @@ void Automatic(const std::filesystem::path& root,unsigned count){
           <<",\"corruptLines\":"<<report.corrupt_line_count<<",\"projectionErrors\":"<<report.projection_error_count
           <<",\"writerCleanupErrors\":"<<report.writer_cleanup_error_count<<"}\n";
  Pass("LP26-O14-A public observation recovery exact IDs and zero corruption");
+}
+void DeletePublicV2(RecordingCatalog& catalog,const RecordingSegmentV2& segment,const std::filesystem::path& file,
+                    const std::string& tombstone_id,std::int64_t deleted_at_ms,std::string* error){
+ Need(catalog.RequestDeletion(segment.segment_id,"continuous-capacity",error),"public-delete-request");
+ Need(std::filesystem::remove(file)&&!std::filesystem::exists(file),"public-delete-file-absent");
+ RecordingTombstoneV2 tombstone;tombstone.tombstone_id=tombstone_id;tombstone.segment=segment;
+ tombstone.deletion_reason="continuous-capacity";tombstone.deleted_at_ms=deleted_at_ms;
+ Need(catalog.CompleteDeletionV2(tombstone,error),"public-delete-complete");
+}
+void AutomaticFull(const std::filesystem::path& root,unsigned count){
+ // Record helper가 실제 writer의 public reservation/finalize를 만든 뒤, 동일 evidence를 새 public lifecycle에 사용한다.
+ Need(count==2049,"public-full-count");
+ gst_init(nullptr,nullptr);const auto seed_root=root/"lp10-public-full-seed";auto input=Encode(60,false,false,160,90,30,60);const auto seeded=Record(seed_root,input);Need(seeded.size()==1&&Verify(seeded.front()),"public-full-seed");
+ const auto& seed=seeded.front();const auto template_file=root/"lp10-public-full-template.mp4";
+ std::filesystem::copy_file(seed.file,template_file,std::filesystem::copy_options::overwrite_existing);Need(Verify({seed.segment,seed.binding,root,template_file}),"public-full-template-evidence");
+ Need(std::filesystem::remove_all(seed_root)>0&&!std::filesystem::exists(seed_root),"public-full-seed-cleanup");
+ RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));std::string error;
+ Need(journal.Open(&error)&&catalog.Open(&error),"public-full-open");
+ std::map<std::string,fc::Metric> costs;std::size_t cycles=0;std::uint64_t max_public_operation_us=0;const auto started=Clock::now();fc::enabled=true;
+ for(;cycles<96;++cycles){
+  const auto suffix=std::to_string(cycles),id="lp10-full-segment-"+suffix,request="lp10-full-order-"+suffix;
+  RecordingOrderReservationV1 order;Need(journal.ReserveRecordingOrder("probe-store",request,id,"probe-channel",&order,&error),"public-full-reserve");
+  auto segment=seed.segment;segment.segment_id=id;segment.order_request_id=request;segment.order_sequence=order.sequence;
+  auto binding=seed.binding;binding.segment_id=id;Need(ValidateRecordingSourceBindingForSegment(binding,segment,&error),"public-full-binding");
+  const auto file=root/"lp10-public-full"/(id+".mp4");std::filesystem::create_directories(file.parent_path());
+  std::filesystem::copy_file(template_file,file,std::filesystem::copy_options::overwrite_existing);Need(Verify({segment,binding,root,file}),"public-full-file-evidence");
+  const auto operation_started=Clock::now();Need(catalog.FinalizeBoundSegmentV2(segment,binding,file.string(),&error),"public-full-finalize");
+  DeletePublicV2(catalog,segment,file,"lp10-full-tombstone-"+suffix,1789205000001LL+cycles,&error);
+  max_public_operation_us=std::max(max_public_operation_us,static_cast<std::uint64_t>(Us(operation_started)));
+ }
+ costs=fc::Take();fc::enabled=false;const auto elapsed=Us(started);
+ Need(std::filesystem::remove(template_file)&&!std::filesystem::exists(template_file),"public-full-template-cleanup");
+ const auto noop_attempts=CostCount(costs,"journal.TryAutomaticCheckpointNoop"),full_fallbacks=CostCount(costs,"catalog.CheckpointLocked");
+ const auto full_checkpoint_us=CostInclusiveNs(costs,"catalog.CheckpointLocked")/1000;
+ const auto full_checkpoint_max_us=CostMaximumNs(costs,"catalog.CheckpointLocked")/1000;
+ const auto all_catalog_lock_hold_sum_us=CostInclusiveNs(costs,"catalog.lock.hold")/1000;
+ const auto read_us=CostMaximumNs(costs,"checkpoint.ReadCheckpointRecords")/1000;
+ const auto prepare_us=CostMaximumNs(costs,"journal.PrepareCheckpoint")/1000;
+ const auto replay_us=CostMaximumNs(costs,"checkpoint.originalSemantic")/1000;
+ const auto candidate_us=CostMaximumNs(costs,"checkpoint.candidateSemantic")/1000;
+ const auto compare_us=CostMaximumNs(costs,"checkpoint.SameSequence")/1000;
+ const auto commit_us=CostMaximumNs(costs,"journal.CommitCheckpoint")/1000;
+ std::cout<<"[automatic-checkpoint-full-path] {\"testId\":\"LP26-O14-D\",\"operation\":\"public-reserve-finalize-delete-complete\",\"httpRequest\":false"
+          <<",\"cycles\":"<<cycles<<",\"noopAttempts\":"<<noop_attempts<<",\"fullFallbacks\":"<<full_fallbacks
+          <<",\"fullCheckpointInclusiveUs\":"<<full_checkpoint_us<<",\"fullCheckpointMaxUs\":"<<full_checkpoint_max_us
+          <<",\"allCatalogLockHoldSumUs\":"<<all_catalog_lock_hold_sum_us<<",\"readCheckpointRecordsMaxUs\":"<<read_us
+          <<",\"prepareCheckpointMaxUs\":"<<prepare_us<<",\"originalSemanticReplayMaxUs\":"<<replay_us
+          <<",\"candidateSemanticMaxUs\":"<<candidate_us<<",\"sameSequenceMaxUs\":"<<compare_us
+          <<",\"commitCheckpointMaxUs\":"<<commit_us<<",\"cachePhaseInstrumented\":false,\"releasePhaseInstrumented\":false"
+          <<",\"maxPublicOperationUs\":"<<max_public_operation_us<<",\"elapsedUs\":"<<elapsed<<"}\n";
+ Need(full_fallbacks>0,"public-full-checkpoint-fallback");
+ Pass("LP26-O14-D public normal lifecycle automatic full fallback classified");
+}
+void AutomaticFullReopen(const std::filesystem::path& root,unsigned count){
+ RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));std::string error;
+ Need(count==2049,"public-full-reopen-count");
+ Need(journal.Open(&error)&&catalog.Open(&error),"public-full-reopen");const auto report=catalog.recovery_report();
+ RecordingLocationCatalogSnapshot locations;Need(catalog.SnapshotLocationsV2("probe-channel",&locations,&error),"public-full-reopen-locations");
+ Need(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0&&locations.segments.empty()&&
+      locations.deleted_segment_ids.size()==count+96,"public-full-existing-deleted-count");
+ std::unordered_set<std::string> deleted_ids;for(const auto& id:locations.deleted_segment_ids)Need(deleted_ids.insert(id).second,"public-full-reopen-deleted-duplicate");
+ for(unsigned i=1;i<=count;++i)Need(deleted_ids.count("lp10-segment-"+std::to_string(i))==1&&catalog.IsDeletedSegmentId("lp10-segment-"+std::to_string(i)),"public-full-existing-deleted-id");
+ for(unsigned i=0;i<96;++i)Need(deleted_ids.count("lp10-full-segment-"+std::to_string(i))==1&&catalog.IsDeletedSegmentId("lp10-full-segment-"+std::to_string(i)),"public-full-reopen-id");
+ const auto observations=catalog.QueryObservationsV2("probe-channel");Need(observations.size()==1526,"public-full-reopen-observations");
+ std::unordered_set<std::string> observation_ids;for(const auto& observation:observations)Need(observation_ids.insert(observation.observation_id).second,"public-full-reopen-observation-duplicate");
+ for(unsigned i=0;i<1526;++i)Need(observation_ids.count("lp10-auto-observation-"+std::to_string(i))==1,"public-full-reopen-observation-id");
+ std::cout<<"[automatic-checkpoint-full-reopen] {\"testId\":\"LP26-O14-E\",\"sameRoot\":true,\"newDeletedCount\":96"
+          <<",\"deletedCount\":"<<locations.deleted_segment_ids.size()<<",\"observationCount\":"<<observations.size()<<",\"corruptLines\":"<<report.corrupt_line_count
+          <<",\"projectionErrors\":"<<report.projection_error_count<<",\"writerCleanupErrors\":"<<report.writer_cleanup_error_count<<"}\n";
+ Pass("LP26-O14-E public normal lifecycle recovery IDs observations and zero corruption");
 }
 void Catalog(const std::filesystem::path& root,unsigned count){
  RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});RecordingCatalog catalog(journal,Store::Options(root));std::string error;
@@ -208,6 +283,8 @@ int main(int argc,char** argv){std::cout<<std::unitbuf;try{
   std::vector<unsigned> counts{16U,1020U,2049U};if(argc==4){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2049,"count");counts={static_cast<unsigned>(count)};}Generate(argv[2],counts);return 0;}
  if(argc==4&&std::string(argv[1])=="--catalog"){const auto count=std::stoul(argv[3]);Need(count==16||count==1020||count==2049,"count");Catalog(argv[2],count);return 0;}
  if(argc==4&&std::string(argv[1])=="--automatic"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");Automatic(argv[2],count);return 0;}
+ if(argc==4&&std::string(argv[1])=="--automatic-full"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");AutomaticFull(argv[2],count);return 0;}
+ if(argc==4&&std::string(argv[1])=="--automatic-full-reopen"){const auto count=std::stoul(argv[3]);Need(count==2049,"count");AutomaticFullReopen(argv[2],count);return 0;}
  return 2;
  }catch(const std::exception& error){const std::string code=error.what();const bool safe=!code.empty()&&code.size()<80&&code.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-")==std::string::npos;
   std::cerr<<"[fail] LP26-O10 native "<<(safe?code:"stage-or-oracle")<<'\n';return 1;}}

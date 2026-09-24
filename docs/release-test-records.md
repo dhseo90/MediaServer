@@ -10,6 +10,8 @@
 | LP26-O14-A | 실제 호출별 비용·분기 구분 | 수동 전체 체크포인트와 자동 no-op/부적격 전체 처리의 진입 조건, 같은 호출의 잠금 소유·대기·전체 시간을 따로 기록하고 실제 HTTP 추적과 대조 | v4.1.0 |
 | LP26-O14-B | 타임라인 정확성 | 누적 삭제 원본의 정확한 ID·개수, 누락/중복/재생 허용 오류를 거부 | v4.1.0 |
 | LP26-O14-C | 계측 출처 | instrumented 제품 소스와 연결 정적 archive의 현재성·hash를 확인하고 불일치하면 성능 판정 거부 | v4.1.0 |
+| LP26-O14-D | 공개 삭제·자동 전체 처리 | 실제 새 ID의 예약·확정·삭제 요청·파일 부재·삭제 완료를 거쳐 자동 checkpoint no-op/전체 분기와 잠금/전체 시간을 구분한다. 수동 처리나 기존 삭제 ID 재요청은 합격 대체가 아니다 | v4.1.0 |
+| LP26-O14-E | 동일 root 재개방 안전성 | 자동 처리 뒤 기존·신규 삭제 ID와 관측 ID/개수를 정확히 대조하고 손상·투영·정리 오류 0을 확인한다 | v4.1.0 |
 
 기존 [수동 동시성 실패 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)의 8.435488초는 타임라인 호출 전체 값이다.
 직전 순차 실행의 8.428초 잠금 점유·3.829초 읽기·4.470초 재적용을 같은 호출의 세부값으로 합산하지 않는다.
@@ -23,6 +25,8 @@
 | LP26-O14-A 공개 자동 no-op·복구 | 같은 원출력: 공개 관측 1,526건, 자동 no-op 1회·전체 재작성 0회, 최대 단일 공개 호출 18.508ms, 재개방 뒤 ID 전수·손상/투영/정리 오류 0 | pass |
 | LP26-O14-B 타임라인 정확성 | 같은 원출력: 삭제 원본 2,049개 ID·총계·중복 없음·비재생 상태 확인 | pass |
 | LP26-O14-C 출처·정리 | 같은 원출력: instrumented 소스 hash와 현재 `media_server_runtime` archive hash 기록, subprocess 정상 종료·격리 root 부재 확인 | pass |
+| LP26-O14-D 공개 자동 전체 처리 | [보존 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-public-full-diagnostic.log): 신규 96개 공개 예약→확정→삭제 요청→실제 파일 제거→삭제 완료에서 자동 full fallback 1회. 단일 checkpoint 최대 9,185,538µs(읽기 4,209,922µs, 원본 의미 재적용 4,757,683µs). 전체 lifecycle 잠금 합계 9,852,445µs는 단일 잠금 측정이 아니며 HTTP 요청 결과도 아님. 명령 exit 0, root 부재 | pass |
+| LP26-O14-E 자동 처리 후 재개방 | 같은 원출력: 동일 root의 기존 2,049개+신규 96개 삭제 ID와 관측 1,526개 ID를 전수·중복 없이 대조, 손상·투영·writer cleanup 오류 0. 복구 프로세스 exit 0 | pass |
 | LP26-O14 실제 HTTP 집중 | 최초 격리 실행은 localhost bind EPERM으로 요청 전 중단·root 정리. [허용 재실행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-latency-focused-authorized.log)은 타임라인 HTTP 114개·최대 967ms, 프로세스 exit0·포트/root 정리 | pass |
 | LP26-O14 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration.log)·[개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): HTTP API 35, 인증 40, lifecycle 10, default 46, 실제 앱 27개 모두 통과. 두 기동의 실제 출력2개씩·HTTP/해시·재기동 보존·정리 확인. `currentIntegrationExecutionPass=true`; `fullFoundationPass=false` 유지 | pass |
 
