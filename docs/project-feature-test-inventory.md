@@ -13,6 +13,9 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-I04 | 암호 미지원 | crypto-off 파일 검증 fail-closed, 기존 v1 경로는 변경하지 않음 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
 | B02-I05 | cold 구간 읽기 | 전체 파일 SHA를 스트리밍 대조하고 지정 offset/length만 반환; 선두/중간/끝/0길이와 큰 파일에서 출력 크기 확인 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
 | B02-I06 | cold 구간 거부 | offset+length overflow·범위 이탈·caller 결과 admission·원본 교체·crypto-off 거부, 실패 출력 불변 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
+| B02-T01 | source 얇은 값 | source-binding 현재 요약·latestMutationId의 고정 schema/canonical 왕복, 값 상한·잘못된 ID/필드 거부 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-T02 | job 얇은 값 | derived-job 현재 요약·출력/원본 ID 목록·상태·latestMutationId의 canonical 왕복, 중복/상한/모순 거부 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-T03 | 요약과 원문 경계 | 얇은 값의 parser 성공은 원문 검증·제품 import 성공이 아님; 실패 output 불변·crypto-off 동일 판정 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 

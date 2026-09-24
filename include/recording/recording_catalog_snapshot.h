@@ -1,8 +1,28 @@
 #pragma once
 #include "recording/recording_generation_manifest.h"
 #include "recording/recording_identity_shard.h"
+#include "recording/recording_derived_job.h"
 
 namespace recording {
+struct RecordingCatalogSourceSummary {
+    std::string id, channel, source, generation, track;
+    std::uint64_t order{0}, sample_count{0};
+    std::string latest_mutation_id;
+};
+struct RecordingCatalogJobSummary {
+    std::string id, channel, reference;
+    DerivedJobState state{DerivedJobState::Intent};
+    std::uint64_t files{0}, reserved_bytes{0};
+    std::vector<std::string> output_ids, source_ids;
+    std::string latest_mutation_id;
+};
+// 고정 필드 순서의 canonical JSON object(LF 없음). 배열의 의미 있는 순서는 보존한다.
+// 기존 domain 값 상한만 검사하며 원문 locator/참조/상태 전이 또는 제품 import를 검증하지 않는다.
+// crypto-off도 동일하게 동작하고 실패 시 caller output은 불변이다.
+bool SerializeRecordingCatalogSourceSummary(const RecordingCatalogSourceSummary&, std::string*, std::string* error);
+bool ParseRecordingCatalogSourceSummary(const std::string&, RecordingCatalogSourceSummary*, std::string* error);
+bool SerializeRecordingCatalogJobSummary(const RecordingCatalogJobSummary&, std::string*, std::string* error);
+bool ParseRecordingCatalogJobSummary(const std::string&, RecordingCatalogJobSummary*, std::string* error);
 struct RecordingCatalogSnapshotRow {
     std::string kind, key;
     // strict JSON 값의 raw bytes다. 내부 공백/escape/필드 순서를 정규화하지 않는다.

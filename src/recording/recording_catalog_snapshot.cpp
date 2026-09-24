@@ -5,11 +5,14 @@
 #include <charconv>
 #include <map>
 #include <tuple>
+#include <unordered_set>
 
 namespace recording {
 namespace {
 using Document = ingress::StrictJsonObjectDocument;
 constexpr const char* kSchema = "media-server.recording-catalog-snapshot.v1";
+constexpr const char* kSourceSchema = "media-server.recording-catalog-source-summary.v1";
+constexpr const char* kJobSchema = "media-server.recording-catalog-job-summary.v1";
 bool Fail(std::string* error, const char* reason) {
     if (error) *error = reason;
     return false;
@@ -151,7 +154,112 @@ bool RequiresAcceptedState(RecordingMutationType type) {
         default: return false;
     }
 }
+bool Text(const Document& document,const char* key,std::string* value) {
+    const auto text=ingress::StrictJsonStringField(document,key);
+    if(!text)return false;
+    *value=*text;return true;
+}
+const char* JobState(DerivedJobState state) {
+    switch(state) {
+        case DerivedJobState::Intent:return "intent";
+        case DerivedJobState::Ready:return "ready";
+        case DerivedJobState::Committed:return "committed";
+        case DerivedJobState::Complete:return "complete";
+        case DerivedJobState::Failed:return "failed";
+    }
+    return nullptr;
+}
+bool SourceSummaryValid(const RecordingCatalogSourceSummary& value,std::string* error) {
+    return ValidateOpaqueId(value.id,error)&&ValidateRecordingReferenceId(value.channel,error)&&
+        ValidateRecordingReferenceId(value.source,error)&&ValidateOpaqueId(value.generation,error)&&
+        ValidateOpaqueId(value.latest_mutation_id,error)&&value.order>0&&value.sample_count>0&&value.sample_count<=4096&&
+        !value.track.empty()&&value.track.size()<=1024&&
+        std::none_of(value.track.begin(),value.track.end(),[](unsigned char c){return c<32||c==127;});
+}
+bool UniqueIds(const std::vector<std::string>& ids,std::string* error) {
+    std::unordered_set<std::string> seen;
+    for(const auto& id:ids)if(!ValidateOpaqueId(id,error)||!seen.insert(id).second)return false;
+    return true;
+}
+bool JobSummaryValid(const RecordingCatalogJobSummary& value,std::string* error) {
+    if(!ValidateOpaqueId(value.id,error)||!ValidateRecordingReferenceId(value.channel,error)||
+       !ValidateOpaqueId(value.reference,error)||!ValidateOpaqueId(value.latest_mutation_id,error)||!JobState(value.state)||
+       value.source_ids.empty()||value.source_ids.size()>8||value.output_ids.size()!=value.source_ids.size()||
+       !value.reserved_bytes||value.reserved_bytes>256ULL*1024*1024||value.files>value.output_ids.size()||
+       !UniqueIds(value.output_ids,error)||!UniqueIds(value.source_ids,error))return false;
+    return value.state==DerivedJobState::Intent||value.state==DerivedJobState::Failed||value.files==value.output_ids.size();
+}
+std::string IdsJson(const std::vector<std::string>& ids) {
+    std::string bytes="[";
+    for(std::size_t i=0;i<ids.size();++i){if(i)bytes+=',';bytes+=Quote(ids[i]);}
+    return bytes+"]";
+}
+bool Ids(const Document& document,const char* key,std::vector<std::string>* ids,std::string* error) {
+    const auto* member=document.Find(key);
+    if(!member||member->type!=ingress::StrictJsonType::Array)return false;
+    const auto& raw=member->raw;
+    if(raw=="[]")return true;
+    bool quoted=false,escaped=false;
+    std::size_t start=1;
+    const auto append=[&](std::size_t end) {
+        Document item;std::string value;
+        if(ids->size()>=8||!ingress::ParseStrictJsonObjectDocument("{\"v\":"+raw.substr(start,end-start)+"}",&item,error)||
+            item.members.size()!=1||!Text(item,"v",&value))return false;
+        ids->push_back(std::move(value));return true;
+    };
+    for(std::size_t i=1;i+1<raw.size();++i) {
+        const char c=raw[i];
+        if(quoted){if(escaped)escaped=false;else if(c=='\\')escaped=true;else if(c=='"')quoted=false;}
+        else if(c=='"')quoted=true;
+        else if(c==','){if(!append(i))return false;start=i+1;}
+    }
+    return append(raw.size()-1);
+}
 } // namespace
+
+bool SerializeRecordingCatalogSourceSummary(const RecordingCatalogSourceSummary& value,std::string* output,std::string* error) {
+    if(!output||!SourceSummaryValid(value,error))return Fail(error,"source summary value invalid");
+    std::string bytes="{\"schema\":"+Quote(kSourceSchema)+",\"id\":"+Quote(value.id)+",\"channel\":"+Quote(value.channel)+
+        ",\"source\":"+Quote(value.source)+",\"generation\":"+Quote(value.generation)+",\"track\":"+Quote(value.track)+
+        ",\"order\":"+std::to_string(value.order)+",\"sampleCount\":"+std::to_string(value.sample_count)+
+        ",\"latestMutationId\":"+Quote(value.latest_mutation_id)+"}";
+    *output=std::move(bytes);if(error)error->clear();return true;
+}
+bool ParseRecordingCatalogSourceSummary(const std::string& bytes,RecordingCatalogSourceSummary* output,std::string* error) {
+    Document document;RecordingCatalogSourceSummary value;
+    if(!output||!ingress::ParseStrictJsonObjectDocument(bytes,&document,error)||document.members.size()!=9||
+       ingress::StrictJsonStringField(document,"schema")!=kSourceSchema||!Text(document,"id",&value.id)||
+       !Text(document,"channel",&value.channel)||!Text(document,"source",&value.source)||
+       !Text(document,"generation",&value.generation)||!Text(document,"track",&value.track)||
+       !Text(document,"latestMutationId",&value.latest_mutation_id)||!Number(document,"order",&value.order)||
+       !Number(document,"sampleCount",&value.sample_count))return Fail(error,"source summary fields invalid");
+    std::string canonical;
+    if(!SerializeRecordingCatalogSourceSummary(value,&canonical,error)||canonical!=bytes)return Fail(error,"source summary noncanonical");
+    *output=std::move(value);if(error)error->clear();return true;
+}
+bool SerializeRecordingCatalogJobSummary(const RecordingCatalogJobSummary& value,std::string* output,std::string* error) {
+    if(!output||!JobSummaryValid(value,error))return Fail(error,"job summary value invalid");
+    std::string bytes="{\"schema\":"+Quote(kJobSchema)+",\"id\":"+Quote(value.id)+",\"channel\":"+Quote(value.channel)+
+        ",\"reference\":"+Quote(value.reference)+",\"state\":"+Quote(JobState(value.state))+",\"files\":"+std::to_string(value.files)+
+        ",\"reservedBytes\":"+std::to_string(value.reserved_bytes)+",\"outputIds\":"+IdsJson(value.output_ids)+
+        ",\"sourceIds\":"+IdsJson(value.source_ids)+",\"latestMutationId\":"+Quote(value.latest_mutation_id)+"}";
+    *output=std::move(bytes);if(error)error->clear();return true;
+}
+bool ParseRecordingCatalogJobSummary(const std::string& bytes,RecordingCatalogJobSummary* output,std::string* error) {
+    Document document;RecordingCatalogJobSummary value;std::string state;
+    if(!output||!ingress::ParseStrictJsonObjectDocument(bytes,&document,error)||document.members.size()!=10||
+       ingress::StrictJsonStringField(document,"schema")!=kJobSchema||!Text(document,"id",&value.id)||
+       !Text(document,"channel",&value.channel)||!Text(document,"reference",&value.reference)||!Text(document,"state",&state)||
+       !Number(document,"files",&value.files)||!Number(document,"reservedBytes",&value.reserved_bytes)||
+       !Ids(document,"outputIds",&value.output_ids,error)||!Ids(document,"sourceIds",&value.source_ids,error)||
+       !Text(document,"latestMutationId",&value.latest_mutation_id))return Fail(error,"job summary fields invalid");
+    bool found=false;
+    for(auto candidate:{DerivedJobState::Intent,DerivedJobState::Ready,DerivedJobState::Committed,DerivedJobState::Complete,DerivedJobState::Failed})
+        if(state==JobState(candidate)){value.state=candidate;found=true;break;}
+    std::string canonical;
+    if(!found||!SerializeRecordingCatalogJobSummary(value,&canonical,error)||canonical!=bytes)return Fail(error,"job summary noncanonical/state invalid");
+    *output=std::move(value);if(error)error->clear();return true;
+}
 
 bool SerializeRecordingCatalogSnapshot(const RecordingCatalogSnapshot& value, std::string* output, std::string* error) {
     if (!output || !HeaderValid(value, error)) return Fail(error, "snapshot output/header invalid");

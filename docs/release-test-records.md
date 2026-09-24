@@ -118,6 +118,46 @@ payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증
 | B02-I05 | cold 구간 읽기 | 전체 descriptor SHA를 streaming 검증하고 offset/length 구간만 반환; 0길이·파일 경계 포함 | v4.1.0 |
 | B02-I06 | cold 구간 거부 | overflow·범위·result admission·변조/교체·crypto-off 거부, 실패 output 불변 | v4.1.0 |
 
+### B-02 현재 상태 thin 요약 구현 전 검사 정의
+
+값 codec 단위다. summary의 `latestMutationId`가 실제 검증된 원문 locator를 가리키는지,
+그 원문과 현재 projection이 일치하는지의 검사는 후속 제품 import 책임이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-T01 | source 요약 | 고정 schema/필드·canonical 직렬화/파싱, ID·계수 상한·중복/추가/누락 필드 거부 | v4.1.0 |
+| B02-T02 | job 요약 | 현재 state·files/reservedBytes·outputIds/sourceIds의 canonical 왕복, ID 중복·불일치/상한·잘못된 state 거부 | v4.1.0 |
+| B02-T03 | 실패/암호 경계 | 실패 output 불변, crypto-off 동일 값 codec 판정; 원문 locator/domain 대조는 미검증으로 분리 | v4.1.0 |
+
+### B-02 thin 요약 값 codec 단위 결과
+
+실행 전 T01~T03을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`
+exit0, crypto-on S01~S04·T01~T02 6/6, crypto-off S05·T03 2/2,
+cleanup `removed=true`였다. [원출력](release-artifacts/v4.1.0/b02-thin-summary-20260925/focused.log)은
+임시 로그와 byte 일치하며 SHA-256은
+`ef169ed4d36d9d91cb0ed7ba051eb3610696fe5787f505573e26cdfba2ec97d3`이다.
+요약 parser의 성공은 `latestMutationId`가 실제 검증된 archive 원문을 가리킨다는
+증거가 아니며 제품 import·Open·SQLite 복구는 미구현이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-T01 | source 고정 schema/필드·canonical·기존 상한·비정규/출력 불변 | pass |
+| B02-T02 | job state/파일 수·예약/ID 목록·기존 상한·배열 순서·비정규/출력 불변 | pass |
+| B02-T03 | crypto-off 동일 값 codec·오류 출력 불변, 원문 locator 미검증 명시 | pass |
+
+영향 확인: `./server.sh build` exit0, `./server.sh verify-project-inventory`
+18/18(기능 행 986개, 원출력 도구 표시 한도에서 잘림)이었다.
+`./server.sh verify-docs-links` markdown 328개·local links 12,785개·failures0,
+`./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit0으로 확인했다.
+실제 서버·계정·포트·영상은 생성하지 않았다. token start/end/consumed의
+계측 source가 없어 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-b02-summary-run.ApV4FG/focused.log` | 집중 검증 원출력 | 127바이트 | byte/SHA 일치 중앙 보존 뒤 원본·빈 root 삭제 | 부재 확인 | 위 `cmp`·SHA·`test ! -e` exit0 |
+| 해당 runner 소유 build/fixture root | 소유 임시 build | runner 출력상 크기 미기록 | runner 정리 | cleanup `removed=true` | 집중 검증 원출력 |
+| 실행 중 `xcrun_db` | 도구 임시 cache | 499바이트 | 소유권 확인 후 제거 | 부재 확인(담당자) | 담당자 기록 |
+
 ### B-02 현재 catalog snapshot 값 형식 단위 결과
 
 실행 전 위의 S01~S05·SR01을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`은

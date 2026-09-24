@@ -29,6 +29,13 @@ RecordingCatalogSnapshot Empty() {
     value.identity_head = {"identity-2.jsonl", 123, std::string(64, 'a')};
     return value;
 }
+RecordingCatalogSourceSummary SourceSummary() {
+    return {"segment-a","123","camera:1","generation-a","video:0",9,12,"mutation-source"};
+}
+RecordingCatalogJobSummary JobSummary() {
+    return {"job-a","123","reference-a",DerivedJobState::Intent,0,4096,
+        {"output-z","output-a"},{"source-z","source-a"},"mutation-job"};
+}
 bool Encode(const RecordingCatalogSnapshot& value, std::string* bytes) {
     return SerializeRecordingCatalogSnapshot(value, bytes, &error);
 }
@@ -232,6 +239,90 @@ int main() {
             s.Check(!ValidateRecordingCatalogSnapshotAcceptedStates(value, chain, &error), "ID/type/retry ordinal/extra conflict");
         }
     }
+    {
+        Scenario s{"B02-T01"};
+        auto value=SourceSummary();std::string bytes;RecordingCatalogSourceSummary parsed;
+        const std::string literal="{\"schema\":\"media-server.recording-catalog-source-summary.v1\",\"id\":\"segment-a\",\"channel\":\"123\",\"source\":\"camera:1\",\"generation\":\"generation-a\",\"track\":\"video:0\",\"order\":9,\"sampleCount\":12,\"latestMutationId\":\"mutation-source\"}";
+        s.Check(SerializeRecordingCatalogSourceSummary(value,&bytes,&error)&&bytes==literal&&
+            ParseRecordingCatalogSourceSummary(bytes,&parsed,&error)&&parsed.latest_mutation_id==value.latest_mutation_id,
+            "source canonical literal and numeric channel");
+        const auto reject=[&](const RecordingCatalogSourceSummary& bad) {
+            std::string output="unchanged";
+            return !SerializeRecordingCatalogSourceSummary(bad,&output,&error)&&output=="unchanged";
+        };
+        value.order=std::numeric_limits<std::uint64_t>::max();value.sample_count=4096;value.track=std::string(1024,'x');
+        s.Check(SerializeRecordingCatalogSourceSummary(value,&bytes,&error)&&ParseRecordingCatalogSourceSummary(bytes,&parsed,&error),"source upper bounds");
+        value=SourceSummary();value.order=0;s.Check(reject(value),"zero order");
+        value=SourceSummary();value.sample_count=0;s.Check(reject(value),"empty samples");
+        value.sample_count=4097;s.Check(reject(value),"sample cap");
+        value=SourceSummary();value.track=std::string(1025,'x');s.Check(reject(value),"track cap");
+        value.track="bad\ntrack";s.Check(reject(value),"track control");
+        value=SourceSummary();value.id="123";s.Check(reject(value),"opaque ID numeric rejection");
+        value=SourceSummary();value.source="../camera";s.Check(reject(value),"reference path rejection");
+        value=SourceSummary();value.latest_mutation_id.clear();s.Check(reject(value),"latest mutation required");
+        value=SourceSummary();value.track="video\"\\track";
+        s.Check(SerializeRecordingCatalogSourceSummary(value,&bytes,&error)&&ParseRecordingCatalogSourceSummary(bytes,&parsed,&error)&&
+            parsed.track==value.track,"track canonical escaping");
+        for(const auto& bad:{literal+"\n",Replace(literal,"\"order\":9","\"order\":-1"),
+            Replace(literal,"\"order\":9","\"order\":1.5"),
+            Replace(literal,"\"order\":9","\"order\":18446744073709551616"),
+            Replace(literal,"\"order\":9","\"order\":9,\"order\":9"),
+            Replace(literal,"\"order\":9,",""),
+            Replace(literal,"\"order\":9","\"extra\":0,\"order\":9"),
+            Replace(literal,"source-summary.v1","source-summary.v2"),
+            Replace(literal,"video:0","video\\u003a0")}) {
+            parsed.id="unchanged";
+            s.Check(!ParseRecordingCatalogSourceSummary(bad,&parsed,&error)&&parsed.id=="unchanged","source strict parse output preserved");
+        }
+    }
+    {
+        Scenario s{"B02-T02"};
+        auto value=JobSummary();std::string bytes;RecordingCatalogJobSummary parsed;
+        const std::string literal="{\"schema\":\"media-server.recording-catalog-job-summary.v1\",\"id\":\"job-a\",\"channel\":\"123\",\"reference\":\"reference-a\",\"state\":\"intent\",\"files\":0,\"reservedBytes\":4096,\"outputIds\":[\"output-z\",\"output-a\"],\"sourceIds\":[\"source-z\",\"source-a\"],\"latestMutationId\":\"mutation-job\"}";
+        s.Check(SerializeRecordingCatalogJobSummary(value,&bytes,&error)&&bytes==literal&&
+            ParseRecordingCatalogJobSummary(bytes,&parsed,&error)&&parsed.output_ids==value.output_ids&&parsed.source_ids==value.source_ids,
+            "job canonical literal preserves semantic array order");
+        const auto reject=[&](const RecordingCatalogJobSummary& bad) {
+            std::string output="unchanged";
+            return !SerializeRecordingCatalogJobSummary(bad,&output,&error)&&output=="unchanged";
+        };
+        for(auto state:{DerivedJobState::Intent,DerivedJobState::Ready,DerivedJobState::Committed,DerivedJobState::Complete,DerivedJobState::Failed}) {
+            value=JobSummary();value.state=state;value.files=2;
+            s.Check(SerializeRecordingCatalogJobSummary(value,&bytes,&error)&&ParseRecordingCatalogJobSummary(bytes,&parsed,&error)&&parsed.state==state,"all job states");
+            value.files=1;
+            if(state==DerivedJobState::Intent||state==DerivedJobState::Failed)
+                s.Check(SerializeRecordingCatalogJobSummary(value,&bytes,&error),"intent/failed partial files allowed");
+            else s.Check(reject(value),"ready/committed/complete file closure");
+        }
+        value=JobSummary();value.output_ids.clear();value.source_ids.clear();
+        s.Check(reject(value),"empty source/output");
+        for(int i=0;i<8;++i){value.output_ids.push_back("output-"+std::to_string(i));value.source_ids.push_back("source-"+std::to_string(i));}
+        value.reserved_bytes=256ULL*1024*1024;
+        s.Check(SerializeRecordingCatalogJobSummary(value,&bytes,&error)&&ParseRecordingCatalogJobSummary(bytes,&parsed,&error),"job upper bounds");
+        value.output_ids.push_back("output-8");value.source_ids.push_back("source-8");s.Check(reject(value),"list cap");
+        value=JobSummary();value.output_ids.pop_back();s.Check(reject(value),"source/output count mismatch");
+        value=JobSummary();value.output_ids[1]=value.output_ids[0];s.Check(reject(value),"duplicate outputs");
+        value=JobSummary();value.source_ids[1]=value.source_ids[0];s.Check(reject(value),"duplicate sources");
+        value=JobSummary();value.source_ids[0]=value.output_ids[0];
+        s.Check(SerializeRecordingCatalogJobSummary(value,&bytes,&error),"cross-list semantics deferred, no new constraint");
+        value=JobSummary();value.files=3;s.Check(reject(value),"files exceed outputs");
+        value=JobSummary();value.reserved_bytes=0;s.Check(reject(value),"zero reservation");
+        value.reserved_bytes=256ULL*1024*1024+1;s.Check(reject(value),"reservation cap");
+        value=JobSummary();value.state=static_cast<DerivedJobState>(99);s.Check(reject(value),"unknown enum");
+        for(const auto& bad:{literal+" ",Replace(literal,"\"intent\"","\"Intent\""),
+            Replace(literal,"\"files\":0","\"files\":-1"),
+            Replace(literal,"\"files\":0","\"files\":18446744073709551616"),
+            Replace(literal,"\"files\":0","\"files\":0,\"files\":0"),
+            Replace(literal,"\"files\":0,",""),
+            Replace(literal,"\"files\":0","\"extra\":0,\"files\":0"),
+            Replace(literal,"[\"output-z\",\"output-a\"]","[\"output-z\",,\"output-a\"]"),
+            Replace(literal,"[\"output-z\",\"output-a\"]","[[\"output-z\"],\"output-a\"]"),
+            Replace(literal,"output-z","output\\qz"),
+            Replace(literal,"output-z","output\\\",z")}) {
+            parsed.id="unchanged";
+            s.Check(!ParseRecordingCatalogJobSummary(bad,&parsed,&error)&&parsed.id=="unchanged","job strict parse output preserved");
+        }
+    }
 #else
     {
         Scenario s{"B02-S05"};
@@ -243,6 +334,21 @@ int main() {
         const auto accepted = Accepted();
         s.Check(ValidateRecordingCatalogSnapshotAcceptedStates(accepted, Chain(accepted), &error),
                 "crypto-off structural DTO comparison, not a successful crypto chain proof");
+    }
+    {
+        Scenario s{"B02-T03"};
+        std::string bytes;RecordingCatalogSourceSummary source;RecordingCatalogJobSummary job;
+        s.Check(SerializeRecordingCatalogSourceSummary(SourceSummary(),&bytes,&error)&&
+            ParseRecordingCatalogSourceSummary(bytes,&source,&error)&&source.sample_count==12,"crypto-off source roundtrip");
+        source.id="unchanged";
+        s.Check(!ParseRecordingCatalogSourceSummary(bytes+" ",&source,&error)&&source.id=="unchanged","crypto-off source failure unchanged");
+        s.Check(SerializeRecordingCatalogJobSummary(JobSummary(),&bytes,&error)&&
+            ParseRecordingCatalogJobSummary(bytes,&job,&error)&&job.output_ids==JobSummary().output_ids,"crypto-off job roundtrip");
+        job.id="unchanged";
+        s.Check(!ParseRecordingCatalogJobSummary(bytes+" ",&job,&error)&&job.id=="unchanged","crypto-off job failure unchanged");
+        auto invalid=JobSummary();invalid.files=3;bytes="unchanged";
+        s.Check(!SerializeRecordingCatalogJobSummary(invalid,&bytes,&error)&&bytes=="unchanged","crypto-off same file count rejection");
+        s.Check(source.latest_mutation_id=="mutation-source","summary accepts unlocated ID; no archive/import proof");
     }
 #endif
     return failures ? 1 : 0;
