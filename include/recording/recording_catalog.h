@@ -252,7 +252,8 @@ private:
         explicit operator bool() const {return !id.empty();}
     };
     using DerivedJobPool = std::unordered_map<std::string, DerivedJobEntry>;
-    // 한 QueryTimeline 호출만 소유한다. 외부 입력이나 다음 요청의 검증 증명으로 저장하지 않는다.
+    // QueryTimeline 호출 안의 확정 증명이다. 이전 호출 후보는 별도 bounded 보관하되
+    // 현재 원장 envelope·얇은 상태를 다시 대조하기 전에는 증명으로 쓰지 않는다.
     struct JobReadContext {
         struct Entry { DerivedJobHandle job; RecordingMutationHandle envelope; RecordingMutationLink link; };
         const RecordingCatalog* owner{nullptr};
@@ -423,6 +424,8 @@ private:
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
     SourceBindingPool source_bindings_;
     DerivedJobPool derived_jobs_;
+    // 검증된 완료 작업의 선택적 후보만 보관한다. 영속 데이터의 권위나 resident를 대신하지 않는다.
+    mutable JobReadContext timeline_read_candidates_;
     std::unordered_set<std::string> derived_accepted_references_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
     std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;

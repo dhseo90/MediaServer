@@ -29,15 +29,16 @@ export const readContextNegativeLabels=[
   'LP22-R09 file tamper rejects and releases holds',
   'LP22-R09 media exception releases context and holds',
   'LP22-R09 same size journal tamper rejects and clears owned output',
-  'LP22-R09 detached authority rejects cold context reuse'];
+  'LP22-R09 detached authority rejects cold context reuse',
+  'LP26-O23 cross-request candidate rejects same-size journal tamper'];
 export function classifyReadContext(result,mode){
   if(!['red','green'].includes(mode)||!result.groupClean||result.stopReason||result.signal||result.code!==(mode==='red'?1:0))return false;
   const lines=result.stdout.trim().split('\n'),checks=lines.filter(x=>/^\[(pass|fail)\] /.test(x));
   const labels=mode==='red'?readContextLabels:[...readContextLabels,...readContextNegativeLabels];
   if(checks.length!==labels.length||checks.some((x,i)=>x!==`[${mode==='red'&&i===2?'fail':'pass'}] ${labels[i]}`))return false;
   const summaries=lines.filter(x=>x.startsWith('[summary] ')),counts=lines.filter(x=>x.startsWith('[read-context-count] '));
-  if(summaries.length!==1||summaries[0]!==`[summary] pass=${mode==='red'?4:21} fail=${mode==='red'?1:0}`||counts.length!==1)return false;
-  try{const count=JSON.parse(counts[0].slice('[read-context-count] '.length));return Object.keys(count).sort().join(',')==='firstParses,secondParses'&&count.firstParses===(mode==='red'?5:1)&&count.secondParses===(mode==='red'?5:1);}catch{return false;}
+  if(summaries.length!==1||summaries[0]!==`[summary] pass=${mode==='red'?4:22} fail=${mode==='red'?1:0}`||counts.length!==1)return false;
+  try{const count=JSON.parse(counts[0].slice('[read-context-count] '.length));return Object.keys(count).sort().join(',')==='firstParses,secondParses'&&count.firstParses===(mode==='red'?5:1)&&count.secondParses===(mode==='red'?5:0);}catch{return false;}
 }
 async function main(){
 const [mode,id]=process.argv.slice(2);

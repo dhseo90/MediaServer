@@ -107,7 +107,11 @@ template<class Check> void Negatives(Store& store,const recording::DerivedJobInt
     {
         ingress::RecordingApplicationService app(reader,catalog,true,{});job_read_probe::enabled=true;job_read_probe::fail_media=true;
         const auto result=app.Timeline({{"channelId","probe-channel"},{"startTimeMs","1789200000000"},{"endTimeMs","1789200003000"}},[](const auto&){return true;});job_read_probe::enabled=false;
-        check(result.status!=200&&!job_read_probe::fail_media&&clean_holds()&&job_read_probe::ObservedExpired(),"LP22-R09 media exception releases context and holds");
+        const bool bounded=catalog.timeline_read_candidates_.entries.size()<=8&&
+            catalog.timeline_read_candidates_.charge<=catalog.timeline_read_candidates_.budget;
+        catalog.timeline_read_candidates_={};
+        check(result.status!=200&&!job_read_probe::fail_media&&clean_holds()&&bounded&&job_read_probe::ObservedExpired(),
+              "LP22-R09 media exception releases context and holds");
     }
     for(bool detach:{false,true}){
         Store isolated(store.root.parent_path()/(detach?"detached":"tampered"));const auto other=PrepareMedia(isolated,false);
@@ -122,6 +126,23 @@ template<class Check> void Negatives(Store& store,const recording::DerivedJobInt
         const bool ok=isolated.catalog.AcquireJobForReadLocked(other.job_id,&out,&context,&error);
         check(!ok&&!out&&!isolated.catalog.derived_job_state_authoritative_&&owned->state==recording::DerivedJobState::Complete,
               detach?"LP22-R09 detached authority rejects cold context reuse":"LP22-R09 same size journal tamper rejects and clears owned output");
+    }
+    {
+        Store isolated(store.root.parent_path()/"cross-request-tamper");const auto other=PrepareMedia(isolated,false);
+        recording::DerivedJobService service(isolated.catalog,isolated.journal,{isolated.root,30000,{}});
+        if(!service.Run(other.job_id).complete)throw std::runtime_error("fixture-cross-request");
+        recording::RecordingReadService read(isolated.catalog);ingress::RecordingApplicationService app(read,isolated.catalog,true,{});
+        const std::unordered_map<std::string,std::string> query{{"channelId","probe-channel"},{"startTimeMs","1789200000000"},{"endTimeMs","1789200003000"}};
+        const auto first=app.Timeline(query,[](const auto&){return true;});
+        const auto bytes=ReadBytes(isolated.journal.path());const auto pos=bytes.rfind(other.job_id);
+        if(pos==std::string::npos)throw std::runtime_error("fixture-cross-request-journal");
+        auto damaged=bytes;damaged[pos]=damaged[pos]=='a'?'b':'a';WriteBytes(isolated.journal.path(),damaged);
+        const auto second=app.Timeline(query,[](const auto&){return true;});
+        bool holds_zero=true;for(const auto& output:other.outputs){const auto held=isolated.catalog.hold_counts_.find(output.output_id);
+            holds_zero&=held==isolated.catalog.hold_counts_.end()||held->second==0;}
+        check(first.status==200&&isolated.catalog.timeline_read_candidates_.entries.size()==1&&
+              second.status!=200&&!isolated.catalog.derived_job_state_authoritative_&&holds_zero,
+              "LP26-O23 cross-request candidate rejects same-size journal tamper");
     }
 }
 #endif
@@ -146,10 +167,13 @@ int main(int argc,char** argv){
         check(baseline.status==200&&first.status==200&&baseline.body==first.body&&bytes_same,"LP22-R02 public timeline canonical and media bytes unchanged");
         check(first_parses==1,"LP22-R03 same job two outputs parse strictly once per request");
         job_read_probe::parses=0;job_read_probe::enabled=true;const auto second=app.Timeline(query,[](const auto&){return true;});job_read_probe::enabled=false;
-        check(job_read_probe::parses>=1&&second.status==200&&second.body==first.body,"LP22-R04 next request revalidates cold job");
+        check(job_read_probe::parses==0&&second.status==200&&second.body==first.body,"LP22-R04 next request revalidates cold job");
         bool holds_zero=true;for(const auto& output:intent.outputs)holds_zero&=Holds(store.catalog,output.output_id)==0;
         bool released=holds_zero;
 #if LP22_JOB_READ_CONTEXT
+        released=released&&store.catalog.timeline_read_candidates_.entries.size()<=8&&
+            store.catalog.timeline_read_candidates_.charge<=store.catalog.timeline_read_candidates_.budget;
+        store.catalog.timeline_read_candidates_={};
         released=released&&job_read_probe::ObservedExpired();
 #endif
         check(released,"LP22-R05 context and media holds released after request");

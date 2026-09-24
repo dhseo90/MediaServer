@@ -308,6 +308,7 @@ RecordingCatalog::~RecordingCatalog() {
 bool RecordingCatalog::Open(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     checkpoint_cache_.reset();
+    timeline_read_candidates_={};
     if (opened_) {const bool owns=journal_.OwnsCatalog(this);if(!owns)automatic_noop_eligible_=false;return owns;}
     const bool first_open=!automatic_noop_open_attempted_;
     automatic_noop_open_attempted_=true;automatic_noop_eligible_=false;

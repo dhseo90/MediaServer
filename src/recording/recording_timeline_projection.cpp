@@ -247,6 +247,12 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
     result->v2_projection=options_.enable_v2_storage;
     if(!result->v2_projection)return true;
     try {
+        // 후보 복사는 선택적이다. 호출별 budget을 줄인 검사는 그대로 strict 경로를 사용한다.
+        if(context&&context->entries.empty()&&context->budget==timeline_read_candidates_.budget&&
+           timeline_read_candidates_.owner==this&&timeline_read_candidates_.charge<=context->budget){
+            try {context->entries=timeline_read_candidates_.entries;context->charge=timeline_read_candidates_.charge;
+                context->owner=this;}catch(...){context->entries.clear();context->charge=0;context->owner=nullptr;}
+        }
         Collector collector(query);
         // 출력/참조 소유권은 이 catalog snapshot 안에서 한 번만 색인한다.
         // 세그먼트마다 모든 작업을 재탐색하면 누적 원본·이벤트가 같은 잠금을 오래 점유한다.
@@ -277,7 +283,13 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             if(ref==consumer_references_.end()||ref->second.channel_id!=query.channel_id)continue;
             if(!owned_references.count(id))collector.Reference(ref->second,nullptr);
         }
-        collector.Finish(result);if(error)error->clear();return true;
+        collector.Finish(result);
+        // 후보가 복사·할당되지 않아도 응답은 영향받지 않는다. 각 재사용은 AcquireJobForReadLocked의
+        // 현재 원장 envelope/출처/상태 검사에서 다시 입증한다.
+        if(context&&context->owner==this&&context->entries.size()<=8&&context->charge<=context->budget){
+            try {timeline_read_candidates_=*context;}catch(...){}
+        }
+        if(error)error->clear();return true;
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
 }
 bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error) const {
