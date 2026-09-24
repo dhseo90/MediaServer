@@ -43544,3 +43544,23 @@ artifact/hash, 모든 command exit/count, repair/rerun 이력은 Task 8 report�
 | 공개 조회·인증·전송 영향 회귀 | `./server.sh verify-v410-recording-timeline` 로컬 포트 권한 실행, exit 0, HTTP API 35/0·AUTH 40/0·lifecycle 10/0 및 서버/포트/root cleanup PASS | pass |
 
 테스트 범위는 실제 writer/파생 파일을 사용하는 격리 집중 검사다. 공개 타임라인/파일·ID·보존·인증 계약은 바꾸지 않았다. 실제 누적 상태 HTTP와 자원 추세, 현행 5단계, 30분/UI/120분은 이 결과로 PASS 처리하지 않는다. token start/end/consumed는 전용 집계가 없어 미집계이고 elapsed는 각 원출력의 compile/focused/cleanup 경과를 따른다.
+
+## v4.1.0 S11 O24 누적 저장소·실제 상태 HTTP 재확인 (2026-09-24)
+
+독자: S11 검증·릴리즈 판정 담당자. 수명: v4.1.0 릴리즈까지. 이 절은 현재 코드 `99f7fded`의 누적 단기 실행 결과이며 장시간·UI 완료 판정이 아니다. 기존 O14/O16 잠금 지연과 녹화 120분 실패 이력은 유지한다. 원출력의 개별 pass 행 1,453개는 [전수 결과표](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o24-results.md)에 한 행씩 보존했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-O10/O14 2,049개 합성 원장 | `bash scripts/internal/verify_recording_accumulation_probe.sh --case 2049`, exit 0, 17개 pass 행. 원본 2,049·기록 8,196, 생성·회전·엄격 복구·손상 거부·공개 자동 전체 체크포인트·재개방 | pass |
+| LP26-O15 원조건 실제 앱 | `bash scripts/internal/verify_recording_current_observer.sh --diagnose-status-1020-original`, exit 0, 1,436개 pass 행·fail 0. 두 채널 실제 원본 1,024개, 상태 HTTP 198건 전부 200·최대 32ms, 관측 최대 간격 11.052초 | pass |
+| O24 격리 정리 | 합성 root 43,705,021바이트와 실제 앱 root 289,668,873바이트가 각각 종료 시 제거·부재. 실제 프로세스·UDP 닫힘 | pass |
+
+합성 원장의 엄격 복구는 12.098초로 15초 안이었고 초기/회전 관측도 각각 11.249/10.820초로 15초 안이다. 그러나 수동 전체 체크포인트가 catalog 잠금을 점유하는 동안 타임라인 읽기는 7.166초 기다렸다. 이 합성 직접 catalog 읽기를 실제 HTTP 상태 지연으로 바꾸어 주장하지 않는다. 실제 앱 상태 HTTP는 모두 4초 안이지만, 이 원출력에 요청과 전체 체크포인트의 정확한 겹침을 증명하는 행은 없다. 그 경계는 앞선 동시성 집중 검사와 분리해 보존한다.
+
+자원 추세는 검증기가 `resourceTrendPass=false`, `reviewRequired=true`로 출력했다. 실제 제품 프로세스 RSS는 첫 92,356,608→마지막 677,609,472바이트, 준비 5분 이후 +164,560,896바이트/약 12.58MiB/분이었다. 최종 제품 소유 녹화는 155,773,670바이트, 전체 소유 root는 289,668,873바이트였다. 녹화가 계속 생산되는 동안의 RSS 증가는 관측 사실이고 누수/정상 증가 판정은 미확정이다. 녹화 전용 120분의 메모리·디스크 추세 판정은 별도로 필요하다. 이번 단기 1,024개를 120분 PASS로 승격하지 않는다. 실제 원출력은 [합성 원장](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o24-cumulative-2049.log.gz), [실제 앱](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o24-status-original.log.gz)이다. token start/end/consumed는 전용 집계가 없어 미집계, elapsed는 합성 133초·실제 앱 1,065.707초의 원출력 기준이다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 실제 30분·UI·녹화 120분 | 이번 누적 단기 범위 밖 | 각각 별도 릴리즈 gate | 이번 O24 결과로 대체 불가 |
+| 현행 5단계 통합 | 누적 단기 검증 뒤 별도 실행 | 이 절에서 미실행 | O24로 현재 통합 PASS 주장 불가 |
+| 자원 추세 | 실제 RSS와 저장량은 측정, 합격 미확인 | 계속 생산 중인 관측이며 `resourceTrendPass=false` | 누수 없음·120분 자원 PASS 주장 불가 |
