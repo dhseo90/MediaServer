@@ -133,6 +133,7 @@ private:
                      RecordingMutationHandle* appended = nullptr, RecordingJournalOwnedViewHandle* view = nullptr);
     bool LoadManagedStateLocked(std::string* error);
     bool CheckManagedStateLocked(std::string* error) const;
+    bool CheckManagedFdStateLocked(std::string* error) const;
     bool ManagedOrderMatches(const RecordingOrderReservationV1& order, std::string* error) const;
     bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error,
                                RecordingCheckpointReadSnapshotHandle* snapshot = nullptr,
@@ -153,8 +154,10 @@ private:
                              RecordingMutationHandle* record, std::string* error) const;
     bool ReleaseRecordResidents(const void* owner, std::string* error);
     bool AcquireLocatedRecordLocked(const RecordingJournalRecordLocationHandle& location,
-                                    RecordingMutationHandle* record, std::string* error) const;
-    bool AcquireCheckpointRecordsLocked(RecordingMutationHandles* records, std::string* error) const;
+                                    RecordingMutationHandle* record, std::string* error,
+                                    bool checkpoint_binding_checked = false) const;
+    bool AcquireCheckpointRecordsLocked(RecordingMutationHandles* records, std::string* error,
+                                        bool checkpoint_binding_checked = false) const;
     bool CheckpointSnapshotMatchesLocked(const void* owner,const RecordingCheckpointReadSnapshotHandle& snapshot) const;
     bool PrepareCheckpoint(const void* owner, RecordingMutationHandles* candidate, std::string* error,
                            const RecordingCheckpointReadSnapshotHandle& snapshot = {}) const;

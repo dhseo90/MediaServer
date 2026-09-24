@@ -15,7 +15,7 @@ function exact(s,a,b){if(s.split(a).length!==2)throw Error('LP18_EXACT');return 
 fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
 for(const name of ['recording_catalog.h','recording_journal.h']){const file=path.join(repo,'include/recording',name);let header=exact(fs.readFileSync(file,'utf8'),'private:','public: // LP18 owned test copy');if(mode==='content'&&name==='recording_catalog.h')header=exact(header,'class DerivedJobContentProof {','class DerivedJobContentProof { public: // LP18 owned negative test only');fs.writeFileSync(path.join(out,'include/recording',name),header);}
 const source=fs.readFileSync(path.join(repo,'src/recording/recording_journal.cpp'),'utf8');
-const helper='\nnamespace ownership_probe { using History=recording::RecordingMutationHandles; History JournalView(const recording::RecordingJournal& j){History out;if(!j.ReadCheckpointRecords(j.catalog_owner_,&out,nullptr))throw std::runtime_error("LP18_JOURNAL_VIEW");return out;} }\n';
+const helper='\nnamespace ownership_probe { using History=recording::RecordingMutationHandles; History JournalView(const recording::RecordingJournal& j){History out;if(!j.ReadCheckpointRecords(j.catalog_owner_,&out,nullptr))throw std::runtime_error("LP18_JOURNAL_VIEW");return out;} bool CorruptCheckpointGeneration(recording::RecordingJournal& j){if(!j.managed_state_||j.managed_state_->locations.empty())return false;j.managed_state_->generation=std::make_shared<const char>(0);return true;} }\n';
 let journal=source;
 if(noopMode){
  journal=exact(journal,'std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) {','std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) { if(noop_probe::capture)++noop_probe::serializes;');
@@ -35,8 +35,9 @@ if(['typed-lifetime','typed-lifetime-crypto-off'].includes(mode)){
 if(locationMode&&source.includes('RecordingJournal::AcquireLocatedRecord(')){
  journal=exact(journal,'auto location=std::make_shared<RecordingJournalRecordLocation>();','location_probe::BeforeLocation();auto location=std::make_shared<RecordingJournalRecordLocation>();');
  journal=exact(journal,"std::string raw(static_cast<std::size_t>(location->length),'\\0');","location_probe::BeforeAcquire();std::string raw(static_cast<std::size_t>(location->length),'\\0');");
+ journal=exact(journal,'bool RecordingJournal::CheckManagedStateLocked(std::string* error) const {','bool RecordingJournal::CheckManagedStateLocked(std::string* error) const { location_probe::BeforeManagedState();');
  journal='#include "recording_journal_location_counter.h"\n'+journal;
- console.log('[instrument] location_exception_exact_insertions=2');
+ console.log('[instrument] location_exception_exact_insertions=3');
 }
 if(locationMode&&source.includes('RecordingJournal::AcquireRecordRef(')){
  journal=exact(journal,'auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);','location_probe::BeforeRef();auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);');

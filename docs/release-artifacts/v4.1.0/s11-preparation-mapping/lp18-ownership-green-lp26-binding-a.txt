@@ -1,0 +1,22 @@
+{"kind":"start","utc":"2026-09-24T05:42:56.903Z","mode":"green","id":"lp26-binding-a","suite":"journal-cold","source":[{"name":"include/recording/recording_catalog.h","sha256":"6474f28059460ee4520bcea75828cdacc52777b125f5b2e230f013ab1d464bc7"},{"name":"include/recording/recording_journal.h","sha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c"},{"name":"src/recording/recording_catalog.cpp","sha256":"cfded0959859b888b3b1c096c8ac96e239d4e4345f851616d4249918dae77b49"},{"name":"src/recording/recording_journal.cpp","sha256":"f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"81d0ac0285dbf30f3e15033ccb5db1e31ced295935fb3af4708c7f0957f46242"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"8dec263adfcd20224f978447af08b54ec68ab665cda37882a9c529619a90f852"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"2d7531ea0f02c6fd2d78bb1daa49e9786ecdcce2582c3649a17e9507aa13f743"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-cold"],"seconds":60}
+[instrument] location_exception_exact_insertions=3
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373 location_journal_instrumented_sha256=5e3b1373f18a053f47afc31031cb27ea6043dd6f6e98f170a30e523b1ce9a8dd
+[instrument] location_declarations=1,1 location_header_sha256=31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c
+[instrument] catalog_sha256=a5adf7969e4a606689191813a8c03fcb5d2ae1aeb989e18081bfedde0154f818 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"6474f28059460ee4520bcea75828cdacc52777b125f5b2e230f013ab1d464bc7"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"cfded0959859b888b3b1c096c8ac96e239d4e4345f851616d4249918dae77b49"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"2d7531ea0f02c6fd2d78bb1daa49e9786ecdcce2582c3649a17e9507aa13f743"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"81d0ac0285dbf30f3e15033ccb5db1e31ced295935fb3af4708c7f0957f46242"}
+
+{"kind":"phase","label":"build","exit":null,"signal":"SIGTERM","stopReason":"resource-observation","cleanup":false,"elapsedMs":255,"groupPeakRssBytes":0}
+{"kind":"failure","code":"LP18_PHASE_GUARD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","removed":false,"reason":"group-unconfirmed"}
+{"kind":"result","utc":"2026-09-24T05:42:57.162Z","mode":"green","matched":false,"productPass":false,"elapsedMs":260}

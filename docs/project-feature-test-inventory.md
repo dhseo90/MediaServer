@@ -523,8 +523,8 @@ LP22-R 요청 내 검증 내용 재사용(제품 수정 전 정의): 공개DTO/�
 | LP18-L11 | journal 비상주 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-L12 | journal 비상주 재획득 | 위치에서 strict 재획득·기존 owned reader/공개 Replay 독립값·재open 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-L13 | journal 비상주 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
-| LP18-L14 | journal 비상주 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
-| LP18-L15 | journal 비상주 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L14 | journal 비상주 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 및 checkpoint 묶음에서 행별 원문 재검증·시작/끝 결박 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L15 | journal 비상주 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분하고 checkpoint 묶음의 동일 길이 변조·inode 교체·세대 불일치 거부 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-L16 | journal 비상주 재획득 | 큰 기록의 기존 resident fallback과 원장 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 ## LP18 호출-local checkpoint 원본

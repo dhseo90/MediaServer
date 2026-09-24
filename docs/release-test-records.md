@@ -40,8 +40,15 @@
 | LP26-O14-E 자동 처리 후 재개방 | 같은 원출력: 동일 root의 기존 2,049개+신규 96개 삭제 ID와 관측 1,526개 ID를 전수·중복 없이 대조, 손상·투영·writer cleanup 오류 0. 복구 프로세스 exit 0 | pass |
 | LP26-O15 최초 실제 앱 누적 진단 | [실패 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic.log.gz): 영상 fixture 생성이 30초 상한에 걸려 서버 기동·HTTP 요청 전 중단(exit 1). stderr 491바이트의 원문은 비민감 분류에 없고 정리 때 폐기됐으므로 원인을 확정하지 않는다. 소유 root 부재 확인. 누적 status 및 120분 결과로 사용할 수 없음 | fail |
 | LP26-O15 권한 확장 1초 분할 진단 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic-authorized.log.gz): 영상 fixture 1,441ms, 원본 1,039개, 상태 HTTP 109건 모두 성공·최대 1,985ms, 표본 최대 간격 8,000.46ms. 자동 checkpoint 최대 3,269.78ms, 종료/포트/root 정리 PASS. 이전 2초 분할·12.7MB 원장과 달리 이번 원장은 8.81MB이므로 과거 실패 재현/120분 PASS로 승격하지 않음 | pass |
-| LP26-O15-B 권한 확장 2초 분할 원조건 진단 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic-original.log.gz): 영상 fixture 1,429ms, 원본 1,035개·원장 13,395,478바이트, 상태 HTTP 200건 모두 성공·최대 2,919ms·P95 917ms, 4초 제한 유지, 표본 최대 간격 11,277ms(<15초). 반면 checkpoint 최대 4,785ms, Catalog 잠금 최대 4,795ms, 원장 읽기 최대 4,089ms가 관측되어 요청이 겹치면 4초 초과할 위험이 남음. 실제 이전 시간초과는 재현되지 않았으며 원인 단정 불가. 프로세스 정상 종료·포트/UDP/root 정리 확인. 120분·자원 추세·최종 통합 PASS로 사용하지 않음 | pass |
+| LP26-O15-B 권한 확장 2초 분할 원조건 진단 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic-original.log.gz): 영상 fixture 1,429ms, 원본 1,035개·원장 13,395,478바이트, 상태 HTTP 200건 모두 성공·최대 2,919ms·P95 917ms, 4초 제한 유지, 표본 최대 간격 11,277ms(<15초). checkpoint 최대 4,785ms, Catalog 잠금 최대 4,795ms, 원장 읽기 최대 4,089ms. 같은 원시 trace에서 상태 요청의 Catalog 잠금 대기 2,916.682ms와 겹치는 작성자 잠금 4,673.245ms가 확인됨. 요청이 잠금 시작 약 1,758ms 뒤 진입했으므로 전체 잠금 동안 기다릴 경우 4초 초과 위험이 남음. 실제 이전 시간초과는 재현되지 않았으며 원인 단정 불가. 프로세스 정상 종료·포트/UDP/root 정리 확인. 120분·자원 추세·최종 통합 PASS로 사용하지 않음 | pass |
 | LP26-O16 첫 표준 harness 중단 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-journal-binding-batch.txt): assertion·제품 실행 전 build 258ms에 resource-observation SIGTERM, exit1. `group-unconfirmed`으로 남은 소유 임시 root 444KiB는 소유권·사용 프로세스 부재를 확인한 뒤 정확한 경로만 삭제하고 부재 확인. 이 실행은 PASS 증거가 아님 | fail |
+| LP26-O16 현재 소스 표준 harness 환경 실패 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-a.txt): build 255ms에 프로세스 관측이 허용되지 않아 SIGTERM·exit1. 제품 검사는 미실행. 소유 임시 root 448KiB는 PID/FD·소유권 확인 뒤 정확한 경로만 삭제하고 부재 확인 | fail |
+| LP26-O16 현재 소스 집계 oracle 준비 오류 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-b.txt): 제품 26/26 통과·자식 정상 종료·root 자동 정리 후, 새 검사 4개가 이미 포함된 기존 총계 26을 30으로 잘못 바꾼 래퍼가 `matched=false`로 종료. 래퍼를 복원하고 같은 검사를 재실행 | fail |
+| LP26-O16 현재 소스 cold 검사 재검증 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-c.txt): build·집중 검사 exit0, 26/26·`matched=true`, 원본 소스 해시 불변, 임시 root 22,283,385바이트 자동 삭제 | pass |
+| LP18-L14 checkpoint batch keeps every cold raw parse while binding checks are start/end only | 같은 [재검증 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-c.txt): 3행의 원문 9회 재검증·묶음 결박 경계·결과 확인 | pass |
+| LP18-L15 checkpoint batch same-size tamper poisons | 같은 재검증 원출력: 동일 길이 변조의 빈 출력·poison 확인 | pass |
+| LP18-L15 checkpoint batch inode replacement poisons | 같은 재검증 원출력: 원장 inode 교체의 빈 출력·poison 확인 | pass |
+| LP18-L15 checkpoint batch generation mismatch rejects without poison | 같은 재검증 원출력: 세대 불일치 거부·기존 소유 상태 보존 확인 | pass |
 | LP26-O16 cold/crypto-off 집중 검사 | 담당자의 격리 직접 build/run에서 cold 26/26, crypto-off 3/3, `media_server_runtime` 빌드 exit0. 행별 raw/hash/strict Parse 유지, 묶음 전체 결박 시작·끝, 동일 길이 변조·inode 교체·세대 불일치 반례 확인. 첫 harness 중단을 이 결과로 소급 PASS 처리하지 않음 | pass |
 | LP26-O16 2,049개 공개 정상 수명 비교 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-public-full-after-binding.log.gz): 명령 exit0, 공개 삭제 96회로 자동 full 1회, checkpoint 최대 7,718,849µs 중 원장 읽기 최대 2,733,829µs·원본 의미 재적용 최대 4,764,192µs. 이전 동일 probe 읽기 4,209,922µs보다 낮으나 2,049개 전체 잠금 4초 이내는 아님. 재개방 시 삭제 ID 2,145개·관측 ID 1,526개, 손상/투영/정리 오류0, 소유 root 부재. 실제 HTTP 결과로 사용하지 않음 | pass |
 | LP26-O16 catalog/SQLite·JSONL 회귀 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o16-catalog-regression.log.gz): `./server.sh verify-v410-recording-catalog` exit0, 본문 234/234·crypto-off 3/3, SQLite fallback·손상·삭제·hold·재개방 검사 포함, 임시 root 27,548,382바이트 삭제 확인 | pass |
@@ -3572,10 +3579,14 @@ peak RSS B157253632B/C104726528B(프로세스), 이번2-job의 기존536870912B 
 | LP18-L14 cold no-write checkpoint preserves generation | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
 | LP18-L14 cold recover-only cleanup preserves generation | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
 | LP18-L14 cold receipt swap rebinds tokens and preserves old reader | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
+| LP18-L14 checkpoint batch keeps every cold raw parse while binding checks are start/end only | journal checkpoint 결박 최적화 | 3개 cold 레코드의 원문 9회 재검증과 묶음 앞뒤 결박 검사 횟수 확인 | v4.1.0 |
 | LP18-L13 cold receipt retry retains original envelope without append | journal cold 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | v4.1.0 |
 | LP18-L15 cold same-size tamper poisons and clears output | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
 | LP18-L15 cold truncation poisons and clears output | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
 | LP18-L15 cold inode replacement poisons and clears output | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
+| LP18-L15 checkpoint batch same-size tamper poisons | journal checkpoint 결박 최적화 | 동일 길이 원문 변조 시 빈 결과와 poison 확인 | v4.1.0 |
+| LP18-L15 checkpoint batch inode replacement poisons | journal checkpoint 결박 최적화 | 원장 inode 교체 시 빈 결과와 poison 확인 | v4.1.0 |
+| LP18-L15 checkpoint batch generation mismatch rejects without poison | journal checkpoint 결박 최적화 | snapshot 세대 불일치 시 빈 결과로 거부하고 기존 소유 상태는 보존 | v4.1.0 |
 | LP18-L15 cold allocation failure clears output and poisons | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
 | LP18-L16 oversized resident fallback survives release unchanged | journal cold 재획득 | 큰 기록의 기존 resident fallback과 원장 불변 | v4.1.0 |
 | LP18-L13 cold Reserve retry preserves sequence and physical row count | journal cold 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | v4.1.0 |

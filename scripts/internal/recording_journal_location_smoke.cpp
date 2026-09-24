@@ -33,6 +33,7 @@
 #define LP18_LOGICAL_REFS 0
 #endif
 using namespace recording;
+namespace ownership_probe { bool CorruptCheckpointGeneration(RecordingJournal&); }
 namespace {
 int passed=0,failed=0;
 void Need(bool value){if(!value)throw std::runtime_error("LP18_LOCATION_SETUP");}
@@ -158,6 +159,19 @@ void LocationExceptions(const std::filesystem::path& root){
 }
 #if LP18_COLD_RECORDS
 void Release(Store& s){std::string error;Need(s.journal.ReleaseRecordResidents(&s.owner,&error));}
+void CheckpointBindingBatch(const std::filesystem::path& root){
+ {Store s(root/"batch");for(const char* id:{"batch-one","batch-two","batch-three"})Append(s,Mutation(id,2000));Release(s);RecordingMutationHandles original,candidate;std::string error;location_probe::raw_reads=0;location_probe::ResetManagedStateChecks();
+  Need(s.journal.ReadCheckpointRecords(&s.owner,&original,&error));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error));
+  Check(original.size()==3&&candidate.size()==3&&location_probe::raw_reads==9&&location_probe::managed_state_checks==7,"LP18-L14 checkpoint batch keeps every cold raw parse while binding checks are start/end only");
+ }
+ for(int kind=0;kind<3;++kind){Store s(root/("batch-reject-"+std::to_string(kind)));Append(s,Mutation("batch-reject",2000));Release(s);auto bytes=Bytes(s.journal.path());
+  if(kind==0){const auto at=bytes.find("xxx");Need(at!=std::string::npos);bytes[at]='y';Write(s.journal.path(),bytes);}
+  else if(kind==1){std::filesystem::rename(s.journal.path(),s.root/"old.jsonl");Write(s.journal.path(),bytes);}
+  else Need(ownership_probe::CorruptCheckpointGeneration(s.journal));
+  RecordingMutationHandles records;std::string error;const bool rejected=!s.journal.ReadCheckpointRecords(&s.owner,&records,&error);
+  Check(rejected&&records.empty()&&(kind<2?s.journal.poisoned_:!s.journal.poisoned_),kind==0?"LP18-L15 checkpoint batch same-size tamper poisons":(kind==1?"LP18-L15 checkpoint batch inode replacement poisons":"LP18-L15 checkpoint batch generation mismatch rejects without poison"));
+ }
+}
 void ColdRecords(const std::filesystem::path& root){
  const auto m=Mutation("cold-original");
  {Store s(root/"basic");Append(s,m);const auto rows=Locations(s);const auto before=Bytes(s.journal.path());
@@ -194,6 +208,7 @@ void ColdRecords(const std::filesystem::path& root){
  {Store s(root/"allocation");Append(s,m);const auto rows=Locations(s);Release(s);location_probe::throw_acquire=true;Check(Reject(s,&s.owner,rows[0])&&!location_probe::throw_acquire&&s.journal.poisoned_,"LP18-L15 cold allocation failure clears output and poisons");}
  {Store s(root/"large");const auto large=Mutation("cold-large",16*1024*1024);Append(s,large);const auto rows=Locations(s);std::weak_ptr<const RecordingMutationV1> weak;{auto value=Acquire(s,rows[0]);weak=value;}const auto before=Bytes(s.journal.path());Release(s);Check(!weak.expired()&&Canonical(*Acquire(s,rows[0]))==Canonical(large)&&Bytes(s.journal.path())==before,"LP18-L16 oversized resident fallback survives release unchanged");}
  {Store s(root/"reservation");RecordingOrderReservationV1 first,again;std::string error;Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&first,&error));const auto rows=Locations(s);const auto before=Bytes(s.journal.path());Release(s);Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&again,&error));Check(first.sequence==again.sequence&&Locations(s)==rows&&Bytes(s.journal.path())==before&&Acquire(s,rows[0])->mutation_type==RecordingMutationType::RecordingOrderReserved,"LP18-L13 cold Reserve retry preserves sequence and physical row count");}
+ CheckpointBindingBatch(root/"checkpoint-binding");
 }
 #if LP18_LOGICAL_REFS
 RecordingJournalRecordRefs Refs(Store& s){RecordingJournalRecordRefs refs;std::string error;Need(s.journal.ReadRecordRefs(&s.owner,&refs,&error));return refs;}
