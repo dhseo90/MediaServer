@@ -133,7 +133,7 @@ crypto 미지원 빌드에서 값 코덱은 검사했으나 chain 검증은 거�
 | B02-H06 | crypto-off 값 코덱 왕복, chain unsupported·loader 미호출·결과 불변 | pass |
 | B02-HR01 | `./server.sh verify-v410-recording-identity-shards`, H01~H06 각 PASS·exit0·cleanup removed=true | pass |
 | B02-B01 영향 검증 | `./server.sh build`, 신규 source 포함 exit0 | pass |
-| B02-R01/R02 영향 검증 | 기존 manifest M01~M06·파일 준비 F01~F06 각각 exit0·cleanup removed=true | pass |
+| B02-R01/R02 영향 검증 | 기존 manifest M01~M06·파일 준비 F01~F06 각각 exit0·cleanup removed=true. 색인 고정 이름 도입 후 F02에 과거 `identity-*` 원본 복사 거부를 추가해 F02 9 assertion으로 재실행 | pass |
 | B03-R01 영향 검증 | 기존 예약 코덱 O01~O06 exit0·cleanup removed=true | pass |
 | B02-S01 | `./server.sh verify-script-inventory`, 요약 12/12·exit0 | pass |
 | B02-I01 | `./server.sh verify-project-inventory`, 기존 feature 986행 불변·새 inventory hash 필드만 갱신, 요약 18/18·exit0. 도구 반환의 원출력 5,087행은 상한으로 절단 | pass |

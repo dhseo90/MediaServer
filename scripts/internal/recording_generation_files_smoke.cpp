@@ -113,6 +113,8 @@ int main() {
         rejected(2, 2, {invalid}, "output and archived snapshot source rejected");
         invalid = source; invalid.source_name = "evidence-1-0.jsonl";
         rejected(2, 2, {invalid}, "old archive is not copied");
+        invalid = source; invalid.source_name = "identity-1.jsonl";
+        rejected(2, 2, {invalid}, "old identity shard is not copied");
         rejected(2, 2, {source, source}, "duplicate source name");
         invalid = source; invalid.expected_sha256 = "bad";
         rejected(2, 2, {invalid}, "hash encoding");

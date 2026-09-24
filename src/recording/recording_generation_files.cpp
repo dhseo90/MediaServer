@@ -29,6 +29,7 @@ bool Fail(std::string* error, const char* message) {
     return !name.empty() && name.size() <= 255 && name != "." && name != ".." &&
         name != "recording-generation.json" && name.rfind(".recording-", 0) != 0 &&
         name.rfind("evidence-", 0) != 0 && name.rfind("snapshot-", 0) != 0 &&
+        name.rfind("identity-", 0) != 0 &&
         std::all_of(name.begin(), name.end(), [](unsigned char c) {
             return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                 (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.';
