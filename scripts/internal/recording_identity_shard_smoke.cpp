@@ -219,6 +219,9 @@ int main() {
         RecordingIdentityChainLimits limits{100000, 10, 10};
         RecordingIdentityChainResult result;
         s.Check(chain.Read(head, limits, &result) && result.shards == 2 && result.physical_rows == 4 &&
+                result.maximum_global_ordinal == std::optional<std::uint64_t>{10} &&
+                result.head.name == head.name && result.head.size == head.size &&
+                result.head.sha256 == head.sha256 &&
                 result.first_acceptances.size() == 2 && result.first_acceptances[0].first_global_ordinal == 0 &&
                 result.first_acceptances[0].occurrences == 2 && result.first_acceptances[1].occurrences == 2,
                 "two-generation multiplicity and first ordinal");
@@ -234,7 +237,12 @@ int main() {
                 "validated identity/order projection returned atomically");
         auto third = next; third.generation = 3; third.previous = head;
         third.archives.clear(); third.rows.clear();
-        s.Check(chain.Read(chain.Add(third), limits, &result) && result.shards == 3, "three generations supported");
+        s.Check(chain.Read(chain.Add(third), limits, &result) && result.shards == 3 &&
+                result.maximum_global_ordinal == std::optional<std::uint64_t>{10}, "empty newer shard retains maximum");
+        Chain empty_chain;
+        auto empty = Base(); empty.rows.clear(); empty.archives.clear();
+        s.Check(empty_chain.Read(empty_chain.Add(empty), limits, &result) && result.physical_rows == 0 &&
+                !result.maximum_global_ordinal, "empty chain has no maximum ordinal");
         auto bad = head; bad.sha256[0] = bad.sha256[0] == '0' ? '1' : '0';
         result.shards = 99;
         s.Check(!chain.Read(bad, limits, &result) && result.shards == 99, "hash mismatch and output preserved");

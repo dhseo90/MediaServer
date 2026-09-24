@@ -1,5 +1,20 @@
 # 프로젝트 기능별 테스트 목록
 
+## S11 B-02 현재 catalog snapshot 값 형식
+
+독자: 녹화 저장·검증 구현자. 수명: B안 snapshot 구조 구현부터 제품 복원 판정까지.
+아래는 구현·실행 전 단기 반례 정의다. 값 코덱 결과는 catalog export/import·Open·SQLite·
+30분/120분/UI 결과가 아니다. [중앙 기록](release-test-records.md#v410-s11-b안-저장-구조-구현)을 따른다.
+
+| ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| B02-S01 | 값 왕복 | 빈/모든 현재 map kind, object/string/true 값, 독립 canonical header/row literal | 미실행: 단기 값 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-S02 | 엄격 JSONL | kind/key 순서·중복·extra/duplicate key·overflow·값 타입·LF·입력 크기 거부, 실패 output 불변 | 미실행: 단기 값 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-S03 | manifest/head 결박 | store/세대/배타적 cut, 현 세대 `identity-*` 이름·길이·SHA, 0세대/미래 head 거부 | 미실행: 단기 값 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-S04 | 최초 수용 순서 | accepted-state ID/type/ordinal을 완전 검증된 chain 최초행과 대조, 대상 ID 전수·후행 재시도 포함 배타 cut 검증 | 미실행: 단기 값 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-S05 | crypto 미지원 | 값 코덱·구조 결박은 정상, 암호 체인 검증을 대신하지 않음 | 미실행: 단기 값 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-SR01 | snapshot 검사 실행 연결 | `./server.sh verify-v410-recording-catalog-snapshot`, S01~S05·exit·임시 정리 | 미실행: 단기 값 코덱 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+
 ## S11 B-02 과거 identity 색인 조각 단위
 
 독자: 녹화 저장·검증 구현자. 수명: B안 과거 증거 참조 폐쇄부터 S11 영향 판정까지.

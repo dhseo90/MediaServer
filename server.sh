@@ -1219,7 +1219,8 @@ Usage:
   verify-v410-recording-generation-files
   verify-v410-recording-order-snapshot
   verify-v410-recording-identity-shards
-                 B안 세대 manifest의 형식·파일 결박·원자 게시를 독립 검사합니다. 제품 통합 PASS는 아닙니다.
+  verify-v410-recording-catalog-snapshot
+                 B안 manifest·파일 준비·예약 이력·identity·snapshot의 독립 형식 경계를 검사합니다. 제품 통합 PASS는 아닙니다.
   verify-v410-recording-retention
                  v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
   verify-v410-event-recording
@@ -3125,6 +3126,10 @@ case "${cmd}" in
   verify-v410-recording-identity-shards)
     require_internal verify_recording_identity_shards.sh
     exec bash "${INTERNAL_DIR}/verify_recording_identity_shards.sh" "$@"
+    ;;
+  verify-v410-recording-catalog-snapshot)
+    require_internal verify_recording_catalog_snapshot.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_catalog_snapshot.sh" "$@"
     ;;
   verify-v410-recording-retention)
     require_internal verify_v410_recording_retention.sh

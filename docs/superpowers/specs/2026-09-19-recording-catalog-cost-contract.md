@@ -97,6 +97,9 @@ manifest가 현재 세대, 확정된 현재 상태 snapshot, 쓰기 가능한 �
 최소 identity/예약/삭제 색인의 소유 파일과 마지막 수용 순서를 지목한다. 불변 파일에는
 정확한 길이·digest를 결박하고, 쓰기 중인 증분 원장은 게시 순간의 확정 prefix와 이후
 완결 append를 구분해 검증한다.
+`cutOrdinal`은 배타적 경계다. snapshot과 identity head가 반영한 물리 순서는 모두
+`< cutOrdinal`, 새 active 증분은 `>= cutOrdinal`이다. 빈 기록은 cut 0을 허용하며,
+세대 회전에서는 앞 세대보다 cut이 감소하지 않는다. ordinal의 연속성은 강제하지 않는다.
 SQLite는 이 권위 상태의 재구축 가능한 투영이다. 별도 파일에 대한 SQLite transaction만으로
 manifest·영상·증거까지 원자 확정됐다고 판정하지 않는다. 경로는 store root 안의 고정된
 이름과 검증된 세대 ID로 구성하고, manifest의 임의 경로를 따라가지 않는다. 새 형식 적용 전
@@ -109,6 +112,13 @@ sequence 상한, 삭제·참조 판정에 필요한 최소 증거도 보존한�
 필요한 원문을 잃지 않는다. mutex, 열린 FD·SQLite handle, 약한 cache, 일시 wait lease와
 hold count는 저장하지 않고 확정된 관계·진행 작업에서 복구한다. snapshot을 읽을 때 schema,
 중복, ID/예약/참조, 길이·digest·세대 결박을 검사한 임시 투영 전체가 성공해야 공개한다.
+값 형식은 첫 JSONL 행에 schema/store/generation/배타 cut/현재 세대 identity head
+descriptor를 두고, 이후 현재 상태 row를 `(kind,key)` 순으로 보존한다. 기존 domain payload는
+필드 순서와 원문을 임의 재정렬하지 않는다. 형식 코덱의 outer 구조 검증과 제품 복원의
+domain canonical·내부 ID·참조·cold 상세 검증은 다른 경계이며 하나의 PASS로 합치지 않는다.
+`mutation_ids_`와 미사용 예약은 검증된 identity chain에서 재구성한다. snapshot에는
+segment-state 계열의 최초 수용 provenance와 현재 projection만 두고, `orders_v2_`를
+유일한 예약 권위로 쓰거나 일시 hold count를 그대로 영속화하지 않는다.
 
 **증분과 세대 게시.** 새로운 mutation은 현재 세대의 증분 원장에 엄격 검증·append·fsync한 뒤
 현재 투영에 적용한다. 적용 또는 SQLite 투영이 실패하면 현행 쓰기를 중단하고 복구 경계를

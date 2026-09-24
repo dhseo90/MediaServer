@@ -326,6 +326,7 @@ bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
     std::unordered_map<std::string, Acceptance> first;
     std::unordered_map<std::string, Archive> archives;
     RecordingIdentityChainResult result;
+    result.head = head;
     RecordingGenerationFile descriptor = head;
     std::optional<std::uint64_t> newer_generation, newer_first;
     std::string store;
@@ -373,6 +374,8 @@ bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
             }
             if (result.physical_rows == std::numeric_limits<std::uint64_t>::max()) return Fail(error, "identity row count overflow");
             ++result.physical_rows;
+            if (!result.maximum_global_ordinal || row.global_ordinal > *result.maximum_global_ordinal)
+                result.maximum_global_ordinal = row.global_ordinal;
         }
         if (result.shards == std::numeric_limits<std::uint64_t>::max()) return Fail(error, "identity shard count overflow");
         ++result.shards;

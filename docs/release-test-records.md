@@ -10,7 +10,7 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비 및 과거 identity 조각의 독립 strict 코덱·체인 검사는 focused PASS. 실제 snapshot 의미·증분·제품 연결과 cold 원문 검증은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱 검사는 focused PASS. snapshot domain 복원·증분·제품 연결과 cold 원문 검증은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -79,6 +79,47 @@ Journal Open/Append/Checkpoint에 연결됐다는 증거가 아니며 해당 경
 | B02-H05 | 다세대 체인 | 2세대 반례 및 3세대 이상 descriptor 순차 읽기, 길이/SHA·store/세대·ID/ordinal·자원 상한 대조 | v4.1.0 |
 | B02-H06 | 암호화 미지원 | 값 코덱 범위와 digest 체인 fail-closed 분리 | v4.1.0 |
 | B02-HR01 | 실행 연결 | `./server.sh verify-v410-recording-identity-shards`, H01~H06 개별 결과·exit·임시 자료 정리 | v4.1.0 |
+
+### B-02 현재 catalog snapshot 값 형식 구현 전 검사 정의
+
+이 단위는 outer JSONL·세대/head·최초 수용 ID의 구조적 결박을 다룬다. nested domain
+payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증과 제품 export/import는 별개다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-S01 | 현재 상태 값 왕복 | 빈/모든 map kind의 object/string/true 보존과 독립 outer canonical literal | v4.1.0 |
+| B02-S02 | JSONL 엄격성 | 정렬/중복/key·schema/extra/overflow/타입/LF/입력 상한 및 실패 output 불변 | v4.1.0 |
+| B02-S03 | 세대/head 구조 결박 | manifest store/세대/배타 cut과 현 세대 identity descriptor 이름·길이/SHA 대조 | v4.1.0 |
+| B02-S04 | 최초 수용 ID | accepted-state 대상 ID 전수의 최초행 ID/type/ordinal 대조, 후행 재시도 포함 전체 물리 순서의 배타 cut 검증 | v4.1.0 |
+| B02-S05 | 암호화 미지원 | crypto-off 값 코덱·구조 결박, chain digest 검증과 구분 | v4.1.0 |
+| B02-SR01 | 실행 연결 | `./server.sh verify-v410-recording-catalog-snapshot`, S01~S05·exit·임시 정리 | v4.1.0 |
+
+### B-02 현재 catalog snapshot 값 형식 단위 결과
+
+실행 전 위의 S01~S05·SR01을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`은
+crypto-on S01~S04와 crypto-off S05를 각각 PASS로 출력하고 exit0, 임시 build root 삭제
+`removed=true`였다. accepted-state 검사는 chain 결과의 최초 ID/type/ordinal, 대상 ID 전수와
+재시도 포함 최대 물리 ordinal `< cutOrdinal`을 구조적으로 대조한다. 공개 DTO 자체는 검증
+증명이 아니며 파일 SHA·중첩 domain canonical·map 간 참조·제품 Open/Append/Checkpoint는 미검증이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-S01 | 빈 값 독립 literal·16종 행 raw 왕복 | pass |
+| B02-S02 | 엄격 구조·중복·상한·실패 출력 불변 | pass |
+| B02-S03 | manifest 구조·세대/head·배타 cut | pass |
+| B02-S04 | 최초 ID/type/ordinal·대상 전수·전체 물리 순서 cut 반례 | pass |
+| B02-S05 | crypto-off 값 형식과 체인 digest 검증 경계 분리 | pass |
+| B02-SR01 | dispatch, 5/5 시나리오·exit0·임시 root 삭제 | pass |
+
+영향 확인: `./server.sh build` exit0, `./server.sh verify-v410-recording-identity-shards`
+H01~H06 exit0, `./server.sh verify-v410-recording-order-snapshot` O01~O06 exit0,
+`./server.sh verify-v410-recording-generation` M01~M06 exit0. `./server.sh verify-script-inventory`
+12/12, `./server.sh verify-project-inventory` 18/18(기능 행 986개),
+`./server.sh verify-docs-links` markdown 328개·local links 12,780개·failures0,
+`./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit0이었다.
+프로젝트 인벤토리 원출력은 실행 도구 표시 한도에서 잘렸으므로 전체 로그 보존이나 개별 986개
+출력 검토를 주장하지 않는다. token start/end/consumed의 계측 source가 없어 미집계다.
+테스트 소유 임시 root는 runner 종료 때 삭제했다. 실제 서버·계정·포트·영상 데이터는 생성하지 않았다.
 
 ### B-02 manifest 첫 구현 단위 결과
 

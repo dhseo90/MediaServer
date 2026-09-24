@@ -13,6 +13,7 @@ struct RecordingGenerationFile {
 };
 struct RecordingGenerationManifest {
     std::string store_id;
+    // 배타적 경계: snapshot/identity에는 < cut_ordinal, active delta에는 >= cut_ordinal.
     std::uint64_t generation{0}, cut_ordinal{0};
     RecordingGenerationFile snapshot, active;
     std::vector<RecordingGenerationFile> evidence;

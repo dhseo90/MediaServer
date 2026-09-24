@@ -35,6 +35,10 @@ struct RecordingIdentityFirstAcceptance {
 };
 struct RecordingIdentityChainResult {
     std::uint64_t shards{0}, physical_rows{0};
+    // 동일 ID 재시도를 포함한 모든 물리 행의 최대 ordinal. 빈 chain에는 값이 없다.
+    std::optional<std::uint64_t> maximum_global_ordinal;
+    // 검증이 실제 시작된 descriptor. 후속 snapshot의 head 결박에 사용한다.
+    RecordingGenerationFile head;
     std::vector<RecordingIdentityFirstAcceptance> first_acceptances;
     RecordingOrderHistorySnapshot order_history;
 };
