@@ -1,5 +1,9 @@
 # Release Evidence Index
 
+- [2026-09-24 v4.1.0 릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260924.md):
+  LP26-O14 누적 공개 경로·실제 HTTP·5단계 통합 이후의 현재 기준. 녹화 전용 120분과
+  새 녹화 UI 전체 적격은 미완료다. 아래 과거 시점 기록을 현재 PASS로 승격하지 않는다.
+
 - [S11 녹화 장시간 저장량·입력 생성 진단](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md):
   범주별 계측 자체검사 5/5·입력 진단 7/7·짧은 실제 앱 71/71을 확인했다.
   120분 1차의 격리 root 상한 FAIL과 제품 저장 수명 계약 미해결은 그대로다.
