@@ -10,13 +10,20 @@ probe_repo="$(cd "$probe_scripts/../.." && pwd)"
 probe_root="$(mktemp -d "${TMPDIR:-/tmp}/media-server-catalog-cost.XXXXXX")"
 probe_root="$(cd "$probe_root" && pwd -P)"
 chmod 700 "$probe_root"
+probe_receipts="$probe_repo/docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923"
+[[ -d "$probe_receipts" && ! -L "$probe_receipts" ]] || exit 2
+export MEDIA_SERVER_ACCUMULATION_RECEIPT="$probe_receipts/o28-accumulation-$(basename "$probe_root").json"
 SECONDS=0
 cleanup(){
  local result=$? cleanup_result=0
  trap - EXIT
- node - "$probe_root" <<'NODE' || cleanup_result=$?
-const fs=require('fs'),path=require('path'),root=process.argv[2];
+ PROBE_PRIOR="$result" node - "$probe_root" <<'NODE' || cleanup_result=$?
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),root=process.argv[2];
 if(!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(path.basename(root))||fs.realpathSync(root)!==root||fs.lstatSync(root).isSymbolicLink())throw Error('cleanup-ownership');
+if(Number(process.env.PROBE_PRIOR)!==0){console.log('[cleanup] '+JSON.stringify({preserved:true,reason:'failed-run'}));process.exit(0);}
+if(!fs.existsSync(path.join(root,'.receipt-preserved'))){console.log('[cleanup] '+JSON.stringify({preserved:true,reason:'evidence-missing'}));process.exit(1);}
+const receiptBytes=fs.readFileSync(process.env.MEDIA_SERVER_ACCUMULATION_RECEIPT),marker=fs.readFileSync(path.join(root,'.receipt-preserved'),'utf8'),receipt=JSON.parse(receiptBytes).receipt;
+if(crypto.createHash('sha256').update(receiptBytes).digest('hex')!==marker||receipt?.outcome!=='pass'||receipt?.groupClosed!==true||receipt?.manifestUnchanged!==true){console.log('[cleanup] '+JSON.stringify({preserved:true,reason:'evidence-unverified'}));process.exit(1);}
 function size(p){const s=fs.lstatSync(p);return s.isDirectory()?fs.readdirSync(p).reduce((n,k)=>n+size(path.join(p,k)),0):s.size;}
 const bytes=size(root);fs.rmSync(root,{recursive:true});const absent=!fs.existsSync(root);console.log('[cleanup] '+JSON.stringify({root,bytes,absent}));if(!absent)process.exitCode=1;
 NODE

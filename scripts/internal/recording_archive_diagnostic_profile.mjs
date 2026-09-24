@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {runBounded,treeBytes} from './recording_catalog_comparison_guard.mjs';
-import {captureStateEvidence,captureCompletenessEvidence} from './recording_failure_capture.mjs';
+import {captureStateEvidence,captureCompletenessEvidence,preserve} from './recording_failure_capture.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 export const targetHash='268a395031147be5bd22b4c3459cf4777478e0fbdf111c76b3918c1ea2cb24b9';
 export const phases=Object.freeze('journal-open catalog-open open open-replay open-preflight open-apply sqlite-open rebuild rebuild-replay rebuild-preflight rebuild-clear rebuild-project release query media digest output destruct catalog-destruct'.split(' '));
@@ -34,9 +34,17 @@ export function parsePhases(stderr,{timeout=false}={}){
 function bytes(value){return Buffer.isBuffer(value)?value.length:Buffer.byteLength(typeof value==='string'?value:'');}
 function safeSignal(value){return value===null||value===undefined?null:/^SIG[A-Z0-9]+$/.test(value)?value:'unknown';}
 function safeError(value){if(value===null||value===undefined)return null;if(value==='ETIMEDOUT')return 'timeout';if(value==='ENOBUFS')return 'output-cap';return 'unknown';}
+const nativeFailureCodes=new Set(['snapshot-input-invalid','journal-open','catalog-open','recovery-errors','query','live-media-unavailable','deleted-media-visible','deleted-state-missing','output','native-observation-invalid']);
+function safeNativeFailure(stderr){const found=stderr.split('\n').filter(line=>nativeFailureCodes.has(line));return found.length===1?found[0]:null;}
 function tracePrefix(stderr){let prefix='',safe=null;
   for(const line of stderr.split('\n').slice(0,-1)){const candidate=prefix+line+'\n';try{safe=parsePhases(candidate,{timeout:true});prefix=candidate;}catch{if(line.startsWith('[archive-phase] '))break;prefix=candidate;}}
   return safe;
+}
+export function validatedPhaseReceipt(stderr){
+  const text=typeof stderr==='string'?stderr:Buffer.isBuffer(stderr)?stderr.toString('utf8'):'';
+  const present=text.includes('[archive-phase] '),partial=present&&!text.endsWith('\n')&&text.split('\n').at(-1).startsWith('[archive-phase] ');let trace=null,status='missing';
+  if(present){try{trace=parsePhases(text,{timeout:true});status=trace.loss?'loss':trace.complete?'complete':'incomplete';}catch{trace=tracePrefix(text);status=partial?'partial':'malformed';}}
+  return {status,loss:['complete','incomplete','loss'].includes(status)?trace.loss:null,rows:(trace?.rows??[]).map(row=>({...row})),openPhases:(trace?.openPhases??[]).map(row=>({...row}))};
 }
 export function summarizeSpawnDiagnostic(result,{elapsedMs=0}={}){
   const stderr=typeof result?.stderr==='string'?result.stderr:Buffer.isBuffer(result?.stderr)?result.stderr.toString('utf8'):'';
@@ -46,9 +54,65 @@ export function summarizeSpawnDiagnostic(result,{elapsedMs=0}={}){
     catch{trace=tracePrefix(stderr);traceStatus=partial?'partial':'malformed';}}
   const rows=trace?.rows??[],lastOpened=[...rows].reverse().find(row=>row.kind==='begin')?.phase??null,
     lastCompleted=[...rows].reverse().find(row=>row.kind==='end')?.phase??null;
-  return {status:Number.isSafeInteger(result?.status)?result.status:null,signal:safeSignal(result?.signal),errorCode:safeError(result?.error?.code),
+  return {status:Number.isSafeInteger(result?.status)?result.status:null,signal:safeSignal(result?.signal),errorCode:safeError(result?.error?.code),failureCode:safeNativeFailure(stderr),
     elapsedMs:Number.isFinite(elapsedMs)&&elapsedMs>=0?Math.round(elapsedMs):null,outputBytes:bytes(result?.stdout)+bytes(result?.stderr),
     lastOpenedPhase:lastOpened,lastCompletedPhase:lastCompleted,traceStatus,traceLoss:['complete','incomplete','loss'].includes(traceStatus)?trace.loss:null,rawOutputPublished:false};
+}
+const receiptProfiles=new Set(['current-observer-snapshot','accumulation-probe']);
+const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','probe-binary','metrics-binary']);
+const safeTreeItem=value=>value&&Object.keys(value).sort().join(',')==='bytes,pathSha256,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&/^[a-f0-9]{64}$/.test(value.pathSha256)&&/^[a-f0-9]{64}$/.test(value.sha256);
+const safeTree=value=>value&&typeof value==='object'&&Object.keys(value).sort().join(',')==='bytes,count,items,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&Number.isSafeInteger(value.count)&&value.count>0&&/^[a-f0-9]{64}$/.test(value.sha256)&&Array.isArray(value.items)&&value.items.length<=4096&&value.items.every(safeTreeItem);
+export function receiptTree(snapshot){requireSafe(snapshot&&Array.isArray(snapshot.entries)&&snapshot.entries.length<=4096,'receipt-tree');return {bytes:snapshot.bytes,count:snapshot.count,sha256:snapshot.sha256,items:snapshot.entries.map(item=>({pathSha256:hash(item.relative),bytes:item.bytes,sha256:item.sha256}))};}
+export function diagnosticRootIdentity(root,parent,profile){
+  const patterns={'current-observer-snapshot':/^media-server-current-observer-copy-[A-Za-z0-9_-]+$/,'accumulation-probe':/^media-server-catalog-cost\.[A-Za-z0-9]+$/};
+  requireSafe(patterns[profile]&&path.resolve(root)===root&&path.dirname(root)===parent&&patterns[profile].test(path.basename(root)),'diagnostic-root-profile');
+  const value=directory(root,process.getuid());requireSafe((value.mode&0o777)===0o700,'diagnostic-root-mode');return {dev:BigInt(value.dev),ino:BigInt(value.ino)};
+}
+export function sourceManifest(entries){
+  requireSafe(Array.isArray(entries)&&entries.length>0&&entries.length<=10,'manifest-count');const seen=new Set();
+  return entries.map(({name,file})=>{requireSafe(manifestNames.has(name)&&!seen.has(name)&&path.isAbsolute(file),'manifest-name');seen.add(name);
+    const value=readFileChecked(file,process.getuid());return {name,bytes:value.bytes,sha256:value.sha256};});
+}
+function safeChild(value){return value&&typeof value==='object'&&Object.keys(value).sort().join(',')==='elapsedMs,errorCode,failureCode,lastCompletedPhase,lastOpenedPhase,outputBytes,rawOutputPublished,signal,status,traceLoss,traceStatus'&&
+  (value.status===null||Number.isSafeInteger(value.status))&&(value.signal===null||value.signal==='unknown'||/^SIG[A-Z0-9]+$/.test(value.signal))&&
+  (value.errorCode===null||['timeout','output-cap','unknown'].includes(value.errorCode))&&(value.failureCode===null||nativeFailureCodes.has(value.failureCode))&&(value.elapsedMs===null||Number.isSafeInteger(value.elapsedMs)&&value.elapsedMs>=0)&&Number.isSafeInteger(value.outputBytes)&&value.outputBytes>=0&&
+  (value.lastOpenedPhase===null||phases.includes(value.lastOpenedPhase))&&(value.lastCompletedPhase===null||phases.includes(value.lastCompletedPhase))&&['complete','incomplete','loss','missing','partial','malformed'].includes(value.traceStatus)&&
+  (value.traceLoss===null||typeof value.traceLoss==='boolean')&&value.rawOutputPublished===false;}
+function safeTrace(value){if(!value||typeof value!=='object'||Object.keys(value).sort().join(',')!=='loss,openPhases,rows,status'||!['complete','incomplete','loss','missing','partial','malformed'].includes(value.status)||
+  !(value.loss===null||typeof value.loss==='boolean')||!Array.isArray(value.rows)||value.rows.length>256||!Array.isArray(value.openPhases)||value.openPhases.length>256)return false;
+  const row=x=>x&&((Object.keys(x).join(',')==='kind'&&x.kind==='loss')||(Object.keys(x).sort().join(',')==='atUs,elapsedUs,id,kind,phase'&&['begin','end'].includes(x.kind)&&phases.includes(x.phase)&&['id','atUs','elapsedUs'].every(k=>Number.isSafeInteger(x[k])&&x[k]>=0)));
+  const open=x=>x&&Object.keys(x).sort().join(',')==='atUs,id,phase'&&phases.includes(x.phase)&&['id','atUs'].every(k=>Number.isSafeInteger(x[k])&&x[k]>=0);
+  return value.rows.every(row)&&value.openPhases.every(open);}
+export function preserveDiagnosticReceipt({evidencePath,receipt}){
+  requireSafe(receipt&&typeof receipt==='object'&&Object.keys(receipt).sort().join(',')==='child,command,copyTree,groupClosed,limits,manifest,manifestUnchanged,originalUnchanged,profile,rawPathsPublished,schema,sourceTree,trace'&&
+    receipt.schema==='media-server.recording-diagnostic-receipt.v1'&&receiptProfiles.has(receipt.profile)&&safeChild(receipt.child)&&safeTree(receipt.sourceTree)&&safeTree(receipt.copyTree)&&
+    safeTrace(receipt.trace)&&typeof receipt.groupClosed==='boolean'&&typeof receipt.originalUnchanged==='boolean'&&typeof receipt.manifestUnchanged==='boolean'&&receipt.rawPathsPublished===false,'receipt-shape');
+  requireSafe(receipt.command&&Object.keys(receipt.command).sort().join(',')==='args,maxBuffer,name,timeoutMs'&&receipt.command.name==='recording-current-observer-native'&&
+    JSON.stringify(receipt.command.args)===JSON.stringify(['--snapshot','owned-copy'])&&receipt.command.timeoutMs===15000&&receipt.command.maxBuffer===16384,'receipt-command');
+  requireSafe(receipt.limits&&Object.keys(receipt.limits).sort().join(',')==='treeBytes,treeEntries'&&receipt.limits.treeBytes===448*1024*1024&&receipt.limits.treeEntries===4096,'receipt-limits');
+  requireSafe(Array.isArray(receipt.manifest)&&receipt.manifest.length>=5&&receipt.manifest.length<=10&&new Set(receipt.manifest.map(x=>x.name)).size===receipt.manifest.length&&receipt.manifest.every(x=>Object.keys(x).sort().join(',')==='bytes,name,sha256'&&manifestNames.has(x.name)&&Number.isSafeInteger(x.bytes)&&x.bytes>=0&&/^[a-f0-9]{64}$/.test(x.sha256)),'receipt-manifest');
+  requireSafe(receipt.sourceTree.sha256===receipt.copyTree.sha256&&JSON.stringify(receipt.sourceTree.items)===JSON.stringify(receipt.copyTree.items),'receipt-copy-binding');
+  preserve(evidencePath,{receipt});const bytes=fs.readFileSync(evidencePath);requireSafe(JSON.parse(bytes).receipt.schema===receipt.schema,'receipt-readback');return {preserved:true,bytes:bytes.length,sha256:hash(bytes)};
+}
+const accumulationModes=new Set(['--bounds','--generate','--catalog','--automatic','--automatic-full','--automatic-full-reopen']);
+const accumulationStops=new Set(['stage-time-cap','technical-process-cap','time-cap','rss-cap','resource-observer','output-cap','stage-oracle','stage-line-cap','spawn-error','stage-incomplete','process-group-open','native-stage-failed','unknown']);
+const accumulationParentFailures=new Set([...accumulationStops,'drain-oracle','rotation-oracle','fresh-count','observation-gap','observer-backlog-cap','corrupt-oracle','resource-cap','unknown']);
+export function accumulationParentFailure(error){const value=typeof error?.message==='string'?error.message:null;return accumulationParentFailures.has(value)?value:'unknown';}
+export function accumulationProcessDiagnostic({mode,selectedCase=null,status=null,signal=null,stop=null,elapsedMs=0,groupClosed=false}){return {mode:accumulationModes.has(mode)?mode:'unknown',selectedCase:[null,'16','1020','2049'].includes(selectedCase)?selectedCase:null,
+  status:Number.isSafeInteger(status)?status:null,signal:safeSignal(signal),stop:stop===null?null:accumulationStops.has(stop)?stop:'unknown',elapsedMs:Number.isFinite(elapsedMs)&&elapsedMs>=0?Math.round(elapsedMs):null,groupClosed:groupClosed===true};}
+function safeAccumulationProcess(value){return value&&Object.keys(value).sort().join(',')==='elapsedMs,groupClosed,mode,selectedCase,signal,status,stop'&&accumulationModes.has(value.mode)&&[null,'16','1020','2049'].includes(value.selectedCase)&&
+  (value.status===null||Number.isSafeInteger(value.status))&&(value.signal===null||value.signal==='unknown'||/^SIG[A-Z0-9]+$/.test(value.signal))&&(value.stop===null||accumulationStops.has(value.stop))&&(value.elapsedMs===null||Number.isSafeInteger(value.elapsedMs)&&value.elapsedMs>=0)&&typeof value.groupClosed==='boolean';}
+export function preserveAccumulationReceipt({evidencePath,receipt}){
+  requireSafe(receipt&&Object.keys(receipt).sort().join(',')==='command,firstFailureIndex,groupClosed,manifest,manifestUnchanged,outcome,parentFailureCode,processes,profile,rawPathsPublished,schema,selectedCase,storeManifest'&&receipt.schema==='media-server.recording-accumulation-receipt.v1'&&receipt.profile==='accumulation-probe'&&
+    ['pass','fail'].includes(receipt.outcome)&&[null,'16','1020','2049'].includes(receipt.selectedCase)&&(receipt.parentFailureCode===null||accumulationParentFailures.has(receipt.parentFailureCode))&&typeof receipt.groupClosed==='boolean'&&typeof receipt.manifestUnchanged==='boolean'&&receipt.rawPathsPublished===false&&safeTree(receipt.storeManifest),'accumulation-receipt');
+  requireSafe(Array.isArray(receipt.processes)&&receipt.processes.length>0&&receipt.processes.length<=32&&receipt.processes.every(safeAccumulationProcess)&&
+    (receipt.firstFailureIndex===null||Number.isSafeInteger(receipt.firstFailureIndex)&&receipt.firstFailureIndex>=0&&receipt.firstFailureIndex<receipt.processes.length),'accumulation-processes');
+  const firstFailureIndex=receipt.processes.findIndex(item=>item.status!==0||item.signal!==null||item.stop!==null||!item.groupClosed);
+  requireSafe((receipt.outcome==='pass')===(firstFailureIndex<0&&receipt.parentFailureCode===null)&&receipt.firstFailureIndex===(firstFailureIndex<0?null:firstFailureIndex)&&
+    receipt.groupClosed===receipt.processes.every(item=>item.groupClosed),'accumulation-outcome');
+  requireSafe(receipt.command&&Object.keys(receipt.command).sort().join(',')==='args,name'&&receipt.command.name==='recording-accumulation-run'&&JSON.stringify(receipt.command.args)===JSON.stringify(receipt.selectedCase?[receipt.selectedCase]:[]),'accumulation-command');
+  requireSafe(Array.isArray(receipt.manifest)&&receipt.manifest.length>=4&&receipt.manifest.length<=10&&new Set(receipt.manifest.map(x=>x.name)).size===receipt.manifest.length&&receipt.manifest.every(x=>Object.keys(x).sort().join(',')==='bytes,name,sha256'&&manifestNames.has(x.name)&&Number.isSafeInteger(x.bytes)&&x.bytes>=0&&/^[a-f0-9]{64}$/.test(x.sha256)),'accumulation-manifest');
+  preserve(evidencePath,{receipt});const bytes=fs.readFileSync(evidencePath);return {preserved:true,bytes:bytes.length,sha256:hash(bytes)};
 }
 function stable(a,b){return a.dev===b.dev&&a.ino===b.ino&&a.size===b.size&&a.mtimeMs===b.mtimeMs&&a.ctimeMs===b.ctimeMs;}
 function directory(p,uid){const s=fs.lstatSync(p);requireSafe(s.isDirectory()&&!s.isSymbolicLink()&&s.uid===uid&&fs.realpathSync(p)===p,'directory-owner');return s;}

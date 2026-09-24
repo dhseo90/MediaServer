@@ -7,15 +7,19 @@ case "$*" in
 esac
 observer_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 observer_repo="$(cd "$observer_script/../.." && pwd)"
+observer_receipts="$observer_repo/docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923"
+[[ -d "$observer_receipts" && ! -L "$observer_receipts" ]] || exit 2
+export MEDIA_SERVER_RECORDING_RECEIPT_DIR="$observer_receipts"
 observer_run="$(mktemp -d "${TMPDIR:-/tmp}/media-server-current-observer-XXXXXX")"
 observer_run="$(cd "$observer_run" && pwd -P)"
 chmod 700 "$observer_run"
 cleanup() {
   local prior=$?
   trap - EXIT
-  node - "$observer_run" <<'NODE'
+  OBSERVER_PRIOR="$prior" node - "$observer_run" <<'NODE'
 const fs=require('fs'),path=require('path'),root=process.argv[2];
 if(!path.basename(root).startsWith('media-server-current-observer-')||fs.realpathSync(root)!==root||fs.lstatSync(root).isSymbolicLink())throw Error('cleanup ownership');
+if(Number(process.env.OBSERVER_PRIOR)!==0){console.log('[cleanup] '+JSON.stringify({preserved:true,reason:'failed-run'}));process.exit(0);}
 if(fs.existsSync(path.join(root,'cleanup-blocked')))throw Error('cleanup blocker: preserve root');
 function size(p){const s=fs.lstatSync(p);return s.isDirectory()?fs.readdirSync(p).reduce((n,k)=>n+size(path.join(p,k)),0):s.size;}
 const bytes=size(root);fs.rmSync(root,{recursive:true});const absent=!fs.existsSync(root);console.log('[cleanup] '+JSON.stringify({root,bytes,absent}));if(!absent)process.exit(1);

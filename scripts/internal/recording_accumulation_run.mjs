@@ -2,14 +2,18 @@
 import fs from 'node:fs';import path from 'node:path';import {spawn,spawnSync} from 'node:child_process';
 import {CurrentRecordingObserver,normalizeCurrentRows} from './recording_current_observer.mjs';
 import {casePlan,assertDrain,assertRotation,stageTracker} from './recording_accumulation_plan.mjs';
+import {snapshotTree,receiptTree,sourceManifest,accumulationParentFailure,accumulationProcessDiagnostic,preserveAccumulationReceipt} from './recording_archive_diagnostic_profile.mjs';
 const root=process.argv[2],binary=path.join(root,'probe'),normalizer=path.join(root,'normalize'),metrics=path.join(root,'metrics');
 if(!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(path.basename(root))||fs.realpathSync(root)!==root||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-root');
-const start=performance.now();let bytes=0;const readers=[];
+const start=performance.now();let bytes=0,completed=false,parentFailureCode=null,activeGroups=0,groupsClosed=true;const readers=[],processes=[];
 const selected=process.argv[3];if(selected!==undefined&&!['16','1020','2049'].includes(selected))throw Error('selected-case');
+const manifestEntries=[{name:'accumulation-source',file:new URL('./recording_accumulation_probe.cpp',import.meta.url).pathname},{name:'accumulation-runner',file:new URL('./recording_accumulation_run.mjs',import.meta.url).pathname},
+  {name:'probe-binary',file:binary},{name:'native-binary',file:normalizer},{name:'metrics-binary',file:metrics}],manifestBefore=sourceManifest(manifestEntries);
 function size(p){const s=fs.lstatSync(p);return s.isDirectory()?fs.readdirSync(p).reduce((n,k)=>n+size(path.join(p,k)),0):s.size;}
 function resources(){const diskBytes=size(root),rssBytes=process.memoryUsage().rss;if(diskBytes>=448*1024*1024||rssBytes>1073741824)throw Error('resource-cap');return {diskBytes,parentRssBytes:rssBytes};}
+function safeResources(){try{return resources();}catch{return {diskBytes:null,parentRssBytes:null,resourceStatus:'unavailable'};}}
 function run(args,timeoutMs){return new Promise((resolve,reject)=>{
-  const child=spawn(binary,args,{stdio:['ignore','pipe','pipe'],detached:true});let stopped=null,force,peakRssBytes=0,metricsUnavailable=0;
+  const child=spawn(binary,args,{stdio:['ignore','pipe','pipe'],detached:true});activeGroups++;let stopped=null,force,peakRssBytes=0,metricsUnavailable=0;
   const catalog=args[0]==='--catalog';let stageTimer,pending='';
   const begin=performance.now();
   const stop=reason=>{stopped??=reason;try{process.kill(-child.pid,'SIGTERM');}catch{}if(!force)force=setTimeout(()=>{try{process.kill(-child.pid,'SIGKILL');}catch{}},2000);};
@@ -23,16 +27,19 @@ function run(args,timeoutMs){return new Promise((resolve,reject)=>{
     if(stream===child.stdout&&stageWatch&&!stopped){pending+=chunk.toString();let at;while((at=pending.indexOf('\n'))>=0){const line=pending.slice(0,at);pending=pending.slice(at+1);try{stageWatch.line(line);}catch{stop('stage-oracle');break;}}if(pending.length>65536)stop('stage-line-cap');}});
   child.on('error',()=>stop('spawn-error'));
   child.on('close',(exit,signal)=>{clearTimeout(timer);clearTimeout(stageTimer);clearTimeout(force);clearInterval(memory);
+    activeGroups--;let groupClosed=false;try{process.kill(-child.pid,0);}catch(error){groupClosed=error?.code==='ESRCH';}groupsClosed&&=groupClosed;
     if(stageWatch&&!stopped&&exit===0&&!signal)try{stageWatch.finish();}catch{stopped='stage-incomplete';}
-    console.log('[probe-process] '+JSON.stringify({mode:args[0],exit,signal,stopped,elapsedMs:performance.now()-begin,peakObservedRssBytes:peakRssBytes||null,metricsUnavailable,stageLimitMs:catalog?15000:null,technicalCapMs,...resources()}));
-    if(exit!==0||signal||stopped)reject(Error(stopped??'native-stage-failed'));else resolve();});
+    if(!groupClosed&&stopped===null)stopped='process-group-open';let resourceSummary;try{resourceSummary=resources();}catch{stopped??='resource-observer';resourceSummary=safeResources();}
+    const elapsedMs=performance.now()-begin,processDiagnostic=accumulationProcessDiagnostic({mode:args[0],selectedCase:args.find(value=>['16','1020','2049'].includes(value))??selected??null,status:exit,signal,stop:stopped,elapsedMs,groupClosed});processes.push(processDiagnostic);
+    console.log('[probe-process] '+JSON.stringify({...processDiagnostic,peakObservedRssBytes:peakRssBytes||null,metricsUnavailable,stageLimitMs:catalog?15000:null,technicalCapMs,...resourceSummary}));
+    if(exit!==0||signal||stopped||!groupClosed)reject(Error(stopped??'native-stage-failed'));else resolve();});
 });}
 function drain(observer,count,phase){const begin=performance.now(),before=resources();let result,fresh=0,polls=0;
   try{do{if(++polls>128)throw Error('observer-backlog-cap');result=observer.poll();fresh+=result.rows.length;resources();}while(result.backlog);
     assertDrain(result,count);if(phase==='rotated')assertRotation({fresh,rotations:result.rotations});else if(fresh!==4*count)throw Error('fresh-count');
     if(performance.now()-begin>15000)throw Error('observation-gap');
     console.log('[pass] LP26-O10-B '+count+' '+phase+' exact-count-prefix');return result;
-  }finally{console.log('[probe-drain] '+JSON.stringify({sources:count,phase,elapsedMs:performance.now()-begin,polls,fresh,rotations:result?.rotations??null,before,after:resources(),nativeTimeoutMs:3000,observationLimitMs:15000,performancePass:false}));}}
+  }finally{console.log('[probe-drain] '+JSON.stringify({sources:count,phase,elapsedMs:performance.now()-begin,polls,fresh,rotations:result?.rotations??null,before,after:safeResources(),nativeTimeoutMs:3000,observationLimitMs:15000,performancePass:false}));}}
 try{
   if(!selected)await run(['--bounds'],15000);await run(['--generate',root,...(selected?[selected]:[])],60000);
   for(const {sources} of casePlan().filter(item=>!selected||item.sources===Number(selected))){
@@ -49,6 +56,8 @@ try{
   }
   let rejected=false;try{normalizeCurrentRows(normalizer,['{"schema":"invalid"}']);}catch(error){rejected=error.message==='observer-native-rejected';}
   if(!rejected)throw Error('corrupt-oracle');console.log('[pass] LP26-O10-E01 malformed mutation rejected');
-  console.log('[summary] '+JSON.stringify({completed:true,elapsedMs:performance.now()-start,...resources(),performancePass:false,longrunPass:false,uiPass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));
-}catch(error){console.log('[fail] LP26-O10 '+(/^[a-z-]+$/.test(error.message)?error.message:'redacted-stage-error'));process.exitCode=1;}
-finally{for(const observer of readers)observer.close();console.log('[probe-reader-cleanup] '+JSON.stringify({readers:readers.length,closed:true,elapsedMs:performance.now()-start,...resources()}));}
+  completed=true;console.log('[summary] '+JSON.stringify({completed:true,elapsedMs:performance.now()-start,...resources(),performancePass:false,longrunPass:false,uiPass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));
+}catch(error){parentFailureCode??=accumulationParentFailure(error);console.log('[fail] LP26-O10 '+parentFailureCode);process.exitCode=1;}
+finally{for(const observer of readers)observer.close();let receiptPreserved=false;try{const manifestUnchanged=JSON.stringify(sourceManifest(manifestEntries))===JSON.stringify(manifestBefore),tree=snapshotTree(root),firstFailureIndex=processes.findIndex(item=>item.status!==0||item.signal!==null||item.stop!==null||!item.groupClosed),saved=preserveAccumulationReceipt({evidencePath:process.env.MEDIA_SERVER_ACCUMULATION_RECEIPT,receipt:{schema:'media-server.recording-accumulation-receipt.v1',profile:'accumulation-probe',outcome:completed&&parentFailureCode===null?'pass':'fail',selectedCase:selected??null,parentFailureCode,groupClosed:activeGroups===0&&groupsClosed,manifestUnchanged,processes,firstFailureIndex:firstFailureIndex<0?null:firstFailureIndex,
+    command:{name:'recording-accumulation-run',args:selected?[selected]:[]},storeManifest:receiptTree(tree),manifest:manifestBefore,rawPathsPublished:false}});receiptPreserved=saved.preserved;fs.writeFileSync(path.join(root,'.receipt-preserved'),saved.sha256,{flag:'wx',mode:0o600});console.log('[probe-receipt] '+JSON.stringify({...saved,rawPathsPublished:false}));}catch{process.exitCode=1;console.log('[fail] LP26-O10 receipt-preservation');}
+  console.log('[probe-reader-cleanup] '+JSON.stringify({readers:readers.length,closed:true,groupsClosed:activeGroups===0&&groupsClosed,receiptPreserved,elapsedMs:performance.now()-start,...safeResources()}));}

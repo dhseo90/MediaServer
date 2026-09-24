@@ -69,7 +69,7 @@ function replaySummary(value){
   if(result.sameFailure&&(result.verifiedOutput||result.persistedFailure==='unknown'||result.persistedFailure!==result.replayFailure))throw Error('unsafe-replay');
   return result;
 }
-function preserve(file,value){
+export function preserve(file,value){
   const parent=path.dirname(file);
   if(!path.isAbsolute(file)||fs.realpathSync(parent)!==parent)throw Error('evidence-parent');
   const text=JSON.stringify(value)+'\n';if(Buffer.byteLength(text)>1024*1024)throw Error('evidence-byte-cap');

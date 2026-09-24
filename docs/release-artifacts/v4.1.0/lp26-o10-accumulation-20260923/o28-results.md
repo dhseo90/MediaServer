@@ -76,6 +76,41 @@ accumulation 실행은 2번 자료 수명 보완 전이라 아직 하지 않았�
 | TMPDIR의 `media-server-current-observer-eOf8EP` | 진단 추가 fixture/빌드 | 8,129,505바이트 | wrapper 정리 | 삭제·부재 | diagnose2 로그 |
 | TMPDIR의 `media-server-current-observer-pAUXwk` | 최종 native fixture/빌드 | 8,131,546바이트 | wrapper 정리 | 삭제·부재 | green3 로그 |
 
-2~5번은 아직 실행 전이다. 실패 자료의 자동 삭제 방지는 다음 2번에서 연결하며 1번 완료만으로 해결됐다고 하지 않는다.
+위 1번 판정 당시 2~5번은 실행 전이었다. 후속 결과는 아래에 추가하며 당시 판정을 소급 변경하지 않는다.
+
+### 2번 결과
+
+`snapshotTree → copyVerified → native child → immutable receipt → 확인된 cleanup`으로 자료 수명을 연결했다.
+원본/복제 파일 hash·source/build/native hash·검증된 phase prefix·자식 status/signal·고정 실패 사유를 보존한다.
+실패와 증거 미확인은 root를 보존하고 정상 완료로 보고하지 않는다. parent 관측 실패와 child 실패를 분리하며
+time-cap 이후 group 잔류도 최초 사유를 덮지 않는다. 누적 비교 runner의 실행 전 manifest와 종료 후 manifest를 대조한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 소유/receipt 회귀 최초 | pure 86/88·exit 1. stage1 문자열에 묶인 정적 assertion 2개가 현재 연결과 불일치 | fail |
+| 소유/receipt 회귀 보완 | pure 88/88·exit 0. 별도 profile 첫 실행은 12/12 PASS이며 파일명의 red1은 FAIL 근거가 아님 | pass |
+| 실제 작은 native | observer 67/67·exit 0. 동일 입력 verified 복제 2개 결과·receipt 동등, 원본 불변, corrupt 복제의 고정 실패 증거 선보존 후 소유 자료 정리 | pass |
+| accumulation 1차 보완 | manifest 실제 전/후·process 진단 receipt·group 상태, focused 25/25·exit 0 | pass |
+| 마지막 안전 반례 최초 | focused 26/27·exit 1. 기존 guard가 제한된 실행 환경의 프로세스 관측에서 process-observation 반환, 기대 child-remains와 불일치. 실제 자식 잔류를 종료·부재 확인 | fail |
+| 현재 group 판정 경로 | 직접 detached 자식의 열린 group→TERM→ESRCH 및 parent/child 실패 분리, focused 27/27·exit 0 | pass |
+| 기존 guard 동일 반례 | 관측 권한을 승인받아 `node --test --test-name-pattern=LP17-H11 scripts/internal/recording_catalog_comparison.test.mjs`, 1/1·exit 0. oracle/제품 변경 없이 자식 잔류 감지·group 정리 통과 | pass |
+| 메인 최종 focused | profile·longrun 진단 계약 27/27·exit 0. nonzero native 종료의 parent 분류를 native-stage-failed로 유지 | pass |
+| 최종 정적·등록 | JS/bash 구문 9개·diff exit 0, inventory 18/18(내부 5,081 assertion), coverage 8/8·986/986, 자산 10/10, docs links exit 0 | pass |
+
+위 최초 실패는 예상 RED가 아니다. 소규모 native는 마지막 JS 전용 변경과 무관하여 67/67 증거를 재사용했다.
+실제 앱·누적 큰 입력·30분·UI·120분은 이 단계에서 실행하지 않았다. 제품 파일·snapshot JSON·시간제한은 변경하지 않았다.
+새 receipt만으로 과거 O26 실패를 확정하거나 실패 당시 파일을 복원했다고 하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR `media-server-current-observer-MpGVIK` | native 두 복제·corrupt 반례·빌드 | 8,153,116바이트 | 증거 확인 뒤 wrapper 정리 | 부재 확인 | stage2 observer 원로그 |
+| stage2 pure/소유 반례의 각 작업 root | 작은 합성 자료 | 개별 원출력 bytes | 자체검사 정리 | 각 removed=true, prefix 잔여0 | stage2 전수 원로그 |
+| PID 37475 / PGID 37473 | 제한된 guard 실행의 잔류 합성 자식 | 파일 없음 | 소유 group TERM·exact ps 대조 | 부재 확인 | 담당자 실행 결과, 최초 실패 로그 보존 |
+| O28 receipt·원출력 | 비민감 최초 실패/성공 증거 | 개별 파일 | 저장소 보존 | 소스·입력 hash/결과·한계 보존 | stage2 전수표 |
+
+2번 개별 5,480행은 [전수 결과 압축](o28-stage2-items.md.gz)에 보존한다. 37,361바이트,
+SHA256 `a2171d365d85c7f50c0ea2edd480491773b6a580cf3abaf390955ee3f02fbc4d`.
+Node summary의 tests/pass/fail과 전수 행수를 직접 대조했다. assertion 없는 원출력은 빈 PASS 행으로 만들지 않았다.
+위 단계의 root 보존 기능이 실제 실패 데이터에 적용됐다는 주장은 하지 않으며, 실제 적용은 다음 누적 실행에서 확인한다.
 
 token start/end/consumed: 전용 집계가 제공되지 않아 미집계. elapsed/source는 각 실행 로그에 보존한다.

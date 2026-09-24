@@ -45,11 +45,13 @@ test('LP26-O09-C02 slow 숫자행·완료/미완료·비밀 거부',()=>{
 });
 test('O28-D04 snapshot 진단이 판정 전 출력되고 최초 오류가 cleanup 뒤 재전파된다',()=>{
   const source=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8'),start=source.indexOf('function snapshot()'),end=source.indexOf('\ntry{',start),body=source.slice(start,end);
-  assert(start>=0&&end>start);assert(body.indexOf("console.log('[snapshot-process] '")<body.indexOf("check(!r.error&&!r.signal&&r.status===0"));
+  assert(start>=0&&end>start);assert(body.indexOf("console.log('[snapshot-process] '")<body.indexOf("check(childSuccess"));
   assert(body.includes('}catch(error){primary=error;'));assert(body.includes('if(primary)throw primary;return result;'));
 });
 test('O28-D05 snapshot의 기존 15초·16KiB 상한과 성공 검사 계약을 유지한다',()=>{
   const source=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8'),start=source.indexOf('function snapshot()'),end=source.indexOf('\ntry{',start),body=source.slice(start,end);
   assert(body.includes("timeout:15000,maxBuffer:16384"));assert(body.includes("catalogRecovered===true&&result.available>0&&result.deleted>0"));
-  assert(body.includes("before===fileHash(file)"));assert(body.includes("MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'"));assert(!body.includes('r.stderr)'));
+  assert(body.includes("before===fileHash(file)"));assert(source.includes("MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'"));assert(body.includes('validatedPhaseReceipt(r.stderr)'));assert(body.includes('detached:true'));assert(body.includes('process.kill(-r.pid,0)'));assert(!body.includes('console.log(r.stderr)'));
 });
+test('O28-R03 observer wrapper는 실패 또는 cleanup-blocked root를 보존한다',()=>{const source=fs.readFileSync(new URL('./verify_recording_current_observer.sh',import.meta.url),'utf8');assert(source.includes("OBSERVER_PRIOR=\"$prior\""));assert(source.includes("reason:'failed-run'"));assert(source.includes("cleanup blocker: preserve root"));});
+test('O28-R04 accumulation runner와 EXIT는 사전 manifest·parent/child 실패·미종료 group을 보존한다',()=>{const runner=fs.readFileSync(new URL('./recording_accumulation_run.mjs',import.meta.url),'utf8'),wrapper=fs.readFileSync(new URL('./verify_recording_accumulation_probe.sh',import.meta.url),'utf8'),before=runner.indexOf('manifestBefore=sourceManifest(manifestEntries)'),run=runner.indexOf('try{',before),after=runner.lastIndexOf('sourceManifest(manifestEntries)');assert(before>=0&&before<run&&after>run);for(const marker of ['preserveAccumulationReceipt','process.kill(-child.pid,0)',"'process-group-open'",'parentFailureCode','processes,firstFailureIndex','safeResources()',".receipt-preserved"])assert(runner.includes(marker));assert(wrapper.includes("reason:'evidence-missing'"));assert(wrapper.includes("reason:'evidence-unverified'"));assert(wrapper.includes('process.exit(1)'));assert(wrapper.includes('PROBE_PRIOR="$result"'));});

@@ -13,7 +13,8 @@ import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
 import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
 import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
-import {summarizeSpawnDiagnostic} from './recording_archive_diagnostic_profile.mjs';
+import {summarizeSpawnDiagnostic,validatedPhaseReceipt,snapshotTree,copyVerified,receiptTree,diagnosticRootIdentity,sourceManifest,preserveDiagnosticReceipt} from './recording_archive_diagnostic_profile.mjs';
+import {removeDiagnosticRoot} from './recording_failure_capture.mjs';
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe',
   diagnoseFast=args.length===1&&args[0]==='--diagnose-status-1020',diagnoseOriginal=args.length===1&&args[0]==='--diagnose-status-1020-original',diagnose=diagnoseFast||diagnoseOriginal;
 const duration=short?30000:diagnoseFast?780000:diagnoseOriginal?1440000:parseLongrunArgs(args),repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -80,6 +81,7 @@ async function sample(app){const begin=performance.now();let metricsMs=null,drai
   }finally{console.log('[sample-timing] '+JSON.stringify({sampleIndex:samples.length,metricsMs,drainMs,storageMs,totalMs:performance.now()-begin}));}
 }
 function fileHash(file){const h=crypto.createHash('sha256'),fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const chunk=Buffer.alloc(65536);let n;while((n=fs.readSync(fd,chunk,0,chunk.length,null)))h.update(chunk.subarray(0,n));return h.digest('hex');}finally{fs.closeSync(fd);}}
+function snapshotEnvironment(){const env={PATH:process.env.PATH,MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'},allowed=['GST_REGISTRY','GST_REGISTRY_1_0','GST_PLUGIN_PATH','GST_PLUGIN_PATH_1_0','GST_PLUGIN_SYSTEM_PATH','GST_PLUGIN_SYSTEM_PATH_1_0','GST_PLUGIN_SCANNER','GST_PLUGIN_SCANNER_1_0','DYLD_LIBRARY_PATH','DYLD_FALLBACK_LIBRARY_PATH','MEDIA_SERVER_GST_CACHE_DIR','MEDIA_SERVER_GST_PLUGIN_PROFILE'];for(const key of allowed)if(typeof process.env[key]==='string')env[key]=process.env[key];return env;}
 function verifyStatusUsage(status){
   const mediaRoot=path.join(root,'recordings'),expected=new Map(['9101','9201'].map(id=>[id,{alive:0n,history:0n,deleted:0}]));
   for(const record of progress.records.values()){
@@ -105,24 +107,36 @@ function verifyStatusUsage(status){
 }
 function snapshot(){
   if(processes.some(p=>!p.result?.archiveSafe))throw Error('snapshot-live-owner');
-  const original=path.join(root,'recordings'),file=path.join(original,'recording-v2-mutations.jsonl'),before=fileHash(file);
-  const copyRoot=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-current-observer-copy-')));fs.chmodSync(copyRoot,0o700);
-  const copy=path.join(copyRoot,'recordings');let copied=false,primary=null,result;
+  const original=path.join(root,'recordings'),file=path.join(original,'recording-v2-mutations.jsonl'),before=fileHash(file),sourceTree=snapshotTree(original);
+  if(sourceTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
+  const copyParent=fs.realpathSync(os.tmpdir()),copyRoot=fs.realpathSync(fs.mkdtempSync(path.join(copyParent,'media-server-current-observer-copy-')));fs.chmodSync(copyRoot,0o700);
+  const copyIdentity=diagnosticRootIdentity(copyRoot,copyParent,'current-observer-snapshot'),copy=path.join(copyRoot,'recordings');
+  let copied=false,primary=null,result,copyTree=null,receiptPreserved=false,originalUnchanged=false,manifestUnchanged=false,groupClosed=false,childSuccess=false;
   try{
-    // 원본의 검사 한도는 그대로 유지한다. 종료 후 복제는 별도 소유 root, 동일448MiB 상한이며 즉시 정리한다.
-    if(size(original)>=448*1024*1024)throw Error('snapshot-byte-cap');
-    fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true,force:false});copied=true;
-    if(size(copy)>=448*1024*1024)throw Error('snapshot-byte-cap');
-    const childStart=performance.now(),r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,env:{PATH:process.env.PATH,MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'}});
-    console.log('[snapshot-process] '+JSON.stringify(summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart})));
-    check(!r.error&&!r.signal&&r.status===0,'LP26-O05 stopped copy native catalog recovery');
+    copyTree=copyVerified(original,copy,sourceTree);copied=true;if(copyTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
+    const manifestEntries=[
+      {name:'catalog-source',file:path.join(repo,'src/recording/recording_catalog.cpp')},{name:'catalog-instrumented',file:path.join(root,'catalog-instrumented.cpp')},
+      {name:'runtime-archive',file:path.join(repo,'build-gst-onnx/libmedia_server_runtime.a')},{name:'native-source',file:path.join(repo,'scripts/internal/recording_current_observer_native.cpp')},
+      {name:'trace-header',file:path.join(repo,'scripts/internal/recording_archive_phase_trace.h')},{name:'native-binary',file:native}],manifest=sourceManifest(manifestEntries);
+    const childStart=performance.now(),r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,detached:true,env:snapshotEnvironment()});
+    const child=summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart}),trace=validatedPhaseReceipt(r.stderr);console.log('[snapshot-process] '+JSON.stringify(child));
+    try{process.kill(-r.pid,0);}catch(error){groupClosed=error?.code==='ESRCH';}childSuccess=groupClosed&&!r.error&&!r.signal&&r.status===0;
+    try{const after=snapshotTree(original);originalUnchanged=after.sha256===sourceTree.sha256&&after.bytes===sourceTree.bytes&&after.count===sourceTree.count;}catch{}
+    try{manifestUnchanged=JSON.stringify(sourceManifest(manifestEntries))===JSON.stringify(manifest);}catch{}
+    const receiptPath=path.join(process.env.MEDIA_SERVER_RECORDING_RECEIPT_DIR??'',`o28-current-snapshot-${crypto.randomUUID()}.json`);
+    const receipt=preserveDiagnosticReceipt({evidencePath:receiptPath,receipt:{schema:'media-server.recording-diagnostic-receipt.v1',profile:'current-observer-snapshot',child,trace,
+      command:{name:'recording-current-observer-native',args:['--snapshot','owned-copy'],timeoutMs:15000,maxBuffer:16384},sourceTree:receiptTree(sourceTree),
+      copyTree:receiptTree(copyTree),originalUnchanged,manifestUnchanged,groupClosed,limits:{treeBytes:448*1024*1024,treeEntries:4096},manifest,rawPathsPublished:false}});
+    receiptPreserved=receipt.preserved;console.log('[snapshot-receipt] '+JSON.stringify({...receipt,rawPathsPublished:false}));
+    check(childSuccess,'LP26-O05 stopped copy native catalog recovery');
     result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&result.deleted>0,'LP26-O05 native surviving and deleted states');
-    check(before===fileHash(file),'LP26-O05 original journal bytes unchanged');
+    check(originalUnchanged&&before===fileHash(file),'LP26-O05 original journal bytes unchanged');
   }catch(error){primary=error;
-  }finally{let bytes=null,reason=null;try{bytes=size(copyRoot);}catch{reason='size-unavailable';}
-    try{fs.rmSync(copyRoot,{recursive:true});}catch{reason='remove-failed';}
-    const absent=!fs.existsSync(copyRoot);console.log('[copy-cleanup] '+JSON.stringify({root:copyRoot,bytes,copied,absent,reason}));
-    if(!absent)fs.writeFileSync(path.join(root,'cleanup-blocked'),'recovery copy cleanup unresolved\n',{mode:0o600});
+  }finally{let bytes=null,reason=null,absent=false;try{bytes=size(copyRoot);}catch{reason='size-unavailable';}
+    if(!primary&&childSuccess&&receiptPreserved&&originalUnchanged&&manifestUnchanged&&groupClosed)try{removeDiagnosticRoot(copyRoot,copyIdentity,true);absent=!fs.existsSync(copyRoot);}catch{reason='remove-failed';}
+    else reason='preserved-for-diagnostic';
+    console.log('[copy-cleanup] '+JSON.stringify({root:copyRoot,bytes,copied,absent,reason,receiptPreserved,originalUnchanged,manifestUnchanged,groupClosed}));
+    if(!absent){fs.writeFileSync(path.join(root,'cleanup-blocked'),'recovery copy or evidence cleanup unresolved\n',{mode:0o600});if(!primary)primary=Error('snapshot-preserved');}
     if(absent&&reason===null)check(true,'LP26-O05 recovery copy cleanup');else if(primary){failed++;console.log('[fail] LP26-O05 recovery copy cleanup');}else check(false,'LP26-O05 recovery copy cleanup');}
   if(primary)throw primary;return result;
 }
@@ -175,7 +189,8 @@ finally{
   for(const app of processes)try{await stop(app);}catch{failed++;}
   for(const app of processes){try{fs.closeSync(app.logFd);const text=fs.readFileSync(app.log,'utf8');
     const categories=['file evidence unavailable','storageBlocked','shutdown','ERROR','WARNING'].map(code=>({code,count:text.split(code).length-1}));
-    console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,categories,rawBodyPublished:false,privateCaptureRemovedWithRoot:true}));
+    const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));
+    console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
     const slow=slowTraceSummary(text,app.result?.normalShutdownPass===true);console.log('[server-slow-diagnostic] '+JSON.stringify(slow));
     if(slow.status!=='captured'){failed++;console.log('[fail] slow-diagnostic-unavailable');}
   }catch{failed++;console.log('[fail] server-diagnostic-capture');}}

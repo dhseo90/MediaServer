@@ -1,0 +1,9 @@
+{"command":["node","--check","scripts/internal/recording_accumulation_run.mjs"],"exit":0}
+{"command":["node","--check","scripts/internal/recording_archive_diagnostic_profile.mjs"],"exit":0}
+{"command":["node","--check","scripts/internal/recording_archive_diagnostic_profile.test.mjs"],"exit":0}
+{"command":["node","--check","scripts/internal/recording_current_longrun_diagnostics.test.mjs"],"exit":0}
+{"command":["node","--check","scripts/internal/recording_current_observer.test.mjs"],"exit":0}
+{"command":["node","--check","scripts/internal/recording_failure_capture.mjs"],"exit":0}
+{"command":["bash","-n","scripts/internal/verify_recording_accumulation_probe.sh"],"exit":0}
+{"command":["node","--check","scripts/internal/verify_recording_current_longrun.mjs"],"exit":0}
+{"command":["bash","-n","scripts/internal/verify_recording_current_observer.sh"],"exit":0}

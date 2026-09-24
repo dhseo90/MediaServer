@@ -43757,3 +43757,38 @@ RSS는 녹화 중 623,722,496바이트, 비활성 직후 623,673,344, 유휴 20�
 1번 승인 명령은 해당 `node --test` 자체검사, `verify_recording_current_observer.sh --self-test`, 구문·diff·문서/등록 검사다. 테스트 출력은 고유 O28 artifact로 전수 보존한다. 새 검사의 RED는 예상 assertion과 일치할 때만 분류하며 준비 실패는 별도 실패로 남긴다. 2~5는 선수 판정 전 실행하지 않는다. token start/end/consumed는 전용 집계 미제공 시 미집계, elapsed/source는 실제 명령 출력에 기록한다.
 
 1번 구현·focused 결과: profile 8/8, longrun 진단 8/8, 실제 소규모 observer 65/65. 최초 anchor drift, 실행비트 오류, phase oracle 오류와 정리 결과는 [O28 단계별 보고](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)에 보존한다. [전수 assertion](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage1-items.md)은 각 실행의 원출력과 대조한다. 제품·실제 앱/장시간 PASS가 아니며 2~5번은 아직 미실행이다.
+
+### 2번 재현 자료 수명 — 실행 전 정의
+
+1번은 `e320d122`로 커밋했다. 아래는 그 진단을 실제 보존/정리 경계에 연결하는 작업이다. 현재 observer 및 이번 비교에 사용할 accumulation 도구만 대상으로 하며 다른 historical 실행기를 전면 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| O28-R01 | 소유 복제/동일 입력 | 기존 snapshotTree·copyVerified를 사용. symlink·원본 변경·잘못된 root/owner·복제 불일치는 거부하고 원본을 수정하지 않음 | v4.1.0 |
+| O28-R02 | 첫 진단/재현 정보 | 안전한 최초 진단, 파일 hash manifest, 입력·source/build·실행 한도를 독립 보존. overwrite/후속 오류/부분 출력 반례 | v4.1.0 |
+| O28-R03 | 정리 허용 경계 | 실패 시 자료/실행물 유지. 성공이라도 프로세스 종료·소유권·입력 불변·필수 증거 보존 미확인이면 자동 삭제 차단. 확인된 작은 합성 fixture만 사후 정리 | v4.1.0 |
+| O28-R04 | 동일 소규모 native 재실행 | 실제 managed fixture에서 같은 입력을 별도 복제해 native snapshot 결과 대조. 복제본 변경은 원본과 분리하고 manifest/hash·정리 증거 보존 | v4.1.0 |
+
+승인 실행: 위 focused node 자체검사, 기존 failure capture/archive 회귀, 실제 작은 observer 자기검사와 구문/등록/문서 검사. 누적 16/1,020/캐시 경계 비교는 2번 통과 뒤 별도 사전 정의한다. 실제 앱·장시간 실행은 하지 않는다. 자료 확보 실패를 성공 cleanup으로 숨기지 않으며 보존 root는 자동 릴리즈 PASS가 아닌 미해소 상태로 남긴다.
+
+### 3~4번 비교 — 선수 완료 후 실행할 정의
+
+아래 정의는 실행 승격이 아니다. 2번 자료 보존 검토·커밋 뒤 3번, 그 결과를 판정한 뒤 4번을 실행한다.
+제품 코드는 바꾸지 않고 기존 accumulation probe와 ownership 계측을 재사용한다. 새로운 합격 시간·RSS 목표를 만들지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| O28-C01 | 입력 규모·cache 경계 | 동일 60샘플 seed로 16/1020/2048/2049개 원본·4N행 생성. 물리 journal·논리 charge·전부 삭제/영상0개/참조0개를 기록. 8192/8196행 실제 경계와 64MiB 정확값/+1 산술 경계를 구분 | v4.1.0 |
+| O28-C02 | 복구 단계 비용 | 기존 임시 계측에 journal Open/Load, catalog replay/preflight/apply, SQLite rebuild/project, 상세 해제의 inclusive/exclusive 비용 연결. fixture 생성·관측기 drain·제품 호출을 분리 | v4.1.0 |
+| O28-C03 | 체크포인트·조회 비용 | 같은 원장의 cold/repeat 후보와 prefix 적용 개수, 재읽기·검증·직렬화·잠금·조회 비용 대조. 2049의 기존 수동/자동 full/no-op 경로를 구분하며 실제 HTTP로 부르지 않음 | v4.1.0 |
+| O28-C04 | 판정·실패 수명 | 단계별15초·catalog 기술상한65초·준비60초·RSS1GiB·disk448MiB·출력4MiB 유지. 실패 시 최초진단/receipt/자료 유지, 같은 조건 자동 반복 금지. 입력 생성/계측 오류와 실제 비용 초과를 구분 | v4.1.0 |
+| O28-M01 | 메모리 소유 분리 | 기존 31열 owner 계측을 재사용하여 journal/live/shadow/prefix의 resident/cold/weak·부분논리량과 RSS를 기록. 동일 객체 중복 합산 금지, 전체 heap/RSS 귀속으로 확대하지 않음 | v4.1.0 |
+| O28-M02 | reader 수명·재개방 | 작은 입력→1020→2048/2049에서 상세 handle 획득·동일 handle 재획득·해제·재조회, snapshot 해제, 새 프로세스 Open을 비교. 제품은 reader를 소유한다고 오인하지 않으며 ID/삭제·샘플 수 oracle 유지 | v4.1.0 |
+
+각 단기 실행은 실제 종료 상세·상한·source/build·파일 manifest 및 정리 결과를 보존한다. 원래 O26의 생존 영상 6개와 샘플 분포는 이 fixture에 없으므로 snapshot 실패의 동일 재현이나 실제 앱/RSS 최종 판정으로 사용하지 않는다. 정상 진단으로 관측된 비용 초과도 제품 PASS가 아니며 이후 실행을 자동 진행하지 않는다.
+
+2번 구현·검토 마감: pure 88/88, native 67/67, 최종 focused 27/27 및 기존 guard 권한 대조 1/1 통과.
+초기 정적 oracle 2건 실패와 제한된 프로세스 관측 실패·잔류 정리, 등록 18/18·coverage 8/8·자산 10/10·링크/구문/diff 결과는
+[O28 단계별 보고](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md)와
+[2번 개별 5,480행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-stage2-items.md.gz)에 보존한다.
+제품 최적화·실제 앱/장시간 검증은 미실행이며 3~4번은 이제 선수 조건을 충족했다.

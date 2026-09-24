@@ -16,7 +16,8 @@
 #include <stdexcept>
 
 namespace {
-void Require(bool value){if(!value)throw std::runtime_error("native-observation-invalid");}
+thread_local const char* failure_code="native-observation-invalid";
+void Require(bool value,const char* code="native-observation-invalid"){if(!value){failure_code=code;throw std::runtime_error("native-observation-invalid");}}
 std::string Quote(const std::string& value){std::ostringstream out;out<<std::quoted(value);return out.str();}
 std::string Hash(const std::string& text){unsigned char digest[EVP_MAX_MD_SIZE];unsigned int size=0;
     Require(EVP_Digest(text.data(),text.size(),digest,&size,EVP_sha256(),nullptr)==1&&size==32);
@@ -60,26 +61,26 @@ std::string Normalize(const std::string& raw){
 int main(int argc,char** argv){try{
     if(argc==3&&std::string(argv[1])=="--snapshot"){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root)==root&&
-        root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&std::filesystem::exists(root/".recording-store-format"));
+        root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&std::filesystem::exists(root/".recording-store-format"),"snapshot-input-invalid");
       auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{root,{}});auto& journal=*journal_owner;
       std::unique_ptr<recording::RecordingCatalog> catalog_owner;auto teardown=archive_phase::OnExit([&]{archive_phase::Scope scope(archive_phase::Phase::Destruct);catalog_owner.reset();journal_owner.reset();});
       recording::RecordingCatalog::Options options(root/"recording-catalog.sqlite3",root,true);options.enable_v2_storage=true;
       catalog_owner=std::make_unique<recording::RecordingCatalog>(journal,options);auto& catalog=*catalog_owner;std::string error;
-      Require(archive_phase::Call(archive_phase::Phase::JournalOpen,[&]{return journal.Open(&error);})&&
-        archive_phase::Call(archive_phase::Phase::CatalogOpen,[&]{return catalog.Open(&error);}));
-      const auto report=catalog.recovery_report();Require(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0);
+      Require(archive_phase::Call(archive_phase::Phase::JournalOpen,[&]{return journal.Open(&error);}),"journal-open");
+      Require(archive_phase::Call(archive_phase::Phase::CatalogOpen,[&]{return catalog.Open(&error);}),"catalog-open");
+      const auto report=catalog.recovery_report();Require(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0,"recovery-errors");
       recording::RecordingReadService reader(catalog);std::vector<std::string> evidence;std::size_t deleted=0,available=0;
       std::vector<std::pair<std::string,recording::RecordingLocationCatalogSnapshot>> snapshots;
-      {archive_phase::Scope query(archive_phase::Phase::Query);for(const auto& channel:{"9101","9201"}){snapshots.emplace_back(channel,recording::RecordingLocationCatalogSnapshot{});Require(catalog.SnapshotLocationsV2(channel,&snapshots.back().second,&error));}}
+      {archive_phase::Scope query(archive_phase::Phase::Query);for(const auto& channel:{"9101","9201"}){snapshots.emplace_back(channel,recording::RecordingLocationCatalogSnapshot{});Require(catalog.SnapshotLocationsV2(channel,&snapshots.back().second,&error),"query");}}
       {archive_phase::Scope media_scope(archive_phase::Phase::Media);
       for(const auto& [channel,snapshot]:snapshots){
         for(const auto& s:snapshot.segments){const bool removed=catalog.IsDeletedSegmentId(s.segment_id);const auto media=reader.ResolveMedia(channel,s.segment_id);
-          Require(removed?!media:bool(media));if(removed)++deleted;else ++available;
+          Require(removed?!media:bool(media),removed?"deleted-media-visible":"live-media-unavailable");if(removed)++deleted;else ++available;
           evidence.push_back(Segment(s)+(removed?"deleted":"available"));}
-        for(const auto& id:snapshot.deleted_segment_ids){Require(catalog.IsDeletedSegmentId(id)&&!reader.ResolveMedia(channel,id));++deleted;evidence.push_back(Hash(id)+"deleted");}
+        for(const auto& id:snapshot.deleted_segment_ids){Require(catalog.IsDeletedSegmentId(id),"deleted-state-missing");Require(!reader.ResolveMedia(channel,id),"deleted-media-visible");++deleted;evidence.push_back(Hash(id)+"deleted");}
       }}
       std::string digest;{archive_phase::Scope digest_scope(archive_phase::Phase::Digest);std::sort(evidence.begin(),evidence.end());std::string joined;for(const auto& e:evidence)joined+=e+'\n';digest=Hash(joined);}
-      {archive_phase::Scope output_scope(archive_phase::Phase::Output);std::cout<<"{\"digest\":"<<Quote(digest)<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';std::cout.flush();Require(bool(std::cout));}return 0;
+      {archive_phase::Scope output_scope(archive_phase::Phase::Output);std::cout<<"{\"digest\":"<<Quote(digest)<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';std::cout.flush();Require(bool(std::cout),"output");}return 0;
     }
     if(argc==3&&std::string(argv[1])=="--fixture"){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root.parent_path())==root.parent_path()&&
@@ -107,4 +108,4 @@ int main(int argc,char** argv){try{
     while(std::cin.get(c)){Require(++total<=32*1024*1024);if(c=='\n'){Require(!line.empty());std::cout<<Normalize(line)<<'\n';line.clear();}
       else{Require(line.size()<16*1024*1024);line.push_back(c);}}
     Require(std::cin.eof()&&line.empty());return 0;
-}catch(...){std::cerr<<"native-observation-invalid\n";return 1;}}
+}catch(...){std::cerr<<failure_code<<'\n';return 1;}}
