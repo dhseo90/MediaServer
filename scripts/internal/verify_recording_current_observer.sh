@@ -2,8 +2,8 @@
 # 파일 용도: 현행 관측 준비/120분 실행 연결. 기본 실행이나 짧은 시간을 120분으로 승격하지 않는다.
 set -euo pipefail
 case "$*" in
-  --self-test|--app-observe|"--duration-minutes 120") ;;
-  *) echo 'usage: current-observer --self-test | --app-observe | --duration-minutes 120' >&2; exit 2 ;;
+  --self-test|--app-observe|--diagnose-status-1020|--diagnose-status-1020-original|"--duration-minutes 120") ;;
+  *) echo 'usage: current-observer --self-test | --app-observe | --diagnose-status-1020 | --diagnose-status-1020-original | --duration-minutes 120' >&2; exit 2 ;;
 esac
 observer_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 observer_repo="$(cd "$observer_script/../.." && pwd)"

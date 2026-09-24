@@ -15,9 +15,14 @@ for(const code of ['ETIMEDOUT','ENOENT','EACCES','ENOBUFS'])check('LP26-O07-A ex
 });
 check('LP26-O07-A fixed diagnostic categories exclude raw errors and paths',()=>{
   const result=summarizeFixtureGeneration({status:1,signal:'SECRET',error:{code:'PRIVATE_CODE'},stdout:'private-token',stderr:'no element private-element; could not link; plugin-scanner; Permission denied; No space left /private/path'}, {elapsedMs:1});
-  assert.deepEqual(result.categories,{missingElement:true,negotiation:true,pluginScanner:true,permission:true,resource:true});
+  assert.deepEqual(result.categories,{missingElement:true,negotiation:true,pluginScanner:true,permission:true,resource:true,macosService:false});
   assert.equal(result.signal,'other');assert.equal(result.errorCode,'other');assert.equal(result.rawBodyPublished,false);
   const json=JSON.stringify(result);for(const forbidden of ['private-token','private-element','/private/path','SECRET','PRIVATE_CODE'])assert(!json.includes(forbidden));
+});
+check('LP26-O15 macOS service failure is classified without raw stderr',()=>{
+  const result=summarizeFixtureGeneration({status:null,signal:'SIGTERM',error:{code:'ETIMEDOUT'},stderr:'Connection Invalid error for service com.apple.hiservices-xpcservice. /private/hidden'}, {elapsedMs:30000});
+  assert.equal(result.categories.macosService,true);assert.equal(result.rawBodyPublished,false);
+  assert(!JSON.stringify(result).includes('/private/hidden'));
 });
 check('LP26-O07-B runner captures diagnostic before rejecting bounded fixture',()=>{
   const source=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');

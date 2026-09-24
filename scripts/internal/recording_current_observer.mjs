@@ -29,7 +29,8 @@ export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
     elapsedMs,timeoutMs:30000,stdoutBytes:Buffer.byteLength(String(result?.stdout??'')),stderrBytes:Buffer.byteLength(stderr),outputBytes,
     categories:{missingElement:/no element|no such element/i.test(stderr),negotiation:/not-negotiated|could not link/i.test(stderr),
       pluginScanner:/plugin.scanner|plugin loader/i.test(stderr),permission:/permission denied|operation not permitted/i.test(stderr),
-      resource:/no space left|resource unavailable|resource temporarily unavailable/i.test(stderr)},rawBodyPublished:false};
+      resource:/no space left|resource unavailable|resource temporarily unavailable/i.test(stderr),
+      macosService:/Connection Invalid|com\.apple\.hiservices-xpcservice|LSNotification/i.test(stderr)},rawBodyPublished:false};
 }
 // 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
 export function measureCurrentRoot(root,{sqlitePages=false}={}){

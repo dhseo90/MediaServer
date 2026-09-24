@@ -13,10 +13,11 @@ import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
 import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
 import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
-const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
-const duration=short?30000:parseLongrunArgs(args),repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe',
+  diagnoseFast=args.length===1&&args[0]==='--diagnose-status-1020',diagnoseOriginal=args.length===1&&args[0]==='--diagnose-status-1020-original',diagnose=diagnoseFast||diagnoseOriginal;
+const duration=short?30000:diagnoseFast?780000:diagnoseOriginal?1440000:parseLongrunArgs(args),repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');
-const start=performance.now(),deadline=start+(short?180000:7380000),processes=[],samples=[],ports=[];
+const start=performance.now(),deadline=start+(short?180000:diagnoseFast?900000:diagnoseOriginal?1500000:7380000),processes=[],samples=[],ports=[];
 const native=path.join(root,'normalize'),collector=path.join(root,'process-metrics');
 let cancelled=false,failed=0,passed=0,observer,progress,phaseResult,summary,udp,udpClosed=false,observationStart=null;
 process.on('SIGTERM',()=>{cancelled=true;});process.on('SIGINT',()=>{cancelled=true;});
@@ -39,7 +40,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:root,
     SOURCE_REGISTRY:path.join(root,'state/sources.json'),PUBLISHED_VIEWS:path.join(root,'state/views.json'),ANALYSIS_REGISTRY:path.join(root,'state/analysis.json'),
     ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
-    RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
+    RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:diagnoseFast?1:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
@@ -140,15 +141,20 @@ try{
   const expectedIds=[...initialIds,'9101','9201'];
   for(const id of ['9101','9201'])await request(first,'POST','/ops/api/sources',source(id));
   const begin=performance.now(),observationBudget=new CurrentObservationBudget();observationStart=begin;progress=new CurrentLongrunProgress(begin,['9101','9201'],observationBudget);observer=new CurrentRecordingObserver(path.join(root,'recordings'),native,observationBudget);
-  while(performance.now()-begin<duration){await sample(first);const status=await request(first,'GET','/ops/api/recordings/status');
+  while(diagnose?progress.records.size<1020:performance.now()-begin<duration){
+    if(diagnose&&performance.now()-begin>=duration)throw Error('status-1020-not-reached');
+    await sample(first);const status=await request(first,'GET','/ops/api/recordings/status');
     for(const id of ['9101','9201']){const c=status.channels?.filter(c=>c.channelId===id);check(c?.length===1&&c[0].enabled&&c[0].active&&!c[0].storageBlocked,'LP26-O05 active '+id);}
     cadence();
     const sleepMs=nextSampleDelay(samples.at(-1).phaseAt,performance.now(),begin+duration);
     if(sleepMs>0)await pause(sleepMs);cadence();}
   await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
-  phaseResult=short?progress.status(end):progress.finish(end);check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
+  phaseResult=short||diagnose?progress.status(end):progress.finish(end);
+  if(diagnose)check(progress.records.size>=1020&&Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O15 status under 1020 actual originals');
+  else check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
   summary=summarizeCurrentSamples(samples);observationStart=null;progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
-  const tail=drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');const before=snapshot();
+  const tail=drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
+  if(!diagnose){const before=snapshot();
   const second=await launch(stun);const s=await request(second,'GET','/ops/api/recordings/status');
   verifyStatusUsage(s);
   console.log('[channel-observation] '+JSON.stringify({expectedIds,channels:s.channels?.map(c=>({id:c.channelId,enabled:c.enabled,active:c.active}))}));
@@ -156,7 +162,7 @@ try{
   await stop(second);const after=snapshot();check(JSON.stringify(before)===JSON.stringify(after),'LP26-O05 restart exact catalog media state');
   const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
   await until(async()=>{drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
-  check(closedJournalComplete(drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();
+  check(closedJournalComplete(drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
 }catch(error){failed++;try{rootDiagnostic('failure',measureCurrentRoot(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
 finally{
   observationStart=null;summary=summarizeAvailableSamples(samples);
@@ -170,8 +176,8 @@ finally{
   }catch{failed++;console.log('[fail] server-diagnostic-capture');}}
   observer?.close();if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
-  console.log(JSON.stringify({mode:short?'current-app-observe-short':'current-recording-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+  console.log(JSON.stringify({mode:short?'current-app-observe-short':diagnoseFast?'current-status-1020-diagnostic':diagnoseOriginal?'current-status-1020-diagnostic-original':'current-recording-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,statusCumulativePass:diagnose&&failed===0&&progress?.records.size>=1020,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));process.exitCode=failed?1:0;
 }
