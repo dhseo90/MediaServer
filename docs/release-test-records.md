@@ -11,7 +11,7 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
 | B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시 및 세대 snapshot/새 증거/빈 active 파일 준비 helper는 focused PASS. 실제 snapshot 의미·증분·과거 증거 참조 폐쇄 및 제품 연결은 미구현 |
-| B-03 정상 저장·체크포인트 | 미착수 | 새 단위의 증분 적용과 과거 상세 무재처리 계측 |
+| B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |
@@ -49,6 +49,21 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | B02-F05 | 게시·재열기 | prepare-only manifest 미생성; 별도 명시 Publish/Read 성공, 새 세대 증거만 포함·이전 archive 불변, directory fsync 불확실 전파 | v4.1.0 |
 | B02-F06 | crypto 미지원 | prepare/별도 게시 fail-closed·무생성 | v4.1.0 |
 
+### B-03 예약 이력 값 코덱 구현 전 검사 정의
+
+이 코덱은 journal의 미사용 예약·발생시각·ID 분류를 잃지 않기 위한 값 표현이다.
+manifest·snapshot 파일 신뢰, 기존 Open/Append/Checkpoint 연결과 복구 PASS가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B03-R01 | 예약 코덱 실행 연결 | `./server.sh verify-v410-recording-order-snapshot`의 O01~O06·cleanup·exit | v4.1.0 |
+| B03-O01 | 빈/정상 왕복 | bound store 빈 상태와 전체 예약 tuple+최초 시각·집합·segments 재구성 | v4.1.0 |
+| B03-O02 | 정렬·경계 | 순서 무관 canonical, sequence gap/int64 최대, 음수/최소 시각, 허용 ID/channel | v4.1.0 |
+| B03-O03 | 예약 충돌 | request/segment/sequence 중복, store·maximum·빈 store 모순 거부 | v4.1.0 |
+| B03-O04 | ID 집합 충돌 | ordinary/request·legacy/reserved segment 교차 및 집합 중복·잘못된 ID 거부, 허용 교차 유지 | v4.1.0 |
+| B03-O05 | strict JSON | schema/extra/중복키/타입/overflow·중첩 array/quoted comma/escape/비정규 거부, 실패 output 불변 | v4.1.0 |
+| B03-O06 | crypto 미사용 | no-OpenSSL 정상 왕복·오류 거부 | v4.1.0 |
+
 ### B-02 manifest 첫 구현 단위 결과
 
 첫 `bash scripts/internal/verify_recording_generation_manifest.sh`는 암호화 사용 5개 시나리오
@@ -85,6 +100,31 @@ stream도 저장소에 보존하지 못했다. 현재 제품의 journal·catalog
 
 이번 B-02 focused 실행의 token start/end/consumed는 집계 source가 없어 미집계, 명령별
 elapsed는 도구 대기 시간만 관측했으므로 제품 실행 지표로 사용하지 않는다.
+
+### B-03 예약 이력 코덱 첫 구현 단위 결과
+
+현재 journal의 미사용 예약·최초 발생 시각·ID 분류가 catalog 맵 및 SQLite에 모두
+존재하지 않는다는 코드 대조 후 값 코덱을 분리했다. 이 코덱은 실제 journal에서 값을
+내보내거나 새 Open에서 복원하지 않는다. 역사 전이의 적법성·최초 mutation identity·
+이전 archive의 참조 폐쇄도 검증하지 않으므로 제품 B-03/복구 완료 증거가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B03-O01 | 빈/정상 왕복·예약 tuple/시각·segments 재구성, crypto-on/off 각 7 assertion | pass |
+| B03-O02 | 순서 무관 canonical·비연속 sequence·int64 시각 경계·기존 ID, 각 3 assertion | pass |
+| B03-O03 | request/segment/sequence/store/maximum 충돌, 각 11 assertion | pass |
+| B03-O04 | ordinary/legacy 집합 및 허용 namespace 교차, 각 10 assertion | pass |
+| B03-O05 | schema·nested/extra/중복 키·escape·비정규·overflow·실패 output 불변, 각 20 assertion | pass |
+| B03-O06 | crypto-off 자체 정상 왕복·오류 거부, 2 assertion | pass |
+| B03-R01 | `./server.sh verify-v410-recording-order-snapshot`, crypto-on 5/5·off 6/6, 총 104 assertion·cleanup removed=true, exit0 | pass |
+| B03-B01 | `./server.sh build`, 신규 코덱 source 포함 exit0 | pass |
+| B03-I01 메모리 대조 | 새 inventory hash만 갱신한 기존 구현 증거 검증: 986행·reviewed 986·오류0, exit0. 기존 feature 행과 승인 원장 재생성 없음 | pass |
+| B03-I02 | `./server.sh verify-project-inventory`, 요약 18/18·986 feature rows·exit0. 전체 개별 원출력은 필터링하여 미보존 | pass |
+| B03-S01 | `./server.sh verify-script-inventory`, dispatch·실행 파일 포함 12/12·exit0 | pass |
+
+위 runner 출력은 도구 응답에서 확인했으나 raw stream을 저장소에 캡처하지 않았다.
+실제 30분/UI/120분은 미실행이며 이 단기 검사로 대체하지 않는다. token
+start/end/consumed는 집계 source가 없어 미집계, elapsed는 제품 지표로 미사용한다.
 
 ### B-02 세대 파일 준비 단위 결과
 
