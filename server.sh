@@ -1216,6 +1216,7 @@ Usage:
   verify-v410-recording-contracts
                  v4.1.0 녹화 v1 계약과 golden JSONL fixture의 ID·시간·호환성 경계를 검증합니다.
   verify-v410-recording-generation
+  verify-v410-recording-generation-files
                  B안 세대 manifest의 형식·파일 결박·원자 게시를 독립 검사합니다. 제품 통합 PASS는 아닙니다.
   verify-v410-recording-retention
                  v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
@@ -3110,6 +3111,10 @@ case "${cmd}" in
   verify-v410-recording-generation)
     require_internal verify_recording_generation_manifest.sh
     exec bash "${INTERNAL_DIR}/verify_recording_generation_manifest.sh" "$@"
+    ;;
+  verify-v410-recording-generation-files)
+    require_internal verify_recording_generation_files.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_files.sh" "$@"
     ;;
   verify-v410-recording-retention)
     require_internal verify_v410_recording_retention.sh

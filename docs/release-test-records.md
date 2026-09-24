@@ -10,7 +10,7 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·구성 파일 결박·원자 게시 helper는 focused PASS. 실제 snapshot·증분·과거 증거 생성과 제품 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시 및 세대 snapshot/새 증거/빈 active 파일 준비 helper는 focused PASS. 실제 snapshot 의미·증분·과거 증거 참조 폐쇄 및 제품 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 미착수 | 새 단위의 증분 적용과 과거 상세 무재처리 계측 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -32,6 +32,7 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | --- | --- | --- | --- |
 | B02-B01 | 전체 제품 빌드 | `./server.sh build`에 신규 source 포함, 실제 exit와 출력 확인 | v4.1.0 |
 | B02-R01 | 실행 연결 | `./server.sh verify-v410-recording-generation`의 6개 시나리오·cleanup 대조 | v4.1.0 |
+| B02-R02 | 파일 준비 실행 연결 | `./server.sh verify-v410-recording-generation-files`의 F01~F06 시나리오·cleanup 대조 | v4.1.0 |
 | B02-D01 | 문서 링크 | `./server.sh verify-docs-links`의 exit·링크 오류 수 확인 | v4.1.0 |
 | B02-D02 | 문서 자산 | `./server.sh verify-docs-ui-assets`의 exit·개별 10건 확인 | v4.1.0 |
 | B02-D03 | 변경 공백 | `git diff --check` exit 확인 | v4.1.0 |
@@ -41,6 +42,12 @@ O29의 제품 코드 미변경·분기 검사 통과는 이 선택으로 제품 
 | B02-M04 | 원자 게시 | stage/file/dir sync와 rename의 게시 순서, rename 후 sync 실패 시 내구 결과 불확실 판정 | v4.1.0 |
 | B02-M05 | 실패 보존 | 게시 전 실패와 기존 manifest byte 불변 | v4.1.0 |
 | B02-M06 | crypto 미지원 | 신규 형식 fail-closed, 기존 형식 비변경 | v4.1.0 |
+| B02-F01 | 세대 파일 정상 준비 | 검증된 source FD와 snapshot을 고정 이름·정확한 bytes/SHA·빈 active로 준비; 원본 FD offset/bytes 불변과 ready/소유 보고 대조 | v4.1.0 |
+| B02-F02 | 준비 입력 경계 | 세대 0·source 1GiB 초과·65 sources·경로/동일 이름/출력 충돌·잘못된 SHA를 파일 생성 전에 거부; snapshot 1GiB 상한은 코드 대조만 함 | v4.1.0 |
+| B02-F03 | 원본 결박 | 닫힌/다른 FD·길이/hash 불일치·root/source symlink/hardlink 거부와 원본 보존 | v4.1.0 |
+| B02-F04 | 중단·충돌 | 기존 출력 O_EXCL 거부, partial 파일 소유 보고·잔여 보존, 이전 manifest 불변, 준비 결과 재사용 거부, fixture 정리 | v4.1.0 |
+| B02-F05 | 게시·재열기 | prepare-only manifest 미생성; 별도 명시 Publish/Read 성공, 새 세대 증거만 포함·이전 archive 불변, directory fsync 불확실 전파 | v4.1.0 |
+| B02-F06 | crypto 미지원 | prepare/별도 게시 fail-closed·무생성 | v4.1.0 |
 
 ### B-02 manifest 첫 구현 단위 결과
 
@@ -78,6 +85,37 @@ stream도 저장소에 보존하지 못했다. 현재 제품의 journal·catalog
 
 이번 B-02 focused 실행의 token start/end/consumed는 집계 source가 없어 미집계, 명령별
 elapsed는 도구 대기 시간만 관측했으므로 제품 실행 지표로 사용하지 않는다.
+
+### B-02 세대 파일 준비 단위 결과
+
+제품의 managed lease·catalog는 아직 이 helper를 호출하지 않는다. F01~F06은 소유된
+임시 자료와 명시적 테스트 게시의 독립 반례다. 이전 archive를 복사하지 않는 준비 정책은
+확인했지만, 이전 증거의 영속 참조 폐쇄는 B-04 전까지 미완료다. snapshot 입력의 의미와
+active tail mutation 완결성도 이 단위가 검증하지 않으므로 제품 catalog로 공개하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-F01 | 세대 snapshot·새 evidence·빈 active 정확한 bytes/SHA·소유 보고·원본 offset 불변, 6 assertion | pass |
+| B02-F02 | 세대·source 길이·개수·이름/충돌·SHA 사전 거부, 8 assertion. snapshot 1GiB 초과는 미실행·코드 경계만 확인 | pass |
+| B02-F03 | FD·이름·크기·hash·symlink·hardlink 결박과 원본 보존, 8 assertion | pass |
+| B02-F04 | 결과 객체 재사용/O_EXCL/중단 출력 거부, 부분 파일·기존 manifest 보존, 소유 fixture 정리, 8 assertion | pass |
+| B02-F05 | prepare-only 후 명시적 게시·재열기, 새 세대 증거만 포함, fsync 불확실 전파, 9 assertion | pass |
+| B02-F06 | OpenSSL 없는 빌드에서 prepare 거부·무생성, 2 assertion | pass |
+| B02-R02 | `./server.sh verify-v410-recording-generation-files`, crypto-on 5/5·crypto-off 1/1·cleanup removed=true, exit0 | pass |
+| B02-B01 영향 재실행 | `./server.sh build`, 신규 source 포함 exit0 | pass |
+| B02-R01 영향 재실행 | 기존 manifest M01~M06 48 assertion·6/6·cleanup removed=true, exit0 | pass |
+| B02-S01 | `./server.sh verify-script-inventory`, 12/12·exit0 | pass |
+| B02-I01 최초 | `./server.sh verify-project-inventory`, 17/18·exit1: 추가한 F01~F06/R02 행으로 `inventorySha256 drift`. 최초 출력은 도구 상한으로 절단되어 전수 원출력은 보존하지 못함 | fail |
+| B02-I01 수정 후 | 기존 986개 기능 행 불변, 메모리에서 새 SHA만 대입한 의미 검증 986/986·오류0. fixture의 최상위 `inventorySha256` 한 필드만 갱신. 같은 명령 요약 18/18·exit0; 마지막 24행만 수집되어 전수 원출력 보존 아님 | pass |
+| B02-D01 영향 재실행 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`, 328문서·12777링크·197anchor·오류0, exit0 | pass |
+| B02-D02 영향 재실행 | `./server.sh verify-docs-ui-assets`, 10/10·exit0 | pass |
+| B02-D03 영향 재실행 | `git diff --check`, exit0·출력 없음 | pass |
+
+테스트 fixture는 암호화 사용/미사용 빌드를 나눠 실행한다. 파일 준비 runner와 fixture는
+각각 소유 경로의 이름·부모·소유권을 대조해 정리하며, 실행 TMPDIR에서 두 fixture 이름
+패턴의 잔여 디렉터리 부재를 별도 확인했다. 임시 크기는 미계측이다. 기록된 결과는
+도구 응답 요약을 전사한 것이며 raw stream 캡처가 아니다. token start/end/consumed는
+집계 source가 없어 미집계다. 실제 제품·30분·UI·120분 검증은 이 단위에서 미실행이다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
