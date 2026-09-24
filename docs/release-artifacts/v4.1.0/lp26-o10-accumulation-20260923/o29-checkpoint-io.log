@@ -1,0 +1,22 @@
+[instrument] location_exception_exact_insertions=3
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373 location_journal_instrumented_sha256=5e3b1373f18a053f47afc31031cb27ea6043dd6f6e98f170a30e523b1ce9a8dd
+[instrument] location_declarations=1,1 location_header_sha256=31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c
+[instrument] catalog_sha256=c961f9eac7da8020e076e5edf3a546e53b889ececf627c5bfcb8ea3c313fbb74 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"49250e6ff55304e97bd0d27c275da08b1d8f7c378a80357d891ec0fde383bc78"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"f3a822d9f5d59a158a6d47fe9294a95f16fc67a5c4423e6c9c6be460498fb373"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"9e2b0f90839c23d15a6122feb609af8f14d0f7e3ff56cbde13861b0b9cfd36ae"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"2d7531ea0f02c6fd2d78bb1daa49e9786ecdcce2582c3649a17e9507aa13f743"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"81d0ac0285dbf30f3e15033ccb5db1e31ced295935fb3af4708c7f0957f46242"}
+[pass] O29-C01 warm ReadCheckpointRecords reuses resident strict values without raw reacquire
+[pass] O29-C02 cold ReadCheckpointRecords strictly reacquires every raw row once
+[pass] O29-C03 automatic no-op validates complete canonical raw bytes without rewrite
+[pass] O29-C03 automatic no-op rejects same-length raw hash mismatch without rewriting evidence
+[pass] O29-C04 non-shrinking checkpoint candidate returns success without replacing storage
+[pass] O29-C05 shrinking checkpoint atomically replaces exact bytes and preserves prior owned snapshot
+[summary] O29 pass=6 fail=0
+[cleanup] removed=true
