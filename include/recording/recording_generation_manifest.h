@@ -43,6 +43,12 @@ bool ReadRecordingGenerationManifest(const std::filesystem::path& root,
 // descriptor 1GiB 상한과 caller admission을 읽기 전에 적용하며 실패 output은 불변이다.
 bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
     const RecordingGenerationFile&, std::uint64_t byte_admission, std::string* output, std::string* error);
+// 전체 파일 SHA를 64KiB 블록으로 검증하되 요청 구간만 보관한다. 비용은 파일 전체 읽기이며
+// 메모리는 결과 길이+고정 블록에 비례한다. 빈 구간은 admission=0도 허용하며 전체 검증은 수행한다.
+// 구간 자체의 domain 의미나 제품 B Open 검증을 대신하지 않는다.
+bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& root,
+    const RecordingGenerationFile&, std::uint64_t offset, std::uint64_t length,
+    std::uint64_t result_admission, std::string* output, std::string* error);
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 void RecordingGenerationFailNextDirectorySyncForTest();
 // 실제 파일 읽기 후 최종 결박 검사 직전의 일회성 fixture hook이다.

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 #if !defined(_WIN32)
@@ -15,6 +16,9 @@
 #ifndef MEDIA_SERVER_USE_OPENSSL
 #define MEDIA_SERVER_USE_OPENSSL 0
 #endif
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 namespace {
 const std::string abc_hash = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -22,6 +26,15 @@ void Write(const std::filesystem::path& path, const std::string& bytes) {
     std::ofstream file(path, std::ios::binary);
     file << bytes;
     if (!file) throw std::runtime_error("fixture write failed");
+}
+std::string FixtureHash(const std::string& bytes) {
+    unsigned char digest[32];unsigned length=0;
+    if(EVP_Digest(bytes.data(),bytes.size(),digest,&length,EVP_sha256(),nullptr)!=1||length!=32)
+        throw std::runtime_error("fixture digest failed");
+    constexpr char hex[]="0123456789abcdef";
+    std::string hash;
+    for(auto c:digest){hash+=hex[c>>4];hash+=hex[c&15];}
+    return hash;
 }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 std::filesystem::path immutable_hook_path;
@@ -48,14 +61,15 @@ recording::RecordingGenerationManifest Manifest(std::uint64_t generation) {
 } // namespace
 int main() {
     using namespace recording;
-    std::array<bool, 10> results{};results.fill(true);
-    std::array<unsigned, 10> assertions{};
-    const std::array<const char*, 10> names{
+    std::array<bool, 12> results{};results.fill(true);
+    std::array<unsigned, 12> assertions{};
+    const std::array<const char*, 12> names{
         "B02-M01 canonical roundtrip", "B02-M02 invalid values and paths",
         "B02-M03 file binding", "B02-M04 publication",
         "B02-M05 failure preservation and cleanup", "B02-M06 crypto-off",
         "B02-I01 verified immutable bytes", "B02-I02 immutable name and admission",
-        "B02-I03 immutable file and root binding", "B02-I04 immutable crypto-off"};
+        "B02-I03 immutable file and root binding", "B02-I04 immutable crypto-off",
+        "B02-I05 verified immutable ranges", "B02-I06 immutable range crypto-off"};
     const auto check = [&](unsigned group, bool ok, const char* detail) {
         ++assertions[group - 1];
         results[group - 1] = results[group - 1] && ok;
@@ -75,6 +89,8 @@ int main() {
     std::string immutable="unchanged";
     check(10,!ReadVerifiedRecordingGenerationImmutable("/invalid",manifest.snapshot,3,&immutable,&error)&&
         immutable=="unchanged"&&error.find("unsupported")!=std::string::npos,"immutable unsupported and unchanged");
+    check(12,!ReadVerifiedRecordingGenerationImmutableRange("/invalid",manifest.snapshot,1,1,1,&immutable,&error)&&
+        immutable=="unchanged"&&error.find("unsupported")!=std::string::npos,"range unsupported and unchanged");
 #else
     check(1, SerializeRecordingGenerationManifest(manifest, &raw, &error), "serialize");
     check(1, ParseRecordingGenerationManifest(raw, &parsed, &error), "parse");
@@ -167,6 +183,51 @@ int main() {
 #else
         check(9,false,"fixture requires immutable binding hook");
 #endif
+        std::string large(131072,'x');large.replace(65530,16,"0123456789abcdef");
+        const RecordingGenerationFile range_file{"evidence-5-0.jsonl",static_cast<std::uint64_t>(large.size()),FixtureHash(large)};
+        Write(immutable_root/range_file.name,large);
+        check(11,ReadVerifiedRecordingGenerationImmutableRange(immutable_root,range_file,65530,16,16,&immutable,&error)&&
+            immutable=="0123456789abcdef","cross-block range with admission smaller than file");
+        check(11,ReadVerifiedRecordingGenerationImmutableRange(immutable_root,range_file,large.size()-1,1,1,&immutable,&error)&&
+            immutable=="x","last byte");
+        check(11,ReadVerifiedRecordingGenerationImmutableRange(immutable_root,range_file,large.size(),0,0,&immutable,&error)&&
+            immutable.empty(),"empty EOF range still validates file");
+        check(11,ReadVerifiedRecordingGenerationImmutableRange(immutable_root,range_file,0,large.size(),large.size(),&immutable,&error)&&
+            immutable==large,"full range parity");
+        const auto reject_range=[&](const RecordingGenerationFile& file,std::uint64_t offset,std::uint64_t length,std::uint64_t admission) {
+            immutable="unchanged";
+            return !ReadVerifiedRecordingGenerationImmutableRange(immutable_root,file,offset,length,admission,&immutable,&error)&&
+                immutable=="unchanged";
+        };
+        check(11,reject_range(range_file,large.size()+1,0,0),"offset past EOF");
+        check(11,reject_range(range_file,large.size(),1,1),"range past EOF");
+        check(11,reject_range(range_file,std::numeric_limits<std::uint64_t>::max(),1,1),"offset overflow");
+        check(11,reject_range(range_file,1,std::numeric_limits<std::uint64_t>::max(),std::numeric_limits<std::uint64_t>::max()),"length overflow");
+        check(11,reject_range(range_file,65530,16,15),"result admission");
+        auto excessive=range_file;excessive.size=1024ULL*1024*1024+1;
+        check(11,reject_range(excessive,0,1,1),"descriptor limit before large allocation");
+        auto corrupted=large;corrupted.back()='y';Write(immutable_root/range_file.name,corrupted);
+        check(11,reject_range(range_file,65530,16,16),"corruption outside requested range");
+        check(11,reject_range(range_file,0,0,0),"empty range does not bypass full digest");
+        Write(immutable_root/range_file.name,large);
+        check(11,reject_range({"identity-3.jsonl",3,abc_hash},1,1,1),"range file symlink");
+        std::filesystem::create_hard_link(immutable_root/range_file.name,immutable_root/"range-hardlink");
+        check(11,reject_range(range_file,1,1,1),"range file hardlink");
+        std::filesystem::remove(immutable_root/"range-hardlink");
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+        immutable_hook_path=immutable_root/"identity-1.jsonl";immutable_hook_root=false;immutable_hook_ran=false;
+        RecordingGenerationImmutableBeforeBindingForTest(ReplaceImmutableFixture);
+        check(11,reject_range({"identity-1.jsonl",3,abc_hash},1,1,1)&&immutable_hook_ran,"range final inode binding");
+        std::filesystem::remove(immutable_hook_path);
+        std::filesystem::rename(immutable_hook_path.string()+".saved",immutable_hook_path);
+        immutable_hook_path=immutable_root;immutable_hook_root=true;immutable_hook_ran=false;
+        RecordingGenerationImmutableBeforeBindingForTest(ReplaceImmutableFixture);
+        check(11,reject_range(range_file,65530,16,16)&&immutable_hook_ran,"range final root binding");
+        std::filesystem::remove(immutable_hook_path);
+        std::filesystem::rename(immutable_hook_path.string()+".saved",immutable_hook_path);
+#else
+        check(11,false,"fixture requires range binding hook");
+#endif
         for (std::uint64_t generation : {1, 2, 3}) {
             const auto item = Manifest(generation);
             Write(root / item.snapshot.name, "abc"); Write(root / item.active.name, "abc");
@@ -241,7 +302,7 @@ int main() {
         check(3, !reread(), "symlink manifest rejected");
     } catch (const std::exception& exception) {
         std::cerr << exception.what() << '\n';
-        for (unsigned group : {3, 4, 5, 7, 8, 9}) check(group, false, "fixture aborted");
+        for (unsigned group : {3, 4, 5, 7, 8, 9, 11}) check(group, false, "fixture aborted");
     }
     struct stat current{}, current_parent{};
     const bool still_owned = owned && root.parent_path() == parent &&

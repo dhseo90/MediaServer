@@ -343,9 +343,16 @@ bool ReadRecordingGenerationManifest(const std::filesystem::path& root,Recording
 bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
     const RecordingGenerationFile& descriptor,std::uint64_t byte_admission,std::string* output,std::string* error) {
     if(!Supported(error))return false;
+    if(!byte_admission)return Fail(error,"immutable descriptor/admission invalid");
+    return ReadVerifiedRecordingGenerationImmutableRange(root,descriptor,0,descriptor.size,byte_admission,output,error);
+}
+bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& root,
+    const RecordingGenerationFile& descriptor,std::uint64_t offset,std::uint64_t length,
+    std::uint64_t result_admission,std::string* output,std::string* error) {
+    if(!Supported(error))return false;
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
-    if(!output||!byte_admission||descriptor.size>byte_admission||descriptor.size>kFileLimit||
-       descriptor.size>std::numeric_limits<std::size_t>::max()||
+    if(!output||length>result_admission||descriptor.size>kFileLimit||offset>descriptor.size||
+       length>descriptor.size-offset||length>std::numeric_limits<std::size_t>::max()||
        descriptor.size>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())||
        !Hex(descriptor.sha256)||!ImmutableName(descriptor.name))
         return Fail(error,"immutable descriptor/admission invalid");
@@ -357,20 +364,26 @@ bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
         if(file.n<0||!Regular(file.n,&before)||static_cast<std::uint64_t>(before.st_size)!=descriptor.size||
            !Same(dir.n,descriptor.name.c_str(),file.n,before)||!RootSame(root,dir.n))
             return Fail(error,"immutable file binding/size invalid");
-        std::string bytes(static_cast<std::size_t>(descriptor.size),'\0');
+        std::string bytes(static_cast<std::size_t>(length),'\0');
+        std::array<char,65536> block{};
         std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(),EVP_MD_CTX_free);
         if(!digest||EVP_DigestInit_ex(digest.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"immutable digest initialization failed");
-        std::size_t offset=0;
-        while(offset<bytes.size()) {
-            const auto wanted=std::min<std::size_t>(65536,bytes.size()-offset);
+        std::uint64_t position=0;
+        const auto end=offset+length; // 범위 검사 후이므로 overflow가 없다.
+        while(position<descriptor.size) {
+            const auto wanted=static_cast<std::size_t>(std::min<std::uint64_t>(block.size(),descriptor.size-position));
             ssize_t count;
-            do { count=::pread(file.n,bytes.data()+offset,wanted,static_cast<off_t>(offset)); } while(count<0&&errno==EINTR);
-            if(count<=0||EVP_DigestUpdate(digest.get(),bytes.data()+offset,static_cast<std::size_t>(count))!=1)
+            do { count=::pread(file.n,block.data(),wanted,static_cast<off_t>(position)); } while(count<0&&errno==EINTR);
+            if(count<=0||EVP_DigestUpdate(digest.get(),block.data(),static_cast<std::size_t>(count))!=1)
                 return Fail(error,"immutable read/digest failed");
-            offset+=static_cast<std::size_t>(count);
+            const auto next=position+static_cast<std::uint64_t>(count);
+            const auto first=std::max(position,offset),last=std::min(next,end);
+            if(first<last)std::copy_n(block.data()+static_cast<std::size_t>(first-position),
+                static_cast<std::size_t>(last-first),bytes.data()+static_cast<std::size_t>(first-offset));
+            position=next;
         }
-        unsigned char hash_bytes[32];unsigned length=0;
-        if(EVP_DigestFinal_ex(digest.get(),hash_bytes,&length)!=1||length!=32)return Fail(error,"immutable digest final failed");
+        unsigned char hash_bytes[32];unsigned digest_length=0;
+        if(EVP_DigestFinal_ex(digest.get(),hash_bytes,&digest_length)!=1||digest_length!=32)return Fail(error,"immutable digest final failed");
         constexpr char hex[]="0123456789abcdef";
         std::string hash;
         for(auto c:hash_bytes){hash+=hex[c>>4];hash+=hex[c&15];}
@@ -395,7 +408,7 @@ bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
         return true;
     } catch(...) {return Fail(error,"immutable read resource failure");}
 #else
-    (void)root;(void)descriptor;(void)byte_admission;(void)output;
+    (void)root;(void)descriptor;(void)offset;(void)length;(void)result_admission;(void)output;
     return false;
 #endif
 }

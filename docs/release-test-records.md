@@ -109,6 +109,8 @@ payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증
 | B02-I02 | 소유·경로 | root/file symlink·hardlink·임의 경로/이름·세대 숫자 비정규/0·교체 거부. 현재 manifest 세대와의 대조는 별도 | v4.1.0 |
 | B02-I03 | 손상·상한 | 크기/hash/누락/admission/1GiB 상한과 실패 output 불변 | v4.1.0 |
 | B02-I04 | crypto-off | 파일 digest 확인 API fail-closed, 기존 v1 비변경 | v4.1.0 |
+| B02-I05 | cold 구간 읽기 | 전체 descriptor SHA를 streaming 검증하고 offset/length 구간만 반환; 0길이·파일 경계 포함 | v4.1.0 |
+| B02-I06 | cold 구간 거부 | overflow·범위·result admission·변조/교체·crypto-off 거부, 실패 output 불변 | v4.1.0 |
 
 ### B-02 현재 catalog snapshot 값 형식 단위 결과
 
@@ -200,6 +202,34 @@ nofollow/inode/size/time/root 재결박과 실패 output 불변을 검사한 독
 | `/private/tmp/media-server-b02-immutable-run.LsNOKS` | 첫 focused 로그 root | 로그 576바이트 | SHA 일치 중앙 원출력 보존 후 로그·빈 root 제거 | 부재 확인 | 첫 실행 뒤 사전등록 표현 정정, 같은 검증 재실행 |
 | 해당 runner 소유 build/fixture root | 소유 임시 build | runner 출력상 크기 미기록 | runner 정리 | cleanup `removed=true` | 최종 focused 출력 |
 | 실행 중 `xcrun_db` | 도구 임시 cache | 499바이트 | 소유권 확인 후 제거 | 부재 확인(담당자) | 첫 실행 담당자 기록 |
+
+### B-02 불변 세대 파일 cold 구간 읽기 단위 결과
+
+I05/I06을 실행 전에 등록했다. `./server.sh verify-v410-recording-generation`은
+crypto-on 9/9, crypto-off 3/3, 실패 0, exit0이었다. [원출력](release-artifacts/v4.1.0/b02-immutable-range-20260925/focused.log)은
+임시 로그와 `cmp`로 일치하며 SHA-256은
+`39ee6b9dddadc58d696a2191383c85afec141e1683d988d08a0a748ef339d900`이다.
+전체 파일 SHA 확인을 유지하면서 지정 구간만 반환한다. 그러므로 메모리 상한은
+요청 구간에 비례하지만 디스크 읽기 비용은 여전히 파일 전체에 비례한다.
+제품의 archive locator·B Open과 전체 복구는 아직 연결되지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-I05 | 64KiB 경계·끝·빈 구간·전체 구간, 범위/overflow/admission/상한, 구간 밖 손상·symlink/hardlink·파일/root 교체; 16 assertion | pass |
+| B02-I06 | crypto-off fail-closed와 실패 output 불변; 1 assertion | pass |
+
+영향 확인: `./server.sh build` exit0, `./server.sh verify-project-inventory`
+18/18(기능 행 986개), `./server.sh verify-docs-links` markdown 328개·local links
+12,783개·failures0, `./server.sh verify-docs-ui-assets` 10/10이었다. 인벤토리
+원출력은 도구 표시 한도에서 잘렸으므로 전수 원문 검토로 확대하지 않는다.
+`git diff --check` exit0이었다. 실제 서버·계정·포트·영상은
+생성하지 않았다. token start/end/consumed의 집계 source가 없어 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-b02-range-run.co0uLj/focused.log` | 집중 검증 원출력 | 686바이트 | SHA·byte 일치 중앙 보존 후 원본·빈 root 삭제 | 부재 확인 | 위 `cmp`·SHA·`test ! -e` exit0 |
+| 해당 runner 소유 build/fixture root | 소유 임시 build | runner 출력상 크기 미기록 | runner 정리 | cleanup `removed=true` | 집중 검증 원출력 |
+| 실행 중 `xcrun_db` | 도구 임시 cache | 499바이트 | 소유권 확인 후 제거 | 부재 확인(담당자) | 담당자 기록 |
 
 ### B-02 manifest 첫 구현 단위 결과
 

@@ -11,6 +11,8 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-I02 | 소유·경로 차단 | root/file symlink·hardlink·임의 이름·세대 숫자 비정규/0·파일 교체 거부. 현재 manifest 세대 일치는 별도 검사 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
 | B02-I03 | 손상·상한 차단 | 크기/hash 변조·누락·caller byte admission·1GiB 형식 상한, 실패 출력 불변 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
 | B02-I04 | 암호 미지원 | crypto-off 파일 검증 fail-closed, 기존 v1 경로는 변경하지 않음 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
+| B02-I05 | cold 구간 읽기 | 전체 파일 SHA를 스트리밍 대조하고 지정 offset/length만 반환; 선두/중간/끝/0길이와 큰 파일에서 출력 크기 확인 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
+| B02-I06 | cold 구간 거부 | offset+length overflow·범위 이탈·caller 결과 admission·원본 교체·crypto-off 거부, 실패 출력 불변 | 미실행: 단기 reader | 미실행: 최종 소스 판정 전 | 비대상: 내부 읽기 |
 
 ## S11 B-02 형식 전환 충돌 차단
 
