@@ -60,13 +60,14 @@
 | LP26-O23-A/B 첫 권한 확장 | [실패 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp26-o23-b.txt): 21/22, 미디어 예외 뒤 요청-local 해제를 검사하던 기존 assertion이 새 bounded 후보 수명을 고려하지 않아 실패. 원본·hold 손상 증거는 없으며 root 정리됨. 이 결과를 PASS로 소급하지 않음 | fail |
 | LP26-O23-A/B 집중 재검증 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp26-o23-c.txt): 22/22·exit0. 두 번째 조회 본문 재파싱 0회, 동일 응답/미디어 바이트, 원장 동일 길이 변조·detach·상태/원본/경로 변경 거부, 8건·8MiB 상한과 hold 해제·소유 root 정리 확인 | pass |
 | LP26-O23 실제 앱·재기동 집중 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz): 첫/두 번째 기동 선택 출력 완료 20.214/22.548초(<30초), 타임라인 HTTP 각각 114/20건 최대 1.089/2.329초(<4초). 출력 각 2개·HTTP200/파일 해시·새 작업·기존 데이터 보존, 독립 terminal+전체 페이지, 27/27·exit0, 서버 exit0·포트/root 정리. 장시간·UI·누적 2,049개 checkpoint PASS로 확대하지 않음 | pass |
-| LP26-O23 catalog·SQLite/JSONL 영향 회귀 | `./server.sh verify-v410-recording-catalog`: 234/234 및 crypto-off 3/3·exit0, 소유 임시 root 정리. 이전 O16 실행과 독립된 현재 소스 결과 | pass |
+| LP26-O23 catalog·SQLite/JSONL 영향 회귀 | `./server.sh verify-v410-recording-catalog`: 호출 출력에서 234/234 및 crypto-off 3/3·exit0, 소유 임시 root 정리 확인. 이번 호출의 별도 원출력 파일은 보존되지 않아 S11 최종 gate의 전수 증거로 승격하지 않고 최종 소스 고정 뒤 재실행한다 | pass |
 | LP26-O14 실제 HTTP 집중 | 최초 격리 실행은 localhost bind EPERM으로 요청 전 중단·root 정리. [허용 재실행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-latency-focused-authorized.log)은 타임라인 HTTP 114개·최대 967ms, 프로세스 exit0·포트/root 정리 | pass |
 | LP26-O14 현행 5단계 통합의 30초 판정 정정 | [당시 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration.log)·[당시 개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): 실행기는 HTTP API35·인증40·lifecycle10·default46·실제 앱27개와 `currentIntegrationExecutionPass=true`를 출력했으나, 두 번째 기동의 선택 출력 대기는 `elapsedMs=30596.638583`, `returnedAfterBudget=true`였다. `boundedUntil`의 비동기 반환 직후 30초 초과 거부가 없어 과거 PASS가 발생했다. 실제 출력/해시/정리는 보존하되 **30초 합격 및 전체 통합 PASS 증거로 사용할 수 없다**. 당시 실행 결과를 지우지 않고 판정만 정정한다 | fail |
 
 자동 전체 재작성은 공개 Catalog 삭제 수명으로 도달했지만, 그 구간과 실제 상태 HTTP 요청의 동시 겹침은 **미확인**이다. 이전 내부 합성 입력은 별도 [실패·보완 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)으로 보존한다.
 위 pass는 표시한 검사 범위에만 적용한다. 실제 HTTP 4초 집중 검사만 해당 범위에서 통과했다. 당시 5단계 통합 실행기의 PASS는 위 30초 초과 반례 때문에 무효이며 장시간·UI·버전 전체 PASS가 아니다.
 이번 O16 통합의 elapsed는 148,242ms, O18 한정 실제 앱 재현은 109,133ms다. 이 단기 실행의 `token start`·`token end`·`token consumed`는 전용 자동 집계가 제공되지 않아 미집계이며 `source`는 검증 명령 원출력이다. 사용량을 0으로 간주하지 않는다.
+O23 한정 실제 앱의 elapsed는 103,876ms다. 이번 O23 단기 검증의 `token start`·`token end`·`token consumed`도 별도 집계가 없어 미집계이며 `source`는 위 실행 원출력이다. 30분·UI·120분 영역의 이번 실행은 없다.
 
 ## v4.1.0 S11 LP26-O12 누적 안전성·현행 통합
 
