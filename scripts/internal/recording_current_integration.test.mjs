@@ -155,13 +155,27 @@ test('LP25-O04 group members survive full collection and literal two output vali
   const result=await allTimelinePages(async()=>({total:0,unplacedTotal:2,offset:0,limit:2,items:[],unplacedItems:groups}),{limit:2});
   assert.deepEqual(result.unplacedItems,groups);assert.equal(eventOutputs(result,'event-one','reference-one').length,2);
 });
+test('S11-O25-01 bounded group members do not consume the top-level item budget',async()=>{
+  const group=groupedOutput('one',Array.from({length:4111},(_,i)=>`member-${i}`));
+  const result=await allTimelinePages(async()=>({total:0,unplacedTotal:1,offset:0,limit:1,items:[],unplacedItems:[group]}),{limit:1});
+  assert.equal(result.unplacedItems.length,1);
+  assert.equal(result.unplacedItems[0].members.length,4111);
+});
+test('S11-O25-02 group members above the separate bound are rejected before consumption',async()=>{
+  const group=groupedOutput('one',Array.from({length:8193},(_,i)=>`member-${i}`));
+  const observed=[];let consumed=0;
+  await assert.rejects(allTimelinePages(async()=>({total:0,unplacedTotal:1,offset:0,limit:1,items:[],unplacedItems:[group]}),
+    {limit:1,observe:event=>observed.push(event),consumePage:()=>{consumed++;}}),
+  error=>error.code==='page-bound-leaf-limit'&&observed.at(-1)?.details?.leaves===8193);
+  assert.equal(consumed,0);
+});
 for(const [name,groups,options,code] of [
   ['within group duplicate',[groupedOutput('one',['m1','m1'])],{},'duplicate-item'],
   ['across groups duplicate',[groupedOutput('one',['m1']),groupedOutput('two',['m1'])],{},'duplicate-item'],
   ['member collides with outer ID',[groupedOutput('one',['one'])],{},'duplicate-item'],
   ['missing members',[{...output('one'),rangeBasis:'file-group'}],{},'group-members'],
   ['empty members',[groupedOutput('one',[])],{},'group-members'],
-  ['leaf cap',[groupedOutput('one',['m1','m2','m3'])],{maxItems:2},'page-bound-leaf-limit'],
+  ['leaf cap',[groupedOutput('one',['m1','m2','m3'])],{maxLeaves:2},'page-bound-leaf-limit'],
   ['members byte cap',[groupedOutput('one',['x'.repeat(1000)])],{maxBytes:800},'page-byte-cap']
 ])test(`LP25-O04 ${name} rejects grouped page before completion consumer`,async()=>{
   let consumed=0;

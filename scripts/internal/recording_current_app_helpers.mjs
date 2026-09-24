@@ -145,12 +145,13 @@ export async function measuredHttpResponse({route,method='GET',request,report,ma
 }
 function need(ok,reason){if(!ok)throw Error(reason);}
 function pageBound(code,details){const error=Error(code);error.code=code;error.diagnostic=details;throw error;}
-export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxBytes=64*1024*1024,observe,consumePage}={}){
+export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxLeaves=8192,maxBytes=64*1024*1024,observe,consumePage}={}){
   // 관측 callback 실패는 원래 페이지 결과/예외를 덮지 않는다.
   const notify=event=>{try{observe?.(event);}catch{}};
   try{
   need(Number.isSafeInteger(limit)&&limit>0&&limit<=1000,'page-limit');
   need(Number.isSafeInteger(maxItems)&&maxItems>0&&maxItems<=4096,'page-item-limit');
+  need(Number.isSafeInteger(maxLeaves)&&maxLeaves>0&&maxLeaves<=8192,'page-leaf-limit');
   need(Number.isSafeInteger(maxBytes)&&maxBytes>0&&maxBytes<=64*1024*1024,'page-byte-limit');
   const items=[],unplacedItems=[],seen=new Set();let total,unplacedTotal,bytes=0,leaves=0;
   for(let offset=0;;offset+=limit){
@@ -171,10 +172,10 @@ export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxByt
         if(item.rangeBasis==='file-group'){
           need(Array.isArray(item.members)&&item.members.length>0,'group-members');
           leaves+=item.members.length;
-          if(leaves>maxItems)pageBound('page-bound-leaf-limit',{leaves,maxItems});
+          if(leaves>maxLeaves)pageBound('page-bound-leaf-limit',{leaves,maxLeaves});
           for(const member of item.members){identify(member);need(!Object.hasOwn(member,'members'),'group-members');}
         }else{need(!Object.hasOwn(item,'members'),'group-members');leaves++;}
-        if(leaves>maxItems)pageBound('page-bound-leaf-limit',{leaves,maxItems});
+        if(leaves>maxLeaves)pageBound('page-bound-leaf-limit',{leaves,maxLeaves});
         bytes+=Buffer.byteLength(JSON.stringify(item));need(bytes<=maxBytes,'page-byte-cap');
       }
     }

@@ -57,7 +57,7 @@ test('LP26-O20-A page bounds report exact fixed code and safe counts, distinct f
   const cases=[
     ['page-bound-top-limit',()=>({...page(),total:3,unplacedTotal:0}),{maxItems:2},d=>assert.deepEqual(d,{topLevel:3,maxItems:2})],
     ['page-bound-offset-limit',()=>({...page(),offset:1}),{},d=>assert.deepEqual(d,{expectedOffset:0,observedOffset:1,expectedLimit:1,observedLimit:1})],
-    ['page-bound-leaf-limit',()=>({...page(),items:[{itemId:'group',rangeBasis:'file-group',members:[{itemId:'m1'},{itemId:'m2'}]}]}),{maxItems:1},d=>assert.deepEqual(d,{leaves:2,maxItems:1})]
+    ['page-bound-leaf-limit',()=>({...page(),items:[{itemId:'group',rangeBasis:'file-group',members:[{itemId:'m1'},{itemId:'m2'}]}]}),{maxLeaves:1},d=>assert.deepEqual(d,{leaves:2,maxLeaves:1})]
   ];
   for(const [code,make,options,diagnostic] of cases){const observed=[];
     await assert.rejects(allTimelinePages(async()=>make(),{limit:1,...options,observe:value=>observed.push(value)}),error=>error.code===code&&error.message===code);

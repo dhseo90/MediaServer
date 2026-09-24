@@ -25,7 +25,7 @@ const pageObservation=createTimelineObservation({reference:()=>diagnosticReferen
 let transitionObservationInvalid=0;
 const timelineTimings=[];
 const timelineUnplacedUnit='file',terminalObservations=[];
-console.log('[timeline-query-mode] '+JSON.stringify({unplacedUnit:timelineUnplacedUnit,knownUnit:'mapping',maxLeafItems:4096,maxBytes:64*1024*1024}));
+console.log('[timeline-query-mode] '+JSON.stringify({unplacedUnit:timelineUnplacedUnit,knownUnit:'mapping',maxTopItems:4096,maxLeafItems:8192,maxBytes:64*1024*1024}));
 // 이 fixture의 segment=2000ms, post=750ms, 기본 여유=1000ms,
 // retry=500ms와 LP10 원본 대기 예산에 결박한다. 임의 행별 예산은 허용하지 않는다.
 const selectionTraceBudget={baseWaitMs:3750,baseAttemptLimit:9,sourceWaitMs:60000,sourceAttemptLimit:121};
