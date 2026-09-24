@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,normalizeCurrentRows,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact} from './recording_current_observer.mjs';
 import {sampleContinuity,parseLongrunArgs} from './recording_longrun_progress.mjs';
 const root=process.argv[2],binary=path.join(root,'normalize'),start=performance.now(),readers=[];
@@ -14,6 +15,13 @@ const row=(id,type,payload={})=>JSON.stringify({schema:'media-server.recording-m
 let seq=0;
 function observer(text){const dir=path.join(root,'case-'+(++seq));fs.mkdirSync(dir);fs.writeFileSync(path.join(dir,'recording-v2-mutations.jsonl'),text);const o=new CurrentRecordingObserver(dir,binary);readers.push(o);return o;}
 try{
+  check('S11-O27-01 retired resource mode rejects before setup',()=>{
+    const script=fileURLToPath(new URL('./verify_recording_current_observer.sh',import.meta.url));
+    const result=spawnSync('bash',[script,'--diagnose-resource-1020'],{encoding:'utf8',timeout:5000,maxBuffer:16384});
+    assert.equal(result.status,2);assert.equal(result.signal,null);assert.equal(result.error,undefined);
+    assert.equal(result.stdout,'');assert.match(result.stderr,/^usage: current-observer /);
+    assert(!result.stderr.includes('--diagnose-resource-1020'));
+  });
   check('LP26-O02 final stopped tail must be complete and fully drained',()=>{assert(closedJournalComplete({partialBytes:0,backlog:false}));for(const r of [null,{}, {partialBytes:1,backlog:false},{partialBytes:0,backlog:true}])assert(!closedJournalComplete(r));});
   check('LP26-O05 initial plus added channels exact disabled on restart',()=>{const channels=['1','9101','9201'].map(channelId=>({channelId,enabled:false,active:false}));assert(disabledChannelsExact({channels},['9201','9101','1']));assert(!disabledChannelsExact({channels},['9101','9201']));assert(!disabledChannelsExact({channels:[...channels,channels[0]]},['1','9101','9201']));assert(!disabledChannelsExact({channels:channels.map((c,i)=>({...c,active:i===1}))},['1','9101','9201']));});
   const fixture=spawnSync(binary,['--fixture',path.join(root,'recordings')],{encoding:'utf8',timeout:15000,maxBuffer:33554432});
@@ -92,7 +100,9 @@ try{
     const publicRunner=fs.readFileSync(new URL('./verify_v410_recording_longrun.sh',import.meta.url),'utf8');
     assert(publicRunner.includes('verify_recording_current_observer.sh'));assert(!publicRunner.includes('verify_v410_recording_foundation.sh'));
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
-    assert(runner.includes('longrunObservationCompleted:!short&&failed===0'));assert(!runner.includes('recording-mutations.jsonl'));assert(!runner.includes('derived_segment_id'));
+    assert(runner.includes('longrunObservationCompleted:!short&&!diagnose&&failed===0'));
+    assert(runner.includes('resourceTrendPass:false,reviewRequired:true'));
+    assert(!runner.includes('recording-mutations.jsonl'));assert(!runner.includes('derived_segment_id'));
   });
 }catch{if(!failed){failed++;console.log('[fail] LP26 observer setup/runtime');}}
 finally{for(const o of readers)o.close();console.log(JSON.stringify({scope:'current-observer-short-self-test',passed,failed,elapsedMs:Math.round(performance.now()-start),longrunPass:false,uiFulltestPass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));process.exitCode=failed?1:0;}
