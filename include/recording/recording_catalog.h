@@ -102,6 +102,7 @@ struct RecordingOriginalResult {
 class RecordingCatalog final : public RecordingStorePort {
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     friend struct RecordingCatalogGenerationScratchProbe;
+    friend struct RecordingGenerationPreappendProbe;
 #endif
 public:
     struct Options {
@@ -433,7 +434,10 @@ private:
                              RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr,
                              const DerivedJobPool* job_pool = nullptr,const DerivedJobContentProof* proof = nullptr,
                              const RecordingJournalOwnedViewHandle& view = {},
-                             const RecordingGenerationRecoveryRow* generation_row = nullptr);
+                             const RecordingGenerationRecoveryRow* generation_row = nullptr,
+                             bool apply = true);
+    // 내구 쓰기를 열지 않는 내부 검증 경계. 성공 결과는 재사용 가능한 권위 토큰이 아니다.
+    bool ValidateMutationLocked(const RecordingMutationV1& mutation, std::string* error);
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);

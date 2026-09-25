@@ -531,10 +531,11 @@ struct OrderHistoryIndex {
     std::unordered_set<std::string> segments, ordinary_ids, legacy_segments;
     std::string bound_store;
     std::int64_t maximum = 0;
-    bool Consume(const RecordingMutationV1& mutation, std::string* error) {
+    // 검증과 작은 변경분 적용은 동일 분기를 공유한다. 검증 실패까지 인덱스는 불변이다.
+    // apply=false는 읽기만 수행하며 성공 증명을 외부에 보관하지 않는다.
+    bool Consume(const RecordingMutationV1& mutation, std::string* error, bool apply=true) {
         if (mutation.mutation_type != RecordingMutationType::RecordingOrderReserved) {
             if (requests.count(mutation.mutation_id)) return Fail(error, "recording order mutation ID 충돌");
-            ordinary_ids.insert(mutation.mutation_id);
             if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted) {
                 std::vector<RecordingSegmentV2> outputs;
                 if(!DerivedCommittedSegments(mutation.payload_json,&outputs,error))return false;
@@ -546,7 +547,8 @@ struct OrderHistoryIndex {
                         return Fail(error,"derived 중첩 output 예약 결박 거부");
                 }
             }
-            if ((mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
+            if (apply) ordinary_ids.insert(mutation.mutation_id);
+            if (apply && (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2State ||
@@ -563,7 +565,6 @@ struct OrderHistoryIndex {
             return Fail(error, "recording order 기존 ID 소급/재사용 거부");
         if (!bound_store.empty() && bound_store != order.store_id)
             return Fail(error, "recording order store 충돌");
-        bound_store = order.store_id;
         const auto previous = requests.find(order.request_id);
         if (previous != requests.end()) {
             const auto& old = previous->second;
@@ -575,6 +576,8 @@ struct OrderHistoryIndex {
         }
         if (segments.count(order.segment_id) || order.sequence <= maximum)
             return Fail(error, "recording order segment/발급 순서 충돌");
+        if(!apply)return true;
+        bound_store = order.store_id;
         maximum = order.sequence;
         segments.insert(order.segment_id);
         request_times.emplace(order.request_id, mutation.occurred_at_ms);
@@ -1965,6 +1968,61 @@ bool RecordingJournal::OwnsCatalog(const void* owner) const {
 #endif
     std::lock_guard lock(mu_);return owner&&catalog_owner_==owner&&CheckManagedStateLocked(nullptr);
 }
+bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutationV1& mutation,std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!opened_||!CheckManagedStateLocked(error))return Fail(error,"preappend journal 권위 거부");
+    if(!managed_)return true; // 기존 비관리 ID/domain 의미는 Catalog Apply에서 판단한다.
+    if(catalog_owner_!=owner)return Fail(error,"preappend catalog owner 불일치");
+    if(mutation.mutation_type==RecordingMutationType::RecordingOrderReserved) {
+        RecordingOrderReservationV1 order;
+        if(!ParseRecordingOrderReservationV1(mutation.payload_json,&order,error)||order.store_id!=managed_store_id_)
+            return Fail(error,"preappend reservation store 불일치");
+    }
+    const auto digest=EnvelopeIdentity(mutation);
+    if(digest.empty())return Fail(error,"preappend identity 계산 거부");
+    const auto identity=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,digest);
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(generation_state_) {
+        const auto old=generation_state_->identities.find(mutation.mutation_id);
+        if(old!=generation_state_->identities.end()&&old->second.digest!=identity)
+            return Fail(error,"preappend B mutation ID 충돌");
+        return generation_state_->order.Consume(mutation,error,false);
+    }
+#endif
+    if(!managed_state_||managed_state_->checkpoint_pending)return Fail(error,"preappend checkpoint 복구 필요");
+    const auto old=managed_state_->identities.find(mutation.mutation_id);
+    if(old!=managed_state_->identities.end()&&old->second!=identity)return Fail(error,"preappend mutation ID 충돌");
+    return managed_state_->order.Consume(mutation,error,false);
+}
+
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+bool RecordingJournal::ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
+    const RecordingMutationV1& candidate,bool* unchanged,std::string* error) {
+    OrderHistoryIndex index;
+    for(const auto& m:history)if(!index.Consume(m,error))return false;
+    const auto fingerprint=[&]() {
+        std::vector<std::string> rows;
+        rows.push_back(index.bound_store+":"+std::to_string(index.maximum));
+        for(const auto& p:index.requests) {
+            const auto& o=p.second;
+            rows.push_back("r:"+p.first+":"+o.schema+":"+o.store_id+":"+o.request_id+":"+o.segment_id+":"+o.channel_id+":"+
+                std::to_string(o.sequence)+":"+std::to_string(index.request_times.at(p.first)));
+        }
+        for(const auto& p:index.segments)rows.push_back("s:"+p);
+        for(const auto& p:index.ordinary_ids)rows.push_back("o:"+p);
+        for(const auto& p:index.legacy_segments)rows.push_back("l:"+p);
+        std::sort(rows.begin(),rows.end());return rows;
+    };
+    const auto before=fingerprint();
+    const bool valid=index.Consume(candidate,error,false);
+    *unchanged=before==fingerprint();
+    // 동일 검증을 실제 작은 변경분 적용에도 사용한다. 거부 시 부분 변경이 없어야 한다.
+    const bool applied=index.Consume(candidate,error);
+    *unchanged=*unchanged&&(valid==applied)&&(applied||before==fingerprint());
+    return valid;
+}
+#endif
+
 bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
                                    RecordingMutationHandle* appended,RecordingJournalOwnedViewHandle* view) {
     // 입력이 *appended를 빌린 경우에도 결과 초기화가 입력의 마지막 소유자를 제거하지 않는다.

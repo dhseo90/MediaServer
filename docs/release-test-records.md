@@ -79,6 +79,41 @@ B Journal 78개와 전체 build가 각각 exit0이다. 메인이 diff와 원출�
 [492개 최종 assertion·최초 실패·원출력·정리 전수](release-artifacts/v4.1.0/b02-public-read-20260925/results.md)를 보존했다.
 임시 원출력 11개와 중복 비압축 빌드/Catalog 로그 2개는 압축 해제 byte 일치·소유 확인 후 삭제하고 부재를 확인했다.
 
+### B-03 내구 기록 전 검증 실행 전 정의
+
+승인 4번을 검증/적용 분리 → active append·예약 → 안정 참조·checkpoint 회전으로 나눈다.
+첫 단위에서는 B 쓰기 차단을 유지한다. 기존 Apply의 domain 판정을 공유하는 비변경 검증 경계를
+만들고 전체 Catalog 복사·원장 재생 없이 해당 mutation과 참조하는 현재 상태만 확인한다.
+기존 v1 정상/직접 원장 수용 조건은 바꾸지 않는다. 파생 작업의 기존 Prepared 검증은 유지한다.
+이후 B writes에서만 이 검증을 durable append 전에 연결한다. 이 단위의 PASS는 쓰기 완료가 아니다.
+무변경 대상은 typed 값·ID/revision/hold·SQL/원장 bytes다. 기존 cold 취득의 약한 캐시 참조
+갱신은 허용하며, 실제 원문·권위 손상을 발견하면 기존 fail-closed 권위 상실을 유지한다.
+손상을 숨기려고 poison을 되돌리거나 캐시만을 위한 새 획득 API를 만들지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B03-V01 | 정상·중복 검증 분리 | 기존 실제 관리 Catalog·B 읽기 후보의 V1/V2/관측/참조/작업을 비변경 검증; 독립 예상 수용과 이후 실제 Apply 결과 대조 | v4.1.0 |
+| B03-V02 | domain 오류 무변경 | 잘못된 domain·ID/예약·상태·참조 거부, 검증 전후 current maps/IDs/revision/hold와 원장·SQL bytes 비교 | v4.1.0 |
+| B03-V03 | 예약 순서 검증 | OrderHistoryIndex 기존 규칙을 검증/변경으로 분리, tuple/time·namespace·역행/overflow·복수 출력 결박 거부 후 인덱스 불변 | v4.1.0 |
+| B03-V04 | 수용·지원 영향 회귀 | 동일 재시도·V1 tombstone·관리/비관리·backend/crypto 조합과 기존 scratch/공개읽기/Journal/Catalog 회귀; B 쓰기 차단 유지 | v4.1.0 |
+
+V04에는 `bash scripts/internal/verify_recording_derived_jobs.sh`의 기존 job/catalog/retention
+소유 fixture 검사도 포함한다. 공유 Apply의 파생 작업 분기 영향이며 실제 서버·GStreamer 전체 회귀로 확대하지 않는다.
+
+집중 명령은 `verify-v410-recording-generation-preappend`로 등록한다. 새 경계가 없는 최초 단계의
+예상 RED는 실행 가능한 stub이 정상 입력을 거부하거나 검증 후 상태가 변하는 assertion으로 한정하며 컴파일·fixture 오류는 별도 실패다.
+원출력·source hash·cleanup을 실행부터 파일로 보존한다. 장시간/UI/실제 앱은 이 단위 미진행이다.
+
+### B-03 내구 기록 전 검증 결과
+
+2026-09-25 공유 Apply의 비변경 검사와 예약 인덱스 검사/작은 적용을 분리했다.
+typed 상태·ID·revision·hold·원장/SQL 불변, 기존 수용·손상 poison을 유지한다.
+빈 managed store의 다른 store 예약 반례를 추가하고 기존 store 결박으로 보완했다.
+최종 focused510·scratch59·공개읽기106·Journal78·Catalog249·파생작업23(총1,025개)과
+전체 빌드가 exit0이다. 초기 fixture 오류와 예상 RED는 구분해 보존했다.
+[개별 결과·원출력·한계·정리](release-artifacts/v4.1.0/b03-preappend-20260925/results.md)를 따른다.
+B 내구 append·예약·checkpoint는 여전히 차단하며 실제 쓰기 완료로 판정하지 않는다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |

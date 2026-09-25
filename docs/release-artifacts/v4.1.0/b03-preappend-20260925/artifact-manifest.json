@@ -1,0 +1,211 @@
+[
+  {
+    "source": "/private/tmp/b03-preappend-build-final.log",
+    "artifact": "build-final.log.gz",
+    "bytes": 591,
+    "gzipBytes": 302,
+    "sha256": "2309e0ea1a52b32ab5a8c549c026bdd51e94c7c6e038e283957c04e0052ed82a",
+    "uid": 501,
+    "ino": 159496006,
+    "dev": 16777234,
+    "cleanup": []
+  },
+  {
+    "source": "/private/tmp/b03-preappend-build.log",
+    "artifact": "build.log.gz",
+    "bytes": 4126,
+    "gzipBytes": 692,
+    "sha256": "441d76cd10ee374824d90254d66b7976aebb1855b3df312c8792ee52cb7a2039",
+    "uid": 501,
+    "ino": 159494187,
+    "dev": 16777234,
+    "cleanup": []
+  },
+  {
+    "source": "/private/tmp/b03-preappend-catalog-regression.log",
+    "artifact": "catalog-regression.log.gz",
+    "bytes": 14768,
+    "gzipBytes": 3769,
+    "sha256": "4676324132fa3dc2bbd8026e78267dfa7927635edf3104ccc577abcf37a7365c",
+    "uid": 501,
+    "ino": 159498754,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/tmp/media-server-b03-preappend-catalog.bZOafk",
+        "bytes": 28797210,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-derived-regression.log",
+    "artifact": "derived-regression.log.gz",
+    "bytes": 2672,
+    "gzipBytes": 1436,
+    "sha256": "af7249d068173facb46e3f7d1769f8acdefd7124078accb247cb1908bbfb342a",
+    "uid": 501,
+    "ino": 159498767,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.kWe0do",
+        "bytes": 10387631,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-final.log",
+    "artifact": "final.log.gz",
+    "bytes": 33169,
+    "gzipBytes": 3443,
+    "sha256": "25c517ec220f2931b411fa27397755021c5a0ae5544ed61a03c0b5e43efcda7e",
+    "uid": 501,
+    "ino": 159495488,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.teqXkM",
+        "bytes": 33591376,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-green-first.log",
+    "artifact": "green-first.log.gz",
+    "bytes": 10742,
+    "gzipBytes": 2807,
+    "sha256": "e7b9080681d7375e655ceef838b5b6b0f05adaff746216e9cc73a9d66fed2002",
+    "uid": 501,
+    "ino": 159493935,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.edmUtU",
+        "bytes": 9503505,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-green-fixture-fixed.log",
+    "artifact": "green-fixture-fixed.log.gz",
+    "bytes": 32049,
+    "gzipBytes": 3372,
+    "sha256": "ba1168da4d9530eae2b6f11b8cdafe48f3be753f111833ab4b027d1fd67dcee7",
+    "uid": 501,
+    "ino": 159494583,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.K4u3ln",
+        "bytes": 33590928,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-journal-regression.log",
+    "artifact": "journal-regression.log.gz",
+    "bytes": 6243,
+    "gzipBytes": 2144,
+    "sha256": "bbd0531aa3f0e110e633d3ea8650cfae5048a78547165f61c506b7321c9ba721",
+    "uid": 501,
+    "ino": 159497430,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.LUqNNM",
+        "bytes": 11693660,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-readonly-regression.log",
+    "artifact": "readonly-regression.log.gz",
+    "bytes": 10680,
+    "gzipBytes": 2639,
+    "sha256": "83d6c4410bd343ba985b9e748ea14c6f5944a0e3289031d58b7f5c0a764023ab",
+    "uid": 501,
+    "ino": 159496807,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.kdlSgY",
+        "bytes": 31499177,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-red-fixture-fixed.log",
+    "artifact": "red-fixture-fixed.log.gz",
+    "bytes": 3740,
+    "gzipBytes": 1809,
+    "sha256": "0208fb81841c06a606ca9dafafb9446279d0619228d78b7f4d88843ed4255ca1",
+    "uid": 501,
+    "ino": 159493333,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.R0NxM6",
+        "bytes": 8307616,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-red.log",
+    "artifact": "red.log.gz",
+    "bytes": 3652,
+    "gzipBytes": 1787,
+    "sha256": "2bce693c24b46684ca8cb7973f10bb2a2fdadcfc75781eb6576f088f1034a48d",
+    "uid": 501,
+    "ino": 159493225,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.MjI76R",
+        "bytes": 8307616,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-scratch-regression.log",
+    "artifact": "scratch-regression.log.gz",
+    "bytes": 10569,
+    "gzipBytes": 2872,
+    "sha256": "6385f03bdca17dfbfa2529e01862c748a6bfb828b6ced3a6c7c093897ce227fa",
+    "uid": 501,
+    "ino": 159496277,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.RnZedM",
+        "bytes": 21059087,
+        "absent": true
+      }
+    ]
+  },
+  {
+    "source": "/private/tmp/b03-preappend-store-red.log",
+    "artifact": "store-red.log.gz",
+    "bytes": 13767,
+    "gzipBytes": 3169,
+    "sha256": "6a1b7167378489667f853e328f1be32c055d4dc7a2ce18ddeed9b98a0004aba5",
+    "uid": 501,
+    "ino": 159495245,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.9TSBdn",
+        "bytes": 9625932,
+        "absent": true
+      }
+    ]
+  }
+]

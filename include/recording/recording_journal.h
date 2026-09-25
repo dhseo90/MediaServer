@@ -138,11 +138,15 @@ private:
     friend class RecordingCatalog;
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     friend struct RecordingJournalGenerationReadOnlyProbe;
+    friend struct RecordingGenerationPreappendProbe;
+    static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
+        const RecordingMutationV1& candidate, bool* unchanged, std::string* error);
 #endif
     bool AttachCatalog(const void* owner, const std::filesystem::path& media,
                        const std::filesystem::path& sqlite, bool enable_v2, std::string* error);
     void DetachCatalog(const void* owner);
     bool OwnsCatalog(const void* owner) const;
+    bool ValidatePreappend(const void* owner, const RecordingMutationV1& mutation, std::string* error);
     bool AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
                      RecordingMutationHandle* appended = nullptr, RecordingJournalOwnedViewHandle* view = nullptr);
     bool LoadManagedStateLocked(std::string* error);
