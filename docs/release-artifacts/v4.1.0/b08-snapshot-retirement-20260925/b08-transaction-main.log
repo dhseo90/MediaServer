@@ -1,0 +1,254 @@
+[scope] private cutover transaction; no runtime default/media/UI activation
+[start] 2026-09-25T13:31:30Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+bc71b159d5d18094d1bb3518e1cd33158e0f4c713be4ed17116e7bf8138c9258  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_cutover_candidate.cpp
+e9794eb6a20f5567fefee7b43d026828669a3c8ff904bc3ec3a432a343c5982d  /Users/dhseo/Workspace/mediaServer/src/recording/recording_cutover_stage_writer.cpp
+5c186a5e8dcdb715cdf983e88270a333b05d9ee7b9e125f6f2a1356cfb827a1f  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_transaction.cpp
+0a1e324d64fc282a72a9914ad7e97331c488b56ed5347ce9f57272e4faa1162e  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_receipt.cpp
+fc4a13c66167a82da4648e70b232c94a739465a7c4f78c8227b6e62747e7c9fd  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot_export.cpp
+5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591  /Users/dhseo/Workspace/mediaServer/src/recording/retention_coordinator.cpp
+ecef071fb2afcfe69a00654757c639760e2ce75e627ae9c777a564f08161d6a9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_finalize_recovery.cpp
+31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_media_inspector.cpp
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+489313b38ba57a5f5a6bdaba3d80a9c692c742debd8387510c0be9ff489c8623  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+1002d23eaedad14e52e5a211a15ac6348ba9238802f07a328b512ea8c76a7935  /Users/dhseo/Workspace/mediaServer/src/recording/recording_cutover_input.cpp
+a7fa3ca8db6c4bc13ad25e177f74f23dcaf1993f3658b35c503d9c643567e54a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+9c2fa4366732edebc03bef93eaa61c6c18ffdf3f8e4acccd9ed73cbbeb08c295  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_files.cpp
+89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+185f4a49980557e340358ae6e6149f9554df1506bc99cc594c2d0b82d613e74b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot.cpp
+7b6dd68db062aa19b1e0af7d053ac8827b86566cbd346ed5a9d800f82adfe386  /Users/dhseo/Workspace/mediaServer/src/recording/recording_order_history_snapshot.cpp
+d2d85d3466e83441bd01210c4e5eb8532eb1ed3cf95b0fab36ce8bc0515d6124  /Users/dhseo/Workspace/mediaServer/src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_ready.cpp
+05cd40bcafb0b8f5728e42689b11cb4ca5d99ae5c594df49d8fcdc5c410b9cf2  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_generation_projection.cpp
+69d9d86825ab0bd9c7b23863899055bba23e59f111a23f782622f8813c952726  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_active.cpp
+85fef8f0c16c67df73c774b52a19bbe7dbd3467a34c33b85d750d45b52762165  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_transaction_smoke.cpp
+556377841b71a210a906b2d4975e1cc9a652164c6f362388cbb71a439124b8c6  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog_generation_projection.h
+daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+53e4acd3afac86809a7de41177c0c46e2165b418369ffb140a8e92d7b131aaf8  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_transaction.sh
+27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+1f1fc0a95778781edbfc1d7816ad1929156fea34d6c9ce27b7795b05cc0f2633  /Users/dhseo/Workspace/mediaServer/include/recording/recording_generation_transaction.h
+68b1c589dbb2a8ee3fd056acafeac0313b655405f8707ce256f35e4db795eb43  /Users/dhseo/Workspace/mediaServer/include/recording/recording_generation_receipt.h
+01098ebc06ad837c5315384555c06c8546e3e884661c0271160739729e2728eb  /Users/dhseo/Workspace/mediaServer/include/recording/recording_cutover_stage_writer.h
+b502259c712cbd4d5106f91203596d0946663d11791f247410711b53941d7750  /Users/dhseo/Workspace/mediaServer/include/recording/recording_cutover_candidate.h
+f430a7b9eac7669fc6f1c32a126dcff5a0d6f7421ec66a7428b2fff36849eab9  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_projection_smoke.cpp
+B04-T01 PASS normal private cutover store
+B04-T01 PASS old owner refuses append/reserve/reopen
+B04-T01 PASS fresh B owner independent current query
+B04-T01 PASS source/cache/media preserved and receipt cleaned
+B04-T01 PASS normal private cutover store:one.part
+B04-T01 PASS old owner refuses append/reserve/reopen
+B04-T01 PASS fresh B owner independent current query
+B04-T01 PASS source/cache/media preserved and receipt cleaned
+B04-T01 PASS normal private cutover store
+B04-T01 PASS old owner refuses append/reserve/reopen
+B04-T01 PASS fresh B owner independent current query
+B04-T01 PASS source/cache/media preserved and receipt cleaned
+B04-T01 PASS normal private cutover store
+B04-T01 PASS old owner refuses append/reserve/reopen
+B04-T01 PASS fresh B owner independent current query
+B04-T01 PASS source/cache/media preserved and receipt cleaned
+B04-T02 PASS crash reached receipt-linked
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision receipt-linked
+B04-T02 PASS strict selected backend reopen after receipt-linked
+B04-T02 PASS original bytes after receipt-linked
+B04-T02 PASS crash reached receipt-renamed
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision receipt-renamed
+B04-T02 PASS strict selected backend reopen after receipt-renamed
+B04-T02 PASS original bytes after receipt-renamed
+B04-T02 PASS crash reached receipt-directory-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision receipt-directory-synced
+B04-T02 PASS strict selected backend reopen after receipt-directory-synced
+B04-T02 PASS original bytes after receipt-directory-synced
+B04-T02 PASS crash reached component-linked
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision component-linked
+B04-T02 PASS strict selected backend reopen after component-linked
+B04-T02 PASS original bytes after component-linked
+B04-T02 PASS crash reached component-root-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision component-root-synced
+B04-T02 PASS strict selected backend reopen after component-root-synced
+B04-T02 PASS original bytes after component-root-synced
+B04-T02 PASS crash reached component-unlinked
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision component-unlinked
+B04-T02 PASS strict selected backend reopen after component-unlinked
+B04-T02 PASS original bytes after component-unlinked
+B04-T02 PASS crash reached component-stage-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision component-stage-synced
+B04-T02 PASS strict selected backend reopen after component-stage-synced
+B04-T02 PASS original bytes after component-stage-synced
+B04-T02 PASS crash reached marker-backup-linked
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision marker-backup-linked
+B04-T02 PASS strict selected backend reopen after marker-backup-linked
+B04-T02 PASS original bytes after marker-backup-linked
+B04-T02 PASS crash reached marker-backup-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision marker-backup-synced
+B04-T02 PASS strict selected backend reopen after marker-backup-synced
+B04-T02 PASS original bytes after marker-backup-synced
+B04-T02 PASS crash reached marker-renamed
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision marker-renamed
+B04-T02 PASS strict selected backend reopen after marker-renamed
+B04-T02 PASS original bytes after marker-renamed
+B04-T02 PASS crash reached marker-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision marker-synced
+B04-T02 PASS strict selected backend reopen after marker-synced
+B04-T02 PASS original bytes after marker-synced
+B04-T02 PASS crash reached receipt-created
+B04-T05 PASS restart recovery decision receipt-created
+B04-T02 PASS original bytes after receipt-created
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-created
+B04-T02 PASS crash reached receipt-written
+B04-T05 PASS restart recovery decision receipt-written
+B04-T02 PASS original bytes after receipt-written
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-written
+B04-T02 PASS crash reached receipt-file-synced
+B04-T05 PASS restart recovery decision receipt-file-synced
+B04-T02 PASS original bytes after receipt-file-synced
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-file-synced
+B04-T02 PASS crash reached receipt-created
+B04-T05 PASS restart recovery decision receipt-created
+B04-T02 PASS original bytes after receipt-created
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-created
+B04-T02 PASS crash reached receipt-written
+B04-T05 PASS restart recovery decision receipt-written
+B04-T02 PASS original bytes after receipt-written
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-written
+B04-T02 PASS crash reached receipt-file-synced
+B04-T05 PASS restart recovery decision receipt-file-synced
+B04-T02 PASS original bytes after receipt-file-synced
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-file-synced
+B04-T02 PASS crash reached receipt-renamed
+B04-T05 PASS restart recovery decision receipt-renamed
+B04-T02 PASS original bytes after receipt-renamed
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-renamed
+B04-T02 PASS crash reached receipt-directory-synced
+B04-T05 PASS restart recovery decision receipt-directory-synced
+B04-T02 PASS original bytes after receipt-directory-synced
+B04-T05 PASS unowned or uncertain receipt preparation preserved receipt-directory-synced
+B04-T02 PASS crash reached intent-durable
+B04-T05 PASS restart recovery decision intent-durable
+B04-T02 PASS original bytes after intent-durable
+B04-T05 PASS unowned or uncertain receipt preparation preserved intent-durable
+B04-T02 PASS crash reached manifest-published
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS restart recovery decision manifest-published
+B04-T02 PASS strict selected backend reopen after manifest-published
+B04-T02 PASS original bytes after manifest-published
+B04-T01 PASS cleaned target fresh owner resumes explicit B writes
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS rollback cleanup restart marker-restored
+B04-T02 PASS rollback repeated strict reopen/source marker-restored
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS rollback cleanup restart marker-restore-synced
+B04-T02 PASS rollback repeated strict reopen/source marker-restore-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T02 PASS rollback cleanup restart component-cleaned
+B04-T02 PASS rollback repeated strict reopen/source component-cleaned
+B04-T03 PASS tamper refused 0
+B04-T04 PASS tamper rejection bytes preserved 0
+B04-T04 PASS tamper refused 1
+B04-T04 PASS tamper rejection bytes preserved 1
+B04-T04 PASS tamper refused 2
+B04-T04 PASS tamper rejection bytes preserved 2
+B04-T05 PASS tamper refused 3
+B04-T04 PASS tamper rejection bytes preserved 3
+B04-T03 PASS tamper refused 4
+B04-T04 PASS tamper rejection bytes preserved 4
+B04-T04 PASS tamper refused 5
+B04-T04 PASS tamper rejection bytes preserved 5
+B04-T04 PASS tamper refused 6
+B04-T04 PASS tamper rejection bytes preserved 6
+B04-T04 PASS tamper refused 7
+B04-T04 PASS tamper rejection bytes preserved 7
+B04-T04 PASS tamper refused 8
+B04-T04 PASS tamper rejection bytes preserved 8
+B04-T05 PASS v1 marker with structurally valid manifest never falls back to legacy
+B04-T04 PASS tamper refused 9
+B04-T04 PASS tamper rejection bytes preserved 9
+B04-T04 PASS tamper refused 10
+B04-T04 PASS tamper rejection bytes preserved 10
+B04-T06 PASS checkpoint staged receipt publication
+B04-T06 PASS checkpoint historical archive helper reads zero
+B04-T06 PASS checkpoint independent generation/cut
+B08-R02 PASS exact predecessor snapshot lifecycle normal
+B08-R02 PASS already opened immutable reader FD remains valid 
+B04-T06 PASS checkpoint legacy originals unchanged
+B04-T06 PASS live owned unreceipted preparations cleaned without changing predecessor
+B04-T06 PASS same owner retries after verified live-only cleanup
+B04-T06 PASS mkdir without acquired stage FD is preserved and owner poisoned, not cleanup success
+B04-T06 PASS checkpoint crash reached component-linked
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T06 PASS checkpoint recovery decision component-linked
+B08-R02 PASS exact predecessor snapshot lifecycle component-linked
+B08-R02 PASS already opened immutable reader FD remains valid component-linked
+B04-T06 PASS checkpoint legacy originals unchanged
+B04-T06 PASS checkpoint crash reached intent-durable
+B04-T06 PASS checkpoint recovery decision intent-durable
+B08-R02 PASS exact predecessor snapshot lifecycle intent-durable
+B08-R02 PASS already opened immutable reader FD remains valid intent-durable
+B04-T06 PASS checkpoint legacy originals unchanged
+B04-T06 PASS checkpoint crash reached manifest-published
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T06 PASS checkpoint recovery decision manifest-published
+B08-R02 PASS exact predecessor snapshot lifecycle manifest-published
+B08-R02 PASS already opened immutable reader FD remains valid manifest-published
+B04-T06 PASS checkpoint legacy originals unchanged
+B04-T06 PASS checkpoint crash reached predecessor-snapshot-unlinked
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T06 PASS checkpoint recovery decision predecessor-snapshot-unlinked
+B08-R02 PASS exact predecessor snapshot lifecycle predecessor-snapshot-unlinked
+B08-R02 PASS already opened immutable reader FD remains valid predecessor-snapshot-unlinked
+B04-T06 PASS checkpoint legacy originals unchanged
+B04-T06 PASS checkpoint crash reached predecessor-snapshot-synced
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B04-T06 PASS checkpoint recovery decision predecessor-snapshot-synced
+B08-R02 PASS exact predecessor snapshot lifecycle predecessor-snapshot-synced
+B08-R02 PASS already opened immutable reader FD remains valid predecessor-snapshot-synced
+B04-T06 PASS checkpoint legacy originals unchanged
+B08-R02 PASS reclamation tamper setup reaches published target 0
+B08-R02 PASS replacement rejected; exact absent and legacy receipt compatible 0
+B08-R02 PASS target and original bytes unchanged 0
+B08-R02 PASS suspect predecessor and receipt preserved 0
+B08-R02 PASS foreign alias/inode bytes preserved 0
+B08-R02 PASS reclamation tamper setup reaches published target 1
+B08-R02 PASS replacement rejected; exact absent and legacy receipt compatible 1
+B08-R02 PASS target and original bytes unchanged 1
+B08-R02 PASS suspect predecessor and receipt preserved 1
+B08-R02 PASS foreign alias/inode bytes preserved 1
+B08-R02 PASS reclamation tamper setup reaches published target 2
+B08-R02 PASS replacement rejected; exact absent and legacy receipt compatible 2
+B08-R02 PASS target and original bytes unchanged 2
+B08-R02 PASS suspect predecessor and receipt preserved 2
+B08-R02 PASS foreign alias/inode bytes preserved 2
+B08-R02 PASS reclamation tamper setup reaches published target 3
+B08-R02 PASS replacement rejected; exact absent and legacy receipt compatible 3
+B08-R02 PASS target and original bytes unchanged 3
+B08-R02 PASS suspect predecessor and receipt preserved 3
+B08-R02 PASS reclamation tamper setup reaches published target 4
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B08-R02 PASS replacement rejected; exact absent and legacy receipt compatible 4
+B08-R02 PASS target and original bytes unchanged 4
+B08-R02 PASS reclamation tamper setup reaches published target 5
+B04-T01 PASS recovery owner cannot acquire write/public authority
+B08-R02 PASS replacement rejected; exact absent and legacy receipt compatible 5
+B08-R02 PASS target and original bytes unchanged 5
+B08-R02 PASS legacy receipt never authorizes predecessor deletion
+B04-T05 PASS unsupported publication rejected
+B04-T05 PASS unsupported publication rejected
+[end] 2026-09-25T13:32:06Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.FyOyU8 bytes=22075039 removed=true

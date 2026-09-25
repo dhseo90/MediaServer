@@ -116,6 +116,27 @@ int main() {
     r.target.snapshot.name="snapshot-2.jsonl";r.target.active.name="active-2.jsonl";
     r.created[0].file=r.target.active;r.created[1].file.name="identity-2.jsonl";r.created[2].file=r.target.snapshot;
     const auto checkpoint=r;
+    {
+        auto owned=checkpoint;owned.predecessor_snapshot=RecordingGenerationOwnedFile{owned.predecessor->snapshot,1,19};
+        Check(Roundtrip(owned),"B08-R01","new checkpoint reclamation descriptor roundtrip");
+        std::string encoded;RecordingGenerationReceipt decoded;
+        Check(SerializeRecordingGenerationReceipt(owned,&encoded,&error)&&ParseRecordingGenerationReceipt(encoded,encoded.size(),&decoded,&error)&&decoded.predecessor_snapshot&&decoded.predecessor_snapshot->inode==19,"B08-R01","exact predecessor owned descriptor retained");
+        Check(Roundtrip(checkpoint),"B08-R01","legacy checkpoint without reclamation descriptor remains canonical");
+        for(unsigned mode=0;mode<6;++mode){
+            auto bad=owned;
+            if(mode==0)bad.predecessor_snapshot->file.name=bad.target.snapshot.name;
+            if(mode==1)++bad.predecessor_snapshot->file.size;
+            if(mode==2)bad.predecessor_snapshot->file.sha256=std::string(64,'0');
+            if(mode==3)++bad.predecessor_snapshot->device;
+            if(mode==4)bad.predecessor_snapshot->inode=bad.source.inode;
+            if(mode==5)bad.predecessor_snapshot->inode=bad.created.front().inode;
+            std::string untouched="unchanged";
+            Check(!SerializeRecordingGenerationReceipt(bad,&untouched,&error)&&untouched=="unchanged","B08-R02","reclamation descriptor mismatch "+std::to_string(mode));
+        }
+        const auto invalid=Replace(encoded,"\"predecessorSnapshot\":{","\"predecessorSnapshot\":null,\"unexpected\":{");
+        decoded.stage_name="unchanged";
+        Check(!ParseRecordingGenerationReceipt(invalid,invalid.size(),&decoded,&error)&&decoded.stage_name=="unchanged","B08-R02","extra/null reclamation descriptor rejected without output change");
+    }
     Check(Roundtrip(r),"B04-R01","checkpoint prepared active tail");
     r.phase=RecordingGenerationPhase::PublishIntent;
     Check(Roundtrip(r),"B04-R01","checkpoint publish intent");

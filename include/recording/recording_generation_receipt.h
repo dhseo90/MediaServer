@@ -21,6 +21,8 @@ struct RecordingGenerationReceipt {
     std::optional<RecordingGenerationOwnedFile> replacement_marker;
     // checkpoint만: 이전 manifest의 bytes와 파일 identity를 함께 결박한다.
     std::optional<RecordingGenerationOwnedFile> predecessor_file;
+    // 새 checkpoint만: 회수할 정확한 이전 snapshot. 부재인 구형 receipt는 회수 권한이 없다.
+    std::optional<RecordingGenerationOwnedFile> predecessor_snapshot;
     std::optional<RecordingGenerationManifest> predecessor;
     RecordingGenerationManifest target;
     // 정렬된 새 파일 목록. 구형 원본·이전 archive·marker·manifest를 포함하면 안 된다.

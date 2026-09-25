@@ -37,6 +37,12 @@
 이 표는 실행 전 정의이며 아직 결과가 아니다. 30분·실제 UI·120분은 별도 실행 승인과
 최종 변경 영향 판정 대상이다. 외부 서비스·실기기는 사용자 지시로 제외하며 PASS가 아니다.
 
+회수 구현 단위의 실제 결과는 [B-08 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
+[최종 유효 집중 621개 개별 행](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/items.md)에 보존한다.
+B08-R01/R02 집중 검사와 관련 build·runtime·consumer는 통과했으나, 최초 RED·
+SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B08-C01/H01/I01과
+B09-F01은 아직 실행하지 않았으며 B-08 전체 완료·장시간/UI PASS가 아니다.
+
 
 ### B07 진단 단위 마감 검사 — 실행 전 정의
 

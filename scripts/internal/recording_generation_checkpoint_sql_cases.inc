@@ -87,6 +87,9 @@ void One(const std::filesystem::path& root,bool commit_fault) {
             "poisoned authority refuses further checkpoint or write without changing durable bytes");
         if(commit_fault)db.Exec("ROLLBACK");else db.Exec("DROP TRIGGER owned_reject_generation");
     }
+    const auto target_snapshot=Read(root/"snapshot-3.jsonl");
+    Check("B08-R02",Read(root/"snapshot-2.jsonl")==snapshot&&std::filesystem::exists(root/".recording-generation-transaction.json"),
+        "SQL failure retains predecessor snapshot and receipt until verified recovery");
     const bool recovered=RecoverCheckpointTransaction(root);
     Check("B03-C03",recovered&&!std::filesystem::exists(root/".recording-generation-transaction.json"),
         "fresh read-only transaction recovery cleans receipt before writable SQL reopen");
@@ -102,10 +105,12 @@ void One(const std::filesystem::path& root,bool commit_fault) {
         Check("B03-C03",catalog.SnapshotLocationsV2("channel",&locations,&error)&&
             Read(root/"active-3.jsonl").empty(),"new owner recovers usable current state without additional journal append");
     }
-    Check("B03-C03",Read(root/".recording-store-format")==marker&&Read(root/"snapshot-2.jsonl")==snapshot&&
+    Check("B03-C03",Read(root/".recording-store-format")==marker&&
         Read(root/"identity-2.jsonl")==identity&&Read(root/"evidence-1-0.jsonl")==original&&
         Read(root/"recording-v2-mutations.jsonl")==legacy&&Read(root/"active-2.jsonl")==sealed,
-        "failed checkpoint and recovery preserve old authority files and sealed active exactly");
+        "failed checkpoint and recovery preserve original authority and sealed source bytes exactly");
+    Check("B08-R02",!std::filesystem::exists(root/"snapshot-2.jsonl")&&Read(root/"snapshot-3.jsonl")==target_snapshot,
+        "verified recovery reclaims exact predecessor and retains target snapshot bytes");
 }
 #endif
 void Run(const std::filesystem::path& base) {

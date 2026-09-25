@@ -1,0 +1,51 @@
+[start] 2026-09-25T13:35:02Z
+Darwin 27.0.0 arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  src/recording/recording_runtime_composition.cpp
+2cac8f6814545a2c6c50aef13f441bd27179b3390038d3c9db614ae91dd90b5d  include/recording/recording_runtime_composition.h
+a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  src/recording/recording_catalog.cpp
+27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  include/recording/recording_catalog.h
+489313b38ba57a5f5a6bdaba3d80a9c692c742debd8387510c0be9ff489c8623  src/recording/recording_journal.cpp
+daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  include/recording/recording_journal.h
+bc71b159d5d18094d1bb3518e1cd33158e0f4c713be4ed17116e7bf8138c9258  src/recording/recording_catalog_cutover_candidate.cpp
+f4490a5829da48cd4ef3497caba92a2d82eb7f30abc0aab24e53c17b08dd5e34  src/recording/recording_generation_transaction.cpp
+9bfa2e7fa4cf32ec0789bb95ef1e0f884a2f8801e2646cefafbb54d088face47  src/ingress/recording_application_service.cpp
+d0217ef0b6f032a64ed7ea803784766be91d2464d81494b94dcd434abe2fbbe0  scripts/internal/recording_runtime_generation_smoke.cpp
+9db87d7cdc7fba378dee7948e904e10bf554ced13aa220cb2f60aa4fa5eb09dc  scripts/internal/verify_recording_runtime_generation.sh
+538ca092594c67920caba3848bf4f23805a8c0e286e42dd389a1a3f17ffbd0ea  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+B05-R07 PASS format/row limits separate from lifetime identity counts
+B05-R01 PASS supported default creates B marker and manifest
+B05-R01 PASS Catalog owns runtime reservation and retry
+B05-R01 PASS raw B journal remains blocked
+B05-R01 PASS actual B current cache active
+B05-R05 PASS successful repeated Open retains owner/store
+B05-R05 PASS forked runtime owner rejected
+B05-R01 PASS fresh runtime restores store/order then appends
+B05-R02 PASS strict legacy domain/store/source/cache/media preserved
+B05-R03 PASS startup decision for prepared/marker/intent/target phase 0
+B05-R03 PASS interrupted startup preserves original bytes 0
+B05-R03 PASS recovered startup returns fresh writable B owner
+B05-R03 PASS startup decision for prepared/marker/intent/target phase 1
+B05-R03 PASS interrupted startup preserves original bytes 1
+B05-R03 PASS recovered startup returns fresh writable B owner
+B05-R03 PASS startup decision for prepared/marker/intent/target phase 2
+B05-R03 PASS interrupted startup preserves original bytes 2
+B05-R03 PASS uncertain intent preserved without v1 fallback
+B05-R03 PASS startup decision for prepared/marker/intent/target phase 3
+B05-R03 PASS interrupted startup preserves original bytes 3
+B05-R03 PASS recovered startup returns fresh writable B owner
+B05-R03 PASS bad receipt/temp preserved and runtime blocked
+B05-R03 PASS bad receipt/temp preserved and runtime blocked
+B05-R04 PASS broken B never reactivates old journal
+B05-R05 PASS arbitrary symlink root rejected without files
+B05-R05 PASS parent traversal rejected before mutation
+B05-R05 PASS relative path accepted with normal authority
+B05-R05 PASS existing macOS OS alias preserved
+B05-R06 PASS public mode/degraded retains existing enum meaning
+B05-R06 PASS public authorized counters and path redaction unchanged
+B05-R06 PASS public mode/degraded retains existing enum meaning
+B05-R06 PASS public authorized counters and path redaction unchanged
+B05-R04 PASS SQLite rebuild failure not hidden as fallback
+[summary] pass=33 fail=0
+[end] 2026-09-25T13:35:04Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-runtime-generation.OQH4Xq bytes=9693273 removed=true

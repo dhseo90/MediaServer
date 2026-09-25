@@ -2416,6 +2416,12 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
            !transaction.Describe(false,current.active.manifest.active.name,&receipt.source,error)||
            !transaction.Describe(false,kGenerationManifest,&predecessor,error))return false;
         receipt.predecessor_file=predecessor;
+        RecordingGenerationOwnedFile predecessor_snapshot;
+        if(!transaction.Describe(false,current.active.manifest.snapshot.name,&predecessor_snapshot,error)||
+           predecessor_snapshot.file.size!=current.active.manifest.snapshot.size||
+           predecessor_snapshot.file.sha256!=current.active.manifest.snapshot.sha256)
+            return Fail(error,"B checkpoint predecessor snapshot ownership changed");
+        receipt.predecessor_snapshot=std::move(predecessor_snapshot);
         if(!transaction.Describe(true,identity.name,&created,error)||created.device!=identity.device||created.inode!=identity.inode||
            created.file.sha256!=plan->chain.head.sha256)return Fail(error,"B transaction identity ownership changed");
         receipt.created.push_back(created);

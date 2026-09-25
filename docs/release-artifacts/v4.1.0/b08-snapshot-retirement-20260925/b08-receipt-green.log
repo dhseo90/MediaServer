@@ -1,0 +1,126 @@
+[start] 2026-09-25T13:26:48Z
+Darwin 27.0.0 arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  src/domain/strict_json.cpp
+a7fa3ca8db6c4bc13ad25e177f74f23dcaf1993f3658b35c503d9c643567e54a  src/recording/recording_generation_manifest.cpp
+0a1e324d64fc282a72a9914ad7e97331c488b56ed5347ce9f57272e4faa1162e  src/recording/recording_generation_receipt.cpp
+01dd1d60e85b48a8aedd9fb6efe41aae01a64a4ff1f1b45a9415209c2cf173d3  scripts/internal/recording_generation_receipt_smoke.cpp
+68b1c589dbb2a8ee3fd056acafeac0313b655405f8707ce256f35e4db795eb43  include/recording/recording_generation_receipt.h
+89deb8194fefec8522804096f29fbf7fbbc4c73b3df4de1de2f9b2bd732237b6  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_receipt.sh
+[config] crypto=1
+B04-R07 PASS replacement descriptor survives canonical roundtrip
+B04-R01 PASS independent canonical literal
+B04-R01 PASS cutover prepared roundtrip
+B04-R01 PASS cutover publish intent roundtrip
+B04-R01 PASS independent publish phase literal
+B08-R01 PASS new checkpoint reclamation descriptor roundtrip
+B08-R01 PASS exact predecessor owned descriptor retained
+B08-R01 PASS legacy checkpoint without reclamation descriptor remains canonical
+B08-R02 PASS reclamation descriptor mismatch 0
+B08-R02 PASS reclamation descriptor mismatch 1
+B08-R02 PASS reclamation descriptor mismatch 2
+B08-R02 PASS reclamation descriptor mismatch 3
+B08-R02 PASS reclamation descriptor mismatch 4
+B08-R02 PASS reclamation descriptor mismatch 5
+B08-R02 PASS extra/null reclamation descriptor rejected without output change
+B04-R01 PASS checkpoint prepared active tail
+B04-R01 PASS checkpoint publish intent
+B04-R01 PASS required evidence descriptor
+B04-R02 PASS malformed
+B04-R02 PASS truncated
+B04-R02 PASS duplicate key
+B04-R02 PASS unknown key
+B04-R02 PASS unknown schema
+B04-R02 PASS unknown operation
+B04-R02 PASS unknown phase
+B04-R02 PASS -1
+B04-R02 PASS 1.0
+B04-R02 PASS 1e0
+B04-R02 PASS 01
+B04-R02 PASS 18446744073709551616
+B04-R02 PASS "1"
+B04-R02 PASS noncanonical whitespace
+B04-R02 PASS missing final LF
+B04-R02 PASS nested unknown
+B04-R02 PASS nonobject list item
+B04-R02 PASS wrong predecessor type
+B04-R03 PASS cutover predecessor
+B04-R03 PASS cutover source
+B04-R03 PASS wrong marker
+B04-R03 PASS marker limit
+B04-R03 PASS cross-device stage
+B04-R03 PASS stage aliases root
+B04-R03 PASS stage escape
+B04-R03 PASS source aliases marker
+B04-R03 PASS source bad hash
+B04-R03 PASS predecessor absent
+B04-R03 PASS store mismatch
+B04-R03 PASS generation skip
+B04-R03 PASS cut backwards
+B04-R03 PASS source name mismatch
+B04-R03 PASS source smaller than prefix
+B04-R03 PASS same-size source wrong hash
+B04-R04 PASS created duplicate
+B04-R04 PASS created inode alias
+B04-R04 PASS created source alias
+B04-R04 PASS created cross-device
+B04-R04 PASS created escape
+B04-R04 PASS future generation
+B04-R04 PASS unsorted
+B04-R04 PASS component cap
+B04-R04 PASS missing identity
+B04-R04 PASS empty identity
+B04-R04 PASS snapshot mismatch
+B04-R04 PASS missing snapshot
+B04-R04 PASS missing active
+B04-R04 PASS active nonempty
+B04-R04 PASS active wrong empty hash
+B04-R04 PASS old created checkpoint
+B04-R04 PASS missing target evidence
+B04-R04 PASS unlisted current evidence
+B04-R04 PASS noncanonical file generation
+B04-R04 PASS old source in created
+B04-R04 PASS foreign snapshot
+B04-R05 PASS 67 created files no lifetime 64 limit
+B04-R05 PASS large source not component cap
+B04-R05 PASS uint64 cut maximum
+B04-R05 PASS predecessor overflow
+B04-R06 PASS caller admission
+B04-R06 PASS zero admission refused
+B04-R06 PASS null parse output
+B04-R06 PASS null serialize output
+B04-R06 PASS operation enum
+B04-R06 PASS phase enum
+B04-R07 PASS missing cutover replacement
+B04-R07 PASS foreign replacement basename
+B04-R07 PASS replacement marker wrong hash
+B04-R07 PASS replacement marker wrong size
+B04-R07 PASS replacement marker cross device
+B04-R07 PASS replacement aliases original
+B04-R07 PASS replacement aliases created
+B04-R07 PASS cutover predecessor file forbidden
+B04-R07 PASS checkpoint replacement forbidden
+B04-R07 PASS checkpoint predecessor file absent
+B04-R07 PASS predecessor file wrong basename
+B04-R07 PASS predecessor file wrong hash
+B04-R07 PASS predecessor file wrong size
+B04-R07 PASS predecessor file alias
+B04-R07 PASS checkpoint old marker must be v2
+B04-R07 PASS marker store mismatch
+B04-R02 PASS predecessor file invalid type
+B04-R02 PASS replacement strict object
+B04-R08 PASS existing dotted colon store survives manifest and receipt
+B04-R08 PASS unsafe store refused: .
+B04-R08 PASS unsafe store refused: ..
+B04-R08 PASS unsafe store refused: a..b
+B04-R08 PASS unsafe store refused: ../store
+B04-R08 PASS unsafe store refused: a/b
+B04-R08 PASS unsafe store refused: a\b
+B04-R08 PASS unsafe store refused: a"b
+[summary] pass=109 fail=0
+[config] crypto=0
+B04-R06 PASS crypto-off unsupported serialization
+B04-R06 PASS crypto-off parse failclosed
+[summary] pass=2 fail=0
+[end] 2026-09-25T13:26:50Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.FFuy7c bytes=1005776 removed=true

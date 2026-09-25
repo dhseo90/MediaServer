@@ -709,6 +709,8 @@ identity shard, active는 이 회수 대상이 아니다.
   검증, reader의 세대 변경 처리 조건을 확인한 후 receipt가 지정한 **정확한 이전
   snapshot 한 개**만 회수한다. 복구 시에도 같은 검증을 거쳐 처리한다.
   receipt가 없는 파일 목록 검색·세대 번호 추측·경로 glob으로 삭제하지 않는다.
+  복구의 SQLite는 확정 세대에서 재투영 가능해야 하며, scratch 재구성 전에
+  이전 snapshot을 먼저 제거하지 않는다.
 - 회수 권한은 root의 소유 lease와 receipt의 이전 manifest 및 snapshot
   이름·길이·SHA-256·device·inode에 결박한다. 파일이 바뀌거나 링크·소유권이
   모호하면 삭제하지 않고 실패를 보존한다. 회수와 directory fsync가 끝나기

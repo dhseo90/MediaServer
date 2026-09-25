@@ -9,6 +9,7 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include "recording_generation_checkpoint_sql_cases.inc"
 #include "recording/recording_generation_transaction.h"
 #include "recording/recording_cutover_candidate.h"
+#include "recording_generation_observation.h"
 namespace recording {
 struct RecordingGenerationTransactionProbe {
     static void Hook(void(*hook)(const char*)){RecordingGenerationTransaction::fault_hook_=hook;}
@@ -85,7 +86,7 @@ void ExportValueBoundary(const std::filesystem::path& root) {
         sentinel.store_id=="unchanged","explicit store must match validated chain");
 }
 void Rotation(const std::filesystem::path& root) {
-    Actual(root);const auto original=Read(root/"evidence-1-0.jsonl"),old_snapshot=Read(root/"snapshot-2.jsonl");
+    Actual(root);const auto original=Read(root/"evidence-1-0.jsonl");
     RecordingMutationLink historical,active;
     {
         RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
@@ -103,7 +104,8 @@ void Rotation(const std::filesystem::path& root) {
         Check("B03-C02",Links::Get(j,historical,&a)&&Links::Get(j,active,&b)&&a->mutation_id=="historical"&&b->mutation_id==accepted.mutation_id,"same-owner links survive two rotations and active-to-sealed relocation");
         const auto pid=::fork();Need(pid>=0);if(!pid){RecordingMutationHandle value;_exit(Links::Get(j,active,&value)?1:0);}int status=0;Need(::waitpid(pid,&status,0)==pid);
         Check("B03-C02",WIFEXITED(status)&&WEXITSTATUS(status)==0,"fork rejects inherited rotated link");
-        Check("B03-C01",c.FindSegmentById("segment")->lifecycle==RecordingLifecycle::Corrupt&&Read(root/"active-2.jsonl")==sealed&&Read(root/"snapshot-2.jsonl")==old_snapshot&&Read(root/"evidence-1-0.jsonl")==original,"independent current lifecycle and old bytes preserved");
+        Check("B03-C01",c.FindSegmentById("segment")->lifecycle==RecordingLifecycle::Corrupt&&Read(root/"active-2.jsonl")==sealed&&Read(root/"evidence-1-0.jsonl")==original,"independent current lifecycle and historical source bytes preserved");
+        Check("B08-R01",!std::filesystem::exists(root/"snapshot-2.jsonl")&&!std::filesystem::exists(root/"snapshot-3.jsonl")&&std::filesystem::exists(root/"snapshot-4.jsonl")&&std::filesystem::exists(root/"identity-2.jsonl")&&std::filesystem::exists(root/"identity-3.jsonl")&&std::filesystem::exists(root/"active-3.jsonl"),"two checkpoints reclaim only exact predecessor snapshots");
         const auto size=Read(root/"active-4.jsonl").size();RecordingOrderReservationV1 retry;
         Check("B03-C05",c.ReserveRecordingOrder("store","request","future","channel",&retry,&error)&&retry.sequence==order.sequence&&Read(root/"active-4.jsonl").size()==size,"reservation retry after rotation emits no physical row");
     }
@@ -114,6 +116,16 @@ void Rotation(const std::filesystem::path& root) {
     RecordingMutationLink fresh;Need(Links::Link(reopened,"historical",&fresh));
     auto changed=original;changed[changed.size()/2]^=1;Write(root/"evidence-1-0.jsonl",changed);
     Check("B03-C02",!Links::Get(reopened,fresh,&value)&&!value,"late original archive alteration rejects cold acquisition");
+}
+void ObserverRace(const std::filesystem::path& root){
+    Actual(root);RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+    Need(c.MarkSegmentCorrupt("segment","missing-media",&error));
+    const auto stale=generation_observation::Observe(root,0,[](const std::string&){return "{}";},[&]{Need(c.Checkpoint(&error));});
+    Check("B08-R02",stale=="{\"busy\":true}"&&!std::filesystem::exists(root/"snapshot-2.jsonl"),
+        "reader holding predecessor manifest reports Busy after exact snapshot retirement");
+    const auto current=generation_observation::Observe(root,0,[](const std::string&){return "{}";});
+    Check("B08-R02",current.find("\"busy\":false")!=std::string::npos&&current.find("\"generation\":\"3\"")!=std::string::npos,
+        "fresh lock-free observer returns one complete current generation");
 }
 std::filesystem::path hook_root;
 void AlterIdentity(){auto bytes=Read(hook_root/"identity-3.jsonl");bytes[bytes.size()/2]^=1;Write(hook_root/"identity-3.jsonl",bytes);}
@@ -283,7 +295,7 @@ int main(int argc,char** argv) {
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
-        ExportValueBoundary(root/"export-values");Rotation(root/"rotate");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
+        ExportValueBoundary(root/"export-values");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
 #else
         Write(root/".recording-store-format",Marker());RecordingJournal journal(Options(root));
         Check("B03-C06",!journal.Open(&error),"unsupported B remains closed");

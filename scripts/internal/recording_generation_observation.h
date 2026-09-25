@@ -1,7 +1,14 @@
 #pragma once
 // 검증 전용 읽기 관측. 제품 lease/복구 권위가 아니며 파일을 생성·수정하지 않는다.
+#include "domain/strict_json.h"
 #include "recording/recording_catalog_snapshot.h"
+#include <openssl/evp.h>
+#include <algorithm>
+#include <cerrno>
 #include <fcntl.h>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <array>
@@ -51,9 +58,13 @@ inline std::string Identity(const RecordingMutationV1& m){
     ingress::StrictJsonObjectDocument d;Need(ingress::ParseStrictJsonObjectDocument(m.payload_json,&d,nullptr));return ingress::StrictJsonStringField(d,"originalSha256").value_or("");
 }
 inline std::string Token(const RecordingIdentityRow& r){const auto type=r.type==RecordingMutationType::EventLinkReceipt?"event_link_created":RecordingMutationTypeName(r.type);return "["+Q(r.mutation_id)+","+Q(r.entity_id)+","+Q(type)+","+Q(r.identity)+","+Q(std::to_string(r.occurred_at_ms))+"]";}
-inline std::string Observe(const std::filesystem::path& root,std::size_t seen,const std::function<std::string(const std::string&)>& normalize){
+inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
+    const std::function<std::string(const std::string&)>& normalize,
+    const std::function<void()>& after_manifest={}){
     Reader files(root);if(files.Pending())return "{\"busy\":true}";
     const auto marker=files.Read(".recording-store-format",65536),manifest_bytes=files.Read("recording-generation.json",65536);
+    // 검증 전용 경계: 이전 manifest를 잡은 reader와 checkpoint 게시를 결정적으로 교차시킨다.
+    if(after_manifest)after_manifest();
     try {
         ingress::StrictJsonObjectDocument mark;RecordingGenerationManifest manifest;std::string error;
         Need(ingress::ParseStrictJsonObjectDocument(marker,&mark,nullptr)&&mark.members.size()==3&&ingress::StrictJsonStringField(mark,"format")=="media-server.managed-recording-store.v2"&&

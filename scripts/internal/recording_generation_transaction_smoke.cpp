@@ -5,6 +5,7 @@
 #include "recording_catalog_generation_projection_smoke.cpp"
 #undef main
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <unistd.h>
 namespace recording {
 struct RecordingGenerationTransactionProbe {
@@ -22,6 +23,7 @@ RecordingCatalog::Options TO(const std::filesystem::path& root){RecordingCatalog
 RecordingCutoverCandidateLimits TL(){RecordingCutoverCandidateLimits l;l.chain={8U*1024U*1024U,10000,10000};l.snapshot_bytes=8U*1024U*1024U;l.cold_row_bytes=17U*1024U*1024U;return l;}
 RecordingJournal::ManagedOptions JO(const std::filesystem::path& root,const std::string& store="store"){return {root,store,{8U*1024U*1024U,8U*1024U*1024U,8U*1024U*1024U,17U*1024U*1024U,10000,10000}};}
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+void R(bool ok,const std::string& text){std::cout<<"B08-R02 "<<(ok?"PASS":"FAIL")<<' '<<text<<'\n';if(!ok)++transaction_failures;}
 std::string crash_point;
 unsigned crash_occurrence=1;
 void Crash(const char* point){if(crash_point==point&&!--crash_occurrence)::_exit(77);}
@@ -107,6 +109,8 @@ void IncompleteStage(const std::filesystem::path& root){
 }
 void Checkpoint(const std::filesystem::path& root,const std::string& point){
     MakeB(root);const auto original=Originals(root);
+    const auto old_snapshot=Read(root/"snapshot-1.jsonl");
+    const int reader=::open((root/"snapshot-1.jsonl").c_str(),O_RDONLY|O_NOFOLLOW);Need(reader>=0);
     if(point.empty()){
         RecordingJournal j(JO(root));Need(j.Open(&error));auto options=TO(root);options.enable_generation_writes=true;RecordingCatalog c(j,options);Need(c.Open(&error));Need(c.MarkSegmentCorrupt("legacy","missing-media",&error));
         RecordingGenerationArchiveReadsForTest(true);
@@ -119,7 +123,66 @@ void Checkpoint(const std::filesystem::path& root,const std::string& point){
         int status=0;Need(::waitpid(pid,&status,0)==pid);T(6,WIFEXITED(status)&&WEXITSTATUS(status)==77,"checkpoint crash reached "+point);
         const bool recoverable=point!="intent-durable";T(6,Recover(root)==recoverable,"checkpoint recovery decision "+point);
     }
+    const bool committed=point.empty()||point=="manifest-published"||point=="predecessor-snapshot-unlinked"||point=="predecessor-snapshot-synced";
+    R(std::filesystem::exists(root/"snapshot-1.jsonl")!=committed,"exact predecessor snapshot lifecycle "+(point.empty()?std::string("normal"):point));
+    std::string retained(old_snapshot.size(),'\0');
+    const auto bytes=::pread(reader,retained.data(),retained.size(),0);::close(reader);
+    R(bytes==static_cast<ssize_t>(retained.size())&&retained==old_snapshot,"already opened immutable reader FD remains valid "+point);
     T(6,Originals(root)==original,"checkpoint legacy originals unchanged");
+}
+void ReclamationTamper(const std::filesystem::path& root,unsigned variant){
+    MakeB(root);const auto originals=Originals(root);
+    const auto pid=::fork();Need(pid>=0);
+    if(!pid){
+        RecordingJournal j(JO(root));if(!j.Open(&error))::_exit(91);
+        auto options=TO(root);options.enable_generation_writes=true;RecordingCatalog c(j,options);
+        if(!c.Open(&error)||!c.MarkSegmentCorrupt("legacy","missing-media",&error))::_exit(91);
+        crash_point="manifest-published";crash_occurrence=1;RecordingGenerationTransactionProbe::Hook(Crash);
+        (void)c.Checkpoint(&error);::_exit(92);
+    }
+    int status=0;Need(::waitpid(pid,&status,0)==pid);
+    R(WIFEXITED(status)&&WEXITSTATUS(status)==77,"reclamation tamper setup reaches published target "+std::to_string(variant));
+    const auto old=root/"snapshot-1.jsonl",foreign=root/"foreign-preserved";
+    const auto prior=Read(old),target=Read(root/"snapshot-2.jsonl"),manifest=Read(root/"recording-generation.json");
+    if(variant==0){std::filesystem::rename(old,foreign);std::filesystem::create_symlink(foreign,old);}
+    if(variant==1)std::filesystem::create_hard_link(old,foreign);
+    if(variant==2){std::filesystem::rename(old,foreign);Write(old,prior);}
+    if(variant==3){auto changed=prior;changed[changed.size()/2]^=1;Write(old,changed);}
+    if(variant==4)std::filesystem::remove(old);
+    if(variant==5){
+        RecordingGenerationReceipt receipt;const auto path=root/".recording-generation-transaction.json";
+        Need(ParseRecordingGenerationReceipt(Read(path),8U*1024U*1024U,&receipt,&error));
+        receipt.predecessor_snapshot.reset();std::string bytes;Need(SerializeRecordingGenerationReceipt(receipt,&bytes,&error));Write(path,bytes);
+    }
+    const auto before=variant==4?std::string():Read(old);
+    const auto receipt_before=Read(root/".recording-generation-transaction.json");
+    const bool recovered=Recover(root);
+    R(recovered==(variant>=4),"replacement rejected; exact absent and legacy receipt compatible "+std::to_string(variant));
+    R(Read(root/"snapshot-2.jsonl")==target&&Read(root/"recording-generation.json")==manifest&&Originals(root)==originals,"target and original bytes unchanged "+std::to_string(variant));
+    if(variant<4)R(Read(old)==before&&Read(root/".recording-generation-transaction.json")==receipt_before,"suspect predecessor and receipt preserved "+std::to_string(variant));
+    if(variant<3)R(Read(foreign)==prior,"foreign alias/inode bytes preserved "+std::to_string(variant));
+    if(variant==5)R(Read(old)==prior,"legacy receipt never authorizes predecessor deletion");
+}
+std::filesystem::path live_reclaim_root;
+void RemoveLivePredecessor(const char* point){
+    if(std::string(point)!="predecessor-snapshot-before-check")return;
+    RecordingGenerationTransactionProbe::Hook(nullptr);
+    Need(std::filesystem::remove(live_reclaim_root/"snapshot-1.jsonl"));
+}
+void LiveMissing(const std::filesystem::path& root){
+    MakeB(root);const auto original=Originals(root);
+    {
+        RecordingJournal j(JO(root));Need(j.Open(&error));auto options=TO(root);options.enable_generation_writes=true;
+        RecordingCatalog c(j,options);Need(c.Open(&error));Need(c.MarkSegmentCorrupt("legacy","missing-media",&error));
+        live_reclaim_root=root;RecordingGenerationTransactionProbe::Hook(RemoveLivePredecessor);
+        const bool checkpoint=c.Checkpoint(&error);RecordingGenerationTransactionProbe::Hook(nullptr);
+        R(!checkpoint&&!std::filesystem::exists(root/"snapshot-1.jsonl")&&
+          std::filesystem::exists(root/".recording-generation-transaction.json")&&
+          std::filesystem::exists(root/"snapshot-2.jsonl"),"live missing predecessor rejects success and preserves receipt");
+    }
+    R(Recover(root)&&!std::filesystem::exists(root/".recording-generation-transaction.json")&&
+      Read(root/"snapshot-2.jsonl").size()>0&&Originals(root)==original,
+      "restart validates target and accepts exact already-absent predecessor");
 }
 #endif
 }
@@ -145,7 +208,9 @@ int main(int argc,char** argv) {
         Checkpoint(base/"checkpoint-normal","");
         LiveCleanup(base/"checkpoint-live-cleanup");
         IncompleteStage(base/"checkpoint-incomplete-stage");
-        for(const char* point:{"component-linked","intent-durable","manifest-published"})Checkpoint(base/(std::string("checkpoint-")+point),point);
+        for(const char* point:{"component-linked","intent-durable","manifest-published","predecessor-snapshot-unlinked","predecessor-snapshot-synced"})Checkpoint(base/(std::string("checkpoint-")+point),point);
+        for(unsigned variant=0;variant<6;++variant)ReclamationTamper(base/("reclamation-tamper-"+std::to_string(variant)),variant);
+        LiveMissing(base/"reclamation-live-missing");
 #else
         RecordingJournal journal(JO(base));if(!journal.Open(&error))throw std::runtime_error(error);RecordingCatalog catalog(journal,TO(base));
         T(5,!RecordingGenerationTransactionProbe::Publish(catalog,TL(),&error),"unsupported publication rejected");

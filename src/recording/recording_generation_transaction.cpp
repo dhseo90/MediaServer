@@ -72,7 +72,7 @@ bool Empty(int fd){Fd copy;copy.n=::dup(fd);if(copy.n<0)return false;DIR* dir=::
 struct RecordingGenerationTransaction::State {
     std::filesystem::path root_path,stage_path;RecordingGenerationReceipt receipt;
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    Fd root,stage;struct stat root_stat{},stage_stat{};RecordingGenerationOwnedFile receipt_file;bool prepared=false;unsigned receipt_links=1;
+    Fd root,stage;struct stat root_stat{},stage_stat{};RecordingGenerationOwnedFile receipt_file;bool prepared=false,loaded=false;unsigned receipt_links=1;
     std::vector<RecordingGenerationOwnedFile> live_files;
     bool stage_created=false;
     void Hit(const char* point) const{
@@ -151,7 +151,7 @@ bool RecordingGenerationTransaction::Load(const std::filesystem::path& root,std:
     if(s.receipt_links==2&&s.receipt.phase!=RecordingGenerationPhase::Prepared)return Fail(error,"transaction receipt alias phase rejected");
     s.stage_path=root/s.receipt.stage_name;s.stage.n=::openat(s.root.n,s.receipt.stage_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
     if(s.stage.n<0||::fstat(s.stage.n,&s.stage_stat)!=0||static_cast<std::uint64_t>(s.root_stat.st_dev)!=s.receipt.root_device||static_cast<std::uint64_t>(s.root_stat.st_ino)!=s.receipt.root_inode||static_cast<std::uint64_t>(s.stage_stat.st_dev)!=s.receipt.stage_device||static_cast<std::uint64_t>(s.stage_stat.st_ino)!=s.receipt.stage_inode||!s.Bound())return Fail(error,"transaction recovery root/stage rejected");
-    s.prepared=true;if(error)error->clear();return true;
+    s.prepared=true;s.loaded=true;if(error)error->clear();return true;
 #else
     (void)root;(void)admission;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -213,6 +213,7 @@ bool RecordingGenerationTransaction::Prepare(const RecordingGenerationReceipt& v
     auto& s=*state_;if(s.prepared||!s.Bound()||value.phase!=RecordingGenerationPhase::Prepared||value.stage_name!=s.stage_path.filename()||value.root_device!=static_cast<std::uint64_t>(s.root_stat.st_dev)||value.root_inode!=static_cast<std::uint64_t>(s.root_stat.st_ino)||value.stage_device!=static_cast<std::uint64_t>(s.stage_stat.st_dev)||value.stage_inode!=static_cast<std::uint64_t>(s.stage_stat.st_ino)||!Verify(s.root.n,value.marker)||!Verify(s.root.n,value.source))return Fail(error,"transaction original/stage proof mismatch");
     if(value.replacement_marker&&!Verify(s.stage.n,*value.replacement_marker))return Fail(error,"transaction replacement marker mismatch");
     if(value.predecessor_file&&!Verify(s.root.n,*value.predecessor_file))return Fail(error,"transaction predecessor mismatch");
+    if(value.predecessor_snapshot&&!Verify(s.root.n,*value.predecessor_snapshot))return Fail(error,"transaction predecessor snapshot mismatch");
     for(const auto& file:value.created)if(!Verify(s.stage.n,file)||!Missing(s.root.n,file.file.name.c_str()))return Fail(error,"transaction component/collision rejected");return s.Save(value,true,error);
 #else
     (void)value;return Fail(error,"transaction crypto/POSIX unsupported");
@@ -313,6 +314,25 @@ bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error){
     if(committed){
         std::string expected,actual;RecordingGenerationOwnedFile manifest;
         if(!SerializeRecordingGenerationManifest(s.receipt.target,&expected,error)||!Read(s.root.n,"recording-generation.json",&manifest,1,&actual,65536)||actual!=expected||!Revalidate(error))return Fail(error,"transaction committed cleanup authority rejected");
+        if(s.receipt.predecessor_snapshot){
+            const auto& file=*s.receipt.predecessor_snapshot;
+            const auto* name=file.file.name.c_str();
+            // 재기동 Load에서만 exact ENOENT를 멱등 완료로 본다. live 게시 후 부재는 손상이다.
+            s.Hit("predecessor-snapshot-before-check");
+            const bool missing=Missing(s.root.n,name);
+            if(missing&&!s.loaded)return Fail(error,"transaction live predecessor snapshot missing");
+            if(!missing){
+                struct stat before{},after{};
+                if(::fstatat(s.root.n,name,&before,AT_SYMLINK_NOFOLLOW)!=0||!Verify(s.root.n,file))
+                    return Fail(error,"transaction predecessor snapshot ownership changed");
+                s.Hit("predecessor-snapshot-before-unlink");
+                if(!s.ReceiptBound()||::fstatat(s.root.n,name,&after,AT_SYMLINK_NOFOLLOW)!=0||!Same(before,after)||::unlinkat(s.root.n,name,0)!=0)
+                    return Fail(error,"transaction predecessor snapshot final binding changed");
+                s.Hit("predecessor-snapshot-unlinked");
+            }
+            if(::fsync(s.root.n)!=0)return Fail(error,"transaction predecessor snapshot cleanup durability uncertain");
+            s.Hit("predecessor-snapshot-synced");
+        }
     }else {
         if(s.receipt.phase!=RecordingGenerationPhase::Prepared||!Verify(s.root.n,s.receipt.marker)||!Verify(s.root.n,s.receipt.source))return Fail(error,"transaction rollback cleanup authority rejected");
         if(s.receipt.operation==RecordingGenerationOperation::Cutover){if(!Missing(s.root.n,"recording-generation.json"))return Fail(error,"transaction rollback manifest present");}

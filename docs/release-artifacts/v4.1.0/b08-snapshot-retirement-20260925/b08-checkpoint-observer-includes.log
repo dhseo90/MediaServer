@@ -1,0 +1,190 @@
+[start] 2026-09-25T13:41:12Z
+Darwin 27.0.0 arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  src/recording/recording_catalog.cpp
+fc4a13c66167a82da4648e70b232c94a739465a7c4f78c8227b6e62747e7c9fd  src/recording/recording_catalog_snapshot_export.cpp
+bc71b159d5d18094d1bb3518e1cd33158e0f4c713be4ed17116e7bf8138c9258  src/recording/recording_catalog_cutover_candidate.cpp
+e9794eb6a20f5567fefee7b43d026828669a3c8ff904bc3ec3a432a343c5982d  src/recording/recording_cutover_stage_writer.cpp
+615ad70e9ae1c770390f3ab375a147a7b333558d941fa78d1861fc8152bd5c37  src/recording/recording_timeline_projection.cpp
+c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c  src/recording/recording_read_service.cpp
+5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591  src/recording/retention_coordinator.cpp
+ecef071fb2afcfe69a00654757c639760e2ce75e627ae9c777a564f08161d6a9  src/recording/recording_finalize_recovery.cpp
+31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb  src/recording/recording_file_evidence.cpp
+64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf  src/recording/recording_media_inspector.cpp
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  src/recording/recording_contracts.cpp
+489313b38ba57a5f5a6bdaba3d80a9c692c742debd8387510c0be9ff489c8623  src/recording/recording_journal.cpp
+1002d23eaedad14e52e5a211a15ac6348ba9238802f07a328b512ea8c76a7935  src/recording/recording_cutover_input.cpp
+f4490a5829da48cd4ef3497caba92a2d82eb7f30abc0aab24e53c17b08dd5e34  src/recording/recording_generation_transaction.cpp
+0a1e324d64fc282a72a9914ad7e97331c488b56ed5347ce9f57272e4faa1162e  src/recording/recording_generation_receipt.cpp
+a7fa3ca8db6c4bc13ad25e177f74f23dcaf1993f3658b35c503d9c643567e54a  src/recording/recording_generation_manifest.cpp
+89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10  src/recording/recording_generation_cold_mutation.cpp
+9c2fa4366732edebc03bef93eaa61c6c18ffdf3f8e4acccd9ed73cbbeb08c295  src/recording/recording_generation_files.cpp
+185f4a49980557e340358ae6e6149f9554df1506bc99cc594c2d0b82d613e74b  src/recording/recording_catalog_snapshot.cpp
+7b6dd68db062aa19b1e0af7d053ac8827b86566cbd346ed5a9d800f82adfe386  src/recording/recording_order_history_snapshot.cpp
+d2d85d3466e83441bd01210c4e5eb8532eb1ed3cf95b0fab36ce8bc0515d6124  src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  src/recording/recording_derived_job_ready.cpp
+05cd40bcafb0b8f5728e42689b11cb4ca5d99ae5c594df49d8fcdc5c410b9cf2  src/recording/recording_catalog_generation_projection.cpp
+69d9d86825ab0bd9c7b23863899055bba23e59f111a23f782622f8813c952726  src/recording/recording_generation_active.cpp
+d3ead2b93a740cb5d07e59bb612a4204a79c4196b33635df24b93ac63fed3019  scripts/internal/recording_generation_checkpoint_smoke.cpp
+27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  include/recording/recording_catalog.h
+daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  include/recording/recording_journal.h
+e7ad9f1f85aade4d1abbf2cb39c2410fad9e3c3a37939db680278c4a6ae572cd  include/recording/recording_generation_recovery_session.h
+91e507a7a161e4d796dcff72511037aa715f5bc7cf26d313dacd3b967b90c930  scripts/internal/recording_generation_checkpoint_sql_cases.inc
+4688bd0890d3cd413ecad715d9c84c3fde7fc22153a74bd8d4e29cef288c4265  include/recording/recording_generation_manifest.h
+c2de2b5c06ac21805c9e3f930ca94c242b250e5224fa0ccdc8bf393faad1e0e6  include/recording/recording_generation_files.h
+c5bebc3da7c2efb0ba151da13244c20282b4ca28cb68e719949815039bf53f6b  scripts/internal/recording_catalog_generation_scratch_smoke.cpp
+f430a7b9eac7669fc6f1c32a126dcff5a0d6f7421ec66a7428b2fff36849eab9  scripts/internal/recording_catalog_generation_projection_smoke.cpp
+bc434120f3f266eea00d705fb56ff8f8ee5c7c7c62b874f57074fb158316ccdd  scripts/internal/recording_journal_generation_readonly_smoke.cpp
+f10ca22f4e44d40e7d6ca5e05bafe8408a76c14fdc0f2f47bc9c53c0e141524c  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_checkpoint.sh
+[config] crypto=1 sqlite=1 backend=1
+B04-S07 PASS public export rejects unopened owner and preserves output
+B04-S07 PASS private scratch acquires no public export authority
+B04-S07 PASS explicit-store private values retain exact snapshot bytes
+B04-S07 PASS explicit store must match validated chain
+B03-C01 PASS empty active checkpoint is a byte-preserving no-op
+B03-C01 PASS explicit writable B checkpoint rotates generation
+B03-C01 PASS first rotation exact generation cut and empty active
+B03-C01 PASS second rotation preserves reservation and exclusive cut
+B03-C02 PASS same-owner links survive two rotations and active-to-sealed relocation
+B03-C02 PASS fork rejects inherited rotated link
+B03-C01 PASS independent current lifecycle and historical source bytes preserved
+B08-R01 PASS two checkpoints reclaim only exact predecessor snapshots
+B03-C05 PASS reservation retry after rotation emits no physical row
+B03-C02 PASS new owner rejects prior instance links
+B03-C01 PASS strict reopen restores rotated current state
+B03-C02 PASS late original archive alteration rejects cold acquisition
+B08-R02 PASS reader holding predecessor manifest reports Busy after exact snapshot retirement
+B08-R02 PASS fresh lock-free observer returns one complete current generation
+B03-C03 PASS pre-publication collision preserves old authority and active
+B03-C03 PASS only owned preparations reclaimed while foreign collision preserved
+B03-C03 PASS same owner retries after explicit fixture collision removal
+B03-C03 PASS pre-publication collision preserves old authority and active
+B03-C03 PASS only owned preparations reclaimed while foreign collision preserved
+B03-C03 PASS same owner retries after explicit fixture collision removal
+B03-C03 PASS same-inode same-size change after live cleanup read preserves owned stage and poisons owner
+B03-C03 PASS identity changed after stage fsync rejects publication and preserves suspect file
+B03-C03 PASS published uncertainty versus not-published authority distinguished
+B03-C03 PASS new owner strictly opens selected manifest after failure
+B03-C03 PASS post-rename directory failure poisons owner
+B03-C03 PASS published uncertainty versus not-published authority distinguished
+B03-C03 PASS new owner strictly opens selected manifest after failure
+B03-C03 PASS partial active tail is never automatically truncated
+[cost] history_bytes=820 archive_reads=0 envelope_parses=0 envelope_serializes=1
+B03-C04 PASS fixed current and delta avoid predecessor evidence read parse and serialization as complete history grows
+[cost] history_bytes=3358720 archive_reads=0 envelope_parses=0 envelope_serializes=1
+B03-C04 PASS fixed current and delta avoid predecessor evidence read parse and serialization as complete history grows
+B03-C05 PASS active admission rotates before next valid reservation write
+B03-C05 PASS invalid store and opaque ID length are rejected without rotation or append
+B03-C05 PASS invalid domain above automatic threshold does not rotate
+B03-C01 PASS one MiB threshold rotates before valid next row without rewriting sealed bytes
+B03-C01 PASS large supported plain current row is preserved through automatic rotation
+B03-C05 PASS prepublication admission remains nondurable: snapshot
+B03-C05 PASS prepublication admission remains nondurable: shard
+B03-C05 PASS prepublication admission remains nondurable: archives
+B03-C05 PASS prepublication admission remains nondurable: ids
+B03-C05 PASS prepublication admission remains nondurable: ordinal
+B03-C05 PASS prepublication admission remains nondurable: active
+B03-C05 PASS prepublication admission remains nondurable: cold
+B03-C05 PASS Ready/Committed source detail and job links survive rotation
+B03-C05 PASS Committed typed output keeps reserved ordinal independently
+B03-C05 PASS strict reopen preserves active job stage and cold source closure
+B03-C05 PASS Ready/Committed source detail and job links survive rotation
+B03-C05 PASS Committed typed output keeps reserved ordinal independently
+B03-C05 PASS strict reopen preserves active job stage and cold source closure
+B03-C05 PASS two planned outputs and meaningful source order survive reservation rotation
+B03-C05 PASS new owner restores multi-output active job and reservations
+B03-C03 PASS actual SQLite trigger makes checkpoint metadata UPDATE fail after manifest publication
+B03-C03 PASS post-publication SQL failure preserves independently expected new generation and cut
+B03-C03 PASS failed checkpoint SQL transaction preserves prior cache metadata and current content
+B03-C03 PASS post-publication SQL failure blocks same-owner reads and reopen
+B03-C03 PASS poisoned authority refuses further checkpoint or write without changing durable bytes
+B08-R02 PASS SQL failure retains predecessor snapshot and receipt until verified recovery
+B03-C03 PASS fresh read-only transaction recovery cleans receipt before writable SQL reopen
+B03-C03 PASS new owner rebuilds SQL from published snapshot with exact cut and lifecycle
+B03-C03 PASS new owner recovers usable current state without additional journal append
+B03-C03 PASS failed checkpoint and recovery preserve original authority and sealed source bytes exactly
+B08-R02 PASS verified recovery reclaims exact predecessor and retains target snapshot bytes
+B03-C03 PASS actual SQLite reader makes checkpoint COMMIT fail after manifest publication
+B03-C03 PASS post-publication SQL failure preserves independently expected new generation and cut
+B03-C03 PASS failed checkpoint SQL transaction preserves prior cache metadata and current content
+B03-C03 PASS post-publication SQL failure blocks same-owner reads and reopen
+B03-C03 PASS poisoned authority refuses further checkpoint or write without changing durable bytes
+B08-R02 PASS SQL failure retains predecessor snapshot and receipt until verified recovery
+B03-C03 PASS fresh read-only transaction recovery cleans receipt before writable SQL reopen
+B03-C03 PASS new owner rebuilds SQL from published snapshot with exact cut and lifecycle
+B03-C03 PASS new owner recovers usable current state without additional journal append
+B03-C03 PASS failed checkpoint and recovery preserve original authority and sealed source bytes exactly
+B08-R02 PASS verified recovery reclaims exact predecessor and retains target snapshot bytes
+B03-C06 PASS backend-enabled v1 open append replay
+B03-C06 PASS v1 checkpoint remains available
+B03-C06 PASS v1 reopen unchanged
+[config] crypto=1 sqlite=0 backend=1
+B04-S07 PASS public export rejects unopened owner and preserves output
+B04-S07 PASS private scratch acquires no public export authority
+B04-S07 PASS explicit-store private values retain exact snapshot bytes
+B04-S07 PASS explicit store must match validated chain
+B03-C01 PASS empty active checkpoint is a byte-preserving no-op
+B03-C01 PASS explicit writable B checkpoint rotates generation
+B03-C01 PASS first rotation exact generation cut and empty active
+B03-C01 PASS second rotation preserves reservation and exclusive cut
+B03-C02 PASS same-owner links survive two rotations and active-to-sealed relocation
+B03-C02 PASS fork rejects inherited rotated link
+B03-C01 PASS independent current lifecycle and historical source bytes preserved
+B08-R01 PASS two checkpoints reclaim only exact predecessor snapshots
+B03-C05 PASS reservation retry after rotation emits no physical row
+B03-C02 PASS new owner rejects prior instance links
+B03-C01 PASS strict reopen restores rotated current state
+B03-C02 PASS late original archive alteration rejects cold acquisition
+B08-R02 PASS reader holding predecessor manifest reports Busy after exact snapshot retirement
+B08-R02 PASS fresh lock-free observer returns one complete current generation
+B03-C03 PASS pre-publication collision preserves old authority and active
+B03-C03 PASS only owned preparations reclaimed while foreign collision preserved
+B03-C03 PASS same owner retries after explicit fixture collision removal
+B03-C03 PASS pre-publication collision preserves old authority and active
+B03-C03 PASS only owned preparations reclaimed while foreign collision preserved
+B03-C03 PASS same owner retries after explicit fixture collision removal
+B03-C03 PASS same-inode same-size change after live cleanup read preserves owned stage and poisons owner
+B03-C03 PASS identity changed after stage fsync rejects publication and preserves suspect file
+B03-C03 PASS published uncertainty versus not-published authority distinguished
+B03-C03 PASS new owner strictly opens selected manifest after failure
+B03-C03 PASS post-rename directory failure poisons owner
+B03-C03 PASS published uncertainty versus not-published authority distinguished
+B03-C03 PASS new owner strictly opens selected manifest after failure
+B03-C03 PASS partial active tail is never automatically truncated
+[cost] history_bytes=820 archive_reads=0 envelope_parses=0 envelope_serializes=1
+B03-C04 PASS fixed current and delta avoid predecessor evidence read parse and serialization as complete history grows
+[cost] history_bytes=3358720 archive_reads=0 envelope_parses=0 envelope_serializes=1
+B03-C04 PASS fixed current and delta avoid predecessor evidence read parse and serialization as complete history grows
+B03-C05 PASS active admission rotates before next valid reservation write
+B03-C05 PASS invalid store and opaque ID length are rejected without rotation or append
+B03-C05 PASS invalid domain above automatic threshold does not rotate
+B03-C01 PASS one MiB threshold rotates before valid next row without rewriting sealed bytes
+B03-C01 PASS large supported plain current row is preserved through automatic rotation
+B03-C05 PASS prepublication admission remains nondurable: snapshot
+B03-C05 PASS prepublication admission remains nondurable: shard
+B03-C05 PASS prepublication admission remains nondurable: archives
+B03-C05 PASS prepublication admission remains nondurable: ids
+B03-C05 PASS prepublication admission remains nondurable: ordinal
+B03-C05 PASS prepublication admission remains nondurable: active
+B03-C05 PASS prepublication admission remains nondurable: cold
+B03-C05 PASS Ready/Committed source detail and job links survive rotation
+B03-C05 PASS Committed typed output keeps reserved ordinal independently
+B03-C05 PASS strict reopen preserves active job stage and cold source closure
+B03-C05 PASS Ready/Committed source detail and job links survive rotation
+B03-C05 PASS Committed typed output keeps reserved ordinal independently
+B03-C05 PASS strict reopen preserves active job stage and cold source closure
+B03-C05 PASS two planned outputs and meaningful source order survive reservation rotation
+B03-C05 PASS new owner restores multi-output active job and reservations
+B03-C06 PASS backend-enabled v1 open append replay
+B03-C06 PASS v1 checkpoint remains available
+B03-C06 PASS v1 reopen unchanged
+[config] crypto=0 sqlite=1 backend=1
+In file included from scripts/internal/recording_generation_checkpoint_smoke.cpp:12:
+scripts/internal/recording_generation_observation.h:26:133: error: use of undeclared identifier 'EVP_sha256'
+   26 | inline std::string Digest(const std::string& bytes){unsigned char d[32];unsigned n=0;Need(EVP_Digest(bytes.data(),bytes.size(),d,&n,EVP_sha256(),nullptr)==1&&n==32);const char* hex="0123456789abcdef";std::string out;for(const auto c:d){out+=hex[c>>4];out+=hex[c&15];}return out;}
+      |                                                                                                                                     ^~~~~~~~~~
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.gt6PtI bytes=34630512 removed=true

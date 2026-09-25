@@ -121,7 +121,7 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
     if(r.target.active.size||r.target.active.sha256!=kEmptySha||!r.target.snapshot.size)
         return Fail(error,"generation receipt target components invalid");
     if(r.operation==RecordingGenerationOperation::Cutover) {
-        if(r.predecessor||r.predecessor_file||!r.replacement_marker||r.source.file.name!="recording-v2-mutations.jsonl")
+        if(r.predecessor||r.predecessor_file||r.predecessor_snapshot||!r.replacement_marker||r.source.file.name!="recording-v2-mutations.jsonl")
             return Fail(error,"generation cutover predecessor/source invalid");
         const auto replacement=Marker(r.target.store_id,true);
         if(r.replacement_marker->file.name!=".recording-marker-v2"||
@@ -135,6 +135,8 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
            r.predecessor_file->file.size!=previous->size()||r.predecessor_file->file.sha256!=Hash(*previous))
             return Fail(error,"generation checkpoint predecessor file mismatch");
         const auto& p=*r.predecessor;
+        if(r.predecessor_snapshot&&!Same(r.predecessor_snapshot->file,p.snapshot))
+            return Fail(error,"generation checkpoint predecessor snapshot mismatch");
         if(p.store_id!=r.target.store_id||p.generation==std::numeric_limits<std::uint64_t>::max()||
            r.target.generation!=p.generation+1||r.target.cut_ordinal<p.cut_ordinal||
            r.source.file.name!=p.active.name||r.source.file.size<p.active.size||
@@ -144,7 +146,7 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
     }
     target->pop_back();
     std::set<std::uint64_t> inodes{r.root_inode,r.stage_inode,r.marker.inode,r.source.inode};
-    for(const auto* optional:{&r.replacement_marker,&r.predecessor_file})
+    for(const auto* optional:{&r.replacement_marker,&r.predecessor_file,&r.predecessor_snapshot})
         if(*optional&&((*optional)->device!=r.root_device||!inodes.insert((*optional)->inode).second))
             return Fail(error,"generation receipt metadata ownership invalid");
     std::string last;
@@ -190,6 +192,7 @@ bool SerializeRecordingGenerationReceipt(const RecordingGenerationReceipt& r,std
         ",\"stageName\":\""+r.stage_name+"\",\"marker\":"+OwnedJson(r.marker)+",\"source\":"+OwnedJson(r.source)+
         ",\"replacementMarker\":"+(r.replacement_marker?OwnedJson(*r.replacement_marker):"null")+
         ",\"predecessorFile\":"+(r.predecessor_file?OwnedJson(*r.predecessor_file):"null")+
+        (r.predecessor_snapshot?",\"predecessorSnapshot\":"+OwnedJson(*r.predecessor_snapshot):"")+
         ",\"predecessor\":"+previous+",\"target\":"+target+",\"created\":[";
     for(std::size_t i=0;i<r.created.size();++i) {
         if(i)bytes+=',';
@@ -204,7 +207,7 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
     RecordingGenerationReceipt* out,std::string* error) {
     if(!out||!admission||bytes.size()>admission)return Fail(error,"generation receipt admission/output invalid");
     ingress::StrictJsonObjectDocument d;RecordingGenerationReceipt r;
-    if(!ingress::ParseStrictJsonObjectDocument(bytes,&d,error)||d.members.size()!=15||
+    if(!ingress::ParseStrictJsonObjectDocument(bytes,&d,error)||(d.members.size()!=15&&d.members.size()!=16)||
        ingress::StrictJsonStringField(d,"schema")!="media-server.recording-generation-transaction.v1")
         return Fail(error,"generation receipt schema invalid");
     const auto operation=ingress::StrictJsonStringField(d,"operation"),phase=ingress::StrictJsonStringField(d,"phase");
@@ -238,6 +241,12 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
                 return Fail(error,"generation receipt metadata descriptor invalid");
             *pair.second=std::move(file);
         }
+    }
+    if(const auto* m=d.Find("predecessorSnapshot")) {
+        RecordingGenerationOwnedFile file;
+        if(m->type!=ingress::StrictJsonType::Object||!ParseOwned(m->raw,&file,error))
+            return Fail(error,"generation receipt predecessor snapshot invalid");
+        r.predecessor_snapshot=std::move(file);
     }
     r.stage_name=*stage;
     std::string canonical;
