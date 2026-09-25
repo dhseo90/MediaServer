@@ -141,6 +141,7 @@ private:
     friend struct RecordingJournalGenerationReadOnlyProbe;
     friend struct RecordingGenerationPreappendProbe;
     friend struct RecordingGenerationAppendProbe;
+    friend struct RecordingCutoverSessionProbe;
     static thread_local int generation_write_fault_;
     static thread_local void (*generation_cleanup_before_unlink_)();
     static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
@@ -150,6 +151,11 @@ private:
                        const std::filesystem::path& sqlite, bool enable_v2, std::string* error);
     void DetachCatalog(const void* owner);
     bool OwnsCatalog(const void* owner) const;
+    // 동기 private 방문. callback은 무잠금으로 호출하며 결과는 비공개 후보에만 적용한다.
+    bool VisitManagedCutoverInput(const void* owner,
+        const std::function<bool(const struct RecordingCutoverInputRow&,const RecordingJournalOwnedViewHandle&,std::string*)>& visitor,
+        struct RecordingCutoverInputSummary* summary,std::string* error);
+    bool cutover_input_frozen_{false};
     bool ValidatePreappend(const void* owner, const RecordingMutationV1& mutation, std::string* error);
     bool EnableGenerationWrites(const void* owner,std::string* error);
     bool PrepareGenerationCheckpoint(const void* owner,std::shared_ptr<RecordingGenerationCheckpointPlan>*,std::string* error);

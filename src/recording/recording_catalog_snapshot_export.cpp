@@ -50,8 +50,16 @@ bool RecordingCatalog::ExportGenerationSnapshotLocked(const RecordingIdentityCha
     try {
         if (!output || !opened_ || !derived_job_state_authoritative_ || !journal_.managed_ ||
             !CanWriteLocked(error)) return Fail(error,"snapshot export authority unavailable");
+        return ExportGenerationValuesLocked(journal_.ManagedStoreId(),chain,generation,cut,output,error);
+    } catch (...) { return Fail(error,"snapshot export authority failure"); }
+}
+bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
+    const RecordingIdentityChainResult& chain,std::uint64_t generation,std::uint64_t cut,
+    RecordingCatalogSnapshot* output,std::string* error) const {
+    try {
+        if (!output || !ValidateOpaqueId(store,error)) return Fail(error,"snapshot value store/output invalid");
         RecordingCatalogSnapshot result;
-        result.store_id = journal_.ManagedStoreId(); result.generation = generation;
+        result.store_id = store; result.generation = generation;
         result.cut_ordinal = cut; result.identity_head = chain.head;
         if (chain.store_id != result.store_id || !chain.shards ||
             (!chain.order_history.bound_store.empty() && chain.order_history.bound_store != result.store_id))

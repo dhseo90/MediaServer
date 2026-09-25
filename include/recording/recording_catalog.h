@@ -413,6 +413,9 @@ private:
     bool ProjectGenerationDeltaLocked(const GenerationDelta&,const RecordingGenerationRecoveryRow&,std::string*);
     bool CheckpointGenerationLocked(std::string*);
     bool ExportGenerationSnapshotLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*) const;
+    // 전환 scratch용 값 생성기다. 공개 export의 owner/lease 검사를 우회하는 API가 아니다.
+    bool ExportGenerationValuesLocked(const std::string& store,const RecordingIdentityChainResult&,
+        std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*) const;
     bool PoisonGenerationLocked(std::string* error);
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local int generation_apply_fault_;

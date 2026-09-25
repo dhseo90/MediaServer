@@ -206,6 +206,38 @@ plain outer 표현과 압축 wrapper·receipt 의미·재시도 순서를 보존
 기존 Journal/Catalog 4파일은54eaba09와 같아 이전 Journal78/Catalog249를 유지하고 재실행하지 않았다.
 전환 후보의 domain·소유 동등성, marker·manifest 게시·중단 복구와 실제 소비자는 아직 후속이다.
 
+### B-04 원문 방문 세션 실행 전 정의
+
+e58ad5e3 reader를 정당한 기존 managed Journal 소유권에 연결한다. private 동기 세션 동안
+raw Append·예약·checkpoint·재Open·중첩 방문은 금지하고 읽기/cold 취득은 유지한다.
+callback은 Journal 잠금 밖에서 실행한다. 원문은 SHA 선계산과 방문의 두 번 streaming으로
+확인하며 전체 raw 문자열을 보관하지 않는다. 이 비용은 일회 전환 준비 비용이다.
+기존 Catalog Open·SQLite·cleanup marker·실제 형식 게시·서버 기본값은 이 단위에서 바꾸지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B04-S01 | 정당 원문·view 방문 | blank/noncanonical/compressed/retry와 ordinal/location/logical identity/ref·whole SHA·FD offset·원본 불변 대조 | v4.1.0 |
+| B04-S02 | freeze·읽기 분리 | callback에서 Append/raw Append/Reserve/Checkpoint/Open/중첩 방문 거부, cold 취득 허용과 deadlock 부재 | v4.1.0 |
+| B04-S03 | 실패 정리 | callback false/throw·summary 불변·freeze 해제와 재방문; partial callback은 전체 성공 아님 | v4.1.0 |
+| B04-S04 | 권위 손실 | 동일 길이 원문/marker/root/attachment 변경의 최종 결박 거부·poison·후속 사용 거부 | v4.1.0 |
+| B04-S05 | 선수조건 | generation/pendingcheckpoint/foreign/no attachment/fork 사전거부·무방문 | v4.1.0 |
+| B04-S06 | 지원·회귀 | backend/crypto 지원 조합 failclosed·기존 Journal/관련 B 회귀·빌드·원출력·정리 확인 | v4.1.0 |
+| B04-S07 | snapshot 값과 권위 분리 | 공개 export의 opened/owner/lease 조건 유지. 내부 값 생성은 명시 store와 기존 동일 chain·상태 검증을 사용하며 공개 권위를 부여하지 않음. 회전·미Open/외부 owner 거부 반례 대조 | v4.1.0 |
+
+focused 명령은 `bash scripts/internal/verify_recording_cutover_session.sh`다. 구현 전 정상 owner의
+방문 거부만 예상 RED이며 컴파일·준비 실패는 RED가 아니다. 관련 단기 검증만 실행하고
+UI·30분·120분은 이 세션의 PASS로 대체하지 않는다.
+
+### B-04 원문 방문 세션·snapshot 경계 결과
+
+최종 세션46, snapshot 경계8+회전123, Journal78, Catalog249, B append219, 공개읽기106의
+829개 assertion과 전체 build가 exit0이다. 최초 stub RED와 반례 보강39→44→46 이력을
+[전체 원출력·개별 결과·정리](release-artifacts/v4.1.0/b04-cutover-session-20260925/results.md)에 보존한다.
+메인은 diff·고정 source hash·전수 출력·fixture 부재를 직접 대조했다. 기존 Catalog Open과
+SQLite·미디어·cleanup marker를 건드리지 않는 private 세션이며 공개 snapshot 권한은 유지했다.
+원문2회 streaming·행 logical identity/range/ref·whole SHA/stat 검증의 한계를 명시했고,
+후속 게시 전 새 freeze·원본 대조가 필요하다. 후보 생성·형식 게시/중단 복구·서버 기본 활성화는 아직 미구현이다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |

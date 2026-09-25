@@ -8,6 +8,10 @@
 #include "recording_generation_checkpoint_sql_cases.inc"
 namespace recording {
 struct RecordingGenerationAppendProbe {
+    static bool Values(const RecordingCatalog& c,const std::string& store,const RecordingIdentityChainResult& chain,
+        std::uint64_t generation,std::uint64_t cut,RecordingCatalogSnapshot* out,std::string* error) {
+        return c.ExportGenerationValuesLocked(store,chain,generation,cut,out,error);
+    }
     static void CleanupHook(void (*hook)()){RecordingJournal::generation_cleanup_before_unlink_=hook;}
     static void Limit(RecordingJournal& j,const std::string& kind) {
         if(kind=="snapshot")j.generation_limits_.snapshot_bytes=1;
@@ -45,6 +49,28 @@ void Actual(const std::filesystem::path& root,std::size_t copies=1,bool manifest
 }
 RecordingGenerationManifest Manifest(const std::filesystem::path& root) {
     RecordingGenerationManifest value;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&value,&error));return value;
+}
+void ExportValueBoundary(const std::filesystem::path& root) {
+    Actual(root);const auto manifest=Manifest(root);
+    RecordingCatalogSnapshot expected;
+    Need(ParseRecordingCatalogSnapshot(Read(root/manifest.snapshot.name),1024*1024,&expected,&error));
+    RecordingIdentityChainResult chain;
+    Need(ValidateRecordingIdentityShardChain(expected.identity_head,[&](const auto& descriptor,auto limit,auto* bytes,auto* err){
+        return ReadVerifiedRecordingGenerationImmutable(root,descriptor,limit,bytes,err);
+    },{1024*1024,1000,1000},&chain,&error));
+    RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog unopened(j,CO(root));
+    RecordingCatalogSnapshot sentinel;sentinel.store_id="unchanged";
+    Check("B04-S07",!unopened.ExportGenerationSnapshot(chain,manifest.generation,manifest.cut_ordinal,&sentinel,&error)&&
+        sentinel.store_id=="unchanged","public export rejects unopened owner and preserves output");
+    std::unique_ptr<RecordingCatalog> scratch;Need(RecordingCatalogGenerationScratchProbe::Build(unopened,&scratch));
+    Check("B04-S07",!scratch->ExportGenerationSnapshot(chain,manifest.generation,manifest.cut_ordinal,&sentinel,&error)&&
+        sentinel.store_id=="unchanged","private scratch acquires no public export authority");
+    RecordingCatalogSnapshot values;std::string a,b;
+    Need(SerializeRecordingCatalogSnapshot(expected,&a,&error));
+    Check("B04-S07",RecordingGenerationAppendProbe::Values(*scratch,"store",chain,manifest.generation,manifest.cut_ordinal,&values,&error)&&
+        SerializeRecordingCatalogSnapshot(values,&b,&error)&&a==b,"explicit-store private values retain exact snapshot bytes");
+    Check("B04-S07",!RecordingGenerationAppendProbe::Values(*scratch,"different",chain,manifest.generation,manifest.cut_ordinal,&sentinel,&error)&&
+        sentinel.store_id=="unchanged","explicit store must match validated chain");
 }
 void Rotation(const std::filesystem::path& root) {
     Actual(root);const auto original=Read(root/"evidence-1-0.jsonl"),old_snapshot=Read(root/"snapshot-2.jsonl");
@@ -233,7 +259,7 @@ int main(int argc,char** argv) {
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
-        Rotation(root/"rotate");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
+        ExportValueBoundary(root/"export-values");Rotation(root/"rotate");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
 #else
         Write(root/".recording-store-format",Marker());RecordingJournal journal(Options(root));
         Check("B03-C06",!journal.Open(&error),"unsupported B remains closed");

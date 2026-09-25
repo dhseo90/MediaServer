@@ -1,0 +1,206 @@
+[
+  {
+    "source": "/private/tmp/b04-cutover-session-red.log",
+    "artifact": "red.log.gz",
+    "exit": 1,
+    "bytes": 3117,
+    "gzipBytes": 1288,
+    "sha256": "8ceea8b3f26e1d9d6e05195f5f22a1681e88f01a2eba034fe0b373bd9bf4dcf8",
+    "uid": 501,
+    "ino": 159526252,
+    "dev": 16777234,
+    "pass": 0,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.Ctaih9",
+        "bytes": 4398376,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-green-first.log",
+    "artifact": "green-first.log.gz",
+    "exit": 0,
+    "bytes": 5241,
+    "gzipBytes": 1923,
+    "sha256": "870eff507a7e8206d154dd243af3939f07126bb65550959441c0e1bc264cf5f7",
+    "uid": 501,
+    "ino": 159526614,
+    "dev": 16777234,
+    "pass": 39,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.PWJtt1",
+        "bytes": 11832721,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-final.log",
+    "artifact": "final.log.gz",
+    "exit": 0,
+    "bytes": 5511,
+    "gzipBytes": 1984,
+    "sha256": "367fcbea210ac86787415c14cf962d2c8f027867f15043654e530e74a104e0ad",
+    "uid": 501,
+    "ino": 159526902,
+    "dev": 16777234,
+    "pass": 44,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.ECQakr",
+        "bytes": 11841382,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-final-binding.log",
+    "artifact": "final-binding.log.gz",
+    "exit": 0,
+    "bytes": 5669,
+    "gzipBytes": 2021,
+    "sha256": "db4a63fc6187c4cd46bf7436b8f4f0037beadb62ae0eadad34d4f312b4653d12",
+    "uid": 501,
+    "ino": 159528046,
+    "dev": 16777234,
+    "pass": 46,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.ZM9q8v",
+        "bytes": 11881942,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-checkpoint-first.log",
+    "artifact": "checkpoint-first.log.gz",
+    "exit": 0,
+    "bytes": 14220,
+    "gzipBytes": 3576,
+    "sha256": "46c8ad43478e897a7154e56a50d528b1c2e3c8e4823c82dba8a8eb514df31e5d",
+    "uid": 501,
+    "ino": 159526850,
+    "dev": 16777234,
+    "pass": 131,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.JQcR5H",
+        "bytes": 48161760,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-journal.log",
+    "artifact": "journal.log.gz",
+    "exit": 0,
+    "bytes": 6532,
+    "gzipBytes": 2245,
+    "sha256": "35d83a00a51260d01f1acb5dc0f7e3e1cf7d7164630782947cc4f252ff7ef246",
+    "uid": 501,
+    "ino": 159528255,
+    "dev": 16777234,
+    "pass": 78,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.MkdZh3",
+        "bytes": 12018332,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-catalog.log",
+    "artifact": "catalog.log.gz",
+    "exit": 0,
+    "bytes": 14658,
+    "gzipBytes": 3731,
+    "sha256": "aed2f5aeaa3a095d982ea3f0e26815c379b0b85a19676688dca9faf9363582a1",
+    "uid": 501,
+    "ino": 159528864,
+    "dev": 16777234,
+    "pass": 249,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/tmp/media-server-b04-catalog.kTwEtz",
+        "bytes": 28857538,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-append.log",
+    "artifact": "append.log.gz",
+    "exit": 0,
+    "bytes": 18324,
+    "gzipBytes": 4044,
+    "sha256": "7f44ad1f8f4b7b54539f9dfb51a6740f3184205333de7999dcd22438a80d57c1",
+    "uid": 501,
+    "ino": 159529613,
+    "dev": 16777234,
+    "pass": 219,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.5sjPzp",
+        "bytes": 34833142,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-readonly.log",
+    "artifact": "readonly.log.gz",
+    "exit": 0,
+    "bytes": 10899,
+    "gzipBytes": 2741,
+    "sha256": "7eb7c0119f83dd22b42ea48cadd3338fee0b21d724cc3a130f5c1a2a7b9c2eab",
+    "uid": 501,
+    "ino": 159530606,
+    "dev": 16777234,
+    "pass": 106,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.u0h0Hk",
+        "bytes": 32279625,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-session-build.log",
+    "artifact": "build.log.gz",
+    "exit": 0,
+    "bytes": 4233,
+    "gzipBytes": 712,
+    "sha256": "ee277129548a25c33ff0a131f789af10c4915ca3b9ccd20707515333e9a8d8a9",
+    "uid": 501,
+    "ino": 159531256,
+    "dev": 16777234,
+    "pass": 0,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  }
+]

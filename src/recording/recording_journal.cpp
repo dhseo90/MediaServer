@@ -28,6 +28,7 @@
 #include "recording/recording_generation_recovery_session.h"
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_generation_files.h"
+#include "recording/recording_cutover_input.h"
 #endif
 
 #ifndef MEDIA_SERVER_USE_OPENSSL
@@ -1188,6 +1189,7 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
 #endif
     std::lock_guard lock(mu_);
     if (!opened_ || result == nullptr) return Fail(error, "recording order 시작 조건 불충족");
+    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: reserve 거부");
     if(generation_state_)return Fail(error,"B read-only 예약 미지원");
     if(managed_&&(!CheckManagedStateLocked(error)||store_id!=managed_store_id_))return Fail(error,"managed store/lease 불일치");
     if(managed_&&managed_state_->checkpoint_pending)return Fail(error,"checkpoint 복구 선행 필요");
@@ -1289,6 +1291,7 @@ bool RecordingJournal::Open(std::string* error) {
     if(managed_&&owner_pid_!=0&&owner_pid_!=::getpid())return Fail(error,"managed fork 사용 거부");
 #endif
     std::lock_guard lock(mu_);
+    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: reopen 거부");
     if(managed_)return OpenManagedLocked(error);
 #if !defined(_WIN32)
     if (!SafePath(path_, &io_path_)) return Fail(error, "journal path 거부");
@@ -1899,6 +1902,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
     std::lock_guard lock(mu_);
+    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: checkpoint 거부");
     if(!managed_||!owner||owner!=catalog_owner_||!CheckManagedStateLocked(error))return Fail(error,"checkpoint 소유권 거부");
 #if !defined(_WIN32)
     OwnedFd parent(OpenParent(io_path_,false));constexpr const char* temporary=".recording-checkpoint.tmp";
@@ -2010,6 +2014,104 @@ bool RecordingJournal::OwnsCatalog(const void* owner) const {
     if(owner_pid_!=::getpid())return false;
 #endif
     std::lock_guard lock(mu_);return owner&&catalog_owner_==owner&&CheckManagedStateLocked(nullptr);
+}
+bool RecordingJournal::VisitManagedCutoverInput(const void* owner,
+    const std::function<bool(const RecordingCutoverInputRow&,const RecordingJournalOwnedViewHandle&,std::string*)>& visitor,
+    RecordingCutoverInputSummary* summary,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"cutover visit fork 거부");
+    OwnedFd source(-1);
+    struct stat initial{};
+    std::shared_ptr<const char> attachment,lineage;
+    std::uint64_t revision=0;
+    struct FreezeGuard {
+        RecordingJournal* journal;
+        bool active=false;
+        ~FreezeGuard(){if(active){std::lock_guard lock(journal->mu_);journal->cutover_input_frozen_=false;}}
+    } guard{this};
+    const auto authority=[&]() {
+        struct stat current{};
+        if(catalog_owner_!=owner||catalog_attachment_!=attachment||!managed_state_||
+           managed_state_->lineage!=lineage||managed_state_->revision!=revision||
+           !CheckManagedStateLocked(error)||::fstat(source.value,&current)!=0||!GenerationStatSame(initial,current)) {
+            poisoned_=true;return Fail(error,"cutover visit authority 변경");
+        }
+        return true;
+    };
+    try {
+        {
+            std::lock_guard lock(mu_);
+            if(!summary||!visitor||!managed_||!opened_||generation_state_||cutover_input_frozen_||
+               !owner||catalog_owner_!=owner||!catalog_attachment_||!managed_state_||managed_state_->checkpoint_pending)
+                return Fail(error,"cutover visit 시작 조건 거부");
+            if(!CheckManagedStateLocked(error))return false;
+            source.value=::fcntl(managed_fd_,F_DUPFD_CLOEXEC,0);
+            if(source.value<0||!Regular(source.value,&initial)||initial.st_size<0)return Fail(error,"cutover visit FD 복제 실패");
+            attachment=catalog_attachment_;lineage=managed_state_->lineage;revision=managed_state_->revision;
+            cutover_input_frozen_=true;guard.active=true;
+        }
+        // 원본 전체 SHA 선계산 뒤 reader가 같은 FD를 다시 읽는다. 과거 vector/캐시로 대체하지 않는다.
+        std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+        if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"cutover hash 초기화 실패");
+        char block[65536];std::uint64_t position=0;
+        const auto size=static_cast<std::uint64_t>(initial.st_size);
+        while(position<size) {
+            ssize_t count;
+            do{count=::pread(source.value,block,std::min<std::uint64_t>(sizeof(block),size-position),static_cast<off_t>(position));}while(count<0&&errno==EINTR);
+            if(count<=0){std::lock_guard lock(mu_);poisoned_=true;return Fail(error,"cutover SHA 원본 읽기 실패");}
+            if(EVP_DigestUpdate(hash.get(),block,static_cast<std::size_t>(count))!=1)return Fail(error,"cutover SHA 계산 실패");
+            position+=static_cast<std::uint64_t>(count);
+        }
+        unsigned char digest[32];unsigned digest_size=0;
+        if(EVP_DigestFinal_ex(hash.get(),digest,&digest_size)!=1||digest_size!=32)return Fail(error,"cutover SHA 완료 실패");
+        RecordingCutoverInputDescriptor descriptor{static_cast<std::uint64_t>(initial.st_dev),static_cast<std::uint64_t>(initial.st_ino),size,{}};
+        const char* hex="0123456789abcdef";
+        for(const auto c:digest){descriptor.sha256+=hex[c>>4];descriptor.sha256+=hex[c&15];}
+        {std::lock_guard lock(mu_);if(!authority())return false;}
+        RecordingCutoverInputSummary candidate;
+        bool callback_failed=false;
+        const bool visited=VisitRecordingCutoverInput(source.value,descriptor,[&](const RecordingCutoverInputRow& row,std::string* row_error) {
+            RecordingJournalOwnedViewHandle view;
+            {
+                std::lock_guard lock(mu_);
+                if(!authority())return false;
+                const auto index=row.ordinal;
+                if(index>=managed_state_->locations.size()||index>=managed_state_->refs.size()) {
+                    poisoned_=true;return Fail(row_error,"cutover dense 위치 범위 오류");
+                }
+                const auto& location=managed_state_->locations[static_cast<std::size_t>(index)];
+                const auto& ref=managed_state_->refs[static_cast<std::size_t>(index)];
+                const auto identity=EnvelopeIdentity(row.mutation);
+                if(!location||!ref||location->generation!=managed_state_->generation||location->ordinal!=index||
+                   ref->lineage!=lineage||ref->dense_slot!=index||location->offset!=row.offset||location->length!=row.length||
+                   !LocationMetadataMatches(*location,row.mutation)||identity.empty()||
+                   (location->resident_fallback?!SameOwnedEnvelope(*location->resident_fallback,row.mutation):location->record_identity!=identity)) {
+                    poisoned_=true;return Fail(row_error,"cutover 원본/ref identity 불일치");
+                }
+                auto owned=std::shared_ptr<RecordingJournalOwnedView>(new RecordingJournalOwnedView);
+                owned->journal=this;owned->record=std::make_shared<const RecordingMutationV1>(row.mutation);
+                owned->ref=ref;owned->authority=attachment;view=std::move(owned);
+            }
+            // Catalog Apply/MakeMutationLink가 Journal에 재진입하므로 잠금 밖에서 호출한다.
+            try{if(visitor(row,view,row_error))return true;}catch(...){callback_failed=true;throw;}
+            callback_failed=true;return false;
+        },&candidate,error);
+        {
+            std::lock_guard lock(mu_);
+            if(!authority())return false;
+            if(!visited){if(!callback_failed)poisoned_=true;return false;}
+            if(candidate.rows!=managed_state_->refs.size()){poisoned_=true;return Fail(error,"cutover 전체 행 개수 불일치");}
+            *summary=std::move(candidate);
+        }
+        if(error)error->clear();return true;
+    }catch(...){
+        std::lock_guard lock(mu_);if(guard.active)authority();
+        return Fail(error,"cutover visit 자원/callback 예외");
+    }
+#else
+    (void)owner;(void)visitor;(void)summary;
+    return Fail(error,"cutover visit backend/crypto/POSIX 미지원");
+#endif
 }
 bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutationV1& mutation,std::string* error) {
     std::lock_guard lock(mu_);
@@ -2434,6 +2536,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork/미open 사용 거부");
 #endif
     std::lock_guard lock(mu_);
+    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: append 거부");
     if (!opened_) return Fail(error, "journal이 열리지 않음");
     if(generation_state_)return Fail(error,"B read-only append 미지원");
     if(managed_&&((owner&&catalog_owner_!=owner)||(!owner&&catalog_owner_)))return Fail(error,"managed catalog append 소유권 거부");

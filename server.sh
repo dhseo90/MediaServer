@@ -1227,6 +1227,7 @@ Usage:
   verify-v410-recording-generation-append
   verify-v410-recording-generation-checkpoint
   verify-v410-recording-cutover-input
+  verify-v410-recording-cutover-session
   verify-v410-recording-order-snapshot
   verify-v410-recording-identity-shards
   verify-v410-recording-catalog-snapshot
@@ -3168,6 +3169,10 @@ case "${cmd}" in
   verify-v410-recording-cutover-input)
     require_internal verify_recording_cutover_input.sh
     exec bash "${INTERNAL_DIR}/verify_recording_cutover_input.sh" "$@"
+    ;;
+  verify-v410-recording-cutover-session)
+    require_internal verify_recording_cutover_session.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_cutover_session.sh" "$@"
     ;;
   verify-v410-recording-order-snapshot)
     require_internal verify_recording_order_history_snapshot.sh
