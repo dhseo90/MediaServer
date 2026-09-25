@@ -250,6 +250,10 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    friend struct RecordingCutoverCandidateProbe;
+    bool PrepareManagedCutoverCandidate(const struct RecordingCutoverFreshStage&,
+        const struct RecordingCutoverCandidateLimits&,struct RecordingCutoverCandidate*,
+        struct RecordingCutoverCreatedFiles*,std::string*);
     using SourceBindingHandle = std::shared_ptr<const RecordingSourceBindingV1>;
     struct SourceBindingEntry {
         std::string id,channel,source,generation,track,latest_mutation_id;

@@ -261,6 +261,34 @@ focused는 `bash scripts/internal/verify_recording_cutover_candidate.sh`다. 예
 정상 기존 원장 거부 assertion이며 빌드/준비 실패는 별도다. 후보/관련 저장 회귀·전체 build만
 이 단위에서 실행하고 실제 서버·장시간·UI는 후보 PASS로 대체하지 않는다.
 
+후보 생성은 [최종68개·전체 빌드 통과](release-artifacts/v4.1.0/b04-cutover-candidate-20260925/results.md)다.
+원본 보존·16종 현재 값·65조각·Ready/Committed·inactive cold·손상/소유 결박을 확인했다.
+준비 경로/fixture 순서의 최초 실패, source 변경 중 실행한 증거 제외, 메인 inode 리뷰 보완을 보존한다.
+실제 형식 게시·중단 복구는 미완료다.
+
+### B-04 게시·중단 복구 실행 전 정의
+
+전용 coordinator의 private one-use proof와 receipt로 원본/준비물 결박, stage 승격,
+marker v2 fsync→PUBLISH_INTENT 내구화→manifest 게시를 연결한다.
+일반 legacy/B writer guard는 완화하지 않는다. PREPARED 복구용 private read owner는
+쓰기/SQLite를 금지하고 기존 scratch domain 검사를 공유한다. cutover는 manifest 확실부재,
+checkpoint는 predecessor 정확 결박에서만 원본과 소유 파일을 재검증해 안전 복구한다.
+PUBLISH_INTENT에서 target이 없거나 predecessor만 있으면 자동 rollback/삭제하지 않는다.
+유효 target이면 B만 선택한다. 무영수증 stage/불명확 충돌은 보존하고 cleanup과 읽기를 구분한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B04-T01 | 정상 전환·권위 | 기존 원본 불변·B typed 동등·old owner/구형 writer 차단·private proof 재사용 거부 | v4.1.0 |
+| B04-T02 | 내구 경계 중단 | receipt/link/unlink/marker/manifest write·fsync·rename 각 중단·재Open 결과 대조 | v4.1.0 |
+| B04-T03 | PREPARED 복구 | 확실부재/이전 manifest·원본/domain·inode/hash 결박 후에만 안전 복구, 변경/손상 거부 | v4.1.0 |
+| B04-T04 | 승격 소유 | stage/root 동일 inode·nlink2만 처리, foreign/nlink3/동일 bytes 다른 inode/소유 불명 보존 | v4.1.0 |
+| B04-T05 | 불확실 failclosed | PUBLISH_INTENT·손상/불명 receipt·manifest 조회 오류·v1/manifest 모순·잘못된 marker 차단 | v4.1.0 |
+| B04-T06 | checkpoint 공통 연결 | stage/receipt 정상 및 중단, 무소유 옛 충돌 보존, 과거 원문 IO 증가 없음·기존 guard 유지 | v4.1.0 |
+
+예정 focused는 `bash scripts/internal/verify_recording_generation_transaction.sh`다.
+정상 coordinator stub 거부만 예상 RED이며 준비/컴파일 오류는 별도 FAIL로 보존한다.
+단기 격리 자료만 사용하고 원래6번 default/소비자 변경이나 장시간/UI를 자동 실행하지 않는다.
+
 ### B-04 게시 영수증 값 계약 실행 전 정의
 
 전환/회전의 준비물 소유 정보를 재기동까지 보존할 내부 영수증 값 형식을 등록한다.
@@ -283,14 +311,14 @@ PREPARED/PUBLISH_INTENT는 진행 단계이지 검증 성공 권위가 아니다
 
 게시 영수증 값 codec은 [최종74개·전체 빌드 통과](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)다.
 최초 stub RED1건과 중간69개를 보존한다. source/target/소유 descriptor의 값 검사일 뿐
-실제 파일 게시·삭제·중단 복구의 권위가 아니다. 실제 후보 생성·전환 통합은 아직 진행 중이다.
+실제 파일 게시·삭제·중단 복구의 권위가 아니다. 후보 생성은 위68개로 확인했고 실제 전환 통합은 진행 중이다.
 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
 | B-02 영속 저장 단위 | 완료(내부 연결 범위) | 형식·임시 복원·공개 Catalog B Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 runtime 기본 선택은 후속 |
 | B-03 정상 저장·체크포인트 | 완료(내부 opt-in 범위) | 비변경 검증·증분 쓰기·예약·변경 key SQL·수동/자동 회전·무재처리 독립 비교·영향 회귀·빌드 PASS. 누적/실제 앱은 B-07 |
-| B-04 재기동·SQLite | 부분 진행 | 쓰기·회전 후 새 owner strict Open·SQL 오류/불가 구분 집중 PASS. 원문 보존 cutover·전환 중단 복구는 후속 |
+| B-04 재기동·SQLite | 부분 진행 | 새 owner strict Open·SQL 오류 구분, 원문 보존 후보68개·영수증 값74개 집중 PASS. 실제 형식 게시·전환/회전 중단 복구는 진행 중 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |
 | B-07 누적·실제 통합 | 미실행 | 작은 반례·누적 비용·완전 출력 2개와 HTTP·해시·재기동 |

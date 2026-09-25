@@ -1,0 +1,126 @@
+[
+  {
+    "file": "src/recording/recording_catalog.cpp",
+    "sha256": "56ef4e826d3d65667c00c41ea76aa137d3afaeeb46d605769e783fcab1852fb6"
+  },
+  {
+    "file": "src/recording/recording_catalog_cutover_candidate.cpp",
+    "sha256": "33707bb680ecd31dd324819e7d0b9732db70b846c893c99f158efb558212dbc6"
+  },
+  {
+    "file": "src/recording/recording_cutover_stage_writer.cpp",
+    "sha256": "e9794eb6a20f5567fefee7b43d026828669a3c8ff904bc3ec3a432a343c5982d"
+  },
+  {
+    "file": "src/recording/recording_catalog_snapshot_export.cpp",
+    "sha256": "fc4a13c66167a82da4648e70b232c94a739465a7c4f78c8227b6e62747e7c9fd"
+  },
+  {
+    "file": "src/recording/retention_coordinator.cpp",
+    "sha256": "5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591"
+  },
+  {
+    "file": "src/recording/recording_finalize_recovery.cpp",
+    "sha256": "ecef071fb2afcfe69a00654757c639760e2ce75e627ae9c777a564f08161d6a9"
+  },
+  {
+    "file": "src/recording/recording_file_evidence.cpp",
+    "sha256": "31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb"
+  },
+  {
+    "file": "src/recording/recording_media_inspector.cpp",
+    "sha256": "64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf"
+  },
+  {
+    "file": "src/domain/strict_json.cpp",
+    "sha256": "be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b"
+  },
+  {
+    "file": "src/recording/recording_contracts.cpp",
+    "sha256": "960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890"
+  },
+  {
+    "file": "src/recording/recording_journal.cpp",
+    "sha256": "c8943816bcbdb6f9d75a8456fae7864df77a3baed6b53b7730933151c9f270d6"
+  },
+  {
+    "file": "src/recording/recording_cutover_input.cpp",
+    "sha256": "1002d23eaedad14e52e5a211a15ac6348ba9238802f07a328b512ea8c76a7935"
+  },
+  {
+    "file": "src/recording/recording_generation_manifest.cpp",
+    "sha256": "5fa8bed71c1809f6416ec4059b20c8e174a703a8783f2e511a984366bd43be72"
+  },
+  {
+    "file": "src/recording/recording_generation_files.cpp",
+    "sha256": "9c2fa4366732edebc03bef93eaa61c6c18ffdf3f8e4acccd9ed73cbbeb08c295"
+  },
+  {
+    "file": "src/recording/recording_generation_cold_mutation.cpp",
+    "sha256": "89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10"
+  },
+  {
+    "file": "src/recording/recording_catalog_snapshot.cpp",
+    "sha256": "185f4a49980557e340358ae6e6149f9554df1506bc99cc594c2d0b82d613e74b"
+  },
+  {
+    "file": "src/recording/recording_order_history_snapshot.cpp",
+    "sha256": "7b6dd68db062aa19b1e0af7d053ac8827b86566cbd346ed5a9d800f82adfe386"
+  },
+  {
+    "file": "src/recording/recording_identity_shard.cpp",
+    "sha256": "d2d85d3466e83441bd01210c4e5eb8532eb1ed3cf95b0fab36ce8bc0515d6124"
+  },
+  {
+    "file": "src/recording/recording_derived_selection.cpp",
+    "sha256": "4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b"
+  },
+  {
+    "file": "src/recording/recording_derived_job.cpp",
+    "sha256": "9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf"
+  },
+  {
+    "file": "src/recording/recording_derived_job_ready.cpp",
+    "sha256": "a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9"
+  },
+  {
+    "file": "src/recording/recording_catalog_generation_projection.cpp",
+    "sha256": "05cd40bcafb0b8f5728e42689b11cb4ca5d99ae5c594df49d8fcdc5c410b9cf2"
+  },
+  {
+    "file": "src/recording/recording_generation_active.cpp",
+    "sha256": "69d9d86825ab0bd9c7b23863899055bba23e59f111a23f782622f8813c952726"
+  },
+  {
+    "file": "scripts/internal/recording_cutover_candidate_smoke.cpp",
+    "sha256": "e330f43e125aad8ed876ad214957ae3654e75964edfa9e34899924363b1cc531"
+  },
+  {
+    "file": "include/recording/recording_catalog_generation_projection.h",
+    "sha256": "556377841b71a210a906b2d4975e1cc9a652164c6f362388cbb71a439124b8c6"
+  },
+  {
+    "file": "include/recording/recording_journal.h",
+    "sha256": "dbd0ef6e187d5c1cc6a0feda991345c28fa178291600046023a5a65249455433"
+  },
+  {
+    "file": "scripts/internal/verify_recording_cutover_candidate.sh",
+    "sha256": "1b363400c93802752bd826ca95aa88af6daad912bf385328ecf24f920164e0f3"
+  },
+  {
+    "file": "include/recording/recording_catalog.h",
+    "sha256": "01362347554c58d10e3344ea84e55e1932b3f0dae43737ee1c32122f5038aeb1"
+  },
+  {
+    "file": "include/recording/recording_cutover_candidate.h",
+    "sha256": "b502259c712cbd4d5106f91203596d0946663d11791f247410711b53941d7750"
+  },
+  {
+    "file": "include/recording/recording_cutover_stage_writer.h",
+    "sha256": "01098ebc06ad837c5315384555c06c8546e3e884661c0271160739729e2728eb"
+  },
+  {
+    "file": "scripts/internal/recording_catalog_generation_projection_smoke.cpp",
+    "sha256": "f430a7b9eac7669fc6f1c32a126dcff5a0d6f7421ec66a7428b2fff36849eab9"
+  }
+]
