@@ -23,6 +23,10 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-A03 | active 메모리·복구 경계 | caller admission 초과를 읽기 전에 거부하고 읽은 active 행만 반환; 과거 archive·snapshot domain 복원을 PASS로 대체하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-A04 | crypto-off fail closed | B active digest 검증이 불가능한 빌드에서 원본 보존·output 불변으로 거부하고 기존 v1 경로는 변경하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-A05 | active 검증 실행 연결 | `./server.sh verify-v410-recording-generation-active`가 A01~A04, 시작/종료 source hash·cleanup을 확인하고 제품 빌드에 reader를 포함 | 미실행: 독립 집중 검증·빌드 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-C01 | cold 원문 취득 | 검증된 identity 최초행 locator의 evidence 또는 이전 세대 봉인 active 고정 파일 전체 SHA를 사용 시 대조하고 지정 한 행만 취득; 일반·예약·receipt·압축 행의 물리/논리 canonical·행 SHA·identity·metadata 일치 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-C02 | cold 손상·결박 거부 | 파일·행 hash/길이/범위, 다른 payload·ID/type/entity/time·예약 tuple, 안전하지 않은 파일 이름·링크·교체를 실패 output 불변으로 거부 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-C03 | 사용 시 비용·상한 | Open 정상 경로의 과거 원문 검증과 분리하고 물리 구간 caller admission·압축 논리 16MiB 상한·원본 파일 전체 SHA 읽기 비용을 명시; 모든 과거 행 상주를 요구하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-C04 | cold crypto-off | digest 미지원 빌드에서는 신규 원문 취득을 거부하고 output·원본을 보존 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 
@@ -84,6 +88,7 @@ manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장�
 | B02-M05 | 실패 후 원본 보존 | 게시 전 중단·충돌·I/O 실패에 기존 manifest 바이트 불변 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
 | B02-M06 | crypto 미지원 경계 | 필수 digest를 만들 수 없는 빌드에서는 신규 형식 거부, 기존 형식 불변 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
 | B02-M07 | Open용 구성 검사 분리 | manifest·snapshot·active 확정 prefix만 결박하고 과거 evidence 원문은 사용 시로 유예; 기존 전체 검사 유지, 손상·crypto-off·실패 출력 불변 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-M08 | 봉인 active 구간 안전 읽기 | 현재 manifest보다 과거 세대인 active 고정 파일만 정확한 길이/SHA·구간으로 읽고, 현재/미래 세대·임의 이름·교체·상한·crypto-off를 출력 불변으로 거부 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
 | B02-F01 | 세대 파일 정상 준비 | 검증된 원본 FD와 snapshot을 고정 이름·정확한 길이/SHA·빈 active로 준비하고 원본 offset/bytes 및 소유 보고 불변 | 미실행: 단기 파일 준비 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-F02 | 준비 입력 상한 | 세대 0, source 길이 1GiB 초과, 증거 65개, 잘못된 이름·digest·출력 충돌을 파일 생성 전에 거부; snapshot 1GiB 상한은 코드 대조만 함 | 미실행: 단기 파일 준비 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-F03 | 원본 파일 결박 | 닫힌/다른 FD, 길이·해시 불일치, root/source symlink·hardlink를 거부하고 원본 보존 | 미실행: 단기 파일 준비 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |

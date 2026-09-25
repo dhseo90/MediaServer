@@ -61,16 +61,16 @@ recording::RecordingGenerationManifest Manifest(std::uint64_t generation) {
 } // namespace
 int main() {
     using namespace recording;
-    std::array<bool, 13> results{};results.fill(true);
-    std::array<unsigned, 13> assertions{};
-    const std::array<const char*, 13> names{
+    std::array<bool, 14> results{};results.fill(true);
+    std::array<unsigned, 14> assertions{};
+    const std::array<const char*, 14> names{
         "B02-M01 canonical roundtrip", "B02-M02 invalid values and paths",
         "B02-M03 file binding", "B02-M04 publication",
         "B02-M05 failure preservation and cleanup", "B02-M06 crypto-off",
         "B02-I01 verified immutable bytes", "B02-I02 immutable name and admission",
         "B02-I03 immutable file and root binding", "B02-I04 immutable crypto-off",
         "B02-I05 verified immutable ranges", "B02-I06 immutable range crypto-off",
-        "B02-M07 Open-only component boundary"};
+        "B02-M07 Open-only component boundary", "B02-M08 sealed old active range"};
     const auto check = [&](unsigned group, bool ok, const char* detail) {
         ++assertions[group - 1];
         results[group - 1] = results[group - 1] && ok;
@@ -89,6 +89,10 @@ int main() {
     check(6, !ReadRecordingGenerationManifest("/invalid", &read, &error), "read unsupported");
     check(13, !ReadRecordingGenerationManifestForOpen("/invalid", &read, &error) &&
         error.find("unsupported") != std::string::npos, "Open-only read unsupported");
+    std::string sealed="unchanged";
+    check(14,!ReadVerifiedRecordingGenerationSealedActiveRange("/invalid",{"active-1.jsonl",3,abc_hash},
+        2,1,1,1,&sealed,&error)&&sealed=="unchanged"&&
+        error.find("unsupported")!=std::string::npos,"sealed active unsupported and unchanged");
     std::string immutable="unchanged";
     check(10,!ReadVerifiedRecordingGenerationImmutable("/invalid",manifest.snapshot,3,&immutable,&error)&&
         immutable=="unchanged"&&error.find("unsupported")!=std::string::npos,"immutable unsupported and unchanged");
@@ -143,6 +147,38 @@ int main() {
             check(7,ReadVerifiedRecordingGenerationImmutable(immutable_root,{name,3,abc_hash},3,&immutable,&error)&&
                 immutable=="abc","three fixed immutable families");
         }
+        Write(immutable_root/"active-1.jsonl","abc");
+        std::string sealed;
+        const RecordingGenerationFile sealed_file{"active-1.jsonl",3,abc_hash};
+        const auto read_sealed=[&](const RecordingGenerationFile& descriptor,
+            std::uint64_t current,std::uint64_t offset=1,std::uint64_t length=1,
+            std::uint64_t admission=1) {
+            return ReadVerifiedRecordingGenerationSealedActiveRange(immutable_root,descriptor,
+                current,offset,length,admission,&sealed,&error);
+        };
+        check(14,read_sealed(sealed_file,2)&&sealed=="b","sealed prior active one range");
+        sealed="unchanged";
+        check(14,!ReadVerifiedRecordingGenerationImmutableRange(immutable_root,sealed_file,1,1,1,&sealed,&error)&&
+            sealed=="unchanged","ordinary immutable API still excludes active");
+        for(const auto current:{std::uint64_t{0},std::uint64_t{1}}) {
+            sealed="unchanged";
+            check(14,!read_sealed(sealed_file,current)&&sealed=="unchanged","current/future active rejected");
+        }
+        sealed="unchanged";
+        check(14,!read_sealed({"active-01.jsonl",3,abc_hash},2)&&sealed=="unchanged","noncanonical active name");
+        sealed="unchanged";
+        check(14,!read_sealed({"active-1.jsonl",3,std::string(64,'a')},2)&&sealed=="unchanged","sealed hash mismatch");
+        sealed="unchanged";
+        check(14,!read_sealed({"active-1.jsonl",2,abc_hash},2)&&sealed=="unchanged","sealed exact size");
+        sealed="unchanged";
+        check(14,!read_sealed(sealed_file,2,1,1,0)&&sealed=="unchanged","sealed admission");
+        std::filesystem::create_symlink("active-1.jsonl",immutable_root/"active-2.jsonl");
+        sealed="unchanged";
+        check(14,!read_sealed({"active-2.jsonl",3,abc_hash},3)&&sealed=="unchanged","sealed file symlink");
+        std::filesystem::create_hard_link(immutable_root/"active-1.jsonl",immutable_root/"active-hardlink");
+        sealed="unchanged";
+        check(14,!read_sealed(sealed_file,2)&&sealed=="unchanged","sealed file hardlink");
+        std::filesystem::remove(immutable_root/"active-hardlink");
         Write(immutable_root/"identity-2.jsonl","");
         check(7,ReadVerifiedRecordingGenerationImmutable(immutable_root,{"identity-2.jsonl",0,
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},1,&immutable,&error)&&immutable.empty(),"empty immutable digest");
@@ -172,10 +208,20 @@ int main() {
         immutable="unchanged";
         check(9,!ReadVerifiedRecordingGenerationImmutable(root/"immutable-alias",{"identity-1.jsonl",3,abc_hash},3,&immutable,&error)&&
             immutable=="unchanged","root symlink");
+        sealed="unchanged";
+        check(14,!ReadVerifiedRecordingGenerationSealedActiveRange(root/"immutable-alias",sealed_file,
+            2,1,1,1,&sealed,&error)&&sealed=="unchanged","sealed active root symlink");
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
         immutable_hook_path=immutable_root/"identity-1.jsonl";immutable_hook_root=false;immutable_hook_ran=false;
         RecordingGenerationImmutableBeforeBindingForTest(ReplaceImmutableFixture);
         check(9,reject_immutable({"identity-1.jsonl",3,abc_hash})&&immutable_hook_ran,"same-bytes inode replacement after read");
+        std::filesystem::remove(immutable_hook_path);
+        std::filesystem::rename(immutable_hook_path.string()+".saved",immutable_hook_path);
+        immutable_hook_path=immutable_root/"active-1.jsonl";immutable_hook_root=false;immutable_hook_ran=false;
+        RecordingGenerationImmutableBeforeBindingForTest(ReplaceImmutableFixture);
+        sealed="unchanged";
+        check(14,!read_sealed(sealed_file,2)&&sealed=="unchanged"&&immutable_hook_ran,
+            "sealed active final inode binding");
         std::filesystem::remove(immutable_hook_path);
         std::filesystem::rename(immutable_hook_path.string()+".saved",immutable_hook_path);
         immutable_hook_path=immutable_root;immutable_hook_root=true;immutable_hook_ran=false;
@@ -322,7 +368,7 @@ int main() {
         check(3, !reread(), "symlink manifest rejected");
     } catch (const std::exception& exception) {
         std::cerr << exception.what() << '\n';
-        for (unsigned group : {3, 4, 5, 7, 8, 9, 11, 13}) check(group, false, "fixture aborted");
+        for (unsigned group : {3, 4, 5, 7, 8, 9, 11, 13, 14}) check(group, false, "fixture aborted");
     }
     struct stat current{}, current_parent{};
     const bool still_owned = owned && root.parent_path() == parent &&

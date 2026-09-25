@@ -99,6 +99,16 @@ bool ImmutableName(const std::string& name) {
         CanonicalUnsigned(name.substr(9,separator-9),true)&&
         CanonicalUnsigned(name.substr(separator+1,name.size()-separator-7),false);
 }
+bool SealedActiveName(const std::string& name,std::uint64_t current_generation) {
+    constexpr std::size_t prefix=7,suffix=6;
+    if(!current_generation||name.rfind("active-",0)!=0||name.size()<=prefix+suffix||
+       name.compare(name.size()-suffix,suffix,".jsonl")!=0)return false;
+    const auto digits=name.substr(prefix,name.size()-prefix-suffix);
+    std::uint64_t generation=0;
+    const auto parsed=std::from_chars(digits.data(),digits.data()+digits.size(),generation);
+    return parsed.ec==std::errc{}&&parsed.ptr==digits.data()+digits.size()&&
+        generation>0&&generation<current_generation&&digits==std::to_string(generation);
+}
 struct Fd {
     int n{-1};
     explicit Fd(int value=-1):n(value){}
@@ -368,15 +378,17 @@ bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
     if(!byte_admission)return Fail(error,"immutable descriptor/admission invalid");
     return ReadVerifiedRecordingGenerationImmutableRange(root,descriptor,0,descriptor.size,byte_admission,output,error);
 }
-bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& root,
+static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
     const RecordingGenerationFile& descriptor,std::uint64_t offset,std::uint64_t length,
-    std::uint64_t result_admission,std::string* output,std::string* error) {
+    std::uint64_t result_admission,bool sealed_active,std::uint64_t current_generation,
+    std::string* output,std::string* error) {
     if(!Supported(error))return false;
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
     if(!output||length>result_admission||descriptor.size>kFileLimit||offset>descriptor.size||
        length>descriptor.size-offset||length>std::numeric_limits<std::size_t>::max()||
        descriptor.size>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())||
-       !Hex(descriptor.sha256)||!ImmutableName(descriptor.name))
+       !Hex(descriptor.sha256)||(sealed_active ?
+           !SealedActiveName(descriptor.name,current_generation) : !ImmutableName(descriptor.name)))
         return Fail(error,"immutable descriptor/admission invalid");
     try {
         Fd dir(Root(root));
@@ -430,9 +442,22 @@ bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& 
         return true;
     } catch(...) {return Fail(error,"immutable read resource failure");}
 #else
-    (void)root;(void)descriptor;(void)offset;(void)length;(void)result_admission;(void)output;
+    (void)root;(void)descriptor;(void)offset;(void)length;(void)result_admission;
+    (void)sealed_active;(void)current_generation;(void)output;
     return false;
 #endif
+}
+bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& root,
+    const RecordingGenerationFile& descriptor,std::uint64_t offset,std::uint64_t length,
+    std::uint64_t result_admission,std::string* output,std::string* error) {
+    return ReadVerifiedGenerationRange(root,descriptor,offset,length,result_admission,false,0,output,error);
+}
+bool ReadVerifiedRecordingGenerationSealedActiveRange(const std::filesystem::path& root,
+    const RecordingGenerationFile& descriptor,std::uint64_t current_generation,
+    std::uint64_t offset,std::uint64_t length,std::uint64_t result_admission,
+    std::string* output,std::string* error) {
+    return ReadVerifiedGenerationRange(root,descriptor,offset,length,result_admission,true,
+        current_generation,output,error);
 }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)()){

@@ -49,12 +49,27 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | B02-M05 | 실패 보존 | 게시 전 실패와 기존 manifest byte 불변 | v4.1.0 |
 | B02-M06 | crypto 미지원 | 신규 형식 fail-closed, 기존 형식 비변경 | v4.1.0 |
 | B02-M07 | Open용 구성 검사 | manifest·snapshot·active prefix 검증과 과거 evidence 원문 유예; 기존 전체 검사·손상·crypto-off 반례 | v4.1.0 |
+| B02-M08 | 봉인 active 구간 읽기 | 검증된 현재 세대보다 오래된 active 파일의 전체 SHA·지정 구간과 현재/미래·손상·링크·교체·admission·crypto-off 거부 | v4.1.0 |
 | B02-F01 | 세대 파일 정상 준비 | 검증된 source FD와 snapshot을 고정 이름·정확한 bytes/SHA·빈 active로 준비; 원본 FD offset/bytes 불변과 ready/소유 보고 대조 | v4.1.0 |
 | B02-F02 | 준비 입력 경계 | 세대 0·source 1GiB 초과·65 sources·경로/동일 이름/출력 충돌·잘못된 SHA를 파일 생성 전에 거부; snapshot 1GiB 상한은 코드 대조만 함 | v4.1.0 |
 | B02-F03 | 원본 결박 | 닫힌/다른 FD·길이/hash 불일치·root/source symlink/hardlink 거부와 원본 보존 | v4.1.0 |
 | B02-F04 | 중단·충돌 | 기존 출력 O_EXCL 거부, partial 파일 소유 보고·잔여 보존, 이전 manifest 불변, 준비 결과 재사용 거부, fixture 정리 | v4.1.0 |
 | B02-F05 | 게시·재열기 | prepare-only manifest 미생성; 별도 명시 Publish/Read 성공, 새 세대 증거만 포함·이전 archive 불변, directory fsync 불확실 전파 | v4.1.0 |
 | B02-F06 | crypto 미지원 | prepare/별도 게시 fail-closed·무생성 | v4.1.0 |
+
+2026-09-25 `./server.sh verify-v410-recording-generation` exit 0: M08 최종 crypto-on
+12 assertion·crypto-off 1 assertion 통과, 기존 M/I 시나리오 crypto-on 11/11·crypto-off 5/5,
+`[cleanup] removed=true`. 첫 M08 범위 9 assertion PASS 후 링크/정확한 크기 반례 3개를
+추가해 같은 집중 검사를 다시 실행했다. 이 함수는 caller가 이미 검증한 현재 세대와
+독점 lease를 신뢰하는 bounded 파일 읽기이며, 그 자체로 B Open이나 archive 참조 권위를
+만들지 않는다. 별도 raw stream 파일은 보존하지 않았고 결과는 명령 도구 응답에 남았다.
+`./server.sh build` exit 0, `./server.sh verify-project-inventory` 18/18·기능 986행,
+문서 링크 328문서/12,793링크/오류 0, 자산 10/10, `git diff --check` exit 0을 확인했다.
+token start/end/consumed는 집계원이 없어 미집계다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-M08 | 이전 active 고정 이름·전체 파일 SHA·구간, 현재/미래·비정규 이름·size/hash/admission·symlink/hardlink·root/inode 교체, crypto-off·출력 불변 | pass |
 
 ### B-03 예약 이력 값 코덱 구현 전 검사 정의
 
@@ -243,6 +258,18 @@ Checkpoint나 snapshot domain 복원을 완료로 판정하지 않는다. 원본
 | B02-A03 | 자원·검출 경계 | caller byte admission, active만 일시 메모리 소유; 역사 원문/도메인 복원과 분리 | v4.1.0 |
 | B02-A04 | crypto-off 경계 | digest 불가 시 신규 형식 fail closed, 기존 v1 검증 불변 | v4.1.0 |
 | B02-A05 | 실행·빌드 연결 | `./server.sh verify-v410-recording-generation-active` A01~A04·source hash·cleanup, `./server.sh build` source 포함 | v4.1.0 |
+
+### B-02 cold 원문 사용 시 검증 실행 전 정의
+
+검증된 identity chain 결과의 첫 수용 행과 archive descriptor를 입력받는 독립 reader다.
+이 단계는 실제 Catalog의 source/job 지연 획득 연결이나 제품 B Open 완료가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-C01 | 원문·identity 취득 | evidence 또는 이전 세대 봉인 active 전체 파일 SHA와 locator 행 원문/LF/SHA·물리/논리 canonical·일반/예약/receipt/압축 identity 및 metadata 대조 | v4.1.0 |
+| B02-C02 | 손상·경쟁 거부 | 범위/상한/경로/링크/교체/metadata/예약 tuple 불일치 거부, 실패 output 불변 | v4.1.0 |
+| B02-C03 | 지연 비용 경계 | 과거 원문은 사용 시에만 전체 파일 SHA로 읽고 반환은 지정 행만; 물리 구간 caller byte admission과 압축 논리 16MiB 상한 확인 | v4.1.0 |
+| B02-C04 | crypto-off | 원문 검증 불가 시 신규 형식 fail closed·원본/출력 불변 | v4.1.0 |
 
 2026-09-25 active reader 최초 독립 실행은 `bash scripts/internal/verify_recording_generation_active.sh`
 exit 0, A01~A04 모두 PASS, 시작 `01:40:07Z`·종료 `01:40:12Z`였다.

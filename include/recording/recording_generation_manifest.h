@@ -54,6 +54,14 @@ bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
 bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& root,
     const RecordingGenerationFile&, std::uint64_t offset, std::uint64_t length,
     std::uint64_t result_admission, std::string* output, std::string* error);
+// identity shard가 참조하는 이전 세대 active의 봉인된 전체 길이/SHA를 검증하고
+// 지정 구간만 반환한다. caller는 검증된 현재 manifest의 generation과 managed 독점 lease를
+// 호출 전체에 유지해야 하며 현재/미래 active는 거부한다. 이 API만으로 manifest나
+// identity chain의 신뢰를 만들지 않는다. 실패 시 output 불변이다.
+bool ReadVerifiedRecordingGenerationSealedActiveRange(const std::filesystem::path& root,
+    const RecordingGenerationFile&, std::uint64_t current_generation,
+    std::uint64_t offset, std::uint64_t length, std::uint64_t result_admission,
+    std::string* output, std::string* error);
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 void RecordingGenerationFailNextDirectorySyncForTest();
 // 실제 파일 읽기 후 최종 결박 검사 직전의 일회성 fixture hook이다.
