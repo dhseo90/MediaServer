@@ -383,6 +383,7 @@ bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
         newer_generation = generation;
         descriptor = *shard.previous;
     }
+    result.store_id = store;
     std::vector<const RecordingIdentityRow*> ordered;
     ordered.reserve(first.size());
     for (const auto& item : first) ordered.push_back(&item.second.row);

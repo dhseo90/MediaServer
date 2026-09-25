@@ -225,7 +225,7 @@ int main() {
                 result.first_acceptances.size() == 2 && result.first_acceptances[0].first_global_ordinal == 0 &&
                 result.first_acceptances[0].occurrences == 2 && result.first_acceptances[1].occurrences == 2,
                 "two-generation multiplicity and first ordinal");
-        s.Check(result.order_history.bound_store == "store-a" && result.order_history.maximum == 3 &&
+        s.Check(result.store_id == "store-a" && result.order_history.bound_store == "store-a" && result.order_history.maximum == 3 &&
                 result.order_history.legacy_segments.empty() && result.order_history.reservations.size() == 1 &&
                 result.order_history.ordinary_ids == std::vector<std::string>{"mutation-a"} &&
                 result.first_acceptances.size() == 2 &&

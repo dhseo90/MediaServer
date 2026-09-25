@@ -34,6 +34,8 @@ struct RecordingIdentityFirstAcceptance {
     RecordingGenerationFile first_archive;
 };
 struct RecordingIdentityChainResult {
+    // 모든 shard에서 동일함을 확인한 store ID. 예약 행이 없는 chain에서도 비지 않는다.
+    std::string store_id;
     std::uint64_t shards{0}, physical_rows{0};
     // 동일 ID 재시도를 포함한 모든 물리 행의 최대 ordinal. 빈 chain에는 값이 없다.
     std::optional<std::uint64_t> maximum_global_ordinal;
