@@ -12,6 +12,7 @@
 
 namespace recording {
 struct ManagedJournalState;
+struct RecordingJournalGenerationState;
 struct RecordingJournalRecordLocation;
 using RecordingJournalRecordLocationHandle = std::shared_ptr<const RecordingJournalRecordLocation>;
 using RecordingJournalRecordLocations = std::vector<RecordingJournalRecordLocationHandle>;
@@ -109,7 +110,12 @@ bool ParseRecordingMutationV1(const std::string& json,
 class RecordingJournal {
 public:
     // store_id가 비면 lease 아래 기존 marker ID를 복원하거나 신규 난수 ID를 내구 생성한다.
-    struct ManagedOptions { std::filesystem::path root; std::string store_id; };
+    // B 전용 admission. 0은 미설정이며 B Open만 거부한다. v1 수용 범위와 무관하다.
+    struct GenerationReadLimits {
+        std::uint64_t snapshot_bytes{0},active_bytes{0},identity_shard_bytes{0},cold_row_bytes{0};
+        std::size_t identity_unique_ids{0},identity_archives{0};
+    };
+    struct ManagedOptions { std::filesystem::path root; std::string store_id; GenerationReadLimits generation_limits{}; };
     explicit RecordingJournal(std::filesystem::path path);
     explicit RecordingJournal(ManagedOptions options);
     ~RecordingJournal();
@@ -125,6 +131,9 @@ public:
 
 private:
     friend class RecordingCatalog;
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+    friend struct RecordingJournalGenerationReadOnlyProbe;
+#endif
     bool AttachCatalog(const void* owner, const std::filesystem::path& media,
                        const std::filesystem::path& sqlite, bool enable_v2, std::string* error);
     void DetachCatalog(const void* owner);
@@ -174,7 +183,11 @@ private:
     const void* catalog_owner_{nullptr};
     std::shared_ptr<const char> catalog_attachment_;
     bool OpenManagedLocked(std::string* error);
+    bool OpenGenerationReadOnlyLocked(const std::string& store_id,std::string* error);
+    bool GenerationBindingLocked() const;
     bool ManagedBindingLocked() const;
+    GenerationReadLimits generation_limits_;
+    std::unique_ptr<RecordingJournalGenerationState> generation_state_;
     bool managed_{false};
     std::filesystem::path managed_root_;
     std::string managed_store_id_;

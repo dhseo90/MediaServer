@@ -31,6 +31,10 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-J01 | Journal 참조 좌표 분리 | 현행 dense slot과 B 전역 `uint64` ordinal을 별도 필드·검사로 유지하고 전역 ordinal을 vector index로 사용하지 않음 | 미실행: Journal 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J02 | 기존 참조 수명·checkpoint | v1 참조의 append·예약·중복·checkpoint 동일/변경·재열기 및 stale/foreign 거부·원본 byte 불변 | 미실행: Journal 영향 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J03 | 자원·crypto-off 경계 | 큰 행 resident fallback·fork·예외·crypto-off 경로를 기존 의미로 유지 | 미실행: Journal 영향 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J04 | v2 Journal 읽기 경계 | 독점 lease 아래 정확한 v2 marker·store·manifest·snapshot·identity·active 전수 검증 후 별도 read-only 권위 상태로 열기 | PASS: 읽기 집중 검증; Catalog B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J05 | 미완성 backend 차단 | B Catalog 연결 전 Append/예약/Replay·Catalog 부착을 fail-closed하고 v1 fallback·원본 수정을 금지 | PASS: 미완성 경계 차단; B 쓰기 미구현 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J06 | B 읽기 손상·수명 경계 | marker/manifest/구성 파일·active 손상·교체·fork·crypto-off를 거부하고 정상 v1 경로를 유지 | PASS: 손상·호환 집중 검증; B 제품 복구 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J07 | B 읽기 실행 연결 | `./server.sh verify-v410-recording-journal-generation-readonly`의 J04~J06·source hash·cleanup 및 제품 빌드 연결 | PASS: 공개 경로 40/40·빌드; 최종 gate 아님 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X01 | snapshot domain 임시 복원 | 16종 row의 기존 domain parser·canonical bytes·key/내부 ID를 임시 투영에 복원하고 실패 시 공개 Catalog 불변 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X02 | 현재 상태 관계 검사 | V1/V2/예약 namespace, segment 상태·삭제·경로·이벤트·참조·hold 복구 입력의 cross-map 모순 거부 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X03 | thin 상세와 최초 수용 결박 | source/job latest ID의 검증된 identity locator·type/entity, accepted-state 전수·배타 cut을 확인하고 필요한 상세만 사용 시 raw 검증 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |

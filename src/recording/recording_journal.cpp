@@ -19,6 +19,13 @@
 #include "domain/strict_json.h"
 #include "recording/recording_contracts.h"
 #include "recording_checkpoint_validation.h"
+#ifndef MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+#define MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND 0
+#endif
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+#include "recording/recording_generation_active.h"
+#include "recording/recording_catalog_generation_projection.h"
+#endif
 
 #ifndef MEDIA_SERVER_USE_OPENSSL
 #define MEDIA_SERVER_USE_OPENSSL 0
@@ -147,6 +154,10 @@ std::string ManagedFormat(const std::string& id) {
     return "{\"format\":\"media-server.managed-recording-store.v1\",\"storeId\":\""+Escape(id)+
         "\",\"journal\":\"recording-v2-mutations.jsonl\"}\n";
 }
+std::string GenerationFormat(const std::string& id) {
+    return "{\"format\":\"media-server.managed-recording-store.v2\",\"storeId\":\""+Escape(id)+
+        "\",\"manifest\":\"recording-generation.json\"}\n";
+}
 bool Present(int parent,const char* name) {
     struct stat s{};return ::fstatat(parent,name,&s,AT_SYMLINK_NOFOLLOW)==0||errno!=ENOENT;
 }
@@ -157,7 +168,7 @@ bool ExactFile(int parent,const char* name,const std::string& bytes,struct stat*
     if(!ReadAt(fd.value,0,&read)||read!=bytes||!Same(parent,name,fd.value,s))return false;
     if(bound)*bound=s;return true;
 }
-bool ReadManagedStoreId(int parent,const char* name,std::string* id) {
+bool ReadManagedStoreId(int parent,const char* name,std::string* id,bool generation=false) {
     OwnedFd fd(::openat(parent,name,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
     struct stat bound{};
     if(fd.value<0||!Regular(fd.value,&bound)||bound.st_size<=0||bound.st_size>512)return false;
@@ -166,7 +177,7 @@ bool ReadManagedStoreId(int parent,const char* name,std::string* id) {
     ingress::StrictJsonObjectDocument document;
     if(!ingress::ParseStrictJsonObjectDocument(bytes,&document,nullptr))return false;
     const auto value=ingress::StrictJsonStringField(document,"storeId");
-    if(!value||!ValidateOpaqueId(*value,nullptr)||bytes!=ManagedFormat(*value))return false;
+    if(!value||!ValidateOpaqueId(*value,nullptr)||bytes!=(generation?GenerationFormat(*value):ManagedFormat(*value)))return false;
     *id=*value;
     return true;
 }
@@ -587,6 +598,17 @@ struct RecordingJournalRecordLocation {
 };
 // dense_slot만 메모리 vector의 인덱스다. global_ordinal은 영속 논리 좌표이며
 // gap/uint64 경계를 가질 수 있어 인덱스로 사용하지 않는다. v1 생성 시 둘은 동일하다.
+struct RecordingJournalGenerationState {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    std::filesystem::path active_path;
+    RecordingGenerationActiveReadResult active;
+    RecordingIdentityChainResult chain;
+    RecordingCatalogGenerationProjection projection;
+    std::vector<std::pair<std::string,struct stat>> bindings;
+    std::string manifest_bytes;
+    struct stat manifest_binding{},active_binding{};
+#endif
+};
 class RecordingJournalRecordRef {
     friend class RecordingJournal;
     friend struct ManagedJournalState;
@@ -767,12 +789,108 @@ bool ValidateRecordingOrderHistory(const std::vector<RecordingMutationV1>& mutat
 
 RecordingJournal::RecordingJournal(std::filesystem::path path) : path_(std::move(path)) {}
 RecordingJournal::RecordingJournal(ManagedOptions options)
-    : managed_(true),managed_root_(std::move(options.root)),managed_store_id_(std::move(options.store_id)),
+    : generation_limits_(options.generation_limits),managed_(true),managed_root_(std::move(options.root)),managed_store_id_(std::move(options.store_id)),
       path_(managed_root_/"recording-v2-mutations.jsonl") {}
 RecordingJournal::~RecordingJournal() {
 #if !defined(_WIN32)
     if(managed_fd_>=0)::close(managed_fd_);
     if(lease_fd_>=0)::close(lease_fd_);
+#endif
+}
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+namespace {
+bool GenerationStatSame(const struct stat& a,const struct stat& b) {
+    if(a.st_dev!=b.st_dev||a.st_ino!=b.st_ino||a.st_size!=b.st_size||a.st_nlink!=1||b.st_nlink!=1||
+       !S_ISREG(a.st_mode)||!S_ISREG(b.st_mode))return false;
+#if defined(__APPLE__)
+    return a.st_mtimespec.tv_sec==b.st_mtimespec.tv_sec&&a.st_mtimespec.tv_nsec==b.st_mtimespec.tv_nsec&&
+        a.st_ctimespec.tv_sec==b.st_ctimespec.tv_sec&&a.st_ctimespec.tv_nsec==b.st_ctimespec.tv_nsec;
+#else
+    return a.st_mtim.tv_sec==b.st_mtim.tv_sec&&a.st_mtim.tv_nsec==b.st_mtim.tv_nsec&&
+        a.st_ctim.tv_sec==b.st_ctim.tv_sec&&a.st_ctim.tv_nsec==b.st_ctim.tv_nsec;
+#endif
+}
+[[maybe_unused]] bool GenerationStat(int parent,const std::string& name,struct stat* result) {
+    return ::fstatat(parent,name.c_str(),result,AT_SYMLINK_NOFOLLOW)==0&&S_ISREG(result->st_mode)&&result->st_nlink==1;
+}
+}
+#endif
+bool RecordingJournal::GenerationBindingLocked() const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(!generation_state_||!opened_||poisoned_||owner_pid_!=::getpid()||managed_fd_<0||lease_fd_<0)return false;
+    OwnedFd parent(OpenParent(io_path_,false));struct stat p{},lease{},active{},marker{},manifest{};
+    if(parent.value<0||::fstat(parent.value,&p)!=0||p.st_ino!=parent_inode_||static_cast<std::uint64_t>(p.st_dev)!=parent_device_||
+       !Regular(lease_fd_,&lease)||lease.st_ino!=lease_inode_||lease.st_size!=0||!Same(parent.value,kManagedLease,lease_fd_,lease)||
+       !Regular(managed_fd_,&active)||active.st_ino!=inode_||static_cast<std::uint64_t>(active.st_dev)!=device_||
+       !Same(parent.value,generation_state_->active.active_file.name,managed_fd_,active)||
+       !ExactFile(parent.value,kManagedFormat,GenerationFormat(managed_store_id_),&marker)||marker.st_ino!=marker_inode_||
+       !ExactFile(parent.value,kGenerationManifest,generation_state_->manifest_bytes,&manifest)||Present(parent.value,kManagedInit))return false;
+    // 과거 shard 전수 stat은 Open 최종 결박에서만 수행한다. 상시 권위 확인은 O(1)이다.
+    return GenerationStatSame(generation_state_->manifest_binding,manifest)&&GenerationStatSame(generation_state_->active_binding,active);
+#else
+    return false;
+#endif
+}
+bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    const auto& limits=generation_limits_;
+    if(!limits.snapshot_bytes||!limits.active_bytes||!limits.identity_shard_bytes||!limits.identity_unique_ids||
+       !limits.identity_archives||!limits.cold_row_bytes)return Fail(error,"B read-only admission 미설정");
+    if(!managed_store_id_.empty()&&managed_store_id_!=store)return Fail(error,"B store ID 충돌");
+    try {
+        OwnedFd parent(OpenParent(io_path_,false));struct stat p{},l{},m{};
+        if(parent.value<0||::fstat(parent.value,&p)!=0||Present(parent.value,kManagedInit))return Fail(error,"B root/init 충돌");
+        OwnedFd lease(::openat(parent.value,kManagedLease,O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK,0600));
+        if(lease.value<0||!Regular(lease.value,&l)||l.st_size||!Lock(lease.value,LOCK_EX|LOCK_NB)||
+           !Same(parent.value,kManagedLease,lease.value,l)||!ExactFile(parent.value,kManagedFormat,GenerationFormat(store),&m))
+            return Fail(error,"B 독점 lease/marker 거부");
+        auto state=std::make_unique<RecordingJournalGenerationState>();
+        const auto bind=[&](const std::string& name){struct stat s{};
+            if(!GenerationStat(parent.value,name,&s))return false;
+            state->bindings.emplace_back(name,s);return true;};
+        if(!bind(kGenerationManifest)||!bind(kManagedFormat))return Fail(error,"B header binding 거부");
+        RecordingGenerationReadResult manifest;
+        if(!ReadRecordingGenerationManifestForOpen(managed_root_,&manifest,error)||manifest.manifest.store_id!=store)return Fail(error,"B manifest/store 거부");
+        if(!SerializeRecordingGenerationManifest(manifest.manifest,&state->manifest_bytes,error)||
+           !bind(manifest.manifest.snapshot.name)||!bind(manifest.manifest.active.name))return Fail(error,"B component binding 거부");
+        std::string bytes;RecordingCatalogSnapshot snapshot;
+        if(!ReadVerifiedRecordingGenerationImmutable(managed_root_,manifest.manifest.snapshot,limits.snapshot_bytes,&bytes,error)||
+           !ParseRecordingCatalogSnapshot(bytes,limits.snapshot_bytes,&snapshot,error))return false;
+        const RecordingIdentityShardLoader loader=[&](const RecordingGenerationFile& descriptor,std::uint64_t admission,std::string* output,std::string* detail){
+            if(!bind(descriptor.name))return Fail(detail,"B identity binding 거부");
+            return ReadVerifiedRecordingGenerationImmutable(managed_root_,descriptor,admission,output,detail);
+        };
+        if(!ValidateRecordingIdentityShardChain(snapshot.identity_head,loader,
+              {limits.identity_shard_bytes,limits.identity_unique_ids,limits.identity_archives},&state->chain,error)||
+           !BuildRecordingCatalogGenerationProjection(managed_root_,manifest.manifest,state->chain,snapshot,
+              limits.cold_row_bytes,&state->projection,error)||
+           !ReadRecordingGenerationActive(managed_root_,limits.active_bytes,&state->active,error))return false;
+        std::string observed;
+        if(!SerializeRecordingGenerationManifest(state->active.manifest,&observed,error)||observed!=state->manifest_bytes)
+            return Fail(error,"B manifest 검증 도중 변경");
+        OwnedFd active(::openat(parent.value,manifest.manifest.active.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat a{};
+        if(active.value<0||!Regular(active.value,&a)||!Same(parent.value,manifest.manifest.active.name,active.value,a))return Fail(error,"B active FD 거부");
+        for(const auto& binding:state->bindings){struct stat current{};
+            if(!GenerationStat(parent.value,binding.first,&current)||!GenerationStatSame(binding.second,current))return Fail(error,"B 읽기 중 구성 교체");}
+        state->manifest_binding=state->bindings.front().second;state->active_binding=a;
+        state->active_path=managed_root_/manifest.manifest.active.name;
+        state->bindings.clear();
+        // active envelope 구조만 검증됐다. Catalog 의미 적용/조회/쓰기를 허용하지 않는다.
+        managed_store_id_=store;managed_fd_=active.value;active.value=-1;lease_fd_=lease.value;lease.value=-1;
+        owner_pid_=::getpid();device_=a.st_dev;inode_=a.st_ino;parent_device_=p.st_dev;parent_inode_=p.st_ino;
+        lease_inode_=l.st_ino;marker_inode_=m.st_ino;generation_state_=std::move(state);opened_=true;poisoned_=false;
+        if(!GenerationBindingLocked()){
+            ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;generation_state_.reset();
+            return Fail(error,"B 최종 root/FD 결박 실패");
+        }
+        if(error)error->clear();return true;
+    }catch(...){
+        if(managed_fd_>=0)::close(managed_fd_);if(lease_fd_>=0)::close(lease_fd_);
+        managed_fd_=lease_fd_=-1;opened_=false;generation_state_.reset();
+        return Fail(error,"B read-only 준비/자원 실패");
+    }
+#else
+    (void)store;return Fail(error,"B read-only backend/crypto unsupported");
 #endif
 }
 bool RecordingJournal::LoadManagedStateLocked(std::string* error) {
@@ -815,6 +933,10 @@ bool RecordingJournal::CheckManagedStateLocked(std::string* error) const {
 bool RecordingJournal::CheckManagedFdStateLocked(std::string* error) const {
     if(!managed_)return true;
 #if !defined(_WIN32)
+    if(generation_state_){
+        if(!poisoned_&&GenerationBindingLocked())return true;
+        poisoned_=true;return Fail(error,"B read-only binding 변경: 재open 필요");
+    }
     struct stat status{};
     OwnedFd parent(OpenParent(io_path_,false));
     if(parent.value<0||Present(parent.value,kGenerationManifest)||
@@ -830,7 +952,8 @@ bool RecordingJournal::ManagedOrderMatches(const RecordingOrderReservationV1& or
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
-    std::lock_guard lock(mu_);if(!CheckManagedStateLocked(error)||!managed_||managed_state_->checkpoint_pending)return false;
+    std::lock_guard lock(mu_);if(generation_state_)return Fail(error,"B read-only order 미지원");
+    if(!CheckManagedStateLocked(error)||!managed_||managed_state_->checkpoint_pending)return false;
     const auto found=managed_state_->order.requests.find(order.request_id);
     if(found==managed_state_->order.requests.end())return Fail(error,"managed 예약 없음");
     const auto& old=found->second;
@@ -853,6 +976,7 @@ std::string RecordingJournal::ManagedStoreId() const {
 }
 bool RecordingJournal::ManagedBindingLocked() const {
 #if !defined(_WIN32)
+    if(generation_state_)return GenerationBindingLocked();
     if(!opened_||owner_pid_!=::getpid()||managed_fd_<0||lease_fd_<0)return false;
     OwnedFd parent(OpenParent(io_path_,false));struct stat p{},j{},l{},m{},b{};
     if(parent.value<0||Present(parent.value,kGenerationManifest)||
@@ -873,6 +997,9 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
     if(managed_root_.empty()||(!managed_store_id_.empty()&&!ValidateOpaqueId(managed_store_id_,error))||!SafePath(path_,&io_path_))return Fail(error,"managed root/store ID 거부");
     OwnedFd parent(OpenParent(io_path_,true));struct stat p{};
     if(parent.value<0||::fstat(parent.value,&p)!=0)return Fail(error,"managed root 열기 실패");
+    std::string generation_store;
+    if(ReadManagedStoreId(parent.value,kManagedFormat,&generation_store,true))
+        return OpenGenerationReadOnlyLocked(generation_store,error);
     // B manifest의 유효성 판단은 B backend 책임이다. v1은 존재/조회 불확실만으로 거부한다.
     if(Present(parent.value,kGenerationManifest))return Fail(error,"generation manifest 존재: v1 fallback 거부");
     const bool committed=Present(parent.value,kManagedFormat);
@@ -959,6 +1086,7 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
 #endif
     std::lock_guard lock(mu_);
     if (!opened_ || result == nullptr) return Fail(error, "recording order 시작 조건 불충족");
+    if(generation_state_)return Fail(error,"B read-only 예약 미지원");
     if(managed_&&(!CheckManagedStateLocked(error)||store_id!=managed_store_id_))return Fail(error,"managed store/lease 불일치");
     if(managed_&&managed_state_->checkpoint_pending)return Fail(error,"checkpoint 복구 선행 필요");
     if (!ValidateOpaqueId(store_id, error) || !ValidateOpaqueId(request_id, error) ||
@@ -1538,6 +1666,7 @@ bool RecordingJournal::AttachCatalog(const void* owner, const std::filesystem::p
     if (owner_pid_ != ::getpid()) return Fail(error,"managed catalog fork 거부");
     std::lock_guard lock(mu_);
     std::filesystem::path media_absolute,sqlite_absolute;
+    if(generation_state_)return Fail(error,"B Catalog 의미 적용 미구현: attachment 거부");
     if (!owner || catalog_owner_ || !enable_v2 || !ManagedBindingLocked() || !SafePath(media,&media_absolute) || !SafePath(sqlite,&sqlite_absolute))
         return Fail(error,"managed catalog 소유권/옵션 거부");
     if(media_absolute != io_path_.parent_path()) return Fail(error,"managed media root 불일치");
@@ -1582,6 +1711,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
 #endif
     std::lock_guard lock(mu_);
     if (!opened_) return Fail(error, "journal이 열리지 않음");
+    if(generation_state_)return Fail(error,"B read-only append 미지원");
     if(managed_&&((owner&&catalog_owner_!=owner)||(!owner&&catalog_owner_)))return Fail(error,"managed catalog append 소유권 거부");
     if(managed_&&!CheckManagedStateLocked(error))return false;
     if(managed_&&managed_state_->checkpoint_pending)return Fail(error,"checkpoint 복구 선행 필요");
@@ -1650,6 +1780,7 @@ RecordingJournalReplayResult RecordingJournal::Replay() const {
 #endif
     std::lock_guard lock(mu_);
     RecordingJournalReplayResult result;
+    if(generation_state_){++result.io_error_count;return result;}
     if(managed_&&!CheckManagedStateLocked(nullptr)){++result.io_error_count;return result;}
 #if !defined(_WIN32)
     if (!opened_) { ++result.io_error_count; return result; }
@@ -1707,6 +1838,11 @@ RecordingJournalReplayResult RecordingJournal::Replay() const {
     return result;
 }
 
-const std::filesystem::path& RecordingJournal::path() const { return path_; }
+const std::filesystem::path& RecordingJournal::path() const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(generation_state_)return generation_state_->active_path;
+#endif
+    return path_;
+}
 
 }  // namespace recording

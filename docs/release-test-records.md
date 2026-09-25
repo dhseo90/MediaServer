@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest·세대 파일·identity·snapshot 코덱, 현재 상태 내보내기, active/cold 원문 검사, Journal dense/global 좌표 분리와 snapshot domain 임시 투영은 각각 집중 검증 PASS. 실제 B Open/Append/Checkpoint·SQLite 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest·세대 파일·identity·snapshot 코덱, 현재 상태 내보내기, active/cold 원문 검사, Journal dense/global 좌표 분리·snapshot domain 임시 투영·B Journal read-only 권위는 각각 집중 검증 PASS. 실제 Catalog B Open/Append/Checkpoint·SQLite 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -337,6 +337,74 @@ active 적용·세대 게시·v1 전환은 뒤 단계로 남긴다.
 X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server.sh verify-v410-recording-catalog` 237/237 및 crypto-off 3/3·정리 완료, `./server.sh verify-script-inventory` 12/12, `./server.sh verify-project-inventory` 18/18·기능 986개 정합, 문서 링크 328개 문서/12,805개 로컬 링크/오류 0, 문서 자산 10/10, `git diff --check` exit 0. 토큰 start/end/consumed는 계측 source가 없어 미집계이며 elapsed는 공개 focused 약 11초다.
 
 첫 세 번의 실패는 각각 runner 소스 경로 오타(제품 미실행), 미존재 함수 호출로 인한 신규 코드 컴파일 실패(제품 assertion 미실행), V2 locator fixture의 기존 domain 조건 위반(X01 FAIL)이다. 네 번째 그룹 출력과 보강 뒤 내부 집중 결과도 보존했다. 이력을 예상 RED나 제품 회귀로 바꾸지 않았다. [첫 실패](release-artifacts/v4.1.0/b02-projection-20260925/first.log) · [두 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/second.log) · [세 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/third.log) · [네 번째 결과](release-artifacts/v4.1.0/b02-projection-20260925/fourth.log) · [보강 결과](release-artifacts/v4.1.0/b02-projection-20260925/complete.log). 공개 dispatch를 처음 연결한 정적 inventory는 실행 권한 누락으로 11 PASS/1 FAIL이었고 실행 bit 보정 뒤 같은 검사 12/12로 통과했다. 해당 실패도 완료 이력에서 삭제하지 않는다.
+
+### B-02 Journal B read-only 권위 연결 실행 전 정의
+
+이 단위는 실제 v2 marker·manifest의 검증된 읽기 상태까지만 연다. Catalog B Open·active 의미 적용·Append/예약/체크포인트/전환은 성공으로 보고하지 않으며, 각 경로는 연결 전 fail-closed한다. 기존 v1 원본·API 동작은 바꾸지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-J04 | B Journal 읽기 | lease 아래 정확한 v2 marker/store와 manifest·snapshot bytes/domain·identity chain·active prefix/tail 검증, 과거 상세 전체 원문 비접근 확인 | v4.1.0 |
+| B02-J05 | 미완성 backend 차단 | B에 Catalog Attach·Append·예약·전체 Replay를 사용 가능으로 노출하지 않고 저장 파일/기존 원본 byte 불변 | v4.1.0 |
+| B02-J06 | 손상·수명·호환 | malformed/missing/교체·다른 store/ordinal·fork·crypto-off 거부, v1 기존 Open/Append/Replay·checkpoint 영향 회귀 | v4.1.0 |
+| B02-J07 | 공개 실행 연결 | `./server.sh verify-v410-recording-journal-generation-readonly`의 J04~J06·source hash·cleanup과 제품 빌드 연결 | v4.1.0 |
+
+### B-02 Journal B 읽기 권위 집중 검증 결과
+
+2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-last.log)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
++| B02-J04 nonempty B read-only open | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `nonempty B read-only open` |
+| B02-J04 B path identifies active journal rather than preserved legacy file | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `B path identifies active journal rather than preserved legacy file` |
+| B02-J04 active lease FD CLOEXEC | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `active lease FD CLOEXEC` |
+| B02-J04 exclusive lease rejects second owner | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `exclusive lease rejects second owner` |
+| B02-J05 writes attachment and misleading replay denied | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `writes attachment and misleading replay denied` |
+| B02-J05 fork authority rejected | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `fork authority rejected` |
+| B02-J04 read-only original bytes preserved | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `read-only original bytes preserved` |
+| B02-J04 destructor closes active and lease | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `destructor closes active and lease` |
+| B02-J04 lease released and B reopen | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `lease released and B reopen` |
+| B02-J04 fixed current/active accepts growing unopened historical descriptor | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `fixed current/active accepts growing unopened historical descriptor` |
+| B02-J04 fixed current/active accepts growing unopened historical descriptor | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `fixed current/active accepts growing unopened historical descriptor` |
+| B02-J05 marker | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `marker` |
+| B02-J05 manifest | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `manifest` |
+| B02-J05 snapshot | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `snapshot` |
+| B02-J05 identity | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `identity` |
+| B02-J05 active | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `active` |
+| B02-J05 store | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `store` |
+| B02-J05 admission | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `admission` |
+| B02-J05 symlink | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `symlink` |
+| B02-J05 hardlink | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `hardlink` |
+| B02-J06 missing-marker | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `missing-marker` |
+| B02-J06 missing-manifest | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `missing-manifest` |
+| B02-J06 ordinal | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `ordinal` |
+| B02-J05 zero B admission refused without changing v1 defaults | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `zero B admission refused without changing v1 defaults` |
+| B02-J05 opened component replacement rejected | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `opened component replacement rejected` |
+| B02-J05 restoring replaced component does not clear poison | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `restoring replaced component does not clear poison` |
+| B02-J05 opened component replacement rejected | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `opened component replacement rejected` |
+| B02-J05 restoring replaced component does not clear poison | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `restoring replaced component does not clear poison` |
+| B02-J05 opened component replacement rejected | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `opened component replacement rejected` |
+| B02-J05 restoring replaced component does not clear poison | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `restoring replaced component does not clear poison` |
+| B02-J06 backend-enabled v1 open append replay | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `backend-enabled v1 open append replay` |
+| B02-J06 v1 checkpoint remains available | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 checkpoint remains available` |
+| B02-J06 v1 reopen unchanged | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 reopen unchanged` |
+| B02-J06 disabled backend or crypto refuses B | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `disabled backend or crypto refuses B` |
+| B02-J06 backend-enabled v1 open append replay | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `backend-enabled v1 open append replay` |
+| B02-J06 v1 reopen unchanged | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 reopen unchanged` |
+| B02-J06 disabled backend or crypto refuses B | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `disabled backend or crypto refuses B` |
+| B02-J06 backend-enabled v1 open append replay | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `backend-enabled v1 open append replay` |
+| B02-J06 v1 checkpoint remains available | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 checkpoint remains available` |
+| B02-J06 v1 reopen unchanged | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 reopen unchanged` |
+
+첫 실행은 crypto-on B·v1 일부 검사 뒤 crypto-off 컴파일의 미사용 함수 `-Werror`로 exit 1이었다. 예상 RED나 B 기능 PASS로 보지 않는다. [첫 실패 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/first.log)을 보존했고 소유 root 4,157,460바이트를 삭제했다. 미사용 경계를 보정한 두 번째 집중 실행은 36/36 exit 0이며 [원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/second.log), 소유 root 11,348,777바이트 정리 기록을 보존했다. 메인 검토에서 B `path()`의 레거시 경로 오인과 누락 marker/manifest·cut 반례를 보완한 뒤 [첫 공개 40/40](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-final.log)을 확인했다. 검증 스크립트의 부정확한 주석만 바로잡은 후 같은 40/40을 최종 소스에서 한 번 더 확인했다.
+
+영향 확인: `./server.sh build` exit 0; `./server.sh verify-v410-recording-catalog` exit 0·기존 `[pass]` 249행·임시 root 28,671,794바이트 삭제([압축 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/v1-catalog-regression.log.gz), 압축 해제 SHA-256 `3864537d90d9d1e31e51444bce2c071d18ee25b0ff151ccc76ddb7714d561e3e`); `./server.sh verify-script-inventory` 12/12; `./server.sh verify-project-inventory` 18/18·기능 986행([압축 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/project-inventory.log.gz), 압축 해제 SHA-256 `24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00`); `./server.sh verify-docs-links` 문서 328/로컬 링크 12,809/오류 0, `./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit 0. 이는 기존 v1 영향 및 B 읽기 경계에 대한 결과이지 Catalog B Open·active 적용·Append·SQLite·세대 게시 또는 RAM 비용 판정이 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| Journal read-only 검사 소유 격리 root 4개 | 바이너리·fixture | 첫 4,157,460B, 둘째 11,348,777B, 공개 각 11,355,541B | 실행기 소유권 대조 뒤 제거 | 각 로그의 `removed=true` | 위 원출력 4개 |
+| v1 catalog 회귀 소유 root | 바이너리·fixture | 28,671,794B | 실행기 소유권 대조 뒤 제거 | `removed=true` | 위 v1 회귀 원출력 |
+| `/private/tmp/b02-journal-*.log` 6개 | 원출력 임시본 | 합계 242,674B | byte 동일/압축 해제 hash·소유권 대조 뒤 제거 | 6개 모두 부재 확인, 저장소에 원문 4개·압축 2개 보존 | 위 원출력 링크·SHA 대조 |
 
 ### B-02 Journal 참조 좌표 분리 결과
 

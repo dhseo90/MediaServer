@@ -1,0 +1,138 @@
+// B read-only Journal 준비만 검사한다. Catalog/active 의미 적용·쓰기 활성화가 아니다.
+#include "recording/recording_journal.h"
+#include "recording/recording_catalog_snapshot.h"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
+namespace recording {
+struct RecordingJournalGenerationReadOnlyProbe {
+    static bool Attach(RecordingJournal& j,const std::filesystem::path& root,std::string* error){return j.AttachCatalog(&j,root,root/"recording-catalog.sqlite3",true,error);}
+    static bool Append(RecordingJournal& j,const RecordingMutationV1& m,std::string* error){return j.AppendOwned(m,&j,error);}
+    static int Active(const RecordingJournal& j){return j.managed_fd_;}
+    static int Lease(const RecordingJournal& j){return j.lease_fd_;}
+    static bool Checkpoint(RecordingJournal& j,std::string* error){RecordingMutationHandles candidate;
+        return j.PrepareCheckpoint(&j,&candidate,error)&&j.CommitCheckpoint(&j,candidate,false,error);}
+};
+}
+using namespace recording;
+namespace {
+unsigned failures=0;
+std::string error;
+void Check(const char* group,bool value,const char* detail){std::cout<<group<<' '<<(value?"PASS":"FAIL")<<' '<<detail<<'\n';if(!value){++failures;std::cerr<<error<<'\n';}}
+void Need(bool value){if(!value)throw std::runtime_error("fixture: "+error);}
+void Write(const std::filesystem::path& path,const std::string& bytes){std::ofstream out(path,std::ios::binary|std::ios::trunc);out<<bytes;Need(bool(out));}
+[[maybe_unused]] std::string Read(const std::filesystem::path& path){std::ifstream in(path,std::ios::binary);Need(bool(in));return {std::istreambuf_iterator<char>(in),{}};}
+std::string Marker(){return "{\"format\":\"media-server.managed-recording-store.v2\",\"storeId\":\"store\",\"manifest\":\"recording-generation.json\"}\n";}
+RecordingMutationV1 Mutation(){RecordingMutationV1 m;m.mutation_id="active";m.entity_id="event";m.mutation_type=RecordingMutationType::EventLinkCreated;m.occurred_at_ms=1;m.payload_json="{}";return m;}
+RecordingJournal::ManagedOptions Options(const std::filesystem::path& root){return {root,"store",{1024*1024,1024*1024,1024*1024,1024*1024,100,100}};}
+void V1(const std::filesystem::path& root,const char* group) {
+    const auto mutation=Mutation();
+    {RecordingJournal j(RecordingJournal::ManagedOptions{root,"store"});
+        Check(group,j.Open(&error)&&j.Append(mutation,&error)&&j.Replay().mutations.size()==1,"backend-enabled v1 open append replay");
+#if MEDIA_SERVER_USE_OPENSSL
+        Check(group,RecordingJournalGenerationReadOnlyProbe::Attach(j,root,&error)&&RecordingJournalGenerationReadOnlyProbe::Checkpoint(j,&error),"v1 checkpoint remains available");
+#endif
+    }
+    RecordingJournal reopened(RecordingJournal::ManagedOptions{root,"store"});Check(group,reopened.Open(&error)&&reopened.Replay().mutations.size()==1,"v1 reopen unchanged");
+}
+#if MEDIA_SERVER_USE_OPENSSL
+std::string Hash(const std::string& bytes){unsigned char digest[32];unsigned size=0;Need(EVP_Digest(bytes.data(),bytes.size(),digest,&size,EVP_sha256(),nullptr)==1&&size==32);
+    const char* hex="0123456789abcdef";std::string out;for(auto c:digest){out+=hex[c>>4];out+=hex[c&15];}return out;}
+void Fixture(const std::filesystem::path& root,std::uint64_t historical_size=1024) {
+    std::filesystem::create_directories(root);
+    RecordingSegmentV1 s;s.segment_id="segment";s.source_id="source";s.channel_id="channel";s.stream_epoch_id="epoch";
+    s.start={1000,0,1,1000000000};s.end={2000,1000000000,1,1000000000};s.container="mp4";s.video_codecs={"h264"};
+    s.audio_omitted_reason="source-no-audio";s.size_bytes=12;s.checksum_sha256=std::string(64,'a');s.lifecycle=RecordingLifecycle::Finalized;s.created_at_ms=1000;s.finalized_at_ms=2000;
+    auto m=Mutation();m.mutation_id="historical";m.entity_id="segment";m.mutation_type=RecordingMutationType::SegmentFinalized;m.payload_json="{\"segment\":"+SerializeRecordingSegmentV1(s)+",\"mediaRelpath\":\"channel/file.mp4\"}";
+    const auto raw=SerializeRecordingMutationV1(m)+"\n";
+    RecordingIdentityShard shard;shard.store_id="store";shard.generation=2;shard.archives={{"evidence-1-0.jsonl",std::max<std::uint64_t>(historical_size,raw.size()),Hash("unopened archive")}};
+    RecordingIdentityRow row;row.mutation_id=m.mutation_id;row.entity_id=m.entity_id;row.type=m.mutation_type;row.occurred_at_ms=m.occurred_at_ms;
+    row.global_ordinal=7;row.identity=Hash(SerializeRecordingMutationV1(m));row.length=raw.size();row.raw_sha256=Hash(raw);shard.rows={row};
+    std::string identity;Need(SerializeRecordingIdentityShard(shard,&identity,&error));Write(root/"identity-2.jsonl",identity);
+    RecordingCatalogSnapshot snapshot;snapshot.store_id="store";snapshot.generation=2;snapshot.cut_ordinal=10;snapshot.identity_head={"identity-2.jsonl",identity.size(),Hash(identity)};
+    snapshot.rows={{"accepted-state","historical","{\"mutationId\":\"historical\",\"globalOrdinal\":7,\"type\":\"segment_finalized\"}"},
+        {"media-path","segment","\"channel/file.mp4\""},{"segment-v1","segment",SerializeRecordingSegmentV1(s)}};
+    std::string bytes;Need(SerializeRecordingCatalogSnapshot(snapshot,&bytes,&error));Write(root/"snapshot-2.jsonl",bytes);
+    const auto active=SerializeRecordingMutationV1(Mutation())+"\n";Write(root/"active-2.jsonl",active);
+    RecordingGenerationManifest manifest;manifest.store_id="store";manifest.generation=2;manifest.cut_ordinal=10;
+    manifest.snapshot={"snapshot-2.jsonl",bytes.size(),Hash(bytes)};manifest.active={"active-2.jsonl",0,Hash("")};
+    Need(SerializeRecordingGenerationManifest(manifest,&bytes,&error));Write(root/"recording-generation.json",bytes);Write(root/".recording-store-format",Marker());
+    Write(root/"recording-v2-mutations.jsonl","preserved legacy original\n");
+}
+[[maybe_unused]] std::string Original(const std::filesystem::path& root) {
+    std::string result;for(const char* name:{".recording-store-format","recording-generation.json","identity-2.jsonl","snapshot-2.jsonl","active-2.jsonl","recording-v2-mutations.jsonl"})result+=Read(root/name);return result;
+}
+#endif
+}
+int main(int argc,char** argv) {
+    if(argc!=2)return 2;
+    try {
+        const std::filesystem::path base(argv[1]);std::filesystem::create_directories(base);
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        const auto root=base/"normal";Fixture(root);const auto original=Original(root);int active=-1,lease=-1;
+        {RecordingJournal j(Options(root));Check("B02-J04",j.Open(&error)&&j.HasManagedLease()&&j.ManagedStoreId()=="store","nonempty B read-only open");
+            Check("B02-J04",j.path()==root/"active-2.jsonl","B path identifies active journal rather than preserved legacy file");
+            active=RecordingJournalGenerationReadOnlyProbe::Active(j);lease=RecordingJournalGenerationReadOnlyProbe::Lease(j);
+            Check("B02-J04",active>=0&&lease>=0&&(::fcntl(active,F_GETFD)&FD_CLOEXEC)&&(::fcntl(lease,F_GETFD)&FD_CLOEXEC),"active lease FD CLOEXEC");
+            RecordingJournal other(Options(root));Check("B02-J04",!other.Open(&error),"exclusive lease rejects second owner");
+            RecordingOrderReservationV1 order;order.request_id="unchanged";
+            Check("B02-J05",!j.Append(Mutation(),&error)&&!RecordingJournalGenerationReadOnlyProbe::Append(j,Mutation(),&error)&&
+                !j.ReserveRecordingOrder("store","request","segment-two","channel",&order,&error)&&order.request_id=="unchanged"&&
+                !RecordingJournalGenerationReadOnlyProbe::Attach(j,root,&error)&&j.Replay().io_error_count==1&&j.Replay().mutations.empty(),"writes attachment and misleading replay denied");
+            const auto pid=::fork();Need(pid>=0);if(pid==0)::_exit(!j.HasManagedLease()&&!j.Open(nullptr)&&!j.Append(Mutation(),nullptr)&&j.Replay().io_error_count==1?0:1);
+            int status=0;Need(::waitpid(pid,&status,0)==pid);Check("B02-J05",WIFEXITED(status)&&WEXITSTATUS(status)==0,"fork authority rejected");
+            Check("B02-J04",Original(root)==original,"read-only original bytes preserved");
+        }
+        Check("B02-J04",::fcntl(active,F_GETFD)==-1&&::fcntl(lease,F_GETFD)==-1,"destructor closes active and lease");
+        {RecordingJournal reopened(Options(root));Check("B02-J04",reopened.Open(&error),"lease released and B reopen");}
+        for(const auto size:{1024ULL,512ULL*1024*1024}){const auto path=base/("history-"+std::to_string(size));Fixture(path,size);RecordingJournal j(Options(path));
+            Check("B02-J04",!std::filesystem::exists(path/"evidence-1-0.jsonl")&&j.Open(&error),"fixed current/active accepts growing unopened historical descriptor");}
+        for(const std::string kind:{"marker","manifest","snapshot","identity","active","store","admission","symlink","hardlink"}) {
+            const auto path=base/kind;Fixture(path);auto options=Options(path);
+            if(kind=="store")options.store_id="other";
+            else if(kind=="admission")options.generation_limits.snapshot_bytes=1;
+            else if(kind=="symlink"){std::filesystem::rename(path/"active-2.jsonl",path/"saved");std::filesystem::create_symlink("saved",path/"active-2.jsonl");}
+            else if(kind=="hardlink")std::filesystem::create_hard_link(path/"active-2.jsonl",path/"alias");
+            else {const auto name=kind=="marker"?".recording-store-format":kind=="manifest"?"recording-generation.json":kind=="snapshot"?"snapshot-2.jsonl":kind=="identity"?"identity-2.jsonl":"active-2.jsonl";
+                Write(path/name,kind=="active"?SerializeRecordingMutationV1(Mutation()):"corrupt");}
+            const auto bytes=Read(path/"recording-v2-mutations.jsonl");RecordingJournal j(options);
+            Check("B02-J05",!j.Open(&error)&&!j.HasManagedLease()&&RecordingJournalGenerationReadOnlyProbe::Active(j)<0&&RecordingJournalGenerationReadOnlyProbe::Lease(j)<0&&Read(path/"recording-v2-mutations.jsonl")==bytes,kind.c_str());
+        }
+        for(const std::string kind:{"missing-marker","missing-manifest","ordinal"}) {
+            const auto path=base/kind;Fixture(path);
+            if(kind=="missing-marker")std::filesystem::remove(path/".recording-store-format");
+            else if(kind=="missing-manifest")std::filesystem::remove(path/"recording-generation.json");
+            else {auto bytes=Read(path/"recording-generation.json");const auto pos=bytes.find("\"cutOrdinal\":10");Need(pos!=std::string::npos);
+                bytes.replace(pos,std::string("\"cutOrdinal\":10").size(),"\"cutOrdinal\":11");Write(path/"recording-generation.json",bytes);}
+            const auto original=Read(path/"recording-v2-mutations.jsonl");RecordingJournal j(Options(path));
+            Check("B02-J06",!j.Open(&error)&&!j.HasManagedLease()&&Read(path/"recording-v2-mutations.jsonl")==original,kind.c_str());
+        }
+        {RecordingJournal unset(RecordingJournal::ManagedOptions{root,"store"});Check("B02-J05",!unset.Open(&error),"zero B admission refused without changing v1 defaults");}
+        for(const std::string name:{"active-2.jsonl","recording-generation.json",".recording-store-format"}) {
+            const auto path=base/("replace-"+name);Fixture(path);RecordingJournal j(Options(path));Need(j.Open(&error));
+            const auto bytes=Read(path/name);std::filesystem::rename(path/name,path/"saved");Write(path/name,bytes);
+            Check("B02-J05",!j.Open(&error)&&!j.HasManagedLease(),"opened component replacement rejected");
+            std::filesystem::remove(path/name);std::filesystem::rename(path/"saved",path/name);
+            Check("B02-J05",!j.Open(&error),"restoring replaced component does not clear poison");
+        }
+        V1(base/"v1","B02-J06");
+#else
+        const auto root=base/"unsupported";std::filesystem::create_directories(root);
+#if MEDIA_SERVER_USE_OPENSSL
+        Fixture(root);
+#else
+        Write(root/".recording-store-format",Marker());Write(root/"recording-generation.json","unsupported");
+#endif
+        RecordingJournal j(Options(root));Check("B02-J06",!j.Open(&error)&&!j.HasManagedLease(),"disabled backend or crypto refuses B");
+        V1(base/"v1","B02-J06");
+#endif
+    }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 2;}
+    return failures?1:0;
+}

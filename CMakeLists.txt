@@ -161,6 +161,9 @@ add_executable(media_server
 
 target_include_directories(media_server_runtime PUBLIC include)
 target_link_libraries(media_server_runtime PUBLIC ZLIB::ZLIB)
+# 기존 단독 v1 runner의 링크 범위를 바꾸지 않는다. 실제 제품과 B 전용 runner는
+# generation backend를 함께 컴파일하여 동일한 v1/B 분기 안전 경계를 검증한다.
+target_compile_definitions(media_server_runtime PRIVATE MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1)
 target_link_libraries(media_server PRIVATE media_server_runtime)
 
 if(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE)
