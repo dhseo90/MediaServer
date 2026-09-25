@@ -16,6 +16,7 @@ import {createLatencyTraceCollector,preserveLatencyEvidence} from './recording_l
 import {createProcessCleanup,processStartEvidence} from './recording_process_cleanup.mjs';
 import {createSelectionTraceCollector,matchSelectionTrace,reportSelectionTraceFailure} from './recording_selection_trace.mjs';
 import {createCompletionTraceCollector,summarizeCompletion,createTimelineObservation,observeTransitionWait,boundedUntil} from './recording_completion_trace.mjs';
+import {isTransientSqliteJournalMiss,statCurrentRunEntry} from './recording_current_observer.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const boundaryDiagnostic=process.argv.length===3&&process.argv[2]==='--diagnose-restart-boundary';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
@@ -40,9 +41,11 @@ const processes=[],processEvidence=[];let primaryError,processEvidencePreserved=
 let httpSequence=0;
 const check=(condition,label)=>{if(!condition)throw Error(label);passed++;console.log(`[pass] ${label}`);};
 function scan(directory,{hash=false,strict=false}={}){
-  const result=[];let bytes=0,entries=0;
+  const result=[];let bytes=0,entries=0,transientJournalMisses=0;
   function visit(current){for(const name of fs.readdirSync(current).sort()){
-    const full=path.join(current,name),s=fs.lstatSync(full);if(++entries>4096)throw Error('root-entry-cap');
+    const full=path.join(current,name);if(++entries>4096)throw Error('root-entry-cap');
+    const s=hash||strict?fs.lstatSync(full):statCurrentRunEntry(root,full);
+    if(!s){transientJournalMisses++;continue;}
     if(s.isDirectory()){visit(full);continue;}
     bytes+=s.size;if(bytes>512*MiB)throw Error('root-byte-cap');
     if(s.isSymbolicLink()){if(strict)throw Error('archive-symlink');continue;}
@@ -50,7 +53,7 @@ function scan(directory,{hash=false,strict=false}={}){
     const item={path:path.relative(directory,full),bytes:s.size};
     if(hash){const digest=crypto.createHash('sha256'),fd=fs.openSync(full,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const after=fs.fstatSync(fd);if(after.ino!==s.ino||after.dev!==s.dev)throw Error('file-race');const buffer=Buffer.alloc(65536);let n;while((n=fs.readSync(fd,buffer,0,buffer.length,null)))digest.update(buffer.subarray(0,n));item.hash=digest.digest('hex');}finally{fs.closeSync(fd);}}
     result.push(item);
-  }}visit(directory);return {bytes,entries,files:result};
+  }}visit(directory);return {bytes,entries,files:result,transientJournalMisses};
 }
 function budget(){if(cancelled)throw Error('actual-app-cancelled');if(processes.some(p=>p.logOverflow))throw Error('app-log-cap');if(performance.now()>deadline)throw Error('actual-app-deadline');scan(root);}
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -230,17 +233,21 @@ async function awaitArchiveQuiescence(app,observed){
     e.updateTime===Math.trunc(observed.tuplePts/1000000)&&typeof e.recordingLinkId==='string'&&e.recordingLinkId).map(e=>e.recordingLinkId))];
   if(!refs.includes(observed.referenceId)||refs.length>32)throw Error('archive-dispatch-reference-set');
   const referenceHashes=refs.map(ref=>crypto.createHash('sha256').update(ref).digest('hex'));
-  let stableSince=null,polls=0,activeSeen=0,hardlinkSeen=0,lastStates=[];
+  let stableSince=null,polls=0,activeSeen=0,hardlinkSeen=0,transientJournalSeen=0,lastStates=[];
   try{await until('archive-publication-not-settled',async()=>{
     const trace=app.completionTrace.snapshot();polls++;
     lastStates=referenceHashes.map(hash=>summarizeCompletion(trace,hash).terminal.map(row=>row.state));
     const terminal=lastStates.every(found=>found.length>0);
     if(!terminal){activeSeen++;stableSince=null;return false;}
     try{scan(path.join(root,'recordings'),{strict:true});}
-    catch(e){if(e.message!=='archive-not-regular-single-link')throw e;hardlinkSeen++;stableSince=null;return false;}
+    catch(e){
+      if(isTransientSqliteJournalMiss(root,e.path,e)){transientJournalSeen++;stableSince=null;return false;}
+      if(e.message!=='archive-not-regular-single-link')throw e;
+      hardlinkSeen++;stableSince=null;return false;
+    }
     stableSince??=performance.now();
     if(performance.now()-stableSince<750)return false;
-    console.log('[archive-quiescence] '+JSON.stringify({processOrdinal:app.ordinal,dispatchReferences:refs.length,polls,activeSeen,hardlinkSeen,
+    console.log('[archive-quiescence] '+JSON.stringify({processOrdinal:app.ordinal,dispatchReferences:refs.length,polls,activeSeen,hardlinkSeen,transientJournalSeen,
       terminalStates:lastStates,stableMs:Math.round(performance.now()-stableSince),budgetBasis:'source-wait-60000ms',
       oracle:'validated-server-completion-trace-plus-single-link-files'}));
     return true;

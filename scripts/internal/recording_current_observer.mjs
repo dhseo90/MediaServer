@@ -5,6 +5,18 @@ import {spawnSync} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const need=(ok,code)=>{if(!ok)throw Error(code);};
 export const CURRENT_ROOT_CAP_BYTES=448*1024*1024;
+// 격리 실행 root의 live 디렉터리를 비원자적으로 순회할 때만 사용한다.
+// SQLite rollback journal은 목록화 직후 트랜잭션 종료로 사라질 수 있다.
+// 정확한 한 파일의 ENOENT만 측정 시점의 부재로 취급하고 다른 오류는 숨기지 않는다.
+export function isTransientSqliteJournalMiss(root,file,error){
+  return error?.code==='ENOENT'&&file===path.join(root,'recordings','recording-generation-catalog.sqlite3-journal');
+}
+export function statCurrentRunEntry(root,file,stat=fs.lstatSync){
+  try{return stat(file);}catch(error){
+    if(isTransientSqliteJournalMiss(root,file,error))return null;
+    throw error;
+  }
+}
 // 공개 로그에 원문 mutation type을 반영하지 않도록 제품 enum의 알려진 이름만 누적한다.
 export const CURRENT_JOURNAL_MUTATION_TYPES=Object.freeze(['segment_finalized','event_link_created','observation_put','observation_v2_put','deletion_requested','deletion_completed','corruption_detected','recording_order_reserved','segment_v2_finalized','segment_v2_bound_finalized','consumer_reference_put','derived_reference_accepted','referenced_observation_put','derived_job_intent','derived_job_files','derived_job_ready','derived_job_committed','derived_job_complete','derived_job_failed','segment_v2_state','segment_v2_deleted']);
 const categoryTotal=(categories,names)=>names.reduce((total,name)=>({bytes:total.bytes+categories[name].bytes,files:total.files+categories[name].files}),{bytes:0,files:0});
@@ -36,9 +48,9 @@ export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
       macosService:/Connection Invalid|com\.apple\.hiservices-xpcservice|LSNotification/i.test(stderr)},rawBodyPublished:false};
 }
 // 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
-export function measureCurrentRoot(root,{sqlitePages=false}={}){
+export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={}){
   const categories=Object.fromEntries(['input','media','mediaPartial','journal','checkpoint','generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction','sqlite','wal','sqliteAux','tmp','log','state','events','cache','tools','recordingsOther','other'].map(k=>[k,{bytes:0,files:0}]));
-  let totalBytes=0,entries=0;
+  let totalBytes=0,entries=0,transientJournalMisses=0;
   function category(parts){
     const top=parts[0],name=parts.at(-1);
     if(top==='input')return 'input';
@@ -66,7 +78,9 @@ export function measureCurrentRoot(root,{sqlitePages=false}={}){
     return 'other';
   }
   function visit(file,parts){
-    const stat=fs.lstatSync(file);need(++entries<=100000,'root-entry-bound');
+    need(++entries<=100000,'root-entry-bound');
+    const stat=statCurrentRunEntry(root,file,lstat);
+    if(!stat){transientJournalMisses++;return;}
     if(stat.isSymbolicLink())need(parts.length>1&&parts[0]==='gst-cache','root-unsafe-symlink');
     else if(stat.isDirectory()){for(const name of fs.readdirSync(file))visit(path.join(file,name),[...parts,name]);return;}
     else need(stat.isFile()&&stat.nlink===1,'root-unsafe-file');
@@ -78,7 +92,7 @@ export function measureCurrentRoot(root,{sqlitePages=false}={}){
     fixtureInput:categoryTotal(categories,['input']),observerTools:categoryTotal(categories,['tools']),cache:categoryTotal(categories,['cache']),temporary:categoryTotal(categories,['tmp']),
     runtimeSupport:categoryTotal(categories,['log','state','events']),other:categoryTotal(categories,['other'])};
   need(Object.values(ownership).reduce((sum,item)=>sum+item.bytes,0)===totalBytes,'root-category-aggregate');
-  return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,ownership,
+  return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,ownership,transientJournalMisses,
     ...(sqlitePages?{sqlitePages:measureCurrentSqlitePages(root)}:{}),measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
 }
 export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false&&result.busy!==true;}

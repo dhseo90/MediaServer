@@ -76,6 +76,7 @@ try {
     assert(uiSeedEnvironment(1789084800000,{}).MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS==='1789084800000');
   });
   check('UA02 random temporary passwords are distinct with sufficient length',()=>assert(passwords.length===5&&new Set(passwords).size===5&&passwords.every(x=>x.length>=12)));
+  check('B08-H01 temporary passwords avoid product policy pattern rejection',()=>assert(passwords.every(x=>/^A!(?:[a-f0-9]{2}-){15}[a-f0-9]{2}-b7$/.test(x))));
   const calls=[];
   const auth=await bootstrapRecordingUiAuth('http://127.0.0.1:1',passwords,async(url,options)=>{
     const route=new URL(url).pathname;calls.push({route,method:options.method,redirect:options.redirect,body:options.body,headers:options.headers});

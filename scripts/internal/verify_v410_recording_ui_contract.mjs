@@ -475,7 +475,9 @@ export function createUiSeekFixture(root) {
 }
 
 export function createUiAuthPasswords() {
-  const values = Array.from({length: 5}, () => crypto.randomBytes(24).toString('base64url'));
+  // 제품 정책의 반복 문자·연속 숫자·키보드 4자 패턴을 구조적으로 피한다.
+  // 구분자 사이 2자리만 배치하고, 각 값의 비밀 엔트로피 128비트는 난수에서 얻는다.
+  const values = Array.from({length: 5}, () => `A!${crypto.randomBytes(16).toString('hex').match(/../g).join('-')}-b7`);
   assert(new Set(values).size === 5, 'temporary credential collision');
   return values;
 }

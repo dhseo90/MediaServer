@@ -1,0 +1,3 @@
+[fail] B08-I02 SQLite 임시 journal의 목록화 뒤 ENOENT만 구분
+[cleanup] {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-root-storage-test-l3m7tn","bytes":7,"absent":true}
+{"scope":"root-storage-short-self-test","passed":0,"failed":1,"elapsedMs":2,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}

@@ -3,13 +3,27 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentSqlitePages} from './recording_current_observer.mjs';
+import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentSqlitePages,statCurrentRunEntry,isTransientSqliteJournalMiss} from './recording_current_observer.mjs';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-root-storage-test-'));
 fs.chmodSync(root,0o700);
 const start=performance.now();let passed=0,failed=0;
 const check=(title,run)=>{try{run();passed++;console.log('[pass] '+title);}catch(error){failed++;console.log('[fail] '+title);throw error;}};
 function write(name,bytes){const file=path.join(root,name);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,Buffer.alloc(bytes));return file;}
 try{
+  check('B08-I02 SQLite 임시 journal의 목록화 뒤 ENOENT만 구분',()=>{
+    const journal=write('recordings/recording-generation-catalog.sqlite3-journal',7);
+    const miss=()=>{throw Object.assign(new Error('entry vanished'),{code:'ENOENT'});};
+    assert.equal(isTransientSqliteJournalMiss(root,journal,{code:'ENOENT'}),true);
+    assert.equal(isTransientSqliteJournalMiss(root,journal,{code:'EACCES'}),false);
+    assert.equal(isTransientSqliteJournalMiss(root,path.join(root,'recordings','required.mp4'),{code:'ENOENT'}),false);
+    assert.equal(statCurrentRunEntry(root,journal,miss),null);
+    assert.throws(()=>statCurrentRunEntry(root,path.join(root,'recordings','required.mp4'),miss),{code:'ENOENT'});
+    assert.throws(()=>statCurrentRunEntry(root,journal,()=>{throw Object.assign(new Error('permission'),{code:'EACCES'});}),{code:'EACCES'});
+    const live=measureCurrentRoot(root,{lstat:file=>file===journal?miss():fs.lstatSync(file)});
+    assert.equal(live.transientJournalMisses,1);
+    assert.equal(live.totalBytes,0);
+    fs.unlinkSync(journal);
+  });
   check('LP26-O06-A disjoint categories preserve exact aggregate and redact names',()=>{
     const files=[['input/private-source.mp4','input'],['recordings/channel/segment.mp4','media'],['recordings/recording-v2-mutations.jsonl','journal'],
       ['recordings/.recording-checkpoint.tmp','checkpoint'],['recordings/recording-catalog.sqlite3','sqlite'],['recordings/recording-catalog.sqlite3-wal','wal'],

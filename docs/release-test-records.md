@@ -32,6 +32,11 @@
 | B08-C01 | 누적 저장·진단 | 1/16/32와 1,020/2,049 규모에서 이전 snapshot 누적, 현재 데이터·RSS·재개방·잠금 관측 손실 및 실제 관측 경로를 분리 측정. 기존 상한 유지 | v4.1.0 |
 | B08-H01 | 실제 HTTP | 현행 `--app-observe`로 HTTP 4초·관측 15초·상태 용량·재기동·종료/정리 확인. 단기 안정화이며 UI/장시간 대체 불가 | v4.1.0 |
 | B08-I01 | 현행 5단계 실제 통합 | `--current-integration`의 API/auth/lifecycle/default/actual-app 전수. 완전 출력 2개·HTTP와 파일 hash·두 번째 기동의 기존/새 자료 확인 | v4.1.0 |
+| B08-I02 | SQLite 임시 journal 경쟁 | 실제 앱 비원자 root 용량 관측에서 `recording-generation-catalog.sqlite3-journal`이 목록화 후 사라지는 ENOENT만 별도 기록하고 계속 측정. 일반 파일 ENOENT·다른 오류 및 엄격 archive hash 검증은 거부, 기존 용량·시간 상한 불변. 관측기의 단기 반례 뒤 현행 통합 재실행 | v4.1.0 |
+| B08-Q01 | 한 요청의 엄격 검증 재사용 | `recording_generation_request_proof_smoke.cpp`와 동명 `verify.sh`: 같은 요청에서 첫 전체 archive 검증 후 반복 기록 획득의 전체 읽기 횟수 1, 각 행 hash·형식·값과 현재 권위 일치. 구현 전 예상 RED는 전체 읽기 2회이며 빌드·환경 실패는 RED가 아님 | v4.1.0 |
+| B08-Q02 | 요청 경계·예산 fallback | 새 요청·복사·재개방·active 변경은 엄격 검증, 요청 내 증거 예산 소진은 정상 입력을 거부하지 않고 엄격 경로로 복귀 | v4.1.0 |
+| B08-Q03 | 재사용 반례 | 같은 inode/크기에서 시각을 복원한 변경, 다른 행 변경, inode 교체·hardlink·symlink·PID/foreign 변경은 거부. 저장 원본·FD 수명과 오류 분류 대조 | v4.1.0 |
+| B08-Q04 | 실제 소비자·지원 구성 | Catalog eligibility·hold·삭제를 매번 재검사하고 기존 형식·crypto/backend-off 구성의 의미와 거부 결과를 보존 | v4.1.0 |
 | B09-F01 | 최종 소스 결속·단기 검사 | 코드 고정 뒤 build/auth/media/environment/docs/inventory와 실제 증적·버전·정리 상태를 각각 대조. 이전 유효 증거와 영향받는 증거를 구분 | v4.1.0 |
 
 이 표는 실행 전 정의이며 아직 결과가 아니다. 30분·실제 UI·120분은 별도 실행 승인과
@@ -40,8 +45,16 @@
 회수 구현 단위의 실제 결과는 [B-08 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
 [최종 유효 집중 621개 개별 행](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/items.md)에 보존한다.
 B08-R01/R02 집중 검사와 관련 build·runtime·consumer는 통과했으나, 최초 RED·
-SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B08-H01/I01과
-B09-F01은 아직 실행하지 않았으며 B-08 전체 완료·장시간/UI PASS가 아니다.
+SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B08-H01은 첫
+격리 준비 실패 뒤 같은 단기 검사를 권한 조정 환경에서 통과했다. B08-I01은
+인증 fixture 수정 뒤 재실행했으나 두 번째 기동 타임라인 HTTP 4초 초과로
+실패했다. 원장 읽기 보완 뒤 두 번째 기동 타임라인은 1.121초였지만 검증기가
+일시적인 SQLite journal ENOENT로 중단됐다. B08-I02의 집중9/9·관측기67/67은
+통과했고, 최종 실제 통합 재실행도 35+40+10+46+27개로 통과했다.
+두 기동의 각각 새 출력2개·HTTP/파일 hash·기존 출력 보존·정리를 확인했으며,
+timeline 114회 최대 3,717ms는 기존 4초 미만이다.
+[실패 이력·27개 개별 결과·원출력](release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)을
+따른다. B09-F01은 미실행이며 30분·장시간/UI PASS가 아니다.
 
 B08-C01 회수 후 누적 검사는 1/16/32와 1,020/2,049개에서 exit0이다.
 각 checkpoint의 현재 snapshot은 정확히 1개였고 삭제 큰 입력의 최종
@@ -49,7 +62,12 @@ snapshot은 7,027,713B, 전체 저장소는 59,925,722B였다. trace tail 64행�
 독립 완료 구간 집계, 실제 파일·삭제·재개방·상한을 확인했다.
 [원출력·최초 RED·조건·한계·정리](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md)를 따른다.
 관측 호출 간격을 줄였으므로 전체 실행시간을 제품 성능 개선으로 해석하지 않는다.
-실제 JS/HTTP·5단계 통합과 B09-F01은 아직 미실행이다.
+실제 JS/HTTP 단기는 위 B08-H01 범위에서 실행했고, 5단계 통합은 B08-I01에서
+최종 통과했다. B09-F01은 아직 미실행이다.
+B08-Q01~Q04의 첫 예상 RED는 전체 archive 읽기 2회였고, 최종 집중 검사는
+네 구성 52/52 PASS·fixture 정리 PASS다. [개별 52행](release-artifacts/v4.1.0/b08-actual-app-20260925/request-proof-items.md)과
+[준비 오류·재검증 이력](release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)을
+보존한다. 이는 실제 앱 통합의 4초 판정을 대체하지 않는다.
 
 
 ### B07 진단 단위 마감 검사 — 실행 전 정의
