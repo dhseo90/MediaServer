@@ -22,6 +22,8 @@
 struct sqlite3;
 
 namespace recording {
+struct RecordingIdentityChainResult;
+struct RecordingCatalogSnapshot;
 
 struct RecordingCatalogRecoveryReport {
     std::size_t replayed_mutation_count{0};
@@ -117,6 +119,11 @@ public:
     RecordingCatalog(RecordingJournal& journal, Options options);
     ~RecordingCatalog() override;
     bool Open(std::string* error);
+    // 검증된 chain을 선수조건으로 현재 값만 내보내는 내부 후보다. 게시/B Open은 하지 않는다.
+    // cold 링크의 실제 type/ordinal 및 원문 의미는 여기서 재읽지 않는다. cutover 원문 전수
+    // 검증·domain 대조와 import/use의 locator 검증은 별도 필수이며 실패 시 output은 불변이다.
+    bool ExportGenerationSnapshot(const RecordingIdentityChainResult&, std::uint64_t generation,
+        std::uint64_t cut_ordinal, RecordingCatalogSnapshot* output, std::string* error) const;
     bool SnapshotLocationsV2(const std::string& channel_id,
                              RecordingLocationCatalogSnapshot* result, std::string* error) const;
     bool ValidateManagedWriterBinding(const RecordingJournal& journal,

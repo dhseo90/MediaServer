@@ -2,6 +2,11 @@
 // 동작 요약: 중복·truncate·corrupt replay, SQLite parity/FK, orphan와 DB 격리를 확인한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_journal.h"
+#include "recording/recording_catalog_snapshot.h"
+#include "recording/recording_derived_selection.h"
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 
 #include <filesystem>
 #include <fstream>
@@ -514,6 +519,140 @@ void V2CatalogCases(const std::filesystem::path& root) {
         }
     }
 }
+#if MEDIA_SERVER_USE_OPENSSL
+std::string SnapshotHash(const std::string& bytes) {
+    unsigned char digest[EVP_MAX_MD_SIZE]; unsigned length=0;
+    if(EVP_Digest(bytes.data(),bytes.size(),digest,&length,EVP_sha256(),nullptr)!=1||length!=32)return {};
+    const char* hex="0123456789abcdef";std::string result;
+    for(unsigned i=0;i<length;++i){result+=hex[digest[i]>>4];result+=hex[digest[i]&15];}
+    return result;
+}
+bool SnapshotChain(recording::RecordingJournal& journal,recording::RecordingIdentityChainResult* result,std::string* error) {
+    using namespace recording;
+    RecordingIdentityShard shard;shard.store_id=journal.ManagedStoreId();shard.generation=1;
+    std::string archive;
+    const auto replay=journal.Replay();
+    if(replay.io_error_count||replay.corrupt_line_count||replay.truncated_tail_count||replay.unsupported_record_count)
+        return false;
+    for(const auto& mutation:replay.mutations) {
+        const auto canonical=SerializeRecordingMutationV1(mutation);const auto raw=canonical+"\n";
+        RecordingIdentityRow row;row.mutation_id=mutation.mutation_id;row.type=mutation.mutation_type;
+        row.entity_id=mutation.entity_id;row.occurred_at_ms=mutation.occurred_at_ms;
+        row.global_ordinal=shard.rows.size();row.identity=SnapshotHash(canonical);
+        row.offset=archive.size();row.length=raw.size();row.raw_sha256=SnapshotHash(raw);
+        if(row.type==RecordingMutationType::RecordingOrderReserved) {
+            RecordingOrderReservationV1 order;
+            if(!ParseRecordingOrderReservationV1(mutation.payload_json,&order,error))return false;
+            row.reservation=order;
+        }
+        shard.rows.push_back(row);archive+=raw;
+    }
+    // 이 fixture는 checkpoint 이전 v1 원문만 사용한다. 합성 locator를 실제 원장 byte와 대조한다.
+    if(ReadBytes(journal.path())!=archive){if(error)*error="fixture 원문/locator 불일치";return false;}
+    shard.archives.push_back({"active-1.jsonl",archive.size(),SnapshotHash(archive)});
+    std::string bytes;if(!SerializeRecordingIdentityShard(shard,&bytes,error))return false;
+    RecordingGenerationFile head{"identity-1.jsonl",bytes.size(),SnapshotHash(bytes)};
+    return ValidateRecordingIdentityShardChain(head,[&](const auto& file,std::uint64_t limit,std::string* out,std::string*) {
+        if(file.name!=head.name||bytes.size()>limit)return false;*out=bytes;return true;
+    },{1024*1024,100,10},result,error);
+}
+void GenerationSnapshotExportCases(const std::filesystem::path& root) {
+    using namespace recording;
+    bool good=true;std::string error;
+    const auto check=[&](bool value,const char* detail){if(!value)std::cerr<<"B02-P02 assertion: "<<detail<<" "<<error<<'\n';good=value&&good;};
+    std::filesystem::create_directories(root);
+    const auto managed_root=std::filesystem::canonical(root);
+    RecordingJournal journal(RecordingJournal::ManagedOptions{managed_root,"store-1"});
+    RecordingCatalog::Options options(managed_root/"recording-catalog.sqlite3",managed_root,false);options.enable_v2_storage=true;
+    RecordingCatalog catalog(journal,options);
+    if(!journal.Open(&error)||!catalog.Open(&error)){check(false,"managed fixture setup");Expect(false,"B02-P02 setup");return;}
+    WriteMp4Header(managed_root/"legacy.mp4");
+    check(catalog.FinalizeSegment(Segment("legacy"),(managed_root/"legacy.mp4").string(),&error),"legacy current projection");
+    auto segment=SegmentV2();
+    segment.media_end_pts=20000000;
+    segment.mappings={{"media-server.recording-utc-mapping.v1","map",0,20000000,
+        "server-observation",100000000,120000000,1,"observed"}};
+    RecordingOrderReservationV1 order;
+    check(journal.ReserveRecordingOrder("store-1",segment.order_request_id,segment.segment_id,segment.channel_id,&order,&error),"live reservation");
+    RecordingSourceBindingV1 binding;binding.segment_id=segment.segment_id;binding.source_id=segment.source_id;
+    binding.channel_id=segment.channel_id;binding.store_id=segment.store_id;binding.media_epoch_id=segment.media_epoch_id;
+    binding.source_generation="generation";binding.generation_order=1;binding.track_id="video/0";
+    binding.samples={{1,0},{2,10000000}};binding.last_accepted_ordinal=2;
+    WriteMp4Header(managed_root/"bound.mp4");
+    check(catalog.FinalizeBoundSegmentV2(segment,binding,(managed_root/"bound.mp4").string(),&error),"bound current projection");
+    RecordingConsumerReferenceV1 reference;reference.reference_id="request";reference.kind="event";
+    reference.owner_id="event";reference.source_id=segment.source_id;reference.channel_id=segment.channel_id;
+    reference.analysis_namespace="tap-r0";reference.analysis_track_id="track-1";
+    reference.association_quality="timestamp-match";
+    reference.original=RecordingConsumerOriginalV1{"generation",1,1,"video/0",0};
+    reference.request=RecordingConsumerRequestV1{"media-pts-ms",0,20,0,0};
+    analysis::DecodedIntervalCollector collector;
+    for(int i=0;i<2;++i){analysis::DecodedIntervalEvidence frame;frame.analysis_pts_ns=i*10000000;
+        frame.duration_ns=10000000;
+        frame.association={analysis::SourceAssociationQuality::TimestampMatch,
+            analysis::OriginalSampleIdentity{"generation",1,static_cast<std::uint64_t>(i+1),"video/0",
+                static_cast<std::uint64_t>(i*10000000)}};collector.Append(frame);}
+    DerivedSourceEvidence source{segment,binding,false};DerivedRecordingSelection selection;
+    DerivedJobIntentV1 intent;
+    RetentionCoordinator retention(catalog,[&]{return catalog.RetentionSnapshot();},
+        [](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},
+        [](const auto&,auto*){return false;},{0,1,managed_root});
+    check(SelectDerivedRecording(reference,*collector.Snapshot("tap-r0"),{source},nullptr,&selection,&error)&&
+        BuildDerivedJobIntent(selection,{source},4096,10,&intent,&error)&&
+        retention.UpdateChannelPolicy(segment.channel_id,{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error)&&
+        retention.AdmitDerivedJob(catalog,intent,10).accepted,"active job current projection");
+    RecordingIdentityChainResult chain;
+    check(SnapshotChain(journal,&chain,&error),"identity chain and actual journal bytes");
+    if(!good){Expect(false,"B02-P02 export");return;}
+    const auto cut=chain.maximum_global_ordinal.value_or(0)+1;
+    const auto before=ReadBytes(journal.path());
+    RecordingCatalogSnapshot snapshot;std::string canonical;
+    check(catalog.ExportGenerationSnapshot(chain,1,cut,&snapshot,&error),"live export including reservation absent from catalog ID set");
+    check(SerializeRecordingCatalogSnapshot(snapshot,&canonical,&error),"canonical value output");
+    bool source_row=false,job_row=false,legacy=false,v2=false,accepted=false;
+    for(const auto& row:snapshot.rows) {
+        if(row.kind=="source-binding") {RecordingCatalogSourceSummary summary;
+            check(ParseRecordingCatalogSourceSummary(row.value_json,&summary,&error)&&summary.id==segment.segment_id&&
+                summary.channel==binding.channel_id&&summary.source==binding.source_id&&
+                summary.generation==binding.source_generation&&summary.track==binding.track_id&&
+                summary.order==binding.generation_order&&summary.sample_count==binding.samples.size()&&
+                !summary.latest_mutation_id.empty(),"thin source namespace and provenance");source_row=true;}
+        if(row.kind=="derived-job") {RecordingCatalogJobSummary summary;
+            check(ParseRecordingCatalogJobSummary(row.value_json,&summary,&error)&&summary.id==intent.job_id&&
+                summary.channel==reference.channel_id&&summary.state==DerivedJobState::Intent&&
+                summary.reference==reference.reference_id&&summary.files==0&&
+                summary.reserved_bytes==intent.reserved_bytes&&summary.output_ids.size()==intent.outputs.size()&&
+                summary.source_ids==std::vector<std::string>{segment.segment_id}&&
+                !summary.latest_mutation_id.empty(),"thin active job and provenance");job_row=true;}
+        legacy=legacy||row.kind=="segment-v1";v2=v2||row.kind=="segment-v2";accepted=accepted||row.kind=="accepted-state";
+        check(row.kind!="hold"&&row.kind!="fd"&&row.kind!="cache","transient state excluded");
+    }
+    check(source_row&&job_row&&legacy&&v2&&accepted,"current map rows present");
+    const auto reject=[&](const RecordingIdentityChainResult& bad,std::uint64_t gen,std::uint64_t boundary,const char* label) {
+        auto output=snapshot;std::string after;
+        const bool rejected=!catalog.ExportGenerationSnapshot(bad,gen,boundary,&output,&error);
+        const bool unchanged=SerializeRecordingCatalogSnapshot(output,&after,&error)&&after==canonical;
+        check(rejected&&unchanged,label);
+    };
+    auto bad=chain;bad.store_id="other-store";reject(bad,1,cut,"store mismatch preserves output");
+    reject(chain,2,cut,"head generation mismatch preserves output");
+    reject(chain,1,*chain.maximum_global_ordinal,"exclusive cut rejects equality");
+    bad=chain;bad.first_acceptances.pop_back();reject(bad,1,cut,"missing current identity");
+    bad=chain;bad.first_acceptances.push_back(bad.first_acceptances.front());reject(bad,1,cut,"duplicate identity");
+    bad=chain;bad.order_history.reservations.front().order.channel_id="other-channel";reject(bad,1,cut,"reservation tuple mismatch");
+    bad=chain;bad.order_history.reservations.front().occurred_at_ms++;reject(bad,1,cut,"reservation time mismatch");
+    bad=chain;
+    for(auto& first:bad.first_acceptances)if(first.first_row.type==RecordingMutationType::SegmentV2BoundFinalized)
+        first.first_row.entity_id=segment.source_id;
+    reject(bad,1,cut,"source namespace cannot replace segment identity");
+    bad=chain;
+    for(auto& first:bad.first_acceptances)if(first.first_row.type==RecordingMutationType::SegmentV2BoundFinalized)
+        first.first_row.type=RecordingMutationType::SegmentV2Finalized;
+    reject(bad,1,cut,"source latest mutation type mismatch");
+    check(ReadBytes(journal.path())==before&&!std::filesystem::exists(managed_root/"recording-generation.json"),"no journal mutation or publication");
+    Expect(good,"B02-P02 current Catalog export and independent rejection; not cutover/import/raw locator validation");
+}
+#endif
 void GenerationFallbackGuardCases(const std::filesystem::path& root) {
     using recording::RecordingJournal;
     std::string error;
@@ -1244,6 +1383,9 @@ int main(int argc, char** argv) {
     V2CatalogCases(root / "v2-catalog");
     ManagedStoreCases(root/"managed");
     GenerationFallbackGuardCases(root/"generation-guard");
+#if MEDIA_SERVER_USE_OPENSSL
+    GenerationSnapshotExportCases(root/"generation-export");
+#endif
     ManagedCatalogCases(root/"managed-catalog");
     ManagedGrowthCases(root/"managed-growth");
     CheckpointSafetyCases(root/"checkpoint-safety");

@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱과 제품 현재 상세 ID는 focused PASS. snapshot domain 복원·증분·제품 연결과 cold archive 원문 검증은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID와 snapshot 내보내기 후보는 focused PASS. snapshot domain 복원·증분·제품 연결과 cold archive 원문 검증은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -137,6 +137,7 @@ payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
 | --- | --- | --- | --- |
 | B02-P01 | 현재 latest ID | bound source와 derived job의 최초/상태 변경 mutation ID를 Entry에 보존, 동일 내용 무효 재시도와 재기동·cold 취득 뒤 현재 원문 ID와 일치 확인 | v4.1.0 |
+| B02-P02 | 제품 현재 상태 snapshot 내보내기 | 실제 현재 map을 15종 kind·얇은 source/job·최초 수용 ID로 생성; identity chain·배타 cut·canonical 순서·실제 원문과 대조, 오류 시 output 불변 | v4.1.0 |
 
 ### B-02 제품 현재 상세 ID 실행 결과
 
@@ -178,6 +179,55 @@ Files/Ready/Committed/Complete별 ID, 영속 B snapshot export/import, archive l
 | --- | --- | --- | --- | --- | --- |
 | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-immutable-ownership.LPsb1z` | 첫 실패 전용 root | 439,029바이트 | uid 501·0700·inode 159427504 및 열린 파일 부재 확인 후 삭제 | 부재 확인 | 해당 실패 원출력과 소유 검사·삭제 명령 exit0 |
 | B02-P01 재검증 runner root 3개 | 빌드·fixture | 최종 28,553,632바이트; 다른 실행은 원출력 참조 | runner 정리 | 세 번 모두 `removed=true` | 위 원출력 |
+
+### B-02 현재 상태 snapshot 내보내기 실행 결과
+
+`ExportGenerationSnapshot`은 관리 Catalog의 현재 15종 map을 정렬된 snapshot 값으로 내보내는
+후보 API다. 검증된 identity 결과의 store/head/최초 수용 ID·예약·배타 cut과 실제 현재
+source/job의 얇은 값·최신 mutation ID를 대조한다. fixture는 checkpoint 전 원장의 실제
+JSONL bytes와 합성 locator의 원문을 byte 단위로 대조하고, source와 활성 job을 제품 경로로
+생성했다. **이 검사는 B Open/Append/Checkpoint, 게시, cold archive 원문 검증이나 기존
+store의 안전한 cutover를 통과시킨 것이 아니다.**
+
+첫 두 실행은 각각 관리 root 미생성, 관리 SQLite 고정 경로 불일치로 새 assertion 전에
+중단됐다. [첫 원출력](release-artifacts/v4.1.0/b02-catalog-export-20260925/b02-p02-catalog-focused.log.gz),
+[두 번째 원출력](release-artifacts/v4.1.0/b02-catalog-export-20260925/b02-p02-catalog-focused-retry.log.gz)의
+exit는 모두 1, 기존 236건 pass·새 setup 1건 fail, 임시 root 제거는 true다.
+메인이 fixture 전체 경로를 재검토해 `/tmp` symlink 대신 정규 root와 고정 SQLite 경로를
+사용했다. 그 뒤 실제 bound 경로 거부가 확인되어 fixture 절대 경로를 정규화했다.
+활성 job 추가 과정에서는 private `BeginDerivedJobIntent` 직접 호출로 컴파일이 실패했다.
+제품 공개 경로 `RetentionCoordinator::AdmitDerivedJob`으로 수정한 뒤 source/job 값과
+실제 원장 bytes의 대조를 보강했다. 중간 두 실패의 전체 원출력은 저장소에 이관하지
+못했으므로 해당 실행을 PASS 근거로 사용하지 않는다. 각 실패 runner의 정리는
+`removed=true`였다.
+
+[최종 원출력](release-artifacts/v4.1.0/b02-catalog-export-20260925/final-focused.log.gz)은
+`./server.sh verify-v410-recording-catalog` exit 0, 제품 237/237, crypto-off 3/3,
+정적 연결 10/10, root 28,663,906바이트 정리 `removed=true`다. SHA-256은
+`05d09b10d76d5a4cdc82976de2eecc11d4a21069e34eefe672175c08e6c3f926`(압축 해제 원문)이다.
+별도 `./server.sh verify-v410-recording-identity-shards`는 H01~H06 및 crypto-off
+6/6, cleanup true였다. `./server.sh build` exit 0, `verify-project-inventory`
+18/18·기능 986행, 최종 문서 링크 328개·12,792링크·오류 0, 문서 자산 10/10,
+`git diff --check` exit 0을 확인했다. token start/end/consumed는 집계 source가 없어
+미집계다. 실제 서버·장시간·UI·외부 환경 테스트는 이 단위에서 미실행이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-P02 | 관리 Catalog 현재 source/job·legacy/V2·최초 수용 상태 snapshot, 실제 fixture 원장 byte 대조와 store/head/cut/ID/예약 반례 | pass |
+| B02-P02 영향 | 기존 catalog 236건, crypto-off 3건, 정적 연결 10건 및 identity shard 6건 | pass |
+
+| 제목 | 수행내용 | 상태 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| B02-P02 첫 실행 | root 준비 누락으로 새 assertion 전 setup 실패 | 실패 | 불가 |
+| B02-P02 두 번째 실행 | 관리 SQLite 경로 불일치로 새 assertion 전 setup 실패 | 실패 | 불가 |
+| B02-P02 중간 실행 | `/tmp` alias로 bound 실제 경로 거부; fixture 경로 수정 전 제품 assertion 실패 | 실패 | 불가; 원출력 미보존 |
+| B02-P02 job 확장 첫 빌드 | private API 직접 호출로 컴파일 실패; 승인된 공개 보존 경로로 수정 | 실패 | 불가; 원출력 미보존 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| B02-P02 runner root | 격리 빌드·fixture | 첫 두 실행 각 28,579,818바이트, bound 실패 28,581,015바이트, 컴파일 실패 802,328바이트, 최종 28,663,906바이트 | runner 소유 root 정리 | 모든 실행 `removed=true` | 첫 둘·최종 원출력과 중간 실행 도구 결과 |
+| `docs/release-artifacts/v4.1.0/b02-catalog-export-20260925/` | 세 실행 증거 | 첫 둘 원문 28,141바이트; gzip 무손실·원문 SHA 재대조 | 비밀 패턴 확인 후 압축 보존 | 보존 | 실패 이력·최종 결과 재검토 |
+| `/private/tmp/b02-p02-catalog-focused*.log` | 담당자 임시 원출력 2개 | 합계 28,141바이트 | 저장소 사본과 각각 byte 일치·소유자 확인 후 원본 삭제 | 두 경로 부재 확인 | `cmp`·`stat`·`test ! -e` exit 0 |
 
 ### B-02 thin 요약 값 codec 단위 결과
 

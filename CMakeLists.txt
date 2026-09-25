@@ -107,6 +107,7 @@ add_library(media_server_runtime STATIC
     src/recording/recording_finalize_recovery.cpp
     src/recording/recording_startup_recovery.cpp
     src/recording/recording_catalog.cpp
+    src/recording/recording_catalog_snapshot_export.cpp
     src/recording/analysis_observation_projector.cpp
     src/recording/recording_read_service.cpp
     src/recording/recording_timeline_projection.cpp

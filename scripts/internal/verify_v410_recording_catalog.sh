@@ -30,10 +30,16 @@ compile_catalog() {
   -include "${SCRIPT_DIR}/recording_journal_fd_probe.h" \
   -c "${ROOT_DIR}/src/recording/recording_journal.cpp" -o "${BUILD_DIR}/recording_journal.o"
 "${CXX_BIN}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
-  ${SQLITE_CFLAGS[*]-} \
+  ${SQLITE_CFLAGS[*]-} ${CRYPTO_CFLAGS[*]-} -DMEDIA_SERVER_USE_OPENSSL="${CRYPTO_DEFINE}" \
   "${SCRIPT_DIR}/recording_catalog_smoke.cpp" \
   "${BUILD_DIR}/recording_journal.o" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+  "${ROOT_DIR}/src/recording/recording_catalog_snapshot_export.cpp" \
+  "${ROOT_DIR}/src/recording/recording_catalog_snapshot.cpp" \
+  "${ROOT_DIR}/src/recording/recording_identity_shard.cpp" \
+  "${ROOT_DIR}/src/recording/recording_order_history_snapshot.cpp" \
+  "${ROOT_DIR}/src/recording/recording_generation_manifest.cpp" \
+  "${ROOT_DIR}/src/recording/recording_derived_selection.cpp" \
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
