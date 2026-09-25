@@ -59,7 +59,7 @@ export function summarizeSpawnDiagnostic(result,{elapsedMs=0}={}){
     lastOpenedPhase:lastOpened,lastCompletedPhase:lastCompleted,traceStatus,traceLoss:['complete','incomplete','loss'].includes(traceStatus)?trace.loss:null,rawOutputPublished:false};
 }
 const receiptProfiles=new Set(['current-observer-snapshot','accumulation-probe']);
-const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','diagnostic-profile','ownership-header','ownership-instrument','probe-binary','metrics-binary']);
+const manifestNames=new Set(['catalog-source','catalog-instrumented','runtime-archive','native-source','trace-header','native-binary','accumulation-source','accumulation-runner','diagnostic-profile','ownership-header','ownership-instrument','probe-binary','metrics-binary','generation-observation']);
 const safeTreeItem=value=>value&&Object.keys(value).sort().join(',')==='bytes,pathSha256,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&/^[a-f0-9]{64}$/.test(value.pathSha256)&&/^[a-f0-9]{64}$/.test(value.sha256);
 const safeTree=value=>value&&typeof value==='object'&&Object.keys(value).sort().join(',')==='bytes,count,items,sha256'&&Number.isSafeInteger(value.bytes)&&value.bytes>=0&&Number.isSafeInteger(value.count)&&value.count>0&&/^[a-f0-9]{64}$/.test(value.sha256)&&Array.isArray(value.items)&&value.items.length<=4096&&value.items.every(safeTreeItem);
 export function receiptTree(snapshot){requireSafe(snapshot&&Array.isArray(snapshot.entries)&&snapshot.entries.length<=4096,'receipt-tree');return {bytes:snapshot.bytes,count:snapshot.count,sha256:snapshot.sha256,items:snapshot.entries.map(item=>({pathSha256:hash(item.relative),bytes:item.bytes,sha256:item.sha256}))};}
@@ -193,7 +193,7 @@ export function instrumentCatalog(text){
 export function instrumentProbe(text,{jsonl=false}={}){
   text=exact(text,'const fs::path root=argv[1];const std::string index=argv[2],reference=argv[3];',
     'const fs::path root=argv[1];const std::string index=argv[2];const char* selected=std::getenv("MEDIA_SERVER_ARCHIVE_PROFILE_REFERENCE");Require(selected,"profile-reference");const std::string reference=selected;Require(Sha(reference)=="'+targetHash+'","profile-reference-hash");');
-  text=exact(text,'recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{copy,{}});','auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{copy,{}});auto& journal=*journal_owner;');
+  text=exact(text,'recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{copy,{},limits});','auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{copy,{},limits});auto& journal=*journal_owner;');
   text=exact(text,'journal.Open(&error)','archive_phase::Call(archive_phase::Phase::JournalOpen,[&]{return journal.Open(&error);})');
   text=exact(text,'recording::RecordingCatalog::Options options(copy/"recording-catalog.sqlite3",copy,true);','recording::RecordingCatalog::Options options(copy/"recording-catalog.sqlite3",copy,'+(!jsonl)+');');
   text=exact(text,'recording::RecordingCatalog catalog(journal,options);','auto catalog_owner=std::make_unique<recording::RecordingCatalog>(journal,options);auto& catalog=*catalog_owner;auto teardown=archive_phase::OnExit([&]{archive_phase::Scope scope(archive_phase::Phase::Destruct);catalog_owner.reset();journal_owner.reset();});');

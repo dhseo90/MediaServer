@@ -1,5 +1,45 @@
 # 릴리즈 테스트 기록
 
+## B-06 현행 검증 연결 실행 전 정의 (2026-09-25)
+
+현재 결과: 검증기 연결과 관련 단기를 마쳤다. [개별 결과·실패·소비자 감사·정리](release-artifacts/v4.1.0/b06-verifier-connection-20260925/results.md).
+실제 서버 통합·누적 자원·장시간/UI의 완료를 뜻하지 않는다.
+
+원래7번이다. B 기본 구성 뒤에도 구형 고정 파일을 읽는 검사만 보완한다.
+제품 저장/API·성공 기준·HTTP4초/관측15초/복구15초를 변경하지 않는다.
+종료 복제본의 C++ Catalog 판정과 live 원장의 관측은 구별하며 관측 성공을 복구 PASS로 사용하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B06-V01 | 종료 저장소 진단 연결 | 정상 B·legacy 양성/손상 반례를 같은 실제 C++ Catalog로 조회. B 미설정 admission으로 거부되던 정상 자료의 RED→GREEN, 원본 불변·복제본 cleanup·안전한 실패 코드 보존 | v4.1.0 |
+| B06-V02 | 현행 UI seed | 실제 RuntimeStorage로 seed 생성/재개방, 구형 고정 journal hash 대신 현행 영속 구성 불변 대조. 기존 timeline/media·UTC/unknown/orphan/권한 기대값 유지. 실제 UI 실행 아님 | v4.1.0 |
+| B06-V03 | live 원장 관측 | 기존 C++ codec의 세대/물리순서/원문 결박을 사용, append/회전/동일 ID 재시도·손상·미완결 tail 반례. 읽기 전용 관측과 Catalog 수용 판정을 구별. 세부 계약 확정 뒤 실행 | v4.1.0 |
+| B06-V04 | 누적량·실행 연결 | B 현행 cache/active/identity/snapshot/evidence를 용도별 계상, 현재 통합/장시간/seed 실행 경로와 소비자 대조. 필요한 legacy 반례를 삭제하지 않음 | v4.1.0 |
+
+V01의 승인 단기는 기존 archive probe 자체검사·state diagnostics·actual-app helper 자체검사다.
+V02는 기존 current UI seed 단기 자체검사이며 browser/실제 서버/장시간은 실행하지 않는다.
+구현 source 변화가 없는 6번867개는 담당 인계만으로 재실행하지 않는다. 실패 시 같은 범위의
+검증 준비 결함만 수정하고 제품 새 계약이 필요하면 중단한다.
+
+V04 첫 단기: `node scripts/internal/recording_current_root_storage.test.mjs`에 B active·snapshot·identity·
+evidence·manifest·transaction·현행/구형 SQLite 공존 반례를 추가한다. 기존 논리448MiB·symlink/하드링크
+거부와 전체 합계를 유지한다. 예상 RED는 B 파일이 기존 `recordingsOther`로 잘못 분류되는 값이다.
+
+V03 세부 계약: 검증 전용 native가 nofollow FD에서 고정 길이를 읽고 기존 manifest/snapshot/
+identity/mutation C++ codec으로 결박한다. active는 관측 시작 크기의 완결 LF까지만 소비한다.
+회전 중 거래/manifest 교체는 `busy` 관측으로 남겨 다음 표본에서 확인하며 15초 관측·30초
+생산 정체 제한을 늘리지 않는다. 종료 시 busy/partial/backlog는 완결 PASS가 아니다.
+identity 순서 전수를 대조하되 이미 관측한 상세 원문은 다시 보관하지 않고 새 행만 bounded
+batch로 읽는다. 이 관측은 raw 이전 이력 전수 재검증/내구성/최신 Catalog의 권위가 아니다.
+기존 legacy reader 양성·부분 행·손상 반례를 유지하고 B 생성/append/회전/동일 재시도·손상·
+원본 불변을 별도 검사한다. native 실행 제한3초·입출력32MiB·논리10만ID/32MiB를 유지한다.
+
+V04 lifecycle 세부 정의: 격리된 실제 SQLite의 legacy/B hold0/1, stale legacy 반대값,
+cache/행 부재·잘못된 count·형식 모순과 정리를 대조한다. B hold0는 실제 전송 뒤 Release가
+SQL에 0을 기록한 시점의 기대값이며 초기 행 부재를 제품 결함으로 일반화하지 않는다.
+V03의 실제 writer/삭제/봉인 자료, 최초 busy 뒤 형식 소실,128행 경계와 native Catalog 복구도
+같은 단기 fixture에서 대조한다. 실제 서버·장시간의 완료 대신 사용하지 않는다.
+
 ## B-05 기본 구성 연결 실행 전 정의 (2026-09-25)
 
 현재 단위의 [범위·실패·개별 결과 기록](release-artifacts/v4.1.0/b05-consumers-runtime-20260925/results.md)을 연결한다.

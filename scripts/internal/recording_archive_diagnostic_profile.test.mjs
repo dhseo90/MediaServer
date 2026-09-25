@@ -83,11 +83,26 @@ test('LP23-DH05 changed original or unconfirmed child blocks cleanup',()=>owned(
   for(const key of Object.keys(proof)){assert.equal(cleanupAllowed({...proof,[key]:false}),false);assert.throws(()=>cleanupProfile(root,parent,identity,{...proof,[key]:false}));assert(fs.existsSync(root));}
   assert.throws(()=>cleanupProfile(root,parent,{...identity,ino:identity.ino+1},proof));
 }));
+test('B06-V04 generation observation 실제 header fingerprint를 receipt에 보존',()=>owned(root=>{
+  const {entries,receipt}=receiptFixture(root),file=path.join(here,'recording_generation_observation.h');
+  const entry={name:'generation-observation',file};const raw=fs.readFileSync(file);
+  receipt.manifest=sourceManifest([...entries,entry]);
+  const expected={name:entry.name,bytes:raw.length,sha256:crypto.createHash('sha256').update(raw).digest('hex')};
+  assert.deepEqual(receipt.manifest.at(-1),expected);
+  const evidencePath=path.join(root,'generation.json');assert(preserveDiagnosticReceipt({evidencePath,receipt}).preserved);
+  assert.deepEqual(JSON.parse(fs.readFileSync(evidencePath)).receipt.manifest.at(-1),expected);
+  assert.throws(()=>sourceManifest([...entries,entry,entry]),/manifest-name/);
+  assert.throws(()=>sourceManifest([{...entry,name:'generation-observation-other'}]),/manifest-name/);
+}));
 test('LP23-DH06 exact instrumentation drift and trace bounds fail closed',()=>owned(root=>{
   assert.throws(()=>exact('a a','a','b'));assert.throws(()=>exact('','a','b'));
   const catalog=fs.readFileSync(path.resolve(here,'../../src/recording/recording_catalog.cpp'),'utf8');
   const probe=fs.readFileSync(path.join(here,'recording_current_archive_probe.cpp'),'utf8');
   const instrumented=instrumentCatalog(catalog);assert(instrumented.includes('Phase::RebuildProject'));assert(instrumented.includes('Phase::RebuildPreflight'));assert(instrumentProbe(probe).includes('copy,true)'));assert(instrumentProbe(probe,{jsonl:true}).includes('copy,false)'));
+  const journalAnchor='recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{copy,{},limits});';
+  assert(instrumentProbe(probe).includes('std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{copy,{},limits})'));
+  assert.throws(()=>instrumentProbe(probe.replace(journalAnchor,journalAnchor+journalAnchor)),/instrument-anchor/);
+  assert.throws(()=>instrumentProbe(probe.replace(journalAnchor,journalAnchor.replace(',{},limits',',{}'))),/instrument-anchor/);
   assert.throws(()=>instrumentCatalog(catalog.replace('bool RecordingCatalog::OpenLocked(std::string* error) {','changed')));
   const cpp=path.join(root,'collector.cpp'),binary=path.join(root,'collector');
   fs.writeFileSync(cpp,'#include "recording_archive_phase_trace.h"\nint main(){try{archive_phase::Scope s(archive_phase::Phase::Query);throw 1;}catch(...){}for(int i=0;i<200;++i){archive_phase::Scope s(archive_phase::Phase::Release);}return 0;}\n',{mode:0o600});

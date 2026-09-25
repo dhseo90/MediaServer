@@ -60,11 +60,30 @@ try{
     assert.equal(measureCurrentSqlitePages(root,()=>({status:0,stdout:'4096\n10\n11\n'})).status,'unavailable');
     assert.equal(measureCurrentSqlitePages(root,()=>{throw Error('runner unavailable');}).status,'unavailable');
   });
+  check('B06-V04 B components disjoint and current SQLite preferred over retained legacy cache',()=>{
+    const before=measureCurrentRoot(root),files=[['active-7.jsonl','journal',101],['snapshot-7.jsonl','generationSnapshot',103],
+      ['identity-7.jsonl','generationIdentity',107],['evidence-1-0.jsonl','generationEvidence',109],['recording-generation.json','generationManifest',113],
+      ['.recording-generation-transaction.json','generationTransaction',127],['recording-generation-catalog.sqlite3','sqlite',131],
+      ['recording-generation-catalog.sqlite3-wal','wal',137],['recording-generation-catalog.sqlite3-shm','sqliteAux',139]];
+    for(const [name,,bytes] of files)write('recordings/'+name,bytes);
+    const actual=measureCurrentRoot(root),sum=files.reduce((v,r)=>v+r[2],0);
+    assert.equal(actual.totalBytes,before.totalBytes+sum);assert.equal(actual.ownership.productRecording.bytes,before.ownership.productRecording.bytes+sum);
+    for(const [,category,bytes] of files)assert.equal(actual.categories[category].bytes,(before.categories[category]?.bytes??0)+bytes);
+    const observed=measureCurrentSqlitePages(root,(_binary,args)=>{assert.equal(args[1],path.join(root,'recordings/recording-generation-catalog.sqlite3'));return {status:0,stdout:'4096\n10\n3\n'};});
+    assert.equal(observed.mainBytes,131);assert.equal(observed.walBytes,137);
+    fs.unlinkSync(path.join(root,'recordings/recording-generation-catalog.sqlite3'));
+    assert.equal(measureCurrentSqlitePages(root,()=>{throw Error('must not read old cache');}).status,'absent');
+  });
   check('LP26-O06-C runner retains timeout and emits periodic and failure measurements',()=>{
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
     assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure',measureCurrentRoot(root,{sqlitePages:true}),true)"));
     assert(runner.includes("const storage=measureCurrentRoot(root);if(storage.capExceeded){rootDiagnostic('root-cap')"));
     assert(runner.includes("rootDiagnostic('final',measureCurrentRoot(root,{sqlitePages:true}),true)"));assert(runner.includes('journalMutationTypesCoverage'));
+  });
+  check('B06-V04 staged components count as transaction, not committed generation',()=>{
+    const before=measureCurrentRoot(root);write('recordings/.recording-generation-prepare-'+ 'a'.repeat(32)+'/snapshot-8.jsonl',151);
+    const after=measureCurrentRoot(root);assert.equal(after.categories.generationTransaction.bytes,before.categories.generationTransaction.bytes+151);
+    assert.deepEqual(after.categories.generationSnapshot,before.categories.generationSnapshot);assert.equal(after.totalBytes,before.totalBytes+151);
   });
 }catch{if(!failed){failed++;console.log('[fail] LP26-O06 setup/runtime');}}
 finally{

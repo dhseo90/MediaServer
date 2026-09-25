@@ -584,15 +584,35 @@ async function verifyRecordingHttpAuth(baseUrl, root, seed, passwords) {
   console.log(`[S06 HTTP AUTH] checks=${checks} fail=0 actualUiActions=NOT_RUN`);
 }
 
+// 서버의 수용 판정 대신 사용하지 않는다. 이미 기동된 격리 fixture의 실제 hold cache를 관측한다.
+export function readRecordingLifecycleHold(root, segmentId) {
+  const recordings=path.join(root,'recordings');
+  const markerPath=path.join(recordings,'.recording-store-format');
+  const markerStat=fs.lstatSync(markerPath);
+  assert(markerStat.isFile()&&!markerStat.isSymbolicLink()&&markerStat.nlink===1,'lifecycle marker binding');
+  const marker=JSON.parse(fs.readFileSync(markerPath,'utf8'));
+  const generation=marker.format==='media-server.managed-recording-store.v2';
+  assert(generation||marker.format==='media-server.managed-recording-store.v1','lifecycle managed format');
+  assert(fs.existsSync(path.join(recordings,'recording-generation.json'))===generation,'lifecycle manifest format mismatch');
+  assert(typeof segmentId==='string'&&segmentId.length>0,'lifecycle segment ID');
+  const escaped=segmentId.replaceAll("'","''");
+  const database=path.join(recordings,generation?'recording-generation-catalog.sqlite3':'recording-catalog.sqlite3');
+  const stat=fs.lstatSync(database);
+  assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1,'lifecycle cache binding');
+  const query=generation?`SELECT count FROM b_hold WHERE id='${escaped}';`:
+    `SELECT hold_count FROM recording_segment_states_v2 WHERE segment_id='${escaped}';`;
+  const value=execFileSync('/usr/bin/sqlite3',['-readonly',database,query],{encoding:'utf8'}).trim();
+  assert(/^(0|[1-9][0-9]*)$/.test(value)&&Number.isSafeInteger(Number(value)),'lifecycle hold row missing or invalid');
+  return Number(value);
+}
+
 async function verifyRecordingHttpLifecycle(baseUrl, seed, root, child) {
   let checks = 0;
   const check = (condition, label) => { assert(condition, label); checks++; console.log(`[lifecycle-subcheck] PASS ${label}`); };
   assert(seed.transport,'transport fixture required');
   const fixture=path.join(root,'recordings',seed.transport.relativePath);
   const url = `${baseUrl}/ops/api/recordings/media/${seed.transport.id}`;
-  const database = path.join(root, 'recordings/recording-catalog.sqlite3');
-  const hold = () => Number(execFileSync('/usr/bin/sqlite3', ['-readonly', database,
-    `SELECT hold_count FROM recording_segment_states_v2 WHERE segment_id='${seed.transport.id}';`], { encoding: 'utf8' }).trim());
+  const hold = () => readRecordingLifecycleHold(root,seed.transport.id);
   const waitHold = async expected => {
     for (let n = 0; n < 100; n++) {
       if (hold() === expected) return true;

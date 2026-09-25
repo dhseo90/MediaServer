@@ -2,6 +2,7 @@
 #define main recording_service_fixture_unused_main
 #include "recording_derived_job_service_smoke.cpp"
 #undef main
+#include "recording/recording_runtime_composition.h"
 static void CompletenessFixture(const std::filesystem::path& root,const std::string& mode){
  const bool proofMode=mode=="proof-legacy"||mode=="proof-native"||mode=="proof-candidate";
  const bool fractional=mode=="file";Store store(root/"recordings");auto input=proofMode?Encode(90,false,false,160,90,30,30):Encode(fractional?60:30,false,fractional);Shift(input,7000000000ULL);
@@ -39,7 +40,7 @@ static void CompletenessFixture(const std::filesystem::path& root,const std::str
  const bool full=mode=="full";if(result.job->ready->request_fully_satisfied!=full||selection.complete!=(full||fractional))throw std::runtime_error("complete-classification");
  std::cout<<"{\"fixtureTypedReadback\":true}\n";
 }
-int main(int argc,char** argv){
+int ArchiveFixtureMain(int argc,char** argv){
  if(argc!=3)return 2;
  try{
   gst_init(nullptr,nullptr);const std::string mode=argv[2];
@@ -61,4 +62,16 @@ int main(int argc,char** argv){
   if(!store.catalog.FindDerivedJob(job.job_id,&saved,&error)||!saved||saved->state!=(failed?recording::DerivedJobState::Failed:recording::DerivedJobState::Intent))throw std::runtime_error("fixture-readback");
   std::cout<<"{\"fixtureTypedReadback\":true}\n";return 0;
  }catch(...){std::cerr<<"fixture-failed\n";return 1;}
+}
+int main(int argc,char** argv){
+ if(argc!=3)return 2;
+ const std::string requested=argv[2];
+ if(requested.rfind("b-",0)!=0)return ArchiveFixtureMain(argc,argv);
+ std::string mode=requested.substr(2);char* args[]={argv[0],argv[1],mode.data()};
+ const int result=ArchiveFixtureMain(argc,args);if(result)return result;
+ try{
+  recording::RecordingRuntimeStorage storage(std::filesystem::path(argv[1])/"recordings");std::string error;
+  if(!storage.Open(&error)||!std::filesystem::exists(std::filesystem::path(argv[1])/"recordings/recording-generation.json"))return 1;
+  return 0;
+ }catch(...){return 1;}
 }

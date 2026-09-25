@@ -1,0 +1,40 @@
+{
+  "entries": [
+    {
+      "name": "docs-links",
+      "artifact": "docs-links.log.gz",
+      "exit": 0,
+      "rawPath": "/private/tmp/b06-docs-links.log",
+      "dev": 16777234,
+      "ino": 159589058,
+      "uid": 501,
+      "rawBytes": 187,
+      "rawSha256": "eb179539060c4029466742097cdfc67edefdae7f65ee098155a16c3e5fdfbdb1",
+      "rawRemoved": true
+    },
+    {
+      "name": "docs-assets",
+      "artifact": "docs-assets.log.gz",
+      "exit": 0,
+      "rawPath": "/private/tmp/b06-docs-assets.log",
+      "dev": 16777234,
+      "ino": 159589059,
+      "uid": 501,
+      "rawBytes": 636,
+      "rawSha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2",
+      "rawRemoved": true
+    },
+    {
+      "name": "inventory",
+      "artifact": "inventory.log.gz",
+      "exit": 0,
+      "rawPath": "/private/tmp/b06-inventory.log",
+      "dev": 16777234,
+      "ino": 159589061,
+      "uid": 501,
+      "rawBytes": 210250,
+      "rawSha256": "24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00",
+      "rawRemoved": true
+    }
+  ]
+}

@@ -206,7 +206,11 @@ int main(int argc,char** argv){
             if(lstat(original_path.c_str(),&original_stat)==0)Require(current.st_dev!=original_stat.st_dev||current.st_ino!=original_stat.st_ino,"copy-alias-original");
             bytes+=static_cast<std::uint64_t>(current.st_size);Require(bytes<=512ULL*1024*1024,"copy-byte-bound");
         }
-        recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{copy,{}});
+        // 종료 복제본에 이미 적용한 총 bytes/파일수 상한 안에서만 B를 읽는다.
+        // RuntimeStorage를 쓰지 않아 legacy 복제본의 형식 전환은 수행하지 않는다.
+        constexpr std::uint64_t copy_limit=512ULL*1024*1024;
+        recording::RecordingJournal::GenerationReadLimits limits{copy_limit,copy_limit,copy_limit,16ULL*1024*1024+1,copy_limit,4096};
+        recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{copy,{},limits});
         std::string error;Require(journal.Open(&error),"copy-journal-open");
         recording::RecordingCatalog::Options options(copy/"recording-catalog.sqlite3",copy,true);options.enable_v2_storage=true;
         recording::RecordingCatalog catalog(journal,options);

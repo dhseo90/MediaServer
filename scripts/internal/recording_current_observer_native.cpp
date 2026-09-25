@@ -3,6 +3,7 @@
 #include "recording/recording_contracts.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_read_service.h"
+#include "recording/recording_runtime_composition.h"
 #include "domain/strict_json.h"
 #include "recording_media_test_fixture.h"
 #include "recording_archive_phase_trace.h"
@@ -14,6 +15,7 @@
 #include <fstream>
 #include <memory>
 #include <stdexcept>
+#include "recording_generation_observation.h"
 
 namespace {
 thread_local const char* failure_code="native-observation-invalid";
@@ -42,7 +44,7 @@ std::string Normalize(const std::string& raw){
     if(m.mutation_type==recording::RecordingMutationType::EventLinkReceipt)
       identity=ingress::StrictJsonStringField(payload,"originalSha256").value_or("");
     std::ostringstream out;out<<"{\"id\":"<<Quote(m.mutation_id)<<",\"entity\":"<<Quote(m.entity_id)
-      <<",\"type\":"<<Quote(type)<<",\"identity\":"<<Quote(identity);
+      <<",\"type\":"<<Quote(type)<<",\"identity\":"<<Quote(identity)<<",\"occurredAtMs\":"<<Quote(std::to_string(m.occurred_at_ms));
     if(m.mutation_type==recording::RecordingMutationType::SegmentV2Finalized||m.mutation_type==recording::RecordingMutationType::SegmentV2BoundFinalized){
       recording::RecordingSegmentV2 s;const auto json=ingress::StrictJsonObjectField(payload,"segment");
       Require(json&&recording::ParseRecordingSegmentV2(*json,&s,nullptr)&&s.segment_id==m.entity_id);
@@ -59,10 +61,26 @@ std::string Normalize(const std::string& raw){
 }
 }
 int main(int argc,char** argv){try{
+    if(argc==4&&std::string(argv[1])=="--observe-generation"){
+      const std::string value(argv[3]);Require(!value.empty()&&value.size()<7&&value.find_first_not_of("0123456789")==std::string::npos);
+      const auto seen=std::stoull(value);Require(seen<=100000&&std::to_string(seen)==value);
+      std::cout<<generation_observation::Observe(argv[2],seen,Normalize)<<'\n';return 0;
+    }
+    if(argc==4&&std::string(argv[1])=="--generation-fixture"){
+      const std::filesystem::path root(argv[2]);Require(root.is_absolute()&&root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0,"fixture-root");
+      recording::RecordingRuntimeStorage storage(root);std::string error;Require(storage.Open(&error),"fixture-open");
+      if(std::string(argv[3])=="checkpoint")Require(storage.catalog().Checkpoint(&error),"fixture-checkpoint");
+      else if(std::string(argv[3])=="batch") {for(int n=1;n<=130;++n){recording::RecordingOrderReservationV1 order;const auto key=std::to_string(n);
+        Require(storage.catalog().ReserveRecordingOrder(storage.journal().ManagedStoreId(),"observe-batch-"+key,"segment-batch-"+key,"9101",&order,&error),"fixture-order");}}
+      else {const auto key=std::string(argv[3]);Require(key=="one"||key=="two"||key=="three","fixture-key");recording::RecordingOrderReservationV1 order;
+        Require(storage.catalog().ReserveRecordingOrder(storage.journal().ManagedStoreId(),"observe-"+key,"segment-"+key,"9101",&order,&error),"fixture-order");}
+      std::cout<<"{\"fixture\":true}\n";return 0;
+    }
     if(argc==3&&std::string(argv[1])=="--snapshot"){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root)==root&&
         root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&std::filesystem::exists(root/".recording-store-format"),"snapshot-input-invalid");
-      auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{root,{}});auto& journal=*journal_owner;
+      auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{root,{},
+        {448ULL*1024*1024,448ULL*1024*1024,448ULL*1024*1024,16ULL*1024*1024+1,100000,4096}});auto& journal=*journal_owner;
       std::unique_ptr<recording::RecordingCatalog> catalog_owner;auto teardown=archive_phase::OnExit([&]{archive_phase::Scope scope(archive_phase::Phase::Destruct);catalog_owner.reset();journal_owner.reset();});
       recording::RecordingCatalog::Options options(root/"recording-catalog.sqlite3",root,true);options.enable_v2_storage=true;
       catalog_owner=std::make_unique<recording::RecordingCatalog>(journal,options);auto& catalog=*catalog_owner;std::string error;
@@ -82,25 +100,32 @@ int main(int argc,char** argv){try{
       std::string digest;{archive_phase::Scope digest_scope(archive_phase::Phase::Digest);std::sort(evidence.begin(),evidence.end());std::string joined;for(const auto& e:evidence)joined+=e+'\n';digest=Hash(joined);}
       {archive_phase::Scope output_scope(archive_phase::Phase::Output);std::cout<<"{\"digest\":"<<Quote(digest)<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';std::cout.flush();Require(bool(std::cout),"output");}return 0;
     }
-    if(argc==3&&std::string(argv[1])=="--fixture"){
+    if(argc==3&&(std::string(argv[1])=="--fixture"||std::string(argv[1])=="--generation-media-fixture")){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root.parent_path())==root.parent_path()&&
         root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&!std::filesystem::exists(root));
-      gst_init(nullptr,nullptr);Store store(root);auto input=Encode(30,false,false);Shift(input,0);std::string error;
+      gst_init(nullptr,nullptr);const bool generation=std::string(argv[1])=="--generation-media-fixture";
+      std::unique_ptr<Store> legacy;std::unique_ptr<recording::RecordingRuntimeStorage> runtime;std::string error;
+      if(generation){runtime=std::make_unique<recording::RecordingRuntimeStorage>(root);Require(runtime->Open(&error));}else legacy=std::make_unique<Store>(root);
+      auto& journal=generation?runtime->journal():legacy->journal;auto& catalog=generation?runtime->catalog():legacy->catalog;
+      auto input=Encode(30,false,false);Shift(input,0);
       for(const auto& channel:{"9101","9201"}){
-        recording::GStreamerSegmentWriter::Options options(root,1000);options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
+        recording::GStreamerSegmentWriter::Options options(root,1000);options.managed_journal=&journal;options.managed_catalog=&catalog;options.managed_store_id=journal.ManagedStoreId();
         recording::GStreamerSegmentWriter writer(options);Require(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error));
         for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
       }
-      const auto segments=store.Segments();Require(segments.size()>=4);
+      std::vector<recording::RecordingSegmentV2> segments;
+      for(const auto& channel:{"9101","9201"}){recording::RecordingLocationCatalogSnapshot values;Require(catalog.SnapshotLocationsV2(channel,&values,&error));segments.insert(segments.end(),values.segments.begin(),values.segments.end());}
+      Require(segments.size()>=4);
       for(const auto& channel:{"9101","9201"}){const auto it=std::find_if(segments.begin(),segments.end(),[&](const auto& s){return s.channel_id==channel;});Require(it!=segments.end());
-        const auto location=store.catalog.FindSegmentMediaLocation(it->segment_id);Require(bool(location)&&store.catalog.RequestDeletion(it->segment_id,"continuous-capacity",&error));
+        const auto location=catalog.FindSegmentMediaLocation(it->segment_id);Require(bool(location)&&catalog.RequestDeletion(it->segment_id,"continuous-capacity",&error));
         Require(std::filesystem::remove(location->first/location->second));
         recording::RecordingTombstoneV2 tombstone;tombstone.tombstone_id=std::string("observer-deleted-")+channel;tombstone.segment=*it;tombstone.deletion_reason="continuous-capacity";tombstone.deleted_at_ms=1;
-        Require(store.catalog.CompleteDeletionV2(tombstone,&error));
+        Require(catalog.CompleteDeletionV2(tombstone,&error));
       }
-      Require(store.catalog.Checkpoint(&error));
-      const auto replay=store.journal.Replay();Require(replay.io_error_count==0&&!replay.mutations.empty());
-      std::ifstream physical(store.journal.path(),std::ios::binary);Require(bool(physical));
+      Require(catalog.Checkpoint(&error));
+      if(generation){std::cout<<"{\"fixture\":true}\n";return 0;}
+      const auto replay=journal.Replay();Require(replay.io_error_count==0&&!replay.mutations.empty());
+      std::ifstream physical(journal.path(),std::ios::binary);Require(bool(physical));
       std::cout<<physical.rdbuf();Require(bool(std::cout));return 0;
     }
     Require(argc==2&&std::string(argv[1])=="--normalize");

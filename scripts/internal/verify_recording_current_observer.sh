@@ -2,8 +2,8 @@
 # 파일 용도: 현행 관측 준비/120분 실행 연결. 기본 실행이나 짧은 시간을 120분으로 승격하지 않는다.
 set -euo pipefail
 case "$*" in
-  --self-test|--app-observe|--diagnose-status-1020|--diagnose-status-1020-original|"--duration-minutes 120") ;;
-  *) echo 'usage: current-observer --self-test | --app-observe | --diagnose-status-1020 | --diagnose-status-1020-original | --duration-minutes 120' >&2; exit 2 ;;
+  --self-test|--generation-self-test|--app-observe|--diagnose-status-1020|--diagnose-status-1020-original|"--duration-minutes 120") ;;
+  *) echo 'usage: current-observer --self-test | --generation-self-test | --app-observe | --diagnose-status-1020 | --diagnose-status-1020-original | --duration-minutes 120' >&2; exit 2 ;;
 esac
 observer_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 observer_repo="$(cd "$observer_script/../.." && pwd)"
@@ -13,6 +13,7 @@ export MEDIA_SERVER_RECORDING_RECEIPT_DIR="$observer_receipts"
 observer_run="$(mktemp -d "${TMPDIR:-/tmp}/media-server-current-observer-XXXXXX")"
 observer_run="$(cd "$observer_run" && pwd -P)"
 chmod 700 "$observer_run"
+node -e 'const f=require("fs"),s=f.lstatSync(process.argv[1]);console.log("[owned-root] "+JSON.stringify({root:process.argv[1],dev:s.dev,ino:s.ino,uid:s.uid}));' "$observer_run"
 cleanup() {
   local prior=$?
   trap - EXIT
@@ -52,9 +53,12 @@ fs.writeFileSync(destination,instrumentCatalog(source),{flag:'wx',mode:0o600});
 NODE
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$observer_repo/include" -I"$observer_repo/src/recording" "${observer_flags[@]}" \
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
+  -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 \
   -include "$observer_script/recording_archive_phase_trace.h" "$observer_run/catalog-instrumented.cpp" \
   "$observer_script/recording_current_observer_native.cpp" "${observer_libs[@]}" -o "$observer_run/normalize"
-if [[ "$1" == --self-test ]];then
+if [[ "$1" == --generation-self-test ]];then
+  node "$observer_script/recording_generation_observation.test.mjs" "$observer_run"
+elif [[ "$1" == --self-test ]];then
   node "$observer_script/recording_current_observer.test.mjs" "$observer_run"
 else
   c++ -std=c++17 "$observer_script/recording_process_metrics.cpp" -o "$observer_run/process-metrics"

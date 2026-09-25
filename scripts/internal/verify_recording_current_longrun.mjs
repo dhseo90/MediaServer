@@ -107,7 +107,7 @@ function verifyStatusUsage(status){
 }
 function snapshot(){
   if(processes.some(p=>!p.result?.archiveSafe))throw Error('snapshot-live-owner');
-  const original=path.join(root,'recordings'),file=path.join(original,'recording-v2-mutations.jsonl'),before=fileHash(file),sourceTree=snapshotTree(original);
+  const original=path.join(root,'recordings'),sourceTree=snapshotTree(original);
   if(sourceTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
   const copyParent=fs.realpathSync(os.tmpdir()),copyRoot=fs.realpathSync(fs.mkdtempSync(path.join(copyParent,'media-server-current-observer-copy-')));fs.chmodSync(copyRoot,0o700);
   const copyIdentity=diagnosticRootIdentity(copyRoot,copyParent,'current-observer-snapshot'),copy=path.join(copyRoot,'recordings');
@@ -117,7 +117,7 @@ function snapshot(){
     const manifestEntries=[
       {name:'catalog-source',file:path.join(repo,'src/recording/recording_catalog.cpp')},{name:'catalog-instrumented',file:path.join(root,'catalog-instrumented.cpp')},
       {name:'runtime-archive',file:path.join(repo,'build-gst-onnx/libmedia_server_runtime.a')},{name:'native-source',file:path.join(repo,'scripts/internal/recording_current_observer_native.cpp')},
-      {name:'trace-header',file:path.join(repo,'scripts/internal/recording_archive_phase_trace.h')},{name:'native-binary',file:native}],manifest=sourceManifest(manifestEntries);
+      {name:'trace-header',file:path.join(repo,'scripts/internal/recording_archive_phase_trace.h')},{name:'generation-observation',file:path.join(repo,'scripts/internal/recording_generation_observation.h')},{name:'native-binary',file:native}],manifest=sourceManifest(manifestEntries);
     const childStart=performance.now(),r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,detached:true,env:snapshotEnvironment()});
     const child=summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart}),trace=validatedPhaseReceipt(r.stderr);console.log('[snapshot-process] '+JSON.stringify(child));
     try{process.kill(-r.pid,0);}catch(error){groupClosed=error?.code==='ESRCH';}childSuccess=groupClosed&&!r.error&&!r.signal&&r.status===0;
@@ -130,7 +130,8 @@ function snapshot(){
     receiptPreserved=receipt.preserved;console.log('[snapshot-receipt] '+JSON.stringify({...receipt,rawPathsPublished:false}));
     check(childSuccess,'LP26-O05 stopped copy native catalog recovery');
     result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&result.deleted>0,'LP26-O05 native surviving and deleted states');
-    check(originalUnchanged&&before===fileHash(file),'LP26-O05 original journal bytes unchanged');
+    // 이름 하나가 아닌 원본 전체 파일의 경로·크기·해시를 대조한다(B/legacy 모두).
+    check(originalUnchanged,'LP26-O05 original journal bytes unchanged');
   }catch(error){primary=error;
   }finally{let bytes=null,reason=null,absent=false;try{bytes=size(copyRoot);}catch{reason='size-unavailable';}
     if(!primary&&childSuccess&&receiptPreserved&&originalUnchanged&&manifestUnchanged&&groupClosed)try{removeDiagnosticRoot(copyRoot,copyIdentity,true);absent=!fs.existsSync(copyRoot);}catch{reason='remove-failed';}

@@ -10,7 +10,10 @@ export const CURRENT_JOURNAL_MUTATION_TYPES=Object.freeze(['segment_finalized','
 const categoryTotal=(categories,names)=>names.reduce((total,name)=>({bytes:total.bytes+categories[name].bytes,files:total.files+categories[name].files}),{bytes:0,files:0});
 // sqlite3는 read-only PRAGMA만 수행한다. 실행기를 찾지 못하거나 live DB를 읽지 못하면 관측을 실패로 만들지 않고 unavailable로 남긴다.
 export function measureCurrentSqlitePages(root,run=spawnSync){
-  const main=path.join(root,'recordings','recording-catalog.sqlite3'),wal=path.join(root,'recordings','recording-catalog.sqlite3-wal');
+  // 파일 용량 관측만 담당한다. manifest 존재는 Catalog 유효성 판정이 아니다.
+  // B가 선택된 root에서는 보존된 구형 cache를 현재 사용량으로 대체하지 않는다.
+  const cache=fs.existsSync(path.join(root,'recordings','recording-generation.json'))?'recording-generation-catalog.sqlite3':'recording-catalog.sqlite3';
+  const main=path.join(root,'recordings',cache),wal=path.join(root,'recordings',cache+'-wal');
   const mainBytes=fs.existsSync(main)?fs.lstatSync(main).size:0,walBytes=fs.existsSync(wal)?fs.lstatSync(wal).size:0;
   if(mainBytes===0)return {status:'absent',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};
   let result;try{result=run('sqlite3',['-readonly',main,'PRAGMA page_size; PRAGMA page_count; PRAGMA freelist_count;'],{encoding:'utf8',timeout:3000,maxBuffer:1024,env:{PATH:process.env.PATH}});}catch{return {status:'unavailable',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};}
@@ -34,7 +37,7 @@ export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
 }
 // 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
 export function measureCurrentRoot(root,{sqlitePages=false}={}){
-  const categories=Object.fromEntries(['input','media','mediaPartial','journal','checkpoint','sqlite','wal','sqliteAux','tmp','log','state','events','cache','tools','recordingsOther','other'].map(k=>[k,{bytes:0,files:0}]));
+  const categories=Object.fromEntries(['input','media','mediaPartial','journal','checkpoint','generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction','sqlite','wal','sqliteAux','tmp','log','state','events','cache','tools','recordingsOther','other'].map(k=>[k,{bytes:0,files:0}]));
   let totalBytes=0,entries=0;
   function category(parts){
     const top=parts[0],name=parts.at(-1);
@@ -45,10 +48,16 @@ export function measureCurrentRoot(root,{sqlitePages=false}={}){
     if(parts.length===1&&/^server-\d+\.private\.log$/.test(name))return 'log';
     if(parts.length===1&&['normalize','process-metrics'].includes(name))return 'tools';
     if(top==='recordings'){
+      if(name==='.recording-generation-transaction.json'||name==='.recording-generation-transaction.stage'||parts.some(part=>/^\.recording-generation-prepare-[a-f0-9]{32}$/.test(part)))return 'generationTransaction';
       if(name==='.recording-checkpoint.tmp')return 'checkpoint';
-      if(name==='recording-catalog.sqlite3')return 'sqlite';
-      if(name==='recording-catalog.sqlite3-wal')return 'wal';
-      if(['recording-catalog.sqlite3-shm','recording-catalog.sqlite3-journal'].includes(name))return 'sqliteAux';
+      if(/^recording-(?:generation-)?catalog\.sqlite3$/.test(name))return 'sqlite';
+      if(/^recording-(?:generation-)?catalog\.sqlite3-wal$/.test(name))return 'wal';
+      if(/^recording-(?:generation-)?catalog\.sqlite3-(?:shm|journal)$/.test(name))return 'sqliteAux';
+      if(/^active-[1-9]\d*\.jsonl$/.test(name))return 'journal';
+      if(/^snapshot-[1-9]\d*\.jsonl$/.test(name))return 'generationSnapshot';
+      if(/^identity-[1-9]\d*\.jsonl$/.test(name))return 'generationIdentity';
+      if(/^evidence-[1-9]\d*-(?:0|[1-9]\d*)\.jsonl$/.test(name))return 'generationEvidence';
+      if(name==='recording-generation.json')return 'generationManifest';
       if(/^recording(?:-v2)?-mutations\.jsonl$/.test(name))return 'journal';
       if(/^.+\.(mp4|webm)\.partial\.[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(name))return 'mediaPartial';
       if(/\.(mp4|m4s|ts|mkv|webm)$/.test(name))return 'media';
@@ -65,14 +74,14 @@ export function measureCurrentRoot(root,{sqlitePages=false}={}){
     const item=categories[category(parts)];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
   }
   need(fs.lstatSync(root).isDirectory()&&!fs.lstatSync(root).isSymbolicLink(),'root-unsafe-directory');visit(root,[]);
-  const ownership={productRecording:categoryTotal(categories,['media','mediaPartial','journal','checkpoint','sqlite','wal','sqliteAux','recordingsOther']),
+  const ownership={productRecording:categoryTotal(categories,['media','mediaPartial','journal','checkpoint','generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction','sqlite','wal','sqliteAux','recordingsOther']),
     fixtureInput:categoryTotal(categories,['input']),observerTools:categoryTotal(categories,['tools']),cache:categoryTotal(categories,['cache']),temporary:categoryTotal(categories,['tmp']),
     runtimeSupport:categoryTotal(categories,['log','state','events']),other:categoryTotal(categories,['other'])};
   need(Object.values(ownership).reduce((sum,item)=>sum+item.bytes,0)===totalBytes,'root-category-aggregate');
   return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,ownership,
     ...(sqlitePages?{sqlitePages:measureCurrentSqlitePages(root)}:{}),measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
 }
-export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false;}
+export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false&&result.busy!==true;}
 export function disabledChannelsExact(status,expected){
   const channels=status?.channels;if(!Array.isArray(channels)||!Array.isArray(expected))return false;
   const actual=channels.map(c=>c?.channelId);
@@ -113,9 +122,40 @@ export function normalizeCurrentRows(binary,rows){
 export class CurrentRecordingObserver {
   constructor(root,binary,budget=new CurrentObservationBudget()){this.root=root;this.binary=binary;this.budget=budget;this.reader=null;this.prefix=[];this.ids=new Set();this.bytes=0;this.cursor=0;this.replaying=false;this.rotations=0;this.error=null;this.typeCounts=Object.fromEntries(CURRENT_JOURNAL_MUTATION_TYPES.map(type=>[type,0]));}
   open(){return new RecordingJournalReader(this.root,'recording-v2-mutations.jsonl',{nativeLines:true,lineBytes:16777216,pollBytes:33554432});}
+  pollGeneration(){
+    this.reader?.close();this.reader=null;
+    const result=spawnSync(this.binary,['--observe-generation',this.root,String(this.prefix.length)],{encoding:'utf8',timeout:3000,maxBuffer:33554432,env:{PATH:process.env.PATH}});
+    if(result.error?.code==='ETIMEDOUT')throw Error('observer-native-timeout');
+    if(result.error?.code==='ENOBUFS')throw Error('observer-native-output-cap');
+    need(!result.error&&!result.signal&&result.status===0,'observer-native-rejected');
+    let value;try{value=JSON.parse(result.stdout);}catch{throw Error('observer-native-output-invalid');}
+    need(typeof value?.busy==='boolean','observer-native-output-invalid');
+    if(value.busy)return {rows:[],busy:true,backlog:false,partialBytes:0,mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
+    need(/^[a-f0-9]{64}$/.test(value.storeHash)&&/^[1-9]\d{0,19}$/.test(value.generation)&&
+      Array.isArray(value.prefix)&&value.prefix.length<=100000&&value.prefix.length>=this.prefix.length&&Array.isArray(value.rows)&&
+      value.rows.length<=128&&value.prefix.length-this.prefix.length===value.rows.length&&typeof value.backlog==='boolean'&&
+      Number.isSafeInteger(value.partialBytes)&&value.partialBytes>=0&&Number.isSafeInteger(value.consumedOffset)&&value.consumedOffset>=0,'observer-native-output-invalid');
+    need(!this.storeHash||this.storeHash===value.storeHash,'observer-store-changed');
+    need(!this.generation||BigInt(value.generation)>=BigInt(this.generation),'observer-generation-regressed');
+    for(let i=0;i<this.prefix.length;i++)need(value.prefix[i]===this.prefix[i],'observer-checkpoint-prefix-mismatch');
+    const before=this.prefix.length;
+    for(const [index,row] of value.rows.entries()){
+      need(typeof row.id==='string'&&typeof row.entity==='string'&&/^[a-f0-9]{64}$/.test(row.identity),'observer-compact-shape');
+      need(typeof row.occurredAtMs==='string'&&/^-?(0|[1-9]\d*)$/.test(row.occurredAtMs),'observer-compact-time');
+      const type=row.type==='event_link_receipt'?'event_link_created':row.type,token=JSON.stringify([row.id,row.entity,type,row.identity,row.occurredAtMs]);
+      need(value.prefix[before+index]===token&&!this.ids.has(row.id)&&Object.hasOwn(this.typeCounts,type),'observer-generation-row-mismatch');
+      const bytes=Buffer.byteLength(token);need(this.prefix.length<100000&&this.bytes+bytes<=33554432,'observer-id-cap');this.budget.reserve(2,bytes);
+      this.ids.add(row.id);this.prefix.push(token);this.bytes+=bytes;this.typeCounts[type]++;
+    }
+    if(this.generation&&this.generation!==value.generation)this.rotations++;
+    this.generation=value.generation;this.storeHash=value.storeHash;
+    return {rows:value.rows,busy:false,backlog:value.backlog,partialBytes:value.partialBytes,consumedOffset:value.consumedOffset,
+      mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
+  }
   poll(){
     if(this.error)throw this.error;
     try{
+      if(this.generationMode||fs.existsSync(path.join(this.root,'recording-generation.json'))){this.generationMode=true;return this.pollGeneration();}
       if(!this.reader){this.reader=this.open();this.cursor=0;}
       let read;
       try{read=this.reader.poll();}catch(error){
@@ -127,7 +167,7 @@ export class CurrentRecordingObserver {
       for(const row of rows){
         need(typeof row.id==='string'&&typeof row.entity==='string'&&/^[a-f0-9]{64}$/.test(row.identity),'observer-compact-shape');
         const canonicalType=row.type==='event_link_receipt'?'event_link_created':row.type;
-        const token=JSON.stringify([row.id,row.entity,canonicalType,row.identity]);
+        const token=JSON.stringify([row.id,row.entity,canonicalType,row.identity,row.occurredAtMs]);
         if(this.cursor<this.prefix.length)need(this.prefix[this.cursor]===token,'observer-checkpoint-prefix-mismatch');
         else{
           need(!this.ids.has(row.id),'observer-duplicate-id');

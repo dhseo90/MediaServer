@@ -10,6 +10,7 @@ import {fileURLToPath} from 'node:url';
 import {captureFailureEvidence,captureCompletenessEvidence,captureStateEvidence,runDiagnosticProbe} from './recording_failure_capture.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),repo=path.resolve(here,'../..');
 const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-archive-probe-tests-')));fs.chmodSync(root,0o700);
+const rootIdentity=fs.lstatSync(root);
 const probe=path.join(root,'probe'),fixture=path.join(root,'fixture');
 let testEnv;
 function scan(dir){const rows=[];function walk(p){for(const name of fs.readdirSync(p).sort()){const full=path.join(p,name),s=fs.lstatSync(full);assert(!s.isSymbolicLink());if(s.isDirectory())walk(full);else rows.push([path.relative(dir,full),s.size,s.ino,s.nlink,crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex')]);}}walk(dir);return rows;}
@@ -17,6 +18,8 @@ function run(binary,args){assert(testEnv,'isolated environment must be configure
 function setup(mode){const dir=fs.mkdtempSync(path.join(root,'media-server-current-integration-'));fs.chmodSync(dir,0o700);const made=run(fixture,[dir,String(mode)]);assert.equal(made.status,0,'typed fixture must be created');assert.match(made.stdout,/fixtureTypedReadback/);const copy=path.join(dir,'projection-copy-1','recordings');fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(path.join(dir,'recordings'),copy,{recursive:true});return {dir,copy,original:path.join(dir,'recordings')};}
 function diagnose(f,args=['--diagnose-failed']){return run(probe,[f.dir,'1','job-service-ref',...args]);}
 before(()=>{
+ console.log('[start]',new Date().toISOString(),process.platform,process.arch,process.version);
+ for(const name of ['recording_current_archive_probe.cpp','recording_current_archive_probe_fixture.cpp','recording_current_archive_probe.test.mjs'])console.log('[source]',name,crypto.createHash('sha256').update(fs.readFileSync(path.join(here,name))).digest('hex'));
  const seed={...process.env,MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'};
  // 다른 실행의 레지스트리나 관리형 플러그인 검색 경로를 상속하지 않는다.
  for(const key of ['GST_REGISTRY','GST_REGISTRY_1_0','GST_PLUGIN_PATH','GST_PLUGIN_PATH_1_0','GST_PLUGIN_SYSTEM_PATH','GST_PLUGIN_SYSTEM_PATH_1_0','MEDIA_SERVER_GST_MANAGED_REGISTRY','MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH','MEDIA_SERVER_GST_INPUT_PLUGIN_PATH'])delete seed[key];
@@ -32,10 +35,23 @@ before(()=>{
  function fresh(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())fresh(p);else if(/\.(h|hpp|cpp)$/.test(e.name))assert(fs.statSync(p).mtimeMs<=stamp,'runtime archive must match product source');}}fresh(path.join(repo,'include'));fresh(path.join(repo,'src'));
  const tokens=fs.readFileSync(path.join(repo,'build-gst-onnx/CMakeFiles/media_server.dir/link.txt'),'utf8').trim().split(/\s+/);const index=tokens.indexOf('libmedia_server_runtime.a');assert(index>=0);const libs=[archive,...tokens.slice(index+1)];
  const flags=execFileSync('pkg-config',['--cflags','gstreamer-app-1.0','openssl','sqlite3'],{env:testEnv,encoding:'utf8'}).trim().split(/\s+/);
- for(const [source,out] of [['recording_current_archive_probe.cpp',probe],['recording_current_archive_probe_fixture.cpp',fixture]]){const result=run(process.env.CXX||'c++',['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+path.join(repo,'include'),...flags,'-DMEDIA_SERVER_USE_GSTREAMER=1','-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1',path.join(here,source),...libs,'-o',out]);if(result.status!==0)process.stderr.write(result.stderr||'compile failed\n');assert.equal(result.status,0,'compile '+source);}
+ for(const [source,out] of [['recording_current_archive_probe.cpp',probe],['recording_current_archive_probe_fixture.cpp',fixture]]){const result=run(process.env.CXX||'c++',['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+path.join(repo,'include'),...flags,'-DMEDIA_SERVER_USE_GSTREAMER=1','-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1',path.join(here,source),...libs,'-o',out]);if(result.status!==0)process.stderr.write(result.stderr||'compile failed\n');assert.equal(result.status,0,'compile '+source);}
 });
-after(()=>{let bytes=0;function size(p){const s=fs.lstatSync(p);if(s.isDirectory())for(const n of fs.readdirSync(p))size(path.join(p,n));else bytes+=s.size;}size(root);assert(path.basename(root).startsWith('media-server-archive-probe-tests-')&&!fs.lstatSync(root).isSymbolicLink());fs.rmSync(root,{recursive:true});console.log(`[cleanup] owned_root=${root} bytes=${bytes} removed=${!fs.existsSync(root)}`);assert(!fs.existsSync(root));});
+after(()=>{let bytes=0;function size(p){const s=fs.lstatSync(p);if(s.isDirectory())for(const n of fs.readdirSync(p))size(path.join(p,n));else bytes+=s.size;}size(root);const current=fs.lstatSync(root);assert(path.basename(root).startsWith('media-server-archive-probe-tests-')&&!current.isSymbolicLink()&&current.dev===rootIdentity.dev&&current.ino===rootIdentity.ino&&current.uid===process.getuid()&&path.dirname(fs.realpathSync(root))===fs.realpathSync(os.tmpdir()));fs.rmSync(root,{recursive:true});console.log(`[cleanup] owned_root=${root} bytes=${bytes} removed=${!fs.existsSync(root)}`);assert(!fs.existsSync(root));console.log('[end]',new Date().toISOString());});
 const known=['job-remux: file-original-timestamp-mismatch','job-remux: source-binding-incomplete','job-source-unavailable'];
+for(const [mode,state] of [['b-5','intent'],['b-0','failed'],['b-full','complete']])test(`B06-V01 정상 B ${state} 종료 복제본 actual Catalog state와 원본 불변`,()=>{
+ const f=setup(mode),before=scan(f.original),r=diagnose(f,['--diagnose-state']);
+ assert.equal(r.status,0,'normal B copy must open with explicit read admission');
+ assert.equal(r.stderr,'');const value=JSON.parse(r.stdout);assert.equal(value.state,state);assert.equal(value.jobCount,1);
+ assert.deepEqual(scan(f.original),before);
+});
+for(const component of ['manifest','active'])test(`B06-V01 B ${component} 손상 고정 실패코드와 원본 불변`,()=>{
+ const f=setup('b-5'),before=scan(f.original);
+ const name=component==='manifest'?'recording-generation.json':fs.readdirSync(f.copy).find(n=>/^active-\d+\.jsonl$/.test(n));assert(name);
+ fs.appendFileSync(path.join(f.copy,name),'broken-tail');const r=diagnose(f,['--diagnose-state']);
+ assert.equal(r.status,1);assert.equal(r.stdout,'');assert.equal(r.stderr,'{"diagnosticError":"archive-probe-failed"}\n');
+ assert.deepEqual(scan(f.original),before);
+});
 for(const [mode,state] of [[5,'intent'],['ready','ready'],['committed','committed'],['full','complete'],[0,'failed'],[5,'absent']])test(`LP13-P02 typed generic ${state} 원본 불변`,()=>{
  const f=setup(mode),before=scan(f.original),reference=state==='absent'?'absent-reference':'job-service-ref',evidencePath=path.join(f.dir,'state.json');
  const r=run(probe,[f.dir,'1',reference,'--diagnose-state']);assert.equal(r.status,0);assert.equal(r.stderr,'');const v=JSON.parse(r.stdout);

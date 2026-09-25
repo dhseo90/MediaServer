@@ -1,0 +1,1460 @@
+{
+  "command": "bash scripts/internal/verify_recording_current_observer.sh --generation-self-test",
+  "exit": 1,
+  "reason": "expected RED: native observe dispatch absent",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-ObfDHj",
+  "uid": 501,
+  "dev": 16777234,
+  "ino": 159583735,
+  "created": "2026-09-25T10:29:21.329Z",
+  "bytes": 9695326,
+  "entries": [
+    {
+      "name": "catalog-instrumented.cpp",
+      "bytes": 272505,
+      "sha256": "9d4c89b5beaf71293ba69488d39cd86f3d0126dcfea65f917b5e4a097ceb408f"
+    },
+    {
+      "name": "generation/.recording-generation.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "generation/.recording-store-format",
+      "bytes": 143,
+      "sha256": "f7f74aa512ed514e480087500fb212b5fed56f9e12f0f9ef6f4c6805994c38c6"
+    },
+    {
+      "name": "generation/.recording-store-lease",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "generation/active-1.jsonl",
+      "bytes": 361,
+      "sha256": "f8c488bea05586197225e2548a1f1b7b4f5eff8e2340276f9dcc5f32b6324386"
+    },
+    {
+      "name": "generation/identity-1.jsonl",
+      "bytes": 160,
+      "sha256": "800945329a66fd6a4f04eac75307ffd9fa5d71451d02ff2ed4fc6fa1cbb7c158"
+    },
+    {
+      "name": "generation/recording-generation-catalog.sqlite3",
+      "bytes": 49152,
+      "sha256": "d6e0b3fc030fb33d27a905b5ee3adbd05dfac991ae615898e74f04702cffb18a"
+    },
+    {
+      "name": "generation/recording-generation.json",
+      "bytes": 391,
+      "sha256": "9a187288b2e52d2eb8ede0c7d4535d372e0fc11a1873decf64a5d4ff78ff4a09"
+    },
+    {
+      "name": "generation/recording-v2-mutations.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "generation/snapshot-1.jsonl",
+      "bytes": 267,
+      "sha256": "8ad7db8846f4f12ea3210e38480685940966d372ab424d0724227d405f89cd53"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "bytes": 41588,
+      "sha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaccurip.dylib",
+      "bytes": 75,
+      "sha256": "03157c54492d34ed78a5c5d43e37a9274090a993849086ea149d5218e3404626"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadaptivedemux2.dylib",
+      "bytes": 82,
+      "sha256": "5fa82ce1b2424fad25c6e793044586ce3519216ad6a8687dd15d0ff16d15fae0"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadder.dylib",
+      "bytes": 73,
+      "sha256": "3b938cd68ac7a4fd9cb2a014e5c3b15408b8ad7db611921ebe3f71bc80264839"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadpcmdec.dylib",
+      "bytes": 76,
+      "sha256": "9434982b62df2b57136858b8cd40186d19f43445bc6c83e8f60a5c11ed2e0898"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadpcmenc.dylib",
+      "bytes": 76,
+      "sha256": "250828403cb40051e5a94867104832fa94c33fb6252d0e2ed0789f4cb2a50dd2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaes.dylib",
+      "bytes": 71,
+      "sha256": "ed464cb795b4306e7ad2b0d302b7323a1470836798147af94b3892491151386e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaiff.dylib",
+      "bytes": 72,
+      "sha256": "2d9ddc8bf04a6d7d92ced410f86c462bb199038275af22fa6806d3be69dba46f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstalaw.dylib",
+      "bytes": 72,
+      "sha256": "e6b102be7f2c47f47dd768853dbad85eb17a8b70f2935f6d46433f14a38a405d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstalpha.dylib",
+      "bytes": 73,
+      "sha256": "19935944a743923a1ea632ceb9050b862754470f0e959477453b11916a4c7bcf"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstalphacolor.dylib",
+      "bytes": 78,
+      "sha256": "037d7db2280972a8c34bebe85edd41ea08bd605b6903593b3e7af5fd7167eeb6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstamrnb.dylib",
+      "bytes": 73,
+      "sha256": "d4e9910e40e8f0b2f7f6af399f2f737db290efc259e96c446e8d85031f847f91"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstamrwbdec.dylib",
+      "bytes": 76,
+      "sha256": "b5b7c09f3c55d40b550b17f0c8810c956ef393918393f18d76276264ec49294a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstanalyticsoverlay.dylib",
+      "bytes": 84,
+      "sha256": "bbbce19b717ee855fd1937649e9a84bc00fedddf0956095fdfe22cc7d365db8c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaom.dylib",
+      "bytes": 71,
+      "sha256": "4fbfde24b83adbe7999554d4d3041ac2e0dd53793fae9310b82b99e5b97ff386"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstapetag.dylib",
+      "bytes": 74,
+      "sha256": "94a261ed089aae062d6f450f67e7f5d0f28e5c7d82508e3a61b4eb8a944b8e76"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstapp.dylib",
+      "bytes": 71,
+      "sha256": "61b3fd3dc12f478fb279463a9447b83466c947721303193a966fb33b3e90000b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstapplemedia.dylib",
+      "bytes": 78,
+      "sha256": "7df4f325e721ef9ca83b13978af9fa32bcdd32732c52db7a05179e9c2e3afd2a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstasf.dylib",
+      "bytes": 71,
+      "sha256": "6e59cc46812c61920f40ae5666739b68cb21087869ba7cd10077a33089247908"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstasfmux.dylib",
+      "bytes": 74,
+      "sha256": "a7a4feb20fb41bd1d569d54c070cd33cb630221481ca75c5a18c2c746c6c578d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstassrender.dylib",
+      "bytes": 77,
+      "sha256": "6f4c386962173ad2b0526658a71de98a01cb86770f023628d90cf2515687ed31"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiobuffersplit.dylib",
+      "bytes": 84,
+      "sha256": "12605036e40af37b9cf9b383368cb9ca565585912275d845cc37326dd5a2a248"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudioconvert.dylib",
+      "bytes": 80,
+      "sha256": "eb4b919f529ff573898a0f8a63bf2841d830f7e5876733a18da26af1740cadea"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiofx.dylib",
+      "bytes": 75,
+      "sha256": "1aacd6415483e2b0e634043a405757dcdf3a7587a049073ec928d7d6c624d214"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiofxbad.dylib",
+      "bytes": 78,
+      "sha256": "fb965e24f383657efdda4a8bbd40345318032b81b63a8f4c8bfcab4ac372978e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiolatency.dylib",
+      "bytes": 80,
+      "sha256": "0697f4cfbd10235e93727655a5224f6482cacb97eef0c23c037dd08c4a5c79f4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiomixer.dylib",
+      "bytes": 78,
+      "sha256": "a0fc3f285db9aa96415a5c286809d96653590df6a6d9b118500118dcad7610e3"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiomixmatrix.dylib",
+      "bytes": 82,
+      "sha256": "b5b598fe336a0a124732b43286ebabcaae8ff59d367d83c181c832abb58e504c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudioparsers.dylib",
+      "bytes": 80,
+      "sha256": "3263b2e56190abeed371c380c386fb4ff9f5f28d56a749555f158cbb5e8df9e9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiorate.dylib",
+      "bytes": 77,
+      "sha256": "69b149a2b04924070670e411f4a26d670b0a769f1d4ce55f7662e8391cf98650"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudioresample.dylib",
+      "bytes": 81,
+      "sha256": "b62edb8c76b21f8cbdc2a2a0971ff823c4d77afb5b4acfa3485f6702fa1da857"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiotestsrc.dylib",
+      "bytes": 80,
+      "sha256": "2cda7ca2a268fb0c23b62b22b790960b90b66270c202e9931bfe64e289774a67"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiovisualizers.dylib",
+      "bytes": 84,
+      "sha256": "17f8c39f49468301267ecdf8a10984194a101377699cc5f729c623a7d2244f62"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstauparse.dylib",
+      "bytes": 75,
+      "sha256": "e13dde48788fb50b4554cb6724cbcdb9d6474f46b08fc3377dbc0f548167d444"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstautoconvert.dylib",
+      "bytes": 79,
+      "sha256": "8ff10896ca9bba0ad03f0b5c83cfce4c845485de219cbbcc52c68a6a458b77e1"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstautodetect.dylib",
+      "bytes": 78,
+      "sha256": "d39837422f033e35504e33eb2be1ce02ceeebba771625ac98c22758473cd9ed3"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstavi.dylib",
+      "bytes": 71,
+      "sha256": "44c14fc3f61a87274d8cdddcec51523812cfbb15fbb5991e1cc3093b9308f4e6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaws.dylib",
+      "bytes": 71,
+      "sha256": "fad2ce799dba1b87edac40eb827a7327e14102e7a8320423bdd2cd645104ac15"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstbasedebug.dylib",
+      "bytes": 77,
+      "sha256": "246d46b67fa09d2e9ebd098dd66f04e70ca1a5a017b7d87d86688b28fd42cd8a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstbayer.dylib",
+      "bytes": 73,
+      "sha256": "67c3d5323907d0e24b2da2f22d2999eb51ed8acf3eab3f0c79745264dd5038fb"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstburn.dylib",
+      "bytes": 72,
+      "sha256": "3a7c7830cde970fc6fe05fe1ee8ab1e5716816a3375754bc5a8c162c5af30f12"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstbz2.dylib",
+      "bytes": 71,
+      "sha256": "963b12ee80801d3910422bd1b6ecd7e70551c432960ec52b8232937dae44c90f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcairo.dylib",
+      "bytes": 73,
+      "sha256": "074ef5ec36e6d13242e9cae77f8a05f707fc01cfa7f78002a909f069ade821d1"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcamerabin.dylib",
+      "bytes": 77,
+      "sha256": "d731416bea01907a42ca561830e4ada73300dbc2663d277ea84092a754da6e25"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcdg.dylib",
+      "bytes": 71,
+      "sha256": "056ab5a019f5075355a63c4d46b0060dc9aedd245dc2b8e2418e0e309f808fa8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstclaxon.dylib",
+      "bytes": 74,
+      "sha256": "9059c4015372ff8d090717c78c8b2894c6807dc9c549e9f0ad890120be50fe04"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstclosedcaption.dylib",
+      "bytes": 81,
+      "sha256": "c16aa1f492aba44bbccd72b5e276cc0fdf8784d547022abc0558ff5a7094afd2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcodec2json.dylib",
+      "bytes": 78,
+      "sha256": "dc960798c4ff7a383e222c6ee74d1ccfd52b106c751d307c7d45bc9a0fd77a13"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcodecalpha.dylib",
+      "bytes": 78,
+      "sha256": "473e1a9558f5182ffff8b65f185857f8f1f8f0370ff27d67c530b456a707e8a8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcodectimestamper.dylib",
+      "bytes": 84,
+      "sha256": "7dea7f23fa4d52155c1805c1c7a21dbeab3aa3bbc69e478c109fec1b75aa7d4f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcoloreffects.dylib",
+      "bytes": 80,
+      "sha256": "124d8560ec88a8a43d7aecfd96d4708d0931e76002ad2f3c476a340feebc39d6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcolormanagement.dylib",
+      "bytes": 83,
+      "sha256": "4a62d384813326d78d5bde30a19f456117007b5c3af9738823b3bee3ac8b5281"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcompositor.dylib",
+      "bytes": 78,
+      "sha256": "37bdb492aa3660cc7537ad0f643c5e690071433cbe2385ecfeb5bb8ba8713f5b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcoreelements.dylib",
+      "bytes": 80,
+      "sha256": "80e154744c118f051eae86570603a25bcf5b3587963b35978424c6b656f1c38b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcoretracers.dylib",
+      "bytes": 79,
+      "sha256": "7a1e328c5a584688ff7f1c7ad839086a5698e41fdc9e2e181c984d64b5c5b285"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcurl.dylib",
+      "bytes": 72,
+      "sha256": "2787046e99bee9ae8279893030a4ade36f4aa856db373b04527419045fcc6932"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcutter.dylib",
+      "bytes": 74,
+      "sha256": "1fdd06f557368e30255ec0d28a1dafede16bd9aeb65a84d540094df2bd22647a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdash.dylib",
+      "bytes": 72,
+      "sha256": "5e4efd8241444a5a29256ea5774f1fb7ef5ea29bdef267a4178db988e42341c6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdav1d.dylib",
+      "bytes": 73,
+      "sha256": "59a6030b3d05e7f373e929305c84969d99bffc644f86f37e51dd996ea2f5db80"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdebug.dylib",
+      "bytes": 73,
+      "sha256": "d197552d2fdf764a32cbbe6c62a337172e846d74f9c211dbf90a6a57f7e5cf3a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdebugseimetainserter.dylib",
+      "bytes": 88,
+      "sha256": "39967b8ec0dcb15802e88c1bfcc7ba2ea445755c2ebdcf6398195abe4016778c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdebugutilsbad.dylib",
+      "bytes": 81,
+      "sha256": "632c5518981ad5e7fd253237e0e318bc79dea865d700f7af68a3b2304ae85f39"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdecklink.dylib",
+      "bytes": 76,
+      "sha256": "051b0578a0b442ea47dc1605b89b0e37f8ac57f7850e740e3356dc1cc161e21d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdeepgram.dylib",
+      "bytes": 76,
+      "sha256": "376e76e62de58c50262b728690eaeb54b5a43cc825e16c0af73557facb9186dd"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdeinterlace.dylib",
+      "bytes": 79,
+      "sha256": "07c3258c15a55713da134e1de08a6cf7f81cb7b5663e7ad57a225a70401ead07"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdemucs.dylib",
+      "bytes": 74,
+      "sha256": "aa22e07c5f0fce02d391ea07597e1e9714ab23ba80aae70a0b9fce12ae6e254b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdsd.dylib",
+      "bytes": 71,
+      "sha256": "0b48a655cda9df259d55e8eb2a50af229f3fdfc493b4f97494b90d6a7ed8550f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdtls.dylib",
+      "bytes": 72,
+      "sha256": "5421499f4b936708e2dbd1ba7adf4353a33dfc21d7b03426a2eab04b83fd0eb4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdtmf.dylib",
+      "bytes": 72,
+      "sha256": "e9d90ca41edab73e00032033da851f94b968f83aae92058ee8c49f08823f1e07"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvbsubenc.dylib",
+      "bytes": 77,
+      "sha256": "0af2cb0d3c563175aa5b63c60ef5e32db274c9aae3e71463f40b2999463831f9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvbsuboverlay.dylib",
+      "bytes": 81,
+      "sha256": "b7a8ce8fa3d23b9688b49ab5ad04e64adee7a4df11784189a7dfa11e028ad88b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvdlpcmdec.dylib",
+      "bytes": 78,
+      "sha256": "be273b4b96b1a981d18e7974361c4d3fa07d3c27211ad297697d49c0d5362a21"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvdspu.dylib",
+      "bytes": 74,
+      "sha256": "9f5e96de174d8d8596b6c59dab47456271c1b37540c73b2a8e70e1ebc6e5e71b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvdsub.dylib",
+      "bytes": 74,
+      "sha256": "2e68984fc18fbc9f82ee31e9ad00b0d3d42a7e55db1bd56ee5b0ebd3802a1d32"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsteffectv.dylib",
+      "bytes": 75,
+      "sha256": "8a4914295b6a2697453aa7bf99002b1a3d9e9a743d88c8b4ce920729e1bd0a85"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstelevenlabs.dylib",
+      "bytes": 78,
+      "sha256": "2c4195f3c77acdb28cca18a90d5c4b89f05f5d058ed1e2d5af09a1385206aa6b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstencoding.dylib",
+      "bytes": 76,
+      "sha256": "390c7fe598a809e1731463f381e2f47f6f73d75d3b6e9effbeaf2ec4d42c7c0d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstequalizer.dylib",
+      "bytes": 77,
+      "sha256": "fb289b7e606f1ba6fe579a54be6a1ccee1dacb3ca555d08e9459e753d84718fd"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfaac.dylib",
+      "bytes": 72,
+      "sha256": "dd97f6198216ed728309546d0d89aaffbbd83880583cb23c61c6ae9aaf33a0e2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfaad.dylib",
+      "bytes": 72,
+      "sha256": "05ad67105b1190930e2a746ab8f414c7a80683d9ae6391dbb865fed13e2773ee"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfaceoverlay.dylib",
+      "bytes": 79,
+      "sha256": "468f6444ceef0efb56cd14dc9fdfff9aa96bfd6ff72ff6bb8f015518d0566cf8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfallbackswitch.dylib",
+      "bytes": 82,
+      "sha256": "387ab68c3afe7e72075224b6b079aa10e31024192abdaf1757a47fb31f81f1d7"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfdkaac.dylib",
+      "bytes": 74,
+      "sha256": "8150af46bda88a4fbf35a3215e932e542a4e2be552a91e192dc5edde89e81870"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfestival.dylib",
+      "bytes": 76,
+      "sha256": "6cc2a6655ad745756820d66fb13ef639b4cc9160a553e647cbf0aa9b2d0b139a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstffv1.dylib",
+      "bytes": 72,
+      "sha256": "58c7ef06af54b1fbfb54285dd80377e73f656833bd7193e60792991269744cb5"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfieldanalysis.dylib",
+      "bytes": 81,
+      "sha256": "c1bb58cc13084b5ae60534f6be2ec0f5113dbf5d2c17724e7505cc6a80fd2d84"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstflac.dylib",
+      "bytes": 72,
+      "sha256": "bee9cf990b70827b1585762b562ddebef9bb677e02140728308f20a4d88d6a4b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstflv.dylib",
+      "bytes": 71,
+      "sha256": "09f8bf44fec8d8cbbab206a7f082e0fc81e5a75ca3349c69a655184d9143f3f6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstflxdec.dylib",
+      "bytes": 74,
+      "sha256": "370fea87e16770d42b883bf3623b3888ba4b495c738ad6a95530cbd18aca616b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfreeverb.dylib",
+      "bytes": 76,
+      "sha256": "cb04b812531420d08ab31141590ff48c725b9faaa09530333c2ce197d4169637"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfrei0r.dylib",
+      "bytes": 74,
+      "sha256": "110e1fc656b79268769aa15ecb28bdd5858901134eb9080f3191e2f2d70cf359"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgaudieffects.dylib",
+      "bytes": 80,
+      "sha256": "9ef7dc156fa388b714bc0bc922fa02bfe820204bc75e30255ed15b45252355be"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgdkpixbuf.dylib",
+      "bytes": 77,
+      "sha256": "d426595ca39bdbd8d333aca9763e4426ef4577dba373d215d0ce8088e6ae9107"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgdp.dylib",
+      "bytes": 71,
+      "sha256": "889c6ed9ae82a1abafb367cac16114e2db4e106b0f361048eaf31fc8e7c05510"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgeometrictransform.dylib",
+      "bytes": 86,
+      "sha256": "877cdc8020f71680f0e3798ed39089ccbc98ccc19d9010fb3dc20fc8413a485d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstges.dylib",
+      "bytes": 71,
+      "sha256": "adcff525a45107252e2b41f1240af633d2c89e3f09e256fd214b379bac22e68d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgif.dylib",
+      "bytes": 71,
+      "sha256": "c3c67ddfff559b046a95b2914843c86748b48d15814ceb3121d09dbe998cb91c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgio.dylib",
+      "bytes": 71,
+      "sha256": "22560a83381ac4dee44b1baaa70deb210004fa8661f2fe2cc7e8cef4f98a559b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgoom.dylib",
+      "bytes": 72,
+      "sha256": "2b935322b2de89e196171c42540ae3011892f49f795c2c4469c3be61d267476c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgoom2k1.dylib",
+      "bytes": 75,
+      "sha256": "a1771a6cd24e10d289fd0b975b29ef161fa2c60e5a415c5a0701d0e9f8fd92c9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgopbuffer.dylib",
+      "bytes": 77,
+      "sha256": "a08c193410495c2f811023114f3330c9da50f0b24928561a42e905115dba2103"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthls.dylib",
+      "bytes": 71,
+      "sha256": "60b9a6f99d500d38a5bb6d393659b91f61428487557c36a58a9c4a942c309761"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthlsmultivariantsink.dylib",
+      "bytes": 87,
+      "sha256": "e16178c41e6f7926ac253c415b082d33f686e8bf22ec8ee678f229db203ca74c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthlssink3.dylib",
+      "bytes": 76,
+      "sha256": "8cc7f6a4aec49b9937bc12b2f486026e32e6ee55d2bb537cb812af132414cbf2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthsv.dylib",
+      "bytes": 71,
+      "sha256": "8231127aaa2f0b690c7542c4c6055a24bc9f3a5aa9bfa205b097b69df23a3140"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsticecast.dylib",
+      "bytes": 75,
+      "sha256": "75f2d6ed5cd4776b314a9b7b1f7641efe15bc2d910474116e4fc65d37d91c31c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsticydemux.dylib",
+      "bytes": 76,
+      "sha256": "75a14fb45db8471163cd48567f4c2c52353771f31df853bc8ed4a810347c768c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstid3demux.dylib",
+      "bytes": 76,
+      "sha256": "d479b92126f5bfaea4ccf0abe7583b607b5676cbdb459a834ba850809ea95d82"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstid3tag.dylib",
+      "bytes": 74,
+      "sha256": "30355193add357e52da0d01cc16021fc912163957972587ec101b6643228fa9a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstimagefreeze.dylib",
+      "bytes": 79,
+      "sha256": "b9511d36a24eae3fabf3345570c209da0a71ce6003a443b88cc936bdfda00374"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinsertbin.dylib",
+      "bytes": 77,
+      "sha256": "da31a56bf4cc900ce9342413192ffa9cccf4c91cf85f5176c89252ac06d35eff"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinter.dylib",
+      "bytes": 73,
+      "sha256": "fb6f5d85c73bfa1b0a718a7f02be84dd3fcad2220c73781c3c786b0629abc2d2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinterlace.dylib",
+      "bytes": 77,
+      "sha256": "744aa87cb16452895eb21c0b9045533bf4c20d6a4a228cee376304f2f3f1b5fd"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinterleave.dylib",
+      "bytes": 78,
+      "sha256": "c73a719d9e36052604c2e9c903b1ce5c4504c65fb6ddf1b9f2fac55c451549f8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstipcpipeline.dylib",
+      "bytes": 79,
+      "sha256": "0d49218e9a8fa9b74427f52d20bed909d75503081c019acf4b738ee5897d0435"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstisobmff.dylib",
+      "bytes": 75,
+      "sha256": "9d8c202b41a69b3a593b849ba4a516aa589fddfe1c3cd029ee3d6f2938c2f0ee"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstisomp4.dylib",
+      "bytes": 74,
+      "sha256": "04b9638cb83f894f4c5d6dbd96a4f5477ab57ae9487d73d91ece70e97424b363"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstivfparse.dylib",
+      "bytes": 76,
+      "sha256": "8e2bba672990dd4ea9e377fe08744d974ebcef583c9270030cc0f469065a9e0a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstivtc.dylib",
+      "bytes": 72,
+      "sha256": "18a6896a3b4641bcef77684d777622fe07646b92675f7a753f10b894f23b5e42"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjack.dylib",
+      "bytes": 72,
+      "sha256": "a48918eadfcac988a0644659e60053420ab0d598d17b278fc01ff845f9db5c71"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjp2kdecimator.dylib",
+      "bytes": 81,
+      "sha256": "f35256480f2aebb400dd62346e2abc3eb282916a2f3006e03d9264ab9950dcbf"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjpeg.dylib",
+      "bytes": 72,
+      "sha256": "ad55b42d0b3cad75c8590d3147c3629caa0f3d1927120d5029fdc555342ef570"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjpegformat.dylib",
+      "bytes": 78,
+      "sha256": "f4f0957b2c9e747833bf55b8340e379e8ed5a1f451cb693983bcf79f4fd2645e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjson.dylib",
+      "bytes": 72,
+      "sha256": "415988d712c8ef87e4d88585f591c9be3745d066fd98be8a9b570dd239b96652"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlame.dylib",
+      "bytes": 72,
+      "sha256": "bfa0e44d6ff8e806d0303dc53ba00a6f24aaa66d017c5eacce96d8864dcbcfa1"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlegacyrawparse.dylib",
+      "bytes": 82,
+      "sha256": "7c738a9bc0fbf12ce9a5e2c563ea2a1b01d835cfadd0e652e6e72c7d40a3cc00"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlevel.dylib",
+      "bytes": 73,
+      "sha256": "dcb793072a1cbac075a18ba448d433983221fa4cf823cc97ba115ab7e7cef126"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlewton.dylib",
+      "bytes": 74,
+      "sha256": "3e1a4a02393ffbe1971df6d763996c45e753b04abcdcce7d4ec12b16fb744a56"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlibav.dylib",
+      "bytes": 73,
+      "sha256": "ac80b07182329ea92334671387284b684ef169b80dd9c883af722f7c4b02ae57"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlivesync.dylib",
+      "bytes": 76,
+      "sha256": "28f1216969b9e87474d70ff97aac441470366ed527d09d33937a38b23d36c094"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmatroska.dylib",
+      "bytes": 76,
+      "sha256": "0c4117e2b73cc21276211939cfcc74e37b440cf8d1134bb84a5a12d57bbfd1a4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmidi.dylib",
+      "bytes": 72,
+      "sha256": "6d3f6a78587f8e88f28f5f2e2ca2e160185a29aa6c9cad5fe9b13c009075b261"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmonoscope.dylib",
+      "bytes": 77,
+      "sha256": "476ed815aa5a27334c23d3decdc52b4bee54f39f5082d299717d9b314149edf2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegpsdemux.dylib",
+      "bytes": 79,
+      "sha256": "eeaadd73cc779160690d2cdc7ff20b31e18000d6fd0f40976ecd795393991902"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegpsmux.dylib",
+      "bytes": 77,
+      "sha256": "e26c5f99c2d7c2c9f06f5755156d6f123047cc110ad9acaa21b7b74a52267feb"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegtsdemux.dylib",
+      "bytes": 79,
+      "sha256": "ed8e3d3c4ff83260d7097c10271b2b733748b70acce7dc5f2e018b195612a0bf"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegtslive.dylib",
+      "bytes": 78,
+      "sha256": "830ef7a135a5936ebfe63e8385eae6ab3aef24d11350b501706aea9f5975056b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegtsmux.dylib",
+      "bytes": 77,
+      "sha256": "7dad0685f4a38b084090c510f1e300699811b2ce35d9ab6695c3bffbef28212a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpg123.dylib",
+      "bytes": 74,
+      "sha256": "18ecfcbed088bf545dfc4452654015b3f3bb05fcb36279795f3f05f0bf31fbc1"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmse.dylib",
+      "bytes": 71,
+      "sha256": "5c146df7dfc700ef46f4e07fe605ece986eee597192a4613c1b88625431e4302"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmulaw.dylib",
+      "bytes": 73,
+      "sha256": "4dd60675d8410a6ca262414f61989bc93931e1a68d717b2523bac2792e94466f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmultifile.dylib",
+      "bytes": 77,
+      "sha256": "3a03038e6a27880d25b3147d7ae2e7d3cc91e4fd66cfd33a0b8f73838601d81f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmultipart.dylib",
+      "bytes": 77,
+      "sha256": "7eb623f635b94abbf9533f4b1339f891d84c1f61da351fd6e6b93a47f5c4ea9c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmusepack.dylib",
+      "bytes": 76,
+      "sha256": "963b0440bb12020ef01cf1b7fc60a9c2bc5e0790fb06ec089d878f2bd3ce2743"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmxf.dylib",
+      "bytes": 71,
+      "sha256": "a4a656112bbbc47d6661efa08120d31cd8266144bbcad08da94071cc40f816fc"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnavigationtest.dylib",
+      "bytes": 82,
+      "sha256": "52c443b21adbf84531cf3e4c954a9480059d5d7f6c0267029edae1de87dd7f4a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstndi.dylib",
+      "bytes": 71,
+      "sha256": "2cc3f5608bb3d6f141ac3a5246770382647e9f1fe2ff2b0158b7daeb58de907a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnetsim.dylib",
+      "bytes": 74,
+      "sha256": "bd862a2bb44c754ef64527e72f0a2115f18001cafb4789f300b23c23ba85c430"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnice.dylib",
+      "bytes": 84,
+      "sha256": "0463f18a3a2c9332f98f32ba1fa7e260b94f3a0570491c0dc3f181dfa3c8df22"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnle.dylib",
+      "bytes": 71,
+      "sha256": "010032439e018d2772822973a69fbd0443d684cb99d8d902c70a08cc6e492ee0"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstogg.dylib",
+      "bytes": 71,
+      "sha256": "9637bae89266853dc5349169cf3d32ecc66ffc6df96b9faac8a940d7066e0444"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopenexr.dylib",
+      "bytes": 75,
+      "sha256": "50d97b111f65802cf3fa3ad8c6ed1e0c795341183b75198fd4b49bd1492a4a2c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopengl.dylib",
+      "bytes": 74,
+      "sha256": "ed0d26e69961ff89deb153acf454ce3c14993f7d3a2ea346130e5564b4e29d6e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopenjpeg.dylib",
+      "bytes": 76,
+      "sha256": "453697f549ba0898345ad343b7e6024ad12744880b6465cf2c2be89548b2dbaa"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopus.dylib",
+      "bytes": 72,
+      "sha256": "56cc9c6be266e6ebc31b0841a331ac2956e863c25b463223b5ad0ad6177d831b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopusparse.dylib",
+      "bytes": 77,
+      "sha256": "30705baaa754da0c016daf3ee9592872a9d08846a93e756a69c6ba1c89363881"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstoriginalbuffer.dylib",
+      "bytes": 82,
+      "sha256": "b4892fae499470dc6d6920d8a45e8715af42ea74c17e20335a57ed1a0763bd8b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstoss4.dylib",
+      "bytes": 72,
+      "sha256": "8575223dc8fdcf38649a03c36f32b51948139b7532abde86c9dc7bdb6778e0d3"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstosxaudio.dylib",
+      "bytes": 76,
+      "sha256": "6b7ff59942bc29b2bd59b167e3f88fc4a3ccc357b1da1a1fcc98ab58f02ed158"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstosxvideo.dylib",
+      "bytes": 76,
+      "sha256": "39b105fc6dfadd242e22789b131ee0298b1b4e2964bba4a45e10b3147cb81e7f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstoverlaycomposition.dylib",
+      "bytes": 86,
+      "sha256": "350fcd47d8e7c031395b5152af76e2e390f4db3eacdf57302286a4f7b9ff6ab3"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpango.dylib",
+      "bytes": 73,
+      "sha256": "5de70881841e423fe2f3575ff43b5bbb720f1be3b96b403e8c67779d7a2b8aba"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpbtypes.dylib",
+      "bytes": 75,
+      "sha256": "bff5b76888bd4c4a043e4cd91a52ca2e481b6b9815271f67b8c96a4cd5bed343"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpcapparse.dylib",
+      "bytes": 77,
+      "sha256": "cf3503aeec6aba5c069743f28699a0d6d1f4151af09be655b27c45ccde73ec8a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstplayback.dylib",
+      "bytes": 76,
+      "sha256": "a3d34d4433ff527b65a914761b2190aa991e61c10d3213cf06d50f9547f02869"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpng.dylib",
+      "bytes": 71,
+      "sha256": "47a4a7016a485c0c97ea0db9a5e3b46ae0ca18fd4642b613f19c2abe7065c40d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpnm.dylib",
+      "bytes": 71,
+      "sha256": "29b3e947a34bf6598ffaf74c5ee50111648689b7baf22417fbfe854936b71733"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstproxy.dylib",
+      "bytes": 73,
+      "sha256": "37680b76d94c50eea9e19e28c1ed0e43728974f01efea2e27e9815293f48398f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstquinn.dylib",
+      "bytes": 73,
+      "sha256": "9cc64552308cbbe8dff228cff637b0c3805bb782edf36abc15dfc2bb99fc53fc"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstraptorq.dylib",
+      "bytes": 75,
+      "sha256": "02fb652a5b169e52aecd4029acc332e7e1082c7b3a700324d6a3a017313c5782"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrav1e.dylib",
+      "bytes": 73,
+      "sha256": "e7c67d91a605965a2a5a2ddba5cb155b345e3aab343b39032268152c287395b4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrawparse.dylib",
+      "bytes": 76,
+      "sha256": "b418e71327b7613ebcc03d0a718406482751ea3fcef39ac54cbd8401fe012138"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrealmedia.dylib",
+      "bytes": 77,
+      "sha256": "20fd2aa40b0aeda6f97b25ed10c44088b314ca98784b906c40d57a4c90b82d34"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstregex.dylib",
+      "bytes": 73,
+      "sha256": "cc3cb745e4e34adf777de0d1f0097b75bad97cb89b635d48ce4c6ed3cf71c503"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstremovesilence.dylib",
+      "bytes": 81,
+      "sha256": "b6f0499ace80d07cc648d4f6650cf0e542403c277b53d871a81df55c40478f43"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstreplaygain.dylib",
+      "bytes": 78,
+      "sha256": "cb4ea2440b2cb7e989b8c2dfa6333d14e9364e427da4c12f7128026999440fe6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstreqwest.dylib",
+      "bytes": 75,
+      "sha256": "0546d685ebda12ebbebda9c3102af1c20f09ea259a2447e1457fcf245ba9c551"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrfbsrc.dylib",
+      "bytes": 74,
+      "sha256": "29bb31b9ca6183af2ad8720931bd6a064e31b0f853d5109bba43c80c44e08b0e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrist.dylib",
+      "bytes": 72,
+      "sha256": "51d5aa5bd91c5aa1dc8367ca7e79497e28811fe736270bfeff8f98dd95246b35"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsanalytics.dylib",
+      "bytes": 79,
+      "sha256": "98b743b48334455aa5ca5fd5e39fd902a7cb8a5ec4baeb8b2d973b66a1735ca4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsaudiofx.dylib",
+      "bytes": 77,
+      "sha256": "1e7d675774a73f51ad266e59212e909553bc8424cf8b8c4fc102acf10aa608b5"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsaudioparsers.dylib",
+      "bytes": 82,
+      "sha256": "33f003371119950833e7238a2023ca6a1e4257f7edd18ab81841d79d6ba2904e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsclosedcaption.dylib",
+      "bytes": 83,
+      "sha256": "b40a7f28b9256d1f3dddc5a2ce8d0f604ac475fb8670d73c25f40d9da273f07d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsfile.dylib",
+      "bytes": 74,
+      "sha256": "c56b503df385636d0958683a876b596a2841b89ba9953132832b2a17985cb3a8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsflv.dylib",
+      "bytes": 73,
+      "sha256": "fb2033cee74cd247fa8eafde4fdaa733f269155ef28e46a1260586b5ae292b98"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsinter.dylib",
+      "bytes": 75,
+      "sha256": "f4aeb4d231d44095ed5115ee2e3d9bcd56baef711bb5dafa94cbcbda932c1aa6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsonvif.dylib",
+      "bytes": 75,
+      "sha256": "ff75dc21e452edb538cd8c0d2918ce83cfa689f0dca85340bb0815aaed1fea6d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrspng.dylib",
+      "bytes": 73,
+      "sha256": "1f512ce057ce35f89568908a8cd749f7d10f4cd1577c6dbda7f75bc00fa2db58"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsrtp.dylib",
+      "bytes": 73,
+      "sha256": "7f1b771e4241d40aec36f996277cb1a99a64c638726c548f55c28f3b013dddcd"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsrtsp.dylib",
+      "bytes": 74,
+      "sha256": "a32051b09c7d28e787381291ec35f3ed576b1d8fd857d9a07c4f397fc993a138"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrstracers.dylib",
+      "bytes": 77,
+      "sha256": "b09ab1d305d1dd42aed9fe3b896e02f55b95f5bdc74e308440fe070194ca105b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsvg.dylib",
+      "bytes": 72,
+      "sha256": "680de779ba6c44e62e85b50cb5fc0d0696c079d0a6782f336153a0adc7470e1f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsvideofx.dylib",
+      "bytes": 77,
+      "sha256": "f3795af06e6af83cf78f778c5cfd5cd45133b87cd126a1fbb885f029299a5eeb"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrswebrtc.dylib",
+      "bytes": 76,
+      "sha256": "1e080bef8e377839b906b81db63e69ef3f8f29a13cf02b05b3cc50b1e67723e9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtmp.dylib",
+      "bytes": 72,
+      "sha256": "127c4e5f7e106301b762402e0474272d0310ecf8b1732329189fbabbad3c1009"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtmp2.dylib",
+      "bytes": 73,
+      "sha256": "22ff715b80cb5adf34b2f9e18b503896caf381cbfca1afed8b005c5c524d8232"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtp.dylib",
+      "bytes": 71,
+      "sha256": "cb9a3f481b2f605ad31dd1e940ee7c0faefd2f71f5b4f32831ff48a85665f3c1"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtpmanager.dylib",
+      "bytes": 78,
+      "sha256": "8ebe34029da04461f1f9781ce6ad44ddd0080feb0eca8d703ffa35b10492e302"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtpmanagerbad.dylib",
+      "bytes": 81,
+      "sha256": "013def087cc286c13f5586b5eed99b6a262f43ad785662781fe258d022ae50c4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtponvif.dylib",
+      "bytes": 76,
+      "sha256": "2b157ec5eeadf1a7813ada999a20f75171b212a6ce9edd42e12bdb759ea7ce72"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtsp.dylib",
+      "bytes": 72,
+      "sha256": "8adac23fd366f809b5daaee367654b2cc4ab9d85aff659ed788dcef320bb3e11"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtspclientsink.dylib",
+      "bytes": 82,
+      "sha256": "816aa32d8d3b534db3ca98139156f10d110b8cc04140033e58c202bb113301ea"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsctp.dylib",
+      "bytes": 72,
+      "sha256": "0d7797ba4f8731d171a69351e5ea95b94ad6d452085b8e52790cef9590370a8f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsdpelem.dylib",
+      "bytes": 75,
+      "sha256": "925311270f06b03857b388200b61cedd9a6de9f827ec4eebf41085e598ecb56a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsegmentclip.dylib",
+      "bytes": 79,
+      "sha256": "2a9cbcc52aa0a7a2eec48be051f8a6abf017dc1b22e4b1fbb470ad85f3e649a9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstshapewipe.dylib",
+      "bytes": 77,
+      "sha256": "a9b916f134f8bb47b9ab4ff25d4fab3c4f953a6fda620ae3299b1c555617ee6a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstshm.dylib",
+      "bytes": 71,
+      "sha256": "86cc4872da47c214d9dddd93cecfa50593ad99729dabb8b1565c5bac7751ef4f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstshout2.dylib",
+      "bytes": 74,
+      "sha256": "0171526bf15abf50da0016e5552911e6cb7787efb2388790ffe04d37fe8c94c7"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsiren.dylib",
+      "bytes": 73,
+      "sha256": "d057cebeef59a646d2783a3722b56bc146c215d44992744b697079aa1c636214"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstskia.dylib",
+      "bytes": 72,
+      "sha256": "0fe565cbb2a67ed98408c87b953877023b0eb29983f6bc25de4cdd8779af127a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsmooth.dylib",
+      "bytes": 74,
+      "sha256": "7ee1cb162797f2e53314d01f35d5d947fbe070439cf31f445c081048bd5a07f9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsmoothstreaming.dylib",
+      "bytes": 83,
+      "sha256": "ad477d8a9ea6883a34cffb5a18d71e9e4c3e2779cf882902994fdd2401c4c73d"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsmpte.dylib",
+      "bytes": 73,
+      "sha256": "cdd1fb7b26535fb088e72152b4ac60a69c170ef39bc615b6763e8d6cd627cb2c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsndfile.dylib",
+      "bytes": 75,
+      "sha256": "908ccf50c24b024ca42bcc832c1dd2bb153060cdf1c94c8b9af03d746042f57c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsodium.dylib",
+      "bytes": 74,
+      "sha256": "d486345e019fb57cb55456873a3318e60888151793107bf82d0025695bbe1042"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsoup.dylib",
+      "bytes": 72,
+      "sha256": "154c12c10e562ca4d904d9f264c1d64056e979739d4be14e2e263dceeb357ce4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspectrum.dylib",
+      "bytes": 76,
+      "sha256": "dd209161167ff5e2f10ed791af8cfd95a682be93ea43a33af85bea8439c4d528"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspeechmatics.dylib",
+      "bytes": 80,
+      "sha256": "ac2547c8eeb6d0ab34c24cbdce36616f107f9a0d3a3190962c435a75d9fc6eb6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspeed.dylib",
+      "bytes": 73,
+      "sha256": "109b5799325cfbd930c4bb1999b772f281aa38361e3e7599b3afface9382b7b8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspeex.dylib",
+      "bytes": 73,
+      "sha256": "7cc801a1493fef7cf1d4973b8083fe93d7b1526782d90507f5835c6aa0de2bd9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspotify.dylib",
+      "bytes": 75,
+      "sha256": "f41a5363cb8b5698f35fb0b49637dba2cbf984453ae14ab0617d006d96ccb6d3"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsrt.dylib",
+      "bytes": 71,
+      "sha256": "9158a9a044cb69d8bdaa21c874c9bd3b9bc32d44e9cf44c8c2ff1fb8276919b8"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsrtp.dylib",
+      "bytes": 72,
+      "sha256": "8b2072a644cf159fb036d2cdd9f7d959fc153bf2fedb5ed38cd6cfebd283c1e5"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgststreamgrouper.dylib",
+      "bytes": 81,
+      "sha256": "26b51921a412203b37490d0a0dfc14d0f7e9c3b2e40c29b9914c68583b340103"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsubenc.dylib",
+      "bytes": 74,
+      "sha256": "4ba7ffbee9955c5f5ca7d58e24f4325a7e03a0f5879a757373373c48cadd6cdc"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsubparse.dylib",
+      "bytes": 76,
+      "sha256": "c3aa926ce7cfe0ea81b7d1e5e61bc24daa63e970ce5bfeb2eb47471b157b1a08"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsvtav1.dylib",
+      "bytes": 74,
+      "sha256": "8923d5fa911c94e107ec149e878861670a6f4d42cb8efc85c1d1b2e0445dbf5b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstswitchbin.dylib",
+      "bytes": 77,
+      "sha256": "7a16dc2806d55b9112b9abebd762387fa79086845b709f964384c6048ccfafa9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttaglib.dylib",
+      "bytes": 74,
+      "sha256": "86f81c28cbbbc516528c62d0881161500687de60186adfeae759cb7a24a7bdcf"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttcp.dylib",
+      "bytes": 71,
+      "sha256": "f668b95c37a03e18584205ef16991943dfdacc655f178f11a968852b9b5b9b94"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttensordecoders.dylib",
+      "bytes": 82,
+      "sha256": "2dc5d5c6eae001c1c756330e6fb72575a36a5307854941fdb0e0dc2e24cbd3fe"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttextaccumulate.dylib",
+      "bytes": 82,
+      "sha256": "796e02ff9d57be4b1b1bfe0caf072c2a0b0d577a86ec29d700414345ccb9929b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttextahead.dylib",
+      "bytes": 77,
+      "sha256": "0143a58119aa450e710d7f6e172fa8b80943cd4f7284c06e6188b88aaea9c2ab"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttextwrap.dylib",
+      "bytes": 76,
+      "sha256": "d25a91360e73b45f5b164c6c2b2ac65f17ae65270e3291d3e0472d75b4fc3717"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttheora.dylib",
+      "bytes": 74,
+      "sha256": "362755c62c6402a69e2895a882acc53fa08b08af828e1effe8d5b6721dc96bee"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstthreadshare.dylib",
+      "bytes": 79,
+      "sha256": "2237b5a29ca866b5f8a6d1f820ebd65b2e97f75d03c478daff6bf9d1df7c4fdc"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttimecode.dylib",
+      "bytes": 76,
+      "sha256": "29f1394cfc5351a6808090a9cdf32e7faaa6aabf84595906fad24b955913b5ff"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttogglerecord.dylib",
+      "bytes": 80,
+      "sha256": "abb25f01dfe8e79c2e35d6ac3d26cf51626486a1733cc94e420ae51d70e0f8f0"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttranscode.dylib",
+      "bytes": 77,
+      "sha256": "4cc6e8fcfbc24b7d42deebfc9bbef285aead8910bf26a1f7ded565d9f21a496a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstttmlsubs.dylib",
+      "bytes": 76,
+      "sha256": "7c5186ad3d1199446fb82ac50f44669632cff21688f9f82a8d210e627ba6112f"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttypefindfunctions.dylib",
+      "bytes": 85,
+      "sha256": "783a004e615f26ed2a941d258cf50404d5e23834d6c0e8f94c6a2e49fdf74d84"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstudp.dylib",
+      "bytes": 71,
+      "sha256": "6e1e2962ebd5d254f84ff5639e805da93a56603d62569c096506a47402e52202"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstunixfd.dylib",
+      "bytes": 74,
+      "sha256": "130f7d54969af9933a27f903d642a25ecde900663343e092b99838388656c7b2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsturiplaylistbin.dylib",
+      "bytes": 82,
+      "sha256": "30c64c7a93cc3a6ab0639bfcd1d0e54e918d53f448350408ba756c0e01f087ea"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvalidatetracer.dylib",
+      "bytes": 82,
+      "sha256": "302da8e5e9de73c6436be44186db5707ae0f6747a917ef4786c697ddb75d1abb"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideobox.dylib",
+      "bytes": 76,
+      "sha256": "5f6953c1469a44df223156f589e4ae7bdf38c4a868dbf21900a342ae86d34646"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideoconvertscale.dylib",
+      "bytes": 85,
+      "sha256": "67b2356edcb169f53565b1a244f8247329f1b3470f9a5a89f2a015951c91393e"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideocrop.dylib",
+      "bytes": 77,
+      "sha256": "eb78b2b0980c0635de622d0863b44455f776e82f1eff1215f41b8d7ee60ae459"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideofilter.dylib",
+      "bytes": 79,
+      "sha256": "575f7fad545b1e3cf2e19401af6809ea1b29d4909d95b42785c6f65e36b42062"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideofiltersbad.dylib",
+      "bytes": 83,
+      "sha256": "ed092523c05f2bed43b4b21564564edcb10e61493bd367df9d32d82f7ed55e61"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideoframe_audiolevel.dylib",
+      "bytes": 89,
+      "sha256": "dc2a5536916d26d9c9091d3819a6568e5ce984cd0e5fbf43ffbb34bfe32f1087"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideomixer.dylib",
+      "bytes": 78,
+      "sha256": "aa42b541e9eb410387ad5ff0d51ad9db41ce6d5dfad7bc95b4b6926a9b02677c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideoparsersbad.dylib",
+      "bytes": 83,
+      "sha256": "1b2aaab9b556599000179f5f33ebb787c9bd7c31d1c248bf9f9984227deb09b9"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideorate.dylib",
+      "bytes": 77,
+      "sha256": "4fbe89ded6c57face6d2588d4cdb5d5ee694210789801af7fed9139f91aa02a2"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideosignal.dylib",
+      "bytes": 79,
+      "sha256": "56908e1bedded0ddf041d5212ed17f6ba57eadb70cec4ab96b39fa16116acacb"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideotestsrc.dylib",
+      "bytes": 80,
+      "sha256": "bab66aa0190a3c59559bf4745b83dcaa42c932ec2b319ca0f8df231e6338bfed"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvmaf.dylib",
+      "bytes": 72,
+      "sha256": "3205b47a64eaa66751e3f5734d469a5ec627c232bd4a09d51281029f61692d0b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvmnc.dylib",
+      "bytes": 72,
+      "sha256": "9ae9ab3baa202e8e3da2a80b33c486d27a7e3eebbea4206569b55c28f40248a3"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvolume.dylib",
+      "bytes": 74,
+      "sha256": "f4056856f0d3b76fad4901cfbd032b044dd62b664b1e5025b801b269b5537c12"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvorbis.dylib",
+      "bytes": 74,
+      "sha256": "2e023048774f6a89123d972cd81fa1ca65a916300e1ad1db09ebfa9d32e5b979"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvpx.dylib",
+      "bytes": 71,
+      "sha256": "0ae2e66aefe09e7e432150eafbf8ae1c6be8e2d95934fa7601b4669a5fa6e00c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwavenc.dylib",
+      "bytes": 74,
+      "sha256": "59b98b0309486820ebbd799624aa30180f6e0769930a3f18ee06b48ca49227f5"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwavparse.dylib",
+      "bytes": 76,
+      "sha256": "3e46448fc4da86eb5b6412a5918721eef19b428fcacc2f99987b7c80f68f7c48"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwebp.dylib",
+      "bytes": 72,
+      "sha256": "bc7e9d8f744f9aa5220f81cbe6178f2522fcd9a5e2543c0d5c83a445ba276153"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwebrtc.dylib",
+      "bytes": 74,
+      "sha256": "fd9218079c6b8d3b04421558c6b943c836244b952f75dbadeb275bf3634f8f93"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwebrtchttp.dylib",
+      "bytes": 78,
+      "sha256": "0e89d19f07a8fb23f48430a291b05c7eaba221c0a257200b26b105ddf0c5df5b"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwhisper.dylib",
+      "bytes": 75,
+      "sha256": "c6a8f90266e6f11fa873cc92f842f5b20cc0e05885cc558d0122d31abec88d90"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstx264.dylib",
+      "bytes": 72,
+      "sha256": "5956f2a7594dd92e9e50dfa8107d891f3c704da6b2b6c6ff6fc914ed6912a454"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstx265.dylib",
+      "bytes": 72,
+      "sha256": "821ba822176d13fd010d541dbcf4ea77842fc09ba27802b5314167e8c2626cc6"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstximagesink.dylib",
+      "bytes": 78,
+      "sha256": "642f26b30f74f496032de79965c3299d8377b6b265a6cf4dfe978b67d516e0f4"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstximagesrc.dylib",
+      "bytes": 77,
+      "sha256": "3ae4e00f2a5b20d4ba2feff9314a6d1a2b253eced1dc6743be5fa834054dcc57"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstxingmux.dylib",
+      "bytes": 75,
+      "sha256": "039982ccd7ce0730598d59af525fef0e94221cd340680635a38a9b83b73b3770"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsty4m.dylib",
+      "bytes": 71,
+      "sha256": "eeabd25b42fa694011fec94c60352ed074a74f0c6f2fe114613ef6e6879c9b16"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstrsvalidate.dylib",
+      "bytes": 87,
+      "sha256": "4b06f2f58d9c2fd02d9b73773f3878076a1934961dd7d6d35c87bcb2f6479e57"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstvalidatefaultinjection.dylib",
+      "bytes": 99,
+      "sha256": "e68d6e9694a01d9da6bd2a56c55b4b8ec670772db60d9f85ff393048b406f687"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstvalidategapplication.dylib",
+      "bytes": 97,
+      "sha256": "93b7f61d17cda2f708fa9130d60c292846283af527d26e51fa3e60d08c29e91c"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstvalidatessim.dylib",
+      "bytes": 89,
+      "sha256": "501eed90442ee723039554a8ea290cc938d15b09909604e266fc536d2903da0a"
+    },
+    {
+      "name": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0001/libgstnice.dylib",
+      "bytes": 84,
+      "sha256": "0463f18a3a2c9332f98f32ba1fa7e260b94f3a0570491c0dc3f181dfa3c8df22"
+    },
+    {
+      "name": "normalize",
+      "bytes": 9309656,
+      "sha256": "ec9b4a82d8cc987d95e68ebf8a4d87055d64060ba0548e8d9b85675838566f19"
+    }
+  ],
+  "rawSha256": "3fa6684f82d567d7c67a93aa8c5df85115ba763ffd2452be49a4d7894acd97a5",
+  "removed": true
+}

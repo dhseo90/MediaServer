@@ -1,5 +1,8 @@
 // 파일 용도: 격리 UI 준비에 실제 managed 원본·파생 job·공개 projection을 만든다. UI PASS가 아니다.
+#define Store LegacyFixtureStore
 #include "recording_media_test_fixture.h"
+#undef Store
+#include "recording/recording_runtime_composition.h"
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_derived_selection.h"
 #include "ingress/recording_application_service.h"
@@ -14,6 +17,23 @@
 
 namespace {
 void Require(bool ok,const char* code){if(!ok)throw std::runtime_error(code);}
+struct Store {
+    std::filesystem::path root;
+    std::unique_ptr<recording::RecordingRuntimeStorage> runtime;
+    recording::RecordingJournal& journal;
+    recording::RecordingCatalog& catalog;
+    static std::unique_ptr<recording::RecordingRuntimeStorage> Open(const std::filesystem::path& path){
+        auto result=std::make_unique<recording::RecordingRuntimeStorage>(path);std::string error;
+        Require(result->Open(&error),"runtime-open");return result;
+    }
+    explicit Store(std::filesystem::path path):root(std::move(path)),runtime(Open(root)),journal(runtime->journal()),catalog(runtime->catalog()){}
+    std::vector<recording::RecordingSegmentV2> Segments(){
+        recording::RecordingLocationCatalogSnapshot result;std::string error;
+        Require(catalog.SnapshotLocationsV2("1",&result,&error),"current-segments");
+        std::sort(result.segments.begin(),result.segments.end(),[](const auto& a,const auto& b){return a.order_sequence<b.order_sequence;});
+        return result.segments;
+    }
+};
 std::string Hash(const std::filesystem::path& file){
     std::ifstream in(file,std::ios::binary);auto* raw=EVP_MD_CTX_new();
     std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> ctx(raw,EVP_MD_CTX_free);
@@ -22,6 +42,18 @@ std::string Hash(const std::filesystem::path& file){
     unsigned char digest[EVP_MAX_MD_SIZE];unsigned length=0;
     Require(in.eof()&&EVP_DigestFinal_ex(raw,digest,&length)==1,"hash-final");
     std::ostringstream out;for(unsigned i=0;i<length;++i)out<<std::hex<<std::setfill('0')<<std::setw(2)<<unsigned(digest[i]);return out.str();
+}
+std::map<std::string,std::string> Persistent(const std::filesystem::path& root){
+    std::map<std::string,std::string> result;
+    for(const auto& entry:std::filesystem::directory_iterator(root)){
+        const auto name=entry.path().filename().string();
+        const bool component=name==".recording-store-format"||name=="recording-generation.json"||name=="recording-v2-mutations.jsonl"||
+            ((name.rfind("snapshot-",0)==0||name.rfind("identity-",0)==0||name.rfind("evidence-",0)==0||name.rfind("active-",0)==0)&&entry.path().extension()==".jsonl");
+        if(component){Require(entry.is_regular_file()&&!entry.is_symlink()&&std::filesystem::hard_link_count(entry.path())==1,"persistent-file");result.emplace(name,Hash(entry.path()));}
+    }
+    Require(result.count("recording-generation.json")&&result.count(".recording-store-format"),"persistent-generation");
+    Require(!std::filesystem::exists(root/".recording-generation-transaction.json")&&!std::filesystem::exists(root/".recording-generation-transaction.stage"),"persistent-transaction-pending");
+    return result;
 }
 Encoded ReadSeek(const std::filesystem::path& file){
     Require(std::filesystem::is_regular_file(file)&&!std::filesystem::is_symlink(file)&&std::filesystem::file_size(file)<=16*1024*1024,"seek-input");
@@ -62,7 +94,7 @@ void Clock(Encoded& input,std::optional<std::int64_t> anchor,const std::string& 
 std::vector<recording::RecordingSegmentV2> Write(Store& store,const Encoded& input,int interval){
     std::set<std::string> before;for(const auto& segment:store.Segments())before.insert(segment.segment_id);
     recording::GStreamerSegmentWriter::Options options(store.root,interval);options.managed_journal=&store.journal;
-    options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
+    options.managed_catalog=&store.catalog;options.managed_store_id=store.journal.ManagedStoreId();
     recording::GStreamerSegmentWriter writer(options);std::string error;
     Require(writer.Start("1","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer-start");
     for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
@@ -125,7 +157,7 @@ int main(int argc,char** argv){
         // 운영 mutation 시각은 명시 anchor 또는 실제 실행 시각이다. 이를 unknown 영상 UTC로 사용하지 않는다.
         const auto now_ms=anchor.value_or(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
         const auto begin=now_ms,end=now_ms+30000;
-        std::string snapshot,files,jobs,seek_json="null",journal_hash;
+        std::string snapshot,files,jobs,seek_json="null";std::map<std::string,std::string> persistent;
         {
             Store store(root);auto input=Encode(30,false,false);Clock(input,anchor,"ui-main-generation");Shift(input,7000000000ULL);
             const auto originals=Write(store,input,1000);Require(originals.size()>=2,"original-count");
@@ -136,7 +168,7 @@ int main(int argc,char** argv){
             for(int i=0;i<101;++i){auto s=originals.front();const auto old=*store.catalog.FindSegmentMediaLocation(s.segment_id);
                 s.segment_id="ui-page-"+std::to_string(i);s.order_request_id=s.segment_id+"-order";s.media_epoch_id=s.segment_id+"-epoch";
                 recording::RecordingOrderReservationV1 order;std::string error;
-                Require(store.journal.ReserveRecordingOrder(s.store_id,s.order_request_id,s.segment_id,"1",&order,&error),"page-order");s.order_sequence=order.sequence;
+                Require(store.catalog.ReserveRecordingOrder(s.store_id,s.order_request_id,s.segment_id,"1",&order,&error),"page-order");s.order_sequence=order.sequence;
                 const auto file=root/"1"/(s.segment_id+".mp4");std::filesystem::copy_file(old.first/old.second,file);
                 Require(store.catalog.FinalizeSegmentV2(s,file.string(),&error),"page-finalize");
             }
@@ -155,9 +187,10 @@ int main(int argc,char** argv){
             const auto deleted=*store.catalog.FindSegmentMediaLocation(tomb.segment.segment_id);
             Require(store.catalog.RequestDeletion(tomb.segment.segment_id,tomb.deletion_reason,&error)&&std::filesystem::remove(deleted.first/deleted.second)&&store.catalog.CompleteDeletionV2(tomb,&error),"deleted-fixture");
             Require(!reader.ResolveMedia("1",tomb.segment.segment_id)&&!reader.ResolveMedia("1",derived[2].outputs.front().segment_id),"unavailable-media");
-            snapshot=Snapshot(store,begin,end);journal_hash=Hash(root/"recording-v2-mutations.jsonl");
+            Require(std::filesystem::exists(root/"recording-generation.json"),"b06-seed-generation-required");
+            snapshot=Snapshot(store,begin,end);persistent=Persistent(root);
         }
-        {Store reopened(root);Require(Snapshot(reopened,begin,end)==snapshot&&Hash(root/"recording-v2-mutations.jsonl")==journal_hash,"reopen-unchanged");}
+        {Store reopened(root);Require(Snapshot(reopened,begin,end)==snapshot&&Persistent(root)==persistent,"reopen-unchanged");}
         std::ostringstream json;json<<"{\"schema\":\"recording-current-ui-fixture.v1\",\"channelId\":\"1\",\"anchorUtcMs\":";
         if(anchor)json<<std::quoted(std::to_string(*anchor));else json<<"null";
         json<<",\"startTimeMs\":"<<std::quoted(std::to_string(begin))<<",\"endTimeMs\":"<<std::quoted(std::to_string(end))
@@ -165,7 +198,8 @@ int main(int argc,char** argv){
         const auto text=json.str();Require(text.size()<4*1024*1024,"manifest-cap");
         const int fd=::open(manifest.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW,0600);Require(fd>=0,"manifest-create");
         const auto wrote=::write(fd,text.data(),text.size());const int synced=::fsync(fd);::close(fd);Require(wrote==static_cast<ssize_t>(text.size())&&!synced,"manifest-write");
-        std::cout<<"PASS: LP26-U06-A managed Catalog reopen public timeline and journal unchanged\n";return 0;
+        std::cout<<"PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged\n";
+        std::cout<<"PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files\n";return 0;
     }catch(const std::exception& error){const std::string code(error.what());
         std::cerr<<"FAIL: current UI seed "<<(code.find_first_not_of("abcdefghijklmnopqrstuvwxyz-0123456789")==std::string::npos?code:"preparation-private-diagnostic-suppressed")<<'\n';return 1;}
 }
