@@ -2,16 +2,17 @@
 
 ## S11 B-04 게시 영수증 값 계약
 
-실행 전 등록이다. 내부 소유 정보 값 codec이며 실제 게시·복구·삭제의 검증 권위가 아니다.
+실행 전 등록 후 내부 값 codec 최종74개·빌드 통과. 실제 게시·복구·삭제의 검증 권위가 아니다.
+개별 결과는 [B-04 영수증 기록](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)을 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
-| B04-R01 | 정상 영수증 | 예정: cutover/checkpoint·두 phase canonical 값 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
-| B04-R02 | strict 입력 | 예정: unknown/손상/중복/비정규·출력 불변 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
-| B04-R03 | source/target 결박 | 예정: store·세대·marker/source·root/stage 대조 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
-| B04-R04 | 소유 파일 범위 | 예정: 중복/escape/device/세대·필수 descriptor·빈 active | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
-| B04-R05 | 누적·정수 | 예정: 64개 초과·큰 원문·uint64/overflow; 물리 비용 검사는 아님 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
-| B04-R06 | 지원·권위 분리 | 예정: crypto 조합·no I/O·caller admission·정리 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
+| B04-R01 | 정상 영수증 | PASS: cutover/checkpoint·두 phase canonical 값 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
+| B04-R02 | strict 입력 | PASS: unknown/손상/중복/비정규·출력 불변 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
+| B04-R03 | source/target 결박 | PASS: store·세대·marker/source·root/stage 대조 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
+| B04-R04 | 소유 파일 범위 | PASS: 중복/escape/device/세대·필수 descriptor·빈 active | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
+| B04-R05 | 누적·정수 | PASS: 64개 초과·큰 원문·uint64/overflow; 물리 비용 검사는 아님 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
+| B04-R06 | 지원·권위 분리 | PASS: crypto 조합·no I/O·caller admission·정리 | 미실행: 고정 후 영향 판정 | 미실행: 녹화 전용 최종 | 비대상: 내부 저장 |
 
 ## S11 B-04 실제 전환 후보
 

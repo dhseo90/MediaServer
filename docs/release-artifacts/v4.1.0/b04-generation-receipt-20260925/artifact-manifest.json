@@ -1,0 +1,80 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-receipt-red.log",
+    "artifact": "red.log.gz",
+    "exit": 1,
+    "bytes": 1029,
+    "gzipBytes": 627,
+    "sha256": "e45594ebe8fbf54b2bb8cb249cc4573a4beca9ae7c0fc10fb8d74269c216066b",
+    "uid": 501,
+    "ino": 159532479,
+    "dev": 16777234,
+    "pass": 0,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.h1qiS1",
+        "bytes": 266712,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-green.log",
+    "artifact": "green.log.gz",
+    "exit": 0,
+    "bytes": 3239,
+    "gzipBytes": 1287,
+    "sha256": "671784e86c776ade8a09ab1b9111f8feb61d7dc62442149f50a39cd5c78473ae",
+    "uid": 501,
+    "ino": 159534443,
+    "dev": 16777234,
+    "pass": 69,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.oE8s46",
+        "bytes": 862480,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-final.log",
+    "artifact": "final.log.gz",
+    "exit": 0,
+    "bytes": 3432,
+    "gzipBytes": 1331,
+    "sha256": "b4b4d78cd7dd2385f5b11bb692fca45eaf3db8ff3ecc7dabd08007b8acb9b0fa",
+    "uid": 501,
+    "ino": 159534611,
+    "dev": 16777234,
+    "pass": 74,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.CsQ0VK",
+        "bytes": 875344,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-build.log",
+    "artifact": "build.log.gz",
+    "exit": 0,
+    "bytes": 3451,
+    "gzipBytes": 624,
+    "sha256": "bc8ee36980485f8db52e9d984439c8957c8e06d9ccd840b39a39c21bde258fdf",
+    "uid": 501,
+    "ino": 159534847,
+    "dev": 16777234,
+    "pass": 0,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  }
+]

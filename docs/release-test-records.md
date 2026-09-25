@@ -254,7 +254,7 @@ archive는8MiB 목표 또는4096행 단위로 나누되 정상 단일16MiB 행�
 | B04-C03 | 원문 표현·재시도 | noncanonical plain·blank·compressed·receipt originalSha256·물리 retry 전수/순서를 별도 canonical archive와 대조 | v4.1.0 |
 | B04-C04 | 분할·누적 경계 | 크기/행 경계·큰 단일행·빈 원장·65조각 이상 previous 체인, 같은 입력의 분할 전후 동일 상태; 총 RAM/HTTP PASS 아님 | v4.1.0 |
 | B04-C05 | 뒤 행 오류·손상 | malformed/domain/ID·예약·상태 오류와 stage 변경을 거부; 부분 후보 공개 금지·원본 불변·생성 소유 보고 | v4.1.0 |
-| B04-C06 | 파일·지원 경계 | O_EXCL 충돌·쓰기/fsync 오류·unsafe stage·crypto/backend 조합 failclosed; 알려진 생성물만 정리 | v4.1.0 |
+| B04-C06 | 파일·지원 경계 | O_EXCL 충돌·쓰기/fsync 오류·unsafe stage·동일 bytes의 다른 inode 교체·crypto/backend 조합 failclosed; 알려진 생성물만 정리 | v4.1.0 |
 | B04-C07 | cold·활성 보호 | source/job latest ID·원문·활성 보호 상세와 비활성 resident 해제, 공개 authority 없는 후보임을 대조 | v4.1.0 |
 
 focused는 `bash scripts/internal/verify_recording_cutover_candidate.sh`다. 예상 RED는 준비 stub의
@@ -280,6 +280,10 @@ PREPARED/PUBLISH_INTENT는 진행 단계이지 검증 성공 권위가 아니다
 
 집중 명령은 `bash scripts/internal/verify_recording_generation_receipt.sh`이며 stub의 정상 값
 직렬화 거부만 예상 RED다. 실제 marker·manifest·원장·사용자 자료는 사용하지 않는다.
+
+게시 영수증 값 codec은 [최종74개·전체 빌드 통과](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)다.
+최초 stub RED1건과 중간69개를 보존한다. source/target/소유 descriptor의 값 검사일 뿐
+실제 파일 게시·삭제·중단 복구의 권위가 아니다. 실제 후보 생성·전환 통합은 아직 진행 중이다.
 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
