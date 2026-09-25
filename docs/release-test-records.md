@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시와 Open용 구성 분리, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID·snapshot 내보내기 후보, active 엄격 읽기·사용 시 cold 원문 검증 후보 및 Journal dense/global 좌표 분리는 focused PASS. snapshot domain 복원·제품 B Open/Append/Checkpoint 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest·세대 파일·identity·snapshot 코덱, 현재 상태 내보내기, active/cold 원문 검사, Journal dense/global 좌표 분리와 snapshot domain 임시 투영은 각각 집중 검증 PASS. 실제 B Open/Append/Checkpoint·SQLite 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -283,6 +283,60 @@ vector index로 쓰는지 확인한다. B 제품 Open/Append/Checkpoint 활성�
 | B02-J01 | 참조 좌표 | dense slot/global ordinal 분리·gap/uint64 경계, global 값을 vector index로 쓰지 않는 반례 | v4.1.0 |
 | B02-J02 | 기존 참조·checkpoint | 기존 logical ref·append/Reserve/중복·checkpoint 동일/변경·reopen/stale/foreign·byte 불변 | v4.1.0 |
 | B02-J03 | 자원·crypto-off | 큰 행 resident fallback, fork·예외·crypto-off의 기존 거부/복구 의미 유지 | v4.1.0 |
+
+### B-02 snapshot domain 임시 복원 구현 전 정의
+
+값 코덱 PASS와 제품 Open을 분리한 중간 제품 경계다. verified manifest·identity chain·
+snapshot bytes를 사용하지만 공개 Catalog 또는 SQLite를 먼저 수정하지 않는다.
+active 적용·세대 게시·v1 전환은 뒤 단계로 남긴다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-X01 | domain 행 복원 | 16종 kind의 기존 strict domain parser·canonical bytes·row key와 내장 ID/내용 일치, 결과를 임시 투영에만 구성 | v4.1.0 |
+| B02-X02 | 관계·namespace | V1/V2/예약·media/state/deleted·event/observation/reference·진행 작업 관계 모순 거부 | v4.1.0 |
+| B02-X03 | identity/thin 결박 | verified first acceptance·배타 cut·accepted-state 전수, source/job latest ID/type/entity와 locator; 보호에 필요한 상세와 지연 cold 경계 분리 | v4.1.0 |
+| B02-X04 | 실패 격리 | 다른 store/generation·손상·상한·crypto-off에 대해 임시 결과만 폐기, 원본·공개 상태 불변 | v4.1.0 |
+| B02-X05 | 실행 연결 | `./server.sh verify-v410-recording-generation-projection`의 X01~X04 결과·exit·source hash·cleanup과 제품 빌드 연결 | v4.1.0 |
+
+### B-02 snapshot domain 임시 복원 실제 결과
+
+2026-09-25 최종 공개 dispatch `./server.sh verify-v410-recording-generation-projection`는 exit 0으로 아래 29개 독립 assertion을 모두 통과했다. [전체 원출력](release-artifacts/v4.1.0/b02-projection-20260925/public-final.log)에는 source hash·시각·개별 판정·7,391,722바이트 임시 자료 삭제가 있다. 임시 투영을 구성한 focused 결과이지 실제 B Open, active 적용, SQLite 또는 전환 PASS가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-X01-01 | 활성 자료의 타입별 map, 예약 ID와 일반 ID 분리 | pass |
+| B02-X01-02 | 과거 V1 관측의 source/channel 불일치와 V2 locator 미존재 수용 범위 유지 | pass |
+| B02-X01-03 | 16종 현재 행의 실제 domain 값과 standalone tombstone 복원 | pass |
+| B02-X01-04 | Ready 작업의 canonical 원문·얇은 값 결박 | pass |
+| B02-X01-05 | Committed 작업의 Ready 출력·경로 결박 | pass |
+| B02-X02-01 | snapshot digest 불일치 거부·출력 불변 | pass |
+| B02-X02-02 | identity chain의 다른 store 거부 | pass |
+| B02-X02-03 | 배타 cut 밖 ordinal 거부 | pass |
+| B02-X02-04 | 예약 tuple 불일치 거부 | pass |
+| B02-X02-05 | 행 key와 domain 내부 ID 불일치 거부 | pass |
+| B02-X02-06 | 얇은 상세의 latest ID type/entity 불일치 거부 | pass |
+| B02-X02-07 | 소속 segment 없는 media 경로 거부 | pass |
+| B02-X02-08 | Intent 뒤 별도 확정된 출력 V2의 기존 수용 범위 유지 | pass |
+| B02-X02-09 | pending terminal source/output hold 재구성 | pass |
+| B02-X02-10 | V2 tombstone의 삭제 전이 불일치 거부 | pass |
+| B02-X02-11 | pending hold 대상의 비Finalized 원본 거부 | pass |
+| B02-X02-12 | event overlap의 channel 불일치 거부 | pass |
+| B02-X02-13 | 완료된 과거 이벤트의 파생 영상 후속 삭제 수용 | pass |
+| B02-X02-14 | Ready 뒤 별도 확정된 출력 V2의 기존 수용 범위 유지 | pass |
+| B02-X02-15 | Committed 출력의 경로 불일치 거부 | pass |
+| B02-X03-01 | 진행 작업 cold 원문의 바이트 admission 초과 거부 | pass |
+| B02-X03-02 | 사용 중 archive 손상 거부·출력 불변 | pass |
+| B02-X03-03 | 비활성 상세의 cold 지연 경계 유지 | pass |
+| B02-X03-04 | 후보 복원이 archive 원본을 재작성하지 않음 | pass |
+| B02-X03-05 | identity head의 다른 세대 거부 | pass |
+| B02-X03-06 | 필수 accepted-state 누락 거부 | pass |
+| B02-X03-07 | outer JSON 객체지만 domain segment가 아닌 값 거부 | pass |
+| B02-X03-08 | 지정 cold 물리 행의 SHA 손상 거부·원본 불변 | pass |
+| B02-X04-01 | crypto-off에서 신규 복원 fail-closed·출력 불변 | pass |
+
+X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server.sh verify-v410-recording-catalog` 237/237 및 crypto-off 3/3·정리 완료, `./server.sh verify-script-inventory` 12/12, `./server.sh verify-project-inventory` 18/18·기능 986개 정합, 문서 링크 328개 문서/12,805개 로컬 링크/오류 0, 문서 자산 10/10, `git diff --check` exit 0. 토큰 start/end/consumed는 계측 source가 없어 미집계이며 elapsed는 공개 focused 약 11초다.
+
+첫 세 번의 실패는 각각 runner 소스 경로 오타(제품 미실행), 미존재 함수 호출로 인한 신규 코드 컴파일 실패(제품 assertion 미실행), V2 locator fixture의 기존 domain 조건 위반(X01 FAIL)이다. 네 번째 그룹 출력과 보강 뒤 내부 집중 결과도 보존했다. 이력을 예상 RED나 제품 회귀로 바꾸지 않았다. [첫 실패](release-artifacts/v4.1.0/b02-projection-20260925/first.log) · [두 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/second.log) · [세 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/third.log) · [네 번째 결과](release-artifacts/v4.1.0/b02-projection-20260925/fourth.log) · [보강 결과](release-artifacts/v4.1.0/b02-projection-20260925/complete.log). 공개 dispatch를 처음 연결한 정적 inventory는 실행 권한 누락으로 11 PASS/1 FAIL이었고 실행 bit 보정 뒤 같은 검사 12/12로 통과했다. 해당 실패도 완료 이력에서 삭제하지 않는다.
 
 ### B-02 Journal 참조 좌표 분리 결과
 

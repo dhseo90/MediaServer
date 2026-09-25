@@ -1219,10 +1219,11 @@ Usage:
   verify-v410-recording-generation-files
   verify-v410-recording-generation-active
   verify-v410-recording-generation-cold-mutation
+  verify-v410-recording-generation-projection
   verify-v410-recording-order-snapshot
   verify-v410-recording-identity-shards
   verify-v410-recording-catalog-snapshot
-                 B안 manifest·파일 준비·active·예약 이력·identity·snapshot의 독립 형식 경계를 검사합니다. 제품 통합 PASS는 아닙니다.
+                 B안 manifest·파일 준비·active·예약 이력·identity·snapshot 형식 및 임시 복원 경계를 검사합니다. 제품 통합 PASS는 아닙니다.
   verify-v410-recording-retention
                  v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
   verify-v410-event-recording
@@ -3128,6 +3129,10 @@ case "${cmd}" in
   verify-v410-recording-generation-cold-mutation)
     require_internal verify_recording_generation_cold_mutation.sh
     exec bash "${INTERNAL_DIR}/verify_recording_generation_cold_mutation.sh" "$@"
+    ;;
+  verify-v410-recording-generation-projection)
+    require_internal verify_recording_catalog_generation_projection.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_catalog_generation_projection.sh" "$@"
     ;;
   verify-v410-recording-order-snapshot)
     require_internal verify_recording_order_history_snapshot.sh

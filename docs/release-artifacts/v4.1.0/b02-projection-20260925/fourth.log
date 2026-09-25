@@ -1,0 +1,23 @@
+[scope] typed scratch domain/cross-map; active cold detail only; no product Open/SQLite/publication
+[start] 2026-09-25T02:33:46Z
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+106f760a06b8bd5e8db0201dfe8115ecfa7fc3b6b7b37674e3b44e818c5f890f  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+3de942ff8d2e68681f8b8264f8f0d11508196594a2ce051004eaea601ed3bbe0  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+185f4a49980557e340358ae6e6149f9554df1506bc99cc594c2d0b82d613e74b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot.cpp
+7b6dd68db062aa19b1e0af7d053ac8827b86566cbd346ed5a9d800f82adfe386  /Users/dhseo/Workspace/mediaServer/src/recording/recording_order_history_snapshot.cpp
+d2d85d3466e83441bd01210c4e5eb8532eb1ed3cf95b0fab36ce8bc0515d6124  /Users/dhseo/Workspace/mediaServer/src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_ready.cpp
+242802993b2a54b91f549d40b97c72621eaaa8f05c4099c4cc151f66f61e040d  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_generation_projection.cpp
+c6afe023f3276ba5cfbee0e80f7f52b05f1f89019545f1061f1fdb2897d11b2e  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_projection_smoke.cpp
+556377841b71a210a906b2d4975e1cc9a652164c6f362388cbb71a439124b8c6  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog_generation_projection.h
+d9a0b88798c7bb9efb975f8d95028714c1beeaeb447d96566a53d1548451fad8  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_catalog_generation_projection.sh
+B02-X01 PASS
+B02-X02 PASS
+B02-X03 PASS
+B02-X04 PASS
+[end] 2026-09-25T02:33:58Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-projection.GKRjwI bytes=7278896 removed=true

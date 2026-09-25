@@ -31,6 +31,11 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-J01 | Journal 참조 좌표 분리 | 현행 dense slot과 B 전역 `uint64` ordinal을 별도 필드·검사로 유지하고 전역 ordinal을 vector index로 사용하지 않음 | 미실행: Journal 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J02 | 기존 참조 수명·checkpoint | v1 참조의 append·예약·중복·checkpoint 동일/변경·재열기 및 stale/foreign 거부·원본 byte 불변 | 미실행: Journal 영향 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J03 | 자원·crypto-off 경계 | 큰 행 resident fallback·fork·예외·crypto-off 경로를 기존 의미로 유지 | 미실행: Journal 영향 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-X01 | snapshot domain 임시 복원 | 16종 row의 기존 domain parser·canonical bytes·key/내부 ID를 임시 투영에 복원하고 실패 시 공개 Catalog 불변 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-X02 | 현재 상태 관계 검사 | V1/V2/예약 namespace, segment 상태·삭제·경로·이벤트·참조·hold 복구 입력의 cross-map 모순 거부 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-X03 | thin 상세와 최초 수용 결박 | source/job latest ID의 검증된 identity locator·type/entity, accepted-state 전수·배타 cut을 확인하고 필요한 상세만 사용 시 raw 검증 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-X04 | 임시 복원 실패 경계 | 손상·누락·다른 세대/저장소·자원 상한·crypto-off 시 임시 결과만 폐기하고 원본/공개 상태를 변경하지 않음 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-X05 | 임시 복원 실행 연결 | `./server.sh verify-v410-recording-generation-projection`에서 X01~X04·source hash·cleanup을 확인하고 제품 빌드에 복원 경계를 포함 | PASS: 공개 dispatch·빌드 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 
