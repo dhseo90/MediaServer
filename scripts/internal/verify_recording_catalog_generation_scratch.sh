@@ -35,7 +35,7 @@ projection_sources=(
   "$projection_repo/src/domain/strict_json.cpp"
   "$projection_repo/src/recording/recording_contracts.cpp"
   "$projection_repo/src/recording/recording_journal.cpp"
-  "$projection_repo/src/recording/recording_generation_manifest.cpp"
+  "$projection_repo/src/recording/recording_generation_manifest.cpp" "$projection_repo/src/recording/recording_generation_files.cpp"
   "$projection_repo/src/recording/recording_generation_cold_mutation.cpp"
   "$projection_repo/src/recording/recording_catalog_snapshot.cpp"
   "$projection_repo/src/recording/recording_order_history_snapshot.cpp"

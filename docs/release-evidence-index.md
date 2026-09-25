@@ -1,5 +1,10 @@
 # Release Evidence Index
 
+- [2026-09-25 S11 B안 내부 저장 연결](release-test-records.md#v410-s11-b안-저장-구조-구현):
+  수용/cut 동등성·공개 읽기/SQL·증분 쓰기와 세대 회전을 순차 확인했다.
+  [회전 집중·영향 회귀](release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)는 최종1,463 assertion·빌드 PASS다.
+  형식 전환·실제 소비자·runtime 기본 활성화·누적/최종 검증 완료는 아니다.
+
 - [2026-09-24 S11 O29 저장 구조 선행 판정](release-test-records.md#v410-s11-o29-저장-처리-구조-선행-판정):
   현 형식의 전체 원문 검증 비용과 strict scratch/SQLite 원자성 경계를 확인했다. 형식 내 비용 개선과
   영속 구조 분리의 차이를 정리하고 사용자 선택을 요청했다. 제품 수정·새 성능 측정·S11 완료가 아니다.

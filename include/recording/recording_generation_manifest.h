@@ -19,6 +19,22 @@ struct RecordingGenerationManifest {
     std::vector<RecordingGenerationFile> evidence;
 };
 enum class RecordingGenerationPublishResult { NotPublished, Published, DurabilityUncertain };
+// Journal만 독점 lease와 현재 세대 결박 아래 발급하는 일회 게시 권위다.
+class RecordingGenerationPublication {
+    friend class RecordingJournal;
+    friend RecordingGenerationPublishResult PublishRecordingGenerationCheckpoint(
+        const std::filesystem::path&,const RecordingGenerationManifest&,RecordingGenerationPublication&,std::string*);
+    RecordingGenerationPublication()=default;
+    RecordingGenerationPublication(const RecordingGenerationPublication&)=delete;
+    RecordingGenerationPublication& operator=(const RecordingGenerationPublication&)=delete;
+    std::string predecessor;
+    RecordingGenerationFile identity;
+    std::uint64_t root_device{0},root_inode{0};
+    std::uint64_t stage_device{0},stage_inode{0};
+    bool consumed{false};
+};
+RecordingGenerationPublishResult PublishRecordingGenerationCheckpoint(const std::filesystem::path&,
+    const RecordingGenerationManifest&,RecordingGenerationPublication&,std::string* error);
 enum class RecordingGenerationValidation { PrefixOnly, OpenComponentsOnly };
 struct RecordingGenerationReadResult {
     RecordingGenerationManifest manifest;
@@ -66,6 +82,8 @@ bool ReadVerifiedRecordingGenerationSealedActiveRange(const std::filesystem::pat
 void RecordingGenerationFailNextDirectorySyncForTest();
 // 실제 파일 읽기 후 최종 결박 검사 직전의 일회성 fixture hook이다.
 void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)());
+void RecordingGenerationCheckpointBeforeBindingForTest(void (*hook)());
+std::uint64_t RecordingGenerationArchiveReadsForTest(bool reset=false);
 #endif
 // DurabilityUncertain은 rename 후 directory fsync 또는 재결박 실패다.
 // 호출자는 쓰기를 차단하고 재open해야 하며 이전 manifest 보존을 가정하지 않는다.

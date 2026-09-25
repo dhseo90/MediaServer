@@ -90,7 +90,7 @@ void Basic(const std::filesystem::path& root) {
         bad=corrupt;bad.mutation_id="invalid-domain";bad.entity_id="absent";Rejected(c,root,bad,"missing domain entity leaves bytes and current maps unchanged");
         Rejected(c,root,AM(RecordingMutationType::Unknown,"unknown","segment","{}"),"unknown mutation rejected before durable");
         Rejected(c,root,AM(RecordingMutationType::EventLinkReceipt,"receipt","segment","{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+std::string(64,'a')+"\"}"),"checkpoint-only receipt cannot use B append");
-        Check("B03-W05",!journal.Append(corrupt,&error)&&!AppendProbe::Foreign(journal,corrupt)&&!c.Checkpoint(&error),"raw foreign append and checkpoint remain blocked");
+        Check("B03-W05",!journal.Append(corrupt,&error)&&!AppendProbe::Foreign(journal,corrupt),"raw foreign append remains blocked; writable checkpoint moves to C01");
         RecordingOrderReservationV1 reservation;Need(c.ReserveRecordingOrder("store","new-order","new-segment","channel",&reservation,&error));
         const auto reserved=Read(root/"active-2.jsonl");RecordingOrderReservationV1 retry;
         Check("B03-W01",c.ReserveRecordingOrder("store","new-order","new-segment","channel",&retry,&error)&&retry.sequence==reservation.sequence&&Read(root/"active-2.jsonl")==reserved,"Catalog reservation preserves retry tuple timestamp and bytes");
@@ -112,6 +112,7 @@ void Basic(const std::filesystem::path& root) {
         if(db){Check("B03-W04",AS(db,"SELECT value_json FROM b_current WHERE kind='sentinel' AND id='untouched'")=="owned","delta writes never rebuild or modify unrelated SQL key");
             AX(db,"DROP TRIGGER keep_unrelated_delete; DROP TRIGGER keep_unrelated_update;");}
 #endif
+        Check("B03-C01",c.Checkpoint(&error),"writable checkpoint supported after append branch assertions");
     }
     {RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog c(journal,AO(root,false));
         Check("B03-W01",c.Open(&error)&&c.IsDeletedSegmentId("segment"),"new read-only owner strict replay restores appended current state");

@@ -660,10 +660,45 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
 bool RecordingCatalog::Checkpoint(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_||!CanWriteLocked(error)){checkpoint_cache_.reset();return false;}
-    if(generation_backend_)return Fail(error,"B checkpoint는 세대 회전 구현 전까지 거부");
+    if(generation_backend_)return CheckpointGenerationLocked(error);
     return CheckpointLocked(false,error);
 }
 
+bool RecordingCatalog::CheckpointGenerationLocked(std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!generation_backend_||!CanWriteLocked(error))return false;
+    std::shared_ptr<RecordingGenerationCheckpointPlan> plan;
+    if(!journal_.PrepareGenerationCheckpoint(this,&plan,error))return false;
+    if(!plan)return true;
+    RecordingCatalogSnapshot snapshot;std::string bytes;
+    if(!ExportGenerationSnapshotLocked(plan->chain,plan->generation,plan->cut,&snapshot,error)||
+       !SerializeRecordingCatalogSnapshot(snapshot,&bytes,error))return false;
+    const auto sql=[&](std::uint64_t generation,std::uint64_t cut) {
+#if MEDIA_SERVER_USE_SQLITE3
+        auto* db=generation_sqlite_db_;if(!db)return true;
+        if(!Exec(db,"BEGIN IMMEDIATE",error))return false;
+        const auto fail=[&](){Exec(db,"ROLLBACK",nullptr);return false;};
+        try {
+            const auto gen=std::to_string(generation),next=std::to_string(cut);
+            sqlite3_stmt* statement=nullptr;
+            if(sqlite3_prepare_v2(db,"UPDATE b_meta SET generation=?,cut=?",-1,&statement,nullptr)!=SQLITE_OK)return fail();
+            const bool bound=sqlite3_bind_text(statement,1,gen.c_str(),-1,SQLITE_TRANSIENT)==SQLITE_OK&&
+                sqlite3_bind_text(statement,2,next.c_str(),-1,SQLITE_TRANSIENT)==SQLITE_OK;
+            const bool updated=bound&&sqlite3_step(statement)==SQLITE_DONE&&sqlite3_changes(db)==1;sqlite3_finalize(statement);
+            if(!updated||!journal_.ValidateGenerationCheckpointCommitLocked(error)||!Exec(db,"COMMIT",error))return fail();
+            return true;
+        }catch(...){return fail();}
+#else
+        (void)generation;(void)cut;return true;
+#endif
+    };
+    const bool ok=journal_.PublishGenerationCheckpoint(this,plan,bytes,sql,error);
+    if(!ok&&!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
+    return ok;
+#else
+    return Fail(error,"B checkpoint unsupported");
+#endif
+}
 bool RecordingCatalog::FindDerivedJob(const std::string& id,
     std::optional<DerivedJobRecordV1>* result,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -1712,6 +1747,8 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
     mutation.mutation_id=mutation.mutation_id.empty()?NextMutationId():mutation.mutation_id;
     mutation.occurred_at_ms=mutation.occurred_at_ms?mutation.occurred_at_ms:NowMs();
     if(!ValidateMutationLocked(mutation,error,prepared))return false;
+    bool rotate=false;if(!journal_.GenerationRotationNeeded(this,mutation,&rotate,error))return false;
+    if(rotate&&!CheckpointGenerationLocked(error))return false;
     std::shared_ptr<const RecordingGenerationRecoveryRow> row;
     if(!journal_.AppendGeneration(this,mutation,&row,error)) {
         if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
@@ -1758,9 +1795,13 @@ bool RecordingCatalog::ReserveRecordingOrder(const std::string& store,const std:
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!result||!generation_backend_||!CanWriteLocked(error))return Fail(error,"B Catalog 전용 예약 거부");
     RecordingOrderReservationV1 order;std::shared_ptr<const RecordingGenerationRecoveryRow> row;
-    if(!journal_.ReserveGeneration(this,store,request,segment,channel,&order,&row,error)) {
+    bool rotate=false;
+    if(!journal_.ReserveGeneration(this,store,request,segment,channel,&order,&row,error,&rotate)) {
         if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
         return false;
+    }
+    if(rotate) {
+        if(!CheckpointGenerationLocked(error)||!journal_.ReserveGeneration(this,store,request,segment,channel,&order,&row,error))return false;
     }
     try {
         if(!row->retry) {

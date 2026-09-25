@@ -265,6 +265,30 @@ append 이전부터 보유한 상세 링크는 같은 owner/세대 내 append �
 format-v1과 단순 finalize는 유지하며, B의 SQL hold 투영·오류 차단·경로 결박을 검증한 뒤에만
 이 제한을 해제한다. 내부 쓰기 단위 PASS를 모든 런타임 쓰기 API 지원으로 확대하지 않는다.
 
+**세대 회전 연결 단위.** 증분 쓰기는1062f5de에서 닫았다. 다음 회전은 Catalog→Journal
+잠금과 독점 lease 아래 현재 active를 fsync·봉인하고, 그 증분의 최소 identity 조각과
+현재 얇은 snapshot·새 빈 active만 준비한다. 이전 snapshot/identity/archive의 상세를
+다시 읽거나 복사·직렬화하지 않는다. 현재 값·최소 ID 관계 검사는 유지하며 과거 상세
+전체 재증명과 구분한다. 기본 v1 checkpoint의 의미·서버 활성화·cutover는 변경하지 않는다.
+
+공개 manifest helper는 불신 입력에 대한 기존 전체 검사를 유지한다. 정상 회전에는 Journal이
+검증한 동일 owner/manifest·세대·store·active 결박 아래에서만 발급하는 내부의 일회 게시
+권위를 사용한다. 임의 bool/외부 DTO로 이전 자료 검사를 생략하게 만들지 않는다. 게시 직전
+동일 원본 결박과 새 구성 파일 내구성을 확인하고, atomic manifest 이후 live Journal의
+새 active/최소 색인과 SQL 세대 표지를 맞춘다. 게시 이후 적용/SQL 실패·dir fsync 불확실은
+poison하고 새 owner strict Open으로 판정한다. rename 전 실패를 rename 후 실패와 섞지 않는다.
+
+링크는 물리 slot의 지속성을 가정하지 않는다. 같은 owner 수명의 mutation ID·최초 ordinal·
+identity로 현재 active 또는 봉인 위치를 다시 찾고 raw hash/domain을 검사한다. 두 번 이상
+회전해도 기존 링크와 진행 작업의 보호 의무가 유지돼야 한다. 다른 owner·fork·ID 충돌·
+뒤바뀐 원본은 계속 거부한다. RAM에서 내려도 원문 파일은 이 단위에서 삭제하지 않는다.
+
+자동 회전은 기존 checkpoint의 1MiB 단위를 출발 기준으로 삼되, caller active admission을
+넘길 신규 정상 행은 내구 기록 전에 회전 필요성을 판정한다. 행 자체·최소 ID/순서 상한을
+회전으로 우회하지 않는다. 잘못된 입력은 회전 전 거부하며, 같은 ID 재시도는 새 물리 행을
+만들지 않는다. 준비 실패 산출물은 확인된 소유 범위만 다루고, 게시 불확실 자료나 모르는
+충돌 파일을 삭제하지 않는다. 중단된 준비의 재시작 처리는 형식 전환/복구 단위에서 함께 닫는다.
+
 **수용 조건과 snapshot 분할 동등성.** `RecordingSegmentV1` domain과 현재 V2 자료를
 저장하는 `managed-recording-store.v1` 배치는 다른 버전 축이다. 구형 개발 자료 정리
 지시를 현재 관리 저장소 전체의 폐기나 변환 면제로 확대하지 않는다. 기존 S10-O10 등

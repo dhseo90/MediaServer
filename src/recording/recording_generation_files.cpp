@@ -167,6 +167,22 @@ bool FinishFile(int root, int fd, RecordingGenerationCreatedFile* report, std::u
 #endif
 } // namespace
 
+bool PrepareRecordingGenerationIdentityFile(const std::filesystem::path& root,std::uint64_t generation,
+    std::string_view bytes,RecordingGenerationCreatedFile* report,std::string* error) {
+    if(!report||report->created||!report->name.empty()||!generation||bytes.size()>kFileLimit)return Fail(error,"identity preparation input invalid");
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    Fd directory(OpenRoot(root)),lock;
+    if(directory.value<0||!Lock(directory.value,&lock))return Fail(error,"identity preparation root/lock unsafe");
+    report->name="identity-"+std::to_string(generation)+".jsonl";
+    Fd file(Create(directory.value,report));
+    if(file.value<0||!WriteAll(file.value,bytes.data(),bytes.size())||
+       !FinishFile(directory.value,file.value,report,bytes.size())||!RootSame(root,directory.value)||!Sync(directory.value))
+        return Fail(error,"identity preparation failed; owned output preserved");
+    if(error)error->clear();return true;
+#else
+    (void)root;return Fail(error,"identity preparation crypto unsupported");
+#endif
+}
 bool PrepareRecordingGenerationFiles(const std::filesystem::path& root,
     const std::string& store_id, std::uint64_t generation, std::uint64_t cut_ordinal,
     std::string_view snapshot, const std::vector<RecordingGenerationSource>& sources,

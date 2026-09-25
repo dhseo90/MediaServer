@@ -32,6 +32,9 @@ bool PrepareRecordingGenerationFiles(const std::filesystem::path& root,
     const std::string& store_id, std::uint64_t generation, std::uint64_t cut_ordinal,
     std::string_view snapshot, const std::vector<RecordingGenerationSource>& sources,
     RecordingGenerationPreparation* result, std::string* error);
+// 회전 시 새 최소 identity 조각만 O_EXCL로 기록한다. 과거 원문을 읽거나 복사하지 않는다.
+bool PrepareRecordingGenerationIdentityFile(const std::filesystem::path&,std::uint64_t generation,
+    std::string_view,RecordingGenerationCreatedFile*,std::string* error);
 
 // 이 API는 Publish를 호출하지 않는다. 준비 완료 뒤 B-04의 snapshot 의미/참조·tail
 // 검증을 통과한 소유자가 별도로 PublishRecordingGenerationManifest를 호출해야 한다.

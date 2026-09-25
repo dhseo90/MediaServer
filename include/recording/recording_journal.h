@@ -12,6 +12,7 @@
 #include <unordered_set>
 
 namespace recording {
+class RecordingGenerationCheckpointPlan;
 struct ManagedJournalState;
 struct RecordingJournalGenerationState;
 struct RecordingGenerationMutationRef;
@@ -141,6 +142,7 @@ private:
     friend struct RecordingGenerationPreappendProbe;
     friend struct RecordingGenerationAppendProbe;
     static thread_local int generation_write_fault_;
+    static thread_local void (*generation_cleanup_before_unlink_)();
     static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
         const RecordingMutationV1& candidate, bool* unchanged, std::string* error);
 #endif
@@ -150,6 +152,12 @@ private:
     bool OwnsCatalog(const void* owner) const;
     bool ValidatePreappend(const void* owner, const RecordingMutationV1& mutation, std::string* error);
     bool EnableGenerationWrites(const void* owner,std::string* error);
+    bool PrepareGenerationCheckpoint(const void* owner,std::shared_ptr<RecordingGenerationCheckpointPlan>*,std::string* error);
+    bool PublishGenerationCheckpoint(const void* owner,const std::shared_ptr<RecordingGenerationCheckpointPlan>&,
+        const std::string& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error);
+    bool GenerationRotationNeeded(const void* owner,const RecordingMutationV1&,bool*,std::string* error);
+    bool GenerationRotationNeededLocked(const RecordingMutationV1&,bool*,std::string* error);
+    bool ValidateGenerationCheckpointCommitLocked(std::string* error) const;
     bool ValidateGenerationOwner(const void* owner,std::string* error);
     void PoisonGeneration(const void* owner);
     bool CommitGenerationDelta(const void* owner,const std::function<bool()>& commit,std::string* error);
@@ -158,7 +166,7 @@ private:
     bool AppendGenerationLocked(const void* owner,const RecordingMutationV1&,
         std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*,bool reservation=false);
     bool ReserveGeneration(const void* owner,const std::string&,const std::string&,const std::string&,const std::string&,
-        RecordingOrderReservationV1*,std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*);
+        RecordingOrderReservationV1*,std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*,bool* rotation=nullptr);
     bool AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
                      RecordingMutationHandle* appended = nullptr, RecordingJournalOwnedViewHandle* view = nullptr);
     bool LoadManagedStateLocked(std::string* error);
@@ -235,4 +243,7 @@ private:
     std::uint64_t device_{0}, inode_{0}, parent_device_{0}, parent_inode_{0};
 };
 
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+void RecordingMutationCodecCountsForTest(std::uint64_t* parses,std::uint64_t* serializes,bool reset=false);
+#endif
 }  // namespace recording

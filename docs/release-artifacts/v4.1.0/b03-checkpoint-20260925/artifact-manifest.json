@@ -1,0 +1,331 @@
+[
+  {
+    "source": "/private/tmp/b03-checkpoint-red.log",
+    "artifact": "red.log.gz",
+    "exit": 1,
+    "bytes": 3652,
+    "gzipBytes": 1724,
+    "sha256": "d14d50ebcb2efd7fbd46fd52aaf74024e5f07089aae8d3f3cc7f55ecf62b7129",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159509617,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.8QJcay",
+        "bytes": 0,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-red-ready.log",
+    "artifact": "red-ready.log.gz",
+    "exit": 1,
+    "bytes": 3714,
+    "gzipBytes": 1841,
+    "sha256": "34f6cb7b6f40f2fd5a1ce26f97d1ce505324089e4d3a5436904e3bc3a0207e4c",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159509668,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.2JO0or",
+        "bytes": 8459851,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-green-draft.log",
+    "artifact": "green-draft.log.gz",
+    "exit": 0,
+    "bytes": 10664,
+    "gzipBytes": 3077,
+    "sha256": "25b1bc17a405f0527b862ab264decb71017e6b9e1deeebdeb5ba578ad6df8b52",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159512121,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.9hdwGw",
+        "bytes": 39201488,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-expanded.log",
+    "artifact": "expanded.log.gz",
+    "exit": 0,
+    "bytes": 12804,
+    "gzipBytes": 3295,
+    "sha256": "0a1c9497f857c70d4cc5183878a117a5eb0bcd4998912a370215bd38b83f66f6",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159513059,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.5cwdA7",
+        "bytes": 42654214,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-final.log",
+    "artifact": "final.log.gz",
+    "exit": 0,
+    "bytes": 13302,
+    "gzipBytes": 3385,
+    "sha256": "e7309c984e9b002223d7c9fb1d10899a469a6feb624d08fb4db167241159da17",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159514148,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.YjQQaa",
+        "bytes": 47960034,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-final-binding.log",
+    "artifact": "final-binding.log.gz",
+    "exit": 0,
+    "bytes": 13512,
+    "gzipBytes": 3413,
+    "sha256": "88d745ed07eee94c9ff0dec826cf752134c483c7620e9ac14917f7e9ba075de3",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159515592,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.H5JNa8",
+        "bytes": 48036436,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-final-evidence.log",
+    "artifact": "final-evidence.log.gz",
+    "exit": 0,
+    "bytes": 13588,
+    "gzipBytes": 3425,
+    "sha256": "3f80577ecfc380a28802862f25630e12440d222e04bd53fba83573d6a5f20ed9",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159521132,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.hErVWy",
+        "bytes": 48036436,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-build.log",
+    "artifact": "build.log.gz",
+    "exit": 0,
+    "bytes": 4349,
+    "gzipBytes": 714,
+    "sha256": "fc844ab4f0ee89ee2dcd70ea678890887f56a7a69775a2dd2fe45036a5efe8ad",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159514191,
+    "cleanup": [],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-build-final.log",
+    "artifact": "build-final.log.gz",
+    "exit": 0,
+    "bytes": 4126,
+    "gzipBytes": 692,
+    "sha256": "441d76cd10ee374824d90254d66b7976aebb1855b3df312c8792ee52cb7a2039",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159516665,
+    "cleanup": [],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-manifest.log",
+    "artifact": "regression-manifest.log.gz",
+    "exit": 0,
+    "bytes": 906,
+    "gzipBytes": 323,
+    "sha256": "50a453c745da8eca9184fc19ecc05ebcbe514a0f3f1720adda78d66eb435c2d2",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159516603,
+    "cleanup": [],
+    "cleanupPathUnrecorded": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-files.log",
+    "artifact": "regression-files.log.gz",
+    "exit": 0,
+    "bytes": 343,
+    "gzipBytes": 188,
+    "sha256": "cd3e819f1d9282cd36b3819a24a7082e21cbe72b2c363147aac3543be10a4702",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159516814,
+    "cleanup": [],
+    "cleanupPathUnrecorded": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-append.log",
+    "artifact": "regression-append.log.gz",
+    "exit": 0,
+    "bytes": 18216,
+    "gzipBytes": 3995,
+    "sha256": "7b7ad84757f5156298e07c4d18dc0697c8bc8d94501e04704348271eeb79e0db",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159517161,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.xAmlp9",
+        "bytes": 34744710,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-preappend.log",
+    "artifact": "regression-preappend.log.gz",
+    "exit": 0,
+    "bytes": 33280,
+    "gzipBytes": 3493,
+    "sha256": "9d9afb62587c0e9c1c6ea172628f8cba92b01588ea9b99dac313f84b5236fccb",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159518124,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.6AXqe6",
+        "bytes": 34316416,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-readonly.log",
+    "artifact": "regression-readonly.log.gz",
+    "exit": 0,
+    "bytes": 10791,
+    "gzipBytes": 2690,
+    "sha256": "07fafac63f0aa2bd56153b34368756f15dadd7e03dd0723e2ee336593a2e87dd",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159518764,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.eWZA7h",
+        "bytes": 32191209,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-journal.log",
+    "artifact": "regression-journal.log.gz",
+    "exit": 0,
+    "bytes": 6389,
+    "gzipBytes": 2196,
+    "sha256": "0119ea5f4ec8139c94287a0476ede3be63677faf984fd13d5acb91fde3a32e5f",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159519414,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.ibzPKO",
+        "bytes": 11981260,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-catalog.log",
+    "artifact": "regression-catalog.log.gz",
+    "exit": 0,
+    "bytes": 14659,
+    "gzipBytes": 3727,
+    "sha256": "3b588ee6e4516bea95a2be65586c8d4563e8c867adf0ccdc059e5720615e052a",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159520053,
+    "cleanup": [
+      {
+        "path": "/tmp/media_server_v410_recording_catalog-1771",
+        "bytes": 28854458,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-checkpoint-regression-derived.log",
+    "artifact": "regression-derived.log.gz",
+    "exit": 0,
+    "bytes": 2672,
+    "gzipBytes": 1436,
+    "sha256": "843eadd476e1470a5fbf7324781777e3114b52faca4345adfec7d2a86f2d0e30",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159520786,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.r0z5dq",
+        "bytes": 10436047,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "cleanupPathUnrecorded": false,
+    "originalRemoved": true
+  }
+]

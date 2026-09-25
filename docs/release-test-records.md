@@ -146,12 +146,43 @@ SQL 오류 뒤 빠른 성공 반환 결함을 B 권위 선검사로 수정했고
 [개별 결과·실패 이력·원출력·정리](release-artifacts/v4.1.0/b03-append-20260925/results.md)를 따른다.
 기본 read-only·v1·서버 구성은 유지하며 B checkpoint·cutover·실제 소비자 연결은 아직 완료하지 않았다.
 
+### B-03 세대 회전 실행 전 정의
+
+1062f5de의 증분 쓰기 단위 뒤 승인 4번의 마지막 연결을 진행한다. 실제 writer/default 활성화는
+전환·보호 소비자 검증 뒤다. 최초 예상 RED는 writable B의 공개 Checkpoint 거부 assertion으로
+한정한다. 구성/컴파일/fixture 오류는 예상 RED가 아니다. 과거 W05의 checkpoint 차단 검사는
+read-only Q04에서 유지하고, writable 동작은 C01~C06으로 승계하여 새 동작을 직접 검사한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B03-C01 | 회전·재Open | 수동/자동·두 번 회전 후 독립 current·예약·SQL 세대·새 owner Open 대조; 배타 cut와 새 active 확인 | v4.1.0 |
+| B03-C02 | 안정 참조 | 회전 전 link를 active→봉인→후속 세대에서 취득; ID/ordinal/identity·원문 변조·다른 owner/fork 거부 | v4.1.0 |
+| B03-C03 | 게시 실패 격리 | 준비/충돌/게시 전 실패와 rename 후 fsync·SQL 실패 구분; 원본 불변·poison·새 owner strict Open·미완결 tail 거부 | v4.1.0 |
+| B03-C04 | 과거 비용 비증가 | 현재·증분을 고정하고 과거 상세만 증가시켜 회전의 과거 상세 읽기/파싱/재직렬화 없음 확인; 이전 파일 byte 불변 | v4.1.0 |
+| B03-C05 | 순서·작업·상한 | 예약/확정·진행 job/복수 출력 링크 보존; invalid 입력의 무회전, active admission 전 회전과 행/ID/overflow 거부 | v4.1.0 |
+| B03-C06 | 지원·영향 회귀 | crypto/SQLite/backend 조합; 기존 manifest/files/append/preappend/공개읽기/Journal/Catalog/파생 작업·전체 빌드 및 cleanup | v4.1.0 |
+
+집중 명령은 `verify-v410-recording-generation-checkpoint`다. 원출력·source hash·전수 결과·
+cleanup을 파일로 보존한다. 작은 집중 검사가 누적 규모·실제 HTTP·최종 장시간을 대체하지 않는다.
+
+### B-03 세대 회전 결과
+
+2026-09-25 내부 opt-in B의 수동/자동 세대 회전·안정 참조·증분만 봉인·현재 SQL 세대 전이를
+연결했다. 최종 C01~C06 123개, 기존 manifest113·files42·append219·preappend510·공개읽기106·
+Journal78·Catalog249·파생작업23(합계1,463 assertion)과 최종 제품 빌드가 exit0이다.
+원문 820B/3,358,720B를 identity와 predecessor evidence 양쪽에 결박한 비교에서
+회전의 과거 상세 읽기/파싱은0, 현재 증분 직렬화는1이었다. 누적 자원 판정은 아직 아니다.
+실제 SQLite UPDATE/COMMIT 실패·cleanup 중 동일 inode 변조·미완결 tail 반례를 포함했다.
+runner 준비 실패와 예상 RED, 리뷰 후 테스트 보강 이력을 구분해
+[원출력·개별 결과·정리 전수](release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)에 보존한다.
+기존 자료 전환·중단 복구·실제 소비자·기본 활성화·최종 검증은 뒤 단계다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | 형식·임시 복원·공개 Catalog B read-only Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 Append·예약·Checkpoint·writer는 계속 차단 |
-| B-03 정상 저장·체크포인트 | 부분 진행 | 비변경 검증·내부 opt-in 증분 쓰기·예약·변경 key SQL 집중/영향 회귀·빌드 PASS. 세대 회전·무재처리 계측은 미완료 |
-| B-04 재기동·SQLite | 부분 진행 | 공개 읽기 후보 전체 성공 후 게시·현재 상태 SQLite·fallback·새 owner 재Open 집중 PASS. 쓰기 후 재기동·원문 보존 cutover·중단 복구는 후속 |
+| B-02 영속 저장 단위 | 완료(내부 연결 범위) | 형식·임시 복원·공개 Catalog B Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 runtime 기본 선택은 후속 |
+| B-03 정상 저장·체크포인트 | 완료(내부 opt-in 범위) | 비변경 검증·증분 쓰기·예약·변경 key SQL·수동/자동 회전·무재처리 독립 비교·영향 회귀·빌드 PASS. 누적/실제 앱은 B-07 |
+| B-04 재기동·SQLite | 부분 진행 | 쓰기·회전 후 새 owner strict Open·SQL 오류/불가 구분 집중 PASS. 원문 보존 cutover·전환 중단 복구는 후속 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |
 | B-07 누적·실제 통합 | 미실행 | 작은 반례·누적 비용·완전 출력 2개와 HTTP·해시·재기동 |

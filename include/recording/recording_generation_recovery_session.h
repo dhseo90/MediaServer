@@ -3,6 +3,18 @@
 #include "recording/recording_journal.h"
 
 namespace recording {
+class RecordingGenerationCheckpointPlan {
+    friend class RecordingJournal;
+    friend class RecordingCatalog;
+    struct State;
+    RecordingGenerationCheckpointPlan();
+    std::unique_ptr<State> state;
+    RecordingIdentityChainResult chain;
+    std::uint64_t generation{0},cut{0};
+    bool consumed{false};
+public:
+    ~RecordingGenerationCheckpointPlan();
+};
 class RecordingGenerationRecoveryRow {
     friend class RecordingJournal;
     friend class RecordingCatalog;

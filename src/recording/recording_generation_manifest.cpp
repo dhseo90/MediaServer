@@ -156,7 +156,13 @@ bool Lock(int root,Fd& lock) {
     return lock.n>=0&&Regular(lock.n,&s)&&s.st_size==0&&
         ::flock(lock.n,LOCK_EX|LOCK_NB)==0&&Same(root,".recording-generation.lock",lock.n,s);
 }
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+thread_local std::uint64_t archive_reads=0;
+#endif
 bool Verify(int root,const RecordingGenerationFile& f,bool durable,bool prefix=false,std::uint64_t* tail=nullptr){
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+    if(f.name.rfind("evidence-",0)==0)++archive_reads;
+#endif
     Fd fd(::openat(root,f.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat s{};
     if(fd.n<0||!Regular(fd.n,&s))return false;
     const auto actual=static_cast<std::uint64_t>(s.st_size);
@@ -195,6 +201,7 @@ bool VerifyAll(int root,const RecordingGenerationManifest& m,bool durable=false,
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 thread_local bool fail_directory_sync=false;
 thread_local void (*immutable_before_binding)()=nullptr;
+thread_local void (*checkpoint_before_binding)()=nullptr;
 #endif
 bool SyncPublishedDirectory(int fd){
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
@@ -291,7 +298,9 @@ bool ParseRecordingGenerationManifest(const std::string& raw,RecordingGeneration
     *out=std::move(m);
     return true;
 }
-RecordingGenerationPublishResult PublishRecordingGenerationManifest(const std::filesystem::path& root,const RecordingGenerationManifest& m,std::string* error){
+static RecordingGenerationPublishResult PublishManifest(const std::filesystem::path& root,const RecordingGenerationManifest& m,std::string* error,
+    const std::string* predecessor=nullptr,const RecordingGenerationFile* identity=nullptr,std::uint64_t device=0,std::uint64_t inode=0,
+    std::uint64_t* stage_device=nullptr,std::uint64_t* stage_inode=nullptr){
     using Result=RecordingGenerationPublishResult;
     std::string bytes;
     if(!SerializeRecordingGenerationManifest(m,&bytes,error))return Result::NotPublished;
@@ -302,19 +311,32 @@ RecordingGenerationPublishResult PublishRecordingGenerationManifest(const std::f
     };
     Fd dir(Root(root)),lock;
     if(dir.n<0||!Lock(dir.n,lock))return reject("manifest root/lock unsafe");
+    struct stat root_status{};
+    if(predecessor&&(::fstat(dir.n,&root_status)!=0||static_cast<std::uint64_t>(root_status.st_dev)!=device||root_status.st_ino!=inode))return reject("checkpoint root authority mismatch");
+    const auto prior_exact=[&]() {
+        if(!predecessor)return true;
+        Fd file(::openat(dir.n,kManifest,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat status{};
+        if(file.n<0||!Regular(file.n,&status)||static_cast<std::uint64_t>(status.st_size)!=predecessor->size())return false;
+        std::string raw(predecessor->size(),'\0');std::size_t pos=0;
+        while(pos<raw.size()){ssize_t n;do{n=::pread(file.n,raw.data()+pos,raw.size()-pos,pos);}while(n<0&&errno==EINTR);if(n<=0)return false;pos+=n;}
+        return raw==*predecessor&&Same(dir.n,kManifest,file.n,status);
+    };
     struct stat existing{};
     const int exists=::fstatat(dir.n,kManifest,&existing,AT_SYMLINK_NOFOLLOW);
     if(exists==0) {
         RecordingGenerationManifest previous;
-        if(!ReadAtRoot(dir.n,&previous,error)||previous.store_id!=m.store_id||
+        if(!(predecessor?(prior_exact()&&ParseRecordingGenerationManifest(*predecessor,&previous,error)):ReadAtRoot(dir.n,&previous,error))||previous.store_id!=m.store_id||
            previous.generation>=m.generation||previous.cut_ordinal>m.cut_ordinal)
             return reject("manifest prior generation/store/cut invalid");
-    } else if(errno!=ENOENT)return reject("manifest prior stat failed");
+    } else if(predecessor||errno!=ENOENT)return reject("manifest prior stat failed");
+    if(identity&&(!m.evidence.empty()||identity->name!="identity-"+std::to_string(m.generation)+".jsonl"||!Verify(dir.n,*identity,true)))return reject("checkpoint new identity invalid");
     if(!VerifyAll(dir.n,m,true)||!RootSame(root,dir.n))return reject("manifest components invalid");
     Fd stage(::openat(dir.n,kStage,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
     if(stage.n<0)return reject("manifest pending stage preserved");
     struct stat staged{};
     if(!Regular(stage.n,&staged))return reject("manifest stage invalid; preserved");
+    if(stage_device)*stage_device=staged.st_dev;
+    if(stage_inode)*stage_inode=staged.st_ino;
     std::size_t pos=0;
     while(pos<bytes.size()) {
         ssize_t n;
@@ -322,15 +344,19 @@ RecordingGenerationPublishResult PublishRecordingGenerationManifest(const std::f
         if(n<=0)return reject("manifest stage write failed; preserved");
         pos+=static_cast<std::size_t>(n);
     }
-    if(!Sync(stage.n)||!Regular(stage.n,&staged)||!Same(dir.n,kStage,stage.n,staged)||
-       !VerifyAll(dir.n,m,true)||!RootSame(root,dir.n))
+    if(!Sync(stage.n))return reject("manifest stage fsync failed; preserved");
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+    if(predecessor){const auto hook=checkpoint_before_binding;checkpoint_before_binding=nullptr;if(hook)hook();}
+#endif
+    if(!Regular(stage.n,&staged)||!Same(dir.n,kStage,stage.n,staged)||
+       !VerifyAll(dir.n,m,true)||(identity&&!Verify(dir.n,*identity,true))||!RootSame(root,dir.n))
         return reject("manifest stage validation/fsync failed; preserved");
     struct stat current{};
     const int now=::fstatat(dir.n,kManifest,&current,AT_SYMLINK_NOFOLLOW);
     const bool prior_changed=exists==0&&
         (now!=0||current.st_dev!=existing.st_dev||current.st_ino!=existing.st_ino||
          current.st_size!=existing.st_size);
-    if(prior_changed||(exists!=0&&(now==0||errno!=ENOENT)))
+    if(prior_changed||!prior_exact()||(exists!=0&&(now==0||errno!=ENOENT)))
         return reject("manifest prior changed; stage preserved");
     if(::renameat(dir.n,kStage,dir.n,kManifest)!=0)return reject("manifest rename failed; stage preserved");
     if(!SyncPublishedDirectory(dir.n)||!RootSame(root,dir.n)||!Same(dir.n,kManifest,stage.n,staged)) {
@@ -340,8 +366,18 @@ RecordingGenerationPublishResult PublishRecordingGenerationManifest(const std::f
     if(error)error->clear();
     return Result::Published;
 #else
-    (void)root;return Result::NotPublished;
+    (void)root;(void)predecessor;(void)identity;(void)device;(void)inode;(void)stage_device;(void)stage_inode;return Result::NotPublished;
 #endif
+}
+RecordingGenerationPublishResult PublishRecordingGenerationManifest(const std::filesystem::path& root,const RecordingGenerationManifest& m,std::string* error) {
+    return PublishManifest(root,m,error);
+}
+RecordingGenerationPublishResult PublishRecordingGenerationCheckpoint(const std::filesystem::path& root,
+    const RecordingGenerationManifest& m,RecordingGenerationPublication& authority,std::string* error) {
+    if(authority.consumed){Fail(error,"checkpoint publication already consumed");return RecordingGenerationPublishResult::NotPublished;}
+    authority.consumed=true;
+    return PublishManifest(root,m,error,&authority.predecessor,&authority.identity,authority.root_device,authority.root_inode,
+        &authority.stage_device,&authority.stage_inode);
 }
 bool ReadRecordingGenerationManifest(const std::filesystem::path& root,RecordingGenerationReadResult* out,std::string* error){
     if(!Supported(error)||!out)return false;
@@ -384,6 +420,9 @@ static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
     std::string* output,std::string* error) {
     if(!Supported(error))return false;
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+ #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+    if(sealed_active||descriptor.name.rfind("evidence-",0)==0)++archive_reads;
+ #endif
     if(!output||length>result_admission||descriptor.size>kFileLimit||offset>descriptor.size||
        length>descriptor.size-offset||length>std::numeric_limits<std::size_t>::max()||
        descriptor.size>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())||
@@ -460,6 +499,20 @@ bool ReadVerifiedRecordingGenerationSealedActiveRange(const std::filesystem::pat
         current_generation,output,error);
 }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+void RecordingGenerationCheckpointBeforeBindingForTest(void (*hook)()){
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    checkpoint_before_binding=hook;
+#else
+    (void)hook;
+#endif
+}
+std::uint64_t RecordingGenerationArchiveReadsForTest(bool reset){
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    const auto value=archive_reads;if(reset)archive_reads=0;return value;
+#else
+    (void)reset;return 0;
+#endif
+}
 void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)()){
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
     immutable_before_binding=hook;

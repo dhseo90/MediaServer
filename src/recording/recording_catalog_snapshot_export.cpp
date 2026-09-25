@@ -43,6 +43,10 @@ bool JobType(RecordingMutationType type) {
 bool RecordingCatalog::ExportGenerationSnapshot(const RecordingIdentityChainResult& chain,
     std::uint64_t generation, std::uint64_t cut, RecordingCatalogSnapshot* output, std::string* error) const {
     std::lock_guard<std::mutex> lock(mu_);
+    return ExportGenerationSnapshotLocked(chain,generation,cut,output,error);
+}
+bool RecordingCatalog::ExportGenerationSnapshotLocked(const RecordingIdentityChainResult& chain,
+    std::uint64_t generation,std::uint64_t cut,RecordingCatalogSnapshot* output,std::string* error) const {
     try {
         if (!output || !opened_ || !derived_job_state_authoritative_ || !journal_.managed_ ||
             !CanWriteLocked(error)) return Fail(error,"snapshot export authority unavailable");
