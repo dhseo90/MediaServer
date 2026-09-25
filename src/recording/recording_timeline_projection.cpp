@@ -243,7 +243,7 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
 }
 bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true);
-    if(!result||!opened_||!derived_job_state_authoritative_){if(error)*error="timeline-catalog-unavailable";return false;}
+    if(!result||!opened_||!derived_job_state_authoritative_||(generation_read_only_&&!CanReadLocked(error))){if(error)*error="timeline-catalog-unavailable";return false;}
     result->v2_projection=options_.enable_v2_storage;
     if(!result->v2_projection)return true;
     try {

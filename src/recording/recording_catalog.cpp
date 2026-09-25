@@ -19,6 +19,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 
 #if defined(__APPLE__) || defined(__linux__)
 #include <fcntl.h>
@@ -301,6 +302,9 @@ void BindText(sqlite3_stmt* statement, int index, const std::string& value) {
 
 RecordingCatalog::RecordingCatalog(RecordingJournal& journal, Options options)
     : journal_(journal), options_(std::move(options)) {}
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+std::function<void(sqlite3*)> RecordingCatalog::generation_sqlite_open_hook_;
+#endif
 
 RecordingCatalog::~RecordingCatalog() {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -309,8 +313,12 @@ RecordingCatalog::~RecordingCatalog() {
 }
 
 bool RecordingCatalog::BuildGenerationScratch(std::unique_ptr<RecordingCatalog>* output,std::string* error) {
-#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    return BuildGenerationScratchLocked(output,nullptr,error);
+}
+bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCatalog>* output,
+    std::shared_ptr<RecordingGenerationRecoverySession>* deferred,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!output||opened_||!options_.enable_v2_storage)return Fail(error,"B scratch 시작 조건 거부");
     std::shared_ptr<RecordingGenerationRecoverySession> session;
     if(!journal_.BeginGenerationRecovery(&session,error))return false;
@@ -396,11 +404,149 @@ bool RecordingCatalog::BuildGenerationScratch(std::unique_ptr<RecordingCatalog>*
         }
         for(auto& item:scratch->source_bindings_)if(!active_sources.count(item.first))item.second.resident.reset();
         for(auto& item:scratch->derived_jobs_)if(!item.second.Active())item.second.resident.reset();
-        if(!journal_.FinishGenerationRecovery(session,true,error))return false;
+        if(deferred)*deferred=session;
+        else if(!journal_.FinishGenerationRecovery(session,true,error))return false;
         *output=std::move(scratch);return true;
     }catch(...){Fail(error,"B scratch 자원 실패");return failed();}
 #else
-    (void)output;return Fail(error,"B scratch unsupported");
+    (void)output;(void)deferred;return Fail(error,"B scratch unsupported");
+#endif
+}
+
+void RecordingCatalog::PublishGenerationMapsLocked(RecordingCatalog& source) noexcept {
+#define MOVE_MAP(name) static_assert(noexcept(name.swap(source.name)),"B 게시 swap은 noexcept여야 한다");name.swap(source.name)
+    MOVE_MAP(mutation_ids_);MOVE_MAP(accepted_segment_state_mutations_);MOVE_MAP(accepted_generation_ordinals_);
+    MOVE_MAP(segments_);MOVE_MAP(segments_v2_);MOVE_MAP(source_bindings_);MOVE_MAP(derived_jobs_);
+    MOVE_MAP(derived_accepted_references_);MOVE_MAP(states_v2_);MOVE_MAP(tombstones_v2_);MOVE_MAP(orders_v2_);
+    MOVE_MAP(media_relpaths_);MOVE_MAP(hold_counts_);MOVE_MAP(deletion_reasons_);MOVE_MAP(event_links_);
+    MOVE_MAP(observations_);MOVE_MAP(observations_v2_);MOVE_MAP(consumer_references_);MOVE_MAP(referenced_observations_);MOVE_MAP(tombstones_);
+    MOVE_MAP(catalog_mode_);
+#undef MOVE_MAP
+    std::swap(generation_sqlite_db_,source.generation_sqlite_db_);
+    static_assert(std::is_nothrow_swappable<RecordingCatalogRecoveryReport>::value,"B 복구 보고서 게시 noexcept 필요");
+    std::swap(recovery_report_,source.recovery_report_);generation_read_only_=true;opened_=true;
+}
+bool RecordingCatalog::OpenGenerationLocked(std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!journal_.AttachGenerationCatalog(this,options_.media_root,options_.sqlite_path,options_.enable_v2_storage,error))return false;
+    std::shared_ptr<RecordingGenerationRecoverySession> session;std::unique_ptr<RecordingCatalog> scratch;
+    const auto failed=[&]() {
+#if MEDIA_SERVER_USE_SQLITE3
+        if(scratch&&scratch->generation_sqlite_db_)Exec(scratch->generation_sqlite_db_,"ROLLBACK",nullptr);
+#endif
+        if(session&&!session->ended)journal_.FinishGenerationRecovery(session,false,nullptr);
+        journal_.DetachCatalog(this);return false;
+    };
+    try {
+        if(!BuildGenerationScratchLocked(&scratch,&session,error))return failed();
+        if(!scratch->PrepareGenerationSqliteLocked(session,error))return failed();
+        const auto commit=[&]() {
+#if MEDIA_SERVER_USE_SQLITE3
+            if(scratch->generation_sqlite_db_)return Exec(scratch->generation_sqlite_db_,"COMMIT",error);
+#endif
+            return true;
+        };
+        const auto publish=[&]() noexcept {PublishGenerationMapsLocked(*scratch);};
+        if(!journal_.PublishGenerationCatalog(session,this,commit,publish,error))return failed();
+        if(error)error->clear();return true;
+    }catch(...){Fail(error,"B catalog Open 자원 실패");return failed();}
+#else
+    return Fail(error,"B catalog Open unsupported");
+#endif
+}
+bool RecordingCatalog::PrepareGenerationSqliteLocked(const std::shared_ptr<RecordingGenerationRecoverySession>& session,std::string* error) {
+    catalog_mode_="generation-jsonl-readonly";
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_SQLITE3 && !defined(_WIN32)
+    if(!options_.prefer_sqlite)return true;
+    const auto path=options_.media_root/"recording-generation-catalog.sqlite3";
+    int flags=SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE;
+#ifdef SQLITE_OPEN_NOFOLLOW
+    flags|=SQLITE_OPEN_NOFOLLOW;
+#endif
+    if(sqlite3_open_v2(path.c_str(),&generation_sqlite_db_,flags,nullptr)!=SQLITE_OK) {
+        if(generation_sqlite_db_)sqlite3_close(generation_sqlite_db_);generation_sqlite_db_=nullptr;
+        if(error)error->clear();return true; // Open 자체 불가만 메모리 fallback이다.
+    }
+    auto* db=generation_sqlite_db_;
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+    auto hook=std::move(generation_sqlite_open_hook_);generation_sqlite_open_hook_={};if(hook)hook(db);
+#endif
+    if(!journal_.ValidateGenerationCache(session,error))return false;
+    if(!Exec(db,"BEGIN IMMEDIATE",error))return false;
+    const char* schema=
+        "CREATE TABLE IF NOT EXISTS b_meta(schema TEXT NOT NULL,store TEXT NOT NULL,generation TEXT NOT NULL,cut TEXT NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS b_current(kind TEXT NOT NULL,id TEXT NOT NULL,value_json TEXT NOT NULL,PRIMARY KEY(kind,id));"
+        "CREATE TABLE IF NOT EXISTS b_source_summary(id TEXT PRIMARY KEY,summary_json TEXT NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS b_job_summary(id TEXT PRIMARY KEY,summary_json TEXT NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS b_identity(id TEXT PRIMARY KEY,type TEXT NOT NULL,entity TEXT NOT NULL,occurred INTEGER NOT NULL,ordinal TEXT NOT NULL,identity TEXT NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS b_hold(id TEXT PRIMARY KEY,count INTEGER NOT NULL CHECK(count>=0));"
+        "DELETE FROM b_meta;DELETE FROM b_current;DELETE FROM b_source_summary;DELETE FROM b_job_summary;DELETE FROM b_identity;DELETE FROM b_hold;";
+    if(!Exec(db,schema,error))return false;
+    const auto insert=[&](const char* sql,const std::vector<std::string>& values) {
+        sqlite3_stmt* statement=nullptr;
+        if(sqlite3_prepare_v2(db,sql,-1,&statement,nullptr)!=SQLITE_OK)return Fail(error,sqlite3_errmsg(db));
+        bool ok=true;int index=1;
+        for(const auto& value:values)if(sqlite3_bind_text(statement,index++,value.data(),static_cast<int>(value.size()),SQLITE_TRANSIENT)!=SQLITE_OK)ok=false;
+        ok=ok&&sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
+        return ok?true:Fail(error,sqlite3_errmsg(db));
+    };
+    const auto& manifest=session->projection.manifest;
+    if(!insert("INSERT INTO b_meta VALUES(?,?,?,?)",{"media-server.recording-generation-cache.v1",manifest.store_id,std::to_string(manifest.generation),std::to_string(manifest.cut_ordinal)}))return false;
+    const auto row=[&](const std::string& kind,const std::string& id,const std::string& value) {
+        return !value.empty()&&insert("INSERT INTO b_current VALUES(?,?,?)",{kind,id,value});
+    };
+#define CURRENT_ROWS(map,kind,serializer) for(const auto& p:map)if(!row(kind,p.first,serializer(p.second)))return false
+    CURRENT_ROWS(segments_,"segment-v1",SerializeRecordingSegmentV1);
+    CURRENT_ROWS(segments_v2_,"segment-v2",SerializeRecordingSegmentV2);
+    CURRENT_ROWS(states_v2_,"state-v2",SerializeRecordingSegmentStateV2);
+    CURRENT_ROWS(tombstones_,"tombstone-v1",SerializeRecordingTombstoneV1);
+    CURRENT_ROWS(tombstones_v2_,"tombstone-v2",SerializeRecordingTombstoneV2);
+    CURRENT_ROWS(event_links_,"event-link",SerializeEventRecordingLinkV1);
+    CURRENT_ROWS(observations_,"observation-v1",SerializeAnalysisObservationV1);
+    CURRENT_ROWS(observations_v2_,"observation-v2",SerializeAnalysisObservationV2);
+    CURRENT_ROWS(consumer_references_,"consumer-reference",SerializeRecordingConsumerReferenceV1);
+    CURRENT_ROWS(referenced_observations_,"referenced-observation",SerializeReferencedObservationV1);
+#undef CURRENT_ROWS
+    for(const auto& p:media_relpaths_)if(!row("media-path",p.first,"\""+Escape(p.second)+"\""))return false;
+    for(const auto& p:deletion_reasons_)if(!row("deletion-reason",p.first,"\""+Escape(p.second)+"\""))return false;
+    for(const auto& id:derived_accepted_references_)if(!row("derived-reference-accepted",id,"true"))return false;
+    for(const auto& p:accepted_generation_ordinals_)if(!row("accepted-state",p.first,std::to_string(p.second)))return false;
+    for(const auto& p:orders_v2_) {const auto& o=p.second;
+        if(!row("order",p.first,"{\"storeId\":\""+Escape(o.store_id)+"\",\"requestId\":\""+Escape(o.request_id)+"\",\"segmentId\":\""+Escape(o.segment_id)+"\",\"channelId\":\""+Escape(o.channel_id)+"\",\"sequence\":"+std::to_string(o.sequence)+"}"))return false;
+    }
+    for(const auto& p:source_bindings_) {const auto& s=p.second;std::string value;
+        if(!SerializeRecordingCatalogSourceSummary({s.id,s.channel,s.source,s.generation,s.track,s.order,s.sample_count,s.latest_mutation_id},&value,error)||
+            !insert("INSERT INTO b_source_summary VALUES(?,?)",{p.first,value}))return false;
+    }
+    for(const auto& p:derived_jobs_) {const auto& j=p.second;std::string value;
+        if(!SerializeRecordingCatalogJobSummary({j.id,j.channel,j.reference,j.state,j.files,j.reserved_bytes,j.output_ids,j.source_ids,j.latest_mutation_id},&value,error)||
+            !insert("INSERT INTO b_job_summary VALUES(?,?)",{p.first,value}))return false;
+    }
+    for(const auto& p:hold_counts_)if(!insert("INSERT INTO b_hold VALUES(?,?)",{p.first,std::to_string(p.second)}))return false;
+    if(!journal_.VisitGenerationIdentities(session,[&](const std::string& id,RecordingMutationType type,const std::string& entity,std::int64_t time,std::uint64_t ordinal,const std::string& identity) {
+        return insert("INSERT INTO b_identity VALUES(?,?,?,?,?,?)",{id,RecordingMutationTypeName(type),entity,std::to_string(time),std::to_string(ordinal),identity});
+    },error))return false;
+    catalog_mode_="generation-sqlite-readonly";return true;
+#else
+    (void)session;(void)error;return true;
+#endif
+}
+bool RecordingCatalog::UpdateGenerationHoldsLocked(const std::vector<std::pair<std::string,std::uint64_t>>& values,std::string* error) {
+#if MEDIA_SERVER_USE_SQLITE3
+    auto* db=generation_sqlite_db_;if(!db)return true;
+    if(!Exec(db,"BEGIN IMMEDIATE",error))return false;
+    for(const auto& p:values) {
+        sqlite3_stmt* statement=nullptr;
+        if(sqlite3_prepare_v2(db,"INSERT INTO b_hold VALUES(?,?) ON CONFLICT(id) DO UPDATE SET count=excluded.count",-1,&statement,nullptr)!=SQLITE_OK) {
+            Exec(db,"ROLLBACK",nullptr);return Fail(error,sqlite3_errmsg(db));
+        }
+        BindText(statement,1,p.first);sqlite3_bind_int64(statement,2,static_cast<sqlite3_int64>(p.second));
+        const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
+        if(!ok){Exec(db,"ROLLBACK",nullptr);return Fail(error,sqlite3_errmsg(db));}
+    }
+    if(!Exec(db,"COMMIT",error)){Exec(db,"ROLLBACK",nullptr);return false;}return true;
+#else
+    (void)values;(void)error;return true;
 #endif
 }
 
@@ -408,9 +554,10 @@ bool RecordingCatalog::Open(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     checkpoint_cache_.reset();
     timeline_read_candidates_={};
-    if (opened_) {const bool owns=journal_.OwnsCatalog(this);if(!owns)automatic_noop_eligible_=false;return owns;}
+    if (opened_) {const bool owns=journal_.OwnsCatalog(this);if(!owns)automatic_noop_eligible_=false;return owns&&(!generation_read_only_||CanReadLocked(error));}
     const bool first_open=!automatic_noop_open_attempted_;
     automatic_noop_open_attempted_=true;automatic_noop_eligible_=false;
+    if(journal_.generation_state_)return OpenGenerationLocked(error);
     if(!journal_.AttachCatalog(this,options_.media_root,options_.sqlite_path,options_.enable_v2_storage,error))return false;
     if(OpenLocked(error)){automatic_noop_eligible_=first_open;return true;}
     opened_=false;checkpoint_cache_.reset();CloseSqliteLocked();journal_.DetachCatalog(this);return false;
@@ -437,6 +584,10 @@ bool RecordingCatalog::ValidateManagedWriterBinding(const RecordingJournal& jour
 }
 
 bool RecordingCatalog::CanWriteLocked(std::string* error) const {
+    if(generation_read_only_)return Fail(error,"B catalog read-only: 영속 쓰기 거부");
+    return CanReadLocked(error);
+}
+bool RecordingCatalog::CanReadLocked(std::string* error) const {
     if(!derived_job_state_authoritative_)return Fail(error,"derived job 원장 불확실: 재open 필요");
     if(journal_.managed_&&(!opened_||!journal_.OwnsCatalog(this)))return Fail(error,"managed catalog write 소유권 거부");
     return true;
@@ -514,7 +665,7 @@ bool RecordingCatalog::FindDerivedJob(const std::string& id,
     std::optional<DerivedJobRecordV1>* result,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->reset();
-    if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job snapshot 미확인");
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))return Fail(error,"derived job snapshot 미확인");
     DerivedJobHandle found;if(!AcquireDerivedJobOwnedLocked(id,&found,error))return false;
     if(found)*result=*found;
     if(error)error->clear();return true;
@@ -522,7 +673,7 @@ bool RecordingCatalog::FindDerivedJob(const std::string& id,
 bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();
-    if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job snapshot 미확인");
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))return Fail(error,"derived job snapshot 미확인");
     for(const auto& [id,entry]:derived_jobs_){(void)entry;DerivedJobHandle job;if(!AcquireDerivedJobOwnedLocked(id,&job,error)||!job){result->clear();return false;}result->push_back(*job);}
     std::sort(result->begin(),result->end(),[](const auto& a,const auto& b){return a.intent.job_id<b.intent.job_id;});
     if(error)error->clear();return true;
@@ -530,7 +681,7 @@ bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* resu
 bool RecordingCatalog::SnapshotActiveDerivedJobs(std::size_t limit,std::vector<DerivedJobRecordV1>* result,bool* more,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();if(more)*more=false;
-    if(!result||!more||limit==0||limit>8||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived active snapshot 미확인/상한");
+    if(!result||!more||limit==0||limit>8||!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))return Fail(error,"derived active snapshot 미확인/상한");
     for(const auto& [id,entry]:derived_jobs_){if(!entry){result->clear();*more=false;derived_job_state_authoritative_=false;return Fail(error,"derived null job 거부");}if(entry.Active()){
         if(result->size()==limit){*more=true;break;}
         DerivedJobHandle job;if(!AcquireDerivedJobOwnedLocked(id,&job,error)||!job){result->clear();*more=false;return false;}
@@ -1082,7 +1233,7 @@ RecordingCatalogRecoveryReport RecordingCatalog::recovery_report() const {
 
 bool RecordingCatalog::BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result,std::string* error) const {
     if(result)*result={};
-    if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))
         return Fail(error,"recording status snapshot 미확인");
     const auto retention=RetentionSnapshotLocked();
     if(!retention.authoritative)return Fail(error,"recording status capacity 미확인");
@@ -1880,7 +2031,7 @@ bool RecordingCatalog::ReleaseInactiveDetailsLocked(const std::string* changed,s
 }
 std::optional<RecordingSourceBindingV1> RecordingCatalog::FindSourceBinding(const std::string& id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!opened_||!derived_job_state_authoritative_||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
+    if(!opened_||!derived_job_state_authoritative_||(generation_read_only_&&!CanReadLocked(nullptr))||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
     const auto found=FindSourceBindingOwnedLocked(id);
     if(!opened_||!found||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
     return *found;
@@ -1894,7 +2045,7 @@ bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const st
        track.empty()||track.size()>1024||std::any_of(track.begin(),track.end(),[](unsigned char c){return c<32||c==127;}))
         return Fail(error,"source lookup 입력 오류");
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!opened_||!derived_job_state_authoritative_)return Fail(error,"source lookup 미open/미확인");
+    if(!opened_||!derived_job_state_authoritative_||(generation_read_only_&&!CanReadLocked(error)))return Fail(error,"source lookup 미open/미확인");
     for(const auto& [id,handle]:source_bindings_) {
         if(!handle)continue;
         const auto segment=segments_v2_.find(id);
@@ -1960,6 +2111,7 @@ bool RecordingCatalog::FinalizeSegmentV2(const RecordingSegmentV2& v,const std::
 
 std::optional<RecordingSegmentV2> RecordingCatalog::FindSegmentV2ById(const std::string& id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);const auto found=segments_v2_.find(id);
+    if(generation_read_only_&&!CanReadLocked(nullptr))return std::nullopt;
     if(tombstones_.count(id)||tombstones_v2_.count(id)||found==segments_v2_.end())return std::nullopt;
     return found->second;
 }
@@ -1971,7 +2123,7 @@ RecordingLifecycle RecordingCatalog::EffectiveLifecycleV2Locked(const std::strin
 }
 bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context) const {
     const auto found=segments_v2_.find(id);
-    if(!opened_||!derived_job_state_authoritative_||segments_.count(id)||found==segments_v2_.end()||
+    if(!opened_||!derived_job_state_authoritative_||(generation_read_only_&&!CanReadLocked(nullptr))||segments_.count(id)||found==segments_v2_.end()||
        found->second.channel_id!=channel||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return false;
     for(const auto& entry:event_links_)if(entry.second.derived_segment_id==id||entry.second.fallback_evidence_id==id)return false;
     const auto& segment=found->second;
@@ -2075,7 +2227,7 @@ bool RecordingCatalog::SnapshotLocationsV2(const std::string& channel, Recording
     if(result)*result={};
     if(!result||!ValidateRecordingReferenceId(channel,error))return Fail(error,"invalid location snapshot input");
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!opened_)return Fail(error,"catalog not open");
+    if(!opened_||(generation_read_only_&&!CanReadLocked(error)))return Fail(error,"catalog not open");
     RecordingLocationCatalogSnapshot snapshot;
     for(const auto& [id,segment]:segments_v2_)
         if(segment.channel_id==channel&&EffectiveLifecycleV2Locked(id)==RecordingLifecycle::Finalized)snapshot.segments.push_back(segment);
@@ -2422,7 +2574,7 @@ bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& obs
 }
 std::vector<ReferencedObservationV1> RecordingCatalog::QueryReferencedObservations(const std::string& channel) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);std::vector<ReferencedObservationV1> result;
-    if(!opened_||!options_.enable_v2_storage||!ValidateRecordingReferenceId(channel,nullptr))return result;
+    if(!opened_||!options_.enable_v2_storage||(generation_read_only_&&!CanReadLocked(nullptr))||!ValidateRecordingReferenceId(channel,nullptr))return result;
     for(const auto& [id,pair]:referenced_observations_) {
         (void)id;if(pair.observation.channel_id==channel)result.push_back(pair);
     }
@@ -2471,7 +2623,7 @@ bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1
 bool RecordingCatalog::IsDerivedReferenceAccepted(const std::string& id, bool* accepted, std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(accepted)*accepted=false;
-    if(!accepted||!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateOpaqueId(id,error))
+    if(!accepted||!opened_||!options_.enable_v2_storage||!CanReadLocked(error)||!ValidateOpaqueId(id,error))
         return Fail(error,"derived reference 조회 상태/입력 거부");
     *accepted=derived_accepted_references_.count(id)!=0;
     if(error)error->clear();
@@ -2562,7 +2714,7 @@ bool RecordingCatalog::RefreshDerivedWaitLeaseForIntent(const DerivedJobIntentV1
     const auto identity=SerializeRecordingConsumerReferenceV1(intent.reference);
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     const auto found=derived_wait_leases_.find(token);
-    if(found==derived_wait_leases_.end()||found->second.reference_json!=identity||!CanWriteLocked(error))
+    if(found==derived_wait_leases_.end()||found->second.reference_json!=identity||!CanReadLocked(error))
         return Fail(error,"derived wait intent lease mismatch");
     const auto existing=derived_jobs_.find(intent.job_id);
     if(existing!=derived_jobs_.end()) {
@@ -2617,7 +2769,7 @@ bool RecordingCatalog::PrepareDerivedSourceSnapshot(const RecordingConsumerRefer
     std::vector<Candidate> candidates;std::uint64_t captured=0;
     {
         recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-        if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanWriteLocked(error)||
+        if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanReadLocked(error)||
            !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)
             return Fail(error,"derived source snapshot 상태/입력 거부");
         if(!source_snapshot_revision_valid_)return true;
@@ -2640,7 +2792,7 @@ bool RecordingCatalog::PrepareDerivedSourceSnapshot(const RecordingConsumerRefer
             {
                 recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
                 if(!source_snapshot_revision_valid_||source_snapshot_revision_!=captured){result->clear();return true;}
-                if(!derived_job_state_authoritative_||!CanWriteLocked(error)){result->clear();return false;}
+                if(!derived_job_state_authoritative_||!CanReadLocked(error)){result->clear();return false;}
                 const auto& entry=*candidate.binding;
                 if(!entry){derived_job_state_authoritative_=false;result->clear();return Fail(error,"source binding 상세 재획득 거부");}
                 binding=entry.resident;
@@ -2675,7 +2827,7 @@ bool RecordingCatalog::FinishDerivedSourceSnapshotLocked(const RecordingConsumer
     std::vector<RecordingDerivedSourceSnapshotEntry>* result,const std::optional<std::uint64_t>& revision,std::string* error) const {
     if(!revision||!source_snapshot_revision_valid_||source_snapshot_revision_!=*revision)
         return SnapshotDerivedSourcesLocked(reference,result,error);
-    if(!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error)){
+    if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error)){
         result->clear();return Fail(error,"derived source snapshot 상태/입력 거부");
     }
     if(error)error->clear();return true;
@@ -2683,7 +2835,7 @@ bool RecordingCatalog::FinishDerivedSourceSnapshotLocked(const RecordingConsumer
 bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1& reference,
     std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
     if(result)result->clear();
-    if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanWriteLocked(error)||
+    if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanReadLocked(error)||
        !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)
         return Fail(error,"derived source snapshot 상태/입력 거부");
     for(const auto& [id,segment]:segments_v2_) {
@@ -2718,7 +2870,7 @@ bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
     RecordingDerivedReferenceResult* result,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)*result={};
-    if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateOpaqueId(id,error))
+    if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanReadLocked(error)||!ValidateOpaqueId(id,error))
         return Fail(error,"derived reference result 조회 상태/입력 거부");
     result->managed=derived_accepted_references_.count(id)!=0;
     std::vector<std::string> selected_ids;
@@ -2755,7 +2907,7 @@ std::vector<RecordingConsumerReferenceV1> RecordingCatalog::QueryConsumerReferen
     const std::string& channel, const std::string& kind, const std::string& owner) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::vector<RecordingConsumerReferenceV1> result;
-    if(!opened_||!options_.enable_v2_storage||!ValidateRecordingReferenceId(channel,nullptr)||!ValidateOpaqueId(owner,nullptr)||
+    if(!opened_||!options_.enable_v2_storage||(generation_read_only_&&!CanReadLocked(nullptr))||!ValidateRecordingReferenceId(channel,nullptr)||!ValidateOpaqueId(owner,nullptr)||
        (kind!="observation"&&kind!="event"))return result;
     for(const auto& [id,reference]:consumer_references_) {
         (void)id;
@@ -2847,6 +2999,7 @@ bool RecordingCatalog::PutObservationV2(AnalysisObservationV2 observation, std::
 std::vector<AnalysisObservationV2> RecordingCatalog::QueryObservationsV2(const std::string& channel_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::vector<AnalysisObservationV2> output;
+    if(generation_read_only_&&!CanReadLocked(nullptr))return output;
     for (const auto& pair : observations_v2_) {
         if (pair.second.channel_id != channel_id) continue;
         auto observation = pair.second;
@@ -2874,6 +3027,7 @@ std::vector<RecordingSegmentV1> RecordingCatalog::QuerySegments(const std::strin
                                                                 std::int64_t end_ms) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::vector<RecordingSegmentV1> result;
+    if(generation_read_only_&&!CanReadLocked(nullptr))return result;
     for (const auto& [_, segment] : segments_) {
         if (segment.channel_id == channel_id && segment.lifecycle != RecordingLifecycle::Deleted &&
             HalfOpenRangesOverlap(segment.start.utc_ms, segment.end.utc_ms, start_ms, end_ms)) result.push_back(segment);
@@ -2888,6 +3042,7 @@ std::vector<RecordingSegmentV1> RecordingCatalog::QuerySegments(const std::strin
 std::vector<RecordingSegmentV1> RecordingCatalog::FinalizedSegmentsForStartup() const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::vector<RecordingSegmentV1> result;
+    if(generation_read_only_&&!CanReadLocked(nullptr))return result;
     for (const auto& [_, segment] : segments_) {
         if (segment.lifecycle == RecordingLifecycle::Finalized) result.push_back(segment);
     }
@@ -2900,6 +3055,7 @@ std::vector<RecordingSegmentV1> RecordingCatalog::FinalizedSegmentsForStartup() 
 std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::vector<std::string> result;
+    if(generation_read_only_&&!CanReadLocked(nullptr))return result;
     for(const auto& [id,segment]:segments_)if(segment.lifecycle==RecordingLifecycle::Finalized)result.push_back(id);
     for(const auto& [id,segment]:segments_v2_) {
         (void)segment;
@@ -2911,7 +3067,7 @@ std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const
 
 RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked() const {
     struct RetentionSnapshot snapshot;
-    snapshot.authoritative=opened_&&derived_job_state_authoritative_&&CanWriteLocked(nullptr);
+    snapshot.authoritative=opened_&&derived_job_state_authoritative_&&CanReadLocked(nullptr);
     if(!snapshot.authoritative)snapshot.error="catalog reservation snapshot 미확인";
     for(const auto& [id,job]:derived_jobs_){if(!job){snapshot.authoritative=false;snapshot.error="derived null reservation";snapshot.durable_reservations.clear();return snapshot;}if(job.Active())snapshot.durable_reservations.push_back({id,job.channel,job.reserved_bytes});}
     for(const auto& [id,v]:segments_v2_) {
@@ -2967,6 +3123,7 @@ std::optional<EventRecordingLinkV1> RecordingCatalog::FindEventLinkByEventId(
     const std::string& event_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::optional<EventRecordingLinkV1> result;
+    if(generation_read_only_&&!CanReadLocked(nullptr))return result;
     for (const auto& [_, link] : event_links_) {
         if (link.event_id != event_id) continue;
         if (!result.has_value() || link.updated_at_ms > result->updated_at_ms ||
@@ -2981,6 +3138,7 @@ std::optional<RecordingSegmentV1> RecordingCatalog::FindSegmentById(
     const std::string& segment_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     const auto it = segments_.find(segment_id);
+    if(generation_read_only_&&!CanReadLocked(nullptr))return std::nullopt;
     if (it == segments_.end() || it->second.lifecycle == RecordingLifecycle::Deleted) {
         return std::nullopt;
     }
@@ -2991,6 +3149,7 @@ std::optional<std::filesystem::path> RecordingCatalog::FindSegmentMediaPath(
     const std::string& segment_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     const auto segment = segments_.find(segment_id);
+    if(generation_read_only_&&!CanReadLocked(nullptr))return std::nullopt;
     const auto path = media_relpaths_.find(segment_id);
     if (segment == segments_.end() || path == media_relpaths_.end() ||
         segment->second.lifecycle == RecordingLifecycle::Deleted) {
@@ -3015,6 +3174,7 @@ std::optional<std::pair<std::filesystem::path, std::filesystem::path>>
 RecordingCatalog::FindSegmentMediaLocation(const std::string& segment_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     const auto segment = segments_.find(segment_id);
+    if(generation_read_only_&&!CanReadLocked(nullptr))return std::nullopt;
     const auto path = media_relpaths_.find(segment_id);
     if(segments_v2_.count(segment_id)) {
         if(path==media_relpaths_.end()||EffectiveLifecycleV2Locked(segment_id)!=RecordingLifecycle::Finalized)return std::nullopt;
@@ -3029,6 +3189,7 @@ std::vector<EventRecordingLinkV1> RecordingCatalog::ListEventLinks(
     EventRecordingLinkStatus status) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::vector<EventRecordingLinkV1> result;
+    if(generation_read_only_&&!CanReadLocked(nullptr))return result;
     for (const auto& [_, link] : event_links_) {
         if (link.status == status) result.push_back(link);
     }
@@ -3053,7 +3214,7 @@ bool RecordingCatalog::AcquireEventSourceLease(
     }
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     std::unordered_set<std::string> unique;
-    if(!CanWriteLocked(error))return false;
+    if(!CanReadLocked(error))return false;
     std::vector<RetentionCandidate> acquired;
     acquired.reserve(segment_ids.size());
     for (const auto& segment_id : segment_ids) {
@@ -3115,6 +3276,11 @@ bool RecordingCatalog::AcquireEventSourceLease(
         }
     }
 #endif
+    std::vector<std::pair<std::string,std::uint64_t>> generation_holds;
+    if(generation_read_only_) {
+        for(const auto& candidate:acquired)generation_holds.emplace_back(candidate.segment.segment_id,candidate.hold_count);
+        if(!UpdateGenerationHoldsLocked(generation_holds,error))return false;
+    }
     for (const auto& candidate : acquired) {
         ++hold_counts_[candidate.segment.segment_id];
     }
@@ -3126,7 +3292,7 @@ bool RecordingCatalog::AcquireEventSourceLease(
 bool RecordingCatalog::ReleaseEventSourceLease(const EventSourceLease& lease,
                                                 std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!CanWriteLocked(error))return false;
+    if(!CanReadLocked(error))return false;
     if (lease.sources.empty()) {
         if (error != nullptr) error->clear();
         return true;
@@ -3164,6 +3330,11 @@ bool RecordingCatalog::ReleaseEventSourceLease(const EventSourceLease& lease,
         }
     }
 #endif
+    if(generation_read_only_) {
+        std::vector<std::pair<std::string,std::uint64_t>> values;
+        for(const auto& candidate:lease.sources)values.emplace_back(candidate.segment.segment_id,hold_counts_.at(candidate.segment.segment_id)-1);
+        if(!UpdateGenerationHoldsLocked(values,error))return false;
+    }
     for (const auto& candidate : lease.sources) {
         auto hold = hold_counts_.find(candidate.segment.segment_id);
         if (--hold->second == 0) hold_counts_.erase(hold);
@@ -3179,7 +3350,7 @@ bool RecordingCatalog::AdjustHoldCount(const std::string& segment_id,
     return AdjustHoldCountLocked(segment_id,delta,error);
 }
 bool RecordingCatalog::AdjustHoldCountLocked(const std::string& segment_id,std::int64_t delta,std::string* error) {
-    if(!CanWriteLocked(error))return false;
+    if(!CanReadLocked(error))return false;
     const auto segment = segments_.find(segment_id);
     const bool v2=segments_v2_.count(segment_id)!=0;
     if ((v2&&EffectiveLifecycleV2Locked(segment_id)!=RecordingLifecycle::Finalized)||
@@ -3199,6 +3370,7 @@ bool RecordingCatalog::AdjustHoldCountLocked(const std::string& segment_id,std::
         return Fail(error, "hold_count가 int64 저장 범위를 넘음");
     }
     const std::uint64_t next = delta >= 0 ? current + magnitude : current - magnitude;
+    if(generation_read_only_&&!UpdateGenerationHoldsLocked({{segment_id,next}},error))return false;
 #if MEDIA_SERVER_USE_SQLITE3
     if (sqlite_db_ != nullptr) {
         sqlite3_stmt* statement = nullptr;
@@ -3673,8 +3845,10 @@ bool RecordingCatalog::ProjectMutationSqliteInTransactionLocked(const RecordingM
 void RecordingCatalog::CloseSqliteLocked() {
 #if MEDIA_SERVER_USE_SQLITE3
     if (sqlite_db_ != nullptr) sqlite3_close(sqlite_db_);
+    if (generation_sqlite_db_ != nullptr) sqlite3_close(generation_sqlite_db_);
 #endif
     sqlite_db_ = nullptr;
+    generation_sqlite_db_=nullptr;
 }
 
 }  // namespace recording

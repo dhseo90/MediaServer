@@ -1445,6 +1445,87 @@ void RecordingJournal::EndGenerationMutationLinks() const {
     if(generation_state_)generation_state_->link_epoch.reset();
 #endif
 }
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+namespace {
+bool SafeGenerationCacheFiles(const std::filesystem::path& path,std::string* error) {
+    OwnedFd root(::open(path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));struct stat status{};
+    if(root.value<0)return Fail(error,"B cache root 거부");
+    for(const char* name:{"recording-generation-catalog.sqlite3","recording-generation-catalog.sqlite3-wal",
+        "recording-generation-catalog.sqlite3-shm","recording-generation-catalog.sqlite3-journal"}) {
+        if(::fstatat(root.value,name,&status,AT_SYMLINK_NOFOLLOW)==0) {
+            if(!S_ISREG(status.st_mode)||status.st_nlink!=1)return Fail(error,"B cache unsafe file");
+        }else if(errno!=ENOENT)return Fail(error,"B cache stat 실패");
+    }
+    return true;
+}
+}
+#endif
+bool RecordingJournal::ValidateGenerationCache(const std::shared_ptr<RecordingGenerationRecoverySession>& session,std::string* error) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"B cache fork 거부");
+    std::lock_guard lock(mu_);
+    if(!session||session->ended||!generation_state_||session->epoch!=generation_state_->recovery_epoch||!CheckManagedStateLocked(error))return false;
+    return SafeGenerationCacheFiles(managed_root_,error);
+#else
+    (void)session;return Fail(error,"B cache unsupported");
+#endif
+}
+bool RecordingJournal::AttachGenerationCatalog(const void* owner,const std::filesystem::path& media,
+    const std::filesystem::path& sqlite,bool enable_v2,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"B catalog fork 거부");
+    std::lock_guard lock(mu_);std::filesystem::path m,s,root_path;
+    if(!owner||catalog_owner_||!enable_v2||!generation_state_||!CheckManagedStateLocked(error)||
+        !SafePath(media,&m)||!SafePath(sqlite,&s)||!SafePath(managed_root_,&root_path)||m!=root_path||s!=m/"recording-catalog.sqlite3")
+        return Fail(error,"B 읽기 catalog 소유권/경로 거부");
+    if(!SafeGenerationCacheFiles(m,error))return false;
+    try{catalog_attachment_=std::make_shared<const char>(0);}catch(...){return Fail(error,"B 읽기 attachment 자원 실패");}
+    catalog_owner_=owner;return true;
+#else
+    (void)owner;(void)media;(void)sqlite;(void)enable_v2;return Fail(error,"B 읽기 attachment unsupported");
+#endif
+}
+bool RecordingJournal::VisitGenerationIdentities(const std::shared_ptr<RecordingGenerationRecoverySession>& session,
+    const std::function<bool(const std::string&,RecordingMutationType,const std::string&,std::int64_t,std::uint64_t,const std::string&)>& visit,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"B identity fork 거부");
+    std::lock_guard lock(mu_);
+    if(!session||session->ended||!generation_state_||session->epoch!=generation_state_->recovery_epoch||!CheckManagedStateLocked(error))
+        return Fail(error,"B identity 세션 거부");
+    const auto& state=*generation_state_;
+    for(const auto& pair:state.identities) {
+        const auto& first=pair.second;
+        if(first.historical) {
+            const auto& row=state.chain.first_acceptances.at(first.slot).first_row;
+            if(!visit(pair.first,row.type,row.entity_id,row.occurred_at_ms,row.global_ordinal,first.digest))return false;
+        }else {
+            const auto& row=state.active.rows.at(first.slot);const auto& m=row.mutation;
+            if(!visit(pair.first,m.mutation_type,m.entity_id,m.occurred_at_ms,row.global_ordinal,first.digest))return false;
+        }
+    }
+    return true;
+#else
+    (void)session;(void)visit;return Fail(error,"B identity unsupported");
+#endif
+}
+bool RecordingJournal::PublishGenerationCatalog(const std::shared_ptr<RecordingGenerationRecoverySession>& session,
+    const void* owner,const std::function<bool()>& commit,const std::function<void()>& publish,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"B 게시 fork 거부");
+    std::lock_guard lock(mu_);
+    if(!session||session->ended||!generation_state_||session->epoch!=generation_state_->recovery_epoch)
+        return Fail(error,"B 게시 세션 거부");
+    session->ended=true;
+    try {
+        if(!owner||catalog_owner_!=owner||session->next!=session->count||!CheckManagedStateLocked(error)||!commit()) {
+            poisoned_=true;generation_state_->link_epoch.reset();return Fail(error,"B 게시 실패: 새 Journal 필요");
+        }
+        publish();return true;
+    }catch(...){poisoned_=true;generation_state_->link_epoch.reset();return Fail(error,"B 게시 예외: 새 Journal 필요");}
+#else
+    (void)session;(void)owner;(void)commit;(void)publish;return Fail(error,"B 게시 unsupported");
+#endif
+}
 bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,RecordingMutationHandle* record,std::string* error) const {
     if(link.generation_ref_) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)

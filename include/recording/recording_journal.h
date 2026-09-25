@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <mutex>
 #include <memory>
 #include <string>
@@ -161,6 +162,12 @@ private:
     bool ReadGenerationRecovery(const std::shared_ptr<RecordingGenerationRecoverySession>&,
         std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*);
     bool FinishGenerationRecovery(const std::shared_ptr<RecordingGenerationRecoverySession>&,bool success,std::string*);
+    bool AttachGenerationCatalog(const void*,const std::filesystem::path&,const std::filesystem::path&,bool,std::string*);
+    bool ValidateGenerationCache(const std::shared_ptr<RecordingGenerationRecoverySession>&,std::string*) const;
+    bool VisitGenerationIdentities(const std::shared_ptr<RecordingGenerationRecoverySession>&,
+        const std::function<bool(const std::string&,RecordingMutationType,const std::string&,std::int64_t,std::uint64_t,const std::string&)>&,std::string*);
+    bool PublishGenerationCatalog(const std::shared_ptr<RecordingGenerationRecoverySession>&,const void*,
+        const std::function<bool()>& commit,const std::function<void()>& publish,std::string*);
     bool MatchMutationLinkView(const RecordingMutationLink& link, const RecordingJournalOwnedViewHandle& view,
                               bool* matches, std::string* error) const;
     bool MutationLinkOwns(const RecordingMutationLink& link, const RecordingMutationHandle& record) const;

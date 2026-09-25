@@ -68,12 +68,23 @@ B Journal 78개와 전체 build가 각각 exit0이다. 메인이 diff와 원출�
 `verify-docs-ui-assets` exit0(10/10), `git diff --check` exit0으로 확인했다. 원출력은 도구 응답이며
 이 문서 검사만으로 Q01~Q06 구현·실행 완료를 주장하지 않는다.
 
+### B-02 공개 읽기·SQLite 연결 결과
+
+2026-09-25 Q01~Q06 최종 106개(crypto/sqlite/backend 111·101·011·110),
+기존 scratch59·Journal78·Catalog249와 전체 빌드가 각각 exit0이다.
+검증된 현재 후보·최소 identity만 B 전용 SQLite에 직접 투영하고, 최종 권위 확인·COMMIT 뒤
+예외 없는 map 교체로 공개한다. Open 불가만 fallback이며 SQL 전이 실패는 실패로 유지한다.
+늦은 cold 손상 뒤 조회·같은 인스턴스 Open도 차단한다. v1 캐시·미디어·cleanup marker는 보존한다.
+내구 쓰기·예약·checkpoint·writer·전환·실제 앱 연결은 미구현/미실행이며 후속 범위다.
+[492개 최종 assertion·최초 실패·원출력·정리 전수](release-artifacts/v4.1.0/b02-public-read-20260925/results.md)를 보존했다.
+임시 원출력 11개와 중복 비압축 빌드/Catalog 로그 2개는 압축 해제 byte 일치·소유 확인 후 삭제하고 부재를 확인했다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest·세대 파일·identity·snapshot 코덱, 현재 상태 내보내기, active/cold 원문 검사, Journal dense/global 좌표 분리·snapshot domain 임시 투영·B Journal read-only 권위와 ID/예약 검증·복원 원문 링크는 각각 집중 검증 PASS. 실제 Catalog B Open/Append/Checkpoint·SQLite 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | 형식·임시 복원·공개 Catalog B read-only Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 Append·예약·Checkpoint·writer는 계속 차단 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
-| B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
+| B-04 재기동·SQLite | 부분 진행 | 공개 읽기 후보 전체 성공 후 게시·현재 상태 SQLite·fallback·새 owner 재Open 집중 PASS. 쓰기 후 재기동·원문 보존 cutover·중단 복구는 후속 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |
 | B-07 누적·실제 통합 | 미실행 | 작은 반례·누적 비용·완전 출력 2개와 HTTP·해시·재기동 |

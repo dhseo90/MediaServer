@@ -46,12 +46,12 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-Z01 | 현재 수용 조건 직접 대조 | 관리/비관리 저장소를 구분해 예약 후 V1 확정·삭제 재시도·V2 삭제·진행 작업 출력·원문 표현의 기존 수용 결과를 실제 Catalog 경로에서 확인 | PASS: 실제 수용·strict 재Open 13개; 공개 요청과 직접 원장 차이 구분 | 미실행: B 코드 고정 후 영향 판정 | 비대상: 내부 저장 |
 | B02-Z02 | 같은 이력의 snapshot 분할 동등성 | 같은 유효 기록을 서로 다른 배타 cut에서 snapshot+active로 복원해 독립 예상 현재 상태·삭제·참조·보호와 대조; 분할 위치가 수용 결과를 바꾸지 않음 | PASS: 예상 RED 보완 후 cut 비교 11개; 공개 B Open은 후속 | 미실행: B 코드 고정 후 영향 판정 | 비대상: 내부 저장 |
 | B02-Z03 | 표현·손상·실패 격리 | 원문 해시/ID·엄격 domain 의미 검증과 snapshot canonical 표현을 구분; 손상·충돌·뒤 행 실패 시 live·원본·SQLite 비공개 유지 | PASS: 격리 18개와 기존 Y/X/J 손상·원문 회귀; 공개 B Open은 후속 | 미실행: B 코드 고정 후 영향 판정 | 비대상: 내부 저장 |
-| B02-Q01 | B 공개 읽기 Open | snapshot+active 임시 후보 전체 성공 뒤 현재 map을 공개; 기존 v1 Open과 분리하고 source/job cold 상태 유지 | 미실행: 실행 전 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Q02 | B 현재 상태 SQLite | 검증된 현재 typed 값·source/job 별도 얇은 요약·최소 identity를 직접 투영하고 store/generation/schema 결박; 과거 전체 Replay 금지 | 미실행: 실행 전 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Q03 | B Open 실패 원자성 | 뒤 active/domain 손상·SQL transaction 실패·권위 변경 때 live 미공개·원본 불변; 오류를 fallback 성공으로 바꾸지 않음 | 미실행: 실행 전 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Q04 | B 읽기 전용 안전 경계 | append·예약·checkpoint·writer 시작은 쓰기 단계 구현 전 거부; cleanup marker·미디어를 읽기 Open에서 변경하지 않음 | 미실행: 실행 전 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Q05 | B SQLite fallback·재Open | SQLite 미사용/지원 부재/Open 불가 fallback과 Open 뒤 투영 실패를 구분; 새 owner 재Open 동일 현재 상태 | 미실행: 실행 전 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Q06 | B 읽기 영향 회귀 | crypto/backend/SQLite 지원 조합·v1 회귀·cold 손상·hold 관련 읽기·전체 빌드; 등록된 개별 oracle 대조 | 미실행: 실행 전 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Q01 | B 공개 읽기 Open | snapshot+active 임시 후보 전체 성공 뒤 현재 map을 공개; 기존 v1 Open과 분리하고 source/job cold 상태 유지 | PASS: 4조합 Q01 28개; 공개 읽기만 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Q02 | B 현재 상태 SQLite | 검증된 현재 typed 값·source/job 별도 얇은 요약·최소 identity를 직접 투영하고 store/generation/schema 결박; 과거 전체 Replay 금지 | PASS: Q02 9개; 현재 typed SQL·얇은 요약 분리 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Q03 | B Open 실패 원자성 | 뒤 active/domain 손상·SQL transaction 실패·권위 변경 때 live 미공개·원본 불변; 오류를 fallback 성공으로 바꾸지 않음 | PASS: Q03 15개; SQL 실패·권위 교체 격리 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Q04 | B 읽기 전용 안전 경계 | append·예약·checkpoint·writer 시작은 쓰기 단계 구현 전 거부; cleanup marker·미디어를 읽기 Open에서 변경하지 않음 | PASS: Q04 29개; 내구 쓰기 차단·원본 보존 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Q05 | B SQLite fallback·재Open | SQLite 미사용/지원 부재/Open 불가 fallback과 Open 뒤 투영 실패를 구분; 새 owner 재Open 동일 현재 상태 | PASS: Q05 13개; fallback·새 owner 재Open | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Q06 | B 읽기 영향 회귀 | crypto/backend/SQLite 지원 조합·v1 회귀·cold 손상·hold 관련 읽기·전체 빌드; 등록된 개별 oracle 대조 | PASS: Q06 12개·기존 회귀386개·전체 빌드 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X01 | snapshot domain 임시 복원 | 16종 row의 기존 domain parser·canonical bytes·key/내부 ID를 임시 투영에 복원하고 실패 시 공개 Catalog 불변 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X02 | 현재 상태 관계 검사 | V1/V2/예약 namespace, segment 상태·삭제·경로·이벤트·참조·hold 복구 입력의 cross-map 모순 거부 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X03 | thin 상세와 최초 수용 결박 | source/job latest ID의 검증된 identity locator·type/entity, accepted-state 전수·배타 cut을 확인하고 필요한 상세만 사용 시 raw 검증 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |

@@ -393,6 +393,12 @@ private:
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool BuildGenerationScratch(std::unique_ptr<RecordingCatalog>* output,std::string* error);
+    bool BuildGenerationScratchLocked(std::unique_ptr<RecordingCatalog>*,std::shared_ptr<RecordingGenerationRecoverySession>*,std::string*);
+    bool OpenGenerationLocked(std::string*);
+    bool PrepareGenerationSqliteLocked(const std::shared_ptr<RecordingGenerationRecoverySession>&,std::string*);
+    bool UpdateGenerationHoldsLocked(const std::vector<std::pair<std::string,std::uint64_t>>&,std::string*);
+    void PublishGenerationMapsLocked(RecordingCatalog&) noexcept;
+    bool CanReadLocked(std::string* error) const;
     bool CanWriteLocked(std::string* error) const;
     struct CheckpointProjectionCache {
         RecordingMutationLinks prefix;
@@ -450,6 +456,7 @@ private:
     Options options_;
     mutable std::mutex mu_;
     bool opened_{false};
+    bool generation_read_only_{false};
     // 첫 Open 전체 성공만 자동 no-op의 기원이다. 실패한 같은 인스턴스는 strict로 남긴다.
     bool automatic_noop_open_attempted_{false},automatic_noop_eligible_{false};
     // 적용 실패/예외도 포함한다. 포화 후에는 잠금 밖 조회를 다시 허용하지 않는다.
@@ -495,6 +502,10 @@ private:
     std::unordered_map<std::string, ReferencedObservationV1> referenced_observations_;
     std::unordered_map<std::string, RecordingTombstoneV1> tombstones_;
     sqlite3* sqlite_db_{nullptr};
+    sqlite3* generation_sqlite_db_{nullptr};
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+    static std::function<void(sqlite3*)> generation_sqlite_open_hook_;
+#endif
 };
 
 }  // namespace recording

@@ -24,6 +24,8 @@
 #undef main
 namespace recording {
 struct RecordingCatalogGenerationScratchProbe {
+    static void SqlOpenHook(std::function<void(sqlite3*)> hook){RecordingCatalog::generation_sqlite_open_hook_=std::move(hook);}
+    static bool SqlOpenHookEmpty(){return !RecordingCatalog::generation_sqlite_open_hook_;}
     static bool Build(RecordingCatalog& c,std::unique_ptr<RecordingCatalog>* out){return c.BuildGenerationScratch(out,&error);}
     static bool Empty(const RecordingCatalog& c){return !c.opened_&&c.segments_.empty()&&!c.sqlite_db_;}
     static bool Corrupt(const RecordingCatalog& c){return !c.opened_&&!c.sqlite_db_&&c.segments_.at("segment").lifecycle==RecordingLifecycle::Corrupt;}
@@ -281,7 +283,10 @@ void AcceptanceCases(const std::filesystem::path& base) {
     Check("B02-Z02",outcomes[0]&&outcomes[1],"EXPECTED RED direct accepted request after deleted cut equivalence");
 }
 #endif
-int main(int argc,char** argv) {
+#ifndef RECORDING_SCRATCH_MAIN
+#define RECORDING_SCRATCH_MAIN main
+#endif
+int RECORDING_SCRATCH_MAIN(int argc,char** argv) {
     if(argc!=2)return 2;
     try {
         const std::filesystem::path base(argv[1]);std::filesystem::create_directories(base);
