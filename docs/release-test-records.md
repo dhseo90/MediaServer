@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시와 Open용 구성 분리, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID·snapshot 내보내기 후보, active 전체 엄격 읽기 후보는 focused PASS. snapshot domain 복원·제품 Open/Append/Checkpoint 연결과 cold archive 사용 시 원문 검증은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시와 Open용 구성 분리, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID·snapshot 내보내기 후보, active 엄격 읽기와 사용 시 cold 원문 검증 후보는 focused PASS. snapshot domain 복원·제품 Open/Append/Checkpoint 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -270,6 +270,44 @@ Checkpoint나 snapshot domain 복원을 완료로 판정하지 않는다. 원본
 | B02-C02 | 손상·경쟁 거부 | 범위/상한/경로/링크/교체/metadata/예약 tuple 불일치 거부, 실패 output 불변 | v4.1.0 |
 | B02-C03 | 지연 비용 경계 | 과거 원문은 사용 시에만 전체 파일 SHA로 읽고 반환은 지정 행만; 물리 구간 caller byte admission과 압축 논리 16MiB 상한 확인 | v4.1.0 |
 | B02-C04 | crypto-off | 원문 검증 불가 시 신규 형식 fail closed·원본/출력 불변 | v4.1.0 |
+| B02-C05 | 실행·빌드 연결 | `./server.sh verify-v410-recording-generation-cold-mutation` C01~C04·source hash·cleanup과 제품 빌드 source 포함 | v4.1.0 |
+
+### B-02 cold 지정 원문 reader 단위 결과
+
+2026-09-25 담당자 직접 `bash scripts/internal/verify_recording_generation_cold_mutation.sh`
+exit 0, C01~C04 전부 PASS, `01:57:30Z`~`01:57:35Z`.
+[원출력](release-artifacts/v4.1.0/b02-cold-20260925/focused.log)은 1,541바이트,
+SHA-256 `77d9e1d77256289f6b5bb46f5d7971e5434f9033213eda8eaf2371b70fdda784`다.
+저장소 사본과 담당자 `/private/tmp/b02-cold-focused-first.log`의 byte 일치를 확인한 뒤
+담당자 소유 원본을 삭제하고 부재를 확인했다. 첫 공개 dispatch는 runner 실행권한
+누락으로 exit 1이었으며 제품 assertion이 실행되지 않았다. 권한 보완 후
+`./server.sh verify-v410-recording-generation-cold-mutation` exit 0, C01~C04 전부 PASS,
+`01:59:32Z`~`01:59:36Z`, 격리 root 2,518,291바이트 `removed=true`였다.
+`./server.sh build` exit 0·신규 source 포함, script inventory 12/12,
+project inventory 18/18·기존 기능 986행, 문서 링크 328문서/12,794링크/오류 0,
+문서 자산 10/10을 확인했다. 제품 Open·Append·Checkpoint의 cold 호출 연결과
+snapshot domain 복원은 미실행이다. token start/end/consumed는 집계 source가 없어
+미집계다. 명령별 elapsed는 직접 실행 도구의 4.0초(공개 dispatch), 1.3초(build),
+45.2초(script inventory), 36.3초(project inventory)와 원출력의 5초(최초 focused)다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-C01 | 일반·예약·receipt·압축·봉인 active의 전체 archive SHA, 선택 행 raw/LF/SHA·logical identity·metadata 일치 | pass |
+| B02-C02 | 손상·다른 payload·예약 불일치·비정규 이름·symlink/hardlink·inode 교체·실패 출력 불변 | pass |
+| B02-C03 | 선택 물리 행 admission, 과거 전체 파일 SHA 읽기와 압축 논리 상한 분리 | pass |
+| B02-C04 | crypto-off 신규 cold 읽기 거부·원본/출력 보존 | pass |
+| B02-C05 | 공개 dispatch 권한 실패 이력 보존 후 focused 4/4·제품 빌드·inventory·cleanup 확인 | pass |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| B02-C05 첫 공개 dispatch | runner 실행권한 검사에서 exit 1 | 신규 runner mode 0644 | 제품 assertion 미실행; 이후 PASS로 최초 실패를 지우지 않음 |
+| B-02 제품 연결 | 현재 reader를 Catalog 사용 경계로 호출하지 않음 | B-02 후속 구현 | 실제 제품 cold 취득 PASS 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/b02-cold-focused-first.log` | 담당자 임시 원출력 | 1,541바이트 | SHA/byte 일치 뒤 삭제 | 부재 확인 | 저장소 원출력 보존 |
+| `docs/release-artifacts/v4.1.0/b02-cold-20260925/focused.log` | 최소 독립 실행 증거 | 1,541바이트 | 비밀 항목 없음 확인 후 보존 | 보존 | C01~C04 최초 통과 증거 |
+| `media-server-generation-cold.*` 소유 root | 임시 빌드·fixture | 실행별 2,518,291바이트 | runner 소유권·inode 확인 후 정리 | 두 실행 모두 `removed=true` | runner 원출력·공개 dispatch 결과 |
 
 2026-09-25 active reader 최초 독립 실행은 `bash scripts/internal/verify_recording_generation_active.sh`
 exit 0, A01~A04 모두 PASS, 시작 `01:40:07Z`·종료 `01:40:12Z`였다.

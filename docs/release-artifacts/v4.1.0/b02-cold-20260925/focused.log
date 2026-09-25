@@ -1,0 +1,16 @@
+[scope] cold selected row; full archive SHA IO; physical admission; legacy 16MiB logical decompression bound
+[start] 2026-09-25T01:57:30Z
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+c3bfb74560828867c6c3c39f7a72788a2ec80d897dcf34edfb96bb72a68a2d18  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+3de942ff8d2e68681f8b8264f8f0d11508196594a2ce051004eaea601ed3bbe0  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+0ec1c0c1bf61736562a66751aaab90761b00a20a369bde0248ca4224f3caa457  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_cold_mutation_smoke.cpp
+9b0395ecbfd89fa306a93b66791022dd603e28a5c2680cdc67e5c2df50522688  /Users/dhseo/Workspace/mediaServer/include/recording/recording_generation_cold_mutation.h
+d9f4c1d3aa063aa0593074b009999a51b729670fdbf38e210518ba2e1e5055df  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_cold_mutation.sh
+B02-C01 PASS
+B02-C02 PASS
+B02-C03 PASS
+B02-C04 PASS
+[end] 2026-09-25T01:57:35Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-cold.24n6oP bytes=2518291 removed=true

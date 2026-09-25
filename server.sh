@@ -1218,6 +1218,7 @@ Usage:
   verify-v410-recording-generation
   verify-v410-recording-generation-files
   verify-v410-recording-generation-active
+  verify-v410-recording-generation-cold-mutation
   verify-v410-recording-order-snapshot
   verify-v410-recording-identity-shards
   verify-v410-recording-catalog-snapshot
@@ -3123,6 +3124,10 @@ case "${cmd}" in
   verify-v410-recording-generation-active)
     require_internal verify_recording_generation_active.sh
     exec bash "${INTERNAL_DIR}/verify_recording_generation_active.sh" "$@"
+    ;;
+  verify-v410-recording-generation-cold-mutation)
+    require_internal verify_recording_generation_cold_mutation.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_cold_mutation.sh" "$@"
     ;;
   verify-v410-recording-order-snapshot)
     require_internal verify_recording_order_history_snapshot.sh

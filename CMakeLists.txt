@@ -100,6 +100,7 @@ add_library(media_server_runtime STATIC
     src/recording/recording_journal.cpp
     src/recording/recording_generation_manifest.cpp
     src/recording/recording_generation_active.cpp
+    src/recording/recording_generation_cold_mutation.cpp
     src/recording/recording_generation_files.cpp
     src/recording/recording_order_history_snapshot.cpp
     src/recording/recording_identity_shard.cpp

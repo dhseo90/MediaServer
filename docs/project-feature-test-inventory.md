@@ -27,6 +27,7 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-C02 | cold 손상·결박 거부 | 파일·행 hash/길이/범위, 다른 payload·ID/type/entity/time·예약 tuple, 안전하지 않은 파일 이름·링크·교체를 실패 output 불변으로 거부 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-C03 | 사용 시 비용·상한 | Open 정상 경로의 과거 원문 검증과 분리하고 물리 구간 caller admission·압축 논리 16MiB 상한·원본 파일 전체 SHA 읽기 비용을 명시; 모든 과거 행 상주를 요구하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-C04 | cold crypto-off | digest 미지원 빌드에서는 신규 원문 취득을 거부하고 output·원본을 보존 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-C05 | cold 검증 실행 연결 | `./server.sh verify-v410-recording-generation-cold-mutation`이 C01~C04·source hash·cleanup을 확인하고 제품 빌드에 reader를 포함 | 미실행: 독립 집중 검증·빌드 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 
