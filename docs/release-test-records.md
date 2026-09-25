@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID와 snapshot 내보내기 후보는 focused PASS. snapshot domain 복원·증분·제품 연결과 cold archive 원문 검증은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시와 Open용 구성 분리, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID·snapshot 내보내기 후보, active 전체 엄격 읽기 후보는 focused PASS. snapshot domain 복원·제품 Open/Append/Checkpoint 연결과 cold archive 사용 시 원문 검증은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -242,6 +242,37 @@ Checkpoint나 snapshot domain 복원을 완료로 판정하지 않는다. 원본
 | B02-A02 | active 손상·경쟁 거부 | 미완결/비정규 행, hash/size·inode·symlink/hardlink·상한/ordinal overflow·실패 output 불변 | v4.1.0 |
 | B02-A03 | 자원·검출 경계 | caller byte admission, active만 일시 메모리 소유; 역사 원문/도메인 복원과 분리 | v4.1.0 |
 | B02-A04 | crypto-off 경계 | digest 불가 시 신규 형식 fail closed, 기존 v1 검증 불변 | v4.1.0 |
+| B02-A05 | 실행·빌드 연결 | `./server.sh verify-v410-recording-generation-active` A01~A04·source hash·cleanup, `./server.sh build` source 포함 | v4.1.0 |
+
+2026-09-25 active reader 최초 독립 실행은 `bash scripts/internal/verify_recording_generation_active.sh`
+exit 0, A01~A04 모두 PASS, 시작 `01:40:07Z`·종료 `01:40:12Z`였다.
+[원출력](release-artifacts/v4.1.0/b02-active-20260925/focused.log)은
+`6da101865346ef31da2e69e9213ac6a4918df3702d082ed2620ef3bd8f38b5e4`
+(1,485바이트)이며 저장소 사본과 담당자 임시 원본의 byte 일치를 확인했다.
+임시 원본 `/private/tmp/b02-active-focused-first.log`는 소유권·크기 확인 후 삭제해 부재를 확인했다.
+첫 공개 dispatch `./server.sh verify-v410-recording-generation-active`는 실행권한이 없는
+runner를 `require_internal`이 거부해 exit 1이었다. 실행권한 보완 뒤 동일 dispatch는
+exit 0, A01~A04 모두 PASS, `01:42:54Z`~`01:42:58Z`, 격리 root 3,658,610바이트
+`removed=true`였다. 이 준비 실패를 제품 RED 또는 최초 독립 PASS로 대체하지 않는다.
+`./server.sh build` exit 0·신규 active source 포함, `./server.sh verify-script-inventory`
+12/12, `./server.sh verify-project-inventory` 18/18·기능 986행,
+문서 링크 328문서/12,792링크/오류 0, 자산 10/10, `git diff --check` exit 0을 확인했다.
+이 결과는 물리 active reader 단위이며 과거 원문·snapshot domain·ID/상태 전이·제품
+Open/Append/Checkpoint·장시간 검증은 미실행이다. token start/end/consumed는 집계원이 없어 미집계다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-A01 | 확정 prefix·완결 tail의 canonical 원문·전체/행 SHA·cut 시작 ordinal·offset/length·물리 재시도 유지 | pass |
+| B02-A02 | 미완결/빈/비정규 행, prefix 길이/SHA·LF 경계, symlink/hardlink·inode/size/mtime/root/manifest 교체·overflow·실패 출력 불변 | pass |
+| B02-A03 | caller admission 선검사·빈/초과 active·과거 evidence 원문 미읽기·원본 보존 | pass |
+| B02-A04 | crypto-off 신규 active 거부·출력/원본 보존 | pass |
+| B02-A05 | 공개 dispatch 첫 실행권한 실패 이력 보존, 수정 후 A01~A04 4/4·빌드·script inventory·cleanup 통과 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/b02-active-focused-first.log` | 담당자 임시 원출력 | 1,485바이트 | 사본 byte 대조 후 삭제 | 부재 확인 | 저장소 보존 원출력 SHA 동일 |
+| `docs/release-artifacts/v4.1.0/b02-active-20260925/focused.log` | 최소 독립 실행 증거 | 1,485바이트 | 비밀 항목 없음 확인 후 보존 | 보존 | A01~A04 최초 통과 증거 |
+| `media-server-generation-active.*` 소유 root | 임시 빌드·fixture | 실행별 3,658,610바이트 | runner 소유권·inode 확인 후 정리 | 두 실행 모두 `removed=true` | runner 원출력·도구 응답 |
 
 2026-09-25 `./server.sh verify-v410-recording-generation` exit 0. Open용 구성 검사
 `B02-M07`은 crypto-on 6 assertion과 crypto-off 1 assertion 모두 통과했다.

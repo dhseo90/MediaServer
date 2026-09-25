@@ -1,0 +1,16 @@
+[scope] active bytes/locator only; historical/domain/product Open not verified
+[start] 2026-09-25T01:40:07Z
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+c3bfb74560828867c6c3c39f7a72788a2ec80d897dcf34edfb96bb72a68a2d18  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+2273302e7d20b9a84501ec1f84001a07f8ac4a28ca35f772c2b838837af37d4b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+69d9d86825ab0bd9c7b23863899055bba23e59f111a23f782622f8813c952726  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_active.cpp
+956cfa1b86d0e9f1b4f0486904a8862d2b5c3ac8a7a147bd90e2b758304245c5  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_active_smoke.cpp
+9183d0063d80f3ad2049f0626841c656b195cc7ae57afe1d1de22fbd517d5adc  /Users/dhseo/Workspace/mediaServer/include/recording/recording_generation_active.h
+b887ce6b6c183139f84ed19abdbf173911d85e2f09854dd9f54f630cbf47776c  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_active.sh
+B02-A01 PASS
+B02-A02 PASS
+B02-A03 PASS
+B02-A04 PASS
+[end] 2026-09-25T01:40:12Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-active.k5le5b bytes=3658610 removed=true

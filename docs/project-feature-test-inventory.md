@@ -22,6 +22,7 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-A02 | active 손상·경쟁 거부 | prefix hash/size, 미완결·비정규 행, symlink/hardlink·inode/size 교체·상한/overflow를 실패 시 output 불변으로 거부 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-A03 | active 메모리·복구 경계 | caller admission 초과를 읽기 전에 거부하고 읽은 active 행만 반환; 과거 archive·snapshot domain 복원을 PASS로 대체하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-A04 | crypto-off fail closed | B active digest 검증이 불가능한 빌드에서 원본 보존·output 불변으로 거부하고 기존 v1 경로는 변경하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-A05 | active 검증 실행 연결 | `./server.sh verify-v410-recording-generation-active`가 A01~A04, 시작/종료 source hash·cleanup을 확인하고 제품 빌드에 reader를 포함 | 미실행: 독립 집중 검증·빌드 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 
