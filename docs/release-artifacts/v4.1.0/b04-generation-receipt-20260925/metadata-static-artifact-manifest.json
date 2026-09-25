@@ -1,0 +1,50 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-receipt-metadata-inventory.log",
+    "artifact": "metadata-static-inventory.log.gz",
+    "exit": 0,
+    "bytes": 210250,
+    "gzipBytes": 16478,
+    "sha256": "24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00",
+    "uid": 501,
+    "ino": 159540084,
+    "dev": 16777234,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-metadata-docs.log",
+    "artifact": "metadata-static-docs.log.gz",
+    "exit": 0,
+    "bytes": 187,
+    "gzipBytes": 152,
+    "sha256": "5d195ebd451b2d8106d9078f9046813374d401b010b26f41d25075ff6d9eb13d",
+    "uid": 501,
+    "ino": 159540086,
+    "dev": 16777234,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-metadata-assets.log",
+    "artifact": "metadata-static-assets.log.gz",
+    "exit": 0,
+    "bytes": 636,
+    "gzipBytes": 327,
+    "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2",
+    "uid": 501,
+    "ino": 159540111,
+    "dev": 16777234,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-metadata-docs-final.log",
+    "artifact": "metadata-docs-final.log.gz",
+    "exit": 0,
+    "bytes": 187,
+    "gzipBytes": 153,
+    "sha256": "7abcc4564ec2d27bf59d3e306b6cb00b1b6f38b27022fd28ad2897840a3cc2e5",
+    "uid": 501,
+    "ino": 159540254,
+    "dev": 16777234,
+    "originalRemoved": true
+  }
+]

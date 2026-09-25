@@ -17,6 +17,10 @@ struct RecordingGenerationReceipt {
     std::uint64_t root_device{0},root_inode{0},stage_device{0},stage_inode{0};
     std::string stage_name;
     RecordingGenerationOwnedFile marker,source;
+    // cutover만: stage의 .recording-marker-v2 inode는 rename 뒤 실제 marker와 같아야 한다.
+    std::optional<RecordingGenerationOwnedFile> replacement_marker;
+    // checkpoint만: 이전 manifest의 bytes와 파일 identity를 함께 결박한다.
+    std::optional<RecordingGenerationOwnedFile> predecessor_file;
     std::optional<RecordingGenerationManifest> predecessor;
     RecordingGenerationManifest target;
     // 정렬된 새 파일 목록. 구형 원본·이전 archive·marker·manifest를 포함하면 안 된다.

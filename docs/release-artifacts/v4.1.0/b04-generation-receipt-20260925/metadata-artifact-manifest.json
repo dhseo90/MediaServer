@@ -1,0 +1,128 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-receipt-marker-red.log",
+    "artifact": "metadata-marker-red.log.gz",
+    "exit": 1,
+    "bytes": 3337,
+    "gzipBytes": 1312,
+    "sha256": "47d8f4322760fbc29fd636b3fe7450ed9056f3da25c81c516816eada0ef6d177",
+    "uid": 501,
+    "ino": 159538969,
+    "dev": 16777234,
+    "pass": 72,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.z8Sxgt",
+        "bytes": 617384,
+        "absent": true
+      }
+    ],
+    "cleanupReported": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-marker-green.log",
+    "artifact": "metadata-marker-green.log.gz",
+    "exit": 0,
+    "bytes": 4263,
+    "gzipBytes": 1502,
+    "sha256": "615cc7dbf29ee98aa7b52aba735234660e71ff814babd926c8a47fa24bfa8f62",
+    "uid": 501,
+    "ino": 159539096,
+    "dev": 16777234,
+    "pass": 93,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.67A8t4",
+        "bytes": 1004704,
+        "absent": true
+      }
+    ],
+    "cleanupReported": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-marker-final.log",
+    "artifact": "metadata-marker-final.log.gz",
+    "exit": 0,
+    "bytes": 4263,
+    "gzipBytes": 1506,
+    "sha256": "cb82ff711cb9eb5800fdd2e3d1342db51111766cb8b14b532a3950004b31ee70",
+    "uid": 501,
+    "ino": 159539187,
+    "dev": 16777234,
+    "pass": 93,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.eNCw0t",
+        "bytes": 1004864,
+        "absent": true
+      }
+    ],
+    "cleanupReported": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-store-red.log",
+    "artifact": "metadata-store-red.log.gz",
+    "exit": 1,
+    "bytes": 4449,
+    "gzipBytes": 1533,
+    "sha256": "80bbb9a3d977e755077fca8a85211fd17ec6aee258ae1c4f748722ef402dbb72",
+    "uid": 501,
+    "ino": 159539405,
+    "dev": 16777234,
+    "pass": 98,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.59wi40",
+        "bytes": 704136,
+        "absent": true
+      }
+    ],
+    "cleanupReported": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-store-green.log",
+    "artifact": "metadata-store-green.log.gz",
+    "exit": 0,
+    "bytes": 4610,
+    "gzipBytes": 1573,
+    "sha256": "c0fd6a4cd593b5b54f70a63caed6d312690d64b33a60c26d16e9ffefee6f5e5d",
+    "uid": 501,
+    "ino": 159539663,
+    "dev": 16777234,
+    "pass": 101,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.u5ZwWr",
+        "bytes": 1005584,
+        "absent": true
+      }
+    ],
+    "cleanupReported": true,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-receipt-manifest-regression.log",
+    "artifact": "metadata-manifest-regression.log.gz",
+    "exit": 0,
+    "bytes": 906,
+    "gzipBytes": 323,
+    "sha256": "50a453c745da8eca9184fc19ecc05ebcbe514a0f3f1720adda78d66eb435c2d2",
+    "uid": 501,
+    "ino": 159539713,
+    "dev": 16777234,
+    "pass": 16,
+    "fail": 0,
+    "cleanup": [],
+    "cleanupReported": true,
+    "originalRemoved": true
+  }
+]

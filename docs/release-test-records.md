@@ -313,6 +313,21 @@ PREPARED/PUBLISH_INTENT는 진행 단계이지 검증 성공 권위가 아니다
 최초 stub RED1건과 중간69개를 보존한다. source/target/소유 descriptor의 값 검사일 뿐
 실제 파일 게시·삭제·중단 복구의 권위가 아니다. 후보 생성은 위68개로 확인했고 실제 전환 통합은 진행 중이다.
 
+영수증을 실제 게시에 연결하기 전에 원자 교체할 v2 marker의 stage descriptor와 checkpoint의
+이전 manifest 파일 descriptor를 추가 결박한다. 실제 영속 영수증을 쓰는 제품 경로는 아직 없어
+이미 저장된 사용자 자료의 형식을 바꾸는 작업이 아니다. 같은 내용의 다른 inode를 구별하기 위해
+필요한 값이며 새 필드를 넣기 전74개 결과를 확장 형식의 최종 PASS로 자동 승계하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B04-R07 | marker·predecessor 파일 결박 | cutover replacement 필수/checkpoint 금지, checkpoint predecessor file 필수/cutover 금지. 고정 basename·canonical store별 marker/이전 manifest 크기/SHA·device/inode 별개 및 교체 필드 왕복. 최초 RED는 새 descriptor가 codec 왕복에서 소실되는 assertion | v4.1.0 |
+| B04-R08 | 기존 store ID 수용 보존 | 기존 ValidateOpaqueId가 허용하는 점/콜론 ID의 manifest·receipt 왕복. 파일명은 그대로이며 경로 표현/quote는 계속 거부. 예상 RED는 `store:one.part`의 manifest/receipt 정상 값 거부 | v4.1.0 |
+
+R07 descriptor 소실 RED(72 PASS/1 FAIL)→93 PASS, 관계 반례 독립 보완 후93 PASS,
+R08 기존 ID 거부 RED(98 PASS/1 FAIL)→최종101 PASS다. manifest 영향 회귀16그룹/113 assertions도
+통과했다. [보완 원출력·개별 결과·한계](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)를
+보존하며 전체 서버 재빌드는 게시 통합 고정 뒤 실행한다. 실제 게시·복구 PASS는 아니다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |

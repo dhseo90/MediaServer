@@ -60,3 +60,54 @@ runner가 소유 확인 후 제거하고 메인이 부재를 확인했다. 제�
 | 이 디렉터리 | 비민감 결과·원출력 | 명세 참조 | 보존 | 재현·실패 이력·재검증 범위 판정 | 중앙 기록 연결 |
 
 marker 교체·manifest 게시·crash 복구·실제 앱/장시간·UI는 아직 이 단위의 결과가 아니다.
+
+## 실제 교체 파일 결박 보완
+
+게시 연결에 앞서 cutover의 `replacementMarker`와 checkpoint의 `predecessorFile`을
+추가했다. 값 codec은 각각 필수/금지 조건, 고정 파일명, store별 canonical marker 또는
+이전 manifest의 정확한 길이/SHA, root와 같은 device 및 고유 inode를 검사한다.
+교체 marker의 inode는 rename 뒤 실제 marker와 같아야 한다. 이 descriptor도 실제 파일을
+검증한 권위는 아니며 coordinator가 FD·lease·원본/domain을 다시 대조해야 한다.
+이전13필드 영수증은 제품 영속 경로에 연결되지 않았으므로 사용자 저장 자료를 변환하지 않았다.
+
+정적 리뷰에서 기존 `ValidateOpaqueId`가 허용하는 `store:one.part`를 manifest만 거부하는
+차이를 발견했다. 정상 값 거부를 사전 등록한 RED로 확인한 뒤 store 문자열의 점/콜론을
+수용했다. 구성 파일명·디렉터리·경로 검사는 바꾸지 않았고 점 단독·연속 점·slash·quote는
+계속 거부한다. 공개 domain ID 정책이나 runtime 기본 선택은 변경하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| R07 최초 RED | receipt focused exit1, 기존72 PASS·새 교체 descriptor 소실1 FAIL | fail |
+| R07 GREEN | receipt focused exit0, crypto91/off2 총93 PASS | pass |
+| R07 반례 독립성 보완 | predecessor 관계 반례가 hash 오류에 가려지지 않게 fixture를 보완, exit0 총93 PASS | pass |
+| R08 최초 RED | receipt focused exit1,98 PASS·기존 점/콜론 store 정상 거부1 FAIL | fail |
+| R01~R08 최종 | `bash scripts/internal/verify_recording_generation_receipt.sh`, exit0, crypto99/off2 총101 PASS | pass |
+| manifest 영향 회귀 | `bash scripts/internal/verify_recording_generation_manifest.sh`, exit0,16개 그룹·113 assertions | pass |
+
+각 중간 결과와 두 예상 RED는 [보완 원출력](metadata-artifact-manifest.json)과
+[개별 결과](metadata-individual-results.json.gz)에 보존한다. 최종 receipt 실행은
+2026-09-25T08:52:30Z~08:52:33Z(3초)이며 실제 시작/끝 원문이 우선이다.
+manifest 기존 runner는 정확한 시작/끝 시각·임시 경로/크기를 출력하지 않아 미집계로 남긴다.
+이를 추정 복원하지 않는다. 두 C++ 단위 모두 crypto-on/off를 실제 컴파일·실행했고
+이 단위의 전체 서버 재빌드는 미실행이다. Journal/Catalog 게시 구현이 병행 중이므로
+그 소스 고정 뒤 통합 빌드에서 판정한다. 이전 서버 빌드를 이번 변경의 새 PASS로 쓰지 않는다.
+token start/end/consumed는 집계 source 부재로 미집계다.
+
+임시 receipt fixture는 원출력에 기록된 소유 경로·삭제 전 크기와 부재를 대조한다.
+manifest runner는 소유 전용 경로 정리 성공만 보고하며, 정확 경로/크기 원출력 누락은
+위 한계로 남긴다. 실제 서버·포트·계정은 사용하지 않았다. 로그는 hash·gzip byte 일치 확인 뒤
+삭제하고 이 디렉터리의 압축 원문에서 복구할 수 있다. 새 파일 형식의 실제 게시·복구는 여전히
+미완료이며 이 결과를 그 PASS로 확대하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| metadata 명세의 fixture5개 | 전용 임시 빌드 디렉터리 | 각 cleanup.bytes | runner 소유 정리 후 부재 대조 | 모두 부재 | metadata-artifact-manifest.json |
+| metadata 명세의 source6개 | 집중/회귀 원출력 | 총21,828 bytes | 소유 inode/hash·압축 byte 일치 뒤 삭제 | 복구 가능한 gzip 보존, 원문 부재 | metadata-artifact-manifest.json |
+| metadata-static 명세의 source4개 | 문서/등록/자산 원출력 | 총211,260 bytes | 같은 소유·보존 검증 뒤 삭제 | gzip 보존, 원문 부재 | metadata-static-artifact-manifest.json |
+
+기존986개 기능 행이 HEAD와 동일함을 확인한 뒤 in-memory manifest 전체 검증을 통과했고
+`inventorySha256`만 갱신했다. 이후 실제 inventory18 PASS/0 FAIL, 문서338파일/최종13606링크 오류0,
+자산10 PASS, diffcheck exit0다. [정적 명세](metadata-static-artifact-manifest.json)와
+[개별5091행](metadata-static-individual-results.json.gz)을 보존한다. 이 검사는 실행 매핑 정합이며
+현재 제품 UI·장시간 PASS를 뜻하지 않는다. [보완 소스 hash](metadata-source-sha256.json)로
+집중 검사 대상을 구분한다.

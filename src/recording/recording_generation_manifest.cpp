@@ -39,8 +39,11 @@ bool Supported(std::string* error){
 #endif
 }
 bool Token(const std::string& s) {
-    return !s.empty()&&s.size()<=128&&std::all_of(s.begin(),s.end(),[](unsigned char c) {
-        return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-'||c=='_';
+    // 기존 저장소의 opaque ID 허용 문자를 유지한다. 구성 파일명 검사는 별도다.
+    return !s.empty()&&s.size()<=128&&s!="."&&s.find("..") == std::string::npos&&
+        std::all_of(s.begin(),s.end(),[](unsigned char c) {
+        return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||
+            c=='-'||c=='_'||c=='.'||c==':';
     });
 }
 bool Hex(const std::string& s) {

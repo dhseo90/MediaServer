@@ -4,10 +4,28 @@
 #include <charconv>
 #include <limits>
 #include <set>
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 namespace recording {
 namespace {
 constexpr std::uint64_t kComponentLimit=1024ULL*1024*1024;
 constexpr const char* kEmptySha="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+std::string Hash(const std::string& bytes) {
+#if MEDIA_SERVER_USE_OPENSSL
+    unsigned char digest[32];unsigned length=0;
+    if(EVP_Digest(bytes.data(),bytes.size(),digest,&length,EVP_sha256(),nullptr)!=1||length!=32)return {};
+    std::string out;const char* hex="0123456789abcdef";
+    for(const auto value:digest){out+=hex[value>>4];out+=hex[value&15];}
+    return out;
+#else
+    (void)bytes;return {};
+#endif
+}
+std::string Marker(const std::string& store,bool generation) {
+    return "{\"format\":\"media-server.managed-recording-store."+std::string(generation?"v2":"v1")+
+        "\",\"storeId\":\""+store+"\","+(generation?"\"manifest\":\"recording-generation.json\"":"\"journal\":\"recording-v2-mutations.jsonl\"")+"}\n";
+}
 bool Fail(std::string* error,const char* message) {
     if(error)*error=message;
     return false;
@@ -97,15 +115,25 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
        r.source.inode==r.root_inode||r.source.inode==r.stage_inode)
         return Fail(error,"generation receipt original binding invalid");
     if(!SerializeRecordingGenerationManifest(r.target,target,error))return false;
+    const auto marker=Marker(r.target.store_id,r.operation==RecordingGenerationOperation::Checkpoint);
+    if(r.marker.file.size!=marker.size()||r.marker.file.sha256!=Hash(marker))
+        return Fail(error,"generation receipt marker/store bytes mismatch");
     if(r.target.active.size||r.target.active.sha256!=kEmptySha||!r.target.snapshot.size)
         return Fail(error,"generation receipt target components invalid");
     if(r.operation==RecordingGenerationOperation::Cutover) {
-        if(r.predecessor||r.source.file.name!="recording-v2-mutations.jsonl")
+        if(r.predecessor||r.predecessor_file||!r.replacement_marker||r.source.file.name!="recording-v2-mutations.jsonl")
             return Fail(error,"generation cutover predecessor/source invalid");
+        const auto replacement=Marker(r.target.store_id,true);
+        if(r.replacement_marker->file.name!=".recording-marker-v2"||
+           r.replacement_marker->file.size!=replacement.size()||r.replacement_marker->file.sha256!=Hash(replacement))
+            return Fail(error,"generation cutover replacement marker invalid");
         *previous="null";
     } else {
-        if(!r.predecessor||!SerializeRecordingGenerationManifest(*r.predecessor,previous,error))
+        if(r.replacement_marker||!r.predecessor_file||!r.predecessor||!SerializeRecordingGenerationManifest(*r.predecessor,previous,error))
             return Fail(error,"generation checkpoint predecessor invalid");
+        if(r.predecessor_file->file.name!="recording-generation.json"||
+           r.predecessor_file->file.size!=previous->size()||r.predecessor_file->file.sha256!=Hash(*previous))
+            return Fail(error,"generation checkpoint predecessor file mismatch");
         const auto& p=*r.predecessor;
         if(p.store_id!=r.target.store_id||p.generation==std::numeric_limits<std::uint64_t>::max()||
            r.target.generation!=p.generation+1||r.target.cut_ordinal<p.cut_ordinal||
@@ -116,6 +144,9 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
     }
     target->pop_back();
     std::set<std::uint64_t> inodes{r.root_inode,r.stage_inode,r.marker.inode,r.source.inode};
+    for(const auto* optional:{&r.replacement_marker,&r.predecessor_file})
+        if(*optional&&((*optional)->device!=r.root_device||!inodes.insert((*optional)->inode).second))
+            return Fail(error,"generation receipt metadata ownership invalid");
     std::string last;
     bool snapshot=false,active=false,identity=false;
     std::size_t evidence=0;
@@ -157,6 +188,8 @@ bool SerializeRecordingGenerationReceipt(const RecordingGenerationReceipt& r,std
         "\",\"rootDevice\":"+std::to_string(r.root_device)+",\"rootInode\":"+std::to_string(r.root_inode)+
         ",\"stageDevice\":"+std::to_string(r.stage_device)+",\"stageInode\":"+std::to_string(r.stage_inode)+
         ",\"stageName\":\""+r.stage_name+"\",\"marker\":"+OwnedJson(r.marker)+",\"source\":"+OwnedJson(r.source)+
+        ",\"replacementMarker\":"+(r.replacement_marker?OwnedJson(*r.replacement_marker):"null")+
+        ",\"predecessorFile\":"+(r.predecessor_file?OwnedJson(*r.predecessor_file):"null")+
         ",\"predecessor\":"+previous+",\"target\":"+target+",\"created\":[";
     for(std::size_t i=0;i<r.created.size();++i) {
         if(i)bytes+=',';
@@ -171,7 +204,7 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
     RecordingGenerationReceipt* out,std::string* error) {
     if(!out||!admission||bytes.size()>admission)return Fail(error,"generation receipt admission/output invalid");
     ingress::StrictJsonObjectDocument d;RecordingGenerationReceipt r;
-    if(!ingress::ParseStrictJsonObjectDocument(bytes,&d,error)||d.members.size()!=13||
+    if(!ingress::ParseStrictJsonObjectDocument(bytes,&d,error)||d.members.size()!=15||
        ingress::StrictJsonStringField(d,"schema")!="media-server.recording-generation-transaction.v1")
         return Fail(error,"generation receipt schema invalid");
     const auto operation=ingress::StrictJsonStringField(d,"operation"),phase=ingress::StrictJsonStringField(d,"phase");
@@ -195,6 +228,16 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
         if(previous->type!=ingress::StrictJsonType::Object||!ParseRecordingGenerationManifest(previous->raw+"\n",&p,error))
             return Fail(error,"generation receipt predecessor invalid");
         r.predecessor=std::move(p);
+    }
+    for(const auto& pair:{std::make_pair("replacementMarker",&r.replacement_marker),std::make_pair("predecessorFile",&r.predecessor_file)}) {
+        const auto* m=d.Find(pair.first);
+        if(!m)return Fail(error,"generation receipt metadata descriptor absent");
+        if(m->type!=ingress::StrictJsonType::Null) {
+            RecordingGenerationOwnedFile file;
+            if(m->type!=ingress::StrictJsonType::Object||!ParseOwned(m->raw,&file,error))
+                return Fail(error,"generation receipt metadata descriptor invalid");
+            *pair.second=std::move(file);
+        }
     }
     r.stage_name=*stage;
     std::string canonical;

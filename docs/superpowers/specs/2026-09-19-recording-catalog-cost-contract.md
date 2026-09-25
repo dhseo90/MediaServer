@@ -205,6 +205,15 @@ digest와 PREPARED/PUBLISH_INTENT를 결박한다. PUBLISH_INTENT는 manifest re
 사유가 아니다. 저장된 검증 성공 boolean을 재기동 검증의 권위로 쓰지 않는다. 영수증·전환 통합은
 후속 구현이며 아래 원문 방문기 PASS만으로 완료하지 않는다.
 
+영수증은 교체할 v2 marker와 이전 manifest의 실제 파일 descriptor도 각각 결박한다.
+기존 store ID의 점/콜론 허용은 유지하고 구성 파일명과 별도로 검사한다. PREPARED 내구화 후에만
+알려진 stage 파일을 root로 승격한다. link→fsync→unlink 중단의 nlink2는 receipt에 결박된
+정확한 두 경로·동일 inode에서만 전용 coordinator가 처리하며 일반 reader guard를 완화하지 않는다.
+구형 marker는 고정 stage alias에 원본 inode를 보존한 뒤에만 v2로 교체한다. rollback은 새 v1
+파일을 만들어 같은 내용으로 추정하지 않고 해당 원본 inode를 원자 복원한다. 중단 상태의 혼합
+stage/root는 원본 SHA·domain 검증 뒤 알려진 파일만 정상화하여 기존 단일 root projection을
+다시 대조한다. 원본 최종 결박과 소유 확인 전에는 rollback·정리 완료로 판단하지 않는다.
+
 **제품 연결 전 추가 결정.** 기존 `RecordingJournal`의 물리 벡터 index와 B의 전역 ordinal은
 같은 값으로 취급하지 않는다. 세대 active의 첫 완결 행에 `cutOrdinal`을 부여하고 다음
 완결 행마다 1씩 증가시킨다. 앞 세대의 빈 ordinal은 채우지 않으며 증가 overflow는 쓰기를
