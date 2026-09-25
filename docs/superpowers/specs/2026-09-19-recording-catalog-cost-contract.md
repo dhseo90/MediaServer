@@ -214,6 +214,21 @@ checkpoint는 모든 과거 locator/상세를 벡터로 재구성하지 않는�
 이유만으로 쓰기를 먼저 열지 않는다. 쓰기 전에 재기동에서 같은 상태를 복원할 수 있어야 하며,
 검증 도중 live Catalog·SQLite를 일부 게시하거나 과거 상세 전체를 정상 Open에서 재재생하지 않는다.
 
+**B의 내부 SQLite 투영 결정.** SQLite는 계속 재구축 가능한 조회 투영이며 ID 충돌·원문
+권위가 아니다. B 복원에서는 기존 v1 `RebuildSqliteLocked`의 전체 mutation Replay와
+source/job 원문 `payload_json` 전수 재구축을 사용하지 않는다. 검증된 최종 Catalog 후보의
+typed 현재 상태를 직접 투영하고, 수용 mutation의 최소 ID/type/entity/time 목록은 검증된
+identity chain과 active 최초 수용 정보에서 만든다. B 내부 schema 표지와 store·generation
+결박을 두고 source/job의 현재 얇은 요약은 별도 B 전용 테이블에 canonical 값으로 보존한다.
+기존 `recording_source_bindings`·`recording_derived_jobs`의 `payload_json`에 요약 JSON을
+원문인 것처럼 넣지 않는다. accepted event reference는 검증된 현재 consumer reference의
+원문 값과 수용 ID를 함께 대조해 투영한다. SQLite를 사용하는 제품 조회가 아직 없다 해도
+이 의미 차이를 암묵적으로 두지 않는다. v1 SQLite schema와 v1 재투영·회귀는 유지한다.
+B 후보 검증과 SQL transaction 전체가 성공한 뒤 Journal 권위를 다시 확인해야 공개 가능하다.
+SQLite Open 자체가 불가한 경우에만 검증된 Catalog 후보로 fallback하고, Open 이후
+투영·transaction 오류는 조용히 fallback PASS로 바꾸지 않는다. 전환 전의 B 복원 단위
+검사나 SQL schema 검사만으로 공개 B Open·쓰기·복구 완료를 선언하지 않는다.
+
 ### LP24 복구 호출 내부의 제한된 내용 재사용
 
 후속1~6 승인 중1번은 Open의 반복 preflight/apply/SQLite 재투영 내용 비용을 대상으로 한다.
