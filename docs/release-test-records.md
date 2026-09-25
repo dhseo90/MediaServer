@@ -238,6 +238,49 @@ SQLite·미디어·cleanup marker를 건드리지 않는 private 세션이며 �
 원문2회 streaming·행 logical identity/range/ref·whole SHA/stat 검증의 한계를 명시했고,
 후속 게시 전 새 freeze·원본 대조가 필요하다. 후보 생성·형식 게시/중단 복구·서버 기본 활성화는 아직 미구현이다.
 
+### B-04 실제 전환 후보 실행 전 정의
+
+73350277 세션을 사용해 미개방 Catalog의 비공개 후보를 만든다. caller가 소유한 새 stage만 쓰고
+원본 journal·marker·SQLite·미디어·cleanup marker는 보존한다. Catalog Open이나 전체 replay
+vector를 사용하지 않으며, 원문 각 행의 view를 strict Apply와 별도 canonical archive에 연결한다.
+archive는8MiB 목표 또는4096행 단위로 나누되 정상 단일16MiB 행을 잘라내지 않는다.
+이는 출력 조각의 목표이며 전체 이력/ID/파일 수의 새 수용 상한이 아니다. identity previous 체인을
+사용하고 마지막 세대의 snapshot·빈 active를 만든다. 게시·재기동·서버 활성화는 다음 단위다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B04-C01 | 후보 소유·원본 불변 | 미개방·정당 managed owner·신선 stage만 허용; 원본/cache/media/marker bytes 및 출력 실패 불변 | v4.1.0 |
+| B04-C02 | domain·현재 값 | V1/V2·16종 snapshot·예약 tuple/최초시각·accepted 최초 ordinal·pending hold를 독립 예상값 및 B projection과 대조 | v4.1.0 |
+| B04-C03 | 원문 표현·재시도 | noncanonical plain·blank·compressed·receipt originalSha256·물리 retry 전수/순서를 별도 canonical archive와 대조 | v4.1.0 |
+| B04-C04 | 분할·누적 경계 | 크기/행 경계·큰 단일행·빈 원장·65조각 이상 previous 체인, 같은 입력의 분할 전후 동일 상태; 총 RAM/HTTP PASS 아님 | v4.1.0 |
+| B04-C05 | 뒤 행 오류·손상 | malformed/domain/ID·예약·상태 오류와 stage 변경을 거부; 부분 후보 공개 금지·원본 불변·생성 소유 보고 | v4.1.0 |
+| B04-C06 | 파일·지원 경계 | O_EXCL 충돌·쓰기/fsync 오류·unsafe stage·crypto/backend 조합 failclosed; 알려진 생성물만 정리 | v4.1.0 |
+| B04-C07 | cold·활성 보호 | source/job latest ID·원문·활성 보호 상세와 비활성 resident 해제, 공개 authority 없는 후보임을 대조 | v4.1.0 |
+
+focused는 `bash scripts/internal/verify_recording_cutover_candidate.sh`다. 예상 RED는 준비 stub의
+정상 기존 원장 거부 assertion이며 빌드/준비 실패는 별도다. 후보/관련 저장 회귀·전체 build만
+이 단위에서 실행하고 실제 서버·장시간·UI는 후보 PASS로 대체하지 않는다.
+
+### B-04 게시 영수증 값 계약 실행 전 정의
+
+전환/회전의 준비물 소유 정보를 재기동까지 보존할 내부 영수증 값 형식을 등록한다.
+PREPARED/PUBLISH_INTENT는 진행 단계이지 검증 성공 권위가 아니다. root/stage inode,
+기존 marker/source descriptor, 이전/목표 manifest, 새 파일별 inode/hash를 결박한다.
+이 codec은 파일을 열거나 복구/삭제/게시하지 않는다. 실제 파일·lease·원문/domain의
+재검증과 crash 순서는 다음 통합 경계이며 저장된 boolean으로 생략하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B04-R01 | 영수증 정상 값 | cutover/checkpoint, PREPARED/PUBLISH_INTENT의 독립 literal·canonical 왕복 | v4.1.0 |
+| B04-R02 | strict JSON | 손상·중복/추가 key·unknown schema/phase/operation·비정규 숫자/표현·미완결 거부·출력 불변 | v4.1.0 |
+| B04-R03 | 원본·대상 결박 | store/세대·old marker·source명·root/stage·이전/목표 manifest 관계의 불일치 거부 | v4.1.0 |
+| B04-R04 | 생성 파일 범위 | 파일 중복·경로 escape·교차 device·미래 세대·필수 descriptor 불일치·비어 있지 않은 새 active 거부 | v4.1.0 |
+| B04-R05 | 누적·정수 경계 | 64개를 넘는 소유 파일 목록·큰 원문 크기·uint64 값 및 overflow 대조. 물리 파일/RAM 검사 아님 | v4.1.0 |
+| B04-R06 | 지원·권위 분리 | crypto 유무별 값 codec 결과·no filesystem action·caller byte admission·원출력/정리. 게시 권위 PASS로 확대 금지 | v4.1.0 |
+
+집중 명령은 `bash scripts/internal/verify_recording_generation_receipt.sh`이며 stub의 정상 값
+직렬화 거부만 예상 RED다. 실제 marker·manifest·원장·사용자 자료는 사용하지 않는다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
