@@ -165,5 +165,5 @@ export async function runBounded({root,command,args=[],env=process.env,seconds=l
   }
  }else groupClean=true;
  clearTimeout(force);process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);
- return {...ended,stdout,stderr,stopReason:reason,groupClean,groupPeakRssBytes,observationFailure,outputBytes:bytes,elapsedMs:Date.now()-start};
+ return {...ended,stdout,stderr,groupId:child.pid??null,stopReason:reason,groupClean,groupPeakRssBytes,observationFailure,outputBytes:bytes,elapsedMs:Date.now()-start};
 }
