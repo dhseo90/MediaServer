@@ -16,6 +16,7 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-T01 | source 얇은 값 | source-binding 현재 요약·latestMutationId의 고정 schema/canonical 왕복, 값 상한·잘못된 ID/필드 거부 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-T02 | job 얇은 값 | derived-job 현재 요약·출력/원본 ID 목록·상태·latestMutationId의 canonical 왕복, 중복/상한/모순 거부 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-T03 | 요약과 원문 경계 | 얇은 값의 parser 성공은 원문 검증·제품 import 성공이 아님; 실패 output 불변·crypto-off 동일 판정 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-P01 | 제품 현재 상세 ID 보존 | Catalog의 bound source·derived job 현재 얇은 상태가 실제 적용된 latest mutation ID를 보유하고 동일 내용 재시도/복구 후에도 현재 원문을 가리킴 | 미실행: 제품 집중 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 

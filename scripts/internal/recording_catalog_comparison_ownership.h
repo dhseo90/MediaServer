@@ -33,7 +33,7 @@ inline void Catalog(Owned& n,const recording::RecordingCatalog& c,EnvelopeOwners
  for(const auto& e:c.source_bindings_){
   const auto& v=e.second;if(!v)throw std::runtime_error("LP18_NULL_BINDING_ENTRY");
   String(n,e.first);n.entryStorageBytes+=sizeof(v);
-  for(const auto* s:{&v.id,&v.channel,&v.source,&v.generation,&v.track})String(n,*s);
+  for(const auto* s:{&v.id,&v.channel,&v.source,&v.generation,&v.track,&v.latest_mutation_id})String(n,*s);
   if(v.mutation.LogicalCharge())Envelope(n,v.mutation,*seen);
   // 외부 reader가 weak를 살려 놓아도 이 entry의 strong 보관으로 세지 않는다.
   if(const auto resident=v.ResidentOwned()){++n.residentBindings;SharedBinding(n,resident,*bindings);}
@@ -44,7 +44,7 @@ inline void Catalog(Owned& n,const recording::RecordingCatalog& c,EnvelopeOwners
  n.tombstones=c.tombstones_v2_.size();for(const auto& e:c.tombstones_v2_){String(n,e.first);String(n,e.second.tombstone_id);String(n,e.second.deletion_reason);Segment(n,e.second.segment);}
  for(const auto& e:c.derived_jobs_){
   const auto& v=e.second;if(!v)throw std::runtime_error("LP18_NULL_JOB_ENTRY");
-  String(n,e.first);n.entryStorageBytes+=sizeof(v);for(const auto* s:{&v.id,&v.channel,&v.reference})String(n,*s);
+  String(n,e.first);n.entryStorageBytes+=sizeof(v);for(const auto* s:{&v.id,&v.channel,&v.reference,&v.latest_mutation_id})String(n,*s);
   Vector(n,v.source_ids);Vector(n,v.output_ids);for(const auto& s:v.source_ids)String(n,s);for(const auto& s:v.output_ids)String(n,s);
   if(v.mutation.LogicalCharge())Envelope(n,v.mutation,*seen);
   if(const auto resident=v.ResidentOwned()){++n.residentJobs;SharedJob(n,resident,*jobs);}

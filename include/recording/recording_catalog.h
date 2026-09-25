@@ -234,14 +234,14 @@ public:
 private:
     using SourceBindingHandle = std::shared_ptr<const RecordingSourceBindingV1>;
     struct SourceBindingEntry {
-        std::string id,channel,source,generation,track;
+        std::string id,channel,source,generation,track,latest_mutation_id;
         std::uint64_t order{0};
         std::size_t sample_count{0};
         RecordingMutationLink mutation;
         mutable std::weak_ptr<const RecordingSourceBindingV1> weak;
         SourceBindingHandle resident;
         SourceBindingEntry()=default;
-        SourceBindingEntry(SourceBindingHandle value,RecordingMutationLink link={});
+        SourceBindingEntry(SourceBindingHandle value,RecordingMutationLink link={},std::string latest={});
         SourceBindingHandle WarmOwned() const {return resident?resident:weak.lock();}
         SourceBindingHandle ResidentOwned() const {return resident;}
         explicit operator bool() const {return !id.empty();}
@@ -254,7 +254,7 @@ private:
         const RecordingMutationHandle&,SourceBindingHandle*,std::string*);
     using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
     struct DerivedJobEntry {
-        std::string id,channel,reference;
+        std::string id,channel,reference,latest_mutation_id;
         DerivedJobState state{DerivedJobState::Intent};
         std::size_t files{0};
         std::uint64_t reserved_bytes{0};
@@ -263,7 +263,7 @@ private:
         mutable std::weak_ptr<const DerivedJobRecordV1> weak;
         DerivedJobHandle resident;
         DerivedJobEntry()=default;
-        DerivedJobEntry(DerivedJobHandle value,RecordingMutationLink link={});
+        DerivedJobEntry(DerivedJobHandle value,RecordingMutationLink link={},std::string latest={});
         DerivedJobHandle WarmOwned() const {return resident?resident:weak.lock();}
         DerivedJobHandle ResidentOwned() const {return resident;}
         bool Active() const {return state!=DerivedJobState::Complete&&state!=DerivedJobState::Failed;}

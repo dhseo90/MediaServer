@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱 검사는 focused PASS. snapshot domain 복원·증분·제품 연결과 cold 원문 검증은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱과 제품 현재 상세 ID는 focused PASS. snapshot domain 복원·증분·제품 연결과 cold archive 원문 검증은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -128,6 +128,56 @@ payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증
 | B02-T01 | source 요약 | 고정 schema/필드·canonical 직렬화/파싱, ID·계수 상한·중복/추가/누락 필드 거부 | v4.1.0 |
 | B02-T02 | job 요약 | 현재 state·files/reservedBytes·outputIds/sourceIds의 canonical 왕복, ID 중복·불일치/상한·잘못된 state 거부 | v4.1.0 |
 | B02-T03 | 실패/암호 경계 | 실패 output 불변, crypto-off 동일 값 codec 판정; 원문 locator/domain 대조는 미검증으로 분리 | v4.1.0 |
+
+### B-02 제품 현재 상세 ID 보존 구현 전 검사 정의
+
+기존 얇은 runtime Entry와 검증된 현재 원문을 연결하는 첫 제품 코드 단위다.
+영속 snapshot export·B Open·cold archive 대조는 아직 이 검사의 범위가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-P01 | 현재 latest ID | bound source와 derived job의 최초/상태 변경 mutation ID를 Entry에 보존, 동일 내용 무효 재시도와 재기동·cold 취득 뒤 현재 원문 ID와 일치 확인 | v4.1.0 |
+
+### B-02 제품 현재 상세 ID 실행 결과
+
+첫 `node scripts/internal/verify_recording_immutable_ownership.mjs green b02-current-id typed-lifetime`는
+build 259ms 시점에 `resource-observation`/SIGTERM으로 종료했다. 제품 assertion은 실행되지 않았다.
+[첫 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id.txt)은
+SHA-256 `1ffb80adbc884ed71885ef4b6269a32ca84ad9a4b20415fc49c6c734f352533b`이다.
+당시 runner는 프로세스 관측 세부 오류와 그룹 ID를 기록하지 않아 최초 오류 코드는 미확정이다.
+동일 `/bin/ps` 호출은 제한 환경에서 `EPERM`이 직접 재현됐고, 관측 권한이 있는 읽기 전용 호출은 성공했다.
+검증기에 사전 확인과 오류·그룹 ID 기록을 추가했다. 최초 임시 root는 소유 uid·권한·inode와
+열린 파일 부재를 확인한 뒤 삭제했고, 부재를 확인했다.
+
+관측 가능 환경에서 같은 제품 검증을 실행한
+[원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id-02.txt)은
+exit0, 35 pass/0 fail, 양 단계 `cleanup=true`, runner 임시 root `removed=true`였다.
+crypto-off [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id-crypto-off-01.txt)은
+exit0, 1 pass/0 fail, root `removed=true`였다. 새 ID 문자열의 부분 메모리 계측 누락을 수정한
+최종 [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id-final.txt)은
+exit0, 35 pass/0 fail, `productPass=true`, root `removed=true`이며 SHA-256은
+`f62aaa598fe6cf2da0e8c0db83f02204dcee101d781a42cc93df6f1f3f7fddc1`이다.
+`./server.sh build` exit0, `./server.sh verify-v410-recording-catalog` 제품 236/236·
+crypto-off 3/3·shell 경계 10/10 및 `removed=true`, `./server.sh verify-project-inventory`
+18/18·기능 986행이었다. `./server.sh verify-docs-links` 328개 문서·12,789개 링크·오류0,
+`./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit0을 확인했다.
+token start/end/consumed 계측 source는 없어 미집계다.
+이 집중 검사는 Intent→Failed와 동일 내용 재시도·cold/reopen·ID 불일치를 직접 확인했다.
+Files/Ready/Committed/Complete별 ID, 영속 B snapshot export/import, archive locator는 아직 검증하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-P01 | 관측 권한 확보 후 현재 ID·동일 내용·전이·cold/reopen·불일치 거부 35/35 | pass |
+| B02-P01 | crypto-off 기존 fallback 1/1 및 메모리 계측 수정 후 최종 35/35 | pass |
+
+| 제목 | 수행내용 | 상태 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| B02-P01 첫 실행 | runner의 프로세스 관측 실패·SIGTERM, 제품 assertion 미실행 | 실패·미실행 | 불가; 후속 집중 재검증과 별도 이력 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-immutable-ownership.LPsb1z` | 첫 실패 전용 root | 439,029바이트 | uid 501·0700·inode 159427504 및 열린 파일 부재 확인 후 삭제 | 부재 확인 | 해당 실패 원출력과 소유 검사·삭제 명령 exit0 |
+| B02-P01 재검증 runner root 3개 | 빌드·fixture | 최종 28,553,632바이트; 다른 실행은 원출력 참조 | runner 정리 | 세 번 모두 `removed=true` | 위 원출력 |
 
 ### B-02 thin 요약 값 codec 단위 결과
 

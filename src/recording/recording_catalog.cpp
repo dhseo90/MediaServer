@@ -573,7 +573,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
         const auto& record=*prepared->record;
         // 검증 이후 AppendOwned는 catalog 상태를 변경하거나 외부 callback을 호출하지 않는다.
         // 같은 mu_ 소유 안에서 기존 transition 검증 결과를 단 한 번 소비한다.
-        DerivedJobEntry published(prepared->record,link?*link:RecordingMutationLink{});
+        DerivedJobEntry published(prepared->record,link?*link:RecordingMutationLink{},mutation.mutation_id);
         prepared->phase=PreparedDerivedMutation::Phase::Consumed;
         if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted)for(std::size_t i=0;i<record.ready->outputs.size();++i){
             const auto& s=record.ready->outputs[i].segment;segments_v2_.emplace(s.segment_id,s);media_relpaths_[s.segment_id]=record.intent.outputs[i].final_relpath;
@@ -605,7 +605,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     if(old==derived_jobs_.end()) {
         if(!initial||!record.files.empty()||record.ready||!ValidateDerivedJobSourcesLocked(record.intent,error))
             return Fail(error,"derived job 최초 전이 거부");
-        if(apply)derived_jobs_.emplace(mutation.entity_id,DerivedJobEntry(content?content:ShareValidatedJob(std::move(parsed_record),job_pool),link?*link:RecordingMutationLink{}));return true;
+        if(apply)derived_jobs_.emplace(mutation.entity_id,DerivedJobEntry(content?content:ShareValidatedJob(std::move(parsed_record),job_pool),link?*link:RecordingMutationLink{},mutation.mutation_id));return true;
     }
     if(!old->second)return Fail(error,"derived null prior 거부");
     DerivedJobHandle prior_owned;if(!AcquireDerivedJobOwnedLocked(mutation.entity_id,&prior_owned,error)||!prior_owned)return false;
@@ -648,7 +648,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
         return true;
     }
     const auto published=content?content:ShareValidatedJob(std::move(parsed_record),job_pool);
-    DerivedJobEntry published_entry(published,link?*link:RecordingMutationLink{});
+    DerivedJobEntry published_entry(published,link?*link:RecordingMutationLink{},mutation.mutation_id);
     if(committed) {
         // 하나의 mutation 아래 전체 결과와 provenance/job state를 함께 적용한다.
         for(std::size_t i=0;i<published->ready->outputs.size();++i) {
@@ -1354,7 +1354,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                 if(!shared_binding)shared_binding=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));
             }
             if (ok) {segments_v2_.emplace(v.segment_id,v);media_relpaths_[v.segment_id]=*relative;
-                if(bound)source_bindings_.emplace(v.segment_id,SourceBindingEntry(std::move(shared_binding),accepted_link));}
+                if(bound)source_bindings_.emplace(v.segment_id,SourceBindingEntry(std::move(shared_binding),accepted_link,mutation.mutation_id));}
             break;
         }
         case RecordingMutationType::SegmentV2State: {
@@ -1604,14 +1604,14 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::FindSourceBindingOwned(c
 RecordingCatalog::SourceBindingHandle RecordingCatalog::FindSourceBindingOwnedLocked(const std::string& id) const {
     SourceBindingHandle result;AcquireSourceBindingOwnedLocked(id,&result,nullptr);return result;
 }
-RecordingCatalog::SourceBindingEntry::SourceBindingEntry(SourceBindingHandle value,RecordingMutationLink link)
-    :mutation(std::move(link)),weak(value),resident(std::move(value)) {
+RecordingCatalog::SourceBindingEntry::SourceBindingEntry(SourceBindingHandle value,RecordingMutationLink link,std::string latest)
+    :latest_mutation_id(std::move(latest)),mutation(std::move(link)),weak(value),resident(std::move(value)) {
     if(!resident)return;
     id=resident->segment_id;channel=resident->channel_id;source=resident->source_id;
     generation=resident->source_generation;track=resident->track_id;order=resident->generation_order;sample_count=resident->samples.size();
 }
-RecordingCatalog::DerivedJobEntry::DerivedJobEntry(DerivedJobHandle value,RecordingMutationLink link)
-    :mutation(std::move(link)),weak(value),resident(std::move(value)) {
+RecordingCatalog::DerivedJobEntry::DerivedJobEntry(DerivedJobHandle value,RecordingMutationLink link,std::string latest)
+    :latest_mutation_id(std::move(latest)),mutation(std::move(link)),weak(value),resident(std::move(value)) {
     if(!resident)return;
     id=resident->intent.job_id;channel=resident->intent.reference.channel_id;reference=resident->intent.reference.reference_id;
     state=resident->state;files=resident->files.size();reserved_bytes=resident->intent.reserved_bytes;
@@ -1621,7 +1621,7 @@ RecordingCatalog::DerivedJobEntry::DerivedJobEntry(DerivedJobHandle value,Record
 bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,const RecordingSegmentV2& original,
     const RecordingMutationHandle& mutation,SourceBindingHandle* out,std::string* error) {
     if(out)out->reset();
-    if(!out||!mutation||mutation->entity_id!=entry.id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)
+    if(!out||!mutation||mutation->mutation_id!=entry.latest_mutation_id||mutation->entity_id!=entry.id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)
         return Fail(error,"source binding 상세 재획득 거부");
     ingress::StrictJsonObjectDocument payload;RecordingSegmentV2 segment;RecordingSourceBindingV1 binding;
     if(!ingress::ParseStrictJsonObjectDocument(mutation->payload_json,&payload,error)||payload.members.size()!=3)return false;
@@ -1645,7 +1645,7 @@ bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,Sou
         const auto& entry=found->second;if(!entry)return failed();
         if(entry.resident){*out=entry.resident;return true;}
         RecordingMutationHandle mutation;
-        if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||
+        if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||mutation->mutation_id!=entry.latest_mutation_id||
            mutation->entity_id!=id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
         const auto original=segments_v2_.find(id);
         if(original==segments_v2_.end()||!MaterializeSourceBinding(entry,original->second,mutation,out,error))return failed();
@@ -1666,7 +1666,7 @@ bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::strin
         const auto& entry=found->second;if(!entry)return failed();
         if(entry.resident){*out=entry.resident;return true;}
         RecordingMutationHandle mutation;DerivedJobRecordV1 record;
-        if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||mutation->entity_id!=id||
+        if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||mutation->mutation_id!=entry.latest_mutation_id||mutation->entity_id!=id||
            !ParseDerivedJobRecord(mutation->payload_json,&record,error))return failed();
         const auto type=mutation->mutation_type;
         const bool state_matches=(record.state==DerivedJobState::Intent&&(type==RecordingMutationType::DerivedJobIntent||type==RecordingMutationType::DerivedJobFiles))||
@@ -1707,7 +1707,8 @@ bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobH
     // 다른 catalog의 호출 자료는 증명으로 사용하지 않는다.
     if(context->owner&&context->owner!=this)return AcquireDerivedJobOwnedLocked(id,out,error);
     const auto acquire_envelope=[&](RecordingMutationHandle* envelope){
-        try {if(journal_.OwnsCatalog(this)&&journal_.AcquireMutationLink(entry.mutation,envelope,error)&&*envelope)return true;}
+        try {if(journal_.OwnsCatalog(this)&&journal_.AcquireMutationLink(entry.mutation,envelope,error)&&*envelope&&
+            (*envelope)->mutation_id==entry.latest_mutation_id)return true;}
         catch(...){}
         envelope->reset();out->reset();derived_job_state_authoritative_=false;
         return Fail(error,"derived job 상세 재획득 거부");

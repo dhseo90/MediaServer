@@ -1,0 +1,65 @@
+{"kind":"start","utc":"2026-09-25T01:02:35.464Z","mode":"green","id":"b02-current-id-crypto-off-01","suite":"typed-lifetime-crypto-off","source":[{"name":"include/recording/recording_catalog.h","sha256":"74744c980c1e34d15cfb288390a7a989c34d8ac8f213d505609afb15963a1aa2"},{"name":"include/recording/recording_journal.h","sha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c"},{"name":"src/recording/recording_catalog.cpp","sha256":"1bd32ecae3b85a881bcdb0d858181af69cd8f35fb619ae1d488fff2cf385ff28"},{"name":"src/recording/recording_journal.cpp","sha256":"c3bfb74560828867c6c3c39f7a72788a2ec80d897dcf34edfb96bb72a68a2d18"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"81d0ac0285dbf30f3e15033ccb5db1e31ced295935fb3af4708c7f0957f46242"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"6992d611717142fa6ff9e57e054026bd5da00cbc7beceb93a73d8c0e2311996c"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"18729b9f5b82454f72232f69f1e71bad993f6086badca29db077ce4b58aced51"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"37b15ae4a917c0b518f9cee02eec042190c3926b2c22eb5a48f78efbd450276c"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"49067258c0acb708a5384bf127128dcc3c0d74745b2f2cf69a6fabc5480e3e4d"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"5d33a7aa95fd2918b69ccebaef33c3f5575986cfa2b642150aa3efbac7a5d37c"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"process-observation-preflight","ready":true,"code":null}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","typed-lifetime-crypto-off"],"seconds":60}
+[instrument] typed_resident_release_visit_exact_insertions=1
+[instrument] location_exception_exact_insertions=3
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=c3bfb74560828867c6c3c39f7a72788a2ec80d897dcf34edfb96bb72a68a2d18 location_journal_instrumented_sha256=12100419fb5cdd5ad336972c3609bd616da6212827c1267c2b56efaa7299681f
+[source] {"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"18729b9f5b82454f72232f69f1e71bad993f6086badca29db077ce4b58aced51"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"37b15ae4a917c0b518f9cee02eec042190c3926b2c22eb5a48f78efbd450276c"}
+[instrument] location_declarations=1,1 location_header_sha256=31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c
+[instrument] catalog_sha256=d0f658415c777edf23b4d959010aa28c496d76be2f9c907d06003563d9891ecb binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"31ae6242254278b294284d0cd8e66b6f103890b0e729e1776a98b268360ed63c"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"74744c980c1e34d15cfb288390a7a989c34d8ac8f213d505609afb15963a1aa2"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"c3bfb74560828867c6c3c39f7a72788a2ec80d897dcf34edfb96bb72a68a2d18"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"1bd32ecae3b85a881bcdb0d858181af69cd8f35fb619ae1d488fff2cf385ff28"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"93269de78bec9d342f3f1f702ae3e4fbce118057ece056745f814d2c65e54d75"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"2d7531ea0f02c6fd2d78bb1daa49e9786ecdcce2582c3649a17e9507aa13f743"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"29ab6bc9c3226423fa7b1618a2af42ec00f29453159e4208d3a7a103d27e6af9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"81d0ac0285dbf30f3e15033ccb5db1e31ced295935fb3af4708c7f0957f46242"}
+        3.29 real         3.05 user         0.19 sys
+           323371008  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               74379  page reclaims
+                 625  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  17  messages sent
+                   0  messages received
+                   3  signals received
+                  18  voluntary context switches
+                3027  involuntary context switches
+            80724312  instructions retired
+            35814797  cycles elapsed
+             2130328  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3311,"groupPeakRssBytes":338198528,"groupId":66796,"observationFailure":null}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-R09 crypto-off preserves typed resident fallback and checkpoint rejection
+[summary] LP18 pass=1 fail=0
+        0.54 real         0.14 user         0.02 sys
+            37371904  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4405  page reclaims
+                  41  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  24  voluntary context switches
+                 188  involuntary context switches
+          3189480228  instructions retired
+           693173233  cycles elapsed
+             5784224  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":559,"groupPeakRssBytes":5783552,"groupId":66851,"observationFailure":null}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":6825538,"removed":true}
+{"kind":"result","utc":"2026-09-25T01:02:39.361Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3898}

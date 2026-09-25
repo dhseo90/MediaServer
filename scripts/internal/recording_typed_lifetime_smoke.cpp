@@ -153,6 +153,63 @@ void Tamper(const std::filesystem::path& path,const std::string& needle){auto by
   Need(s.catalog.AppendAndApplyLocked(mutation,&s.error));RecordingMutationHandle owned;Need(s.journal.AcquireMutationLink(s.catalog.source_bindings_.at("segment").mutation,&owned,&s.error));
   Check(s.catalog.source_bindings_.at("segment").ResidentOwned()&&!s.journal.CanReleaseMutationLink(s.catalog.source_bindings_.at("segment").mutation)&&owned&&SerializeRecordingMutationV1(*owned)==SerializeRecordingMutationV1(mutation)&&Bytes(s.journal.path()).find(SerializeRecordingMutationV1(mutation)+"\n")!=std::string::npos,"LP18-R09 oversized physical row preserves typed resident fallback");}
 }
+#if !defined(main)
+[[maybe_unused]] void CurrentMutationIds(const std::filesystem::path& root) {
+ bool ok=true;const auto verify=[&](bool condition,const char* detail){if(!condition)std::cerr<<"B02-P01 assertion: "<<detail<<'\n';ok=condition&&ok;};
+ std::string source_id,initial_id,terminal_id,job_id;
+ {
+  Store s(root);job_id=s.input.intent.job_id;
+  RecordingMutationHandle source;
+  Need(s.journal.AcquireMutationLink(s.catalog.source_bindings_.at("segment").mutation,&source,&s.error)&&source);
+  source_id=source->mutation_id;
+  verify(!source_id.empty()&&s.catalog.source_bindings_.at("segment").latest_mutation_id==source_id,"source first envelope");
+  Need(s.catalog.AppendAndApplyLocked(*source,&s.error));
+  verify(s.catalog.source_bindings_.at("segment").latest_mutation_id==source_id,"source identical retry retains ID");
+  s.Job(s.input,false);
+  RecordingMutationHandle initial;
+  Need(s.journal.AcquireMutationLink(s.catalog.derived_jobs_.at(job_id).mutation,&initial,&s.error)&&initial);
+  initial_id=initial->mutation_id;
+  verify(!initial_id.empty()&&s.catalog.derived_jobs_.at(job_id).latest_mutation_id==initial_id,"job first envelope");
+  auto same=*initial;same.mutation_id="b02-initial-same";
+  Need(s.catalog.AppendAndApplyLocked(same,&s.error));
+  verify(s.catalog.derived_jobs_.at(job_id).latest_mutation_id==initial_id,"different-ID identical content retains first ID");
+  auto invalid=*initial;invalid.mutation_id="b02-invalid-transition";invalid.mutation_type=RecordingMutationType::DerivedJobReady;
+  verify(!s.catalog.ApplyDerivedJobMutationLocked(invalid,&s.error)&&s.catalog.derived_jobs_.at(job_id).latest_mutation_id==initial_id,
+      "invalid transition retains ID");
+  auto terminal=*OwnedJob(s.catalog,job_id);terminal.state=DerivedJobState::Failed;terminal.failure_reason="b02-terminal";terminal.cleaned_at_ms=5;
+  int owner=0;Need(s.catalog.BindDerivedService(&owner));Need(s.catalog.UpdateDerivedJob(&owner,terminal,&s.error));s.catalog.UnbindDerivedService(&owner);
+  RecordingMutationHandle current;
+  Need(s.journal.AcquireMutationLink(s.catalog.derived_jobs_.at(job_id).mutation,&current,&s.error)&&current);
+  terminal_id=current->mutation_id;
+  verify(terminal_id!=initial_id&&s.catalog.derived_jobs_.at(job_id).latest_mutation_id==terminal_id,"prepared nonidentical transition updates ID");
+  same=*current;same.mutation_id="b02-terminal-same";Need(s.catalog.AppendAndApplyLocked(same,&s.error));
+  verify(s.catalog.derived_jobs_.at(job_id).latest_mutation_id==terminal_id,"terminal identical content retains ID");
+  const auto durable=Bytes(s.journal.path());
+  auto binding=s.catalog.FindSourceBindingOwnedLocked("segment");auto job=OwnedJob(s.catalog,job_id);
+  verify(binding&&job&&!s.catalog.source_bindings_.at("segment").ResidentOwned()&&
+      !s.catalog.derived_jobs_.at(job_id).ResidentOwned()&&Bytes(s.journal.path())==durable,"cold reads preserve IDs and bytes");
+ }
+ {
+  Store s(root,false);RecordingMutationHandle source,job;
+  Need(s.journal.AcquireMutationLink(s.catalog.source_bindings_.at("segment").mutation,&source,&s.error)&&source);
+  Need(s.journal.AcquireMutationLink(s.catalog.derived_jobs_.at(job_id).mutation,&job,&s.error)&&job);
+  verify(s.catalog.source_bindings_.at("segment").latest_mutation_id==source_id&&source->mutation_id==source_id&&
+      s.catalog.derived_jobs_.at(job_id).latest_mutation_id==terminal_id&&job->mutation_id==terminal_id,
+      "reopen replay preserves applied source/job IDs rather than identical trailing rows");
+  s.catalog.source_bindings_.at("segment").latest_mutation_id="wrong-source";
+  RecordingCatalog::SourceBindingHandle binding;
+  verify(!s.catalog.AcquireSourceBindingOwnedLocked("segment",&binding,&s.error)&&!binding&&!s.catalog.derived_job_state_authoritative_,
+      "cold source envelope ID mismatch fails closed");
+ }
+ {
+  Store s(root,false);s.catalog.derived_jobs_.at(job_id).latest_mutation_id="wrong-job";
+  RecordingCatalog::DerivedJobHandle job;
+  verify(!s.catalog.AcquireDerivedJobOwnedWithEnvelopeLocked(job_id,&job,nullptr,&s.error)&&!job&&!s.catalog.derived_job_state_authoritative_,
+      "cold job envelope ID mismatch fails closed");
+ }
+ Check(ok,"B02-P01 current thin mutation IDs preserve first identical state and match cold/reopen envelopes");
+}
+#endif
 [[maybe_unused]] void Crypto(const std::filesystem::path& root){Store s(root);s.Job(s.input,true);const auto bytes=Bytes(s.journal.path());const auto id=s.input.intent.job_id;const auto owned=OwnedJob(s.catalog,id);Need(s.journal.ReleaseRecordResidents(&s.catalog,&s.error));
  Check(s.catalog.source_bindings_.at("segment").ResidentOwned()&&s.catalog.derived_jobs_.at(id).ResidentOwned()&&!s.journal.CanReleaseMutationLink(s.catalog.source_bindings_.at("segment").mutation)&&!s.catalog.Checkpoint(&s.error)&&Bytes(s.journal.path())==bytes&&SerializeDerivedJobRecord(*OwnedJob(s.catalog,id))==SerializeDerivedJobRecord(*owned),"LP18-R09 crypto-off preserves typed resident fallback and checkpoint rejection");}
 #endif
@@ -164,6 +221,9 @@ int main(int argc,char** argv){if(argc!=2)return 2;try{
  Run(std::filesystem::path(argv[1])/"typed");
 #if LP18_TYPED_LIFETIME
  Extended(std::filesystem::path(argv[1])/"typed-extended");
+#if !defined(main)
+ CurrentMutationIds(std::filesystem::path(argv[1])/"b02-current-id");
+#endif
 #endif
 #endif
  std::cout<<"[summary] LP18 pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;}catch(...){std::cout<<"[setup-or-oracle-fail] LP18 fixed-typed-lifetime-error\n";return 2;}}
