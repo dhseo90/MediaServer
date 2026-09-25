@@ -61,15 +61,16 @@ recording::RecordingGenerationManifest Manifest(std::uint64_t generation) {
 } // namespace
 int main() {
     using namespace recording;
-    std::array<bool, 12> results{};results.fill(true);
-    std::array<unsigned, 12> assertions{};
-    const std::array<const char*, 12> names{
+    std::array<bool, 13> results{};results.fill(true);
+    std::array<unsigned, 13> assertions{};
+    const std::array<const char*, 13> names{
         "B02-M01 canonical roundtrip", "B02-M02 invalid values and paths",
         "B02-M03 file binding", "B02-M04 publication",
         "B02-M05 failure preservation and cleanup", "B02-M06 crypto-off",
         "B02-I01 verified immutable bytes", "B02-I02 immutable name and admission",
         "B02-I03 immutable file and root binding", "B02-I04 immutable crypto-off",
-        "B02-I05 verified immutable ranges", "B02-I06 immutable range crypto-off"};
+        "B02-I05 verified immutable ranges", "B02-I06 immutable range crypto-off",
+        "B02-M07 Open-only component boundary"};
     const auto check = [&](unsigned group, bool ok, const char* detail) {
         ++assertions[group - 1];
         results[group - 1] = results[group - 1] && ok;
@@ -86,6 +87,8 @@ int main() {
     check(6, PublishRecordingGenerationManifest("/invalid", manifest, &error) ==
                  RecordingGenerationPublishResult::NotPublished, "publish unsupported");
     check(6, !ReadRecordingGenerationManifest("/invalid", &read, &error), "read unsupported");
+    check(13, !ReadRecordingGenerationManifestForOpen("/invalid", &read, &error) &&
+        error.find("unsupported") != std::string::npos, "Open-only read unsupported");
     std::string immutable="unchanged";
     check(10,!ReadVerifiedRecordingGenerationImmutable("/invalid",manifest.snapshot,3,&immutable,&error)&&
         immutable=="unchanged"&&error.find("unsupported")!=std::string::npos,"immutable unsupported and unchanged");
@@ -242,6 +245,18 @@ int main() {
         check(4, reread(), "first read");
         check(4, read.manifest.generation == 1 && read.active_tail_bytes == 0 &&
             read.validation == RecordingGenerationValidation::PrefixOnly, "prefix-only result");
+        RecordingGenerationReadResult open_read;
+        const auto read_open = [&] {
+            return ReadRecordingGenerationManifestForOpen(root, &open_read, &error);
+        };
+        check(13, read_open() && open_read.manifest.generation == 1 &&
+            open_read.validation == RecordingGenerationValidation::OpenComponentsOnly,
+            "Open-only manifest/snapshot/active prefix");
+        std::filesystem::remove(root / manifest.evidence.front().name);
+        check(13, read_open(), "cold evidence raw is deferred");
+        check(13, !reread(), "full reader still rejects missing evidence");
+        Write(root / manifest.evidence.front().name, "abc");
+        check(13, reread(), "full reader restored");
         check(5, publish(manifest) == Result::NotPublished, "same generation");
         auto next = Manifest(2); next.store_id = "other";
         check(5, publish(next) == Result::NotPublished, "different store");
@@ -280,12 +295,17 @@ int main() {
         check(4, !std::filesystem::exists(root / ".recording-generation.stage"), "stage renamed");
         Write(root / next.active.name, "ab");
         check(3, !reread(), "truncated prefix rejected");
+        open_read.manifest.generation = 999;
+        check(13, !read_open() && open_read.manifest.generation == 999,
+            "Open-only truncated prefix rejected without partial output");
         Write(root / next.active.name, "abdnew-tail");
         check(3, !reread(), "prefix hash corruption rejected");
         Write(root / next.active.name, "abc"); Write(root / next.snapshot.name, "abd");
         read.manifest.generation = 999;
         check(3, !reread(), "snapshot corruption rejected");
         check(3, read.manifest.generation == 999, "no partial read output");
+        check(13, !read_open() && open_read.manifest.generation == 999,
+            "Open-only snapshot corruption rejected without partial output");
         Write(root / next.snapshot.name, "abc");
         std::filesystem::create_hard_link(root / next.snapshot.name, root / "hardlink");
         check(3, !reread(), "hardlink rejected");
@@ -302,7 +322,7 @@ int main() {
         check(3, !reread(), "symlink manifest rejected");
     } catch (const std::exception& exception) {
         std::cerr << exception.what() << '\n';
-        for (unsigned group : {3, 4, 5, 7, 8, 9, 11}) check(group, false, "fixture aborted");
+        for (unsigned group : {3, 4, 5, 7, 8, 9, 11, 13}) check(group, false, "fixture aborted");
     }
     struct stat current{}, current_parent{};
     const bool still_owned = owned && root.parent_path() == parent &&

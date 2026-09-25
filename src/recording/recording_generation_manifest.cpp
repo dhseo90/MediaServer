@@ -172,10 +172,15 @@ bool Verify(int root,const RecordingGenerationFile& f,bool durable,bool prefix=f
     if(tail)*tail=actual-f.size;
     return true;
 }
-bool VerifyAll(int root,const RecordingGenerationManifest& m,bool durable=false,std::uint64_t* tail=nullptr) {
+bool VerifyComponents(int root,const RecordingGenerationManifest& m,bool durable,
+    bool verify_evidence,std::uint64_t* tail=nullptr) {
     if(!Verify(root,m.snapshot,durable)||!Verify(root,m.active,durable,true,tail))return false;
-    for(const auto& f:m.evidence)if(!Verify(root,f,durable))return false;
+    if(verify_evidence)
+        for(const auto& f:m.evidence)if(!Verify(root,f,durable))return false;
     return true;
+}
+bool VerifyAll(int root,const RecordingGenerationManifest& m,bool durable=false,std::uint64_t* tail=nullptr) {
+    return VerifyComponents(root,m,durable,true,tail);
 }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 thread_local bool fail_directory_sync=false;
@@ -191,7 +196,8 @@ bool SyncPublishedDirectory(int fd){
 #endif
     return Sync(fd);
 }
-bool ReadAtRoot(int root,RecordingGenerationManifest* out,std::string* error,std::uint64_t* tail=nullptr){
+bool ReadAtRoot(int root,RecordingGenerationManifest* out,std::string* error,
+    std::uint64_t* tail=nullptr,bool verify_evidence=true){
     Fd fd(::openat(root,kManifest,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat s{};
     if(fd.n<0||!Regular(fd.n,&s)||s.st_size<=0||static_cast<std::uint64_t>(s.st_size)>kManifestLimit)return Fail(error,"manifest read unsafe/size");
     std::string raw(static_cast<std::size_t>(s.st_size),'\0');
@@ -204,7 +210,7 @@ bool ReadAtRoot(int root,RecordingGenerationManifest* out,std::string* error,std
     }
     RecordingGenerationManifest m;
     if(!Same(root,kManifest,fd.n,s)||!ParseRecordingGenerationManifest(raw,&m,error)||
-       !VerifyAll(root,m,false,tail))return Fail(error,"manifest/content validation failed");
+       !VerifyComponents(root,m,false,verify_evidence,tail))return Fail(error,"manifest/content validation failed");
     *out=std::move(m);return true;
 }
 #endif
@@ -334,6 +340,22 @@ bool ReadRecordingGenerationManifest(const std::filesystem::path& root,Recording
     RecordingGenerationReadResult result;
     if(dir.n<0||!Lock(dir.n,lock)||!ReadAtRoot(dir.n,&result.manifest,error,&result.active_tail_bytes)||
        !RootSame(root,dir.n))return Fail(error,"manifest read/binding failed");
+    *out=std::move(result);
+    return true;
+#else
+    (void)root;return false;
+#endif
+}
+bool ReadRecordingGenerationManifestForOpen(const std::filesystem::path& root,
+    RecordingGenerationReadResult* out,std::string* error) {
+    if(!Supported(error)||!out)return false;
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    Fd dir(Root(root)),lock;
+    RecordingGenerationReadResult result;
+    result.validation=RecordingGenerationValidation::OpenComponentsOnly;
+    if(dir.n<0||!Lock(dir.n,lock)||
+       !ReadAtRoot(dir.n,&result.manifest,error,&result.active_tail_bytes,false)||
+       !RootSame(root,dir.n))return Fail(error,"manifest open components/binding failed");
     *out=std::move(result);
     return true;
 #else

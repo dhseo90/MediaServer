@@ -19,7 +19,7 @@ struct RecordingGenerationManifest {
     std::vector<RecordingGenerationFile> evidence;
 };
 enum class RecordingGenerationPublishResult { NotPublished, Published, DurabilityUncertain };
-enum class RecordingGenerationValidation { PrefixOnly };
+enum class RecordingGenerationValidation { PrefixOnly, OpenComponentsOnly };
 struct RecordingGenerationReadResult {
     RecordingGenerationManifest manifest;
     std::uint64_t active_tail_bytes{0};
@@ -37,6 +37,11 @@ bool ParseRecordingGenerationManifest(const std::string&, RecordingGenerationMan
 RecordingGenerationPublishResult PublishRecordingGenerationManifest(
     const std::filesystem::path& root, const RecordingGenerationManifest&, std::string* error);
 bool ReadRecordingGenerationManifest(const std::filesystem::path& root,
+    RecordingGenerationReadResult*, std::string* error);
+// 정상 Open의 구성 파일 선검사: manifest·snapshot·active 확정 prefix만 검증한다.
+// 과거 evidence 원문은 열지 않으므로 identity chain·active 전체·snapshot 의미 검증 전에는
+// 사용 가능한 catalog가 아니다. 내부 lock 파일 생성과 managed root 독점 lease 조건은 위와 같다.
+bool ReadRecordingGenerationManifestForOpen(const std::filesystem::path& root,
     RecordingGenerationReadResult*, std::string* error);
 // snapshot/identity/evidence 불변 파일의 bytes를 독립 검증해 읽는다. active는 허용하지 않는다.
 // 호출자는 immutable 조건과 managed lease를 유지해야 한다. 파일 쓰기/삭제/제품 Open 연결 없음.

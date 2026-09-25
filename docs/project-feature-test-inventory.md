@@ -18,6 +18,10 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-T03 | 요약과 원문 경계 | 얇은 값의 parser 성공은 원문 검증·제품 import 성공이 아님; 실패 output 불변·crypto-off 동일 판정 | 미실행: 단기 값 codec | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-P01 | 제품 현재 상세 ID 보존 | Catalog의 bound source·derived job 현재 얇은 상태가 실제 적용된 latest mutation ID를 보유하고 동일 내용 재시도/복구 후에도 현재 원문을 가리킴 | 미실행: 제품 집중 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-P02 | 현재 상태 snapshot 내보내기 | 실제 Catalog의 현재 값·얇은 상세·최초 수용 ID가 검증된 identity 결과·배타 cut과 일치하는 canonical snapshot으로 생성됨 | 미실행: 제품 집중 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-A01 | active 전체 엄격 읽기 | manifest가 결박한 prefix와 이후 완결 tail을 순서대로 읽고 배타 cut부터 물리 ordinal·원문 locator를 부여하며 원문·digest·canonical을 검증 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-A02 | active 손상·경쟁 거부 | prefix hash/size, 미완결·비정규 행, symlink/hardlink·inode/size 교체·상한/overflow를 실패 시 output 불변으로 거부 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-A03 | active 메모리·복구 경계 | caller admission 초과를 읽기 전에 거부하고 읽은 active 행만 반환; 과거 archive·snapshot domain 복원을 PASS로 대체하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-A04 | crypto-off fail closed | B active digest 검증이 불가능한 빌드에서 원본 보존·output 불변으로 거부하고 기존 v1 경로는 변경하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 
@@ -78,6 +82,7 @@ manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장�
 | B02-M04 | 원자 게시 | stage fsync·rename·directory fsync 뒤 한 세대만 선택, rename 후 sync 실패는 불확실로 차단 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
 | B02-M05 | 실패 후 원본 보존 | 게시 전 중단·충돌·I/O 실패에 기존 manifest 바이트 불변 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
 | B02-M06 | crypto 미지원 경계 | 필수 digest를 만들 수 없는 빌드에서는 신규 형식 거부, 기존 형식 불변 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
+| B02-M07 | Open용 구성 검사 분리 | manifest·snapshot·active 확정 prefix만 결박하고 과거 evidence 원문은 사용 시로 유예; 기존 전체 검사 유지, 손상·crypto-off·실패 출력 불변 | 미실행: 단기 형식 | 미실행: 최종 소스 판정 전 | 비대상: 내부 형식 |
 | B02-F01 | 세대 파일 정상 준비 | 검증된 원본 FD와 snapshot을 고정 이름·정확한 길이/SHA·빈 active로 준비하고 원본 offset/bytes 및 소유 보고 불변 | 미실행: 단기 파일 준비 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-F02 | 준비 입력 상한 | 세대 0, source 길이 1GiB 초과, 증거 65개, 잘못된 이름·digest·출력 충돌을 파일 생성 전에 거부; snapshot 1GiB 상한은 코드 대조만 함 | 미실행: 단기 파일 준비 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-F03 | 원본 파일 결박 | 닫힌/다른 FD, 길이·해시 불일치, root/source symlink·hardlink를 거부하고 원본 보존 | 미실행: 단기 파일 준비 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |

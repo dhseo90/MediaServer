@@ -48,6 +48,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | B02-M04 | 원자 게시 | stage/file/dir sync와 rename의 게시 순서, rename 후 sync 실패 시 내구 결과 불확실 판정 | v4.1.0 |
 | B02-M05 | 실패 보존 | 게시 전 실패와 기존 manifest byte 불변 | v4.1.0 |
 | B02-M06 | crypto 미지원 | 신규 형식 fail-closed, 기존 형식 비변경 | v4.1.0 |
+| B02-M07 | Open용 구성 검사 | manifest·snapshot·active prefix 검증과 과거 evidence 원문 유예; 기존 전체 검사·손상·crypto-off 반례 | v4.1.0 |
 | B02-F01 | 세대 파일 정상 준비 | 검증된 source FD와 snapshot을 고정 이름·정확한 bytes/SHA·빈 active로 준비; 원본 FD offset/bytes 불변과 ready/소유 보고 대조 | v4.1.0 |
 | B02-F02 | 준비 입력 경계 | 세대 0·source 1GiB 초과·65 sources·경로/동일 이름/출력 충돌·잘못된 SHA를 파일 생성 전에 거부; snapshot 1GiB 상한은 코드 대조만 함 | v4.1.0 |
 | B02-F03 | 원본 결박 | 닫힌/다른 FD·길이/hash 불일치·root/source symlink/hardlink 거부와 원본 보존 | v4.1.0 |
@@ -228,6 +229,36 @@ exit는 모두 1, 기존 236건 pass·새 setup 1건 fail, 임시 root 제거는
 | B02-P02 runner root | 격리 빌드·fixture | 첫 두 실행 각 28,579,818바이트, bound 실패 28,581,015바이트, 컴파일 실패 802,328바이트, 최종 28,663,906바이트 | runner 소유 root 정리 | 모든 실행 `removed=true` | 첫 둘·최종 원출력과 중간 실행 도구 결과 |
 | `docs/release-artifacts/v4.1.0/b02-catalog-export-20260925/` | 세 실행 증거 | 첫 둘 원문 28,141바이트; gzip 무손실·원문 SHA 재대조 | 비밀 패턴 확인 후 압축 보존 | 보존 | 실패 이력·최종 결과 재검토 |
 | `/private/tmp/b02-p02-catalog-focused*.log` | 담당자 임시 원출력 2개 | 합계 28,141바이트 | 저장소 사본과 각각 byte 일치·소유자 확인 후 원본 삭제 | 두 경로 부재 확인 | `cmp`·`stat`·`test ! -e` exit 0 |
+
+### B-02 active 증분 strict reader 실행 전 정의
+
+다음은 B Open 전에 필요한 독립 읽기 경계다. 이 도구의 PASS만으로 제품 Open·Append·
+Checkpoint나 snapshot domain 복원을 완료로 판정하지 않는다. 원본 root/manifest·active
+소유권과 임시 자료 정리는 단위 실행에서 분리해 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-A01 | active prefix+tail 엄격 읽기 | manifest prefix 길이/SHA, 전체 완결행·cut 이후 순서·locator·원문 digest와 canonical 대조 | v4.1.0 |
+| B02-A02 | active 손상·경쟁 거부 | 미완결/비정규 행, hash/size·inode·symlink/hardlink·상한/ordinal overflow·실패 output 불변 | v4.1.0 |
+| B02-A03 | 자원·검출 경계 | caller byte admission, active만 일시 메모리 소유; 역사 원문/도메인 복원과 분리 | v4.1.0 |
+| B02-A04 | crypto-off 경계 | digest 불가 시 신규 형식 fail closed, 기존 v1 검증 불변 | v4.1.0 |
+
+2026-09-25 `./server.sh verify-v410-recording-generation` exit 0. Open용 구성 검사
+`B02-M07`은 crypto-on 6 assertion과 crypto-off 1 assertion 모두 통과했다.
+기존 전체 읽기는 evidence 원문 누락을 계속 거부했고, 새 읽기는 snapshot·active prefix
+손상을 거부하면서 과거 evidence 원문 누락만 유예했다. 기존 M01~M06·I01~I06도
+crypto-on 10/10, crypto-off 4/4 시나리오로 통과했고 `[cleanup] removed=true`였다.
+`./server.sh verify-project-inventory` exit 0·요약 18/18·기존 기능 986행,
+`./server.sh verify-docs-links` exit 0·328문서/12,792링크/오류 0,
+`./server.sh verify-docs-ui-assets` exit 0·10/10,
+`git diff --check` exit 0도 확인했다.
+원출력은 이번 작업의 명령 도구 응답이며 별도 raw stream 파일은 보존하지 않았다.
+이는 구성 파일 선검사 결과이며 identity chain·active 전체·snapshot 의미·제품 Open
+완료 증거가 아니다. 토큰 시작/종료/소모는 이 실행에서 별도 계측되지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-M07 | Open용 manifest·snapshot·active prefix 검증, evidence 원문 유예, 전체 읽기 유지·손상·crypto-off·실패 출력 불변 7 assertion | pass |
 
 ### B-02 thin 요약 값 codec 단위 결과
 
