@@ -1,0 +1,85 @@
+{
+  "schema": "recording-scale-execution-evidence-v1",
+  "token": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "전용 집계 미제공"
+  },
+  "entries": [
+    {
+      "name": "small-compile",
+      "command": "bash scripts/internal/verify_recording_generation_scale.sh small",
+      "exit": 1,
+      "raw": {
+        "path": "/private/tmp/b07-scale-small-initial.log",
+        "bytes": 2881,
+        "sha256": "5ffde0e992924fd10a04d739826865dc0cdeb656649aa0ecea8d57f7f14b2a4e",
+        "dev": 16777234,
+        "ino": 159589753,
+        "uid": 501,
+        "cleanup": "삭제·부재 확인"
+      },
+      "preserved": {
+        "path": "small-compile.log.gz",
+        "bytes": 1214,
+        "sha256": "73678278dd5f17aecb57eb079f1a255c56ad8b6040c722bc523f47bd09d2ff42"
+      },
+      "sourceHashes": [
+        "c62b772fe8764b17318a921ab164473a313b2308ec0643b3d38a9dbe794f3f05  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp",
+        "ee53ac15b35f1d29ac02660474cc117f0a4bf3df63af8b9600ae75bb5aa65609  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh",
+        "c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp",
+        "404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h",
+        "7d46e596356fe7d8c281c250eab8244896f2a70c44786fae62e7b0cdb142d1fd  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h",
+        "543eaa2fea30a85a4fa7e77dc2a2429d2a42bd72e1abd47f2fbd6bcc88912b0f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h",
+        "27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h",
+        "daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h",
+        "a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp",
+        "77a4dacef46991b4ab1428a3bb79f5cb258120b2e7759818f257513839bac3c8  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp",
+        "196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp",
+        "68c4012100d9f1b20131a51728c829d58a8447db8295fbb6e7622c465c08d09d  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a"
+      ],
+      "cleanup": [
+        "[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.lNiuYn bytes=62691 removed=true"
+      ],
+      "elapsed": "[end] exit=1 elapsed_seconds=1"
+    },
+    {
+      "name": "small-pass",
+      "command": "bash scripts/internal/verify_recording_generation_scale.sh small",
+      "exit": 0,
+      "raw": {
+        "path": "/private/tmp/b07-scale-small-compiled.log",
+        "bytes": 56528,
+        "sha256": "ce32107eff3331bd1dd9b55931fc3efffa13c973f5546d84a12e711ccd6f7d5c",
+        "dev": 16777234,
+        "ino": 159590205,
+        "uid": 501,
+        "cleanup": "삭제·부재 확인"
+      },
+      "preserved": {
+        "path": "small-pass.log.gz",
+        "bytes": 10988,
+        "sha256": "3a57cd0dc93d9de842ecc207e6f91e09591ca88075899d96fa93904a4033ed00"
+      },
+      "sourceHashes": [
+        "10452aa90e9f3f775a98d60c708e64e653244e1aebf9fc6088f3c8f46157541f  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp",
+        "ee53ac15b35f1d29ac02660474cc117f0a4bf3df63af8b9600ae75bb5aa65609  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh",
+        "c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp",
+        "404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h",
+        "7d46e596356fe7d8c281c250eab8244896f2a70c44786fae62e7b0cdb142d1fd  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h",
+        "543eaa2fea30a85a4fa7e77dc2a2429d2a42bd72e1abd47f2fbd6bcc88912b0f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h",
+        "27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h",
+        "daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h",
+        "a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp",
+        "77a4dacef46991b4ab1428a3bb79f5cb258120b2e7759818f257513839bac3c8  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp",
+        "196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp",
+        "68c4012100d9f1b20131a51728c829d58a8447db8295fbb6e7622c465c08d09d  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a"
+      ],
+      "cleanup": [
+        "[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.7ph09n bytes=177737423 removed=true"
+      ],
+      "elapsed": "[end] exit=0 elapsed_seconds=75"
+    }
+  ]
+}

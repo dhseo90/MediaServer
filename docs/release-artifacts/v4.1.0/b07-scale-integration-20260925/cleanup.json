@@ -1,0 +1,39 @@
+[
+  {
+    "path": "/private/tmp/b07-scale-small-initial.log",
+    "bytes": 2881,
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/b07-scale-small-compiled.log",
+    "bytes": 56528,
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/b07-scale-deleted-once.log",
+    "bytes": 2616197,
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/b07-scale-deleted-live-files.json",
+    "bytes": 485,
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/b07-scale-deleted-final-files.json",
+    "bytes": 515,
+    "absent": true
+  },
+  {
+    "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.lNiuYn",
+    "absent": true
+  },
+  {
+    "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.7ph09n",
+    "absent": true
+  },
+  {
+    "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.KXJP5P",
+    "absent": true
+  }
+]

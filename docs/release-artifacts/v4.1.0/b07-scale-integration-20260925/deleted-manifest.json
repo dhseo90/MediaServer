@@ -1,0 +1,84 @@
+{
+  "schema": "recording-scale-execution-evidence-v1",
+  "token": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "전용 집계 미제공"
+  },
+  "entries": [
+    {
+      "name": "deleted-pass",
+      "raw": {
+        "path": "/private/tmp/b07-scale-deleted-once.log",
+        "bytes": 2616197,
+        "sha256": "5f037b4d52d9f4144089ee412a6a6c705bbf7fcc338854f429dcb0e59dc40c17",
+        "dev": 16777234,
+        "ino": 159591445,
+        "uid": 501,
+        "cleanup": "삭제·부재 확인"
+      },
+      "preserved": {
+        "path": "deleted-pass.log.gz",
+        "bytes": 381844,
+        "sha256": "7f92e49c62dee7140187bb4a86c7db05e1773a8353e25cc40ee698c437110683"
+      },
+      "sourceHashes": [
+        "9ae2189781ef4642b86b057135e6c2243eb6b39c9bdec622eee69aba4393937a  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp",
+        "e4090a7c5ecaf39a7266029af25b83cd2563ce41322f368ad717f73f72db0a41  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh",
+        "c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp",
+        "404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h",
+        "7d46e596356fe7d8c281c250eab8244896f2a70c44786fae62e7b0cdb142d1fd  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h",
+        "543eaa2fea30a85a4fa7e77dc2a2429d2a42bd72e1abd47f2fbd6bcc88912b0f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h",
+        "27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h",
+        "daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h",
+        "a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp",
+        "77a4dacef46991b4ab1428a3bb79f5cb258120b2e7759818f257513839bac3c8  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp",
+        "196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp",
+        "68c4012100d9f1b20131a51728c829d58a8447db8295fbb6e7622c465c08d09d  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a"
+      ],
+      "cleanup": [
+        "[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.KXJP5P bytes=203322711 removed=true"
+      ],
+      "elapsed": "[end] exit=0 elapsed_seconds=1777"
+    },
+    {
+      "name": "deleted-live-files",
+      "raw": {
+        "path": "/private/tmp/b07-scale-deleted-live-files.json",
+        "bytes": 485,
+        "sha256": "cdb1a924cd37a5e445d9cdb6a954d0c60333a2629862642735dfc3fb6bddf734",
+        "dev": 16777234,
+        "ino": 159601895,
+        "uid": 501,
+        "cleanup": "삭제·부재 확인"
+      },
+      "preserved": {
+        "path": "deleted-live-files.json",
+        "bytes": 485,
+        "sha256": "cdb1a924cd37a5e445d9cdb6a954d0c60333a2629862642735dfc3fb6bddf734"
+      },
+      "sourceHashes": [],
+      "cleanup": []
+    },
+    {
+      "name": "deleted-final-files",
+      "raw": {
+        "path": "/private/tmp/b07-scale-deleted-final-files.json",
+        "bytes": 515,
+        "sha256": "2c856e8b29737b42c8bef4c057db4566e614935b2490cdeffffca6a1cb6dd502",
+        "dev": 16777234,
+        "ino": 159605020,
+        "uid": 501,
+        "cleanup": "삭제·부재 확인"
+      },
+      "preserved": {
+        "path": "deleted-final-files.json",
+        "bytes": 515,
+        "sha256": "2c856e8b29737b42c8bef4c057db4566e614935b2490cdeffffca6a1cb6dd502"
+      },
+      "sourceHashes": [],
+      "cleanup": []
+    }
+  ]
+}

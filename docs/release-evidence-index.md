@@ -1,5 +1,10 @@
 # Release Evidence Index
 
+- [2026-09-25 B 기본 연결·누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md):
+  요청1~7은 구현·검증·분할 커밋했다.8번의1/16/32·1,020/2,049 누적 수치는 통과했으나
+  이전snapshot 수명과 잠금진단 손실이 남아 전체 미완료다. 실제 HTTP/통합·9번은 보류한다.
+  아래 날짜별 결과는 각각 당시 범위의 이력이며 현행 전체 완료 상태가 아니다.
+
 - [2026-09-25 S11 B안 내부 저장 연결](release-test-records.md#v410-s11-b안-저장-구조-구현):
   수용/cut 동등성·공개 읽기/SQL·증분 쓰기와 세대 회전을 순차 확인했다.
   [회전 집중·영향 회귀](release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)는 최종1,463 assertion·빌드 PASS다.

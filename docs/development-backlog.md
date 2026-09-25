@@ -4,6 +4,11 @@
 항목은 해당 source 기능과 local verifier 기준을 뜻합니다. GitHub Release publish,
 UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만 별도로 완료로 씁니다.
 
+- 2026-09-25 현행 녹화 저장: B안 기본 연결·소비자/검증 준비는 완료, 누적 수치 검사는 통과했다.
+  이전snapshot 보관 수명 때문에 저장 비용 전체 마감·실제 HTTP/통합·최종 코드 고정은 미완료다.
+  [현재 판정과 릴리즈 잔여](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)를 우선하며
+  아래 과거 S10/S11 완료 이력으로 현행 B 변경의 완료를 대신하지 않는다.
+
 - 현재 버전/비범위 기준: [versioning-policy.md](./versioning-policy.md)
 - release 정책: [release-policy.md](./release-policy.md)
 - 검증 명령 기준: [stream-verification.md](./stream-verification.md)

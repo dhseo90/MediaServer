@@ -1,0 +1,261 @@
+[
+  {
+    "id": "B07-D02",
+    "command": [
+      "./server.sh",
+      "verify-docs-links"
+    ],
+    "startedAt": "2026-09-25T11:44:49.952Z",
+    "elapsedMs": 177,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D02-stdout.log.gz",
+        "bytes": 187,
+        "sha256": "ecba0196ea0d9c90d1b2a4acc9c23be6ad6cfaf1cdb800b80fe3bcbfd41c49aa"
+      },
+      "stderr": {
+        "path": "B07-D02-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 0,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D03",
+    "command": [
+      "./server.sh",
+      "verify-docs-ui-assets"
+    ],
+    "startedAt": "2026-09-25T11:44:50.132Z",
+    "elapsedMs": 42,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D03-stdout.log.gz",
+        "bytes": 636,
+        "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2"
+      },
+      "stderr": {
+        "path": "B07-D03-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 10,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D04",
+    "command": [
+      "./server.sh",
+      "verify-project-inventory"
+    ],
+    "startedAt": "2026-09-25T11:44:50.175Z",
+    "elapsedMs": 39681,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D04-stdout.log.gz",
+        "bytes": 210250,
+        "sha256": "24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00"
+      },
+      "stderr": {
+        "path": "B07-D04-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 5081,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D06",
+    "command": [
+      "./server.sh",
+      "verify-script-inventory"
+    ],
+    "startedAt": "2026-09-25T11:45:29.860Z",
+    "elapsedMs": 52204,
+    "exit": 1,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D06-stdout.log.gz",
+        "bytes": 978,
+        "sha256": "cca4c37a55eb6268cfd1a9e51b3aee96929906bf8a1656e360e96c38748ad05e"
+      },
+      "stderr": {
+        "path": "B07-D06-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 12,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D06-retry",
+    "command": [
+      "./server.sh",
+      "verify-script-inventory"
+    ],
+    "startedAt": "2026-09-25T11:47:52.156Z",
+    "elapsedMs": 51325,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D06-retry-stdout.log.gz",
+        "bytes": 874,
+        "sha256": "c4e0a9eb6467fa3d156d038eafd3be9ce3afb953aae43271b71b41ec692a3871"
+      },
+      "stderr": {
+        "path": "B07-D06-retry-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 12,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D02-final",
+    "command": [
+      "./server.sh",
+      "verify-docs-links"
+    ],
+    "startedAt": "2026-09-25T11:48:43.483Z",
+    "elapsedMs": 161,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D02-final-stdout.log.gz",
+        "bytes": 187,
+        "sha256": "74a5616127eb6feda9c492d54f0a216c0eed86f3278dc6406745919adba732ba"
+      },
+      "stderr": {
+        "path": "B07-D02-final-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 0,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D05-working",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "startedAt": "2026-09-25T11:48:43.645Z",
+    "elapsedMs": 14,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D05-working-stdout.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "B07-D05-working-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 0,
+    "individualRowsArtifact": "static-results.json.gz"
+  },
+  {
+    "id": "B07-D05-staged",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "startedAt": "2026-09-25T11:48:43.660Z",
+    "elapsedMs": 77,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "token": {
+      "start": null,
+      "end": null,
+      "consumed": null,
+      "source": "전용 집계 미제공"
+    },
+    "output": {
+      "stdout": {
+        "path": "B07-D05-staged-stdout.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "B07-D05-staged-stderr.log.gz",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "individualRowsCount": 0,
+    "individualRowsArtifact": "static-results.json.gz"
+  }
+]
