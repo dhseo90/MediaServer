@@ -1,0 +1,7 @@
+명령: ./server.sh verify-project-inventory
+상태: exit 1
+직접 관측한 실패: [fail] implementation evidence manifest matches all feature rows: inventorySha256 drift; explicitly refresh and review the manifest
+요약: featureRows 986, pass 17, fail 1
+원인 범위: B02-Y01~Y04 내부 검사 행 등록으로 인벤토리 문서 전체 SHA가 변경됐으나 구현 증거 manifest의 해시가 이전 값을 유지함.
+조치: 기존 986개 기능 행은 변경하지 않았음을 대조하고 인벤토리 SHA만 갱신. 후속 원출력은 b02-generation-scratch-inventory.log 및 b02-generation-scratch-inventory-final.log.
+한계: 최초 실행의 5,087행 전체 stdout은 저장하지 못했으며 이 파일은 직접 관측 요약이지 원출력의 복원이 아니다.

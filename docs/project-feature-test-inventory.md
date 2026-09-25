@@ -39,10 +39,10 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-J09 | B 활성 증분 차단·호환 | 모순 active는 Journal B Open에서 원본 불변·lease/FD 정리로 거부하고 정상 v1 Open/Append/Replay·checkpoint를 유지; Catalog B Open/쓰기는 여전히 차단 | PASS: 집중 검증 15개·v1 회귀; B 쓰기 미구현 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J10 | B 복원 원문 참조 | 검증된 세대의 과거 최초 identity와 active의 현재 행을 dense 위치/논리 ordinal로 구분해 opaque 복원 참조를 발급하고, 사용 시 archive/active 원문·hash·identity를 다시 확인 | PASS: 읽기 전용 집중 검증 6개; Catalog 소비 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J11 | B 복원 참조 수명·차단 | 다른 ID·세대·store·인스턴스/프로세스·끝난 세션과 파일 교체/손상을 거부, 결과 불변·lease/FD 정리 확인. Catalog B Open·Append·Replay는 계속 차단 | PASS: 집중 검증 10개; Catalog B Open·쓰기 차단 유지 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Y01 | 세대 Catalog 비공개 후보 복원 | 검증된 snapshot 16종과 active domain 변경을 순서대로 합쳐 v1 최종 의미와 대조하되 live Catalog·SQLite는 공개하지 않음 | 미실행: 예상 RED·집중 검증 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Y02 | 중복·충돌·부분 실패 경계 | Journal이 검증한 동일 ID 재시도만 중복으로 처리하고 다른 identity·예약 선사용·active 중간 실패는 거부; 실패 시 후보·원본·live 상태 불변 및 새 인스턴스 strict 재Open | 미실행: 예상 RED·집중 검증 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Y03 | 얇은 상세·복원 링크 | source/job 현재 요약을 latestMutationId 원문 링크에 결박하고 진행 작업·필요 source만 상세 검증; 비활성 과거 상세를 정상 복원에서 전수 읽지 않음 | 미실행: 예상 RED·집중 검증 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
-| B02-Y04 | 보류 보호·권위 격리 | active 전이 후 pending hold를 재도출하고 후보 실패·성공 모두 공개 B Open/쓰기·cleanup 진입과 SQLite/미디어 변경을 차단 | 미실행: 예상 RED·집중 검증 등록 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Y01 | 세대 Catalog 비공개 후보 복원 | 검증된 snapshot 16종과 active domain 변경을 순서대로 합쳐 독립 기대 상태와 대조하되 live Catalog·SQLite는 공개하지 않음 | PASS: 비공개 집중 검사 4건; active 후 전역 cross-map 재감사는 후속 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Y02 | 중복·충돌·부분 실패 경계 | Journal이 검증한 동일 ID 재시도만 중복으로 처리하고 다른 identity·예약 선사용·active 중간 실패는 거부; 실패 시 후보·원본·live 상태 불변 및 새 인스턴스 strict 재Open | PASS: 비공개 집중 검사 8건; 공개 B Open은 차단 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Y03 | 얇은 상세·복원 링크 | source/job 현재 요약을 latestMutationId 원문 링크에 결박하고 진행 작업·필요 source만 상세 검증; 비활성 과거 상세를 정상 복원에서 전수 읽지 않음 | PASS: 비공개 집중 검사 3건; SQL·실제 조회는 후속 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-Y04 | 보류 보호·권위 격리 | active 전이 후 pending hold를 재도출하고 후보 실패·성공 모두 공개 B Open/쓰기·cleanup 진입과 SQLite/미디어 변경을 차단 | PASS: 비공개 집중 검사 2건; 실제 공개 경로는 차단 유지 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X01 | snapshot domain 임시 복원 | 16종 row의 기존 domain parser·canonical bytes·key/내부 ID를 임시 투영에 복원하고 실패 시 공개 Catalog 불변 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X02 | 현재 상태 관계 검사 | V1/V2/예약 namespace, segment 상태·삭제·경로·이벤트·참조·hold 복구 입력의 cross-map 모순 거부 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X03 | thin 상세와 최초 수용 결박 | source/job latest ID의 검증된 identity locator·type/entity, accepted-state 전수·배타 cut을 확인하고 필요한 상세만 사용 시 raw 검증 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |

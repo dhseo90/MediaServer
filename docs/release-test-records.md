@@ -381,6 +381,67 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | B02-Y03 | thin 상세·cold 링크 | source/job latest ID 링크와 진행 작업 필수 상세만 취득, 비활성 과거 상세 정상 복원 비접근·사용 시 원문 검증 확인 | v4.1.0 |
 | B02-Y04 | hold·권위 차단 | active terminal 뒤 pending hold 재계산, 복원 후보 성공·실패 모두 공개 B Open/쓰기·cleanup·SQLite/미디어 변형 차단 확인 | v4.1.0 |
 
+### B-02 Catalog 비공개 복원 후보 단기 결과
+
+2026-09-25 최종 `./server.sh verify-v410-recording-catalog-generation-scratch`는
+exit 0, Y01 4건·Y02 8건·Y03 3건·Y04 2건으로 17/17 PASS다. 암호화·backend
+지원 조합 세 가지를 실행했고, 제품 `./server.sh build` exit 0, 기존
+`verify-v410-recording-catalog` 249/249, B Journal 78/78, 프로젝트 인벤토리
+18/18·기존 기능 행 986개를 확인했다. 원출력·source hash·실패 이력은
+[B02-Y 실행 자료](release-artifacts/v4.1.0/b02-catalog-scratch-20260925/README.md)에 있다.
+메인 diff 검토에서 활성 작업이 보호하는 source 상세를 비활성처럼 해제하는 계약 위반을
+발견했다. Y03 oracle를 먼저 고쳐 예상 RED exit 1을 확인한 뒤, 활성 source만 검증된
+resident로 유지하고 비활성만 해제하도록 수정했다. 이후 focused 17/17, 빌드,
+v1 Catalog 249/249를 각각 다시 통과했다. 앞선 17/17은 이 source 수명 계약의
+증거가 아니며 마지막 active-resident 로그가 해당 계약의 최종 증거다.
+최초 예상 RED exit 1 뒤 기본 GREEN exit 0, 이벤트 payload fixture 오류 exit 1,
+역순 예약의 Journal 선행 거부를 잘못 기대한 fixture exit 2, runner 실행 비트 누락
+사전검사 exit 1을 순서대로 보존한다. 각 원인을 해당 fixture·runner에서만 보완했고
+제품 합격 기준이나 시간제한은 완화하지 않았다. 마지막 인벤토리 검사 전에는
+문서 전체 SHA 불일치 1건이 있었고, 새 내부 ID 행만 변경됐음을 대조한 뒤
+manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소급 변경하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B02-Y01 snapshot plus active corruption and same-ID retry | snapshot 현재 상태·active 손상 전이·검증된 동일 ID 재시도 | pass | 최초 예상 RED 후 최종 PASS |
+| B02-Y01 active reservation gap then finalization accepted | 예약 sequence gap 뒤 V2 확정 적용 | pass | 최종 원출력 |
+| B02-Y01 later reservation rejected by Journal before scratch | 미래 예약을 과거 확정에 소급 사용하지 않음 | pass | Journal 선행 거부; fixture oracle 정정 이력 보존 |
+| B02-Y01 all sixteen snapshot row kinds imported | 16종 snapshot row의 비공개 후보 이동 확인 | pass | active 후 전역 cross-map 재감사는 후속 |
+| B02-Y02 live SQLite and original remain unpublished | 후보 생성 뒤 live 상태·원본·SQLite 비공개 | pass | 최종 원출력 |
+| B02-Y02 successful recovery is one-shot without ending link lease | 성공 세션 재사용 거부·유효 link 수명 유지 | pass | 최종 원출력 |
+| B02-Y02 public Open write and replay remain closed | B 공개 Open·Append·Replay 차단 | pass | 최종 원출력 |
+| B02-Y02 active second domain failure preserves candidate live bytes SQLite and poisons owner | 첫 active 적용 뒤 domain 오류와 부분 공개·쓰기 금지 | pass | 최종 원출력 |
+| B02-Y02 new Journal strict reopen succeeds but unchanged domain-invalid candidate still fails | 실패 owner 폐기 뒤 새 인스턴스 strict 재Open; 같은 domain 오류는 유지 | pass | 16/16 뒤 추가 assertion |
+| B02-Y02 identity conflict rejected before restore | 상이한 동일 ID를 복원 전 Journal에서 거부 | pass | 최종 원출력 |
+| B02-Y02 unsupported scratch remains closed (crypto-off) | 암호화 미지원에서 후보 미생성 | pass | 최종 원출력 |
+| B02-Y02 unsupported scratch remains closed (backend-off) | backend 미지원에서 후보 미생성 | pass | 최종 원출력 |
+| B02-Y03 active job source becomes verified thin link | 진행 작업의 source 상세를 원문 link와 대조해 resident로 유지 | pass | 메인 검토 후 보강 RED·수정·재검증 이력 보존 |
+| B02-Y03 inactive source archive is not read during scratch | 비활성 과거 상세의 정상 복원 시 비접근 | pass | 최종 원출력 |
+| B02-Y03 cold missing archive fails at actual detail use | 상세 사용 시 archive 누락을 거부 | pass | 최종 원출력 |
+| B02-Y04 pending source hold rederived without SQLite | snapshot pending 관계에서 hold 재도출 | pass | 최종 원출력 |
+| B02-Y04 active terminal completion clears snapshot hold | active terminal 뒤 불필요한 hold 제거 | pass | 최초 fixture 실패 뒤 최종 PASS |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `media-server-catalog-generation-scratch.ZSgVNg` | 예상 RED 격리 fixture | 6,877,661 B | runner 소유·inode 확인 뒤 삭제 | 삭제 | RED 로그 `removed=true` |
+| `media-server-catalog-generation-scratch.OMBkMt` | 기본 GREEN 격리 fixture | 19,514,669 B | 동일 | 삭제 | GREEN 로그 |
+| `media-server-catalog-generation-scratch.76jK8R` | payload fixture 실패 자료 | 7,324,375 B | 동일 | 삭제 | cases 로그 |
+| `media-server-catalog-generation-scratch.EnSQ54` | 예약 oracle 실패 자료 | 7,339,332 B | 동일 | 삭제 | cases-fixed 로그 |
+| `media-server-catalog-generation-scratch.B8TXKZ` | 16건 focused fixture | 20,092,987 B | 동일 | 삭제 | final-executable 로그 |
+| `media-server-catalog-generation-scratch.KNN24E` | 최종 17건 focused fixture | 20,092,987 B | 동일 | 삭제 | reopen 로그 |
+| `media_server_v410_recording_catalog-83217` | 기존 v1 회귀 fixture | 28,680,274 B | runner 소유 확인 뒤 삭제 | 삭제 | v1 로그 |
+| `media-server-journal-generation-readonly.cW87Zk` | B Journal 회귀 fixture | 11,637,084 B | runner 소유·inode 확인 뒤 삭제 | 삭제 | Journal 로그 |
+| `media-server-catalog-generation-scratch` 활성 resident RED fixture | Y03 보강 예상 RED | 7,380,667 B | runner 소유·inode 확인 뒤 삭제 | 삭제 | active-resident-red 로그 |
+| `media-server-catalog-generation-scratch` 활성 resident GREEN fixture | Y03 보강 최종 집중 검사 | 20,093,291 B | 동일 | 삭제 | active-resident-green 로그 |
+| `media_server_v410_recording_catalog` 활성 resident 회귀 fixture | 수정 후 기존 v1 회귀 | 28,680,274 B | runner 소유 확인 뒤 삭제 | 삭제 | active-resident-v1 로그 |
+| `/private/tmp/b02-generation-scratch-*.log`의 확인된 16개 파일 | 실행 임시 로그 | 저장소 사본 약 0.5 MiB | 각 파일 소유 UID·저장소 사본 byte 동등성 확인 뒤 명시 경로만 삭제 | 임시 원본 삭제·저장소 사본 보존 | B02-Y 실행 자료 README·사본 |
+| `docs/release-artifacts/v4.1.0/b02-catalog-scratch-20260925/` | redaction 확인한 단기 원출력 | 약 0.5 MiB | 실패 이력·개별 결과·source hash 보존 | 보존 | README·각 로그 |
+
+이 단계의 직접 의미는 검증된 snapshot과 active 행별 기존 Apply, pending hold를
+비공개 후보로 결합한 것까지다. active 적용 후 전체 cross-map 재감사, SQLite 재투영,
+공개 B Open·Append·Checkpoint, RAM·누적 비용·실제 앱·30분/UI/120분은
+미구현 또는 미실행이다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
+
 ### B-02 Journal B 읽기 권위 집중 검증 결과
 
 2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-last.log)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.

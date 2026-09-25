@@ -1,0 +1,46 @@
+[scope] private B Catalog scratch; public Open/Append/SQLite blocked; no RAM/completion claim
+[start] 2026-09-25T04:06:42Z
+52886dc421e72602c3429ab9d415bd8bcedd5c8ae5c2b1ccbbd805c361a8e8d8  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591  /Users/dhseo/Workspace/mediaServer/src/recording/retention_coordinator.cpp
+ecef071fb2afcfe69a00654757c639760e2ce75e627ae9c777a564f08161d6a9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_finalize_recovery.cpp
+31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_media_inspector.cpp
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+38ad6b809bfe9fb320076272092f75f0ac36c0b9ec2b6e111876483b0abc9c26  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+3de942ff8d2e68681f8b8264f8f0d11508196594a2ce051004eaea601ed3bbe0  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+185f4a49980557e340358ae6e6149f9554df1506bc99cc594c2d0b82d613e74b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot.cpp
+7b6dd68db062aa19b1e0af7d053ac8827b86566cbd346ed5a9d800f82adfe386  /Users/dhseo/Workspace/mediaServer/src/recording/recording_order_history_snapshot.cpp
+d2d85d3466e83441bd01210c4e5eb8532eb1ed3cf95b0fab36ce8bc0515d6124  /Users/dhseo/Workspace/mediaServer/src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_ready.cpp
+242802993b2a54b91f549d40b97c72621eaaa8f05c4099c4cc151f66f61e040d  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_generation_projection.cpp
+69d9d86825ab0bd9c7b23863899055bba23e59f111a23f782622f8813c952726  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_active.cpp
+a05f7ab3bf9c371e4afc70c791910595ec3b3d4caa99f4005c8a0153ba4dbcdb  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_scratch_smoke.cpp
+556377841b71a210a906b2d4975e1cc9a652164c6f362388cbb71a439124b8c6  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog_generation_projection.h
+a362fbcd15dfd3d0b8d589e616c8e370827767a44aa576be192f4c9b88eafff8  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+336d0a091d38729f3aa0914b27318a488104ff5c2e0a18f8078616794a0e4191  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_catalog_generation_scratch.sh
+b02bda43bfd1bd58d6a030c508b49c7508a196989f97b8d1733f5d5e81ba8f86  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+f371fc4060b5f2094067af64ab7da8996a950b2132d4fa223ba90e6c192a88e5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_generation_recovery_session.h
+e35608c3e97c55d03c6f7e7b3e941d72b4dd3bc447cddf8e191873a968f03dd0  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_projection_smoke.cpp
+bc434120f3f266eea00d705fb56ff8f8ee5c7c7c62b874f57074fb158316ccdd  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_journal_generation_readonly_smoke.cpp
+B02-Y01 PASS snapshot plus active corruption and same-ID retry
+B02-Y02 PASS live SQLite and original remain unpublished
+B02-Y02 PASS successful recovery is one-shot without ending link lease
+B02-Y02 PASS public Open write and replay remain closed
+B02-Y02 PASS active second domain failure preserves candidate live bytes SQLite and poisons owner
+B02-Y02 PASS identity conflict rejected before restore
+B02-Y03 PASS active job source becomes verified thin link
+B02-Y03 PASS inactive source archive is not read during scratch
+B02-Y03 PASS cold missing archive fails at actual detail use
+B02-Y04 PASS pending source hold rederived without SQLite
+B02-Y04 PASS active terminal completion clears snapshot hold
+B02-Y01 PASS active reservation gap then finalization accepted
+B02-Y01 PASS later reservation rejected by Journal before scratch
+B02-Y01 PASS all sixteen snapshot row kinds imported
+B02-Y02 PASS unsupported scratch remains closed
+B02-Y02 PASS unsupported scratch remains closed
+[end] 2026-09-25T04:07:10Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.B8TXKZ bytes=20092987 removed=true
