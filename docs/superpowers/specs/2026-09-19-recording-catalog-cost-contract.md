@@ -694,6 +694,41 @@ H만 증가하는 비용을 따로 보고한다. 전체 시스템 상수 시간�
 
 ## 4. 데이터별 보관·회수 계약
 
+### S11 B-08 이전 체크포인트 스냅샷 회수 경계
+
+`snapshot-<generation>.jsonl`은 해당 세대의 현재 상태 사본이다. 이전 세대의
+`active`·`identity`·`evidence`와 달리 과거 mutation의 유일한 원본이 아니며,
+새 세대의 완결된 manifest·identity 체인·archive가 현재 상태와 이력을 증명한
+뒤에만 이전 사본을 회수할 수 있다. 원본 미디어, 삭제 영수증, 과거 archive,
+identity shard, active는 이 회수 대상이 아니다.
+
+- 게시 전과 PREPARED rollback 가능 상태에서는 이전 snapshot을 보존한다.
+  PUBLISH_INTENT가 있어도 target manifest와 복구 가능한 target 내용의 엄격한
+  검증이 끝나기 전에는 회수하지 않는다.
+- 성공 게시에서는 target manifest의 내구성, 카탈로그/SQLite 반영, 새 세대
+  검증, reader의 세대 변경 처리 조건을 확인한 후 receipt가 지정한 **정확한 이전
+  snapshot 한 개**만 회수한다. 복구 시에도 같은 검증을 거쳐 처리한다.
+  receipt가 없는 파일 목록 검색·세대 번호 추측·경로 glob으로 삭제하지 않는다.
+- 회수 권한은 root의 소유 lease와 receipt의 이전 manifest 및 snapshot
+  이름·길이·SHA-256·device·inode에 결박한다. 파일이 바뀌거나 링크·소유권이
+  모호하면 삭제하지 않고 실패를 보존한다. 회수와 directory fsync가 끝나기
+  전에는 receipt를 제거하지 않는다. 재기동에서 이미 부재한 exact 대상은
+  target 권위와 receipt를 재검증한 뒤에만 멱등 완료로 본다.
+- 이전 snapshot을 읽은 관측기는 세대 변경 경쟁을 일관된 `Busy`/재시도
+  판정으로 다루며, 이전 내용 대신 새 내용을 조용히 섞지 않는다. 이미 열린
+  FD의 수명은 reader가 소유한다. 회수 실패를 성공으로 숨기거나 timeout을
+  늘리지 않는다.
+- 새 계약 이후 생성된 receipt만 회수 대상으로 삼는다. 기존 receipt와
+  독립적으로 남아 있는 옛 snapshot은 자동 추정 회수하지 않는다. 이전
+  데이터 보존·호환성 판단은 별도 증거가 필요하다.
+
+반례 기준: PREPARED rollback, PUBLISH_INTENT 중단/복구, 이전 파일의
+symlink·hardlink·inode·hash 교체, 이름 충돌, receipt 손상/누락, 현행 reader
+경쟁, SQLite fallback/재개방에서 현재 결과·중복 ID 거부·손상 거부가
+달라지면 실패다. 성공 조건은 **새 계약 이후 생성된 세대**에서 현재 snapshot
+한 개와 아직 참조 의무가 있는 다른 파일을 유지하면서 이전 snapshot
+누적만 유한하게 만드는 것이다. 구형 독립 잔존 파일은 별도 판정이다.
+
 | 데이터 | 필요한 동안 | 메모리 내림/영구 회수 조건 | 반드시 남길 근거 |
 | --- | --- | --- | --- |
 | 불변 원본·파일 대응 상세 증거 | 보존 미디어, 활성/복구 중 작업, lease·재생 보호의 해석 의무가 있는 동안 | RAM 내림은 검증 가능한 내구 원본·안전한 재획득이 있으면 가능; 영구 삭제는 상세 증거 의무 종료를 별도로 입증 | 재생 가능 여부, identity·무결성·참조 해결 근거 |
