@@ -415,7 +415,7 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | v1 catalog 회귀 소유 root | 바이너리·fixture | 28,671,794B | 실행기 소유권 대조 뒤 제거 | `removed=true` | 위 v1 회귀 원출력 |
 | `/private/tmp/b02-journal-*.log` 6개 | 원출력 임시본 | 합계 242,674B | byte 동일/압축 해제 hash·소유권 대조 뒤 제거 | 6개 모두 부재 확인, 저장소에 원문 4개·압축 2개 보존 | 위 원출력 링크·SHA 대조 |
 
-+### B-02 Journal 활성 ID·예약 인덱스 집중 검증 결과
+### B-02 Journal 활성 ID·예약 인덱스 집중 검증 결과
 
 2026-09-25 최종 소스에서 `./server.sh verify-v410-recording-journal-generation-readonly` exit 0. J04 9건·J05 18건·J06 13건·J08 7건·J09 15건, 총 62/62개 개별 판정이다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off 실행을 포함한다. [공개 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public.log) SHA-256 `54cba47098ac88b3a1cf741dfb80f820e1ca726e5b3719ab35103f3480dd643a`; UTC 03:19:56~03:20:14, 약 18초. 이전 J04~J06 40개 개별 행은 위 표에 있고, 이번에 새로 등록한 J08~J09 22개는 아래와 같다.
 
