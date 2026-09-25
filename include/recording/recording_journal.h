@@ -13,6 +13,7 @@
 namespace recording {
 struct ManagedJournalState;
 struct RecordingJournalGenerationState;
+struct RecordingGenerationMutationRef;
 struct RecordingJournalRecordLocation;
 using RecordingJournalRecordLocationHandle = std::shared_ptr<const RecordingJournalRecordLocation>;
 using RecordingJournalRecordLocations = std::vector<RecordingJournalRecordLocationHandle>;
@@ -70,6 +71,7 @@ using RecordingJournalOwnedViews = std::vector<RecordingJournalOwnedViewHandle>;
 class RecordingMutationLink {
     friend class RecordingJournal;
     RecordingJournalRecordRefHandle ref_;
+    std::shared_ptr<const RecordingGenerationMutationRef> generation_ref_;
     std::shared_ptr<const char> authority_;
     std::weak_ptr<const RecordingMutationV1> weak_;
     RecordingMutationHandle resident_;
@@ -78,7 +80,7 @@ public:
     RecordingMutationLink()=default;
     RecordingMutationHandle ResidentOwned() const { return resident_; }
     std::size_t LogicalCharge() const { return logical_charge_; }
-    bool IsWeakLink() const { return static_cast<bool>(ref_); }
+    bool IsWeakLink() const { return static_cast<bool>(ref_) || static_cast<bool>(generation_ref_); }
 };
 using RecordingMutationLinks = std::vector<RecordingMutationLink>;
 
@@ -150,6 +152,9 @@ private:
     bool MakeMutationLink(const RecordingJournalOwnedViewHandle& view, const RecordingMutationV1& mutation,
                           RecordingMutationHandle fallback, RecordingMutationLink* link, std::string* error) const;
     bool AcquireMutationLink(const RecordingMutationLink& link, RecordingMutationHandle* record, std::string* error) const;
+    // B 복원 전용 세션. Catalog attachment/쓰기 권한을 부여하지 않는다.
+    bool MakeGenerationMutationLink(const std::string& id, RecordingMutationLink* link, std::string* error) const;
+    void EndGenerationMutationLinks() const;
     bool MatchMutationLinkView(const RecordingMutationLink& link, const RecordingJournalOwnedViewHandle& view,
                               bool* matches, std::string* error) const;
     bool MutationLinkOwns(const RecordingMutationLink& link, const RecordingMutationHandle& record) const;

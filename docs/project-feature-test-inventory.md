@@ -37,6 +37,8 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-J07 | B 읽기 실행 연결 | `./server.sh verify-v410-recording-journal-generation-readonly`의 J04~J06·source hash·cleanup 및 제품 빌드 연결 | PASS: 공개 경로 40/40·빌드; 최종 gate 아님 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J08 | B 활성 증분 ID·예약 결합 | 검증된 과거 최초 수용 ID/예약과 현재 active 모든 완결행을 논리 ordinal 순서로 결합해 동일 재시도만 허용하고 ID 충돌·예약 역행/재사용·상한을 거부 | PASS: 집중 검증 7개; Catalog 적용 미구현 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-J09 | B 활성 증분 차단·호환 | 모순 active는 Journal B Open에서 원본 불변·lease/FD 정리로 거부하고 정상 v1 Open/Append/Replay·checkpoint를 유지; Catalog B Open/쓰기는 여전히 차단 | PASS: 집중 검증 15개·v1 회귀; B 쓰기 미구현 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J10 | B 복원 원문 참조 | 검증된 세대의 과거 최초 identity와 active의 현재 행을 dense 위치/논리 ordinal로 구분해 opaque 복원 참조를 발급하고, 사용 시 archive/active 원문·hash·identity를 다시 확인 | PASS: 읽기 전용 집중 검증 6개; Catalog 소비 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J11 | B 복원 참조 수명·차단 | 다른 ID·세대·store·인스턴스/프로세스·끝난 세션과 파일 교체/손상을 거부, 결과 불변·lease/FD 정리 확인. Catalog B Open·Append·Replay는 계속 차단 | PASS: 집중 검증 10개; Catalog B Open·쓰기 차단 유지 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X01 | snapshot domain 임시 복원 | 16종 row의 기존 domain parser·canonical bytes·key/내부 ID를 임시 투영에 복원하고 실패 시 공개 Catalog 불변 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X02 | 현재 상태 관계 검사 | V1/V2/예약 namespace, segment 상태·삭제·경로·이벤트·참조·hold 복구 입력의 cross-map 모순 거부 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-X03 | thin 상세와 최초 수용 결박 | source/job latest ID의 검증된 identity locator·type/entity, accepted-state 전수·배타 cut을 확인하고 필요한 상세만 사용 시 raw 검증 | PASS: 집중 검증; B Open 미연결 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |

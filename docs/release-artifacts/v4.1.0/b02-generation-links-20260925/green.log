@@ -1,0 +1,94 @@
+[scope] B read-only Journal; blocked Catalog/Append/Replay; no RAM/completion claim
+[start] 2026-09-25T03:37:38Z
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+aa0a9a5f078e23a0408b45d5247d5fb54c1197262db0726944a9b5e68846dcdd  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+3de942ff8d2e68681f8b8264f8f0d11508196594a2ce051004eaea601ed3bbe0  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+89e0ae42589342670efeceb324ab1ec211285db79e9a60a7b660066963dd7f10  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+185f4a49980557e340358ae6e6149f9554df1506bc99cc594c2d0b82d613e74b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot.cpp
+7b6dd68db062aa19b1e0af7d053ac8827b86566cbd346ed5a9d800f82adfe386  /Users/dhseo/Workspace/mediaServer/src/recording/recording_order_history_snapshot.cpp
+d2d85d3466e83441bd01210c4e5eb8532eb1ed3cf95b0fab36ce8bc0515d6124  /Users/dhseo/Workspace/mediaServer/src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_ready.cpp
+242802993b2a54b91f549d40b97c72621eaaa8f05c4099c4cc151f66f61e040d  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_generation_projection.cpp
+69d9d86825ab0bd9c7b23863899055bba23e59f111a23f782622f8813c952726  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_active.cpp
+a5bb6b72b14f6e6a4ea33646b545d8ce7d491eae1382d6cdc80358451b8f021f  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_journal_generation_readonly_smoke.cpp
+556377841b71a210a906b2d4975e1cc9a652164c6f362388cbb71a439124b8c6  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog_generation_projection.h
+eb64a8253cce7fb7214502b0dd73501945a941b90d467d6cafc1f73fa6d0e08e  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+95ff9073bdd7ddd72c787afb1579c87b8ac4a570fe4d8660c9f293cba1e8d5bd  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_journal_generation_readonly.sh
+B02-J04 PASS nonempty B read-only open
+B02-J04 PASS B path identifies active journal rather than preserved legacy file
+B02-J04 PASS active lease FD CLOEXEC
+B02-J04 PASS exclusive lease rejects second owner
+B02-J05 PASS writes attachment and misleading replay denied
+B02-J05 PASS fork authority rejected
+B02-J04 PASS read-only original bytes preserved
+B02-J04 PASS destructor closes active and lease
+B02-J04 PASS lease released and B reopen
+B02-J04 PASS fixed current/active accepts growing unopened historical descriptor
+B02-J04 PASS fixed current/active accepts growing unopened historical descriptor
+B02-J05 PASS marker
+B02-J05 PASS manifest
+B02-J05 PASS snapshot
+B02-J05 PASS identity
+B02-J05 PASS active
+B02-J05 PASS store
+B02-J05 PASS admission
+B02-J05 PASS symlink
+B02-J05 PASS hardlink
+B02-J06 PASS missing-marker
+B02-J06 PASS missing-manifest
+B02-J06 PASS ordinal
+B02-J05 PASS zero B admission refused without changing v1 defaults
+B02-J05 PASS opened component replacement rejected
+B02-J05 PASS restoring replaced component does not clear poison
+B02-J05 PASS opened component replacement rejected
+B02-J05 PASS restoring replaced component does not clear poison
+B02-J05 PASS opened component replacement rejected
+B02-J05 PASS restoring replaced component does not clear poison
+B02-J06 PASS backend-enabled v1 open append replay
+B02-J06 PASS v1 checkpoint remains available
+B02-J06 PASS v1 reopen unchanged
+B02-J08 PASS historical-identical-retry
+B02-J08 PASS active-identical-retry
+B02-J08 PASS reservation-same-retry-and-gap
+B02-J09 PASS historical-payload-conflict
+B02-J09 PASS historical-time-conflict
+B02-J09 PASS active-payload-conflict
+B02-J09 PASS active-type-conflict
+B02-J09 PASS reservation-timestamp-conflict
+B02-J09 PASS reservation-tuple-conflict
+B02-J09 PASS reservation-retrograde
+B02-J09 PASS reservation-segment-reuse
+B02-J09 PASS reservation-ordinary-id-collision
+B02-J09 PASS reservation-legacy-segment-collision
+B02-J09 PASS reservation-store-conflict
+B02-J09 PASS first-reservation-store-conflict
+B02-J09 PASS ordinary-reservation-id-collision
+B02-J08 PASS event-receipt-compatible
+B02-J08 PASS historical event accepts compatible receipt
+B02-J08 PASS historical receipt accepts original event retry
+B02-J09 PASS receipt-original-digest-conflict
+B02-J08 PASS last uint64 ordinal accepted read-only
+B02-J09 PASS ordinal overflow rejected
+B02-J10 PASS active opaque link reacquires physical row
+B02-J11 PASS ended link rejected with output and lease preserved
+B02-J10 PASS new session does not revive ended link
+B02-J11 PASS old epoch remains invalid
+B02-J11 PASS fork link rejected
+B02-J11 PASS missing ID preserves output link
+B02-J11 PASS same-size active tamper poisons without replacing output
+B02-J10 PASS historical ordinal seven cold acquisition preserves original
+B02-J11 PASS foreign instance rejected without poisoning owner
+B02-J11 PASS historical archive corruption preserves output
+B02-J11 PASS destroyed owner link rejected after reopen
+B02-J06 PASS disabled backend or crypto refuses B
+B02-J06 PASS backend-enabled v1 open append replay
+B02-J06 PASS v1 reopen unchanged
+B02-J06 PASS disabled backend or crypto refuses B
+B02-J06 PASS backend-enabled v1 open append replay
+B02-J06 PASS v1 checkpoint remains available
+B02-J06 PASS v1 reopen unchanged
+[end] 2026-09-25T03:37:56Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.NDiLSH bytes=11590554 removed=true

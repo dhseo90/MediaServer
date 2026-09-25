@@ -24,6 +24,7 @@
 #endif
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 #include "recording/recording_generation_active.h"
+#include "recording/recording_generation_cold_mutation.h"
 #include "recording/recording_catalog_generation_projection.h"
 #endif
 
@@ -598,6 +599,12 @@ struct RecordingJournalRecordLocation {
 };
 // dense_slot만 메모리 vector의 인덱스다. global_ordinal은 영속 논리 좌표이며
 // gap/uint64 경계를 가질 수 있어 인덱스로 사용하지 않는다. v1 생성 시 둘은 동일하다.
+struct RecordingGenerationMutationRef {
+    std::shared_ptr<const char> epoch;
+    bool historical{false};
+    std::size_t slot{0};
+    std::uint64_t ordinal{0};
+};
 struct RecordingJournalGenerationState {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     std::filesystem::path active_path;
@@ -606,7 +613,9 @@ struct RecordingJournalGenerationState {
     RecordingCatalogGenerationProjection projection;
     // snapshot 이후 active를 소비한 Journal 전용 인덱스. Catalog 상태 전이 증명이 아니다.
     OrderHistoryIndex order;
-    std::unordered_map<std::string,std::string> identities;
+    struct Identity { std::string digest; bool historical; std::size_t slot; };
+    std::unordered_map<std::string,Identity> identities;
+    std::shared_ptr<const char> link_epoch;
     std::vector<std::pair<std::string,struct stat>> bindings;
     std::string manifest_bytes;
     struct stat manifest_binding{},active_binding{};
@@ -833,9 +842,11 @@ bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::s
         order.request_times.emplace(entry.order.request_id,entry.occurred_at_ms);
         order.segments.insert(entry.order.segment_id);
     }
-    for(const auto& first:state->chain.first_acceptances) {
+    for(std::size_t i=0;i<state->chain.first_acceptances.size();++i) {
+        const auto& first=state->chain.first_acceptances[i];
         const auto& row=first.first_row;
-        state->identities.emplace(first.mutation_id,MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity));
+        state->identities.emplace(first.mutation_id,RecordingJournalGenerationState::Identity{
+            MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity),true,i});
     }
     const auto cut=state->active.manifest.cut_ordinal;
     for(std::size_t i=0;i<state->active.rows.size();++i) {
@@ -846,13 +857,13 @@ bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::s
         if(digest.empty())return Fail(error,"B active identity digest 실패");
         const auto identity=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,digest);
         const auto previous=state->identities.find(mutation.mutation_id);
-        if(previous!=state->identities.end()&&previous->second!=identity)return Fail(error,"B active mutation ID 충돌");
+        if(previous!=state->identities.end()&&previous->second.digest!=identity)return Fail(error,"B active mutation ID 충돌");
         // 동일 ID 물리 재시도도 기존 v1 IndexRecord와 같이 Consume한다.
         // Receipt는 originalSha256 identity를 유지하므로 원래 event 재시도와 호환된다.
         if(!order.Consume(mutation,error))return false;
         if(!order.bound_store.empty()&&order.bound_store!=state->active.manifest.store_id)
             return Fail(error,"B active reservation store 충돌");
-        state->identities.emplace(mutation.mutation_id,identity);
+        state->identities.emplace(mutation.mutation_id,RecordingJournalGenerationState::Identity{identity,false,i});
     }
     return true;
 }
@@ -1344,7 +1355,72 @@ bool RecordingJournal::MakeMutationLink(const RecordingJournalOwnedViewHandle& v
     result.logical_charge_=sizeof(mutation)+mutation.schema.size()+mutation.mutation_id.size()+mutation.entity_id.size()+mutation.payload_json.size();
     *link=std::move(result);if(error)error->clear();return true;
 }
+bool RecordingJournal::MakeGenerationMutationLink(const std::string& id,RecordingMutationLink* output,std::string* error) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!output||owner_pid_!=::getpid())return Fail(error,"B link output/PID 거부");
+    std::lock_guard lock(mu_);
+    if(!generation_state_||!CheckManagedStateLocked(error))return Fail(error,"B link 세대 권한 거부");
+    auto& state=*generation_state_;
+    const auto found=state.identities.find(id);
+    if(found==state.identities.end())return Fail(error,"B link ID 없음");
+    try {
+        if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
+        auto ref=std::make_shared<RecordingGenerationMutationRef>();
+        ref->epoch=state.link_epoch;ref->historical=found->second.historical;ref->slot=found->second.slot;
+        ref->ordinal=ref->historical?state.chain.first_acceptances.at(ref->slot).first_global_ordinal:
+            state.active.rows.at(ref->slot).global_ordinal;
+        RecordingMutationLink result;result.generation_ref_=std::move(ref);
+        *output=std::move(result);if(error)error->clear();return true;
+    }catch(...){return Fail(error,"B link 자원 실패");}
+#else
+    (void)id;(void)output;return Fail(error,"B link unsupported");
+#endif
+}
+void RecordingJournal::EndGenerationMutationLinks() const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return;
+    std::lock_guard lock(mu_);
+    if(generation_state_)generation_state_->link_epoch.reset();
+#endif
+}
 bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,RecordingMutationHandle* record,std::string* error) const {
+    if(link.generation_ref_) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(!record||owner_pid_!=::getpid())return Fail(error,"B link output/PID 거부");
+        std::lock_guard lock(mu_);
+        if(!generation_state_||!CheckManagedStateLocked(error))return Fail(error,"B link 세대 권한 거부");
+        const auto& state=*generation_state_;const auto& ref=*link.generation_ref_;
+        if(!state.link_epoch||ref.epoch!=state.link_epoch)return Fail(error,"B link 세션/인스턴스 거부");
+        try {
+            RecordingMutationV1 value;
+            if(ref.historical) {
+                if(ref.slot>=state.chain.first_acceptances.size()||
+                   state.chain.first_acceptances[ref.slot].first_global_ordinal!=ref.ordinal)
+                    return Fail(error,"B link 과거 좌표 거부");
+                if(!ReadVerifiedRecordingIdentityMutation(managed_root_,state.active.manifest,
+                    state.chain.first_acceptances[ref.slot],generation_limits_.cold_row_bytes,&value,error)) {
+                    poisoned_=true;return false;
+                }
+            } else {
+                if(ref.slot>=state.active.rows.size()||state.active.rows[ref.slot].global_ordinal!=ref.ordinal)
+                    return Fail(error,"B link active 좌표 거부");
+                const auto& row=state.active.rows[ref.slot];
+                std::string raw(static_cast<std::size_t>(row.length),'\0');
+                if(raw.empty()||!ReadAt(managed_fd_,static_cast<off_t>(row.offset),&raw)||raw.back()!='\n'||
+                   RawHash(raw)!=row.raw_sha256||!ParseRecordingMutationV1(raw.substr(0,raw.size()-1),&value,error)||
+                   (value.physical_json.empty()?SerializeRecordingMutationV1(value):value.physical_json)+"\n"!=raw||
+                   !SameOwnedEnvelope(value,row.mutation)) {
+                    poisoned_=true;return Fail(error,"B link active 원문 손상");
+                }
+            }
+            if(!CheckManagedStateLocked(error))return false;
+            auto result=std::make_shared<const RecordingMutationV1>(std::move(value));
+            *record=std::move(result);if(error)error->clear();return true;
+        }catch(...){return Fail(error,"B link 획득 자원 실패");}
+#else
+        return Fail(error,"B link unsupported");
+#endif
+    }
     if(record)record->reset();if(!record)return Fail(error,"mutation link output 없음");
     if(!link.ref_){if(!link.resident_)return Fail(error,"mutation link 값 없음");*record=link.resident_;if(error)error->clear();return true;}
 #if !defined(_WIN32)

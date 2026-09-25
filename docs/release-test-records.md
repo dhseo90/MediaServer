@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest·세대 파일·identity·snapshot 코덱, 현재 상태 내보내기, active/cold 원문 검사, Journal dense/global 좌표 분리·snapshot domain 임시 투영·B Journal read-only 권위는 각각 집중 검증 PASS. 실제 Catalog B Open/Append/Checkpoint·SQLite 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest·세대 파일·identity·snapshot 코덱, 현재 상태 내보내기, active/cold 원문 검사, Journal dense/global 좌표 분리·snapshot domain 임시 투영·B Journal read-only 권위와 ID/예약 검증·복원 원문 링크는 각각 집중 검증 PASS. 실제 Catalog B Open/Append/Checkpoint·SQLite 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -358,6 +358,15 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | B02-J08 | 활성 ID·예약 결합 | 과거 최초 identity/예약/일반 ID와 active의 같은 ID 재시도·상이한 envelope·예약 tuple·sequence gap/역행/overflow·일반 ID 충돌을 독립 반례로 검사 | v4.1.0 |
 | B02-J09 | 모순 Open 거부·호환 | 실패 전후 v1 원본 byte·B 파일·FD/lease를 대조하고 crypto-off/backend-off·정상 v1 Open/Append/Replay·checkpoint 경로 확인 | v4.1.0 |
 
+### B-02 Journal 복원 원문 참조 구현 전 정의
+
+이번 단위는 Catalog의 후속 임시 복원에 필요한 참조·원문 재취득만 다룬다. 과거 모든 물리 행의 상주 벡터를 만들지 않고, 검증된 최초 identity와 active 행을 구분한다. 읽기 링크의 소유권과 사용 시 파일 검증을 확인하며 Catalog B Open·Append·Replay·SQLite는 여전히 닫는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-J10 | B 복원 원문 참조 | 과거 최초 identity·active 현재 행의 opaque link 발급/취득, dense 위치와 영속 ordinal 분리, cold 사용 시 원문/hash/identity 검증, inactive 상세 정상 Open 비접근 확인 | v4.1.0 |
+| B02-J11 | 수명·손상·호환 | 다른 세션·store·PID·원본 교체/손상과 종료 link 거부, 실패 output 불변·FD/lease 정리, v1·crypto-off 회귀 및 Catalog/쓰기 차단 유지 | v4.1.0 |
+
 ### B-02 Journal B 읽기 권위 집중 검증 결과
 
 2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-last.log)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
@@ -452,6 +461,39 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | v1 Catalog 회귀 격리 root | 바이너리·fixture | 28,671,650B | 실행기 소유권 대조 뒤 제거 | 원출력의 `removed=true` | 위 압축 회귀 원출력 |
 | `/private/tmp/b02-journal-index-*.log` 5개 | 원출력 임시본 | RED 5,043B, GREEN 5,370B, 최종/공개 각 5,488B, v1 회귀 14,660B | byte·SHA 대조 후 저장소 증거로 이관·제거 | 5개 모두 부재 확인 | 위 원출력 링크 |
 | `/private/tmp/b02-journal-index-*-final.log` 4개·초기 inventory 1개·최종 links 재실행 1개 | 정적 검증 원출력 임시본 | 최종 inventory 210,250B, script 874B, links 첫/최종 각 187B, assets 636B, 초기 inventory 210,250B | 최종 4개 저장소 이관 후 중복과 함께 제거 | 6개 모두 부재 확인 | 위 정적 검증 링크·초기/최종 inventory 동일 hash |
+
+
+### B-02 Journal 복원 링크 집중 검증 결과
+
+2026-09-25 최종 소스의 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 실행은 exit 0, 기존 62개와 J10 6개·J11 10개를 합쳐 78/78개 개별 PASS였다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 모두 실행했다. [공개 원출력](release-artifacts/v4.1.0/b02-generation-links-20260925/public.log) SHA-256 `d908e1019e33439f2bef182eeca84c0472bd10509d734c05d11934d48a847b1f`에 시작·종료·source hash·cleanup을 보존했다. 기존 J04~J09 62개 결과 행은 위 두 표에 있고 이번 신규 16개는 다음과 같다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B02-J10 active opaque link reacquires physical row | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `active opaque link reacquires physical row`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 ended link rejected with output and lease preserved | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `ended link rejected with output and lease preserved`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J10 new session does not revive ended link | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `new session does not revive ended link`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 old epoch remains invalid | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `old epoch remains invalid`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 fork link rejected | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `fork link rejected`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 missing ID preserves output link | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `missing ID preserves output link`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 same-size active tamper poisons without replacing output | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `same-size active tamper poisons without replacing output`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J10 reservation | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `reservation`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J10 receipt | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `receipt`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J10 uint64 | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `uint64`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 recording-generation.json | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `recording-generation.json`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 .recording-store-format | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `.recording-store-format`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J10 historical ordinal seven cold acquisition preserves original | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `historical ordinal seven cold acquisition preserves original`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 foreign instance rejected without poisoning owner | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `foreign instance rejected without poisoning owner`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 historical archive corruption preserves output | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `historical archive corruption preserves output`; 구현 전/fixture 실패 이력은 아래 참조 |
+| B02-J11 destroyed owner link rejected after reopen | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `destroyed owner link rejected after reopen`; 구현 전/fixture 실패 이력은 아래 참조 |
+
+구현 전 [예상 RED](release-artifacts/v4.1.0/b02-generation-links-20260925/red.log)는 신규 J10/J11 두 assertion 실패·exit 1이고 기존 검사 경로는 통과했다. 첫 [GREEN](release-artifacts/v4.1.0/b02-generation-links-20260925/green.log)은 exit 0이다. 추가 반례 fixture의 Receipt 필수 필드 누락은 [준비 실패](release-artifacts/v4.1.0/b02-generation-links-20260925/final.log) exit 2로 별도 보존하고 제품 RED/PASS로 계산하지 않는다. 기존 canonical Receipt 형식으로 fixture만 수정한 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/final-fixed.log), cold root를 Journal 소유 root로 바로잡은 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/managed-root.log), 메인 공개 실행 78/78 순으로 확인했다. 제품 [빌드](release-artifacts/v4.1.0/b02-generation-links-20260925/build.log) exit 0, [v1 Catalog 회귀](release-artifacts/v4.1.0/b02-generation-links-20260925/v1-catalog.log.gz) exit 0·[pass] 249행·압축 해제 SHA-256 `60f5d9c739ad26a810f4e7f01e471a3f33448072f0ebe870c80088c63d31c577`, [cold mutation 단위](release-artifacts/v4.1.0/b02-generation-links-20260925/cold.log) exit 0·C01~C04 PASS다. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-generation-links-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-generation-links-20260925/scripts-final.log), `./server.sh verify-docs-links` [문서 328·링크 12,833·오류 0](release-artifacts/v4.1.0/b02-generation-links-20260925/docs-links-final.log), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-generation-links-20260925/docs-assets-final.log), `git diff --check` exit 0이다. 이 링크는 Catalog B Open/Attach·active domain 적용·SQLite·쓰기와 아직 연결되지 않았고, 과거 archive 사용 시 전체 SHA 확인 비용과 RAM 상한 판정은 남는다. token start/end/consumed는 계측 source가 없어 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| Journal 복원 링크 검증 격리 root 6개 | 바이너리·fixture | RED 4,304,630B, 첫 GREEN 11,590,554B, fixture 실패 4,387,018B, 보정 뒤 3회 각 11,603,532B | 실행기 소유권 대조 후 제거 | 각 원출력의 `removed=true` | 위 집중 실행 로그 |
+| v1 Catalog·cold reader 격리 root | 바이너리·fixture | 각각 28,676,954B·2,525,363B | 실행기 소유권 대조 후 제거 | 각 원출력의 `removed=true` | 위 회귀 로그 |
+| `/private/tmp/b02-generation-links-*.log` 13개 | 원출력 임시본 | 집중·빌드·v1·cold 9개 및 최종 정적 검사 4개, 개별 byte 길이 대조 | 저장소 원문/압축 증거와 byte·SHA 대조 후 제거 | 13개 부재 확인 | 위 저장소 증거와 cleanup 확인 |
+| 사전등록 inventory·docs-links 재실행 임시본 2개 | 중복 원출력 | 각각 210,250B·187B | 최종 보존본과 hash/byte 대조 후 제거 | 2개 부재 확인 | 사전등록/최종 inventory 동일 hash 및 마지막 docs-links 원출력 |
 
 
 ### B-02 Journal 참조 좌표 분리 결과

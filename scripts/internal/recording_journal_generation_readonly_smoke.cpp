@@ -14,6 +14,9 @@
 #endif
 namespace recording {
 struct RecordingJournalGenerationReadOnlyProbe {
+    static bool Link(const RecordingJournal& j,const std::string& id,RecordingMutationLink* out){return j.MakeGenerationMutationLink(id,out,nullptr);}
+    static bool Get(const RecordingJournal& j,const RecordingMutationLink& link,RecordingMutationHandle* out){return j.AcquireMutationLink(link,out,nullptr);}
+    static void End(const RecordingJournal& j){j.EndGenerationMutationLinks();}
     static bool Attach(RecordingJournal& j,const std::filesystem::path& root,std::string* error){return j.AttachCatalog(&j,root,root/"recording-catalog.sqlite3",true,error);}
     static bool Append(RecordingJournal& j,const RecordingMutationV1& m,std::string* error){return j.AppendOwned(m,&j,error);}
     static int Active(const RecordingJournal& j){return j.managed_fd_;}
@@ -211,6 +214,66 @@ int main(int argc,char** argv) {
         }
         V1(base/"v1","B02-J06");
         IndexCases(base/"index-cases");
+        {const auto path=base/"links";Fixture(path);RecordingJournal j(Options(path));Need(j.Open(&error));
+            RecordingMutationLink link;RecordingMutationHandle got;
+            Check("B02-J10",RecordingJournalGenerationReadOnlyProbe::Link(j,"active",&link)&&link.IsWeakLink()&&!link.ResidentOwned()&&
+                RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got&&got->mutation_id=="active","active opaque link reacquires physical row");
+            RecordingJournalGenerationReadOnlyProbe::End(j);
+            const auto sentinel=std::make_shared<const RecordingMutationV1>(Mutation());got=sentinel;
+            Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got==sentinel&&j.HasManagedLease(),"ended link rejected with output and lease preserved");
+            RecordingMutationLink fresh;Check("B02-J10",RecordingJournalGenerationReadOnlyProbe::Link(j,"active",&fresh)&&
+                RecordingJournalGenerationReadOnlyProbe::Get(j,fresh,&got),"new session does not revive ended link");
+            got=sentinel;Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got==sentinel,"old epoch remains invalid");
+            const auto pid=::fork();Need(pid>=0);if(pid==0){got=sentinel;::_exit(!RecordingJournalGenerationReadOnlyProbe::Get(j,fresh,&got)&&got==sentinel?0:1);}
+            int status=0;Need(::waitpid(pid,&status,0)==pid);Check("B02-J11",WIFEXITED(status)&&WEXITSTATUS(status)==0,"fork link rejected");
+            RecordingMutationLink unchanged=fresh;Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Link(j,"absent",&unchanged)&&
+                RecordingJournalGenerationReadOnlyProbe::Get(j,unchanged,&got),"missing ID preserves output link");
+            auto raw=Read(path/"active-2.jsonl");raw[raw.find("event")]='x';Write(path/"active-2.jsonl",raw);got=sentinel;
+            Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(j,fresh,&got)&&got==sentinel&&!j.HasManagedLease(),"same-size active tamper poisons without replacing output");
+        }
+        for(const std::string kind:{"reservation","receipt","uint64"}) {
+            const auto path=base/("link-"+kind);Fixture(path);auto m=Mutation();
+            if(kind=="reservation")m=Reservation("request","reserved",4);
+            if(kind=="receipt"){m.mutation_type=RecordingMutationType::EventLinkReceipt;
+                m.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+
+                    Hash(SerializeRecordingMutationV1(Mutation()))+"\"}";}
+            if(kind=="uint64") {
+                RecordingCatalogSnapshot snapshot;Need(ParseRecordingCatalogSnapshot(Read(path/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+                snapshot.cut_ordinal=std::numeric_limits<std::uint64_t>::max();SaveSnapshot(path,snapshot);
+            }
+            ActiveRows(path,{m,m});
+            if(kind=="uint64")ActiveRows(path,{m});
+            const auto original=Original(path);RecordingJournal j(Options(path));Need(j.Open(&error));RecordingMutationLink link;RecordingMutationHandle got;
+            Check("B02-J10",RecordingJournalGenerationReadOnlyProbe::Link(j,m.mutation_id,&link)&&
+                RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got&&SerializeRecordingMutationV1(*got)==SerializeRecordingMutationV1(m)&&Original(path)==original,kind.c_str());
+        }
+        for(const std::string name:{"recording-generation.json",".recording-store-format"}) {
+            const auto path=base/("link-replace-"+name);Fixture(path);RecordingJournal j(Options(path));Need(j.Open(&error));RecordingMutationLink link;
+            Need(RecordingJournalGenerationReadOnlyProbe::Link(j,"active",&link));const auto bytes=Read(path/name);
+            std::filesystem::rename(path/name,path/"saved");Write(path/name,bytes);
+            auto sentinel=std::make_shared<const RecordingMutationV1>(Mutation());RecordingMutationHandle got=sentinel;
+            Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got==sentinel&&!j.HasManagedLease(),name.c_str());
+        }
+        {const auto path=base/"historical-link";Fixture(path);
+            const auto raw=SerializeRecordingMutationV1(Historical(path))+"\n";
+            RecordingIdentityShard shard;Need(ParseRecordingIdentityShard(Read(path/"identity-2.jsonl"),&shard,&error));
+            shard.archives[0].size=raw.size();shard.archives[0].sha256=Hash(raw);Write(path/"evidence-1-0.jsonl",raw);
+            std::string bytes;Need(SerializeRecordingIdentityShard(shard,&bytes,&error));Write(path/"identity-2.jsonl",bytes);
+            RecordingCatalogSnapshot snapshot;Need(ParseRecordingCatalogSnapshot(Read(path/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+            snapshot.identity_head.size=bytes.size();snapshot.identity_head.sha256=Hash(bytes);SaveSnapshot(path,snapshot);
+            const auto original=Original(path);RecordingMutationLink link;RecordingMutationHandle got;
+            {RecordingJournal j(Options(path));Need(j.Open(&error));
+                Check("B02-J10",RecordingJournalGenerationReadOnlyProbe::Link(j,"historical",&link)&&
+                    RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got&&got->mutation_id=="historical"&&Original(path)==original,
+                    "historical ordinal seven cold acquisition preserves original");
+                const auto foreign=base/"foreign-link";Fixture(foreign);RecordingJournal other(Options(foreign));Need(other.Open(&error));
+                const auto sentinel=got;Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(other,link,&got)&&got==sentinel&&other.HasManagedLease(),"foreign instance rejected without poisoning owner");
+                Write(path/"evidence-1-0.jsonl",std::string(raw.size(),'x'));
+                Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(j,link,&got)&&got==sentinel,"historical archive corruption preserves output");
+            }
+            Write(path/"evidence-1-0.jsonl",raw);RecordingJournal reopened(Options(path));Need(reopened.Open(&error));const auto sentinel=got;
+            Check("B02-J11",!RecordingJournalGenerationReadOnlyProbe::Get(reopened,link,&got)&&got==sentinel,"destroyed owner link rejected after reopen");
+        }
 #else
         const auto root=base/"unsupported";std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL
