@@ -1,0 +1,41 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-transaction-docs-links.log",
+    "artifact": "docs-links.log.gz",
+    "command": "./server.sh verify-docs-links",
+    "exit": 0,
+    "bytes": 187,
+    "gzipBytes": 153,
+    "sha256": "597319942e19a51799462c94418f4a21ba6068ad538d94d8c0e7ee7fa3f60c7d",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159560174,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-docs-assets.log",
+    "artifact": "docs-assets.log.gz",
+    "command": "./server.sh verify-docs-ui-assets",
+    "exit": 0,
+    "bytes": 636,
+    "gzipBytes": 327,
+    "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159560175,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-inventory.log",
+    "artifact": "inventory.log.gz",
+    "command": "./server.sh verify-project-inventory",
+    "exit": 0,
+    "bytes": 210250,
+    "gzipBytes": 16478,
+    "sha256": "24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159560198,
+    "originalRemoved": true
+  }
+]

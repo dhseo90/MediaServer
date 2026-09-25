@@ -38,6 +38,7 @@ candidate_sources=(
   "$candidate_repo/src/recording/recording_contracts.cpp"
   "$candidate_repo/src/recording/recording_journal.cpp"
   "$candidate_repo/src/recording/recording_cutover_input.cpp"
+  "$candidate_repo/src/recording/recording_generation_transaction.cpp" "$candidate_repo/src/recording/recording_generation_receipt.cpp"
   "$candidate_repo/src/recording/recording_generation_manifest.cpp" "$candidate_repo/src/recording/recording_generation_files.cpp"
   "$candidate_repo/src/recording/recording_generation_cold_mutation.cpp"
   "$candidate_repo/src/recording/recording_catalog_snapshot.cpp"

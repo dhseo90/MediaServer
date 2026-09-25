@@ -1,0 +1,80 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-transaction-live-cleanup.log",
+    "artifact": "live-cleanup.log.gz",
+    "exit": 0,
+    "bytes": 14413,
+    "gzipBytes": 3039,
+    "sha256": "bd36d05490e719e801103c4d6d5ac913fa32cada98b975547da6b30e56cead03",
+    "uid": 501,
+    "ino": 159548591,
+    "dev": 16777234,
+    "pass": 159,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.sucbba",
+        "bytes": 21960930,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-final.log",
+    "artifact": "before-device-final.log.gz",
+    "exit": 0,
+    "bytes": 14511,
+    "gzipBytes": 3079,
+    "sha256": "d1473bf41eafc26eedf841ede8a6c08217827a1e453882aa4c6b94da7d107293",
+    "uid": 501,
+    "ino": 159550075,
+    "dev": 16777234,
+    "pass": 160,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.ivaasN",
+        "bytes": 21965893,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-checkpoint-regression.log",
+    "artifact": "checkpoint-before-device.log.gz",
+    "exit": 0,
+    "bytes": 14869,
+    "gzipBytes": 3795,
+    "sha256": "f9363d53aca5c37db06a1ae4e6bc558d6645d44a18d7108946badc099fe3a3a0",
+    "uid": 501,
+    "ino": 159551955,
+    "dev": 16777234,
+    "pass": 133,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.J1z9CR",
+        "bytes": 49448952,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-build.log",
+    "artifact": "build-before-device.log.gz",
+    "exit": 0,
+    "bytes": 4807,
+    "gzipBytes": 749,
+    "sha256": "5896165d1d517e0cf626333a8e8d1f032056b128912020cdaccdaf42bff22c95",
+    "uid": 501,
+    "ino": 159550194,
+    "dev": 16777234,
+    "pass": 1,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  }
+]

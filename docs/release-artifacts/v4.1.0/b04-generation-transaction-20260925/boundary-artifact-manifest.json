@@ -1,0 +1,86 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-transaction-boundaries.log",
+    "artifact": "boundaries.log.gz",
+    "exit": 2,
+    "bytes": 8907,
+    "gzipBytes": 2590,
+    "sha256": "b0c01659c1044d7e48203bd80e65092cfdd4371a12fc85c5836205f92c92e7ec",
+    "uid": 501,
+    "ino": 159543656,
+    "dev": 16777234,
+    "pass": 63,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.TU2DFj",
+        "bytes": 21800098,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-checkpoint.log",
+    "artifact": "checkpoint.log.gz",
+    "exit": 1,
+    "bytes": 9681,
+    "gzipBytes": 2669,
+    "sha256": "233cef01365943dccb72b3267230e06c774f6f597970aaf04bdc47386c15e8a2",
+    "uid": 501,
+    "ino": 159544444,
+    "dev": 16777234,
+    "pass": 73,
+    "fail": 3,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.qG3z8Y",
+        "bytes": 21826807,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-stage-owned.log",
+    "artifact": "stage-owned.log.gz",
+    "exit": 1,
+    "bytes": 12733,
+    "gzipBytes": 2958,
+    "sha256": "84f4c9219b4085d00d5a5c3c91f8098b2216ad3df422a03ae0943867a45e1502",
+    "uid": 501,
+    "ino": 159545823,
+    "dev": 16777234,
+    "pass": 125,
+    "fail": 2,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.CSSBsv",
+        "bytes": 21879886,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-phases.log",
+    "artifact": "phases.log.gz",
+    "exit": 0,
+    "bytes": 14262,
+    "gzipBytes": 2976,
+    "sha256": "d28238d06b7a538a8d4c41042a985f428279cd605e52f33732542143e5396040",
+    "uid": 501,
+    "ino": 159547006,
+    "dev": 16777234,
+    "pass": 157,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.Cgodvi",
+        "bytes": 21927895,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  }
+]

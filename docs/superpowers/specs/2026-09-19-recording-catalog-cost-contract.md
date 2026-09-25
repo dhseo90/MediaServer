@@ -214,6 +214,21 @@ digest와 PREPARED/PUBLISH_INTENT를 결박한다. PUBLISH_INTENT는 manifest re
 stage/root는 원본 SHA·domain 검증 뒤 알려진 파일만 정상화하여 기존 단일 root projection을
 다시 대조한다. 원본 최종 결박과 소유 확인 전에는 rollback·정리 완료로 판단하지 않는다.
 
+rollback 정리 중 재중단은 새 B 후보를 게시하는 경로와 구분한다. PREPARED이고 manifest가
+확실히 없으며 원본을 새로 SHA/domain 검증했고 원래 marker inode/nlink1이 복원되어 backup이
+없는 경우에만, declared 준비 파일의 stage/root 양쪽 ENOENT를 이미 정리된 상태로 허용한다.
+남은 파일은 각각 정확 descriptor로 확인한 뒤만 지운다. checkpoint는 정확 predecessor와
+원본 active/domain의 새 검증이 추가로 필요하다. 일부 파일이 없으면 B 후보/게시 검증 PASS로
+대체하지 않는다. stat 오류·다른 inode/hash·추가 hardlink·unknown 파일은 보존·거부한다.
+영수증 정리 뒤 남은 무영수증 stage는 자동 소유 추정으로 지우지 않으며 cleanup 한계를 보고한다.
+
+이는 살아 있는 준비 owner의 실패 정리와 구분한다. 그 호출이 O_EXCL로 생성하고 완전히
+검증한 파일의 inode/길이/SHA 목록을 아직 보유하며 root의 receipt/temp가 확실히 없으면,
+전수 소유 대조와 각 unlink 직전 재결박 뒤 알려진 준비물·빈 stage만 회수할 수 있다.
+낯선 충돌 파일은 보존하고 이전 세대가 그대로임이 확인되면 같은 owner의 재시도를 유지한다.
+부분 쓰기·영수증 temp·알 수 없는 항목·inode/bytes 변경은 정리 완료로 처리하지 않는다.
+이 메모리 권위를 재기동 시 디렉터리 이름만으로 재구성해서는 안 된다.
+
 **제품 연결 전 추가 결정.** 기존 `RecordingJournal`의 물리 벡터 index와 B의 전역 ordinal은
 같은 값으로 취급하지 않는다. 세대 active의 첫 완결 행에 `cutOrdinal`을 부여하고 다음
 완결 행마다 1씩 증가시킨다. 앞 세대의 빈 ordinal은 채우지 않으며 증가 overflow는 쓰기를

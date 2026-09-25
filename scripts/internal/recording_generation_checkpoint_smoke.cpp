@@ -5,8 +5,15 @@
 #if MEDIA_SERVER_USE_SQLITE3
 #include <sqlite3.h>
 #endif
+bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include "recording_generation_checkpoint_sql_cases.inc"
+#include "recording/recording_generation_transaction.h"
+#include "recording/recording_cutover_candidate.h"
 namespace recording {
+struct RecordingGenerationTransactionProbe {
+    static void Hook(void(*hook)(const char*)){RecordingGenerationTransaction::fault_hook_=hook;}
+    static bool Recover(RecordingCatalog& catalog,const RecordingCutoverCandidateLimits& limits,std::string* error){return catalog.RecoverManagedCutover(limits,8U*1024U*1024U,error);}
+};
 struct RecordingGenerationAppendProbe {
     static bool Values(const RecordingCatalog& c,const std::string& store,const RecordingIdentityChainResult& chain,
         std::uint64_t generation,std::uint64_t cut,RecordingCatalogSnapshot* out,std::string* error) {
@@ -22,6 +29,11 @@ struct RecordingGenerationAppendProbe {
         if(kind=="cold")j.generation_limits_.cold_row_bytes=1;
     }
 };
+}
+bool RecoverCheckpointTransaction(const std::filesystem::path& root){
+    RecordingJournal journal(Options(root));RecordingCatalog::Options options(root/"recording-catalog.sqlite3",root,false);options.enable_v2_storage=true;RecordingCatalog catalog(journal,options);
+    RecordingCutoverCandidateLimits limits;limits.chain={8U*1024U*1024U,10000,10000};limits.snapshot_bytes=8U*1024U*1024U;limits.cold_row_bytes=17U*1024U*1024U;
+    return recording::RecordingGenerationTransactionProbe::Recover(catalog,limits,&error);
 }
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 namespace {
@@ -105,7 +117,18 @@ void Rotation(const std::filesystem::path& root) {
 }
 std::filesystem::path hook_root;
 void AlterIdentity(){auto bytes=Read(hook_root/"identity-3.jsonl");bytes[bytes.size()/2]^=1;Write(hook_root/"identity-3.jsonl",bytes);}
-void AlterOwnedSnapshot(){auto bytes=Read(hook_root/"snapshot-3.jsonl");bytes[bytes.size()/2]^=1;Write(hook_root/"snapshot-3.jsonl",bytes);}
+unsigned preparation_count=0;
+std::filesystem::path owned_stage;
+void AlterOwnedSnapshot(const char* point){
+    if(std::string(point)=="component-prepared"&&++preparation_count==2){
+        for(const auto& item:std::filesystem::directory_iterator(hook_root))if(item.path().filename().string().rfind(".recording-generation-prepare-",0)==0)owned_stage=item.path();
+        throw std::runtime_error("fixture stops owned preparation");
+    }
+    if(std::string(point)=="unprepared-before-unlink"){
+        RecordingGenerationTransactionProbe::Hook(nullptr);
+        auto bytes=Read(owned_stage/"identity-3.jsonl");bytes[bytes.size()/2]^=1;Write(owned_stage/"identity-3.jsonl",bytes);
+    }
+}
 void Failures(const std::filesystem::path& base) {
     for(const std::string collision:{"active-3.jsonl",".recording-generation.stage"}) {
         const auto root=base/(collision=="active-3.jsonl"?"active-collision":"stage-collision");Actual(root);
@@ -119,11 +142,12 @@ void Failures(const std::filesystem::path& base) {
     {
         const auto root=base/"cleanup-changed";Actual(root);RecordingJournal j(Options(root));Need(j.Open(&error));
         RecordingCatalog c(j,CO(root));Need(c.Open(&error));Need(c.MarkSegmentCorrupt("segment","missing-media",&error));
-        const auto before=Read(root/"recording-generation.json");Write(root/"active-3.jsonl","foreign-collision");
-        hook_root=root;RecordingGenerationAppendProbe::CleanupHook(AlterOwnedSnapshot);
-        Check("B03-C03",!c.Checkpoint(&error)&&!j.HasManagedLease()&&std::filesystem::exists(root/"snapshot-3.jsonl")&&
-            Read(root/"active-3.jsonl")=="foreign-collision"&&Read(root/"recording-generation.json")==before,
-            "same-inode same-size change after cleanup read preserves suspect snapshot and poisons owner");
+        const auto before=Read(root/"recording-generation.json");
+        hook_root=root;preparation_count=0;RecordingGenerationTransactionProbe::Hook(AlterOwnedSnapshot);
+        Check("B03-C03",!c.Checkpoint(&error)&&!j.HasManagedLease()&&std::filesystem::exists(owned_stage/"snapshot-3.jsonl")&&
+            std::filesystem::exists(owned_stage/"identity-3.jsonl")&&Read(root/"recording-generation.json")==before,
+            "same-inode same-size change after live cleanup read preserves owned stage and poisons owner");
+        RecordingGenerationTransactionProbe::Hook(nullptr);
     }
     for(bool uncertain:{false,true}) {
         const auto root=base/(uncertain?"uncertain":"identity-change");Actual(root);std::string previous;

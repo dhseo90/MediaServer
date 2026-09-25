@@ -26,6 +26,7 @@ task_sources=(
  src/recording/recording_file_evidence.cpp src/recording/recording_media_inspector.cpp
  src/domain/strict_json.cpp src/recording/recording_contracts.cpp src/recording/recording_journal.cpp
  src/recording/recording_cutover_input.cpp
+ src/recording/recording_generation_transaction.cpp src/recording/recording_generation_receipt.cpp
  src/recording/recording_generation_manifest.cpp src/recording/recording_generation_cold_mutation.cpp src/recording/recording_generation_files.cpp
  src/recording/recording_catalog_snapshot.cpp src/recording/recording_order_history_snapshot.cpp
  src/recording/recording_identity_shard.cpp src/recording/recording_derived_selection.cpp

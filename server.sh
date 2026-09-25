@@ -3182,6 +3182,10 @@ case "${cmd}" in
     require_internal verify_recording_cutover_candidate.sh
     exec bash "${INTERNAL_DIR}/verify_recording_cutover_candidate.sh" "$@"
     ;;
+  verify-v410-recording-generation-transaction)
+    require_internal verify_recording_generation_transaction.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_transaction.sh" "$@"
+    ;;
   verify-v410-recording-order-snapshot)
     require_internal verify_recording_order_history_snapshot.sh
     exec bash "${INTERNAL_DIR}/verify_recording_order_history_snapshot.sh" "$@"

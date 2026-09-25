@@ -30,6 +30,7 @@ session_sources=(
   "$session_repo/src/recording/recording_contracts.cpp"
   "$session_repo/src/recording/recording_journal.cpp"
   "$session_repo/src/recording/recording_cutover_input.cpp"
+  "$session_repo/src/recording/recording_generation_transaction.cpp" "$session_repo/src/recording/recording_generation_receipt.cpp"
   "$session_repo/src/recording/recording_generation_manifest.cpp" "$session_repo/src/recording/recording_generation_files.cpp"
   "$session_repo/src/recording/recording_generation_cold_mutation.cpp"
   "$session_repo/src/recording/recording_catalog_snapshot.cpp"

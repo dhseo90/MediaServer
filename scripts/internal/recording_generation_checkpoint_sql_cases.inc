@@ -87,6 +87,10 @@ void One(const std::filesystem::path& root,bool commit_fault) {
             "poisoned authority refuses further checkpoint or write without changing durable bytes");
         if(commit_fault)db.Exec("ROLLBACK");else db.Exec("DROP TRIGGER owned_reject_generation");
     }
+    const bool recovered=RecoverCheckpointTransaction(root);
+    Check("B03-C03",recovered&&!std::filesystem::exists(root/".recording-generation-transaction.json"),
+        "fresh read-only transaction recovery cleans receipt before writable SQL reopen");
+    Need(recovered);
     {
         RecordingJournal journal(Options(root));Need(journal.Open(&error));
         RecordingCatalog catalog(journal,Writable(root));Need(catalog.Open(&error));

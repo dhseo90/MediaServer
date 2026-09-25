@@ -1,0 +1,187 @@
+[
+  {
+    "source": "/private/tmp/b04-generation-transaction-device-final.log",
+    "artifact": "device-final.log.gz",
+    "command": "bash scripts/internal/verify_recording_generation_transaction.sh",
+    "exit": 0,
+    "bytes": 14752,
+    "gzipBytes": 3141,
+    "sha256": "b400a7936c5fdb7b555e0565097803429069e2e3e0ce7eae1c92033e873d5cca",
+    "uid": 501,
+    "ino": 159553376,
+    "dev": 16777234,
+    "pass": 165,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.jQBaJJ",
+        "bytes": 21977646,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-build-final.log",
+    "artifact": "build-final.log.gz",
+    "command": "./server.sh build",
+    "exit": 0,
+    "bytes": 591,
+    "gzipBytes": 302,
+    "sha256": "2309e0ea1a52b32ab5a8c549c026bdd51e94c7c6e038e283957c04e0052ed82a",
+    "uid": 501,
+    "ino": 159553591,
+    "dev": 16777234,
+    "pass": 1,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-cutover_candidate-regression.log",
+    "artifact": "cutover_candidate-regression.log.gz",
+    "exit": 0,
+    "bytes": 9313,
+    "gzipBytes": 2895,
+    "sha256": "e3b85923df6fede0013f519a0daaf5a8a97f0a8ac211c6b1160a915b4de5e914",
+    "uid": 501,
+    "ino": 159555139,
+    "dev": 16777234,
+    "pass": 68,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.BY94Dg",
+        "bytes": 49280160,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-cutover_session-regression.log",
+    "artifact": "cutover_session-regression.log.gz",
+    "exit": 0,
+    "bytes": 5969,
+    "gzipBytes": 2119,
+    "sha256": "b157347094be1c364e46f46b6f022b4f906ec2d280b02e07ecaae1c71a5cb06a",
+    "uid": 501,
+    "ino": 159555756,
+    "dev": 16777234,
+    "pass": 46,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.CapaLk",
+        "bytes": 12307270,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-catalog_generation_readonly-regression.log",
+    "artifact": "catalog_generation_readonly-regression.log.gz",
+    "exit": 0,
+    "bytes": 11129,
+    "gzipBytes": 2830,
+    "sha256": "b3c1b71e8a19c1af6e1f3cfbe77acded5ccb317cfaf3b88954db089a35bffd3e",
+    "uid": 501,
+    "ino": 159556012,
+    "dev": 16777234,
+    "pass": 106,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.t7ujtp",
+        "bytes": 32884009,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-generation_append-regression.log",
+    "artifact": "generation_append-regression.log.gz",
+    "exit": 0,
+    "bytes": 18554,
+    "gzipBytes": 4137,
+    "sha256": "c12658910a9a82c6fd45d8c050c55b42c11c3b9ac8c3e4b48d6779083abf157c",
+    "uid": 501,
+    "ino": 159556678,
+    "dev": 16777234,
+    "pass": 219,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.La22Qs",
+        "bytes": 35437542,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-generation_preappend-regression.log",
+    "artifact": "generation_preappend-regression.log.gz",
+    "exit": 0,
+    "bytes": 33618,
+    "gzipBytes": 3635,
+    "sha256": "45773662bf100a09da55f4fc042af823d788159ae0ec1c00d713e3723dcfd350",
+    "uid": 501,
+    "ino": 159558243,
+    "dev": 16777234,
+    "pass": 510,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.QUdJY9",
+        "bytes": 35009200,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-journal-regression.log",
+    "artifact": "journal-regression.log.gz",
+    "exit": 0,
+    "bytes": 6832,
+    "gzipBytes": 2344,
+    "sha256": "ec3619dfc6dd7905a43709016e017e57aaa30ba2a37c75955621f5eab656ac49",
+    "uid": 501,
+    "ino": 159557218,
+    "dev": 16777234,
+    "pass": 78,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.gGGCAo",
+        "bytes": 12443500,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-generation-transaction-catalog-regression.log",
+    "artifact": "catalog-regression.log.gz",
+    "exit": 0,
+    "bytes": 14660,
+    "gzipBytes": 3729,
+    "sha256": "3eedeae44773ad5ddbbc21ac6f41cbcfcd0e43c754e8d0867e6bec4d5ce68d43",
+    "uid": 501,
+    "ino": 159558318,
+    "dev": 16777234,
+    "pass": 249,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/tmp/media_server_v410_recording_catalog-15045",
+        "bytes": 28885458,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  }
+]

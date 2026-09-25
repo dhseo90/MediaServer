@@ -29,6 +29,7 @@
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_generation_files.h"
 #include "recording/recording_cutover_input.h"
+#include "recording/recording_generation_transaction.h"
 #endif
 
 #ifndef MEDIA_SERVER_USE_OPENSSL
@@ -837,6 +838,11 @@ bool ValidateRecordingOrderHistory(const std::vector<RecordingMutationV1>& mutat
     *orders=std::move(found); if (error) error->clear(); return true;
 }
 
+struct RecordingJournal::ManagedCutoverRecoveryState {
+#if !defined(_WIN32)
+    struct stat marker{},receipt{};
+#endif
+};
 RecordingJournal::RecordingJournal(std::filesystem::path path) : path_(std::move(path)) {}
 RecordingJournal::RecordingJournal(ManagedOptions options)
     : generation_limits_(options.generation_limits),managed_(true),managed_root_(std::move(options.root)),managed_store_id_(std::move(options.store_id)),
@@ -1077,11 +1083,39 @@ std::string RecordingJournal::ManagedStoreId() const {
     std::lock_guard lock(mu_);
     return managed_&&opened_&&ManagedBindingLocked()?managed_store_id_:std::string{};
 }
+bool RecordingJournal::ManagedTransactionPendingLocked() const {
+#if !defined(_WIN32)
+    if(!managed_)return false;
+    OwnedFd root(OpenParent(io_path_,false));
+    return root.value<0||Present(root.value,".recording-generation-transaction.json")||Present(root.value,".recording-generation-transaction.stage");
+#else
+    return managed_;
+#endif
+}
 bool RecordingJournal::ManagedBindingLocked() const {
 #if !defined(_WIN32)
     if(generation_state_)return GenerationBindingLocked();
     if(!opened_||owner_pid_!=::getpid()||managed_fd_<0||lease_fd_<0)return false;
     OwnedFd parent(OpenParent(io_path_,false));struct stat p{},j{},l{},m{},b{};
+    if(cutover_recovery_){
+        // 검증된 private recovery owner만 marker/receipt의 고정 inode를 읽는다.
+        // 일반 v1 nlink=1/정확 marker 계약은 아래 분기에 그대로 남는다.
+        struct stat r{};const auto& state=*cutover_recovery_;
+        const auto equal=[](const struct stat& a,const struct stat& expected){
+            if(!S_ISREG(a.st_mode)||a.st_dev!=expected.st_dev||a.st_ino!=expected.st_ino||a.st_size!=expected.st_size||a.st_nlink!=expected.st_nlink)return false;
+#if defined(__APPLE__)
+            return a.st_mtimespec.tv_sec==expected.st_mtimespec.tv_sec&&a.st_mtimespec.tv_nsec==expected.st_mtimespec.tv_nsec&&a.st_ctimespec.tv_sec==expected.st_ctimespec.tv_sec&&a.st_ctimespec.tv_nsec==expected.st_ctimespec.tv_nsec;
+#else
+            return a.st_mtim.tv_sec==expected.st_mtim.tv_sec&&a.st_mtim.tv_nsec==expected.st_mtim.tv_nsec&&a.st_ctim.tv_sec==expected.st_ctim.tv_sec&&a.st_ctim.tv_nsec==expected.st_ctim.tv_nsec;
+#endif
+        };
+        return parent.value>=0&&!Present(parent.value,kGenerationManifest)&&::fstat(parent.value,&p)==0&&static_cast<std::uint64_t>(p.st_dev)==parent_device_&&p.st_ino==parent_inode_&&
+            Regular(managed_fd_,&j)&&static_cast<std::uint64_t>(j.st_dev)==device_&&j.st_ino==inode_&&Same(parent.value,kManagedJournal,managed_fd_,j)&&
+            Regular(lease_fd_,&l)&&static_cast<std::uint64_t>(l.st_dev)==parent_device_&&l.st_ino==lease_inode_&&Same(parent.value,kManagedLease,lease_fd_,l)&&
+            ::fstatat(parent.value,kManagedFormat,&m,AT_SYMLINK_NOFOLLOW)==0&&equal(m,state.marker)&&
+            ::fstatat(parent.value,".recording-generation-transaction.json",&r,AT_SYMLINK_NOFOLLOW)==0&&equal(r,state.receipt)&&
+            ::fstatat(parent.value,kLegacyBarrier,&b,AT_SYMLINK_NOFOLLOW)==0&&S_ISDIR(b.st_mode)&&static_cast<std::uint64_t>(b.st_dev)==parent_device_&&b.st_ino==barrier_inode_;
+    }
     if(parent.value<0||Present(parent.value,kGenerationManifest)||
        ::fstat(parent.value,&p)!=0||static_cast<std::uint64_t>(p.st_dev)!=parent_device_||p.st_ino!=parent_inode_||
        !Regular(managed_fd_,&j)||static_cast<std::uint64_t>(j.st_dev)!=device_||j.st_ino!=inode_||!Same(parent.value,kManagedJournal,managed_fd_,j)||
@@ -1098,11 +1132,14 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
 #if !defined(_WIN32)
     if(opened_)return CheckManagedStateLocked(error);
     if(managed_root_.empty()||(!managed_store_id_.empty()&&!ValidateOpaqueId(managed_store_id_,error))||!SafePath(path_,&io_path_))return Fail(error,"managed root/store ID 거부");
+    managed_root_=io_path_.parent_path();
     OwnedFd parent(OpenParent(io_path_,true));struct stat p{};
     if(parent.value<0||::fstat(parent.value,&p)!=0)return Fail(error,"managed root 열기 실패");
     std::string generation_store;
     if(ReadManagedStoreId(parent.value,kManagedFormat,&generation_store,true))
         return OpenGenerationReadOnlyLocked(generation_store,error);
+    if(Present(parent.value,".recording-generation-transaction.json"))
+        return Fail(error,"managed transaction recovery required");
     // B manifest의 유효성 판단은 B backend 책임이다. v1은 존재/조회 불확실만으로 거부한다.
     if(Present(parent.value,kGenerationManifest))return Fail(error,"generation manifest 존재: v1 fallback 거부");
     const bool committed=Present(parent.value,kManagedFormat);
@@ -1189,7 +1226,7 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
 #endif
     std::lock_guard lock(mu_);
     if (!opened_ || result == nullptr) return Fail(error, "recording order 시작 조건 불충족");
-    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: reserve 거부");
+    if(cutover_input_frozen_||cutover_recovery_||cutover_owner_retired_||ManagedTransactionPendingLocked())return Fail(error,"cutover input freeze/recovery: reserve 거부");
     if(generation_state_)return Fail(error,"B read-only 예약 미지원");
     if(managed_&&(!CheckManagedStateLocked(error)||store_id!=managed_store_id_))return Fail(error,"managed store/lease 불일치");
     if(managed_&&managed_state_->checkpoint_pending)return Fail(error,"checkpoint 복구 선행 필요");
@@ -1291,7 +1328,7 @@ bool RecordingJournal::Open(std::string* error) {
     if(managed_&&owner_pid_!=0&&owner_pid_!=::getpid())return Fail(error,"managed fork 사용 거부");
 #endif
     std::lock_guard lock(mu_);
-    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: reopen 거부");
+    if(cutover_input_frozen_||cutover_recovery_||cutover_owner_retired_)return Fail(error,"cutover input freeze/recovery: reopen 거부");
     if(managed_)return OpenManagedLocked(error);
 #if !defined(_WIN32)
     if (!SafePath(path_, &io_path_)) return Fail(error, "journal path 거부");
@@ -1902,7 +1939,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
     std::lock_guard lock(mu_);
-    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: checkpoint 거부");
+    if(cutover_input_frozen_||cutover_recovery_||cutover_owner_retired_||ManagedTransactionPendingLocked())return Fail(error,"cutover input freeze/recovery: checkpoint 거부");
     if(!managed_||!owner||owner!=catalog_owner_||!CheckManagedStateLocked(error))return Fail(error,"checkpoint 소유권 거부");
 #if !defined(_WIN32)
     OwnedFd parent(OpenParent(io_path_,false));constexpr const char* temporary=".recording-checkpoint.tmp";
@@ -2014,6 +2051,93 @@ bool RecordingJournal::OwnsCatalog(const void* owner) const {
     if(owner_pid_!=::getpid())return false;
 #endif
     std::lock_guard lock(mu_);return owner&&catalog_owner_==owner&&CheckManagedStateLocked(nullptr);
+}
+bool RecordingJournal::ManagedCutoverRoot(std::filesystem::path* output,std::string* error) const {
+#if !defined(_WIN32)
+    std::lock_guard lock(mu_);std::filesystem::path canonical;
+    if(!output||!managed_||!SafePath(path_,&canonical))return Fail(error,"cutover managed root rejected");
+    *output=canonical.parent_path();return true;
+#else
+    (void)output;return Fail(error,"cutover managed root unsupported");
+#endif
+}
+bool RecordingJournal::BeginManagedCutoverRecovery(const void* owner,RecordingGenerationTransaction& transaction,
+    const std::filesystem::path& media,const std::filesystem::path& sqlite,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::lock_guard lock(mu_);
+    if(!owner||!managed_||opened_||cutover_owner_retired_||catalog_owner_||!SafePath(path_,&io_path_))return Fail(error,"cutover recovery owner state rejected");
+    std::filesystem::path canonical_media,canonical_sqlite;
+    if(!SafePath(media,&canonical_media)||!SafePath(sqlite,&canonical_sqlite)||canonical_media!=io_path_.parent_path()||canonical_sqlite!=io_path_.parent_path()/"recording-catalog.sqlite3")return Fail(error,"cutover recovery catalog paths rejected");
+    const auto& receipt=transaction.Receipt();
+    if(receipt.operation!=RecordingGenerationOperation::Cutover||!transaction.ValidateRecoveryOriginal(error))return false;
+    OwnedFd root(OpenParent(io_path_,false));struct stat r{},l{},j{},b{};
+    if(root.value<0||::fstat(root.value,&r)!=0||static_cast<std::uint64_t>(r.st_dev)!=receipt.root_device||static_cast<std::uint64_t>(r.st_ino)!=receipt.root_inode||Present(root.value,".recording-checkpoint.tmp")||Present(root.value,kManagedInit))return Fail(error,"cutover recovery root/pending rejected");
+    OwnedFd lease(::openat(root.value,kManagedLease,O_RDWR|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+    OwnedFd source(::openat(root.value,kManagedJournal,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+    if(lease.value<0||!Regular(lease.value,&l)||l.st_dev!=r.st_dev||l.st_size||!Lock(lease.value,LOCK_EX|LOCK_NB)||!Same(root.value,kManagedLease,lease.value,l)||
+       source.value<0||!Regular(source.value,&j)||!Lock(source.value,LOCK_EX|LOCK_NB)||!Same(root.value,kManagedJournal,source.value,j)||
+       static_cast<std::uint64_t>(j.st_dev)!=receipt.source.device||static_cast<std::uint64_t>(j.st_ino)!=receipt.source.inode||
+       static_cast<std::uint64_t>(j.st_size)!=receipt.source.file.size||!transaction.ValidateRecoveryOriginal(error))return Fail(error,"cutover recovery lease/source rejected");
+    OwnedFd barrier(::openat(root.value,kLegacyBarrier,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    if(barrier.value<0||::fstat(barrier.value,&b)!=0||b.st_dev!=r.st_dev||!EmptyDirectory(barrier.value))return Fail(error,"cutover recovery barrier rejected");
+    auto recovery=std::make_shared<ManagedCutoverRecoveryState>();
+    if(::fstatat(root.value,kManagedFormat,&recovery->marker,AT_SYMLINK_NOFOLLOW)!=0||::fstatat(root.value,".recording-generation-transaction.json",&recovery->receipt,AT_SYMLINK_NOFOLLOW)!=0)return Fail(error,"cutover recovery marker/receipt stat failed");
+    if(!managed_store_id_.empty()&&managed_store_id_!=receipt.target.store_id)return Fail(error,"cutover recovery store mismatch");
+    managed_store_id_=receipt.target.store_id;catalog_attachment_=std::make_shared<const char>(0);
+    managed_fd_=source.value;source.value=-1;lease_fd_=lease.value;lease.value=-1;
+    owner_pid_=::getpid();parent_device_=r.st_dev;parent_inode_=r.st_ino;device_=j.st_dev;inode_=j.st_ino;
+    lease_inode_=l.st_ino;barrier_inode_=b.st_ino;marker_inode_=recovery->marker.st_ino;
+    cutover_recovery_=std::move(recovery);catalog_owner_=owner;opened_=true;poisoned_=false;
+    if(!LoadManagedStateLocked(error)||!CheckManagedStateLocked(error)){
+        ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;poisoned_=true;cutover_owner_retired_=true;
+        catalog_owner_=nullptr;catalog_attachment_.reset();cutover_recovery_.reset();managed_state_.reset();return false;
+    }
+    if(error)error->clear();return true;
+#else
+    (void)owner;(void)transaction;(void)media;(void)sqlite;return Fail(error,"cutover recovery unsupported");
+#endif
+}
+void RecordingJournal::EndManagedCutoverRecovery(){
+#if !defined(_WIN32)
+    std::lock_guard lock(mu_);if(!cutover_recovery_)return;
+    if(managed_fd_>=0)::close(managed_fd_);if(lease_fd_>=0)::close(lease_fd_);
+    managed_fd_=lease_fd_=-1;opened_=false;poisoned_=true;cutover_owner_retired_=true;
+    catalog_owner_=nullptr;catalog_attachment_.reset();cutover_recovery_.reset();managed_state_.reset();
+#endif
+}
+bool RecordingJournal::PublishManagedCutover(const void* owner,const RecordingCutoverInputSummary& source,
+    RecordingGenerationTransaction& transaction,const RecordingGenerationReceipt& receipt,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"cutover publication PID rejected");
+    std::lock_guard lock(mu_);
+    if(!owner||owner!=catalog_owner_||!catalog_attachment_||!managed_||!opened_||generation_state_||
+       !managed_state_||managed_state_->checkpoint_pending||cutover_input_frozen_||transaction.consumed_||
+       !CheckManagedStateLocked(error))return Fail(error,"cutover publication owner rejected");
+    transaction.consumed_=true;cutover_input_frozen_=true;
+    struct Thaw {bool& value;~Thaw(){value=false;}} thaw{cutover_input_frozen_};
+    try {
+        RecordingGenerationOwnedFile current;
+        if(!transaction.Describe(false,kManagedJournal,&current,error)||current.device!=device_||current.inode!=inode_||
+           current.file.size!=source.source_bytes||current.file.sha256!=source.sha256||
+           current.file.size!=receipt.source.file.size||current.file.sha256!=receipt.source.file.sha256||
+           current.device!=receipt.source.device||current.inode!=receipt.source.inode||
+           receipt.root_device!=parent_device_||receipt.root_inode!=parent_inode_||receipt.marker.inode!=marker_inode_||
+           receipt.target.store_id!=managed_store_id_||source.rows!=managed_state_->refs.size()||
+           receipt.operation!=RecordingGenerationOperation::Cutover||!CheckManagedStateLocked(error))
+            return Fail(error,"cutover original/proof changed");
+        // 영속 전이 시작 뒤의 실패도 기존 owner 재사용을 허용하지 않는다.
+        poisoned_=true;
+        if(!transaction.Prepare(receipt,error)||!transaction.Promote(error)||!transaction.ReplaceMarker(error)||
+           !transaction.PublishIntent(error)||!transaction.Revalidate(error))return false;
+        transaction.FaultPoint("intent-durable");
+        const auto published=PublishRecordingGenerationManifest(io_path_.parent_path(),receipt.target,error);
+        if(published!=RecordingGenerationPublishResult::Published)return false;
+        transaction.FaultPoint("manifest-published");
+        return transaction.Cleanup(true,error);
+    }catch(...){poisoned_=true;return Fail(error,"cutover publication exception; reopen required");}
+#else
+    (void)owner;(void)source;(void)transaction;(void)receipt;return Fail(error,"cutover publication unsupported");
+#endif
 }
 bool RecordingJournal::VisitManagedCutoverInput(const void* owner,
     const std::function<bool(const RecordingCutoverInputRow&,const RecordingJournalOwnedViewHandle&,std::string*)>& visitor,
@@ -2177,7 +2301,7 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(owner_pid_!=::getpid()||!output)return Fail(error,"B checkpoint PID/output 거부");
     std::lock_guard lock(mu_);
-    if(!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||!CheckManagedStateLocked(error))return false;
+    if(!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error))return false;
     auto& current=*generation_state_;
     try {
         if(current.active.rows.empty()){output->reset();if(error)error->clear();return true;}
@@ -2251,40 +2375,13 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
     RecordingGenerationPreparation files;
     RecordingGenerationPublication authority;
     std::string bytes;
-    // 게시되지 않은 소유 준비물만 회수한다. 충돌 파일 및 게시 불확실 파일은 손대지 않는다.
+    RecordingGenerationTransaction transaction;
+    bool transaction_prepared=false;
+    // 재기동의 무영수증 stage는 보존한다. 현재 owner만 메모리 생성 목록을
+    // 재검증해 회수하며, PUBLISH_INTENT 뒤에는 자동 rollback하지 않는다.
     const auto cleanup=[&]() noexcept {
-        try {
-            if(!CheckManagedStateLocked(nullptr))return false;
-            OwnedFd root(OpenParent(current.active_path,false));
-            if(root.value<0)return false;
-            const auto remove_owned=[&](const std::string& name,std::uint64_t device,std::uint64_t inode,std::string_view intended) {
-                OwnedFd fd(::openat(root.value,name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat status{};
-                if(fd.value<0||!Regular(fd.value,&status)||static_cast<std::uint64_t>(status.st_dev)!=device||status.st_ino!=inode||
-                   status.st_size<0||static_cast<std::uint64_t>(status.st_size)>intended.size())return false;
-                char block[65536];std::uint64_t offset=0;
-                while(offset<static_cast<std::uint64_t>(status.st_size)) {
-                    const auto length=std::min<std::uint64_t>(sizeof(block),status.st_size-offset);ssize_t n;
-                    do { n=::pread(fd.value,block,length,offset); } while(n<0&&errno==EINTR);
-                    if(n<=0||intended.substr(offset,n)!=std::string_view(block,n))return false;
-                    offset+=n;
-                }
-                // hash 충돌에 의존하지 않는 실제 예정 bytes/prefix 대조와 마지막 inode 결박.
-#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
-                const auto hook=generation_cleanup_before_unlink_;generation_cleanup_before_unlink_=nullptr;if(hook)hook();
-#endif
-                struct stat after{};
-                return Regular(fd.value,&after)&&GenerationStatSame(status,after)&&Same(root.value,name,fd.value,status)&&
-                    CheckManagedStateLocked(nullptr)&&::unlinkat(root.value,name.c_str(),0)==0;
-            };
-            bool ok=true;
-            if(authority.stage_inode)ok=remove_owned(".recording-generation.stage",authority.stage_device,authority.stage_inode,bytes)&&ok;
-            for(const auto& file:files.files)if(file.created) {
-                const std::string_view intended=file.name=="snapshot-"+std::to_string(plan->generation)+".jsonl"?std::string_view(snapshot):std::string_view{};
-                ok=remove_owned(file.name,file.device,file.inode,intended)&&ok;
-            }
-            if(identity.created)ok=remove_owned(identity.name,identity.device,identity.inode,pending.identity_bytes)&&ok;
-            return ::fsync(root.value)==0&&ok;
-        }catch(...){return false;}
+        try {return transaction_prepared?transaction.Cleanup(false,nullptr):transaction.CleanupUnprepared(nullptr);}
+        catch(...){return false;}
     };
     bool success=false;
     try {
@@ -2292,10 +2389,48 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         if(!CheckManagedStateLocked(error)||pending.epoch!=current.recovery_epoch||pending.predecessor!=current.manifest_bytes||
            !GenerationStatSame(pending.active_binding,current.active_binding)||snapshot.size()>generation_limits_.snapshot_bytes||
            !SafeGenerationCacheFiles(managed_root_,error))return Fail(error,"B checkpoint plan/current 결박 실패");
-        if(!PrepareRecordingGenerationIdentityFile(managed_root_,plan->generation,pending.identity_bytes,&identity,error))return false;
-        if(!PrepareRecordingGenerationFiles(managed_root_,managed_store_id_,plan->generation,plan->cut,snapshot,{},&files,error))return false;
+        const auto canonical_root=current.active_path.parent_path();
+        OwnedFd preflight_root(OpenParent(current.active_path,false));
+        struct stat collision{};
+        for(const auto& name:{"active-"+std::to_string(plan->generation)+".jsonl",std::string(".recording-generation.stage")}){
+            if(preflight_root.value<0||::fstatat(preflight_root.value,name.c_str(),&collision,AT_SYMLINK_NOFOLLOW)==0||errno!=ENOENT)return Fail(error,"B checkpoint preparation collision preserved");
+        }
+        if(!transaction.Create(canonical_root,error))return false;
+        RecordingGenerationOwnedFile staged_identity,staged_snapshot,staged_active;
+        if(!transaction.WriteComponent("identity-"+std::to_string(plan->generation)+".jsonl",pending.identity_bytes,&staged_identity,error)||
+           !transaction.WriteComponent("snapshot-"+std::to_string(plan->generation)+".jsonl",snapshot,&staged_snapshot,error)||
+           !transaction.WriteComponent("active-"+std::to_string(plan->generation)+".jsonl","",&staged_active,error))return false;
+        identity={staged_identity.file.name,true,true,staged_identity.device,staged_identity.inode,staged_identity.file.size};
+        files.manifest.store_id=managed_store_id_;files.manifest.generation=plan->generation;files.manifest.cut_ordinal=plan->cut;
+        files.manifest.snapshot=staged_snapshot.file;files.manifest.active=staged_active.file;
+        for(const auto* file:{&staged_snapshot,&staged_active})files.files.push_back({file->file.name,true,true,file->device,file->inode,file->file.size});
+        RecordingGenerationReceipt receipt;receipt.operation=RecordingGenerationOperation::Checkpoint;
+        receipt.predecessor=current.active.manifest;receipt.target=files.manifest;
+        struct stat r{},stage{};
+        OwnedFd receipt_root(OpenParent(current.active_path,false));
+        if(receipt_root.value<0||::fstat(receipt_root.value,&r)!=0||::lstat(transaction.StagePath().c_str(),&stage)!=0)return Fail(error,"B transaction stage stat failed");
+        receipt.root_device=r.st_dev;receipt.root_inode=r.st_ino;receipt.stage_device=stage.st_dev;receipt.stage_inode=stage.st_ino;
+        receipt.stage_name=transaction.StagePath().filename().string();
+        RecordingGenerationOwnedFile predecessor,created;
+        if(!transaction.Describe(false,kManagedFormat,&receipt.marker,error)||
+           !transaction.Describe(false,current.active.manifest.active.name,&receipt.source,error)||
+           !transaction.Describe(false,kGenerationManifest,&predecessor,error))return false;
+        receipt.predecessor_file=predecessor;
+        if(!transaction.Describe(true,identity.name,&created,error)||created.device!=identity.device||created.inode!=identity.inode||
+           created.file.sha256!=plan->chain.head.sha256)return Fail(error,"B transaction identity ownership changed");
+        receipt.created.push_back(created);
+        for(const auto& file:files.files){
+            if(!transaction.Describe(true,file.name,&created,error)||created.device!=file.device||created.inode!=file.inode||created.file.size!=file.size)return Fail(error,"B transaction file ownership changed");
+            const auto& expected=file.name==files.manifest.snapshot.name?files.manifest.snapshot:files.manifest.active;
+            if(created.file.sha256!=expected.sha256)return Fail(error,"B transaction file digest changed");
+            receipt.created.push_back(created);
+        }
+        std::sort(receipt.created.begin(),receipt.created.end(),[](const auto& a,const auto& b){return a.file.name<b.file.name;});
+        if(!CheckManagedStateLocked(error)||!transaction.Prepare(receipt,error))return false;
+        transaction_prepared=true;
+        if(!transaction.Promote(error))return false;
         RecordingGenerationActiveReadResult active;active.manifest=files.manifest;active.active_file=files.manifest.active;
-        auto path=managed_root_/files.manifest.active.name;
+        auto path=canonical_root/files.manifest.active.name;
         if(!SerializeRecordingGenerationManifest(files.manifest,&bytes,error))return false;
         OwnedFd root(OpenParent(current.active_path,false));struct stat root_stat{},next_stat{};
         OwnedFd fd(root.value<0?-1: ::openat(root.value,files.manifest.active.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
@@ -2303,8 +2438,12 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
            !Same(root.value,files.manifest.active.name,fd.value,next_stat)||!CheckManagedStateLocked(error))return Fail(error,"B checkpoint 새 FD 결박 실패");
         authority.predecessor=pending.predecessor;authority.identity=plan->chain.head;
         authority.root_device=root_stat.st_dev;authority.root_inode=root_stat.st_ino;
-        publishing=true;const auto result=PublishRecordingGenerationCheckpoint(managed_root_,files.manifest,authority,error);
-        if(result==RecordingGenerationPublishResult::NotPublished){publishing=false;return false;}
+        publishing=true;
+        if(!transaction.PublishIntent(error))return false;
+        transaction.FaultPoint("intent-durable");
+        const auto result=PublishRecordingGenerationCheckpoint(canonical_root,files.manifest,authority,error);
+        if(result==RecordingGenerationPublishResult::NotPublished){poisoned_=true;return false;}
+        transaction.FaultPoint("manifest-published");
         if(result!=RecordingGenerationPublishResult::Published){poisoned_=true;return false;}
         struct stat manifest_stat{};
         if(!GenerationStat(root.value,kGenerationManifest,&manifest_stat)){poisoned_=true;return Fail(error,"B checkpoint 게시 후 stat 실패");}
@@ -2315,12 +2454,14 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         ::close(managed_fd_);managed_fd_=fd.value;fd.value=-1;device_=next_stat.st_dev;inode_=next_stat.st_ino;
         if(!CheckManagedStateLocked(error)||!SafeGenerationCacheFiles(managed_root_,error)||!sql(plan->generation,plan->cut)){
             poisoned_=true;current.link_epoch.reset();return Fail(error,"B checkpoint 게시 후 SQL/권위 실패: 새 owner 필요");}
+        if(!transaction.Cleanup(true,error)){poisoned_=true;current.link_epoch.reset();return false;}
         if(error)error->clear();return true;
       }();
     }catch(...){if(publishing){poisoned_=true;current.link_epoch.reset();}Fail(error,"B checkpoint 자원/게시 실패");}
     if(!success&&!publishing&&!cleanup()) {
         poisoned_=true;current.link_epoch.reset();return Fail(error,"B checkpoint 소유 준비물 회수 실패: 보존 후 새 owner 필요");
     }
+    if(!success&&(publishing||ManagedTransactionPendingLocked())){poisoned_=true;current.link_epoch.reset();}
     return success;
 #else
     (void)owner;(void)plan;(void)snapshot;(void)sql;return Fail(error,"B checkpoint unsupported");
@@ -2372,7 +2513,7 @@ bool RecordingJournal::EnableGenerationWrites(const void* owner,std::string* err
 #endif
     std::lock_guard lock(mu_);
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    if(!owner||owner!=catalog_owner_||!generation_state_||!CheckManagedStateLocked(error))return false;
+    if(!owner||owner!=catalog_owner_||!generation_state_||ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error))return false;
     generation_state_->write_owner=owner;return true;
 #else
     (void)owner;return Fail(error,"B writes unsupported");
@@ -2402,7 +2543,7 @@ bool RecordingJournal::ValidateGenerationOwner(const void* owner,std::string* er
 #endif
     std::lock_guard lock(mu_);
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
-    if(!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||!CheckManagedStateLocked(error))return false;
+    if(!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error))return false;
     return SafeGenerationCacheFiles(managed_root_,error);
 #else
     (void)owner;return Fail(error,"B owner unsupported");
@@ -2424,7 +2565,7 @@ bool RecordingJournal::CommitGenerationDelta(const void* owner,const std::functi
 bool RecordingJournal::AppendGenerationLocked(const void* owner,const RecordingMutationV1& m,
     std::shared_ptr<const RecordingGenerationRecoveryRow>* result,std::string* error,bool reservation) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    if(!result||!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||!CheckManagedStateLocked(error))
+    if(!result||!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error))
         return Fail(error,"B append owner/authority 거부");
     if(!SafeGenerationCacheFiles(managed_root_,error))return false;
     if(m.mutation_type==RecordingMutationType::EventLinkReceipt||
@@ -2508,7 +2649,7 @@ bool RecordingJournal::ReserveGeneration(const void* owner,const std::string& st
     std::lock_guard lock(mu_);
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!result||!receipt||!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||
-       !CheckManagedStateLocked(error)||store!=managed_store_id_||!ValidateOpaqueId(request,error)||
+       ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error)||store!=managed_store_id_||!ValidateOpaqueId(request,error)||
        !ValidateOpaqueId(segment,error)||!ValidateRecordingReferenceId(channel,error))return Fail(error,"B 예약 owner/store/ID 거부");
     auto& index=generation_state_->order;
     const auto found=index.requests.find(request);
@@ -2536,7 +2677,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork/미open 사용 거부");
 #endif
     std::lock_guard lock(mu_);
-    if(cutover_input_frozen_)return Fail(error,"cutover input freeze: append 거부");
+    if(cutover_input_frozen_||cutover_recovery_||cutover_owner_retired_||ManagedTransactionPendingLocked())return Fail(error,"cutover input freeze/recovery: append 거부");
     if (!opened_) return Fail(error, "journal이 열리지 않음");
     if(generation_state_)return Fail(error,"B read-only append 미지원");
     if(managed_&&((owner&&catalog_owner_!=owner)||(!owner&&catalog_owner_)))return Fail(error,"managed catalog append 소유권 거부");

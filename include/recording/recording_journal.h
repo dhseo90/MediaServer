@@ -156,6 +156,15 @@ private:
         const std::function<bool(const struct RecordingCutoverInputRow&,const RecordingJournalOwnedViewHandle&,std::string*)>& visitor,
         struct RecordingCutoverInputSummary* summary,std::string* error);
     bool cutover_input_frozen_{false};
+    bool cutover_owner_retired_{false};
+    bool PublishManagedCutover(const void* owner,const struct RecordingCutoverInputSummary&,
+        class RecordingGenerationTransaction&,const struct RecordingGenerationReceipt&,std::string*);
+    struct ManagedCutoverRecoveryState;
+    std::shared_ptr<ManagedCutoverRecoveryState> cutover_recovery_;
+    bool ManagedCutoverRoot(std::filesystem::path*,std::string*) const;
+    bool BeginManagedCutoverRecovery(const void* owner,class RecordingGenerationTransaction&,
+        const std::filesystem::path& media,const std::filesystem::path& sqlite,std::string*);
+    void EndManagedCutoverRecovery();
     bool ValidatePreappend(const void* owner, const RecordingMutationV1& mutation, std::string* error);
     bool EnableGenerationWrites(const void* owner,std::string* error);
     bool PrepareGenerationCheckpoint(const void* owner,std::shared_ptr<RecordingGenerationCheckpointPlan>*,std::string* error);
@@ -234,6 +243,7 @@ private:
     bool OpenGenerationReadOnlyLocked(const std::string& store_id,std::string* error);
     bool GenerationBindingLocked() const;
     bool ManagedBindingLocked() const;
+    bool ManagedTransactionPendingLocked() const;
     GenerationReadLimits generation_limits_;
     std::unique_ptr<RecordingJournalGenerationState> generation_state_;
     bool managed_{false};

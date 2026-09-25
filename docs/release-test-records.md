@@ -264,7 +264,7 @@ focused는 `bash scripts/internal/verify_recording_cutover_candidate.sh`다. 예
 후보 생성은 [최종68개·전체 빌드 통과](release-artifacts/v4.1.0/b04-cutover-candidate-20260925/results.md)다.
 원본 보존·16종 현재 값·65조각·Ready/Committed·inactive cold·손상/소유 결박을 확인했다.
 준비 경로/fixture 순서의 최초 실패, source 변경 중 실행한 증거 제외, 메인 inode 리뷰 보완을 보존한다.
-실제 형식 게시·중단 복구는 미완료다.
+이 당시에는 실제 형식 게시·중단 복구를 실행하지 않았으며 후속 결과는 아래 절을 따른다.
 
 ### B-04 게시·중단 복구 실행 전 정의
 
@@ -288,6 +288,21 @@ PUBLISH_INTENT에서 target이 없거나 predecessor만 있으면 자동 rollbac
 예정 focused는 `bash scripts/internal/verify_recording_generation_transaction.sh`다.
 정상 coordinator stub 거부만 예상 RED이며 준비/컴파일 오류는 별도 FAIL로 보존한다.
 단기 격리 자료만 사용하고 원래6번 default/소비자 변경이나 장시간/UI를 자동 실행하지 않는다.
+T01은 기존 점/콜론 store ID·상대 경로·macOS 허용 alias 수용을 함께 대조한다.
+T02/T03은 receipt 두 고정 경로 nlink2 및 marker 원본 inode 복원, 준비 파일 일부 정리 뒤
+재중단을 포함한다. 일부 부재는 원본 fresh domain과 원래 marker/predecessor 결박 후의
+rollback-only 정리로만 허용하며 B 게시 PASS로 쓰지 않는다. T04의 다른 inode/hash·nlink3·
+unknown/stat 오류는 계속 보존·거부한다. 개별 subcase는 runner 원출력에 남긴다.
+
+게시·복구 구현의 [실행 기록](release-artifacts/v4.1.0/b04-generation-transaction-20260925/results.md)에
+최초 stub RED·컴파일/fixture 오류·stage lock 제품 결함 및 최종165개 통과를 구분해 보존한다.
+checkpoint133·후보68·세션46·공개읽기106·append219·preappend510·Journal78·기존Catalog249와
+전체 빌드가 통과했다. 합계1,574 assertion이며 실제 앱·누적 비용·최종 검증은 이 결과가 아니다.
+기존 B03-C03은 root 직접 준비물에서 stage/receipt로 주입 위치가 달라진다. 반례별 안전 요구와
+판정은 유지하고 기존→새 위치 대조를 결과에 남긴다. 검사 삭제·상한 완화로 마감하지 않는다.
+살아 있는 owner의 PREPARED 이전 소유 준비물 회수·충돌 제거 후 재시도와, 재기동에서
+무영수증 stage를 자동 삭제하지 않는 경계는 별도로 검사한다. 부분 쓰기·temp·변조·unknown을
+정리 성공으로 바꾸지 않으며 기존 same-inode/same-size 변경 반례를 새 stage에 결박한다.
 
 ### B-04 게시 영수증 값 계약 실행 전 정의
 
@@ -333,7 +348,7 @@ R08 기존 ID 거부 RED(98 PASS/1 FAIL)→최종101 PASS다. manifest 영향 �
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
 | B-02 영속 저장 단위 | 완료(내부 연결 범위) | 형식·임시 복원·공개 Catalog B Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 runtime 기본 선택은 후속 |
 | B-03 정상 저장·체크포인트 | 완료(내부 opt-in 범위) | 비변경 검증·증분 쓰기·예약·변경 key SQL·수동/자동 회전·무재처리 독립 비교·영향 회귀·빌드 PASS. 누적/실제 앱은 B-07 |
-| B-04 재기동·SQLite | 부분 진행 | 새 owner strict Open·SQL 오류 구분, 원문 보존 후보68개·영수증 값74개 집중 PASS. 실제 형식 게시·전환/회전 중단 복구는 진행 중 |
+| B-04 재기동·SQLite | 완료(내부 연결 범위) | 원문 보존 전환·receipt/marker/manifest 게시·전환/회전 중단 복구165개, 기존 SQL/저장 영향 회귀1,409개·빌드 통과. 실제 runtime 기본 연결은 B-05 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |
 | B-07 누적·실제 통합 | 미실행 | 작은 반례·누적 비용·완전 출력 2개와 HTTP·해시·재기동 |

@@ -251,9 +251,15 @@ public:
 
 private:
     friend struct RecordingCutoverCandidateProbe;
+    friend struct RecordingGenerationTransactionProbe;
+    bool PublishManagedCutover(const struct RecordingCutoverCandidateLimits&,std::string*);
+    bool RecoverManagedCutover(const struct RecordingCutoverCandidateLimits&,std::uint64_t receipt_admission,std::string*);
     bool PrepareManagedCutoverCandidate(const struct RecordingCutoverFreshStage&,
         const struct RecordingCutoverCandidateLimits&,struct RecordingCutoverCandidate*,
         struct RecordingCutoverCreatedFiles*,std::string*);
+    bool ReplayManagedCutoverScratch(RecordingCatalog& scratch,
+        const std::function<bool(const struct RecordingCutoverInputRow&,std::string*)>& sink,
+        struct RecordingCutoverInputSummary*,std::string*);
     using SourceBindingHandle = std::shared_ptr<const RecordingSourceBindingV1>;
     struct SourceBindingEntry {
         std::string id,channel,source,generation,track,latest_mutation_id;
