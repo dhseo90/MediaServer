@@ -2,6 +2,24 @@
 
 ## v4.1.0 S11 B안 저장 구조 구현
 
+2026-09-25 후속 1~9 순차 개발을 승인받았다. 이번 첫 단위는 기존 수용 조건과
+snapshot 분할 위치의 복원 동등성이다. 기존 `RecordingSegmentV1`과 현재 V2 녹화를
+담는 `managed-recording-store.v1` 형식을 구분한다. 기존 지원 양성을 임의로 음성으로
+바꾸거나 모든 C++ 쓰기 인터페이스를 일괄 강화하지 않는다. B 읽기·복구를 먼저 닫고
+쓰기·회전·전환·소비자·누적 통합·코드 고정 순서로 진행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-Z01 | 수용 계약 대조 | 실제 관리/비관리 Catalog에 같은 기록을 적용하고 예약 후 V1 확정·삭제/출력 상태·원문 표현의 수용 여부 및 재Open을 대조. 기존 양성/결함/비지원 경계를 기록 | v4.1.0 |
+| B02-Z02 | snapshot cut 동등성 | 같은 기록의 배타 cut을 바꾸어 B 후보를 복원하고 독립 예상 projection과 대조. 현재 확인된 snapshot·active 수용 차이는 예상 RED로 고정 | v4.1.0 |
+| B02-Z03 | 부정 입력·공개 차단 | 원문 hash/ID/domain 손상과 뒤 행 실패를 거부하고 원본·live·SQLite 불변, 실패 세션 정리·새 owner 재Open 및 기존 B/v1 회귀 확인 | v4.1.0 |
+
+사전등록 문서 단위: `verify-docs-links` exit 0(329문서·12,834링크·오류0),
+`verify-docs-ui-assets` exit 0(10/10), `verify-project-inventory` exit 0(18/18·986행),
+`git diff --check` exit 0. 원출력은 `docs/release-artifacts/v4.1.0/b02-cut-contract-20260925/`에
+보존한다. Z01~Z03 제품 결과는 아직 미실행이며 이 문서 검사로 대체하지 않는다.
+임시 산출물은 없고 token start/end/consumed·elapsed의 독립 집계 source는 없어 미집계다.
+
 독자: 녹화 저장 구현·검증 담당자. 수명: B안 단계별 구현부터 S11 최종 판정까지.
 작업 정책은 AGENTS.md, 설계 계약은 [누적 비용 계약의 B안 절](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b안-구현-계약)이 기준이다.
 사용자는 B안을 순차 구현하고 관련 단위별 분할 커밋, 마지막에 조건부 푸시를 지시했다.

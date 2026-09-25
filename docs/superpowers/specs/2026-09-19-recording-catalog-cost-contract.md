@@ -229,6 +229,17 @@ SQLite Open 자체가 불가한 경우에만 검증된 Catalog 후보로 fallbac
 투영·transaction 오류는 조용히 fallback PASS로 바꾸지 않는다. 전환 전의 B 복원 단위
 검사나 SQL schema 검사만으로 공개 B Open·쓰기·복구 완료를 선언하지 않는다.
 
+**수용 조건과 snapshot 분할 동등성.** `RecordingSegmentV1` domain과 현재 V2 자료를
+저장하는 `managed-recording-store.v1` 배치는 다른 버전 축이다. 구형 개발 자료 정리
+지시를 현재 관리 저장소 전체의 폐기나 변환 면제로 확대하지 않는다. 기존 S10-O10 등
+양성 검사의 비관리/관리 조건, 정상 생산 경로, 직접 원장 입력을 먼저 구분해 대조한다.
+같은 지원 이력은 snapshot의 배타 cut을 바꾸더라도 최종 현재 상태와 수용 결과가 같아야
+한다. snapshot 검사에 새 제약을 추가해 기존 순차 Apply의 의미를 조용히 좁히지 않는다.
+원문 바이트의 digest/ID 검증과 파싱한 domain 값의 의미 대조를 구분하며, snapshot의
+canonical 직렬화 규칙을 과거 payload 표현 전체에 소급하지 않는다. 실제 결함으로
+확인된 쓰기 조건은 내구 append 전 거부와 재기동 결과를 함께 검증한다. 이 대조는
+공개 HTTP schema 변경이나 현재 저장소 삭제를 요구하는 것으로 미리 결론내리지 않는다.
+
 ### LP24 복구 호출 내부의 제한된 내용 재사용
 
 후속1~6 승인 중1번은 Open의 반복 preflight/apply/SQLite 재투영 내용 비용을 대상으로 한다.
