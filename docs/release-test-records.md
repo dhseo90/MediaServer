@@ -367,6 +367,20 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | B02-J10 | B 복원 원문 참조 | 과거 최초 identity·active 현재 행의 opaque link 발급/취득, dense 위치와 영속 ordinal 분리, cold 사용 시 원문/hash/identity 검증, inactive 상세 정상 Open 비접근 확인 | v4.1.0 |
 | B02-J11 | 수명·손상·호환 | 다른 세션·store·PID·원본 교체/손상과 종료 link 거부, 실패 output 불변·FD/lease 정리, v1·crypto-off 회귀 및 Catalog/쓰기 차단 유지 | v4.1.0 |
 
+### B-02 Catalog 비공개 복원 후보 구현 전 정의
+
+이 단계는 Journal의 검증된 세대 snapshot과 active domain 행으로 완성된 비공개 후보를
+만드는 집중 검사다. 실제 Catalog B Open·SQLite 투영·Append·Checkpoint와 S11 최종 판정은
+이 검사로 대체하지 않는다. 이동 소비 뒤 실패한 Journal 인스턴스는 재사용하지 않고 새
+인스턴스로 strict 재Open한다. 최초 RED의 예상 assertion·실제 명령·결과는 실행 후 남긴다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-Y01 | snapshot+active 후보 | 16종 snapshot row와 순차 active domain 적용을 독립 최종 상태와 대조하고 live Catalog·SQLite 비공개 확인 | v4.1.0 |
+| B02-Y02 | 실패·재시도 격리 | Journal 봉인 identity로 동일 재시도와 충돌을 구분하고 예약 선사용·중간 실패 시 원본·live 상태 불변, 새 인스턴스 재Open 확인 | v4.1.0 |
+| B02-Y03 | thin 상세·cold 링크 | source/job latest ID 링크와 진행 작업 필수 상세만 취득, 비활성 과거 상세 정상 복원 비접근·사용 시 원문 검증 확인 | v4.1.0 |
+| B02-Y04 | hold·권위 차단 | active terminal 뒤 pending hold 재계산, 복원 후보 성공·실패 모두 공개 B Open/쓰기·cleanup·SQLite/미디어 변형 차단 확인 | v4.1.0 |
+
 ### B-02 Journal B 읽기 권위 집중 검증 결과
 
 2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-last.log)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
