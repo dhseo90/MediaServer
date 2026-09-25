@@ -139,6 +139,8 @@ private:
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     friend struct RecordingJournalGenerationReadOnlyProbe;
     friend struct RecordingGenerationPreappendProbe;
+    friend struct RecordingGenerationAppendProbe;
+    static thread_local int generation_write_fault_;
     static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
         const RecordingMutationV1& candidate, bool* unchanged, std::string* error);
 #endif
@@ -147,6 +149,16 @@ private:
     void DetachCatalog(const void* owner);
     bool OwnsCatalog(const void* owner) const;
     bool ValidatePreappend(const void* owner, const RecordingMutationV1& mutation, std::string* error);
+    bool EnableGenerationWrites(const void* owner,std::string* error);
+    bool ValidateGenerationOwner(const void* owner,std::string* error);
+    void PoisonGeneration(const void* owner);
+    bool CommitGenerationDelta(const void* owner,const std::function<bool()>& commit,std::string* error);
+    bool AppendGeneration(const void* owner,const RecordingMutationV1&,
+        std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*);
+    bool AppendGenerationLocked(const void* owner,const RecordingMutationV1&,
+        std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*,bool reservation=false);
+    bool ReserveGeneration(const void* owner,const std::string&,const std::string&,const std::string&,const std::string&,
+        RecordingOrderReservationV1*,std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*);
     bool AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
                      RecordingMutationHandle* appended = nullptr, RecordingJournalOwnedViewHandle* view = nullptr);
     bool LoadManagedStateLocked(std::string* error);

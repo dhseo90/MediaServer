@@ -10,6 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -103,6 +104,7 @@ class RecordingCatalog final : public RecordingStorePort {
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     friend struct RecordingCatalogGenerationScratchProbe;
     friend struct RecordingGenerationPreappendProbe;
+    friend struct RecordingGenerationAppendProbe;
 #endif
 public:
     struct Options {
@@ -110,6 +112,8 @@ public:
         std::filesystem::path media_root;
         bool prefer_sqlite{true};
         bool enable_v2_storage{false};
+        // 내부 검증/구성 전용 opt-in. 서버 기본값과 기존 v1 쓰기는 바꾸지 않는다.
+        bool enable_generation_writes{false};
 
         Options() = default;
         Options(std::filesystem::path sqlite,
@@ -123,6 +127,9 @@ public:
     RecordingCatalog(RecordingJournal& journal, Options options);
     ~RecordingCatalog() override;
     bool Open(std::string* error);
+    // B 내부 opt-in 전용. 실제 writer/service 소비자 연결은 별도 단계다.
+    bool ReserveRecordingOrder(const std::string& store,const std::string& request,
+        const std::string& segment,const std::string& channel,RecordingOrderReservationV1* result,std::string* error);
     // 검증된 chain을 선수조건으로 현재 값만 내보내는 내부 후보다. 게시/B Open은 하지 않는다.
     // cold 링크의 실제 type/ordinal 및 원문 의미는 여기서 재읽지 않는다. cutover 원문 전수
     // 검증·domain 대조와 import/use의 locator 검증은 별도 필수이며 실패 시 output은 불변이다.
@@ -401,6 +408,13 @@ private:
     void PublishGenerationMapsLocked(RecordingCatalog&) noexcept;
     bool CanReadLocked(std::string* error) const;
     bool CanWriteLocked(std::string* error) const;
+    using GenerationDelta=std::set<std::pair<std::string,std::string>>;
+    bool AppendGenerationLocked(RecordingMutationV1,std::string*,PreparedDerivedMutation*);
+    bool ProjectGenerationDeltaLocked(const GenerationDelta&,const RecordingGenerationRecoveryRow&,std::string*);
+    bool PoisonGenerationLocked(std::string* error);
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+    static thread_local int generation_apply_fault_;
+#endif
     struct CheckpointProjectionCache {
         RecordingMutationLinks prefix;
         std::unique_ptr<RecordingCatalog> shadow;
@@ -435,9 +449,9 @@ private:
                              const DerivedJobPool* job_pool = nullptr,const DerivedJobContentProof* proof = nullptr,
                              const RecordingJournalOwnedViewHandle& view = {},
                              const RecordingGenerationRecoveryRow* generation_row = nullptr,
-                             bool apply = true);
+                             bool apply = true,GenerationDelta* delta=nullptr);
     // 내구 쓰기를 열지 않는 내부 검증 경계. 성공 결과는 재사용 가능한 권위 토큰이 아니다.
-    bool ValidateMutationLocked(const RecordingMutationV1& mutation, std::string* error);
+    bool ValidateMutationLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
@@ -461,6 +475,7 @@ private:
     mutable std::mutex mu_;
     bool opened_{false};
     bool generation_read_only_{false};
+    bool generation_backend_{false};
     // 첫 Open 전체 성공만 자동 no-op의 기원이다. 실패한 같은 인스턴스는 strict로 남긴다.
     bool automatic_noop_open_attempted_{false},automatic_noop_eligible_{false};
     // 적용 실패/예외도 포함한다. 포화 후에는 잠금 밖 조회를 다시 허용하지 않는다.

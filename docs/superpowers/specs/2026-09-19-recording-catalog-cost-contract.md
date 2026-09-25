@@ -237,6 +237,34 @@ B 전용 투영이며 공개 API·설정 변경이 아니다. 구형 캐시 정�
 뒤 별도 처리한다. SQL COMMIT과 live map 게시 사이에는 Journal의 최종 권위를 유지하고,
 Catalog→Journal→SQL 잠금 순서에서 재진입 없는 내부 게시 경계를 사용한다.
 
+**증분 쓰기의 연결 단위.** 2026-09-25 검증/적용 분리는 fdce369f에서 닫았다.
+다음 단위는 내부의 명시적 B 쓰기 opt-in과 변경분 저장이다. 서버 기본 활성화·형식 전환은
+후속 전환/소비자 검증 전까지 하지 않는다. B backend 식별과 read-only 권한을 구분하여
+쓰기 허용이 기존 읽기 권위 검사를 우회하지 않게 한다. Catalog 잠금 아래 envelope·현재
+domain·ID/order를 검사하고 Journal 권위 재확인 후 active append/fsync, 현재 값 적용,
+해당 변경 key만 SQLite transaction 순서로 처리한다. 새/변경 ID·전이 의미는 검사하되
+검증된 Prepared 파생 전이를 불필요하게 다시 전수 파싱하지 않는다. 전체 Catalog 복제,
+원장 Replay, 과거 identity 전수 재직렬화·SQL 전수 재구축은 정상 append에서 금지한다.
+
+내구 쓰기 이전 거부는 원본·현재 상태를 보존한다. 쓰기/fsync 또는 이후 적용·SQL이 실패하면
+성공으로 fallback하지 않고 해당 owner를 poison하여 추가 읽기/쓰기를 차단한다. 새 owner의
+엄격 Open이 완결된 durable 입력을 복구한다. 미완결 tail은 이 단위에서 자동 truncate하지 않는다.
+읽기 전에 선언한 active/identity admission과 ordinal·sequence overflow를 쓰기 전에도 검사한다.
+부족한 admission을 임의 확대하지 않으며 회전은 다음 단위다. 기존 format-v1 쓰기의
+수용·SQL fallback·자동 checkpoint 의미는 유지한다.
+
+B 예약은 Catalog→Journal 소유 경계에서 발급·기록·현재 order/최소 identity SQL을 함께
+반영한다. Journal이 Catalog를 역호출하거나 잠금 순서를 뒤집지 않는다. 직접 raw Journal
+예약은 B에서 계속 거부하며 writer·파생 서비스의 기존 호출 연결은 소비자 단계에 포함한다.
+같은 tuple 재시도는 기존 예약 값을 반환하고 원문 시간·sequence·ID를 새로 만들지 않는다.
+append 이전부터 보유한 상세 링크는 같은 owner/세대 내 append 후에도 유효하고, 권위 교체·
+손상·fork는 계속 거부한다. 회전 시 참조 재획득은 다음 checkpoint 단위의 별도 합격 조건이다.
+
+`FinalizeSegmentWithHold`의 finalize 이후 hold 투영은 보호 소비자 통합에서 연결한다.
+증분 쓰기 단위에서는 B 내부 opt-in에도 이 복합 API를 내구 쓰기 전에 거부한다. 기본
+format-v1과 단순 finalize는 유지하며, B의 SQL hold 투영·오류 차단·경로 결박을 검증한 뒤에만
+이 제한을 해제한다. 내부 쓰기 단위 PASS를 모든 런타임 쓰기 API 지원으로 확대하지 않는다.
+
 **수용 조건과 snapshot 분할 동등성.** `RecordingSegmentV1` domain과 현재 V2 자료를
 저장하는 `managed-recording-store.v1` 배치는 다른 버전 축이다. 구형 개발 자료 정리
 지시를 현재 관리 저장소 전체의 폐기나 변환 면제로 확대하지 않는다. 기존 S10-O10 등

@@ -114,11 +114,43 @@ typed 상태·ID·revision·hold·원장/SQL 불변, 기존 수용·손상 poiso
 [개별 결과·원출력·한계·정리](release-artifacts/v4.1.0/b03-preappend-20260925/results.md)를 따른다.
 B 내구 append·예약·checkpoint는 여전히 차단하며 실제 쓰기 완료로 판정하지 않는다.
 
+### B-03 증분 쓰기 실행 전 정의
+
+4번의 두 번째 단위다. 내부 opt-in B append·예약·변경 key SQLite를 연결한다. 기본 B 읽기 전용,
+구형 format-v1 및 서버 기본값은 유지한다. 형식 전환·회전·실제 writer 실행은 뒤 단위다.
+예상 RED는 명시 B 쓰기 fixture의 공개 Catalog 변경이 현재 read-only 거부를 반환하는 assertion이다.
+준비·컴파일·환경 오류는 예상 RED가 아니다. invalid/no-write와 durable 후 poison을 구분한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B03-W01 | 증분 저장·재Open | 명시 opt-in Catalog 정상 mutation 종류와 예약→확정·작업 전이를 저장, 독립 현재 값과 새 owner Open 대조; 기존 snapshot/과거 파일 불변 | v4.1.0 |
+| B03-W02 | ID·예약·쓰기 전 거부 | 같은 ID/tuple 재시도, 충돌·domain·순서·admission·overflow·foreign owner 거부; active/SQL/current 바이트·값 불변 | v4.1.0 |
+| B03-W03 | durable 후 실패 | write/fsync·current 적용·SQL prepare/step/commit 오류에서 owner poison·후속 거부; 완결 durable 입력은 새 owner 복구, 미완결 tail은 거부 | v4.1.0 |
+| B03-W04 | SQL 변경분·수명 | 변경 key만 SQL 반영, historical 행 재처리 없음; 기존 상세 링크가 append 후 유효·authority 변경 뒤 거부 | v4.1.0 |
+| B03-W05 | 지원·기존 영향 | crypto/SQLite/backend 조합, 기본 read-only와 기존 v1, preappend/공개읽기/Journal/Catalog/파생 작업·전체 빌드; B FinalizeSegmentWithHold는 보호 통합 전 append 전 거부·무변경 | v4.1.0 |
+
+집중 명령은 `verify-v410-recording-generation-append`로 연결한다. 원출력을 처음부터 파일에 보존하고
+source·cleanup·전수 assertion을 대조한다. 실제 앱·UI·30분·120분은 이 단위에서 실행하지 않는다.
+
+공개 쓰기 진입점 대조에서 `FinalizeSegmentWithHold`의 후행 hold 갱신이 구형 SQLite만
+사용함을 확인했다. B 내부 opt-in에서도 이 복합 호출은 내구 쓰기 전에 명시 거부한다.
+단순 finalize와 기존 format-v1 의미는 유지한다. 승인 6번의 보호 소비자 통합에서 B hold
+투영·오류 차단·SQL 경로 확인과 함께 연결하기 전에는 이 API를 B 지원으로 보고하지 않는다.
+
+### B-03 증분 쓰기 결과
+
+2026-09-25 내부 opt-in의 append·예약·변경 key SQL을 연결했다. W01~W05 최종217개,
+영향 회귀966개와 전체 빌드가 각각 exit0이다. 메인이 제품 diff·실제 SQL 오류 반례·
+최종 source30개 hash 불변·원출력·fixture13개 부재를 직접 대조했다.
+SQL 오류 뒤 빠른 성공 반환 결함을 B 권위 선검사로 수정했고 fixture 준비 오류와 구분해 보존했다.
+[개별 결과·실패 이력·원출력·정리](release-artifacts/v4.1.0/b03-append-20260925/results.md)를 따른다.
+기본 read-only·v1·서버 구성은 유지하며 B checkpoint·cutover·실제 소비자 연결은 아직 완료하지 않았다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
 | B-02 영속 저장 단위 | 부분 진행 | 형식·임시 복원·공개 Catalog B read-only Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 Append·예약·Checkpoint·writer는 계속 차단 |
-| B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
+| B-03 정상 저장·체크포인트 | 부분 진행 | 비변경 검증·내부 opt-in 증분 쓰기·예약·변경 key SQL 집중/영향 회귀·빌드 PASS. 세대 회전·무재처리 계측은 미완료 |
 | B-04 재기동·SQLite | 부분 진행 | 공개 읽기 후보 전체 성공 후 게시·현재 상태 SQLite·fallback·새 owner 재Open 집중 PASS. 쓰기 후 재기동·원문 보존 cutover·중단 복구는 후속 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |

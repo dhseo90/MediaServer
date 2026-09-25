@@ -1224,10 +1224,11 @@ Usage:
   verify-v410-recording-catalog-generation-scratch
   verify-v410-recording-catalog-generation-readonly
   verify-v410-recording-generation-preappend
+  verify-v410-recording-generation-append
   verify-v410-recording-order-snapshot
   verify-v410-recording-identity-shards
   verify-v410-recording-catalog-snapshot
-                 B안 manifest·파일 준비·active·예약 이력·identity·snapshot 및 Catalog 읽기 복원 경계를 검사합니다. 쓰기·제품 통합 PASS는 아닙니다.
+                 B안 파일·복원·검증/적용·증분 쓰기의 해당 단위를 검사합니다. 전체 제품 통합 PASS는 아닙니다.
   verify-v410-recording-retention
                  v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
   verify-v410-event-recording
@@ -3153,6 +3154,10 @@ case "${cmd}" in
   verify-v410-recording-generation-preappend)
     require_internal verify_recording_generation_preappend.sh
     exec bash "${INTERNAL_DIR}/verify_recording_generation_preappend.sh" "$@"
+    ;;
+  verify-v410-recording-generation-append)
+    require_internal verify_recording_generation_append.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_append.sh" "$@"
     ;;
   verify-v410-recording-order-snapshot)
     require_internal verify_recording_order_history_snapshot.sh
