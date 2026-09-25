@@ -349,13 +349,22 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | B02-J06 | 손상·수명·호환 | malformed/missing/교체·다른 store/ordinal·fork·crypto-off 거부, v1 기존 Open/Append/Replay·checkpoint 영향 회귀 | v4.1.0 |
 | B02-J07 | 공개 실행 연결 | `./server.sh verify-v410-recording-journal-generation-readonly`의 J04~J06·source hash·cleanup과 제품 빌드 연결 | v4.1.0 |
 
+### B-02 Journal active ID·예약 결합 구현 전 정의
+
+활성 증분의 형식 검증만으로 Catalog 의미를 승인하지 않는다. 기존 과거 chain의 ID·예약 기준과 active의 논리 순서를 먼저 결합하며, Open 실패는 공개 상태·원본을 변경하지 않는다. 기존 v1 분기와 B 미구현 쓰기 차단을 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-J08 | 활성 ID·예약 결합 | 과거 최초 identity/예약/일반 ID와 active의 같은 ID 재시도·상이한 envelope·예약 tuple·sequence gap/역행/overflow·일반 ID 충돌을 독립 반례로 검사 | v4.1.0 |
+| B02-J09 | 모순 Open 거부·호환 | 실패 전후 v1 원본 byte·B 파일·FD/lease를 대조하고 crypto-off/backend-off·정상 v1 Open/Append/Replay·checkpoint 경로 확인 | v4.1.0 |
+
 ### B-02 Journal B 읽기 권위 집중 검증 결과
 
 2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-last.log)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-+| B02-J04 nonempty B read-only open | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `nonempty B read-only open` |
+| B02-J04 nonempty B read-only open | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `nonempty B read-only open` |
 | B02-J04 B path identifies active journal rather than preserved legacy file | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `B path identifies active journal rather than preserved legacy file` |
 | B02-J04 active lease FD CLOEXEC | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `active lease FD CLOEXEC` |
 | B02-J04 exclusive lease rejects second owner | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `exclusive lease rejects second owner` |
@@ -405,6 +414,45 @@ X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server
 | Journal read-only 검사 소유 격리 root 4개 | 바이너리·fixture | 첫 4,157,460B, 둘째 11,348,777B, 공개 각 11,355,541B | 실행기 소유권 대조 뒤 제거 | 각 로그의 `removed=true` | 위 원출력 4개 |
 | v1 catalog 회귀 소유 root | 바이너리·fixture | 28,671,794B | 실행기 소유권 대조 뒤 제거 | `removed=true` | 위 v1 회귀 원출력 |
 | `/private/tmp/b02-journal-*.log` 6개 | 원출력 임시본 | 합계 242,674B | byte 동일/압축 해제 hash·소유권 대조 뒤 제거 | 6개 모두 부재 확인, 저장소에 원문 4개·압축 2개 보존 | 위 원출력 링크·SHA 대조 |
+
++### B-02 Journal 활성 ID·예약 인덱스 집중 검증 결과
+
+2026-09-25 최종 소스에서 `./server.sh verify-v410-recording-journal-generation-readonly` exit 0. J04 9건·J05 18건·J06 13건·J08 7건·J09 15건, 총 62/62개 개별 판정이다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off 실행을 포함한다. [공개 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public.log) SHA-256 `54cba47098ac88b3a1cf741dfb80f820e1ca726e5b3719ab35103f3480dd643a`; UTC 03:19:56~03:20:14, 약 18초. 이전 J04~J06 40개 개별 행은 위 표에 있고, 이번에 새로 등록한 J08~J09 22개는 아래와 같다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B02-J08 historical-identical-retry | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `historical-identical-retry`; 최초 RED는 아래 이력 참조 |
+| B02-J08 active-identical-retry | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `active-identical-retry`; 최초 RED는 아래 이력 참조 |
+| B02-J08 reservation-same-retry-and-gap | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-same-retry-and-gap`; 최초 RED는 아래 이력 참조 |
+| B02-J09 historical-payload-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `historical-payload-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 historical-time-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `historical-time-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 active-payload-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `active-payload-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 active-type-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `active-type-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-timestamp-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-timestamp-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-tuple-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-tuple-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-retrograde | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-retrograde`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-segment-reuse | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-segment-reuse`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-ordinary-id-collision | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-ordinary-id-collision`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-legacy-segment-collision | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-legacy-segment-collision`; 최초 RED는 아래 이력 참조 |
+| B02-J09 reservation-store-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `reservation-store-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 first-reservation-store-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `first-reservation-store-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J09 ordinary-reservation-id-collision | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `ordinary-reservation-id-collision`; 최초 RED는 아래 이력 참조 |
+| B02-J08 event-receipt-compatible | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `event-receipt-compatible`; 최초 RED는 아래 이력 참조 |
+| B02-J08 historical event accepts compatible receipt | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `historical event accepts compatible receipt`; 최초 RED는 아래 이력 참조 |
+| B02-J08 historical receipt accepts original event retry | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `historical receipt accepts original event retry`; 최초 RED는 아래 이력 참조 |
+| B02-J09 receipt-original-digest-conflict | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `receipt-original-digest-conflict`; 최초 RED는 아래 이력 참조 |
+| B02-J08 last uint64 ordinal accepted read-only | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `last uint64 ordinal accepted read-only`; 최초 RED는 아래 이력 참조 |
+| B02-J09 ordinal overflow rejected | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `ordinal overflow rejected`; 최초 RED는 아래 이력 참조 |
+
+구현 전 예상 RED는 J09 충돌 반례 14개가 기존 B Open에서 허용돼 실패한 것으로, [RED 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/red.log)에 보존했다. 이것을 최종 FAIL이나 임의 제품 회귀로 바꾸지 않는다. 구현 후 [GREEN](release-artifacts/v4.1.0/b02-journal-active-index-20260925/green.log) 60/60, event↔receipt 과거 호환 반례를 추가한 [담당자 최종](release-artifacts/v4.1.0/b02-journal-active-index-20260925/final.log) 62/62, 메인 공개 재실행 62/62 순으로 확인했다. 기존 v1 Catalog [회귀 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/v1-catalog-regression.log.gz)은 exit 0·[pass] 249행·압축 해제 SHA-256 `81c25bb8404021787261d24d54e43547def5f0333707e4080f0bade6fd97be80`이다. `./server.sh build`도 exit 0. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-journal-active-index-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-journal-active-index-20260925/script-final.log), `./server.sh verify-docs-links` [문서 328·링크 12,820·오류 0](release-artifacts/v4.1.0/b02-journal-active-index-20260925/docs-links-final.log), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-journal-active-index-20260925/docs-assets-final.log), `git diff --check` exit 0이다. 이 판정은 Journal B Open의 읽기·ID/예약 검증 경계이며 Catalog B Open, active domain 적용, SQLite, Append/예약, 세대 게시, RAM 비용의 완료 증거가 아니다. token start/end/consumed는 집계 source가 없어 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| Journal index 격리 root 4개 | 바이너리·fixture | RED 4,255,628B, GREEN 11,484,305B, 담당자 최종/공개 각 11,490,517B | 실행기 소유권 대조 뒤 제거 | 각 원출력의 `removed=true` | 위 실행 로그 4개 |
+| v1 Catalog 회귀 격리 root | 바이너리·fixture | 28,671,650B | 실행기 소유권 대조 뒤 제거 | 원출력의 `removed=true` | 위 압축 회귀 원출력 |
+| `/private/tmp/b02-journal-index-*.log` 5개 | 원출력 임시본 | RED 5,043B, GREEN 5,370B, 최종/공개 각 5,488B, v1 회귀 14,660B | byte·SHA 대조 후 저장소 증거로 이관·제거 | 5개 모두 부재 확인 | 위 원출력 링크 |
+| `/private/tmp/b02-journal-index-*-final.log` 4개·초기 inventory 1개·최종 links 재실행 1개 | 정적 검증 원출력 임시본 | 최종 inventory 210,250B, script 874B, links 첫/최종 각 187B, assets 636B, 초기 inventory 210,250B | 최종 4개 저장소 이관 후 중복과 함께 제거 | 6개 모두 부재 확인 | 위 정적 검증 링크·초기/최종 inventory 동일 hash |
+
 
 ### B-02 Journal 참조 좌표 분리 결과
 

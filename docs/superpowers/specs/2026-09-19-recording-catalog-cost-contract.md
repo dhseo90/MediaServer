@@ -208,6 +208,11 @@ checkpoint는 모든 과거 locator/상세를 벡터로 재구성하지 않는�
 제품 전환은 journal의 archive/active ref 경계 → catalog 임시 projection·SQLite 재구축
 경계 → 기존 v1의 원문 보존 cutover·재open을 각각 검증한 뒤에만 기본 경로로 활성화한다.
 중간 단계가 파일 형식 단위 PASS여도 운영 가능한 B Open/Append/Checkpoint 완료는 아니다.
+세부 구현은 읽기 전용 Journal 권위와 active ID·예약 결합 → Catalog의 snapshot 현재 상태
+이동 복원·active domain 적용·필요한 cold 링크·SQLite 재구축을 한 임시 상태에서 완료 →
+복구 가능한 B Append·예약 → 세대 checkpoint·전환 순서다. active envelope가 정상이라는
+이유만으로 쓰기를 먼저 열지 않는다. 쓰기 전에 재기동에서 같은 상태를 복원할 수 있어야 하며,
+검증 도중 live Catalog·SQLite를 일부 게시하거나 과거 상세 전체를 정상 Open에서 재재생하지 않는다.
 
 ### LP24 복구 호출 내부의 제한된 내용 재사용
 

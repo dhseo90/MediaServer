@@ -604,6 +604,9 @@ struct RecordingJournalGenerationState {
     RecordingGenerationActiveReadResult active;
     RecordingIdentityChainResult chain;
     RecordingCatalogGenerationProjection projection;
+    // snapshot 이후 active를 소비한 Journal 전용 인덱스. Catalog 상태 전이 증명이 아니다.
+    OrderHistoryIndex order;
+    std::unordered_map<std::string,std::string> identities;
     std::vector<std::pair<std::string,struct stat>> bindings;
     std::string manifest_bytes;
     struct stat manifest_binding{},active_binding{};
@@ -687,6 +690,9 @@ std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
     return text;
 #endif
 }
+std::string MutationIdentityKey(const std::string& entity,std::int64_t occurred,const std::string& digest) {
+    return std::to_string(entity.size())+":"+entity+":"+std::to_string(occurred)+":"+digest;
+}
 RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const char>& generation,
     std::size_t ordinal,std::uint64_t offset,std::string_view raw,const RecordingMutationHandle& record,
     const std::string& identity,bool canonical_raw=false) {
@@ -723,7 +729,7 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     const auto digest=mutation.mutation_type==RecordingMutationType::EventLinkReceipt?EnvelopeIdentity(mutation):
         (MEDIA_SERVER_USE_OPENSSL?RawHash(canonical):canonical);
     if(digest.empty())return Fail(error,"envelope digest 실패");
-    const auto identity=std::to_string(mutation.entity_id.size())+":"+mutation.entity_id+":"+std::to_string(mutation.occurred_at_ms)+":"+digest;
+    const auto identity=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,digest);
     const auto old=state->identities.find(mutation.mutation_id);
     if(old!=state->identities.end()&&old->second!=identity)return Fail(error,"managed mutation ID 충돌");
     if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
@@ -813,6 +819,44 @@ bool GenerationStatSame(const struct stat& a,const struct stat& b) {
 [[maybe_unused]] bool GenerationStat(int parent,const std::string& name,struct stat* result) {
     return ::fstatat(parent,name.c_str(),result,AT_SYMLINK_NOFOLLOW)==0&&S_ISREG(result->st_mode)&&result->st_nlink==1;
 }
+#if MEDIA_SERVER_USE_OPENSSL
+bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::string* error) {
+    // chain과 X projection이 이미 검증한 전체 tuple·최초 시각·namespace를 복원한다.
+    // 과거 mutation 원문을 합성하거나 replay하지 않는다.
+    const auto& history=state->chain.order_history;
+    auto& order=state->order;
+    order.bound_store=history.bound_store;order.maximum=history.maximum;
+    order.ordinary_ids.insert(history.ordinary_ids.begin(),history.ordinary_ids.end());
+    order.legacy_segments.insert(history.legacy_segments.begin(),history.legacy_segments.end());
+    for(const auto& entry:history.reservations) {
+        order.requests.emplace(entry.order.request_id,entry.order);
+        order.request_times.emplace(entry.order.request_id,entry.occurred_at_ms);
+        order.segments.insert(entry.order.segment_id);
+    }
+    for(const auto& first:state->chain.first_acceptances) {
+        const auto& row=first.first_row;
+        state->identities.emplace(first.mutation_id,MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity));
+    }
+    const auto cut=state->active.manifest.cut_ordinal;
+    for(std::size_t i=0;i<state->active.rows.size();++i) {
+        const auto& row=state->active.rows[i];const auto& mutation=row.mutation;
+        if(i>std::numeric_limits<std::uint64_t>::max()-cut||row.global_ordinal!=cut+i)
+            return Fail(error,"B active ordinal 범위/순서 거부");
+        const auto digest=EnvelopeIdentity(mutation);
+        if(digest.empty())return Fail(error,"B active identity digest 실패");
+        const auto identity=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,digest);
+        const auto previous=state->identities.find(mutation.mutation_id);
+        if(previous!=state->identities.end()&&previous->second!=identity)return Fail(error,"B active mutation ID 충돌");
+        // 동일 ID 물리 재시도도 기존 v1 IndexRecord와 같이 Consume한다.
+        // Receipt는 originalSha256 identity를 유지하므로 원래 event 재시도와 호환된다.
+        if(!order.Consume(mutation,error))return false;
+        if(!order.bound_store.empty()&&order.bound_store!=state->active.manifest.store_id)
+            return Fail(error,"B active reservation store 충돌");
+        state->identities.emplace(mutation.mutation_id,identity);
+    }
+    return true;
+}
+#endif
 }
 #endif
 bool RecordingJournal::GenerationBindingLocked() const {
@@ -864,7 +908,8 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
               {limits.identity_shard_bytes,limits.identity_unique_ids,limits.identity_archives},&state->chain,error)||
            !BuildRecordingCatalogGenerationProjection(managed_root_,manifest.manifest,state->chain,snapshot,
               limits.cold_row_bytes,&state->projection,error)||
-           !ReadRecordingGenerationActive(managed_root_,limits.active_bytes,&state->active,error))return false;
+           !ReadRecordingGenerationActive(managed_root_,limits.active_bytes,&state->active,error)||
+           !ValidateGenerationActiveIndex(state.get(),error))return false;
         std::string observed;
         if(!SerializeRecordingGenerationManifest(state->active.manifest,&observed,error)||observed!=state->manifest_bytes)
             return Fail(error,"B manifest 검증 도중 변경");
@@ -875,7 +920,7 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         state->manifest_binding=state->bindings.front().second;state->active_binding=a;
         state->active_path=managed_root_/manifest.manifest.active.name;
         state->bindings.clear();
-        // active envelope 구조만 검증됐다. Catalog 의미 적용/조회/쓰기를 허용하지 않는다.
+        // active envelope와 ID/예약 인덱스만 검증됐다. Catalog 의미 적용/조회/쓰기는 금지한다.
         managed_store_id_=store;managed_fd_=active.value;active.value=-1;lease_fd_=lease.value;lease.value=-1;
         owner_pid_=::getpid();device_=a.st_dev;inode_=a.st_ino;parent_device_=p.st_dev;parent_inode_=p.st_ino;
         lease_inode_=l.st_ino;marker_inode_=m.st_ino;generation_state_=std::move(state);opened_=true;poisoned_=false;
@@ -1727,7 +1772,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     if(managed_) {
         const auto digest=EnvelopeIdentity(parsed);const auto old=managed_state_->identities.find(parsed.mutation_id);
         if(digest.empty())return Fail(error,"managed digest 실패");
-        const auto identity=std::to_string(parsed.entity_id.size())+":"+parsed.entity_id+":"+std::to_string(parsed.occurred_at_ms)+":"+digest;
+        const auto identity=MutationIdentityKey(parsed.entity_id,parsed.occurred_at_ms,digest);
         if(old!=managed_state_->identities.end()){
             if(old->second!=identity)return Fail(error,"managed mutation ID 충돌");
             if(!Sync(managed_fd_)){poisoned_=true;return Fail(error,"managed 재시도 fsync 실패");}

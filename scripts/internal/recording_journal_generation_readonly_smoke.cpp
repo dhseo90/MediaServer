@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <limits>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -69,6 +70,92 @@ void Fixture(const std::filesystem::path& root,std::uint64_t historical_size=102
 [[maybe_unused]] std::string Original(const std::filesystem::path& root) {
     std::string result;for(const char* name:{".recording-store-format","recording-generation.json","identity-2.jsonl","snapshot-2.jsonl","active-2.jsonl","recording-v2-mutations.jsonl"})result+=Read(root/name);return result;
 }
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+RecordingMutationV1 Reservation(const std::string& request,const std::string& segment,std::int64_t sequence,
+    const std::string& store="store",std::int64_t time=2,const std::string& channel="channel") {
+    auto m=Mutation();m.mutation_id=request;m.entity_id=segment;m.mutation_type=RecordingMutationType::RecordingOrderReserved;m.occurred_at_ms=time;
+    m.payload_json="{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\""+store+"\",\"requestId\":\""+request+
+        "\",\"segmentId\":\""+segment+"\",\"channelId\":\""+channel+"\",\"sequence\":"+std::to_string(sequence)+"}";return m;
+}
+void SaveSnapshot(const std::filesystem::path& root,RecordingCatalogSnapshot snapshot) {
+    RecordingGenerationManifest manifest;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&manifest,&error));
+    std::string bytes;Need(SerializeRecordingCatalogSnapshot(snapshot,&bytes,&error));Write(root/"snapshot-2.jsonl",bytes);
+    manifest.cut_ordinal=snapshot.cut_ordinal;manifest.snapshot.size=bytes.size();manifest.snapshot.sha256=Hash(bytes);
+    Need(SerializeRecordingGenerationManifest(manifest,&bytes,&error));Write(root/"recording-generation.json",bytes);
+}
+RecordingMutationV1 Historical(const std::filesystem::path& root) {
+    RecordingCatalogSnapshot snapshot;Need(ParseRecordingCatalogSnapshot(Read(root/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+    auto m=Mutation();m.mutation_id="historical";m.entity_id="segment";m.mutation_type=RecordingMutationType::SegmentFinalized;
+    m.payload_json="{\"segment\":"+snapshot.rows.back().value_json+",\"mediaRelpath\":\"channel/file.mp4\"}";return m;
+}
+void SeedHistoryMutation(const std::filesystem::path& root,const RecordingMutationV1& m) {
+    RecordingIdentityShard shard;Need(ParseRecordingIdentityShard(Read(root/"identity-2.jsonl"),&shard,&error));
+    RecordingIdentityRow row;
+    row.mutation_id=m.mutation_id;row.type=m.mutation_type;row.entity_id=m.entity_id;row.occurred_at_ms=m.occurred_at_ms;row.global_ordinal=8;
+    row.identity=Hash(SerializeRecordingMutationV1(m));
+    if(m.mutation_type==RecordingMutationType::EventLinkReceipt) {
+        const auto at=m.payload_json.find("\"originalSha256\":\"");Need(at!=std::string::npos);
+        row.identity=m.payload_json.substr(at+18,64);
+    }
+    row.offset=shard.rows.back().offset+shard.rows.back().length;
+    const auto raw=SerializeRecordingMutationV1(m)+"\n";row.length=raw.size();row.raw_sha256=Hash(raw);
+    if(m.mutation_type==RecordingMutationType::RecordingOrderReserved) {
+        RecordingOrderReservationV1 order;Need(ParseRecordingOrderReservationV1(m.payload_json,&order,&error));row.reservation=order;
+    }
+    shard.rows.push_back(row);shard.archives[0].size=std::max(shard.archives[0].size,row.offset+row.length);
+    std::string bytes;Need(SerializeRecordingIdentityShard(shard,&bytes,&error));Write(root/"identity-2.jsonl",bytes);
+    RecordingCatalogSnapshot snapshot;Need(ParseRecordingCatalogSnapshot(Read(root/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+    snapshot.identity_head.size=bytes.size();snapshot.identity_head.sha256=Hash(bytes);SaveSnapshot(root,snapshot);
+}
+void SeedReservation(const std::filesystem::path& root){SeedHistoryMutation(root,Reservation("old-order","reserved",4));}
+void ActiveRows(const std::filesystem::path& root,const std::vector<RecordingMutationV1>& rows) {
+    std::string bytes;for(const auto& row:rows)bytes+=SerializeRecordingMutationV1(row)+"\n";Write(root/"active-2.jsonl",bytes);
+}
+void IndexCases(const std::filesystem::path& base) {
+    const auto run=[&](const std::string& label,const std::vector<RecordingMutationV1>& rows,bool success,bool seed=true) {
+        const auto root=base/label;Fixture(root);if(seed)SeedReservation(root);ActiveRows(root,rows);const auto original=Original(root);
+        RecordingJournal j(Options(root));const bool opened=j.Open(&error);
+        Check(success?"B02-J08":"B02-J09",opened==success&&Original(root)==original&&
+            (success?j.HasManagedLease():!j.HasManagedLease()&&RecordingJournalGenerationReadOnlyProbe::Active(j)<0&&RecordingJournalGenerationReadOnlyProbe::Lease(j)<0),label.c_str());
+    };
+    const auto seed=base/"identity-source";Fixture(seed);const auto historical=Historical(seed);
+    run("historical-identical-retry",{historical},true);
+    run("active-identical-retry",{Mutation(),Mutation()},true);
+    run("reservation-same-retry-and-gap",{Reservation("old-order","reserved",4),Reservation("new-order","new-segment",9),Reservation("new-order","new-segment",9)},true);
+    auto bad=historical;bad.payload_json="{}";run("historical-payload-conflict",{bad},false);
+    bad=historical;++bad.occurred_at_ms;run("historical-time-conflict",{bad},false);
+    bad=Mutation();bad.payload_json="{\"different\":true}";run("active-payload-conflict",{Mutation(),bad},false);
+    bad=Mutation();bad.mutation_type=RecordingMutationType::ObservationPut;run("active-type-conflict",{Mutation(),bad},false);
+    run("reservation-timestamp-conflict",{Reservation("old-order","reserved",4,"store",3)},false);
+    run("reservation-tuple-conflict",{Reservation("old-order","reserved",4,"store",2,"other-channel")},false);
+    run("reservation-retrograde",{Reservation("new-order","new-segment",3)},false);
+    run("reservation-segment-reuse",{Reservation("new-order","reserved",9)},false);
+    run("reservation-ordinary-id-collision",{Reservation("historical","new-segment",9)},false);
+    run("reservation-legacy-segment-collision",{Reservation("new-order","segment",9)},false);
+    run("reservation-store-conflict",{Reservation("new-order","new-segment",9,"other-store")},false);
+    run("first-reservation-store-conflict",{Reservation("new-order","new-segment",9,"other-store")},false,false);
+    bad=Mutation();bad.mutation_id="old-order";run("ordinary-reservation-id-collision",{bad},false);
+    // 원래 event와 압축 receipt는 같은 original digest를 사용하는 기존 규칙이다.
+    auto event=Mutation();event.mutation_id="receipt-event";auto receipt=event;receipt.mutation_type=RecordingMutationType::EventLinkReceipt;
+    receipt.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+Hash(SerializeRecordingMutationV1(event))+"\"}";
+    run("event-receipt-compatible",{event,receipt,event},true);
+    for(bool historical_receipt:{false,true}) {
+        const auto root=base/(historical_receipt?"historical-receipt-event":"historical-event-receipt");Fixture(root);
+        SeedHistoryMutation(root,historical_receipt?receipt:event);ActiveRows(root,{historical_receipt?event:receipt});
+        const auto original=Original(root);RecordingJournal j(Options(root));
+        Check("B02-J08",j.Open(&error)&&Original(root)==original,historical_receipt?"historical receipt accepts original event retry":"historical event accepts compatible receipt");
+    }
+    receipt.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+std::string(64,'0')+"\"}";
+    run("receipt-original-digest-conflict",{event,receipt},false);
+    for(bool overflow:{false,true}) {
+        const auto root=base/(overflow?"ordinal-overflow":"ordinal-maximum");Fixture(root);
+        RecordingCatalogSnapshot snapshot;Need(ParseRecordingCatalogSnapshot(Read(root/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+        snapshot.cut_ordinal=std::numeric_limits<std::uint64_t>::max();SaveSnapshot(root,snapshot);
+        ActiveRows(root,overflow?std::vector<RecordingMutationV1>{Mutation(),Mutation()}:std::vector<RecordingMutationV1>{Mutation()});
+        const auto original=Original(root);RecordingJournal j(Options(root));Check(overflow?"B02-J09":"B02-J08",j.Open(&error)!=overflow&&Original(root)==original,overflow?"ordinal overflow rejected":"last uint64 ordinal accepted read-only");
+    }
+}
+#endif
 #endif
 }
 int main(int argc,char** argv) {
@@ -123,6 +210,7 @@ int main(int argc,char** argv) {
             Check("B02-J05",!j.Open(&error),"restoring replaced component does not clear poison");
         }
         V1(base/"v1","B02-J06");
+        IndexCases(base/"index-cases");
 #else
         const auto root=base/"unsupported";std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL
