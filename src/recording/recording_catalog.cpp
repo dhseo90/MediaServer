@@ -7,6 +7,9 @@
 #include "recording_derived_job_context.h"
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_presentation_interval.h"
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+#include "recording/recording_generation_recovery_session.h"
+#endif
 
 #include <algorithm>
 #include <atomic>
@@ -303,6 +306,102 @@ RecordingCatalog::~RecordingCatalog() {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     CloseSqliteLocked();
     journal_.DetachCatalog(this);
+}
+
+bool RecordingCatalog::BuildGenerationScratch(std::unique_ptr<RecordingCatalog>* output,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(!output||opened_||!options_.enable_v2_storage)return Fail(error,"B scratch 시작 조건 거부");
+    std::shared_ptr<RecordingGenerationRecoverySession> session;
+    if(!journal_.BeginGenerationRecovery(&session,error))return false;
+    // 이동 이후 실패는 원래 projection으로 되돌리지 않는다. 새 Journal로만 재Open한다.
+    const auto failed=[&](){journal_.FinishGenerationRecovery(session,false,nullptr);return false;};
+    try {
+        auto scratch=std::make_unique<RecordingCatalog>(journal_,options_);auto& p=session->projection;
+        const auto transfer=[](auto& from,auto& to){for(auto& item:from)to.emplace(item.first,std::move(item.second));from.clear();};
+        transfer(p.segments,scratch->segments_);transfer(p.segments_v2,scratch->segments_v2_);
+        transfer(p.states_v2,scratch->states_v2_);transfer(p.tombstones,scratch->tombstones_);
+        transfer(p.tombstones_v2,scratch->tombstones_v2_);transfer(p.media_paths,scratch->media_relpaths_);
+        transfer(p.deletion_reasons,scratch->deletion_reasons_);transfer(p.event_links,scratch->event_links_);
+        transfer(p.observations,scratch->observations_);transfer(p.observations_v2,scratch->observations_v2_);
+        transfer(p.consumer_references,scratch->consumer_references_);transfer(p.referenced_observations,scratch->referenced_observations_);
+        transfer(p.orders,scratch->orders_v2_);
+        scratch->mutation_ids_.insert(p.mutation_ids.begin(),p.mutation_ids.end());
+        scratch->derived_accepted_references_.insert(p.derived_accepted_references.begin(),p.derived_accepted_references.end());
+        for(const auto& item:p.accepted_states) {
+            RecordingMutationLink link;if(!journal_.MakeGenerationMutationLink(item.first,&link,error))return failed();
+            scratch->accepted_segment_state_mutations_.emplace(item.first,std::move(link));
+            scratch->accepted_generation_ordinals_.emplace(item.first,item.second.first_global_ordinal);
+        }
+        for(auto& item:p.source_bindings) {
+            auto& s=item.second.summary;SourceBindingEntry e;
+            e.id=s.id;e.channel=s.channel;e.source=s.source;e.generation=s.generation;e.track=s.track;
+            e.order=s.order;e.sample_count=s.sample_count;e.latest_mutation_id=s.latest_mutation_id;
+            if(!journal_.MakeGenerationMutationLink(e.latest_mutation_id,&e.mutation,error))return failed();
+            const auto warm=p.active_source_bindings.find(item.first);
+            if(warm!=p.active_source_bindings.end())e.resident=std::make_shared<const RecordingSourceBindingV1>(std::move(warm->second));
+            scratch->source_bindings_.emplace(item.first,std::move(e));
+        }
+        for(auto& item:p.derived_jobs) {
+            auto& s=item.second.summary;DerivedJobEntry e;
+            e.id=s.id;e.channel=s.channel;e.reference=s.reference;e.state=s.state;e.files=s.files;e.reserved_bytes=s.reserved_bytes;
+            e.output_ids=std::move(s.output_ids);e.source_ids=std::move(s.source_ids);e.latest_mutation_id=s.latest_mutation_id;
+            if(!journal_.MakeGenerationMutationLink(e.latest_mutation_id,&e.mutation,error))return failed();
+            const auto warm=p.active_jobs.find(item.first);
+            if(warm!=p.active_jobs.end())e.resident=std::make_shared<const DerivedJobRecordV1>(std::move(warm->second));
+            scratch->derived_jobs_.emplace(item.first,std::move(e));
+        }
+        while(session->next<session->count) {
+            std::shared_ptr<const RecordingGenerationRecoveryRow> row;
+            if(!journal_.ReadGenerationRecovery(session,&row,error))return failed();
+            if(row->retry){++scratch->recovery_report_.duplicate_mutation_count;continue;}
+            if(!scratch->ApplyMutationLocked(row->mutation,false,error,nullptr,{},nullptr,nullptr,nullptr,{},row.get()))return failed();
+            if(scratch->accepted_segment_state_mutations_.count(row->mutation.mutation_id))
+                scratch->accepted_generation_ordinals_.emplace(row->mutation.mutation_id,row->global_ordinal);
+            ++scratch->recovery_report_.replayed_mutation_count;
+        }
+        // snapshot 당시 hold는 사용하지 않는다. active를 모두 반영한 terminal 관계에서 재도출한다.
+        const auto hold=[&](const std::string& id,RecordingRetentionClass retention) {
+            const auto s=scratch->segments_.find(id);
+            if(s==scratch->segments_.end()||s->second.lifecycle!=RecordingLifecycle::Finalized||s->second.retention_class!=retention)
+                return Fail(error,"B pending hold 대상 불일치");
+            auto& count=scratch->hold_counts_[id];
+            if(count>=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))return Fail(error,"B pending hold overflow");
+            ++count;return true;
+        };
+        for(const auto& item:scratch->event_links_) {
+            const auto& link=item.second;if(link.status!=EventRecordingLinkStatus::Pending||!link.derived_segment_id)continue;
+            const auto s=scratch->segments_.find(*link.derived_segment_id);
+            if(s==scratch->segments_.end()||s->second.lifecycle!=RecordingLifecycle::Finalized||s->second.retention_class!=RecordingRetentionClass::Event)continue;
+            const bool output_hold=link.completeness_reason=="event-catalog-finalize-recovery-pending"||
+                link.completeness_reason=="event-marker-cleanup-recovery-pending"||link.completeness_reason=="event-terminal-release-recovery-pending"||
+                link.completeness_reason=="event-terminal-output-release-pending";
+            if(output_hold&&!hold(s->first,RecordingRetentionClass::Event))return failed();
+            if(output_hold||link.completeness_reason=="event-terminal-source-release-pending")
+                for(const auto& overlap:link.ordered_overlaps)if(!hold(overlap.segment_id,RecordingRetentionClass::Continuous))return failed();
+        }
+        // B에서 v1 resident release/SQLite/Open/cleanup 경로를 호출하지 않는다.
+        // 보호 판정에 쓰는 활성 job source 상세는 검증된 resident로 유지한다.
+        std::unordered_set<std::string> active_sources;
+        for(const auto& item:scratch->derived_jobs_)if(item.second.Active())
+            active_sources.insert(item.second.source_ids.begin(),item.second.source_ids.end());
+        for(const auto& id:active_sources) {
+            const auto source=scratch->source_bindings_.find(id);
+            if(source==scratch->source_bindings_.end()) {Fail(error,"B 활성 job source binding 없음");return failed();}
+            if(!source->second.resident) {
+                SourceBindingHandle verified;
+                if(!scratch->AcquireSourceBindingOwnedLocked(id,&verified,error)||!verified)return failed();
+                source->second.resident=std::move(verified);
+            }
+        }
+        for(auto& item:scratch->source_bindings_)if(!active_sources.count(item.first))item.second.resident.reset();
+        for(auto& item:scratch->derived_jobs_)if(!item.second.Active())item.second.resident.reset();
+        if(!journal_.FinishGenerationRecovery(session,true,error))return false;
+        *output=std::move(scratch);return true;
+    }catch(...){Fail(error,"B scratch 자원 실패");return failed();}
+#else
+    (void)output;return Fail(error,"B scratch unsupported");
+#endif
 }
 
 bool RecordingCatalog::Open(std::string* error) {
@@ -1119,7 +1218,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
                                            const SourceBindingPool* binding_pool,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof,
-                                           const RecordingJournalOwnedViewHandle& view) {
+                                           const RecordingJournalOwnedViewHandle& view,const RecordingGenerationRecoveryRow* generation_row) {
     if(source_snapshot_revision_==std::numeric_limits<std::uint64_t>::max())source_snapshot_revision_valid_=false;
     else ++source_snapshot_revision_;
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
@@ -1138,9 +1237,16 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                                mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized ||
                                mutation.mutation_type == RecordingMutationType::CorruptionDetected;
-    if(segment_state&&!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
+    if(segment_state&&!owned&&!generation_row)owned=std::make_shared<const RecordingMutationV1>(mutation);
     RecordingMutationLink accepted_link;
-    if((segment_state||view)&&!journal_.MakeMutationLink(view,mutation,owned,&accepted_link,error))return false;
+    if(generation_row) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        if(&mutation!=&generation_row->mutation||generation_row->retry)return Fail(error,"B 복원 행 권위 불일치");
+        accepted_link=generation_row->link;
+#else
+        return Fail(error,"B 복원 행 unsupported");
+#endif
+    }else if((segment_state||view)&&!journal_.MakeMutationLink(view,mutation,owned,&accepted_link,error))return false;
     if (!mutation_ids_.insert(mutation.mutation_id).second) {
         if (segment_state) {
             const auto accepted = accepted_segment_state_mutations_.find(mutation.mutation_id);

@@ -25,6 +25,7 @@
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 #include "recording/recording_generation_active.h"
 #include "recording/recording_generation_cold_mutation.h"
+#include "recording/recording_generation_recovery_session.h"
 #include "recording/recording_catalog_generation_projection.h"
 #endif
 
@@ -616,6 +617,8 @@ struct RecordingJournalGenerationState {
     struct Identity { std::string digest; bool historical; std::size_t slot; };
     std::unordered_map<std::string,Identity> identities;
     std::shared_ptr<const char> link_epoch;
+    bool recovery_started{false};
+    std::shared_ptr<const char> recovery_epoch;
     std::vector<std::pair<std::string,struct stat>> bindings;
     std::string manifest_bytes;
     struct stat manifest_binding{},active_binding{};
@@ -1374,6 +1377,65 @@ bool RecordingJournal::MakeGenerationMutationLink(const std::string& id,Recordin
     }catch(...){return Fail(error,"B link 자원 실패");}
 #else
     (void)id;(void)output;return Fail(error,"B link unsupported");
+#endif
+}
+bool RecordingJournal::BeginGenerationRecovery(std::shared_ptr<RecordingGenerationRecoverySession>* out,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!out||owner_pid_!=::getpid())return Fail(error,"B 복원 output/PID 거부");
+    std::lock_guard lock(mu_);
+    if(!generation_state_||!CheckManagedStateLocked(error)||generation_state_->recovery_started)
+        return Fail(error,"B 복원 세션 재사용/권위 거부");
+    try {
+        auto session=std::shared_ptr<RecordingGenerationRecoverySession>(new RecordingGenerationRecoverySession);
+        session->epoch=std::make_shared<const char>(0);
+        session->count=generation_state_->active.rows.size();
+        generation_state_->recovery_started=true;generation_state_->recovery_epoch=session->epoch;
+        session->projection=std::move(generation_state_->projection);
+        *out=std::move(session);return true;
+    }catch(...){poisoned_=true;return Fail(error,"B 복원 시작 자원 실패: 새 Journal 필요");}
+#else
+    (void)out;return Fail(error,"B 복원 unsupported");
+#endif
+}
+bool RecordingJournal::ReadGenerationRecovery(const std::shared_ptr<RecordingGenerationRecoverySession>& session,
+    std::shared_ptr<const RecordingGenerationRecoveryRow>* out,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"B 복원 PID 거부");
+    std::lock_guard lock(mu_);
+    if(!out||!session||session->ended||!generation_state_||
+       session->epoch!=generation_state_->recovery_epoch||!CheckManagedStateLocked(error)||session->next>=session->count)
+        return Fail(error,"B 복원 순서/권위 거부");
+    try {
+        auto& state=*generation_state_;const auto slot=session->next;const auto& row=state.active.rows.at(slot);
+        const auto& first=state.identities.at(row.mutation.mutation_id);
+        const bool seen=first.historical||first.slot!=slot;
+        // J08이 이 물리 행과 최초 identity를 이미 대조했다. 외부 bool은 증거가 아니다.
+        auto result=std::shared_ptr<RecordingGenerationRecoveryRow>(new RecordingGenerationRecoveryRow);
+        result->mutation=row.mutation;result->retry=seen;result->global_ordinal=row.global_ordinal;
+        if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
+        auto ref=std::make_shared<RecordingGenerationMutationRef>();ref->epoch=state.link_epoch;
+        ref->historical=first.historical;ref->slot=first.slot;
+        ref->ordinal=first.historical?state.chain.first_acceptances.at(first.slot).first_global_ordinal:state.active.rows.at(first.slot).global_ordinal;
+        result->link.generation_ref_=std::move(ref);
+        *out=std::move(result);++session->next;return true;
+    }catch(...){poisoned_=true;return Fail(error,"B 복원 active 자원/색인 실패");}
+#else
+    (void)session;(void)out;return Fail(error,"B 복원 unsupported");
+#endif
+}
+bool RecordingJournal::FinishGenerationRecovery(const std::shared_ptr<RecordingGenerationRecoverySession>& session,bool success,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(owner_pid_!=::getpid())return Fail(error,"B 복원 PID 거부");
+    std::lock_guard lock(mu_);
+    if(!session||session->ended||!generation_state_||session->epoch!=generation_state_->recovery_epoch)
+        return Fail(error,"B 복원 종료 권위 거부");
+    session->ended=true;
+    if(!success||session->next!=session->count||!CheckManagedStateLocked(error)) {
+        poisoned_=true;generation_state_->link_epoch.reset();return Fail(error,"B 복원 실패: 새 Journal strict Open 필요");
+    }
+    if(error)error->clear();return true;
+#else
+    (void)session;(void)success;return Fail(error,"B 복원 unsupported");
 #endif
 }
 void RecordingJournal::EndGenerationMutationLinks() const {

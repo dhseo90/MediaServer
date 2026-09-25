@@ -14,6 +14,8 @@ namespace recording {
 struct ManagedJournalState;
 struct RecordingJournalGenerationState;
 struct RecordingGenerationMutationRef;
+class RecordingGenerationRecoverySession;
+class RecordingGenerationRecoveryRow;
 struct RecordingJournalRecordLocation;
 using RecordingJournalRecordLocationHandle = std::shared_ptr<const RecordingJournalRecordLocation>;
 using RecordingJournalRecordLocations = std::vector<RecordingJournalRecordLocationHandle>;
@@ -155,6 +157,10 @@ private:
     // B 복원 전용 세션. Catalog attachment/쓰기 권한을 부여하지 않는다.
     bool MakeGenerationMutationLink(const std::string& id, RecordingMutationLink* link, std::string* error) const;
     void EndGenerationMutationLinks() const;
+    bool BeginGenerationRecovery(std::shared_ptr<RecordingGenerationRecoverySession>*,std::string*);
+    bool ReadGenerationRecovery(const std::shared_ptr<RecordingGenerationRecoverySession>&,
+        std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*);
+    bool FinishGenerationRecovery(const std::shared_ptr<RecordingGenerationRecoverySession>&,bool success,std::string*);
     bool MatchMutationLinkView(const RecordingMutationLink& link, const RecordingJournalOwnedViewHandle& view,
                               bool* matches, std::string* error) const;
     bool MutationLinkOwns(const RecordingMutationLink& link, const RecordingMutationHandle& record) const;

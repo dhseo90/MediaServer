@@ -100,6 +100,9 @@ struct RecordingOriginalResult {
 };
 
 class RecordingCatalog final : public RecordingStorePort {
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+    friend struct RecordingCatalogGenerationScratchProbe;
+#endif
 public:
     struct Options {
         std::filesystem::path sqlite_path;
@@ -389,6 +392,7 @@ private:
     bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr,const DerivedJobContentProof* proof=nullptr,const RecordingMutationLink* link=nullptr);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
+    bool BuildGenerationScratch(std::unique_ptr<RecordingCatalog>* output,std::string* error);
     bool CanWriteLocked(std::string* error) const;
     struct CheckpointProjectionCache {
         RecordingMutationLinks prefix;
@@ -422,7 +426,8 @@ private:
                              std::string* error,PreparedDerivedMutation* prepared=nullptr,
                              RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr,
                              const DerivedJobPool* job_pool = nullptr,const DerivedJobContentProof* proof = nullptr,
-                             const RecordingJournalOwnedViewHandle& view = {});
+                             const RecordingJournalOwnedViewHandle& view = {},
+                             const RecordingGenerationRecoveryRow* generation_row = nullptr);
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
@@ -465,6 +470,8 @@ private:
     // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
     std::unordered_map<std::string, RecordingMutationLink> accepted_segment_state_mutations_;
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
+    // B 후보의 영속 최초 좌표. v1 dense replay ordinal과 혼용하지 않는다.
+    std::unordered_map<std::string,std::uint64_t> accepted_generation_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
     SourceBindingPool source_bindings_;
