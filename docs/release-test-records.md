@@ -177,6 +177,35 @@ runner 준비 실패와 예상 RED, 리뷰 후 테스트 보강 이력을 구분
 [원출력·개별 결과·정리 전수](release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)에 보존한다.
 기존 자료 전환·중단 복구·실제 소비자·기본 활성화·최종 검증은 뒤 단계다.
 
+### B-04 원문 전환 준비 실행 전 정의
+
+54eaba09의 세대 회전 마감 뒤 5번의 읽기/준비 경계부터 연결한다. 원본 FD를 빌려 한 행씩
+읽고 canonical 증거 bytes를 비공개 방문자에게 전달한다. 최종 결과는 전체 성공 뒤에만 채택한다.
+이 reader는 Catalog domain/상태·후보 게시 검증이 아니며 원본·marker·SQLite를 쓰지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B04-P01 | 기존 표현 수용 | 정상·공백/필드순서/추가 outer 필드·빈 LF 입력과 원본 offset·bytes 불변 대조 | v4.1.0 |
+| B04-P02 | 압축·receipt·순서 | 실제 wrapper·receipt originalSha256·동일 ID 재시도·비어 있지 않은 행 ordinal 대조 | v4.1.0 |
+| B04-P03 | 오류 경계 | malformed/unknown/미완결 tail·행 상한·callback 거부 시 전체 결과 불변; 앞 행 방문은 완료 증거 아님 | v4.1.0 |
+| B04-P04 | FD 결박 | 잘못된/변경/교체 FD, stat·길이·전체 hash와 offset 대조; syscall 결과 불확실 거부 | v4.1.0 |
+| B04-P05 | 누적 방문 | 크기가 다른 같은 행 입력에서 순서·callback 크기·독립 전체 SHA 확인. RAM/HTTP 자원 PASS로 확대 금지 | v4.1.0 |
+| B04-P06 | 지원·회귀 | crypto-on/off, 기존 관리 parser·세대 영향 회귀·전체 build·원출력·cleanup 대조 | v4.1.0 |
+
+집중 명령은 `verify-v410-recording-cutover-input`이다. 미구현 reader가 정상 입력을 거부하는
+assertion만 예상 RED로 지정한다. 컴파일·준비 실패는 RED가 아니다. runtime/형식 전환 게시,
+실제 앱·UI·장시간은 이 단위에서 실행하지 않는다. 실행 전 기록·source·전수 결과를 보존한다.
+
+### B-04 원문 전환 준비 결과
+
+2026-09-25 FD 기반 한 행 방문기를 추가했고 최종26개·전체 빌드가 exit0이다.
+plain outer 표현과 압축 wrapper·receipt 의미·재시도 순서를 보존하며, 전체 SHA·전후 stat
+일치 뒤에만 summary를 반환한다. 중간 callback 일부 전달을 완료로 취급하지 않는다.
+초기 예상 RED와 crypto-off 테스트 컴파일 오류를 구분해
+[원출력·개별 결과·정리](release-artifacts/v4.1.0/b04-cutover-input-20260925/results.md)에 보존한다.
+기존 Journal/Catalog 4파일은54eaba09와 같아 이전 Journal78/Catalog249를 유지하고 재실행하지 않았다.
+전환 후보의 domain·소유 동등성, marker·manifest 게시·중단 복구와 실제 소비자는 아직 후속이다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |

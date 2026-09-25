@@ -1,0 +1,95 @@
+[
+  {
+    "source": "/private/tmp/b04-cutover-input-red.log",
+    "artifact": "red.log.gz",
+    "exit": 1,
+    "bytes": 1281,
+    "gzipBytes": 667,
+    "sha256": "0251beff356b3be4e3132fe61391d9d4c413dfc1ac6cca4b324865a0f67d607b",
+    "uid": 501,
+    "ino": 159524320,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-input.saXeMq",
+        "bytes": 1185440,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-input-green-first.log",
+    "artifact": "green-first.log.gz",
+    "exit": 1,
+    "bytes": 2357,
+    "gzipBytes": 1028,
+    "sha256": "8d6aa449498efe2d285e1748c17f1598c70591e8a304d40df6a77827faed2584",
+    "uid": 501,
+    "ino": 159524469,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-input.3xKAnc",
+        "bytes": 1280224,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-input-green-final.log",
+    "artifact": "green-final.log.gz",
+    "exit": 0,
+    "bytes": 2328,
+    "gzipBytes": 1002,
+    "sha256": "a3fee093e8adbefadbfabd33356144f42d139cec12af0147b5e43eba07493462",
+    "uid": 501,
+    "ino": 159524544,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-input.IBKm8p",
+        "bytes": 2473712,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-input-final.log",
+    "artifact": "final.log.gz",
+    "exit": 0,
+    "bytes": 2489,
+    "gzipBytes": 1052,
+    "sha256": "ae08ce88aeebfa82cfc85df1cf243807ba012079e3114b566d660f347341b0fb",
+    "uid": 501,
+    "ino": 159524794,
+    "dev": 16777234,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-input.ZkA9LG",
+        "bytes": 2480688,
+        "reportedRemoved": true,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b04-cutover-input-build.log",
+    "artifact": "build.log.gz",
+    "exit": 0,
+    "bytes": 597,
+    "gzipBytes": 304,
+    "sha256": "e2c79d55d9f87b376361ed63ab99dbf829925900d918594bf754897af9333693",
+    "uid": 501,
+    "ino": 159524601,
+    "dev": 16777234,
+    "cleanup": [],
+    "originalRemoved": true
+  }
+]

@@ -183,6 +183,28 @@ v1 marker 복구가 안전함이 입증될 때만 원자 복구한다. 존재 �
 측정한다. HTTP 4초, 관측 간격 15초, 복구 검사 15초의 기존 판정은 변경하지 않는다.
 작은 손상·충돌·중단 반례 → 누적 규모 → 실제 앱·관련 최종 검증 순서로 적용한다.
 
+**전환 준비의 원문 경계.** 기존 managed strict 재Open은 빈 LF를 건너뛰고, plain envelope의
+공백·필드 순서·추가 outer 필드를 허용한다. 새 cold reader가 요구하는 canonical 물리 행과
+혼동하지 않는다. 원본 journal은 정확한 전체 길이·SHA와 함께 그대로 보존한다. 별도 증거
+사본에는 압축 wrapper가 있으면 그 bytes를, plain 행이면 기존 Serialize 결과와 LF를 쓴다.
+payload 내부 표현·receipt의 originalSha256·동일 ID 물리 재시도 순서는 유지한다. 빈 LF는
+ordinal을 소비하지 않는다. 한 물리 행의 기존 strict 읽기 상한16MiB는 유지하며, 전체 원장을
+하나의 문자열에 쌓지 않고 한 행씩 방문한다. 이 reader의 envelope 검증은 Catalog domain·
+전이·순서 검증을 대신하지 않는다. 방문 중 오류 뒤 앞 행 일부가 전달될 수 있으므로 방문자는
+비공개 준비 상태에만 적용하고 전체 성공·최종 FD 결박 전에는 공개/영속 권위로 승격하지 않는다.
+
+기존 Catalog Open은 pending checkpoint·SQLite·cleanup marker를 바꿀 수 있으므로 전환
+검사에 호출하지 않는다. 현재 관리 owner의 읽기 권위를 유지하되 전환 작업 동안 같은 Journal의
+Append/Reserve/Checkpoint를 막는 전용 전이 상태가 필요하다. 준비·게시 사이 원본 FD/hash와
+owner를 다시 대조한다. 서비스·기본 구성 연결은 준비·게시·복구 반례가 닫힌 뒤에만 진행한다.
+
+전환 영수증에는 원본 root/store/marker/journal descriptor·준비물 descriptor·목표 manifest
+digest와 PREPARED/PUBLISH_INTENT를 결박한다. PUBLISH_INTENT는 manifest rename 시도 전에
+내구화한다. v2 marker+manifest 확실한 부재라도 PREPARED의 원본·의미·소유 결박을 새로 확인한
+경우에만 v1 복구 후보가 된다. PUBLISH_INTENT·손상/불명확 영수증·원본 변경은 자동 rollback
+사유가 아니다. 저장된 검증 성공 boolean을 재기동 검증의 권위로 쓰지 않는다. 영수증·전환 통합은
+후속 구현이며 아래 원문 방문기 PASS만으로 완료하지 않는다.
+
 **제품 연결 전 추가 결정.** 기존 `RecordingJournal`의 물리 벡터 index와 B의 전역 ordinal은
 같은 값으로 취급하지 않는다. 세대 active의 첫 완결 행에 `cutOrdinal`을 부여하고 다음
 완결 행마다 1씩 증가시킨다. 앞 세대의 빈 ordinal은 채우지 않으며 증가 overflow는 쓰기를
