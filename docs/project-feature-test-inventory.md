@@ -28,6 +28,9 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 | B02-C03 | 사용 시 비용·상한 | Open 정상 경로의 과거 원문 검증과 분리하고 물리 구간 caller admission·압축 논리 16MiB 상한·원본 파일 전체 SHA 읽기 비용을 명시; 모든 과거 행 상주를 요구하지 않음 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-C04 | cold crypto-off | digest 미지원 빌드에서는 신규 원문 취득을 거부하고 output·원본을 보존 | 미실행: 독립 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 | B02-C05 | cold 검증 실행 연결 | `./server.sh verify-v410-recording-generation-cold-mutation`이 C01~C04·source hash·cleanup을 확인하고 제품 빌드에 reader를 포함 | 미실행: 독립 집중 검증·빌드 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J01 | Journal 참조 좌표 분리 | 현행 dense slot과 B 전역 `uint64` ordinal을 별도 필드·검사로 유지하고 전역 ordinal을 vector index로 사용하지 않음 | 미실행: Journal 집중 검증 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J02 | 기존 참조 수명·checkpoint | v1 참조의 append·예약·중복·checkpoint 동일/변경·재열기 및 stale/foreign 거부·원본 byte 불변 | 미실행: Journal 영향 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
+| B02-J03 | 자원·crypto-off 경계 | 큰 행 resident fallback·fork·예외·crypto-off 경로를 기존 의미로 유지 | 미실행: Journal 영향 회귀 | 미실행: 최종 소스 판정 전 | 비대상: 내부 저장 |
 
 ## S11 B-02 형식 전환 충돌 차단
 

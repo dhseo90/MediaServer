@@ -585,13 +585,15 @@ struct RecordingJournalRecordLocation {
     bool canonical_raw{false};
     bool compressed_storage{false};
 };
-// 논리 참조는 원장 수명과 물리 순서만 식별한다. 내용/물리 위치/소유자 포인터를 보관하지 않는다.
+// dense_slot만 메모리 vector의 인덱스다. global_ordinal은 영속 논리 좌표이며
+// gap/uint64 경계를 가질 수 있어 인덱스로 사용하지 않는다. v1 생성 시 둘은 동일하다.
 class RecordingJournalRecordRef {
     friend class RecordingJournal;
     friend struct ManagedJournalState;
     RecordingJournalRecordRef()=default;
     std::shared_ptr<const char> lineage;
-    std::size_t ordinal{0};
+    std::size_t dense_slot{0};
+    std::uint64_t global_ordinal{0};
 public:
     ~RecordingJournalRecordRef()=default;
 };
@@ -619,9 +621,9 @@ struct ManagedJournalState {
     std::uint64_t revision{0};
     bool checkpoint_pending{false};
     bool automatic_noop_disabled{false};
-    static RecordingJournalRecordRefHandle MakeRef(const std::shared_ptr<const char>& lineage,std::size_t ordinal) {
+    static RecordingJournalRecordRefHandle MakeRef(const std::shared_ptr<const char>& lineage,std::size_t slot,std::uint64_t global) {
         auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);
-        ref->lineage=lineage;ref->ordinal=ordinal;return ref;
+        ref->lineage=lineage;ref->dense_slot=slot;ref->global_ordinal=global;return ref;
     }
 };
 // journal만 mint한다. 외부에는 const opaque handle만 공개하며 어느 소유자도 저장하지 않는다.
@@ -707,7 +709,7 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     const bool canonical_raw=raw.size()==physical.size()+1&&raw.back()=='\n'&&raw.substr(0,physical.size())==physical;
     const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest,canonical_raw);
     if(!location)return Fail(error,"managed 위치 생성 실패");
-    const auto ref=ManagedJournalState::MakeRef(state->lineage,state->records.size());
+    const auto ref=ManagedJournalState::MakeRef(state->lineage,state->records.size(),state->records.size());
     if(state->revision==std::numeric_limits<std::uint64_t>::max())return Fail(error,"managed revision 상한");
     if(!state->order.Consume(mutation,error))return false;
     state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::move(owned));
@@ -1140,7 +1142,7 @@ bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutation
 bool RecordingJournal::OwnedViewMatchesLocked(const RecordingJournalOwnedViewHandle& view) const {
     return view&&view->journal==this&&view->record&&view->ref&&catalog_attachment_&&
         view->authority==catalog_attachment_&&managed_state_&&view->ref->lineage==managed_state_->lineage&&
-        view->ref->ordinal<managed_state_->refs.size()&&managed_state_->refs[view->ref->ordinal]==view->ref;
+        view->ref->dense_slot<managed_state_->refs.size()&&managed_state_->refs[view->ref->dense_slot]==view->ref;
 }
 namespace {
 bool SameOwnedEnvelope(const RecordingMutationV1& a,const RecordingMutationV1& b) {
@@ -1179,9 +1181,9 @@ bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,Rec
     if(!CheckManagedStateLocked(error))return false;
     const auto& ref=link.ref_;
     if(!catalog_attachment_||link.authority_!=catalog_attachment_||ref->lineage!=managed_state_->lineage||
-       ref->ordinal>=managed_state_->refs.size()||managed_state_->refs[ref->ordinal]!=ref)return Fail(error,"mutation link 권한/계보 거부");
-    if(ref->ordinal>=managed_state_->locations.size()){poisoned_=true;return Fail(error,"mutation link 위치 불일치");}
-    return AcquireLocatedRecordLocked(managed_state_->locations[ref->ordinal],record,error);
+       ref->dense_slot>=managed_state_->refs.size()||managed_state_->refs[ref->dense_slot]!=ref)return Fail(error,"mutation link 권한/계보 거부");
+    if(ref->dense_slot>=managed_state_->locations.size()){poisoned_=true;return Fail(error,"mutation link 위치 불일치");}
+    return AcquireLocatedRecordLocked(managed_state_->locations[ref->dense_slot],record,error);
 }
 bool RecordingJournal::MatchMutationLinkView(const RecordingMutationLink& link,const RecordingJournalOwnedViewHandle& view,
     bool* matches,std::string* error) const {
@@ -1204,9 +1206,9 @@ bool RecordingJournal::CanReleaseMutationLink(const RecordingMutationLink& link)
     std::lock_guard lock(mu_);
     const auto& ref=link.ref_;
     return ref&&CheckManagedStateLocked(nullptr)&&catalog_attachment_&&link.authority_==catalog_attachment_&&
-        ref->lineage==managed_state_->lineage&&ref->ordinal<managed_state_->refs.size()&&managed_state_->refs[ref->ordinal]==ref&&
-        ref->ordinal<managed_state_->locations.size()&&managed_state_->locations[ref->ordinal]&&
-        !managed_state_->locations[ref->ordinal]->resident_fallback;
+        ref->lineage==managed_state_->lineage&&ref->dense_slot<managed_state_->refs.size()&&managed_state_->refs[ref->dense_slot]==ref&&
+        ref->dense_slot<managed_state_->locations.size()&&managed_state_->locations[ref->dense_slot]&&
+        !managed_state_->locations[ref->dense_slot]->resident_fallback;
 }
 bool RecordingJournal::MutationLinkOwns(const RecordingMutationLink& link,const RecordingMutationHandle& record) const {
     if(!record)return false;
@@ -1216,8 +1218,8 @@ bool RecordingJournal::MutationLinkOwns(const RecordingMutationLink& link,const 
 #endif
     std::lock_guard lock(mu_);
     return CheckManagedStateLocked(nullptr)&&catalog_attachment_&&link.authority_==catalog_attachment_&&
-        link.ref_->lineage==managed_state_->lineage&&link.ref_->ordinal<managed_state_->refs.size()&&
-        managed_state_->refs[link.ref_->ordinal]==link.ref_&&link.weak_.lock()==record;
+        link.ref_->lineage==managed_state_->lineage&&link.ref_->dense_slot<managed_state_->refs.size()&&
+        managed_state_->refs[link.ref_->dense_slot]==link.ref_&&link.weak_.lock()==record;
 }
 bool RecordingJournal::ReadRecordLocations(const void* owner,RecordingJournalRecordLocations* records,std::string* error) const {
     if(records)records->clear();
@@ -1254,11 +1256,11 @@ bool RecordingJournal::AcquireRecordRef(const void* owner,const RecordingJournal
     std::lock_guard lock(mu_);
     if(!record||!managed_||!owner||owner!=catalog_owner_)return Fail(error,"logical ref owner/output 거부");
     if(!CheckManagedStateLocked(error))return false;
-    if(!ref||ref->lineage!=managed_state_->lineage||ref->ordinal>=managed_state_->refs.size()||
-       managed_state_->refs[ref->ordinal]!=ref)return Fail(error,"logical ref stale/foreign 거부");
-    if(ref->ordinal>=managed_state_->locations.size()){poisoned_=true;return Fail(error,"logical ref 위치 불일치");}
+    if(!ref||ref->lineage!=managed_state_->lineage||ref->dense_slot>=managed_state_->refs.size()||
+       managed_state_->refs[ref->dense_slot]!=ref)return Fail(error,"logical ref stale/foreign 거부");
+    if(ref->dense_slot>=managed_state_->locations.size()){poisoned_=true;return Fail(error,"logical ref 위치 불일치");}
     // 객체 일치는 mint 계보만 확인한다. 실제 내용은 현재 물리 위치에서 매번 엄격 재검증한다.
-    return AcquireLocatedRecordLocked(managed_state_->locations[ref->ordinal],record,error);
+    return AcquireLocatedRecordLocked(managed_state_->locations[ref->dense_slot],record,error);
 }
 bool RecordingJournal::AcquireLocatedRecord(const void* owner,const RecordingJournalRecordLocationHandle& location,
     RecordingMutationHandle* record,std::string* error) const {
@@ -1398,7 +1400,7 @@ bool RecordingJournal::TryAutomaticCheckpointNoop(const void* owner,
         for(std::size_t i=0;i<state.locations.size();++i){
             const auto& row=state.locations[i];const auto& ref=state.refs[i];
             if(!row||!ref||row->generation!=state.generation||row->ordinal!=i||
-               ref->lineage!=state.lineage||ref->ordinal!=i){poisoned_=true;return Fail(error,"automatic checkpoint 위치 불일치");}
+               ref->lineage!=state.lineage||ref->dense_slot!=i){poisoned_=true;return Fail(error,"automatic checkpoint 위치 불일치");}
             // 이 표시는 최초 strict 입력과 formatter 전체 바이트 대조로만 생성된다.
             // 빈줄/비정규 envelope/큰 행은 여기서 최적화하지 않는다.
             if(!row->canonical_raw||row->resident_fallback||row->raw_sha256.empty()||row->record_identity.empty()||
@@ -1506,10 +1508,10 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
         if(!location)return Fail(error,"checkpoint 위치 준비 실패");
         locations.push_back(location);
         const auto& old=source_records[i];const auto& next=published[i];const auto& current_ref=managed_state_->refs[i];
-        if(!old||!next||!current_ref||current_ref->lineage!=managed_state_->lineage||current_ref->ordinal!=i)return Fail(error,"checkpoint logical ref 결박 오류");
+        if(!old||!next||!current_ref||current_ref->lineage!=managed_state_->lineage||current_ref->dense_slot!=i)return Fail(error,"checkpoint logical ref 결박 오류");
         const bool same=old->schema==next->schema&&old->mutation_type==next->mutation_type&&old->mutation_id==next->mutation_id&&
             old->entity_id==next->entity_id&&old->occurred_at_ms==next->occurred_at_ms&&old->payload_json==next->payload_json;
-        refs.push_back(same?current_ref:ManagedJournalState::MakeRef(managed_state_->lineage,i));
+        refs.push_back(same?current_ref:ManagedJournalState::MakeRef(managed_state_->lineage,i,current_ref->global_ordinal));
     }
     }catch(...){return Fail(error,"checkpoint 위치 자원 준비 실패");}
     OwnedFd stage(::openat(parent.value,temporary,O_RDWR|O_APPEND|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0640));

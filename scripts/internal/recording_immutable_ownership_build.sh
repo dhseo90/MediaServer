@@ -50,7 +50,14 @@ if(mode==='envelope-cost'){
  journal=exact(journal,byteMatches[0],byteMatches[0]+' ++envelope_cost_probe::journal_bytes_calls;');
  journal='#include <cstddef>\nnamespace envelope_cost_probe { std::size_t serializations=0,journal_bytes_calls=0; void Reset(){serializations=journal_bytes_calls=0;} std::size_t Serializations(){return serializations;} std::size_t JournalBytesCalls(){return journal_bytes_calls;} }\n'+journal;
 }
-const journalCopy='#include "recording/recording_catalog.h"\n'+journal+helper;
+let coordinateHelper='';
+if(mode==='journal-logical'){
+ journal=exact(journal,'class RecordingJournalRecordRef {','class RecordingJournalRecordRef { public: // B02 owned coordinate fixture only');
+ const split=source.includes('std::size_t dense_slot{0};')&&source.includes('std::uint64_t global_ordinal{0};');
+ coordinateHelper='\nnamespace ownership_probe { bool RefCoordinates(recording::RecordingJournal& j,std::size_t slot,std::size_t* dense,std::uint64_t* global){if(!j.managed_state_||slot>=j.managed_state_->refs.size())return false;const auto& ref=j.managed_state_->refs[slot];*dense=ref->'+(split?'dense_slot':'ordinal')+';*global=ref->'+(split?'global_ordinal':'ordinal')+';return true;} bool SetRefCoordinates(recording::RecordingJournal& j,std::size_t slot,std::size_t dense,std::uint64_t global){if(!j.managed_state_||slot>=j.managed_state_->refs.size())return false;auto ref=std::const_pointer_cast<recording::RecordingJournalRecordRef>(j.managed_state_->refs[slot]);ref->'+(split?'dense_slot':'ordinal')+'=dense;'+(split?'ref->global_ordinal=global;':'(void)global;')+'return true;} }\n';
+ console.log('[instrument] B02 coordinate fixture split='+split);
+}
+const journalCopy='#include "recording/recording_catalog.h"\n'+journal+helper+coordinateHelper;
 if(locationMode)console.log('[instrument] location_journal_original_sha256='+crypto.createHash('sha256').update(source).digest('hex')+' location_journal_instrumented_sha256='+crypto.createHash('sha256').update(journalCopy).digest('hex'));
 fs.writeFileSync(path.join(out,'recording_journal.cpp'),journalCopy);
 if(mode==='envelope-cost')console.log('[instrument] envelope_exact_insertions=2 journal_original_sha256='+crypto.createHash('sha256').update(source).digest('hex')+' journal_instrumented_sha256='+crypto.createHash('sha256').update(journalCopy).digest('hex'));

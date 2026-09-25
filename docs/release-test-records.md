@@ -16,7 +16,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
-| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시와 Open용 구성 분리, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID·snapshot 내보내기 후보, active 엄격 읽기와 사용 시 cold 원문 검증 후보는 focused PASS. snapshot domain 복원·제품 Open/Append/Checkpoint 연결은 미구현 |
+| B-02 영속 저장 단위 | 부분 진행 | manifest 형식·원자 게시와 Open용 구성 분리, 세대 파일 준비, 과거 identity 조각·현재 snapshot의 독립 strict 코덱, 제품 현재 상세 ID·snapshot 내보내기 후보, active 엄격 읽기·사용 시 cold 원문 검증 후보 및 Journal dense/global 좌표 분리는 focused PASS. snapshot domain 복원·제품 B Open/Append/Checkpoint 연결은 미구현 |
 | B-03 정상 저장·체크포인트 | 부분 진행 | 예약 이력의 독립 strict 값 코덱만 focused PASS. 실제 OrderHistoryIndex snapshot 적용, 증분 저장·체크포인트 및 무재처리 계측은 미구현 |
 | B-04 재기동·SQLite | 미착수 | 임시 투영 전체 성공 뒤 공개, SQLite fallback·재투영 |
 | B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
@@ -271,6 +271,62 @@ Checkpoint나 snapshot domain 복원을 완료로 판정하지 않는다. 원본
 | B02-C03 | 지연 비용 경계 | 과거 원문은 사용 시에만 전체 파일 SHA로 읽고 반환은 지정 행만; 물리 구간 caller byte admission과 압축 논리 16MiB 상한 확인 | v4.1.0 |
 | B02-C04 | crypto-off | 원문 검증 불가 시 신규 형식 fail closed·원본/출력 불변 | v4.1.0 |
 | B02-C05 | 실행·빌드 연결 | `./server.sh verify-v410-recording-generation-cold-mutation` C01~C04·source hash·cleanup과 제품 빌드 source 포함 | v4.1.0 |
+
+### B-02 Journal 참조 좌표 분리 구현 전 정의
+
+현행 v1에서는 dense slot과 전역 ordinal 값이 같지만, B 증분의 배타 cut·gap에서는
+같지 않을 수 있다. 이 단계는 필드를 분리하고 참조 조회·checkpoint가 dense slot만
+vector index로 쓰는지 확인한다. B 제품 Open/Append/Checkpoint 활성화는 범위 밖이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-J01 | 참조 좌표 | dense slot/global ordinal 분리·gap/uint64 경계, global 값을 vector index로 쓰지 않는 반례 | v4.1.0 |
+| B02-J02 | 기존 참조·checkpoint | 기존 logical ref·append/Reserve/중복·checkpoint 동일/변경·reopen/stale/foreign·byte 불변 | v4.1.0 |
+| B02-J03 | 자원·crypto-off | 큰 행 resident fallback, fork·예외·crypto-off의 기존 거부/복구 의미 유지 | v4.1.0 |
+
+### B-02 Journal 참조 좌표 분리 결과
+
+2026-09-25 첫 `journal-logical` 실행 ID `b02-ref-split-red`는 `/bin/ps` EPERM
+사전검사로 exit 1, 제품 build·assertion 미실행이었다. 권한을 받은 같은 ID 재실행도
+기존 증거의 O_EXCL 보호로 exit 1·제품 미실행이었다. 새 ID
+`b02-ref-split-red-permitted`에서 기존 26 PASS·사전등록 J01~J03 정확히 3 FAIL,
+build exit 0·focused exit 1의 예상 RED를 얻었다. 제품 수정 후
+`b02-ref-split-green`은 29/29·exit 0, `b02-ref-checkpoint`는 28/28·exit 0,
+`b02-ref-crypto-off`는 3/3·exit 0이었다. 각 도구의 source-unchanged=true,
+격리 root 삭제 true이며 삭제량은 각각 22,390,016·5,936,249·5,553,810바이트다.
+관련 `./server.sh build` exit 0·Journal source 포함,
+`./server.sh verify-v410-recording-catalog`는 237/237·crypto-off 3건·cleanup
+28,665,050바이트 삭제·exit 0, script inventory 12/12 및 project inventory
+18/18·기능 986행, 문서 링크 328문서/12,799링크/오류0, 자산 10/10도 통과했다.
+두 좌표 분리는 v1에서 같은 값을 생성하고 기존 원장
+bytes·공개 API·새 B backend 활성화에는 영향을 주지 않는다. 계측 copy는 ref 필드
+관찰·반례값 주입만 수행하고 실제 조회·검증 제품 본문을 그대로 컴파일했다.
+token start/end/consumed는 집계 source가 없어 미집계다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-J01 | gap·uint64 최대 global 좌표를 주입해 dense slot 0/1의 정확한 원문을 취득 | pass |
+| B02-J02 | 무효 dense slot을 유효 global 값으로 구조할 수 없고 stale/foreign 참조를 거부 | pass |
+| B02-J03 | checkpoint 교체 참조와 자동 no-op에서 global 좌표·원장 bytes 보존; 기존 큰 행·예외·crypto-off 영향 검사 | pass |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 첫 `b02-ref-split-red` | `/bin/ps` 사전검사 EPERM | 격리 실행 관측 권한 | 제품 assertion 미실행·예상 RED 아님 |
+| 같은 ID 권한 재실행 | O_EXCL 로그 충돌 | 첫 실패 기록 보호 | 제품 assertion 미실행·덮어쓰기 금지 |
+| `b02-ref-split-red-permitted` | 신규 J01~J03 3 FAIL·기존 26 PASS | 구현 전 예상 assertion | GREEN 전 완료 증거 아님; TDD 실패 이력으로 보존 |
+| B-02 제품 B Open | snapshot domain·증분·SQLite 연결 미구현 | B-02 후속 작업 | ref 좌표 PASS로 대체 불가 |
+
+원출력: [첫 환경 실패](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-split-red.txt),
+[예상 RED](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-split-red-permitted.txt),
+[29/29 GREEN](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-split-green.txt),
+[checkpoint 28/28](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-checkpoint.txt),
+[crypto-off 3/3](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-crypto-off.txt).
+O_EXCL 실패는 새 파일을 만들지 않았고 도구 응답만 남았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `lp18-ownership-green-b02-ref-*` | 실행 원출력 5개 | 합계 32,910바이트 | 비밀 항목 없음 확인 후 저장소 보존 | 보존 | 위 링크·SHA·source hash·RED/GREEN 이력 |
+| 각 LP18 runner root | 격리 빌드·fixture | GREEN 22,390,016·checkpoint 5,936,249·crypto-off 5,553,810바이트 | runner 소유권 확인 뒤 삭제 | 모두 removed=true | 각 원출력 cleanup 행 |
 
 ### B-02 cold 지정 원문 reader 단위 결과
 

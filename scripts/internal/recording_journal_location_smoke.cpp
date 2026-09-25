@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <limits>
 #include <sys/wait.h>
 #include <unistd.h>
 #ifndef LP18_LOCATED_RECORDS
@@ -34,6 +35,12 @@
 #endif
 using namespace recording;
 namespace ownership_probe { bool CorruptCheckpointGeneration(RecordingJournal&); }
+#if LP18_LOGICAL_SUITE
+namespace ownership_probe {
+bool RefCoordinates(RecordingJournal&,std::size_t,std::size_t*,std::uint64_t*);
+bool SetRefCoordinates(RecordingJournal&,std::size_t,std::size_t,std::uint64_t);
+}
+#endif
 namespace {
 int passed=0,failed=0;
 void Need(bool value){if(!value)throw std::runtime_error("LP18_LOCATION_SETUP");}
@@ -215,6 +222,36 @@ RecordingJournalRecordRefs Refs(Store& s){RecordingJournalRecordRefs refs;std::s
 RecordingMutationHandle RefAcquire(Store& s,const RecordingJournalRecordRefHandle& ref){RecordingMutationHandle value;std::string error;Need(s.journal.AcquireRecordRef(&s.owner,ref,&value,&error)&&value);return value;}
 bool RefReject(Store& s,const void* owner,const RecordingJournalRecordRefHandle& ref){auto value=std::make_shared<const RecordingMutationV1>(Mutation("ref-sentinel"));std::string error;return !s.journal.AcquireRecordRef(owner,ref,&value,&error)&&!value;}
 void LogicalRecords(const std::filesystem::path& root){
+#if LP18_LOGICAL_SUITE
+ {Store s(root/"b02-gap");const auto first=Mutation("gap-first"),second=Mutation("gap-second");Append(s,first);Append(s,second);
+  auto refs=Refs(s);std::size_t dense=99;std::uint64_t global=99;
+  bool ok=ownership_probe::RefCoordinates(s.journal,1,&dense,&global)&&dense==1&&global==1;
+  Need(ownership_probe::SetRefCoordinates(s.journal,1,1,std::numeric_limits<std::uint64_t>::max()));Release(s);
+  ok=ownership_probe::RefCoordinates(s.journal,1,&dense,&global)&&dense==1&&global==std::numeric_limits<std::uint64_t>::max()&&ok;
+  ok=Canonical(*RefAcquire(s,refs[1]))==Canonical(second)&&Canonical(*RefAcquire(s,refs[0]))==Canonical(first)&&ok;
+  Need(ownership_probe::SetRefCoordinates(s.journal,0,0,400));
+  ok=ownership_probe::RefCoordinates(s.journal,0,&dense,&global)&&global==400&&Canonical(*RefAcquire(s,refs[0]))==Canonical(first)&&ok;
+  Check(ok,"B02-J01 dense slot independent of gapped and uint64-max global ordinal");
+ }
+ {Store s(root/"b02-invalid-slot");Append(s,Mutation("slot-first"));Append(s,Mutation("slot-second"));auto refs=Refs(s);
+  Need(ownership_probe::SetRefCoordinates(s.journal,0,std::numeric_limits<std::size_t>::max(),0));
+  bool ok=RefReject(s,&s.owner,refs[0])&&!s.journal.poisoned_;
+  Need(ownership_probe::SetRefCoordinates(s.journal,0,1,0));ok=RefReject(s,&s.owner,refs[0])&&!s.journal.poisoned_&&ok;
+  Need(ownership_probe::SetRefCoordinates(s.journal,0,0,100));std::size_t dense=99;std::uint64_t global=0;
+  ok=ownership_probe::RefCoordinates(s.journal,0,&dense,&global)&&dense==0&&global==100&&static_cast<bool>(RefAcquire(s,refs[0]))&&ok;
+  Check(ok,"B02-J02 invalid dense slot cannot be rescued by valid global ordinal");
+ }
+ {Store s(root/"b02-checkpoint");Append(s,Mutation("coordinate-old",2000));Append(s,Mutation("coordinate-new",2000));auto refs=Refs(s);
+  Need(ownership_probe::SetRefCoordinates(s.journal,0,0,400));Need(ownership_probe::SetRefCoordinates(s.journal,1,1,std::numeric_limits<std::uint64_t>::max()));
+  RecordingMutationHandles candidate;std::string error;Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));
+  Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error));auto after=Refs(s);std::size_t dense=99;std::uint64_t global=0;
+  bool ok=ownership_probe::RefCoordinates(s.journal,0,&dense,&global)&&dense==0&&global==400&&after[0]!=refs[0]&&RefReject(s,&s.owner,refs[0]);
+  ok=ownership_probe::RefCoordinates(s.journal,1,&dense,&global)&&dense==1&&global==std::numeric_limits<std::uint64_t>::max()&&after[1]==refs[1]&&ok;
+  const auto before=Bytes(s.journal.path());bool handled=false;std::unordered_set<std::string> ids{"coordinate-old","coordinate-new"};
+  ok=s.journal.TryAutomaticCheckpointNoop(&s.owner,ids,&handled,&error)&&handled&&Bytes(s.journal.path())==before&&Refs(s)==after&&ok;
+  Check(ok,"B02-J03 checkpoint replacement and automatic noop preserve global coordinates");
+ }
+#endif
  const auto m=Mutation("logical-one");
  {Store s(root/"basic"),other(root/"foreign");Append(s,m);Append(other,m);auto refs=Refs(s);Need(refs.size()==1);Release(s);auto reader=RefAcquire(s,refs[0]);
   Check(Canonical(*reader)==Canonical(m),"LP18-L21 logical ref cold acquire preserves complete canonical value");
