@@ -229,6 +229,14 @@ SQLite Open 자체가 불가한 경우에만 검증된 Catalog 후보로 fallbac
 투영·transaction 오류는 조용히 fallback PASS로 바꾸지 않는다. 전환 전의 B 복원 단위
 검사나 SQL schema 검사만으로 공개 B Open·쓰기·복구 완료를 선언하지 않는다.
 
+B 읽기 연결에서는 호출자의 기존 `Options.sqlite_path`·root 결박을 유지한다.
+실제 B 캐시는 같은 root의 내부 고정 이름 `recording-generation-catalog.sqlite3`를
+사용하고 그 WAL/SHM/journal도 안전 경로 검사 대상에 포함한다. 기존 v1 SQLite 파일은
+이 읽기 단위에서 덮어쓰거나 삭제하지 않는다. 새 파일은 권위 자료가 아닌 재구축 가능한
+B 전용 투영이며 공개 API·설정 변경이 아니다. 구형 캐시 정리는 B-06의 소유·소비자 확인
+뒤 별도 처리한다. SQL COMMIT과 live map 게시 사이에는 Journal의 최종 권위를 유지하고,
+Catalog→Journal→SQL 잠금 순서에서 재진입 없는 내부 게시 경계를 사용한다.
+
 **수용 조건과 snapshot 분할 동등성.** `RecordingSegmentV1` domain과 현재 V2 자료를
 저장하는 `managed-recording-store.v1` 배치는 다른 버전 축이다. 구형 개발 자료 정리
 지시를 현재 관리 저장소 전체의 폐기나 변환 면제로 확대하지 않는다. 기존 S10-O10 등

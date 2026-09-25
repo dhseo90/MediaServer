@@ -47,6 +47,27 @@ B Journal 78개와 전체 build가 각각 exit0이다. 메인이 diff와 원출�
 로컬 원파일의 hash·전수 결과 행·cleanup을 크기 제한 안에서 별도로 읽었다. 검증 실행 실패는 아니다.
 공개 B Catalog Open·SQLite·Append·Checkpoint, 누적·실제 앱·최종 검증은 이 단위의 PASS 범위가 아니다.
 
+### B-02 공개 읽기·SQLite 연결 실행 전 정의
+
+사용자 승인 3번이다. 앞선 수용/cut 수정은 809413bd로 커밋했고 집중·기존 Catalog·Journal·전체 빌드가 통과했다.
+이 단위는 검증된 현재 상태만 SQLite에 투영하고 전체 성공 후 읽기 Catalog를 공개한다.
+쓰기·checkpoint·형식 전환·런타임 기본 활성화는 뒤 단계이며 이번 읽기 Open의 성공으로 허용하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-Q01 | 공개 읽기 | 실제 B 파일에서 공개 Open·조회·cold 상세와 새 owner 재Open의 독립 예상값 대조 | v4.1.0 |
+| B02-Q02 | SQL 직접 투영 | 현재 값과 SQL 결과를 대조, 상세 payload 테이블에 요약을 원문처럼 저장하지 않음·최소 ID·세대 표지 확인 | v4.1.0 |
+| B02-Q03 | 실패 격리 | 뒤 행 손상·SQL 오류·세대 교체에서 원본/live/부분 게시 여부 및 새 owner 필요성 대조 | v4.1.0 |
+| B02-Q04 | 쓰기·cleanup 차단 | append·예약·checkpoint·writer 결박 거부와 cleanup marker/미디어 byte 불변 | v4.1.0 |
+| B02-Q05 | fallback | prefer_sqlite=false·SQLite 미지원/Open 실패·Open 뒤 SQL 실패를 각각 구분 | v4.1.0 |
+| B02-Q06 | 영향 회귀 | 기존 scratch/projection/Journal/Catalog의 변경된 경계와 지원 조합·빌드·정리 확인 | v4.1.0 |
+
+예상 RED는 기존 공개 Catalog Open이 B attachment를 거부하는 지점으로 한정한다.
+경로·빌드·옵션·SQL 준비 오류는 RED가 아니다. 실제 앱·장시간·UI는 이 단위에서 실행하지 않는다.
+사전등록·SQL cache 결정 문서는 `verify-docs-links` exit0(330문서·12,853링크·오류0),
+`verify-docs-ui-assets` exit0(10/10), `git diff --check` exit0으로 확인했다. 원출력은 도구 응답이며
+이 문서 검사만으로 Q01~Q06 구현·실행 완료를 주장하지 않는다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |
