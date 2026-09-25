@@ -1,0 +1,39 @@
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-scale-trace-AwB9l7","bytes":68283,"removed":true}
+✔ B08-C01 tail64 overwrite does not lose completed lock/span count and maxima (134.138708ms)
+✔ B08-C01 disabled trace emits neither tail nor completed summary (2.673167ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":496037,"sha256":"cca054f843e4710b5c34a77eba58ef4683ca4fb76753e7da0df29458e7004f10"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487137,"sha256":"b36327bbc154f04e9a9325bdaf095e63a1d8b29fa19a81d34662c3be33f7912d"}
+[wrapper-pairs] {"input":72,"pairs":72,"wait":72,"hold":72,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-7kBqBB","bytes":650140,"removed":true}
+✔ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (290.07225ms)
+✔ LP26-O09-C03 slow flag만으로 trace 활성화 금지 (5.317625ms)
+✔ LP13-T01 collector 존재 (0.556083ms)
+✔ LP13-T01 disabled/invalid null 무출력 (45.7465ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (46.782875ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (40.464625ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (36.009041ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (45.824459ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (42.874875ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (4.989833ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (17.849583ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (43.410334ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (70.882208ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (287.710458ms)
+✔ LP13-T03 tls-cap 손실 명시 (1.975417ms)
+✔ LP13-T03 cap 손실 명시 (24.059041ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (12.503875ms)
+✔ LP13-T04 enum 거부 (0.086041ms)
+✔ LP13-T04 numeric 거부 (0.032375ms)
+✔ LP13-T04 time 거부 (0.022334ms)
+✔ LP13-T04 count 거부 (0.021917ms)
+✔ LP13-T04 linecap 거부 (0.020042ms)
+✔ LP13-T04 incomplete 거부 (0.017083ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (64.545166ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1390.725708

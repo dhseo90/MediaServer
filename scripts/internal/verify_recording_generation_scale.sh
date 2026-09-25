@@ -4,7 +4,7 @@ set -euo pipefail
 task_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 task_repo="$(cd "$task_script/../.." && pwd)"
 task_mode="${1:-small}"
-[[ "$task_mode" == small || "$task_mode" == deleted ]] || exit 2
+[[ "$task_mode" == small || "$task_mode" == deleted || "$task_mode" == bounded-small || "$task_mode" == bounded-deleted ]] || exit 2
 task_build="$task_repo/build-gst-onnx"
 node -e 'const f=require("fs"),p=require("path"),r=process.argv[1],stamp=f.statSync(process.argv[2]).mtimeMs;function scan(d){for(const n of f.readdirSync(d)){const q=p.join(d,n),s=f.statSync(q);if(s.isDirectory())scan(q);else if(/\.(h|hpp|cpp)$/.test(n)&&s.mtimeMs>stamp)throw Error("stale-product-archive")}}scan(p.join(r,"src"));scan(p.join(r,"include"))' "$task_repo" "$task_build/libmedia_server_runtime.a"
 task_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
@@ -43,6 +43,9 @@ read -r -a task_flags <<<"$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite
  "$task_script/recording_generation_scale_probe.cpp" "${task_libs[@]}" -o "$task_root/probe"
 mkdir -m 700 "$task_root/data"
 export MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=1
+if [[ "$task_mode" == bounded-* ]]; then
+ export MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY=1
+fi
 printf '[scope] observer=file-index-only normalize=synthetic js-semantic=not-run historical-detail-io-counter=not-instrumented\n'
 task_execution_started=1
 "$task_root/probe" "$task_root/data" "$task_mode"

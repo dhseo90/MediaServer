@@ -92,16 +92,33 @@ void ObserveWorker(const std::filesystem::path& root,std::size_t seen){
  Need(!result.empty()&&result.back()=='}',"observe-json");result.pop_back();result+=",\"newRows\":"+std::to_string(added)+"}";
  std::cout<<result;std::cout.flush();::alarm(0);
 }
-void Observe(const std::filesystem::path& root,std::size_t& seen,std::string& prefix){
+void Observe(const std::filesystem::path& root,std::size_t& seen,std::string& prefix,bool bounded=false){
  int pipes[2];Need(::pipe(pipes)==0,"observe-pipe");const auto size=std::to_string(seen);std::cout.flush();std::cerr.flush();const auto start=Clock::now();const auto child=::fork();Need(child>=0,"observe-fork");
  if(!child){::close(pipes[0]);if(::dup2(pipes[1],STDOUT_FILENO)<0)::_exit(127);::close(pipes[1]);::execl(program.c_str(),program.c_str(),"--observe",root.c_str(),size.c_str(),nullptr);::_exit(127);}
  ::close(pipes[1]);std::string bytes;char buffer[65536];for(;;){const auto n=::read(pipes[0],buffer,sizeof(buffer));if(n<0&&errno==EINTR)continue;if(n<=0)break;bytes.append(buffer,n);Need(bytes.size()<=32ULL*1024*1024,"observe-output-cap");}::close(pipes[0]);ChildWait(child,"observe-child-failure");
  ingress::StrictJsonObjectDocument d;Need(ingress::ParseStrictJsonObjectDocument(bytes,&d,nullptr)&&ingress::StrictJsonBoolField(d,"busy")==false&&ingress::StrictJsonBoolField(d,"backlog")==false,"observe-complete");
  const auto* p=d.Find("prefix");const auto* n=d.Find("newRows");const auto* partial=d.Find("partialBytes");Need(p&&n&&partial&&partial->raw=="0","observe-fields");
  Need(prefix.empty()||p->raw==prefix||p->raw.rfind(prefix.substr(0,prefix.size()-1)+",",0)==0,"observe-prefix");prefix=p->raw;seen+=std::stoull(n->raw);
+ if(bounded)Need(Us(start)<=3000000,"observe-parent-deadline");
  Metric("incremental-native-observe",seen,start);
 }
-void Run(const std::filesystem::path& base,bool deleted){
+void SingleSnapshot(const std::filesystem::path& root,std::size_t count){
+ RecordingGenerationManifest manifest;std::string error;
+ Need(ParseRecordingGenerationManifest(Bytes(root/"recording-generation.json"),&manifest,&error),"snapshot-manifest");
+ std::size_t snapshots=0;std::uint64_t bytes=0;
+ for(const auto& entry:std::filesystem::directory_iterator(root)){
+  if(entry.path().filename().string().rfind("snapshot-",0)!=0)continue;
+  struct stat status{};Need(::lstat(entry.path().c_str(),&status)==0&&S_ISREG(status.st_mode)&&status.st_nlink==1&&status.st_size>=0,"snapshot-file");
+  ++snapshots;bytes+=static_cast<std::uint64_t>(status.st_size);
+  Need(entry.path().filename()==manifest.snapshot.name,"snapshot-stale-name");
+ }
+ const auto current=Bytes(root/manifest.snapshot.name);
+ Need(snapshots==1&&bytes==manifest.snapshot.size&&current.size()==bytes&&Digest(current)==manifest.snapshot.sha256,"snapshot-single-current");
+ std::cout<<"[pass] B08-C01 snapshot-count=1 count="<<count<<" bytes="<<bytes<<" generation="<<manifest.generation<<'\n';
+}
+void Run(const std::filesystem::path& base,bool deleted,bool bounded){
+ const std::size_t interval=bounded&&deleted?32:1;
+ std::cout<<"[scope] bounded="<<bounded<<" observer_interval="<<interval<<" observer_batch_limit=128 complete_drain_at_checkpoint=true\n";
  phase="template";const auto prepare=Clock::now();Output input;
  {auto packets=Encode(deleted?60:4096,false,false,160,90,30,10000);auto outputs=Record(base/"template",packets);Need(outputs.size()==1,"template-single");input=std::move(outputs.front());}
  Need(input.binding.samples.size()==(deleted?60:4096)&&input.binding.file_evidence&&Verify(input),"template-actual-evidence");Metric("legacy-template-preparation",1,prepare);
@@ -117,16 +134,21 @@ void Run(const std::filesystem::path& base,bool deleted){
      Need(c.AdjustHoldCount(expected.segment.segment_id,1,&error)&&!c.RequestDeletion(expected.segment.segment_id,"continuous-age",&error)&&c.AdjustHoldCount(expected.segment.segment_id,-1,&error),"hold-protection");}
     if(deleted){const auto start=Clock::now();RecordingTombstoneV2 tomb;tomb.tombstone_id="deleted-"+std::to_string(index);tomb.segment=expected.segment;tomb.deletion_reason="continuous-age";tomb.deleted_at_ms=1000+index;
      Need(c.RequestDeletion(expected.segment.segment_id,tomb.deletion_reason,&error)&&std::filesystem::remove(expected.file)&&c.CompleteDeletionV2(tomb,&error),"delete-complete");Metric("delete",index,start);}
-    Observe(root,seen,prefix);
+    if(index%interval==0)Observe(root,seen,prefix,bounded);
    }
-   Current(c,input,root,store,count,deleted);const auto before=Sealed(root);const auto checkpoint=Clock::now();Need(c.Checkpoint(&error),"checkpoint");Metric("checkpoint",count,checkpoint);Preserved(root,before);Observe(root,seen,prefix);
+   Current(c,input,root,store,count,deleted);const auto before=Sealed(root);const auto checkpoint=Clock::now();Need(c.Checkpoint(&error),"checkpoint");Metric("checkpoint",count,checkpoint);Preserved(root,before);Observe(root,seen,prefix,bounded);
+   if(bounded){
+    Need(seen==count*(deleted?4:2),"complete-drain-count");
+    std::cout<<"[pass] B08-C01 complete-drain count="<<count<<" mutations="<<seen<<'\n';
+    SingleSnapshot(root,count);
+   }
    std::cout<<"[pass] B07-S03 checkpoint-old-detail-unchanged count="<<count<<'\n';
   }
   Reopen(expected_file,root,store,count,deleted,true);Reopen(expected_file,root,store,count,deleted,false);Size(base,count);
  }
  phase="pin-fixture";{RecordingRuntimeStorage runtime(base/"pin");Need(runtime.Open(&error),"pin-runtime");auto p=Expected(input,base/"pin",runtime.journal().ManagedStoreId(),1);p.segment.pinned=true;std::filesystem::create_directories(p.file.parent_path());std::filesystem::copy_file(input.file,p.file);RecordingOrderReservationV1 order;
   Need(runtime.catalog().ReserveRecordingOrder(p.segment.store_id,p.segment.order_request_id,p.segment.segment_id,p.segment.channel_id,&order,&error)&&runtime.catalog().FinalizeBoundSegmentV2(p.segment,p.binding,p.file.string(),&error)&&!runtime.catalog().RequestDeletion(p.segment.segment_id,"continuous-age",&error),"pin-protection");}
- std::cout<<"[pass] B07-S03 isolated-pin-protection\n[summary] generation_scale_pass=true mode="<<(deleted?"deleted":"small")<<" template_only=true fresh_full_observer_drain=not-run\n";
+ std::cout<<"[pass] B07-S03 isolated-pin-protection\n[summary] generation_scale_pass=true mode="<<(bounded?"bounded-":"")<<(deleted?"deleted":"small")<<" template_only=true fresh_full_observer_drain=not-run\n";
 }
 }
 int main(int argc,char** argv){std::cout.setf(std::ios::unitbuf);try{
@@ -136,5 +158,5 @@ int main(int argc,char** argv){std::cout.setf(std::ios::unitbuf);try{
   Output input;std::ifstream file(argv[3]);std::string segment,binding,error;scale::Need(bool(std::getline(file,segment))&&bool(std::getline(file,binding))&&ParseRecordingSegmentV2(segment,&input.segment,&error)&&ParseRecordingSourceBindingV1(binding,&input.binding,&error),"expected-template-read");
   scale::ReopenWorker(input,argv[2],argv[4],std::stoull(argv[5]),std::string(argv[6])=="deleted",std::string(argv[7])=="sql");return 0;
  }
- if(argc!=3)return 2;gst_init(nullptr,nullptr);const std::string mode=argv[2];scale::Need(mode=="small"||mode=="deleted","mode");scale::Run(argv[1],mode=="deleted");return 0;
+ if(argc!=3)return 2;gst_init(nullptr,nullptr);const std::string mode=argv[2];scale::Need(mode=="small"||mode=="deleted"||mode=="bounded-small"||mode=="bounded-deleted","mode");scale::Run(argv[1],mode=="deleted"||mode=="bounded-deleted",mode.rfind("bounded-",0)==0);return 0;
  }catch(...){std::cerr<<"[fail] code="<<scale::phase<<'\n';return 1;}}

@@ -2,10 +2,12 @@
 
 - 2026-09-25 현재 B안: cut·복원·공개 읽기/SQL·증분/회전·형식 전환·소비자 보호·기본 구성과
   현행 검증기 연결(요청1~7)을 마쳤다. 8번의 기존 누적 수치 검사는 통과했고,
-  새 체크포인트의 정확한 이전 snapshot 회수·복구 집중 검증까지 통과했다.
-  이 구현 뒤의 누적 비용·실제 HTTP/통합·9번 최종 코드 고정은 미완료이며 S11도 미완료다.
+  새 체크포인트의 정확한 이전 snapshot 회수·복구 집중 검증과 회수 후
+  1/16/32·1,020/2,049개 누적 단기 측정까지 통과했다. 실제 HTTP/통합·
+  9번 최종 코드 고정은 미완료이며 S11도 미완료다.
   [기존 누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)과
-  [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)를 구분한다.
+  [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
+  [회수 후 누적 결과](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md)를 구분한다.
   아래 S10 고정·S11 통과 표시는 당시 증거의 이력이며 이후 B 변경의 완료를 뜻하지 않는다.
 
 - 2026-09-24 O29 선행 판정: O28 후속 순차 개발에서 저장 처리 수명과 복구 원자성 경계를 확인했다.

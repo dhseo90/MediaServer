@@ -1,0 +1,28 @@
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-scale-trace-NaB2wz","bytes":68011,"removed":true}
+✖ B08-C01 tail64 overwrite does not lose completed lock/span count and maxima (350.501959ms)
+✔ B08-C01 disabled trace emits neither tail nor completed summary (5.264292ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 712.080458
+
+✖ failing tests:
+
+test at scripts/internal/recording_generation_scale.test.mjs:40:1
+✖ B08-C01 tail64 overwrite does not lose completed lock/span count and maxima (350.501959ms)
+  AssertionError [ERR_ASSERTION]: missing independent completed-event summary
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale.test.mjs:50:2)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -40,8 +40,16 @@
 회수 구현 단위의 실제 결과는 [B-08 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
 [최종 유효 집중 621개 개별 행](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/items.md)에 보존한다.
 B08-R01/R02 집중 검사와 관련 build·runtime·consumer는 통과했으나, 최초 RED·
-SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B08-C01/H01/I01과
+SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B08-H01/I01과
 B09-F01은 아직 실행하지 않았으며 B-08 전체 완료·장시간/UI PASS가 아니다.
+
+B08-C01 회수 후 누적 검사는 1/16/32와 1,020/2,049개에서 exit0이다.
+각 checkpoint의 현재 snapshot은 정확히 1개였고 삭제 큰 입력의 최종
+snapshot은 7,027,713B, 전체 저장소는 59,925,722B였다. trace tail 64행과
+독립 완료 구간 집계, 실제 파일·삭제·재개방·상한을 확인했다.
+[원출력·최초 RED·조건·한계·정리](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md)를 따른다.
+관측 호출 간격을 줄였으므로 전체 실행시간을 제품 성능 개선으로 해석하지 않는다.
+실제 JS/HTTP·5단계 통합과 B09-F01은 아직 미실행이다.
 
 
 ### B07 진단 단위 마감 검사 — 실행 전 정의

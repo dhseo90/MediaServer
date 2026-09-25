@@ -1,0 +1,371 @@
+[start] utc=2026-09-25T14:07:51Z mode=bounded-small root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.UnlzZO
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+591f4a7959bd43a3441f242c8b6c412ed112ddeec937f4003a7f518ff177e46c  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp
+a70f4de25edc322c6925595a8eaea3d8cc05c291f8c65346ddd9cba0d66e8fa5  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh
+c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+3a5561e8195d49bdbe64de5813d398bfa0fbd711d0d30b544559c8c0b7143cfe  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h
+e2194189c5251fbd474b02db5bb336ac9c3ba201d21e81097736a30684b2dce3  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h
+27c5db0c380668c8c06cad503e7a25dedfe0821b4cd7e2674998d1b11f4210f5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+daad400b3350c9afd556e52342bab1fd656f72650a5f4629b16575978fdf95cc  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+a1ba3a9fe8ef16bfebf0e3f66740a90f848436d9a7b4b26c196f403763605447  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+489313b38ba57a5f5a6bdaba3d80a9c692c742debd8387510c0be9ff489c8623  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp
+11464cd46070bab1819dc41f44f149a909b1de92c56e1c0ae6d783927f4fae1c  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[scope] observer=file-index-only normalize=synthetic js-semantic=not-run historical-detail-io-counter=not-instrumented
+[scope] bounded=1 observer_interval=1 observer_batch_limit=128 complete_drain_at_checkpoint=true
+[pass] template FE02 writer start
+[pass] template FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=1127896 input_aus=4096 segments=1
+[measure] op=legacy-template-preparation count=1 us=1807780 rss_peak_bytes=85704704
+[template] samples=4096 file_bytes=3712051 binding_bytes=1077251 sha256=583554fcffd0c7e52329f0240002dd887f7e4136b619dba0921ab268f1880a17
+[measure] op=runtime-open count=0 us=11902 rss_peak_bytes=85704704
+[measure] op=reserve-finalize count=1 us=323972 rss_peak_bytes=85704704
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=2 us=201212 rss_peak_bytes=85704704
+[pass] B07-S01 independent-current count=1 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=1 us=298711 rss_peak_bytes=89063424
+[measure] op=checkpoint count=1 us=9549 rss_peak_bytes=89096192
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=2 us=147976 rss_peak_bytes=89096192
+[pass] B08-C01 complete-drain count=1 mutations=2
+[pass] B08-C01 snapshot-count=1 count=1 bytes=1881 generation=2
+[pass] B07-S03 checkpoint-old-detail-unchanged count=1
+[measure] op=reopen-sqlite count=1 us=5538 rss_peak_bytes=45236224
+[pass] B07-S01 independent-current count=1 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=1 us=300473 rss_peak_bytes=60588032
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2858041,"a":2858083,"e":137692250,"n":1,"w":42,"h":134834167,"x":42,"y":134834167}
+[recording-slow-summary] {"seen":1,"retained":1,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":6,"spanCount":0,"maxWaitNs":375,"maxHoldNs":134834167,"maxSpanNs":0,"countOverflow":false}
+[child] exit=0 signal=0
+[measure] op=reopen-jsonl count=1 us=4153 rss_peak_bytes=44908544
+[pass] B07-S01 independent-current count=1 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=1 us=300948 rss_peak_bytes=60243968
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1057917,"a":1057959,"e":135987709,"n":1,"w":42,"h":134929750,"x":42,"y":134929750}
+[recording-slow-summary] {"seen":1,"retained":1,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":6,"spanCount":0,"maxWaitNs":417,"maxHoldNs":134929750,"maxSpanNs":0,"countOverflow":false}
+[child] exit=0 signal=0
+[bytes] count=1 kind=active bytes=1078914
+[bytes] count=1 kind=identity bytes=1439
+[bytes] count=1 kind=media bytes=7424102
+[bytes] count=1 kind=other bytes=2158046
+[bytes] count=1 kind=snapshot bytes=1881
+[bytes] count=1 kind=sqlite bytes=1314816
+[bytes] count=1 kind=total bytes=11979198
+[measure] op=runtime-open count=1 us=4572 rss_peak_bytes=89161728
+[measure] op=reserve-finalize count=2 us=324700 rss_peak_bytes=89161728
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=4 us=197894 rss_peak_bytes=89161728
+[measure] op=reserve-finalize count=3 us=334053 rss_peak_bytes=89194496
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=6 us=198107 rss_peak_bytes=89194496
+[measure] op=reserve-finalize count=4 us=335130 rss_peak_bytes=89194496
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=8 us=197737 rss_peak_bytes=89194496
+[measure] op=reserve-finalize count=5 us=334345 rss_peak_bytes=89210880
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=10 us=198695 rss_peak_bytes=89210880
+[measure] op=reserve-finalize count=6 us=336758 rss_peak_bytes=89325568
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=12 us=201176 rss_peak_bytes=89325568
+[measure] op=reserve-finalize count=7 us=334221 rss_peak_bytes=89325568
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=14 us=201867 rss_peak_bytes=89325568
+[measure] op=reserve-finalize count=8 us=335279 rss_peak_bytes=89341952
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=16 us=202070 rss_peak_bytes=89341952
+[measure] op=reserve-finalize count=9 us=336786 rss_peak_bytes=89358336
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=18 us=203377 rss_peak_bytes=89358336
+[measure] op=reserve-finalize count=10 us=334211 rss_peak_bytes=89407488
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=20 us=203686 rss_peak_bytes=89407488
+[measure] op=reserve-finalize count=11 us=336767 rss_peak_bytes=89440256
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=22 us=203205 rss_peak_bytes=89440256
+[measure] op=reserve-finalize count=12 us=334789 rss_peak_bytes=89473024
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=24 us=203934 rss_peak_bytes=89473024
+[measure] op=reserve-finalize count=13 us=336425 rss_peak_bytes=89489408
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=26 us=205543 rss_peak_bytes=89505792
+[measure] op=reserve-finalize count=14 us=336341 rss_peak_bytes=90341376
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=28 us=210070 rss_peak_bytes=90341376
+[measure] op=reserve-finalize count=15 us=338627 rss_peak_bytes=90341376
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=30 us=204713 rss_peak_bytes=90341376
+[measure] op=reserve-finalize count=16 us=336447 rss_peak_bytes=90357760
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=32 us=206788 rss_peak_bytes=90357760
+[pass] B07-S01 independent-current count=16 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=16 us=4764332 rss_peak_bytes=90374144
+[measure] op=checkpoint count=16 us=11797 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=32 us=155965 rss_peak_bytes=90374144
+[pass] B08-C01 complete-drain count=16 mutations=32
+[pass] B08-C01 snapshot-count=1 count=16 bytes=26170 generation=17
+[pass] B07-S03 checkpoint-old-detail-unchanged count=16
+[measure] op=reopen-sqlite count=16 us=22433 rss_peak_bytes=45711360
+[pass] B07-S01 independent-current count=16 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=16 us=4754707 rss_peak_bytes=61046784
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7535208,"a":7535250,"e":142413042,"n":1,"w":42,"h":134877792,"x":42,"y":134877792}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":304794292,"a":304794333,"e":439415500,"n":1,"w":41,"h":134621167,"x":41,"y":134621167}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":602013583,"a":602013625,"e":735715833,"n":1,"w":42,"h":133702208,"x":42,"y":133702208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":898713375,"a":898713417,"e":1032398292,"n":1,"w":42,"h":133684875,"x":42,"y":133684875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1195259667,"a":1195259708,"e":1328692583,"n":1,"w":41,"h":133432875,"x":41,"y":133432875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1491378458,"a":1491378500,"e":1624727250,"n":1,"w":42,"h":133348750,"x":42,"y":133348750}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1788208417,"a":1788208458,"e":1922545917,"n":1,"w":41,"h":134337459,"x":41,"y":134337459}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2085209042,"a":2085209083,"e":2219470458,"n":1,"w":41,"h":134261375,"x":41,"y":134261375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2382640500,"a":2382640542,"e":2516463000,"n":1,"w":42,"h":133822458,"x":42,"y":133822458}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2678824458,"a":2678824500,"e":2813198375,"n":1,"w":42,"h":134373875,"x":42,"y":134373875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2975712625,"a":2975712667,"e":3111140542,"n":1,"w":42,"h":135427875,"x":42,"y":135427875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3272588833,"a":3272588875,"e":3407807125,"n":1,"w":42,"h":135218250,"x":42,"y":135218250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3570144875,"a":3570144917,"e":3706167833,"n":1,"w":42,"h":136022916,"x":42,"y":136022916}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3868448042,"a":3868448042,"e":4004032125,"n":1,"w":0,"h":135584083,"x":0,"y":135584083}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4167211292,"a":4167211333,"e":4302905375,"n":1,"w":41,"h":135694042,"x":41,"y":135694042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4465182375,"a":4465182375,"e":4600219833,"n":1,"w":0,"h":135037458,"x":0,"y":135037458}
+[recording-slow-summary] {"seen":16,"retained":16,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":36,"spanCount":0,"maxWaitNs":458,"maxHoldNs":136022916,"maxSpanNs":0,"countOverflow":false}
+[child] exit=0 signal=0
+[measure] op=reopen-jsonl count=16 us=19879 rss_peak_bytes=45416448
+[pass] B07-S01 independent-current count=16 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=16 us=4756389 rss_peak_bytes=60702720
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5030375,"a":5030417,"e":139044500,"n":1,"w":42,"h":134014083,"x":42,"y":134014083}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":301511708,"a":301511750,"e":435737792,"n":1,"w":42,"h":134226042,"x":42,"y":134226042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":598192958,"a":598193000,"e":732236833,"n":1,"w":42,"h":134043833,"x":42,"y":134043833}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":894530167,"a":894530208,"e":1028719750,"n":1,"w":41,"h":134189542,"x":41,"y":134189542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1192047167,"a":1192047208,"e":1325996167,"n":1,"w":41,"h":133948959,"x":41,"y":133948959}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1487598292,"a":1487598333,"e":1622699250,"n":1,"w":41,"h":135100917,"x":41,"y":135100917}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1785513625,"a":1785513667,"e":1919691875,"n":1,"w":42,"h":134178208,"x":42,"y":134178208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2082391625,"a":2082391667,"e":2217113208,"n":1,"w":42,"h":134721541,"x":42,"y":134721541}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2379521833,"a":2379521875,"e":2516993417,"n":1,"w":42,"h":137471542,"x":42,"y":137471542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2679476500,"a":2679476542,"e":2814451542,"n":1,"w":42,"h":134975000,"x":42,"y":134975000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2975950167,"a":2975950208,"e":3110602958,"n":1,"w":41,"h":134652750,"x":41,"y":134652750}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3273537208,"a":3273537250,"e":3407695625,"n":1,"w":42,"h":134158375,"x":42,"y":134158375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3570562083,"a":3570562125,"e":3705833917,"n":1,"w":42,"h":135271792,"x":42,"y":135271792}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3869171625,"a":3869171667,"e":4003743958,"n":1,"w":42,"h":134572291,"x":42,"y":134572291}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4166393208,"a":4166393250,"e":4301251542,"n":1,"w":42,"h":134858292,"x":42,"y":134858292}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4463811917,"a":4463811917,"e":4598842167,"n":1,"w":0,"h":135030250,"x":0,"y":135030250}
+[recording-slow-summary] {"seen":16,"retained":16,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":36,"spanCount":0,"maxWaitNs":417,"maxHoldNs":137471542,"maxSpanNs":0,"countOverflow":false}
+[child] exit=0 signal=0
+[bytes] count=16 kind=active bytes=17262709
+[bytes] count=16 kind=identity bytes=20733
+[bytes] count=16 kind=media bytes=63104867
+[bytes] count=16 kind=other bytes=2158051
+[bytes] count=16 kind=snapshot bytes=26170
+[bytes] count=16 kind=sqlite bytes=1359872
+[bytes] count=16 kind=total bytes=83932402
+[measure] op=runtime-open count=16 us=20744 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=17 us=327376 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=34 us=207117 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=18 us=336636 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=36 us=208443 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=19 us=339062 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=38 us=208633 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=20 us=338380 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=40 us=208309 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=21 us=338326 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=42 us=208173 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=22 us=337090 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=44 us=209444 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=23 us=340902 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=46 us=214051 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=24 us=339274 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=48 us=209886 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=25 us=340205 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=50 us=209551 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=26 us=338440 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=52 us=210659 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=27 us=338843 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=54 us=210154 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=28 us=338498 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=56 us=208990 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=29 us=340580 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=58 us=208944 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=30 us=339754 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=60 us=210286 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=31 us=339907 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=62 us=212220 rss_peak_bytes=90374144
+[measure] op=reserve-finalize count=32 us=341398 rss_peak_bytes=90374144
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=64 us=211490 rss_peak_bytes=90374144
+[pass] B07-S01 independent-current count=32 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=32 us=9515085 rss_peak_bytes=90914816
+[measure] op=checkpoint count=32 us=14573 rss_peak_bytes=90914816
+[child] exit=0 signal=0
+[measure] op=incremental-native-observe count=64 us=163025 rss_peak_bytes=90914816
+[pass] B08-C01 complete-drain count=32 mutations=64
+[pass] B08-C01 snapshot-count=1 count=32 bytes=52170 generation=33
+[pass] B07-S03 checkpoint-old-detail-unchanged count=32
+[measure] op=reopen-sqlite count=32 us=39494 rss_peak_bytes=46022656
+[pass] B07-S01 independent-current count=32 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=32 us=9525560 rss_peak_bytes=61423616
+[recording-latency] {"k":0,"o":1,"s":1,"l":557,"m":1,"t":1,"r":0,"b":42,"a":375,"e":12117458,"n":1,"w":333,"h":12117083,"x":333,"y":12117083}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":12444125,"a":12444167,"e":148239167,"n":1,"w":42,"h":135795000,"x":42,"y":135795000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":310755625,"a":310755625,"e":444904250,"n":1,"w":0,"h":134148625,"x":0,"y":134148625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":606955958,"a":606956000,"e":741246417,"n":1,"w":42,"h":134290417,"x":42,"y":134290417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":903883625,"a":903883667,"e":1037146125,"n":1,"w":42,"h":133262458,"x":42,"y":133262458}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1200176083,"a":1200176125,"e":1334364667,"n":1,"w":42,"h":134188542,"x":42,"y":134188542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1498227458,"a":1498227500,"e":1632911708,"n":1,"w":42,"h":134684208,"x":42,"y":134684208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1795944417,"a":1795944458,"e":1930374458,"n":1,"w":41,"h":134430000,"x":41,"y":134430000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2092468250,"a":2092468292,"e":2227155417,"n":1,"w":42,"h":134687125,"x":42,"y":134687125}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2389872500,"a":2389872542,"e":2524786167,"n":1,"w":42,"h":134913625,"x":42,"y":134913625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2687760833,"a":2687760875,"e":2822850208,"n":1,"w":42,"h":135089333,"x":42,"y":135089333}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2985411917,"a":2985411958,"e":3120190542,"n":1,"w":41,"h":134778584,"x":41,"y":134778584}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3281455667,"a":3281455708,"e":3416691958,"n":1,"w":41,"h":135236250,"x":41,"y":135236250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3579304583,"a":3579304625,"e":3714716167,"n":1,"w":42,"h":135411542,"x":42,"y":135411542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3876310250,"a":3876310250,"e":4012262500,"n":1,"w":0,"h":135952250,"x":0,"y":135952250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4174453417,"a":4174453458,"e":4309763917,"n":1,"w":41,"h":135310459,"x":41,"y":135310459}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4472597625,"a":4472597667,"e":4607538917,"n":1,"w":42,"h":134941250,"x":42,"y":134941250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4769257542,"a":4769257583,"e":4903969667,"n":1,"w":41,"h":134712084,"x":41,"y":134712084}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5065989167,"a":5065989208,"e":5200860250,"n":1,"w":41,"h":134871042,"x":41,"y":134871042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5364179750,"a":5364179792,"e":5498669208,"n":1,"w":42,"h":134489416,"x":42,"y":134489416}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5661125042,"a":5661125083,"e":5796072042,"n":1,"w":41,"h":134946959,"x":41,"y":134946959}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5959233542,"a":5959233583,"e":6094236875,"n":1,"w":41,"h":135003292,"x":41,"y":135003292}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":6257512708,"a":6257512750,"e":6392300042,"n":1,"w":42,"h":134787292,"x":42,"y":134787292}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":6554701417,"a":6554701458,"e":6689827958,"n":1,"w":41,"h":135126500,"x":41,"y":135126500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":6853242833,"a":6853242875,"e":6987974583,"n":1,"w":42,"h":134731708,"x":42,"y":134731708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7151222792,"a":7151222833,"e":7286438333,"n":1,"w":41,"h":135215500,"x":41,"y":135215500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7448203625,"a":7448203667,"e":7584093917,"n":1,"w":42,"h":135890250,"x":42,"y":135890250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7745741500,"a":7745741542,"e":7881840667,"n":1,"w":42,"h":136099125,"x":42,"y":136099125}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8043933917,"a":8043933958,"e":8179375000,"n":1,"w":41,"h":135441042,"x":41,"y":135441042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8341658833,"a":8341658833,"e":8478015417,"n":1,"w":0,"h":136356584,"x":0,"y":136356584}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8639543750,"a":8639543792,"e":8774707000,"n":1,"w":42,"h":135163208,"x":42,"y":135163208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8937419000,"a":8937419042,"e":9072749000,"n":1,"w":42,"h":135329958,"x":42,"y":135329958}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":9236521125,"a":9236521167,"e":9374367833,"n":1,"w":42,"h":137846666,"x":42,"y":137846666}
+[recording-slow-summary] {"seen":33,"retained":33,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":68,"spanCount":0,"maxWaitNs":666,"maxHoldNs":137846666,"maxSpanNs":0,"countOverflow":false}
+[child] exit=0 signal=0
+[measure] op=reopen-jsonl count=32 us=36302 rss_peak_bytes=45629440
+[pass] B07-S01 independent-current count=32 deleted=0
+[measure] op=query-and-independent-hash-outside-product-timing count=32 us=9553194 rss_peak_bytes=62013440
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":9341542,"a":9341584,"e":145450292,"n":1,"w":42,"h":136108708,"x":42,"y":136108708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":308477834,"a":308477875,"e":443706875,"n":1,"w":41,"h":135229000,"x":41,"y":135229000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":606303750,"a":606303750,"e":741278750,"n":1,"w":0,"h":134975000,"x":0,"y":134975000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":904025584,"a":904025625,"e":1039516542,"n":1,"w":41,"h":135490917,"x":41,"y":135490917}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1202057084,"a":1202057125,"e":1337647459,"n":1,"w":41,"h":135590334,"x":41,"y":135590334}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1499969834,"a":1499969834,"e":1635839084,"n":1,"w":0,"h":135869250,"x":0,"y":135869250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":1798088542,"a":1798088584,"e":1933572042,"n":1,"w":42,"h":135483458,"x":42,"y":135483458}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2098774125,"a":2098774167,"e":2234803209,"n":1,"w":42,"h":136029042,"x":42,"y":136029042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2398987417,"a":2398987459,"e":2536760042,"n":1,"w":42,"h":137772583,"x":42,"y":137772583}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2698818667,"a":2698818709,"e":2834469084,"n":1,"w":42,"h":135650375,"x":42,"y":135650375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":2996009834,"a":2996009875,"e":3133063292,"n":1,"w":41,"h":137053417,"x":41,"y":137053417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3295814167,"a":3295814209,"e":3432238375,"n":1,"w":42,"h":136424166,"x":42,"y":136424166}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3594951167,"a":3594951209,"e":3731663917,"n":1,"w":42,"h":136712708,"x":42,"y":136712708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":3898492834,"a":3898492875,"e":4034384750,"n":1,"w":41,"h":135891875,"x":41,"y":135891875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4197148542,"a":4197148584,"e":4332110625,"n":1,"w":42,"h":134962041,"x":42,"y":134962041}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4495424667,"a":4495424709,"e":4630605250,"n":1,"w":42,"h":135180541,"x":42,"y":135180541}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":4793122334,"a":4793122375,"e":4928762334,"n":1,"w":41,"h":135639959,"x":41,"y":135639959}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5091338584,"a":5091338625,"e":5226438834,"n":1,"w":41,"h":135100209,"x":41,"y":135100209}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5388805042,"a":5388805084,"e":5523895500,"n":1,"w":42,"h":135090416,"x":42,"y":135090416}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5686817500,"a":5686817542,"e":5823386750,"n":1,"w":42,"h":136569208,"x":42,"y":136569208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":5985916375,"a":5985916417,"e":6121714500,"n":1,"w":42,"h":135798083,"x":42,"y":135798083}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":6283218042,"a":6283218084,"e":6419095042,"n":1,"w":42,"h":135876958,"x":42,"y":135876958}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":6581567459,"a":6581567500,"e":6716974959,"n":1,"w":41,"h":135407459,"x":41,"y":135407459}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":6878299875,"a":6878299917,"e":7013944125,"n":1,"w":42,"h":135644208,"x":42,"y":135644208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7175022417,"a":7175022459,"e":7311804625,"n":1,"w":42,"h":136782166,"x":42,"y":136782166}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7473885625,"a":7473885667,"e":7610130875,"n":1,"w":42,"h":136245208,"x":42,"y":136245208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":7772788417,"a":7772788459,"e":7908478292,"n":1,"w":42,"h":135689833,"x":42,"y":135689833}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8071375167,"a":8071375209,"e":8206520459,"n":1,"w":42,"h":135145250,"x":42,"y":135145250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8369319875,"a":8369319917,"e":8504910417,"n":1,"w":42,"h":135590500,"x":42,"y":135590500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8668200500,"a":8668200542,"e":8803287459,"n":1,"w":42,"h":135086917,"x":42,"y":135086917}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":8965039209,"a":8965039250,"e":9101009625,"n":1,"w":41,"h":135970375,"x":41,"y":135970375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":1,"t":1,"r":0,"b":9263863667,"a":9263863709,"e":9399373625,"n":1,"w":42,"h":135509916,"x":42,"y":135509916}
+[recording-slow-summary] {"seen":32,"retained":32,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":68,"spanCount":0,"maxWaitNs":500,"maxHoldNs":137772583,"maxSpanNs":0,"countOverflow":false}
+[child] exit=0 signal=0
+[bytes] count=32 kind=active bytes=34525525
+[bytes] count=32 kind=identity bytes=41405
+[bytes] count=32 kind=media bytes=122497683
+[bytes] count=32 kind=other bytes=2158051
+[bytes] count=32 kind=snapshot bytes=52170
+[bytes] count=32 kind=sqlite bytes=1392640
+[bytes] count=32 kind=total bytes=160667474
+[pass] B07-S03 isolated-pin-protection
+[summary] generation_scale_pass=true mode=bounded-small template_only=true fresh_full_observer_drain=not-run
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":32758549584,"a":32758549584,"e":33054628292,"n":1,"w":0,"h":296078708,"x":0,"y":296078708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":32728832292,"a":32728832334,"e":33054629625,"n":1,"w":42,"h":325797291,"x":42,"y":325797291}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":33353130750,"a":33353133667,"e":33368121917,"n":1,"w":2917,"h":14988250,"x":2917,"y":14988250}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":33398319125,"a":33398319125,"e":33692386959,"n":1,"w":0,"h":294067834,"x":0,"y":294067834}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":33368125750,"a":33368125792,"e":33692388417,"n":1,"w":42,"h":324262625,"x":42,"y":324262625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":33987106084,"a":33987109042,"e":34002472375,"n":1,"w":2958,"h":15363333,"x":2958,"y":15363333}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":34032481167,"a":34032481167,"e":34327294167,"n":1,"w":0,"h":294813000,"x":0,"y":294813000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":34002476709,"a":34002476750,"e":34327295417,"n":1,"w":41,"h":324818667,"x":41,"y":324818667}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":34620693542,"a":34620696417,"e":34635940375,"n":1,"w":2875,"h":15243958,"x":2875,"y":15243958}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":34666027375,"a":34666027375,"e":34959114125,"n":1,"w":0,"h":293086750,"x":0,"y":293086750}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":34635944334,"a":34635944334,"e":34959115584,"n":1,"w":0,"h":323171250,"x":0,"y":323171250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":35254609667,"a":35254612875,"e":35270303584,"n":1,"w":3208,"h":15690709,"x":3208,"y":15690709}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":35300262584,"a":35300262584,"e":35593435000,"n":1,"w":0,"h":293172416,"x":0,"y":293172416}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":35270307459,"a":35270307500,"e":35593436500,"n":1,"w":41,"h":323129000,"x":41,"y":323129000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":35888332125,"a":35888335167,"e":35903816042,"n":1,"w":3042,"h":15480875,"x":3042,"y":15480875}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":35933667500,"a":35933667500,"e":36226812417,"n":1,"w":0,"h":293144917,"x":0,"y":293144917}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":35903819917,"a":35903819959,"e":36226814209,"n":1,"w":42,"h":322994250,"x":42,"y":322994250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":36520800000,"a":36520803334,"e":36536583667,"n":1,"w":3334,"h":15780333,"x":3334,"y":15780333}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":36566112375,"a":36566112375,"e":36861357959,"n":1,"w":0,"h":295245584,"x":0,"y":295245584}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":36536587334,"a":36536587375,"e":36861363584,"n":1,"w":41,"h":324776209,"x":41,"y":324776209}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":37156029500,"a":37156032792,"e":37172222334,"n":1,"w":3292,"h":16189542,"x":3292,"y":16189542}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":37201902750,"a":37201902750,"e":37495765375,"n":1,"w":0,"h":293862625,"x":0,"y":293862625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":37172226292,"a":37172226334,"e":37495766667,"n":1,"w":42,"h":323540333,"x":42,"y":323540333}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":37791235667,"a":37791238750,"e":37807303750,"n":1,"w":3083,"h":16065000,"x":3083,"y":16065000}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":37836879709,"a":37836879709,"e":38131125292,"n":1,"w":0,"h":294245583,"x":0,"y":294245583}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":37807307250,"a":37807307292,"e":38131127250,"n":1,"w":42,"h":323819958,"x":42,"y":323819958}
+[recording-latency] {"k":0,"o":1,"s":1,"l":1803,"m":6,"t":1,"r":0,"b":38428657250,"a":38428660750,"e":38446990875,"n":1,"w":3500,"h":18330125,"x":3500,"y":18330125}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":38476688334,"a":38476688334,"e":38770038042,"n":1,"w":0,"h":293349708,"x":0,"y":293349708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":38446994667,"a":38446994667,"e":38770039459,"n":1,"w":0,"h":323044792,"x":0,"y":323044792}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":38982234417,"a":38982234459,"e":39118233667,"n":1,"w":42,"h":135999208,"x":42,"y":135999208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":39281211250,"a":39281211292,"e":39416359709,"n":1,"w":42,"h":135148417,"x":42,"y":135148417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":39578732625,"a":39578732667,"e":39714092334,"n":1,"w":42,"h":135359667,"x":42,"y":135359667}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":39875573959,"a":39875574000,"e":40010526167,"n":1,"w":41,"h":134952167,"x":41,"y":134952167}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":40172723417,"a":40172723459,"e":40307904875,"n":1,"w":42,"h":135181416,"x":42,"y":135181416}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":40469344917,"a":40469344917,"e":40603859292,"n":1,"w":0,"h":134514375,"x":0,"y":134514375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":40766132917,"a":40766132959,"e":40900776459,"n":1,"w":42,"h":134643500,"x":42,"y":134643500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":41063257917,"a":41063257959,"e":41198247417,"n":1,"w":42,"h":134989458,"x":42,"y":134989458}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":41361422125,"a":41361422167,"e":41495466417,"n":1,"w":42,"h":134044250,"x":42,"y":134044250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":41658617709,"a":41658617750,"e":41792509334,"n":1,"w":41,"h":133891584,"x":41,"y":133891584}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":41955097334,"a":41955097375,"e":42089899334,"n":1,"w":41,"h":134801959,"x":41,"y":134801959}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":42252862875,"a":42252862917,"e":42387216334,"n":1,"w":42,"h":134353417,"x":42,"y":134353417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":42551069334,"a":42551069375,"e":42685435375,"n":1,"w":41,"h":134366000,"x":41,"y":134366000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":42847392250,"a":42847392292,"e":42982096709,"n":1,"w":42,"h":134704417,"x":42,"y":134704417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":43143530667,"a":43143530709,"e":43278250292,"n":1,"w":42,"h":134719583,"x":42,"y":134719583}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":43440323084,"a":43440323125,"e":43575236167,"n":1,"w":41,"h":134913042,"x":41,"y":134913042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":43737465959,"a":43737466000,"e":43873071000,"n":1,"w":41,"h":135605000,"x":41,"y":135605000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":44035269875,"a":44035269917,"e":44170830625,"n":1,"w":42,"h":135560708,"x":42,"y":135560708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":44332185000,"a":44332185042,"e":44467073625,"n":1,"w":42,"h":134888583,"x":42,"y":134888583}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":44629583792,"a":44629583834,"e":44764106667,"n":1,"w":42,"h":134522833,"x":42,"y":134522833}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":44926560084,"a":44926560125,"e":45060242542,"n":1,"w":41,"h":133682417,"x":41,"y":133682417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":45223523209,"a":45223523250,"e":45358635292,"n":1,"w":41,"h":135112042,"x":41,"y":135112042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":45522209167,"a":45522209209,"e":45656951167,"n":1,"w":42,"h":134741958,"x":42,"y":134741958}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":45819938209,"a":45819938250,"e":45955220459,"n":1,"w":41,"h":135282209,"x":41,"y":135282209}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":46119005334,"a":46119005375,"e":46254029000,"n":1,"w":41,"h":135023625,"x":41,"y":135023625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":46416894000,"a":46416894042,"e":46551532500,"n":1,"w":42,"h":134638458,"x":42,"y":134638458}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":46714473084,"a":46714473125,"e":46849137625,"n":1,"w":41,"h":134664500,"x":41,"y":134664500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":47011697167,"a":47011697209,"e":47146424417,"n":1,"w":42,"h":134727208,"x":42,"y":134727208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":47309081459,"a":47309081500,"e":47444580125,"n":1,"w":41,"h":135498625,"x":41,"y":135498625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":47606525167,"a":47606525209,"e":47741768500,"n":1,"w":42,"h":135243291,"x":42,"y":135243291}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":47903454417,"a":47903454417,"e":48037958042,"n":1,"w":0,"h":134503625,"x":0,"y":134503625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2263,"m":6,"t":1,"r":0,"b":48200379084,"a":48200379084,"e":48334144042,"n":1,"w":0,"h":133764958,"x":0,"y":133764958}
+[recording-latency] {"k":0,"o":1,"s":1,"l":662,"m":6,"t":1,"r":0,"b":49568137375,"a":49568137959,"e":49582684834,"n":1,"w":584,"h":14546875,"x":584,"y":14546875}
+[recording-latency] {"k":1,"o":7,"s":1,"l":1894,"m":6,"t":1,"r":0,"b":70468923959,"a":70468923959,"e":70762563334,"n":1,"w":0,"h":293639375,"x":0,"y":293639375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2082,"m":6,"t":1,"r":0,"b":70438888084,"a":70438888084,"e":70762564917,"n":1,"w":0,"h":323676833,"x":0,"y":323676833}
+[recording-slow-summary] {"seen":150,"retained":64,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":202,"spanCount":35,"maxWaitNs":4250,"maxHoldNs":325797291,"maxSpanNs":296078708,"countOverflow":false}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.UnlzZO bytes=176926692 removed=true
+[end] exit=0 elapsed_seconds=75

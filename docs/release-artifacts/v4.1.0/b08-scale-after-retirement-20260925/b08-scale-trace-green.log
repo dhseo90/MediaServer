@@ -1,0 +1,11 @@
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-scale-trace-HWFgs9","bytes":68283,"removed":true}
+✔ B08-C01 tail64 overwrite does not lose completed lock/span count and maxima (330.537167ms)
+✔ B08-C01 disabled trace emits neither tail nor completed summary (4.773625ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 606.286083

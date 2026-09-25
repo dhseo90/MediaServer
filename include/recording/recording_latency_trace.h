@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdint>
 #include <mutex>
+#include <limits>
 
 namespace recording::latency {
 enum class Source : unsigned { Catalog=1, Projection=2, Read=3, Application=4, Test=5 };
@@ -40,11 +41,21 @@ inline int FormatRow(char (&text)[512],const Row& v) noexcept {
 }
 // 장시간 전용: 빠른 구간은 버리고 마지막 느린 완료 구간64개만 메모리에 보존한다.
 // 종료 시 한번 배출: 최대64*512+512 bytes. 비정상 종료/진행 중 span은 증거가 아니다.
+// tail의 덮어쓰기와 독립적으로 모든 완료 계측 구간의 count/max(ns)를 고정 크기로 집계한다.
+// 제품 전용 구간이 아니라 이 프로세스에서 계측된 준비/조회 구간도 포함한다.
 struct SlowRing {
     std::mutex mutex;std::array<Row,64> rows{};std::uint64_t seen=0;
+    std::uint64_t lock_count=0,span_count=0,max_wait=0,max_hold=0,max_span=0;
+    bool count_overflow=false;
+    void Count(std::uint64_t& count) noexcept {
+        if(count==std::numeric_limits<std::uint64_t>::max())count_overflow=true;else ++count;
+    }
     void Add(const Row& row) noexcept {
+        std::lock_guard<std::mutex> lock(mutex);
+        if(row.k==0){Count(lock_count);if(row.w>max_wait)max_wait=row.w;if(row.h>max_hold)max_hold=row.h;}
+        else if(row.k==1){Count(span_count);if(row.h>max_span)max_span=row.h;}
         if(row.w<10000000&&row.h<10000000)return;
-        std::lock_guard<std::mutex> lock(mutex);rows[seen%rows.size()]=row;++seen;
+        rows[seen%rows.size()]=row;Count(seen);
     }
     ~SlowRing() {
         std::lock_guard<std::mutex> lock(mutex);
@@ -53,6 +64,9 @@ struct SlowRing {
             if(size>0&&size<static_cast<int>(sizeof(text)))(void)std::fwrite(text,1,static_cast<std::size_t>(size),stderr);}
         (void)std::fprintf(stderr,"[recording-slow-summary] {\"seen\":%llu,\"retained\":%llu,\"thresholdNs\":10000000}\n",
             (unsigned long long)seen,(unsigned long long)count);
+        (void)std::fprintf(stderr,"[recording-complete-summary] {\"lockCount\":%llu,\"spanCount\":%llu,\"maxWaitNs\":%llu,\"maxHoldNs\":%llu,\"maxSpanNs\":%llu,\"countOverflow\":%s}\n",
+            (unsigned long long)lock_count,(unsigned long long)span_count,(unsigned long long)max_wait,
+            (unsigned long long)max_hold,(unsigned long long)max_span,count_overflow?"true":"false");
     }
 };
 inline SlowRing& SlowTail() noexcept {static SlowRing ring;return ring;}
