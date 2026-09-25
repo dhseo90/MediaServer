@@ -31,6 +31,22 @@ thin 상세 값의 결박, SQLite 복구 경계를 별도로 확정했다. [추�
 `./server.sh verify-docs-ui-assets`(10/10), `git diff --check`(exit0)로 확인했다.
 token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 자료는 없다.
 
+### B-02 수용·분할 동등성 마감
+
+2026-09-25 기존 managed-format-v1의 실제 기록·strict 재Open과 B snapshot/active cut을
+대조했다. snapshot에만 추가된 V1 예약·tombstone 관계 및 source 원문 표현 제약이 원인이었다.
+`recording_catalog_generation_projection.cpp`의 `CrossMaps`·`ActiveDetails`를 기존 수용 의미에
+맞췄다. V1 tombstone이 실제 있는 경우만 path/삭제 사유 부재를 허용하고 V2 예약·typed 값,
+원문 SHA·ID·domain·손상 거부는 유지한다. 기존 writer·공개 API는 변경하지 않았다.
+
+최종 scratch 59/59(Z01 13/Z02 11/Z03 18+기존 Y17), projection 30/30, 기존 Catalog 249개,
+B Journal 78개와 전체 build가 각각 exit0이다. 메인이 diff와 원출력을 직접 대조했다.
+준비 경로·컴파일·opt-in 누락·명령 오타와 실제 예상 RED를 구분해 전부 보존했다.
+[명령·개별 416개 결과·원출력·정리](release-artifacts/v4.1.0/b02-cut-equivalence-20260925/results.md)를 따른다.
+원본 로그 이관 전 한 번의 출력 취득이 도구 출력 길이 상한으로 잘렸으며, 이를 증거로 쓰지 않고
+로컬 원파일의 hash·전수 결과 행·cleanup을 크기 제한 안에서 별도로 읽었다. 검증 실행 실패는 아니다.
+공개 B Catalog Open·SQLite·Append·Checkpoint, 누적·실제 앱·최종 검증은 이 단위의 PASS 범위가 아니다.
+
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
 | --- | --- | --- |
 | B-01 저장·복구 계약 | 완료 | 권위·자료 수명·세대 게시·검출 시점·복구·호환·비용 판정 고정. 아래 문서 검사 통과. 제품 형식 구현은 B-02부터 |

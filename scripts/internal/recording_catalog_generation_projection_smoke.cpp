@@ -156,6 +156,8 @@ int main(int argc,char** argv) {
         bad=f;for(auto& row:bad.snapshot.rows)if(row.kind=="segment-v2")row.key="wrong";bad.Seal({});Check(2,Rejected(bad,root),"domain internal key mismatch");
         bad=f;for(auto& row:bad.snapshot.rows)if(row.kind=="source-binding"){RecordingCatalogSourceSummary s;Need(ParseRecordingCatalogSourceSummary(row.value_json,&s,&error));s.latest_mutation_id="job-mutation";Need(SerializeRecordingCatalogSourceSummary(s,&row.value_json,&error));}bad.Seal({});Check(2,Rejected(bad,root),"thin latest type/entity mismatch");
         bad=f;bad.Row("media-path","orphan","\"safe/file.mp4\"");bad.Seal({});Check(2,Rejected(bad,root),"orphan media path");
+        bad=f;bad.snapshot.rows.erase(std::remove_if(bad.snapshot.rows.begin(),bad.snapshot.rows.end(),[](const auto& row){return row.kind=="media-path"&&row.key=="segment";}),bad.snapshot.rows.end());
+        bad.Seal({});Check(2,Rejected(bad,root),"V2 missing media path without V1 tombstone remains rejected");
         bad=f;auto present=input.source.segment;present.segment_id=input.job.intent.outputs[0].output_id;present.order_request_id=input.job.intent.outputs[0].order_request_id;present.order_sequence=2;
         bad.Order(present.order_request_id,present.segment_id,2);bad.Row("segment-v2",present.segment_id,SerializeRecordingSegmentV2(present));bad.Row("media-path",present.segment_id,"\"independent/file.mp4\"");bad.Seal(root);
         Check(2,bad.Build(root,&output)&&output.active_jobs.size()==1&&output.segments_v2.count(present.segment_id),"Intent independently finalized output stays valid/protected");

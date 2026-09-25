@@ -43,6 +43,23 @@ struct RecordingCatalogGenerationScratchProbe {
             SerializeRecordingSourceBindingV1(*verified)==SerializeRecordingSourceBindingV1(*source.resident);
     }
     static bool Holds(const RecordingCatalog& c,std::uint64_t expected){const auto i=c.hold_counts_.find("legacy");return (i==c.hold_counts_.end()?0:i->second)==expected;}
+    static bool DeletedIdentity(const RecordingCatalog& c,const std::string& checksum){
+        const auto s=c.segments_.find("legacy"),end=c.segments_.end();const auto t=c.tombstones_.find("legacy");
+        return s!=end&&s->second.lifecycle==RecordingLifecycle::Deleted&&t!=c.tombstones_.end()&&
+            t->second.checksum_sha256==checksum&&!c.media_relpaths_.count("legacy");
+    }
+    static bool PendingDeleted(const RecordingCatalog& c){return c.segments_.at("legacy").lifecycle==RecordingLifecycle::DeletionPending&&
+        c.tombstones_.count("legacy")&&!c.media_relpaths_.count("legacy")&&c.deletion_reasons_.at("legacy")=="continuous-age";}
+    static bool V2LegacyDeleted(const RecordingCatalog& c){return c.segments_v2_.count("segment")&&c.tombstones_.count("segment")&&!c.media_relpaths_.count("segment");}
+    static bool ExpectedAcceptance(const RecordingCatalog& c,const std::string& mode,const std::string& output) {
+        if(mode=="v1-tomb-on-v2"||mode=="job-source-tomb"||mode=="v2-deleted-tomb")return V2LegacyDeleted(c)&&
+            (mode!="v2-deleted-tomb"||(c.tombstones_v2_.count("segment")&&!c.deletion_reasons_.count("segment")));
+        if(!c.segments_v2_.count("segment")||!c.source_bindings_.count("segment")||c.derived_jobs_.size()!=1)return false;
+        if(mode=="job-v1-output")return c.segments_.count(output)&&c.segments_.at(output).lifecycle==RecordingLifecycle::Finalized&&c.media_relpaths_.count(output);
+        if(mode=="job-tomb-output")return c.tombstones_.count(output)&&!c.media_relpaths_.count(output);
+        if(mode=="committed-tomb")return c.segments_v2_.count(output)&&c.tombstones_.count(output)&&!c.media_relpaths_.count(output)&&c.derived_jobs_.begin()->second.state==DerivedJobState::Committed;
+        return c.source_bindings_.at("segment").source=="source";
+    }
     static bool All(const RecordingCatalog& c){return c.segments_.size()==2&&c.segments_v2_.size()==2&&c.states_v2_.size()==1&&
         c.tombstones_.size()==1&&c.tombstones_v2_.size()==1&&c.observations_.size()==1&&c.observations_v2_.size()==1&&
         c.referenced_observations_.size()==1&&c.event_links_.size()==1&&c.source_bindings_.size()==1&&c.derived_jobs_.size()==1&&
@@ -89,6 +106,179 @@ ProjectionFixture AllRows() {
     e.requested_range=UtcRangeV1{1000,2000};e.ordered_overlaps={{"legacy",{1000,2000}}};e.derived_segment_id="derived";
     e.time_basis="utc-ms";e.created_at_ms=1000;e.updated_at_ms=2000;e.completeness_reason="event-terminal-release-recovery-pending";
     f.Row("event-link",e.link_id,SerializeEventRecordingLinkV1(e));return f;
+}
+struct ActualCut {
+    RecordingCatalogSnapshot snapshot;
+    std::string identity,archive;
+};
+ActualCut CaptureActual(RecordingJournal& journal,RecordingCatalog& catalog) {
+    ActualCut result;RecordingIdentityShard shard;shard.store_id="store";shard.generation=2;
+    const auto replay=journal.Replay();Need(replay.io_error_count==0&&replay.corrupt_line_count==0&&replay.truncated_tail_count==0);
+    for(std::size_t i=0;i<replay.mutations.size();++i) {
+        const auto& m=replay.mutations[i];const auto raw=SerializeRecordingMutationV1(m)+"\n";
+        RecordingIdentityRow row;row.mutation_id=m.mutation_id;row.type=m.mutation_type;row.entity_id=m.entity_id;
+        row.occurred_at_ms=m.occurred_at_ms;row.global_ordinal=i;row.identity=Hash(SerializeRecordingMutationV1(m));
+        row.offset=result.archive.size();row.length=raw.size();row.raw_sha256=Hash(raw);
+        if(m.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 o;Need(ParseRecordingOrderReservationV1(m.payload_json,&o,&error));row.reservation=o;}
+        shard.rows.push_back(std::move(row));result.archive+=raw;
+    }
+    Need(result.archive==Read(journal.path()));
+    shard.archives={{"evidence-1-0.jsonl",result.archive.size(),Hash(result.archive)}};
+    Need(SerializeRecordingIdentityShard(shard,&result.identity,&error));
+    const RecordingGenerationFile head{"identity-2.jsonl",result.identity.size(),Hash(result.identity)};
+    RecordingIdentityChainResult chain;
+    Need(ValidateRecordingIdentityShardChain(head,[&](const RecordingGenerationFile& d,std::uint64_t limit,std::string* bytes,std::string*){
+        if(d.name!=head.name||result.identity.size()>limit)return false;*bytes=result.identity;return true;
+    },{1024*1024,100,100},&chain,&error));
+    Need(catalog.ExportGenerationSnapshot(chain,2,replay.mutations.size(),&result.snapshot,&error));return result;
+}
+void InstallActual(const std::filesystem::path& root,const ActualCut& cut,const std::string& tail) {
+    std::filesystem::create_directories(root);Write(root/"identity-2.jsonl",cut.identity);Write(root/"evidence-1-0.jsonl",cut.archive);
+    std::string bytes;Need(SerializeRecordingCatalogSnapshot(cut.snapshot,&bytes,&error));Write(root/"snapshot-2.jsonl",bytes);
+    RecordingGenerationManifest manifest;manifest.store_id="store";manifest.generation=2;manifest.cut_ordinal=cut.snapshot.cut_ordinal;
+    manifest.snapshot={"snapshot-2.jsonl",bytes.size(),Hash(bytes)};manifest.active={"active-2.jsonl",0,Hash("")};
+    Need(SerializeRecordingGenerationManifest(manifest,&bytes,&error));Write(root/"recording-generation.json",bytes);Write(root/"active-2.jsonl",tail);
+    Write(root/".recording-store-format",Marker());Write(root/"recording-v2-mutations.jsonl","preserved actual v1 in separate fixture\n");
+}
+RecordingTombstoneV1 Tomb(const std::string& id) {
+    RecordingTombstoneV1 t;t.tombstone_id="tomb";t.segment_id=id;t.source_id="other-source";t.channel_id="other-channel";
+    t.recorded_range={1000,2000};t.checksum_sha256=std::string(64,'b');t.retention_class=RecordingRetentionClass::Continuous;t.deletion_reason="continuous-age";t.deleted_at_ms=3000;return t;
+}
+void AcceptanceCases(const std::filesystem::path& base) {
+    for(const std::string mode:{"v1-tomb-on-v2","job-v1-output","job-tomb-output","source-wrapper","job-source-tomb","v2-deleted-tomb","committed-tomb"}) {
+        const auto root=base/mode;std::filesystem::create_directories(root);
+        const auto input=InputValue();const auto fixture=Active(input);
+        RecordingCatalog::Options options(root/"recording-catalog.sqlite3",root,false);options.enable_v2_storage=true;
+        bool live=false;ActualCut before,after;
+        {
+            RecordingJournal journal(Options(root));Need(journal.Open(&error));
+            RecordingOrderReservationV1 order;Need(journal.ReserveRecordingOrder("store","order","segment","channel",&order,&error));
+            {RecordingCatalog initial(journal,options);Need(initial.Open(&error));before=CaptureActual(journal,initial);}
+            for(const auto& first:fixture.chain.first_acceptances) {
+                if(first.first_row.type==RecordingMutationType::RecordingOrderReserved)continue;
+                if((mode=="v1-tomb-on-v2"||mode=="v2-deleted-tomb")&&first.first_row.type==RecordingMutationType::DerivedJobIntent)continue;
+                const auto& row=first.first_row;RecordingMutationV1 mutation;
+                Need(ParseRecordingMutationV1(fixture.archive.substr(row.offset,row.length-1),&mutation,&error));
+                if(mode=="source-wrapper"&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized)
+                    mutation.payload_json.insert(1," ");
+                Need(journal.Append(mutation,&error));
+            }
+            const auto append=[&](RecordingMutationType type,const std::string& id,const std::string& entity,const std::string& payload) {
+                RecordingMutationV1 m;m.mutation_type=type;m.mutation_id=id;m.entity_id=entity;m.occurred_at_ms=30;m.payload_json=payload;Need(journal.Append(m,&error));
+            };
+            if(mode=="v2-deleted-tomb") {
+                RecordingSegmentStateV2 state;state.segment_id="segment";state.lifecycle=RecordingLifecycle::DeletionPending;state.reason="continuous-age";
+                append(RecordingMutationType::SegmentV2State,"pending","segment",SerializeRecordingSegmentStateV2(state));
+                RecordingTombstoneV2 tomb;tomb.tombstone_id="deleted-v2";tomb.segment=input.source.segment;tomb.deletion_reason=state.reason;tomb.deleted_at_ms=30;
+                append(RecordingMutationType::SegmentV2Deleted,"deleted","segment",SerializeRecordingTombstoneV2(tomb));
+            }
+            if(mode=="committed-tomb") {
+                auto ready=ReadyInput().job;auto files=ready;files.state=DerivedJobState::Intent;files.ready.reset();
+                append(RecordingMutationType::DerivedJobFiles,"files",files.intent.job_id,SerializeDerivedJobRecord(files));
+                for(const auto& output:ready.ready->outputs)Need(journal.ReserveRecordingOrder("store",output.segment.order_request_id,output.segment.segment_id,"channel",&order,&error));
+                append(RecordingMutationType::DerivedJobReady,"ready",ready.intent.job_id,SerializeDerivedJobRecord(ready));
+                ready.state=DerivedJobState::Committed;append(RecordingMutationType::DerivedJobCommitted,"committed",ready.intent.job_id,SerializeDerivedJobRecord(ready));
+            }
+            RecordingCatalog catalog(journal,options);Need(catalog.Open(&error));
+            if(mode=="v1-tomb-on-v2"||mode=="job-source-tomb"||mode=="v2-deleted-tomb")live=catalog.CompleteDeletion(Tomb("segment"),&error);
+            else if(mode=="job-tomb-output"||mode=="committed-tomb")live=catalog.CompleteDeletion(Tomb(input.job.intent.outputs[0].output_id),&error);
+            else if(mode=="job-v1-output") {
+                auto segment=ProjectionV1();segment.segment_id=input.job.intent.outputs[0].output_id;
+                Write(root/"output.mp4","owned media");live=catalog.FinalizeSegment(segment,(root/"output.mp4").string(),&error);
+            } else live=true;
+            std::cout<<"[acceptance] managed "<<mode<<" live="<<live<<" error="<<error<<'\n';
+            live=live&&RecordingCatalogGenerationScratchProbe::ExpectedAcceptance(catalog,mode,input.job.intent.outputs[0].output_id);
+            after=CaptureActual(journal,catalog);
+        }
+        RecordingJournal reopened(Options(root));const bool journal_open=reopened.Open(&error);
+        RecordingCatalog catalog(reopened,options);const bool catalog_open=journal_open&&catalog.Open(&error);
+        std::cout<<"[acceptance] managed "<<mode<<" strict-journal="<<journal_open<<" strict-catalog="<<catalog_open<<" error="<<error<<'\n';
+        Check("B02-Z01",live&&catalog_open&&RecordingCatalogGenerationScratchProbe::ExpectedAcceptance(catalog,mode,input.job.intent.outputs[0].output_id),("managed actual history and strict reopen: "+mode).c_str());
+        Need(after.archive.compare(0,before.archive.size(),before.archive)==0);
+        bool restored[2]{};
+        for(unsigned cut=0;cut<2;++cut) {
+            const auto path=base/(mode+(cut?"-late":"-early"));
+            InstallActual(path,cut?after:before,cut?std::string{}:after.archive.substr(before.archive.size()));
+            const auto bytes=Original(path);RecordingJournal owner(Options(path));const bool opened=owner.Open(&error);
+            const auto open_error=error;RecordingCatalog::Options scratch_options(path/"db",path,false);scratch_options.enable_v2_storage=true;
+            RecordingCatalog candidate(owner,scratch_options);std::unique_ptr<RecordingCatalog> out;
+            restored[cut]=opened&&RecordingCatalogGenerationScratchProbe::Build(candidate,&out)&&out&&
+                RecordingCatalogGenerationScratchProbe::ExpectedAcceptance(*out,mode,input.job.intent.outputs[0].output_id);
+            std::cout<<"[cut] "<<mode<<" cut="<<(cut?after:before).snapshot.cut_ordinal<<" open="<<opened<<" state="<<restored[cut]<<" open_error="<<open_error<<" error="<<error<<'\n';
+            Check("B02-Z03",Original(path)==bytes&&RecordingCatalogGenerationScratchProbe::Empty(candidate)&&!std::filesystem::exists(path/"db"),"candidate cuts leave live and original unchanged");
+        }
+        Check("B02-Z02",restored[0]&&restored[1],("EXPECTED RED actual history cut equivalence: "+mode).c_str());
+    }
+    for(bool managed:{false,true}) {
+        const auto root=base/(managed?"managed-reserved-v1":"unmanaged-reserved-v1");std::filesystem::create_directories(root);
+        auto j=managed?std::make_unique<RecordingJournal>(Options(root)):std::make_unique<RecordingJournal>(root/"journal.jsonl");
+        Need(j->Open(&error));RecordingOrderReservationV1 order;Need(j->ReserveRecordingOrder("store","request","legacy","channel",&order,&error));
+        RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;bool finalized=false;ActualCut reserved,finished;
+        {RecordingCatalog c(*j,o);Need(c.Open(&error));Write(root/"media.mp4","owned fixture media");
+            if(managed)reserved=CaptureActual(*j,c);
+            finalized=c.FinalizeSegment(ProjectionV1(),(root/"media.mp4").string(),&error);
+            if(managed)finished=CaptureActual(*j,c);
+            std::cout<<"[acceptance] mode="<<(managed?"managed-format-v1":"unmanaged")<<" reservation-then-segment-v1="<<finalized<<" error="<<error<<'\n';
+        }
+        j.reset();auto reopened=managed?std::make_unique<RecordingJournal>(Options(root)):std::make_unique<RecordingJournal>(root/"journal.jsonl");
+        const bool opened=reopened->Open(&error);RecordingCatalog c(*reopened,o);const bool catalog=opened&&c.Open(&error);
+        std::cout<<"[acceptance] reservation-reopen mode="<<managed<<" journal="<<opened<<" catalog="<<catalog<<" error="<<error<<'\n';
+        Check("B02-Z01",finalized&&catalog&&c.QuerySegments("channel",1000,2000).size()==1,managed?"managed reservation then V1 finalize and reopen":"unmanaged S10-O10-equivalent explicit V2-opt-in reopen");
+        if(managed)for(unsigned cut=0;cut<2;++cut) {
+            const auto path=base/(cut?"reserved-late":"reserved-early");
+            InstallActual(path,cut?finished:reserved,cut?std::string{}:finished.archive.substr(reserved.archive.size()));
+            RecordingJournal owner(Options(path));const bool open=owner.Open(&error);
+            RecordingCatalog::Options options(path/"db",path,false);options.enable_v2_storage=true;
+            RecordingCatalog target(owner,options);std::unique_ptr<RecordingCatalog> result;
+            Check("B02-Z02",open&&RecordingCatalogGenerationScratchProbe::Build(target,&result)&&result&&result->QuerySegments("channel",1000,2000).size()==1,
+                cut?"reserved then V1 finalization late cut":"reserved then V1 finalization early cut");
+        }
+    }
+    const auto root=base/"actual-deletion";std::filesystem::create_directories(root);ActualCut before,after;
+    {RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;
+        RecordingCatalog c(j,o);Need(c.Open(&error));Write(root/"media.mp4","owned fixture media");Need(c.FinalizeSegment(ProjectionV1(),(root/"media.mp4").string(),&error));
+        before=CaptureActual(j,c);const auto tomb=Tomb("legacy");const bool accepted=c.CompleteDeletion(tomb,&error);
+        Check("B02-Z01",accepted&&RecordingCatalogGenerationScratchProbe::DeletedIdentity(c,tomb.checksum_sha256),"managed public V1 tombstone different identity accepted with independent deleted state");
+        Need(accepted);after=CaptureActual(j,c);
+        const auto original=Read(j.path());
+        Check("B02-Z01",!c.RequestDeletion("legacy","continuous-age",&error)&&Read(j.path())==original&&
+            RecordingCatalogGenerationScratchProbe::DeletedIdentity(c,std::string(64,'b')),"public RequestDeletion after deleted is rejected without new bytes");
+    }
+    {RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;RecordingCatalog c(j,o);
+        Check("B02-Z01",c.Open(&error)&&RecordingCatalogGenerationScratchProbe::DeletedIdentity(c,std::string(64,'b')),"managed strict reopen preserves mismatched V1 tombstone state");}
+    Need(after.archive.compare(0,before.archive.size(),before.archive)==0);const auto tail=after.archive.substr(before.archive.size());
+    bool outcomes[2]{};
+    for(unsigned i=0;i<2;++i) {
+        const auto path=base/(i?"cut-after":"cut-before");InstallActual(path,i?after:before,i?std::string{}:tail);const auto bytes=Original(path);
+        RecordingJournal j(Options(path));const bool opened=j.Open(&error);const auto open_error=error;
+        RecordingCatalog::Options o(path/"db",path,false);o.enable_v2_storage=true;RecordingCatalog c(j,o);std::unique_ptr<RecordingCatalog> out;
+        outcomes[i]=opened&&RecordingCatalogGenerationScratchProbe::Build(c,&out)&&out&&RecordingCatalogGenerationScratchProbe::DeletedIdentity(*out,std::string(64,'b'));
+        std::cout<<"[cut] cut="<<(i?after:before).snapshot.cut_ordinal<<" JournalOpen="<<opened<<" state="<<outcomes[i]<<" open_error="<<open_error<<" error="<<error<<'\n';
+        Check("B02-Z03",Original(path)==bytes&&RecordingCatalogGenerationScratchProbe::Empty(c)&&!std::filesystem::exists(o.sqlite_path),"cut comparison never publishes live SQLite or changes bytes");
+    }
+    Check("B02-Z02",outcomes[0]&&outcomes[1],"EXPECTED RED same actual managed history must restore same deleted identity on both cuts");
+    ActualCut requested;
+    {
+        RecordingJournal journal(Options(root));Need(journal.Open(&error));
+        RecordingMutationV1 mutation;mutation.mutation_id="direct-request";mutation.entity_id="legacy";
+        mutation.mutation_type=RecordingMutationType::DeletionRequested;mutation.occurred_at_ms=4000;mutation.payload_json="{\"reason\":\"continuous-age\"}";
+        Need(journal.Append(mutation,&error));RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;
+        RecordingCatalog catalog(journal,o);Need(catalog.Open(&error));requested=CaptureActual(journal,catalog);
+    }
+    {
+        RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;
+        RecordingCatalog catalog(journal,o);Check("B02-Z01",catalog.Open(&error)&&RecordingCatalogGenerationScratchProbe::PendingDeleted(catalog),"direct Journal DeletionRequested after deleted survives strict reopen unlike public request");
+    }
+    for(unsigned i=0;i<2;++i) {
+        const auto path=base/(i?"direct-request-late":"direct-request-early");
+        InstallActual(path,i?requested:after,i?std::string{}:requested.archive.substr(after.archive.size()));const auto bytes=Original(path);
+        RecordingJournal journal(Options(path));const bool opened=journal.Open(&error);const auto open_error=error;
+        RecordingCatalog::Options o(path/"db",path,false);o.enable_v2_storage=true;RecordingCatalog c(journal,o);std::unique_ptr<RecordingCatalog> out;
+        outcomes[i]=opened&&RecordingCatalogGenerationScratchProbe::Build(c,&out)&&out&&RecordingCatalogGenerationScratchProbe::PendingDeleted(*out);
+        std::cout<<"[cut] direct-request cut="<<(i?requested:after).snapshot.cut_ordinal<<" open="<<opened<<" state="<<outcomes[i]<<" open_error="<<open_error<<" error="<<error<<'\n';
+        Check("B02-Z03",Original(path)==bytes&&RecordingCatalogGenerationScratchProbe::Empty(c),"direct request cuts preserve live and original");
+    }
+    Check("B02-Z02",outcomes[0]&&outcomes[1],"EXPECTED RED direct accepted request after deleted cut equivalence");
 }
 #endif
 int main(int argc,char** argv) {
@@ -178,6 +368,7 @@ int main(int argc,char** argv) {
             RecordingCatalog target(owner,o);std::unique_ptr<RecordingCatalog> out;
             Check("B02-Y01",RecordingCatalogGenerationScratchProbe::Build(target,&out)&&out&&RecordingCatalogGenerationScratchProbe::All(*out),"all sixteen snapshot row kinds imported");
         }
+        AcceptanceCases(base/"acceptance");
 #else
         const auto root=base/"unsupported";std::filesystem::create_directories(root);RecordingJournal j(Options(root));
         RecordingCatalog c(j,{root/"catalog.sqlite3",root,false});std::unique_ptr<RecordingCatalog> candidate;

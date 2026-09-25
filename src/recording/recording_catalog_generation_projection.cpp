@@ -73,29 +73,26 @@ bool BindingMatches(const RecordingSourceBindingV1& live,const RecordingSourceBi
         std::equal(live.samples.begin(),live.samples.end(),saved.samples.begin(),[](const auto& a,const auto& b){return a.ordinal==b.ordinal&&a.pts_ns==b.pts_ns;});
 }
 bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
-    std::set<std::string> reserved_segments;
-    for(const auto& pair:p.orders)reserved_segments.insert(pair.second.segment_id);
     for(const auto& pair:p.segments) {
         const auto& v=pair.second;
-        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||reserved_segments.count(pair.first))
+        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first))
             return Fail(error,"projection V1/V2/order namespace collision");
-        if((v.lifecycle==RecordingLifecycle::Deleted)!=static_cast<bool>(p.tombstones.count(pair.first))||
-            (v.lifecycle!=RecordingLifecycle::Deleted&&!p.media_paths.count(pair.first)))
+        const bool tombstone=p.tombstones.count(pair.first);
+        if((v.lifecycle==RecordingLifecycle::Deleted&&!tombstone)||
+            (tombstone&&v.lifecycle!=RecordingLifecycle::Deleted&&v.lifecycle!=RecordingLifecycle::DeletionPending)||
+            (v.lifecycle!=RecordingLifecycle::Deleted&&!tombstone&&!p.media_paths.count(pair.first)))
             return Fail(error,"projection V1 lifecycle/path mismatch");
     }
     for(const auto& pair:p.tombstones) {
-        const auto& v=pair.second;
-        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||reserved_segments.count(pair.first)||p.media_paths.count(pair.first))
-            return Fail(error,"projection tombstone namespace/path mismatch");
-        const auto segment=p.segments.find(pair.first);
-        if(segment!=p.segments.end()&&(segment->second.source_id!=v.source_id||segment->second.channel_id!=v.channel_id||
-            segment->second.checksum_sha256!=v.checksum_sha256||segment->second.retention_class!=v.retention_class))
-            return Fail(error,"projection V1 tombstone identity mismatch");
+        // 기존 V1 삭제 완료는 예약/V2와의 공존 및 원 segment와 다른 tombstone 내용을 수용한다.
+        // domain 파싱은 유지하되 이력의 cut 위치에 따라 새로운 동일성 조건을 적용하지 않는다.
+        if(p.media_paths.count(pair.first))return Fail(error,"projection tombstone path mismatch");
     }
     for(const auto& pair:p.segments_v2) {
         const auto& v=pair.second;const auto order=p.orders.find(v.order_request_id);
         if(v.store_id!=p.manifest.store_id||order==p.orders.end()||order->second.segment_id!=pair.first||
-            order->second.channel_id!=v.channel_id||order->second.sequence!=v.order_sequence||!p.media_paths.count(pair.first))
+            order->second.channel_id!=v.channel_id||order->second.sequence!=v.order_sequence||
+            (!p.media_paths.count(pair.first)&&!p.tombstones.count(pair.first)))
             return Fail(error,"projection V2 reservation/path mismatch");
     }
     for(const auto& pair:p.states_v2)if(!p.segments_v2.count(pair.first))return Fail(error,"projection orphan V2 state");
@@ -104,7 +101,8 @@ bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
         const auto state=p.states_v2.find(pair.first);
         const auto reason=p.deletion_reasons.find(pair.first);
         if(segment==p.segments_v2.end()||state==p.states_v2.end()||state->second.lifecycle!=RecordingLifecycle::DeletionPending||
-            reason==p.deletion_reasons.end()||reason->second!=pair.second.deletion_reason||
+            state->second.reason!=pair.second.deletion_reason||
+            (reason==p.deletion_reasons.end()?!p.tombstones.count(pair.first):reason->second!=pair.second.deletion_reason)||
             SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(pair.second.segment))
             return Fail(error,"projection V2 tombstone transition mismatch");
     }
@@ -198,7 +196,8 @@ bool ActiveDetails(const std::filesystem::path& root,std::uint64_t admission,
             const auto segment=p.segments_v2.find(source.segment.segment_id);
             const auto entry=p.source_bindings.find(source.segment.segment_id);
             if(segment==p.segments_v2.end()||entry==p.source_bindings.end()||Lifecycle(p,segment->first)!=RecordingLifecycle::Finalized||
-                !p.media_paths.count(segment->first)||SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(source.segment))
+                (!p.media_paths.count(segment->first)&&!p.tombstones.count(segment->first))||
+                SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(source.segment))
                 return Fail(error,"projection active source protection mismatch");
             auto binding=p.active_source_bindings.find(segment->first);
             if(binding==p.active_source_bindings.end()) {
@@ -208,12 +207,12 @@ bool ActiveDetails(const std::filesystem::path& root,std::uint64_t admission,
                     return Fail(error,"projection active source detail unavailable");
                 const auto segment_json=ingress::StrictJsonObjectField(payload,"segment"),binding_json=ingress::StrictJsonObjectField(payload,"sourceBinding");
                 const auto path=ingress::StrictJsonStringField(payload,"mediaRelpath");
-                if(!segment_json||!binding_json||!path||*path!=p.media_paths.at(segment->first)||
-                    !ParseRecordingSegmentV2(*segment_json,&original_segment,error)||SerializeRecordingSegmentV2(original_segment)!=*segment_json||
+                const auto current_path=p.media_paths.find(segment->first);
+                if(!segment_json||!binding_json||!path||(current_path!=p.media_paths.end()&&*path!=current_path->second)||
+                    !IsSafeMediaRelpath(*path)||!ParseRecordingSegmentV2(*segment_json,&original_segment,error)||
                     SerializeRecordingSegmentV2(original_segment)!=SerializeRecordingSegmentV2(segment->second)||
-                    !ParseRecordingSourceBindingV1(*binding_json,&original_binding,error)||SerializeRecordingSourceBindingV1(original_binding)!=*binding_json||
-                    !ValidateRecordingSourceBindingForSegment(original_binding,original_segment,error)||
-                    original.payload_json!="{\"segment\":"+*segment_json+",\"mediaRelpath\":"+Quote(*path)+",\"sourceBinding\":"+*binding_json+"}")
+                    !ParseRecordingSourceBindingV1(*binding_json,&original_binding,error)||
+                    !ValidateRecordingSourceBindingForSegment(original_binding,original_segment,error))
                     return Fail(error,"projection active source domain mismatch");
                 const auto& thin=entry->second.summary;
                 RecordingCatalogSourceSummary loaded{original_binding.segment_id,original_binding.channel_id,original_binding.source_id,
@@ -226,14 +225,16 @@ bool ActiveDetails(const std::filesystem::path& root,std::uint64_t admission,
         }
         for(std::size_t i=0;i<job.intent.outputs.size();++i) {
             const auto& output=job.intent.outputs[i];
-            if(p.segments.count(output.output_id)||p.tombstones.count(output.output_id)||p.tombstones_v2.count(output.output_id))
+            if(job.state==DerivedJobState::Committed&&
+                (p.segments.count(output.output_id)||p.tombstones_v2.count(output.output_id)))
                 return Fail(error,"projection active output namespace collision");
             // Intent/Ready 뒤 별도 공개 finalize로 생긴 현재 V2도 기존 Open은 수용한다.
             // job 전이 가능성과 현재 저장 상태 수용을 혼동하지 않는다.
             if(job.state==DerivedJobState::Committed) {
                 if(!job.ready||i>=job.ready->outputs.size())return Fail(error,"projection committed output missing");
                 const auto segment=p.segments_v2.find(output.output_id);const auto path=p.media_paths.find(output.output_id);
-                if(segment==p.segments_v2.end()||path==p.media_paths.end()||path->second!=output.final_relpath||
+                if(segment==p.segments_v2.end()||
+                    (path==p.media_paths.end()?!p.tombstones.count(output.output_id):path->second!=output.final_relpath)||
                     Lifecycle(p,output.output_id)!=RecordingLifecycle::Finalized||
                     SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(job.ready->outputs[i].segment))
                     return Fail(error,"projection committed output mismatch");

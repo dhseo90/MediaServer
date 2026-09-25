@@ -27,6 +27,7 @@ read -r -a projection_cflags <<< "$(pkg-config --cflags openssl)"
 read -r -a projection_libs <<< "$(pkg-config --libs openssl)"
 projection_sources=(
   "$projection_repo/src/recording/recording_catalog.cpp"
+  "$projection_repo/src/recording/recording_catalog_snapshot_export.cpp"
   "$projection_repo/src/recording/retention_coordinator.cpp"
   "$projection_repo/src/recording/recording_finalize_recovery.cpp"
   "$projection_repo/src/recording/recording_file_evidence.cpp"
