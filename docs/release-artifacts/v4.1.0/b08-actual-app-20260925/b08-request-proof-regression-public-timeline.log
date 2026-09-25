@@ -1,0 +1,86 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 권한 거부403
+[pass] LP25-T01 omitted/mapping exact JSON identity
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-13 Intent placeholder no file/null time
+[pass] D3B-13 accepted/no-job 상태 보존
+[pass] D3B-05 Ready 출력 시간과 재생불가 분리
+[pass] D3B-05 Committed 출력 시간과 재생불가 분리
+[pass] D3B-05 실제 검증된 파생2출력 시간/파일 독립
+[pass] D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음
+[pass] D3B-13 출력 생성 뒤 job placeholder 없음
+[pass] D3B-07 page 밖 이벤트도 원본 전체 충족 판정
+[pass] D3B-06 일부 중첩 원본은 보존
+[pass] D3B-04 재조회 stable itemId/order
+[pass] D3B-12 요청축/문자열/공개 whitelist
+[pass] D3B-08 동일 size 변조 출력은 비재생
+[pass] D3B-08 파일 누락 Complete와 재생불가/숨김 분리
+[pass] D3B-08 실제 tombstone 출력 deleted 보존
+[pass] D3B-09 source tombstone 뒤 durable UTC 투영
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-05 partial 요청 실제 출력 jobComplete
+[pass] D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-13 Failed placeholder no file/null time
+[pass] LP25-T04 failed placeholder unchanged without group members
+[pass] D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID
+[pass] D3B-03 int64 최대 UTC ns 문자열 정밀도
+[pass] D3B-11 관련 없는 known4352 누적은 짧은 질의 허용
+[pass] D3B-11 실제 관련4352 상한 명시 실패
+[pass] D3B-02/11 관련 상한503
+[pass] D3B-10/11 unknown4354 count와 bounded 첫 페이지
+[pass] D3B-10 known/unplaced 독립 동일 offset 페이지
+[pass] LP25-T08 4352 unknown mappings become 17 files plus 2 invalid files
+[pass] LP25-T02 file group stable opaque IDs null UTC and all member identities
+[pass] LP25-T03 invalid fractional mapping provenance uncertainty and source PTS retained
+[pass] LP25-T08 file-unit page boundaries exact and stable including empty last page
+[pass] LP25-T08 known 4096 cap unchanged in file mode
+[pass] D3B-11 offset+limit overflow 명시 실패
+[pass] D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용
+[pass] D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패
+[pass] LP25-T03 nonadjacent unknown members preserve gap and outer file range
+[pass] LP25-T03 null end PTS remains null and fixed writer reason is preserved
+[pass] LP25-T04 mixed known rows exact and distinct files never coalesce
+[pass] LP25-T03 group public whitelist excludes raw source store epoch and paths
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP25-T04 intent placeholder unchanged alongside file groups
+[pass] LP25-T05 full two output file groups preserve request playback and members
+[pass] LP25-T07 corrupt output remains grouped and not playable
+[pass] LP25-T07 tombstone output preserves group provenance and cannot play
+[pass] LP25-T07 reopen exact group IDs member provenance and deleted state
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP25-T04 intent placeholder unchanged alongside file groups
+[pass] LP25-T05 partial two output file groups preserve request playback and members
+[pass] LP25-T07 corrupt output remains grouped and not playable
+[pass] LP25-T07 tombstone output preserves group provenance and cannot play
+[pass] LP25-T07 reopen exact group IDs member provenance and deleted state
+[pass] LP25-T08 file-unit accumulated workspace cap rejects without partial response
+[summary] pass=66 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.dDFbKS bytes=50759320 removed=true
+[elapsed] seconds=14 source=bash-SECONDS

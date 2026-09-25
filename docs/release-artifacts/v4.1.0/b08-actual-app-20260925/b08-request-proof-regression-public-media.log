@@ -1,0 +1,55 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[pass] S11-I30-R03 실제 검증된 Event MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] S11-I30-R03 실제 검증된 Event MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-04 실제 파일 있는 manual Event 거부
+[pass] D3A-07 immutable metadata 다른 결박 거부
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 삭제 뒤 검증된 출력 제공
+[pass] D3A-07 실제 파일 크기 변조 거부·hold0
+[pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
+[pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[pass] S11-I30-R03 partial MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] S11-I30-R03 partial MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-04 실제 파일 있는 manual Event 거부
+[pass] D3A-07 immutable metadata 다른 결박 거부
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 삭제 뒤 검증된 출력 제공
+[pass] D3A-07 실제 파일 크기 변조 거부·hold0
+[pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
+[pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
+[summary] pass=46 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.w8jDfi bytes=11901072 removed=true
+[elapsed] seconds=3 source=bash-SECONDS

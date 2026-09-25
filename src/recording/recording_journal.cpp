@@ -644,6 +644,19 @@ struct RecordingJournalGenerationState {
     struct stat manifest_binding{},active_binding{};
 #endif
 };
+struct RecordingJournal::ColdReadProof {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    const RecordingJournal* owner=nullptr;
+    pid_t pid=0;
+    std::shared_ptr<const char> epoch;
+    std::string mutation_id,identity;
+    std::uint64_t ordinal=0,offset=0,length=0;
+    RecordingGenerationFile archive;
+    struct stat binding{},manifest_binding{},active_binding{};
+    OwnedFd fd{-1};
+    RecordingMutationHandle envelope;
+#endif
+};
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 struct RecordingGenerationCheckpointPlan::State {
 #if !defined(_WIN32)
@@ -1610,11 +1623,23 @@ bool RecordingJournal::PublishGenerationCatalog(const std::shared_ptr<RecordingG
 #endif
 }
 bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,RecordingMutationHandle* record,std::string* error) const {
+    return AcquireMutationLinkWithProof(link,record,error,nullptr,nullptr);
+}
+bool RecordingJournal::AcquireMutationLinkForRead(const void* owner,const RecordingMutationLink& link,
+    std::shared_ptr<ColdReadProof>* proof,RecordingMutationHandle* record,std::string* error) const {
+    return AcquireMutationLinkWithProof(link,record,error,owner,proof);
+}
+bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink& link,RecordingMutationHandle* record,
+    std::string* error,const void* owner,std::shared_ptr<ColdReadProof>* proof) const {
+#if !MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND || !MEDIA_SERVER_USE_OPENSSL || defined(_WIN32)
+    (void)owner;(void)proof;
+#endif
     if(link.generation_ref_) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!record||owner_pid_!=::getpid())return Fail(error,"B link output/PID 거부");
         std::lock_guard lock(mu_);
         if(!generation_state_||!CheckManagedStateLocked(error))return Fail(error,"B link 세대 권한 거부");
+        if(proof&&(!owner||owner!=catalog_owner_||!catalog_attachment_))return Fail(error,"B read proof catalog owner rejected");
         const auto& state=*generation_state_;const auto& ref=*link.generation_ref_;
         if(!state.link_epoch||ref.epoch!=state.link_epoch)return Fail(error,"B link 세션/인스턴스 거부");
         try {
@@ -1622,15 +1647,68 @@ bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,Rec
             if(found==state.identities.end()||found->second.digest!=ref.identity)return Fail(error,"B link identity 권위 거부");
             const auto& location=found->second;
             RecordingMutationV1 value;
+            std::shared_ptr<ColdReadProof> prepared;
             if(location.historical) {
                 if(location.slot>=state.chain.first_acceptances.size()||
                    state.chain.first_acceptances[location.slot].first_global_ordinal!=ref.ordinal)
                     return Fail(error,"B link 과거 좌표 거부");
+                const auto& accepted=state.chain.first_acceptances[location.slot];
+                const auto& row=accepted.first_row;const auto& archive=accepted.first_archive;
+                OwnedFd parent(OpenParent(io_path_,false));
+                const auto bound=[&](const ColdReadProof& p){
+                    struct stat fd{},named{};
+                    return parent.value>=0&&::fstat(p.fd.value,&fd)==0&&GenerationStatSame(p.binding,fd)&&
+                        GenerationStat(parent.value,p.archive.name,&named)&&GenerationStatSame(p.binding,named);
+                };
+                if(proof&&*proof){
+                    const auto saved=*proof;
+                    if(saved->owner!=this||saved->pid!=::getpid()||saved->epoch!=state.link_epoch||!saved->envelope)
+                        return Fail(error,"B read proof owner/identity rejected");
+                    if(!bound(*saved)){poisoned_=true;return Fail(error,"B read proof file changed");}
+                    // 자기 append/회전 뒤는 새 strict 검증이다. 외부 active 변경은 위 authority 검사에서 거부된다.
+                    if(saved->mutation_id!=ref.mutation_id||saved->identity!=ref.identity||saved->ordinal!=ref.ordinal||
+                       saved->offset!=row.offset||saved->length!=row.length||saved->archive.name!=archive.name||
+                       saved->archive.size!=archive.size||saved->archive.sha256!=archive.sha256||
+                       !GenerationStatSame(saved->manifest_binding,state.manifest_binding)||
+                       !GenerationStatSame(saved->active_binding,state.active_binding))proof->reset();
+                    else {
+                        std::string raw;
+                        try {raw.resize(static_cast<std::size_t>(row.length));}catch(...){proof->reset();}
+                        if(*proof){
+                            if(!bound(*saved)||!ReadAt(saved->fd.value,static_cast<off_t>(row.offset),&raw)){
+                                poisoned_=true;return Fail(error,"B read proof row/file changed");
+                            }
+                            std::string digest;
+                            try {digest=RawHash(raw);}catch(...){proof->reset();}
+                            if(*proof){
+                                if(digest!=row.raw_sha256||!bound(*saved)||!CheckManagedStateLocked(error)){
+                                    poisoned_=true;return Fail(error,"B read proof row/file changed");
+                                }
+                                // 처음 strict cold reader가 검증한 canonical/identity/예약 의미는
+                                // 불변 envelope에 그대로 남고, 현재 물리 bytes는 같은 raw SHA로 결박된다.
+                                *record=saved->envelope;if(error)error->clear();return true;
+                            }
+                        }
+                    }
+                }
+                if(proof){
+                    try {
+                        prepared=std::make_shared<ColdReadProof>();
+                        prepared->archive=archive;prepared->mutation_id=ref.mutation_id;prepared->identity=ref.identity;
+                        prepared->owner=this;prepared->pid=::getpid();prepared->epoch=state.link_epoch;
+                        prepared->ordinal=ref.ordinal;prepared->offset=row.offset;prepared->length=row.length;
+                        prepared->manifest_binding=state.manifest_binding;prepared->active_binding=state.active_binding;
+                        prepared->fd.value=parent.value<0?-1: ::openat(parent.value,archive.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK);
+                        if(prepared->fd.value<0||::fstat(prepared->fd.value,&prepared->binding)!=0||!bound(*prepared))prepared.reset();
+                    }catch(...){prepared.reset();} // 선택적 증명 할당/FD 실패는 기존 strict 경로로 처리한다.
+                }
                 if(!ReadVerifiedRecordingIdentityMutation(managed_root_,state.active.manifest,
                     state.chain.first_acceptances[location.slot],generation_limits_.cold_row_bytes,&value,error)) {
                     poisoned_=true;return false;
                 }
+                if(prepared&&!bound(*prepared)){poisoned_=true;return Fail(error,"B read proof initial file changed");}
             } else {
+                if(proof)proof->reset(); // 현재 active 원문은 항상 기존 strict 검증을 거친다.
                 if(location.slot>=state.active.rows.size()||state.active.rows[location.slot].global_ordinal!=ref.ordinal)
                     return Fail(error,"B link active 좌표 거부");
                 const auto& row=state.active.rows[location.slot];
@@ -1644,6 +1722,7 @@ bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,Rec
             }
             if(!CheckManagedStateLocked(error))return false;
             auto result=std::make_shared<const RecordingMutationV1>(std::move(value));
+            if(prepared){prepared->envelope=result;*proof=std::move(prepared);}
             *record=std::move(result);if(error)error->clear();return true;
         }catch(...){return Fail(error,"B link 획득 자원 실패");}
 #else

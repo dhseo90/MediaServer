@@ -107,6 +107,7 @@ class RecordingCatalog final : public RecordingStorePort {
     friend struct RecordingGenerationPreappendProbe;
     friend struct RecordingGenerationAppendProbe;
     friend struct RecordingGenerationConsumersProbe;
+    friend struct RecordingGenerationRequestProofProbe;
 #endif
 public:
     struct Options {
@@ -311,9 +312,22 @@ private:
         std::vector<Entry> entries;
         std::size_t charge{0};
         std::size_t budget{8U*1024U*1024U};
+        std::unordered_map<std::string,std::shared_ptr<RecordingJournal::ColdReadProof>> proofs;
+        JobReadContext()=default;
+        // 후보 복사는 parsed 값만 승계한다. 새 요청에 FD 증명이 넘어가면 안 된다.
+        JobReadContext(const JobReadContext& other){*this=other;}
+        JobReadContext& operator=(const JobReadContext& other){
+            if(this==&other)return *this;
+            proofs.clear();owner=other.owner;channel_id=other.channel_id;
+            source_revision=other.source_revision;source_revision_valid=other.source_revision_valid;
+            entries=other.entries;charge=other.charge;budget=other.budget;return *this;
+        }
+        JobReadContext(JobReadContext&&)=default;
+        JobReadContext& operator=(JobReadContext&&)=default;
     };
     bool AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const;
-    bool AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string&,DerivedJobHandle*,RecordingMutationHandle*,std::string*) const;
+    bool AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string&,DerivedJobHandle*,RecordingMutationHandle*,std::string*,
+        std::shared_ptr<RecordingJournal::ColdReadProof>* proof=nullptr) const;
     bool AcquireJobForReadLocked(const std::string&,DerivedJobHandle*,JobReadContext*,std::string*,bool* strict_content=nullptr) const;
     bool JobReadCurrentLocked(const DerivedJobEntry&,const DerivedJobRecordV1&) const;
     bool SnapshotTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,JobReadContext*) const;

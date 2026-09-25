@@ -2143,7 +2143,8 @@ bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,Sou
 bool RecordingCatalog::AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const {
     return AcquireDerivedJobOwnedWithEnvelopeLocked(id,out,nullptr,error);
 }
-bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string& id,DerivedJobHandle* out,RecordingMutationHandle* envelope,std::string* error) const {
+bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string& id,DerivedJobHandle* out,RecordingMutationHandle* envelope,std::string* error,
+    std::shared_ptr<RecordingJournal::ColdReadProof>* proof) const {
     if(out)out->reset();
     if(envelope)envelope->reset();
     const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"derived job 상세 재획득 거부");};
@@ -2153,7 +2154,8 @@ bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::strin
         const auto& entry=found->second;if(!entry)return failed();
         if(entry.resident){*out=entry.resident;return true;}
         RecordingMutationHandle mutation;DerivedJobRecordV1 record;
-        if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||mutation->mutation_id!=entry.latest_mutation_id||mutation->entity_id!=id||
+        const bool acquired=proof?journal_.AcquireMutationLinkForRead(this,entry.mutation,proof,&mutation,error):journal_.AcquireMutationLink(entry.mutation,&mutation,error);
+        if(!acquired||!mutation||mutation->mutation_id!=entry.latest_mutation_id||mutation->entity_id!=id||
            !ParseDerivedJobRecord(mutation->payload_json,&record,error))return failed();
         const auto type=mutation->mutation_type;
         const bool state_matches=(record.state==DerivedJobState::Intent&&(type==RecordingMutationType::DerivedJobIntent||type==RecordingMutationType::DerivedJobFiles))||
@@ -2193,8 +2195,21 @@ bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobH
     const auto& entry=found->second;
     // 다른 catalog의 호출 자료는 증명으로 사용하지 않는다.
     if(context->owner&&context->owner!=this)return AcquireDerivedJobOwnedLocked(id,out,error);
+    auto charge=entry.mutation.LogicalCharge();
+    const auto envelope_charge=[](const RecordingMutationV1& value){
+        return sizeof(value)+sizeof(DerivedJobRecordV1)+value.schema.size()+value.mutation_id.size()+
+            value.entity_id.size()+value.physical_json.size()+2*value.payload_json.size();
+    };
+    if(!charge)for(const auto& saved:context->entries)if(saved.job&&saved.job->intent.job_id==id&&saved.envelope){charge=envelope_charge(*saved.envelope);break;}
+    const bool saved_id=std::any_of(context->entries.begin(),context->entries.end(),[&](const auto& saved){return saved.job&&saved.job->intent.job_id==id;});
+    const bool proof_budget=context->budget>0&&charge<=context->budget&&context->charge<=context->budget&&context->entries.size()<=8&&
+        (saved_id||context->charge<=context->budget-charge);
+    std::shared_ptr<RecordingJournal::ColdReadProof> proof;
+    if(proof_budget){const auto found_proof=context->proofs.find(id);if(found_proof!=context->proofs.end())proof=found_proof->second;}
+    const auto remember_proof=[&](){if(proof&&proof_budget&&(context->proofs.size()<8||context->proofs.count(id)))try {context->proofs.insert_or_assign(id,proof);}catch(...){};};
     const auto acquire_envelope=[&](RecordingMutationHandle* envelope){
-        try {if(journal_.OwnsCatalog(this)&&journal_.AcquireMutationLink(entry.mutation,envelope,error)&&*envelope&&
+        try {if(journal_.OwnsCatalog(this)&&
+            (proof_budget?journal_.AcquireMutationLinkForRead(this,entry.mutation,&proof,envelope,error):journal_.AcquireMutationLink(entry.mutation,envelope,error))&&*envelope&&
             (*envelope)->mutation_id==entry.latest_mutation_id)return true;}
         catch(...){}
         envelope->reset();out->reset();derived_job_state_authoritative_=false;
@@ -2203,20 +2218,20 @@ bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobH
     try {
         for(const auto& saved:context->entries){if(!saved.job||saved.job->intent.job_id!=id)continue;
             RecordingMutationHandle current;
-            const bool provenance=journal_.CanReleaseMutationLink(saved.link)||journal_.MutationLinkOwns(saved.link,saved.envelope);
+            const bool provenance=proof||journal_.CanReleaseMutationLink(saved.link)||journal_.MutationLinkOwns(saved.link,saved.envelope);
             if(!provenance||!saved.envelope)break;
             if(!acquire_envelope(&current))return false;
             const auto& a=*current;const auto& b=*saved.envelope;
             if(a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.entity_id==b.entity_id&&
                a.mutation_type==b.mutation_type&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json&&
-               JobReadCurrentLocked(entry,*saved.job)){*out=saved.job;if(strict_content)*strict_content=true;return true;}
+               JobReadCurrentLocked(entry,*saved.job)){remember_proof();*out=saved.job;if(strict_content)*strict_content=true;return true;}
             break;
         }
         RecordingMutationHandle envelope;
-        if(!AcquireDerivedJobOwnedWithEnvelopeLocked(id,out,&envelope,error)||!*out)return false;
+        if(!AcquireDerivedJobOwnedWithEnvelopeLocked(id,out,&envelope,error,proof_budget?&proof:nullptr)||!*out)return false;
+        if(!charge&&envelope)charge=envelope_charge(*envelope);
         // 비완료 snapshot에는 기존에 없던 전체 직렬화 검증을 추가하지 않는다.
         if((*out)->state!=DerivedJobState::Complete||context->entries.size()>=8)return true;
-        const auto charge=entry.mutation.LogicalCharge();
         if(charge>context->budget||context->charge>context->budget-charge)return true;
         if(!envelope){
             const auto canonical=SerializeDerivedJobRecord(**out);
@@ -2225,11 +2240,11 @@ bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobH
             if(envelope->payload_json!=canonical)return true;
         }
         if(envelope->entity_id!=id||envelope->mutation_type!=RecordingMutationType::DerivedJobComplete||!JobReadCurrentLocked(entry,**out)||
-           !(journal_.CanReleaseMutationLink(entry.mutation)||journal_.MutationLinkOwns(entry.mutation,envelope)))return true;
+           !(proof||journal_.CanReleaseMutationLink(entry.mutation)||journal_.MutationLinkOwns(entry.mutation,envelope)))return true;
         // 재사용 예산의 할당 실패는 정상 입력의 실패/권위 상실로 바꾸지 않는다.
         try {context->entries.push_back({*out,envelope,entry.mutation});}
         catch(...){return true;}
-        context->owner=this;context->charge+=charge;if(strict_content)*strict_content=true;
+        context->owner=this;context->charge+=charge;remember_proof();if(strict_content)*strict_content=true;
         return true;
     }catch(...){
         // 선택적 증명 보관/비교 실패는 기존 strict 획득의 결과를 대신하지 않는다.

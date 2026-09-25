@@ -198,6 +198,12 @@ private:
     bool MakeMutationLink(const RecordingJournalOwnedViewHandle& view, const RecordingMutationV1& mutation,
                           RecordingMutationHandle fallback, RecordingMutationLink* link, std::string* error) const;
     bool AcquireMutationLink(const RecordingMutationLink& link, RecordingMutationHandle* record, std::string* error) const;
+    // Catalog 요청 안에서만 보관할 수 있는 비공개 FD 증명. 외부 DTO는 권위가 아니다.
+    struct ColdReadProof;
+    bool AcquireMutationLinkForRead(const void* owner,const RecordingMutationLink&,
+        std::shared_ptr<ColdReadProof>*,RecordingMutationHandle*,std::string*) const;
+    bool AcquireMutationLinkWithProof(const RecordingMutationLink&,RecordingMutationHandle*,std::string*,
+        const void* owner,std::shared_ptr<ColdReadProof>*) const;
     // B 복원 전용 세션. Catalog attachment/쓰기 권한을 부여하지 않는다.
     bool MakeGenerationMutationLink(const std::string& id, RecordingMutationLink* link, std::string* error) const;
     void EndGenerationMutationLinks() const;
