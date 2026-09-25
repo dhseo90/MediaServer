@@ -1,0 +1,15 @@
+[pass] release close-out commands are available
+[pass] release docs keep publish gates manual
+[pass] release visual baseline automation is wired for release workflow
+[pass] dry-run report marks release actions as not executed
+[pass] one-shot close-out gate is ordered and fail-stop
+[pass] one-shot close-out docs keep destructive actions manual
+
+== Release close-out helper dry-run summary ==
+- status: pass
+- dryRun: true
+- localCommands: 5
+- manualActions: 10
+- gitStatusLines: 19
+- tag: not created
+- push: not performed

@@ -4,9 +4,12 @@
 항목은 해당 source 기능과 local verifier 기준을 뜻합니다. GitHub Release publish,
 UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만 별도로 완료로 씁니다.
 
-- 2026-09-25 현행 녹화 저장: B안 기본 연결·소비자/검증 준비는 완료, 누적 수치 검사는 통과했다.
-  이전snapshot 보관 수명 때문에 저장 비용 전체 마감·실제 HTTP/통합·최종 코드 고정은 미완료다.
-  [현재 판정과 릴리즈 잔여](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)를 우선하며
+- 2026-09-26 현행 녹화 저장: B안 이전 snapshot 정확 회수·복구, 누적1/16/32·1,020/2,049,
+  실제 HTTP/5단계 통합을 통과했다. 최종 코드 고정·단기 증거 결속도 빌드·인증·
+  환경·문서·인벤토리·버전·정리 기준으로 마쳤다. 30분·실제 UI·120분·릴리즈는 미완료다.
+  [현재 B08 결과](release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)와
+  [B09 단기 판정](release-artifacts/v4.1.0/b09-final-short-20260926/results.md)을 우선하며,
+  [이전 B07 잔여표](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)는 당시 이력으로 보존한다.
   아래 과거 S10/S11 완료 이력으로 현행 B 변경의 완료를 대신하지 않는다.
 
 - 현재 버전/비범위 기준: [versioning-policy.md](./versioning-policy.md)

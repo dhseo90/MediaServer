@@ -1,0 +1,6 @@
+[info] starting auth bootstrap server: auth=auto http=8091 rtsp=8565
+[fail] 인증 UDP 준비 실패
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_auth_preparation.sh: line 17: kill: (39225) - No such process
+[fail] 인증 oracle 실패: caller=start_server
+[fail] 인증 준비 입력/실행 오류
+[fail] 종료/포트 미확인: 소유 root 보존

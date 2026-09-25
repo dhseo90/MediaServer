@@ -1,0 +1,45 @@
+test_cli_no_gst_side_effects (__main__.EnvironmentTests.test_cli_no_gst_side_effects) ... ok
+test_concurrent (__main__.EnvironmentTests.test_concurrent) ... ok
+test_custom_paths (__main__.EnvironmentTests.test_custom_paths) ... ok
+test_custom_so_plugins (__main__.EnvironmentTests.test_custom_so_plugins) ... ok
+test_dispatch_environment (__main__.EnvironmentTests.test_dispatch_environment) ... ok
+test_explicit_prefix (__main__.EnvironmentTests.test_explicit_prefix) ... ok
+test_filter (__main__.EnvironmentTests.test_filter) ... ok
+test_inherited_custom_paths (__main__.EnvironmentTests.test_inherited_custom_paths) ... ok
+test_invalid_profile (__main__.EnvironmentTests.test_invalid_profile) ... ok
+test_launchd_environment (__main__.EnvironmentTests.test_launchd_environment) ... ok
+test_linux_unchanged (__main__.EnvironmentTests.test_linux_unchanged) ... ok
+test_nohup_environment (__main__.EnvironmentTests.test_nohup_environment) ... ok
+test_override_order (__main__.EnvironmentTests.test_override_order) ... ok
+test_prefix_discovery (__main__.EnvironmentTests.test_prefix_discovery) ... ok
+test_reapply (__main__.EnvironmentTests.test_reapply) ... ok
+test_registry (__main__.EnvironmentTests.test_registry) ... ok
+test_system_profile (__main__.EnvironmentTests.test_system_profile) ... ok
+test_tampered_cache (__main__.EnvironmentTests.test_tampered_cache) ... ok
+test_unsafe_cache (__main__.EnvironmentTests.test_unsafe_cache) ... ok
+test_upgrade (__main__.EnvironmentTests.test_upgrade) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 4.149s
+
+OK
+[cleanup] __main__.EnvironmentTests.test_cli_no_gst_side_effects: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_t9nylo3p files=16 bytes=236684 removed=true
+[cleanup] __main__.EnvironmentTests.test_concurrent: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_3ngikil_ files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_custom_paths: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_75f2rmy3 files=17 bytes=2424 removed=true
+[cleanup] __main__.EnvironmentTests.test_custom_so_plugins: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_6olr7sya files=21 bytes=2470 removed=true
+[cleanup] __main__.EnvironmentTests.test_dispatch_environment: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_c9oo1uar files=19 bytes=226963 removed=true
+[cleanup] __main__.EnvironmentTests.test_explicit_prefix: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_v4rjzc9c files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_filter: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_7katlsda files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_inherited_custom_paths: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_vo03qjs5 files=21 bytes=4078 removed=true
+[cleanup] __main__.EnvironmentTests.test_invalid_profile: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_l_4kgile files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_launchd_environment: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_7xw5fe1c files=18 bytes=8903 removed=true
+[cleanup] __main__.EnvironmentTests.test_linux_unchanged: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_rc5_ls1z files=11 bytes=361 removed=true
+[cleanup] __main__.EnvironmentTests.test_nohup_environment: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_bhlalqmb files=19 bytes=6218 removed=true
+[cleanup] __main__.EnvironmentTests.test_override_order: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_newardbn files=11 bytes=362 removed=true
+[cleanup] __main__.EnvironmentTests.test_prefix_discovery: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_8rszxn8_ files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_reapply: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_me_7d70d files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_registry: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_nm1azezj files=15 bytes=2005 removed=true
+[cleanup] __main__.EnvironmentTests.test_system_profile: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_vwn7quhd files=11 bytes=362 removed=true
+[cleanup] __main__.EnvironmentTests.test_tampered_cache: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_sfo1rks7 files=16 bytes=2137 removed=true
+[cleanup] __main__.EnvironmentTests.test_unsafe_cache: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_ya7fqu0s files=11 bytes=362 removed=true
+[cleanup] __main__.EnvironmentTests.test_upgrade: path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_cs1iwpys files=19 bytes=3638 removed=true
