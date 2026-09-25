@@ -259,7 +259,7 @@ struct DerivedJobService::Impl {
             auto fd=Owned(record,i,false,false,&budget);Require(fd.value>=0&&Stat(fd.value).st_nlink==1,"job-output-link-count");
             const auto& p=remux.outputs[i];Require(static_cast<std::uint64_t>(Stat(fd.value).st_size)==p.size_bytes&&Hash(fd.value,p.size_bytes,&budget)==p.checksum_sha256,"job-output-post-remux-integrity");
             RecordingOrderReservationV1 order;const auto& source=record.intent.sources[i].segment;const auto& plan=record.intent.outputs[i];
-            Require(journal.ReserveRecordingOrder(source.store_id,plan.order_request_id,plan.output_id,source.channel_id,&order,&error),"job-output-order: "+error);orders.push_back(order.sequence);
+            Require(catalog.ReserveRecordingOrder(source.store_id,plan.order_request_id,plan.output_id,source.channel_id,&order,&error),"job-output-order: "+error);orders.push_back(order.sequence);
         }
         DerivedJobRecordV1 ready;Require(BuildDerivedJobReady(record,remux,orders,Now(),&ready,&error),"job-ready: "+error);
         Save(ready);record=std::move(ready);Progress(DerivedJobProgress::ReadyDurable);

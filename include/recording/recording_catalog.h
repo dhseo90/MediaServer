@@ -101,10 +101,12 @@ struct RecordingOriginalResult {
 };
 
 class RecordingCatalog final : public RecordingStorePort {
+    friend class RecordingRuntimeStorage;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     friend struct RecordingCatalogGenerationScratchProbe;
     friend struct RecordingGenerationPreappendProbe;
     friend struct RecordingGenerationAppendProbe;
+    friend struct RecordingGenerationConsumersProbe;
 #endif
 public:
     struct Options {
@@ -419,7 +421,7 @@ private:
     bool CanReadLocked(std::string* error) const;
     bool CanWriteLocked(std::string* error) const;
     using GenerationDelta=std::set<std::pair<std::string,std::string>>;
-    bool AppendGenerationLocked(RecordingMutationV1,std::string*,PreparedDerivedMutation*);
+    bool AppendGenerationLocked(RecordingMutationV1,std::string*,PreparedDerivedMutation*,bool acquire_hold=false);
     bool ProjectGenerationDeltaLocked(const GenerationDelta&,const RecordingGenerationRecoveryRow&,std::string*);
     bool CheckpointGenerationLocked(std::string*);
     bool ExportGenerationSnapshotLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*) const;

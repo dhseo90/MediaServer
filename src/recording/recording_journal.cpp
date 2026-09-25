@@ -2537,6 +2537,39 @@ bool RecordingJournal::AppendGeneration(const void* owner,const RecordingMutatio
 #endif
     std::lock_guard lock(mu_);return AppendGenerationLocked(owner,m,result,error);
 }
+bool RecordingJournal::ProbeManagedRuntime(bool* pending,std::string* error) const {
+#if !defined(_WIN32)
+    if(owner_pid_!=0&&owner_pid_!=::getpid())return Fail(error,"managed runtime probe fork rejected");
+    std::lock_guard lock(mu_);std::filesystem::path canonical;
+    if(!managed_||!pending||!SafePath(path_,&canonical))return Fail(error,"managed runtime probe arguments rejected");
+    OwnedFd root(OpenParent(canonical,false));
+    if(root.value<0){if(errno!=ENOENT)return Fail(error,"managed runtime probe root rejected");*pending=false;if(error)error->clear();return true;}
+    bool value=false;struct stat status{};
+    for(const char* name:{".recording-generation-transaction.json",".recording-generation-transaction.stage"}){
+        if(::fstatat(root.value,name,&status,AT_SYMLINK_NOFOLLOW)==0)value=true;
+        else if(errno!=ENOENT)return Fail(error,"managed runtime probe receipt lookup failed");
+    }
+    *pending=value;if(error)error->clear();return true;
+#else
+    (void)pending;return Fail(error,"managed runtime probe unsupported");
+#endif
+}
+bool RecordingJournal::CommitGenerationProtection(const void* owner,const std::function<bool()>& commit,std::string* error) {
+#if !defined(_WIN32)
+    if(owner_pid_!=::getpid()){poisoned_=true;return Fail(error,"B protection PID rejected");}
+#endif
+    std::lock_guard lock(mu_);
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(!owner||owner!=catalog_owner_||!catalog_attachment_||!generation_state_||ManagedTransactionPendingLocked()||
+       !CheckManagedStateLocked(error)||!SafeGenerationCacheFiles(managed_root_,error)){
+        poisoned_=true;return Fail(error,"B protection owner/authority rejected");
+    }
+    // 임시 보호는 읽기 attachment 권한이다. SQL 오류만으로 owner를 poison하지 않는다.
+    return commit();
+#else
+    (void)owner;(void)commit;return Fail(error,"B protection unsupported");
+#endif
+}
 bool RecordingJournal::ValidateGenerationOwner(const void* owner,std::string* error) {
 #if !defined(_WIN32)
     if(owner_pid_!=::getpid())return Fail(error,"B owner PID 거부");

@@ -137,10 +137,12 @@ public:
 
 private:
     friend class RecordingCatalog;
+    friend class RecordingRuntimeStorage;
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     friend struct RecordingJournalGenerationReadOnlyProbe;
     friend struct RecordingGenerationPreappendProbe;
     friend struct RecordingGenerationAppendProbe;
+    friend struct RecordingGenerationConsumersProbe;
     friend struct RecordingCutoverSessionProbe;
     static thread_local int generation_write_fault_;
     static thread_local void (*generation_cleanup_before_unlink_)();
@@ -176,6 +178,8 @@ private:
     bool ValidateGenerationOwner(const void* owner,std::string* error);
     void PoisonGeneration(const void* owner);
     bool CommitGenerationDelta(const void* owner,const std::function<bool()>& commit,std::string* error);
+    bool CommitGenerationProtection(const void* owner,const std::function<bool()>& commit,std::string* error);
+    bool ProbeManagedRuntime(bool* pending,std::string* error) const;
     bool AppendGeneration(const void* owner,const RecordingMutationV1&,
         std::shared_ptr<const RecordingGenerationRecoveryRow>*,std::string*);
     bool AppendGenerationLocked(const void* owner,const RecordingMutationV1&,

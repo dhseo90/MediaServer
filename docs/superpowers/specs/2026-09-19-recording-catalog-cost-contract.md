@@ -311,6 +311,36 @@ append 이전부터 보유한 상세 링크는 같은 owner/세대 내 append �
 format-v1과 단순 finalize는 유지하며, B의 SQL hold 투영·오류 차단·경로 결박을 검증한 뒤에만
 이 제한을 해제한다. 내부 쓰기 단위 PASS를 모든 런타임 쓰기 API 지원으로 확대하지 않는다.
 
+**소비자 보호 연결(2026-09-25).** B opt-in의 V1 domain finalize+hold는 Catalog 잠금 안에서
+durable finalize 후 current segment와 일시 hold를 같은 B SQL 변경분에 넣어 게시한다.
+호출자가 내구 쓰기 전에 hold 상한/대상을 확인하고, 내구 이후 실패는 기존 B poison/reopen
+계약을 따른다. 영구 mutation에 임시 hold 필드를 추가하지 않으며 재기동은 기존 확정 관계·
+시작 복구로 보호를 재구성한다. 기존 V1 backend의 SQL fallback 의미는 바꾸지 않는다.
+
+일시 hold는 B read-only도 허용하는 기존 보호 기능이다. 영속 쓰기 권한으로 바꾸지 않는다.
+보호 SQL commit 직전에 Journal의 동일 attachment·PID·root/marker/manifest/active·cache
+안전 경로와 미정리 transaction 부재를 확인하는 private 경계를 둔다. 권위 불일치는 poison,
+단순 보호 SQL 오류는 rollback하여 메모리 count를 유지하고 기존 재시도 의미를 보존한다.
+새 raw Journal 예약 권한은 열지 않는다. writer/파생 서비스는 기존 Catalog 예약 경계를
+사용하며 V1에서는 기존 Journal 예약으로 위임한다. 공개 schema·ID·삭제 정책은 그대로다.
+
+**기본 구성 연결(2026-09-25).** 지원되는 POSIX/OpenSSL/backend 빌드의 runtime은 먼저
+안전한 root에서 고정 receipt/temp의 존재와 조회 실패를 구분한다. 미정리 상태가 있으면
+기존 private 복구를 통과한 뒤 복구 owner를 파기하고 정상 owner를 새로 연다. 일반 Journal
+Open이 V1을 선택하면 strict source를 private 전환으로 게시한 뒤 역시 새 owner로 B Open한다.
+B marker/manifest 오류·불확실 intent를 V1 fallback으로 처리하지 않는다. OpenSSL/backend
+미지원 빌드는 기존 V1 기능을 유지하되 B 파일은 계속 거부한다. 새 외부 설정은 만들지 않는다.
+
+runtime 수용값은 이미 확정한 descriptor/snapshot/shard/active 형식 상한1GiB와 기존 strict
+물리 행16MiB+LF를 사용한다. ID·archive 개수는 자연 표현 범위를 사용하며 fixture의10000이나
+cache의8192를 전체 수명 한도로 승격하지 않는다. 이는 RSS 상한·영구 무제한 저장 보장이
+아니며 최소 ID 증가·형식 상한 근접 비용은 원래8번에서 별도 판정한다. receipt 입력은 구성
+파일과 같은1GiB 바이트 수용으로 제한한다. 정상 회전은 기존1MiB 출발 기준을 유지한다.
+
+공개 Status의 catalogMode 값은 기존 sqlite-primary/jsonl-fallback을 유지한다. 내부 B backend
+명칭을 새 공개 enum처럼 노출하지 않으며 검증된 SQLite와 실제 fallback/degraded를 구분한다.
+카메라 용량·권한·redaction·재생 대상·원문 source/시간 의미는 바꾸지 않는다.
+
 **세대 회전 연결 단위.** 증분 쓰기는1062f5de에서 닫았다. 다음 회전은 Catalog→Journal
 잠금과 독점 lease 아래 현재 active를 fsync·봉인하고, 그 증분의 최소 identity 조각과
 현재 얇은 snapshot·새 빈 active만 준비한다. 이전 snapshot/identity/archive의 상세를

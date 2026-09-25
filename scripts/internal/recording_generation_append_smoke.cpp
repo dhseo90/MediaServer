@@ -77,9 +77,14 @@ void Basic(const std::filesystem::path& root) {
         if(auto* db=AppendProbe::Db(c))AX(db,"INSERT INTO b_current VALUES('sentinel','untouched','owned'); CREATE TRIGGER keep_unrelated_delete BEFORE DELETE ON b_current WHEN OLD.id='untouched' BEGIN SELECT RAISE(ABORT,'unrelated deletion'); END; CREATE TRIGGER keep_unrelated_update BEFORE UPDATE ON b_current WHEN OLD.id='untouched' BEGIN SELECT RAISE(ABORT,'unrelated update'); END;");
 #endif
         std::filesystem::create_directories(root/"channel");Write(root/"channel/legacy.mp4","owned-media");
-        const auto legacy=ProjectionV1();const auto before_hold=AppendProbe::State(c);const auto before_bytes=Read(root/"active-2.jsonl");
-        Check("B03-W05",!c.FinalizeSegmentWithHold(legacy,(root/"channel/legacy.mp4").string(),&error)&&
-            AppendProbe::State(c)==before_hold&&Read(root/"active-2.jsonl")==before_bytes,"B finalize plus hold refuses before durable or current changes");
+        const auto legacy=ProjectionV1();auto held=legacy;held.segment_id="held-legacy";const auto before_bytes=Read(root/"active-2.jsonl");
+        Need(c.FinalizeSegmentWithHold(held,(root/"channel/legacy.mp4").string(),&error));
+        const auto held_bytes=Read(root/"active-2.jsonl");const auto held_state=AppendProbe::State(c);bool hold_sql=true;
+#if MEDIA_SERVER_USE_SQLITE3
+        if(auto* db=AppendProbe::Db(c))hold_sql=AS(db,"SELECT count FROM b_hold WHERE id='held-legacy'")=="1"&&AS(db,"SELECT count(*) FROM b_current WHERE kind='segment-v1' AND id='held-legacy'")=="1";
+#endif
+        Check("B03-W05",std::count(held_bytes.begin(),held_bytes.end(),'\n')==std::count(before_bytes.begin(),before_bytes.end(),'\n')+1&&
+            std::find(held_state.begin(),held_state.end(),"hold:held-legacy:1")!=held_state.end()&&hold_sql&&!c.RequestDeletion("held-legacy","continuous-age",&error),"B finalize plus hold publishes one row and same SQL protection");
         Check("B03-W01",c.FinalizeSegment(legacy,(root/"channel/legacy.mp4").string(),&error),"public plain V1 finalize remains supported under explicit opt-in");
         SqlValue(c,"segment-v1","legacy",SerializeRecordingSegmentV1(legacy));SqlValue(c,"media-path","legacy","\"channel/legacy.mp4\"");
         Check("B03-W01",AppendProbe::Commit(c,corrupt),"explicit B append succeeds");

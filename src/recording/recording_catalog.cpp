@@ -534,6 +534,7 @@ bool RecordingCatalog::PrepareGenerationSqliteLocked(const std::shared_ptr<Recor
 #endif
 }
 bool RecordingCatalog::UpdateGenerationHoldsLocked(const std::vector<std::pair<std::string,std::uint64_t>>& values,std::string* error) {
+    if(!journal_.CommitGenerationProtection(this,[]{return true;},error))return false;
 #if MEDIA_SERVER_USE_SQLITE3
     auto* db=generation_sqlite_db_;if(!db)return true;
     if(!Exec(db,"BEGIN IMMEDIATE",error))return false;
@@ -546,7 +547,7 @@ bool RecordingCatalog::UpdateGenerationHoldsLocked(const std::vector<std::pair<s
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
         if(!ok){Exec(db,"ROLLBACK",nullptr);return Fail(error,sqlite3_errmsg(db));}
     }
-    if(!Exec(db,"COMMIT",error)){Exec(db,"ROLLBACK",nullptr);return false;}return true;
+    if(!journal_.CommitGenerationProtection(this,[&]{return Exec(db,"COMMIT",error);},error)){Exec(db,"ROLLBACK",nullptr);return false;}return true;
 #else
     (void)values;(void)error;return true;
 #endif
@@ -1741,12 +1742,20 @@ bool RecordingCatalog::PoisonGenerationLocked(std::string* error) {
     if(error&&error->empty())*error="B durable 이후 실패: 새 owner strict Open 필요";
     return false;
 }
-bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::string* error,PreparedDerivedMutation* prepared) {
+bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::string* error,PreparedDerivedMutation* prepared,bool acquire_hold) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!CanWriteLocked(error)||!generation_backend_)return false;
     mutation.mutation_id=mutation.mutation_id.empty()?NextMutationId():mutation.mutation_id;
     mutation.occurred_at_ms=mutation.occurred_at_ms?mutation.occurred_at_ms:NowMs();
     if(!ValidateMutationLocked(mutation,error,prepared))return false;
+    std::uint64_t held=0;
+    if(acquire_hold){
+        if(mutation.mutation_type!=RecordingMutationType::SegmentFinalized)return Fail(error,"B finalize hold type rejected");
+        const auto current=hold_counts_.find(mutation.entity_id);
+        held=current==hold_counts_.end()?0:current->second;
+        if(held>=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))return Fail(error,"B finalize hold overflow");
+        if(segments_.count(mutation.entity_id)||segments_v2_.count(mutation.entity_id))return Fail(error,"B finalize hold requires new segment");
+    }
     bool rotate=false;if(!journal_.GenerationRotationNeeded(this,mutation,&rotate,error))return false;
     if(rotate&&!CheckpointGenerationLocked(error))return false;
     std::shared_ptr<const RecordingGenerationRecoveryRow> row;
@@ -1763,6 +1772,7 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
 #endif
         GenerationDelta delta;
         if(!ApplyMutationLocked(row->mutation,false,error,prepared,{},nullptr,nullptr,nullptr,{},row.get(),true,&delta))return PoisonGenerationLocked(error);
+        if(acquire_hold){hold_counts_[mutation.entity_id]=held+1;delta.emplace("hold",mutation.entity_id);}
         if(accepted_segment_state_mutations_.count(mutation.mutation_id)) {
             accepted_generation_ordinals_.emplace(mutation.mutation_id,row->global_ordinal);
             delta.emplace("accepted-state",mutation.mutation_id);
@@ -1785,7 +1795,7 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
         if(error)error->clear();return true;
     }catch(...){Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
 #else
-    (void)mutation;(void)prepared;return Fail(error,"B append unsupported");
+    (void)mutation;(void)prepared;(void)acquire_hold;return Fail(error,"B append unsupported");
 #endif
 }
 bool RecordingCatalog::ReserveRecordingOrder(const std::string& store,const std::string& request,
@@ -2605,7 +2615,6 @@ bool RecordingCatalog::FinalizeSegmentLocked(const RecordingSegmentV1& segment,
                                              bool acquire_hold,
                                              std::string* error) {
     if (!opened_) return Fail(error, "catalog가 열리지 않음");
-    if(generation_backend_&&acquire_hold)return Fail(error,"B finalize+hold 복합 소비자 연결 전까지 거부");
     if (!ValidateRecordingSegmentV1(segment, error) || segment.lifecycle != RecordingLifecycle::Finalized) return false;
     if (segments_v2_.count(segment.segment_id)) return Fail(error,"V1/V2 ID 충돌");
     if (tombstones_.find(segment.segment_id) != tombstones_.end()) {
@@ -2630,6 +2639,7 @@ bool RecordingCatalog::FinalizeSegmentLocked(const RecordingSegmentV1& segment,
     mutation.entity_id = segment.segment_id;
     mutation.payload_json = "{\"segment\":" + SerializeRecordingSegmentV1(segment) +
                             ",\"mediaRelpath\":\"" + Escape(relative.generic_string()) + "\"}";
+    if(generation_backend_)return AppendGenerationLocked(std::move(mutation),error,nullptr,acquire_hold);
     if (!AppendAndApplyLocked(std::move(mutation), error)) return false;
     if (!acquire_hold) return true;
     constexpr auto kMaxPersistentHoldCount =
@@ -3579,7 +3589,8 @@ bool RecordingCatalog::AdjustHoldCountLocked(const std::string& segment_id,std::
         (!v2&&(segment == segments_.end() || segment->second.lifecycle != RecordingLifecycle::Finalized))) {
         return Fail(error, "hold 대상 finalized segment가 없음");
     }
-    const std::uint64_t current = hold_counts_[segment_id];
+    const auto current_hold=hold_counts_.find(segment_id);
+    const std::uint64_t current = generation_backend_?(current_hold==hold_counts_.end()?0:current_hold->second):hold_counts_[segment_id];
     const std::uint64_t magnitude = delta < 0
                                         ? static_cast<std::uint64_t>(-(delta + 1)) + 1
                                         : static_cast<std::uint64_t>(delta);

@@ -262,7 +262,7 @@ private:
             std::string error;managed_id=NewId();const auto request=NewId();
             if(managed_id.empty() || request.empty() ||
                !options.managed_catalog->ValidateManagedWriterBinding(*options.managed_journal,options.storage_root,options.managed_store_id,&error) ||
-               !options.managed_journal->ReserveRecordingOrder(options.managed_store_id,request,managed_id,channel_id,&current_order,&error)) {
+               !options.managed_catalog->ReserveRecordingOrder(options.managed_store_id,request,managed_id,channel_id,&current_order,&error)) {
                 InputFailureLocked("durable-order-reservation");return false;
             }
         }

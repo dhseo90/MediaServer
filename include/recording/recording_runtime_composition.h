@@ -14,9 +14,11 @@ public:
     RecordingCatalog& catalog(){return *catalog_;}
     GStreamerSegmentWriter::Options WriterOptions(std::int64_t segment_ms);
 private:
+    void ResetOwner();
     std::filesystem::path root_;
     std::unique_ptr<RecordingJournal> journal_;
     std::unique_ptr<RecordingCatalog> catalog_;
+    bool open_attempted_{false},opened_{false};
 };
 bool RecoverRuntimeRecordingAtStartup(RecordingCatalog&,RetentionCoordinator&,DerivedJobService*,
     const std::filesystem::path&,std::int64_t,RecordingStartupRecoveryReport*,std::string*);

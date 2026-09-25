@@ -1,5 +1,50 @@
 # 릴리즈 테스트 기록
 
+## B-05 기본 구성 연결 실행 전 정의 (2026-09-25)
+
+현재 단위의 [범위·실패·개별 결과 기록](release-artifacts/v4.1.0/b05-consumers-runtime-20260925/results.md)을 연결한다.
+
+실행 결과: 소비자 집중118·관련 회귀670·runtime33·실제 기본 구성46, 합계867개와
+최종 제품 빌드가 통과했다. 최초 fixture compile 실패와 예상 RED는 위 기록에 보존한다.
+HTTP·누적·장시간/UI는 이 단위의 결과가 아니며 전체 미지원 서버 빌드는 미실행이다.
+
+소비자 보호 B05-P01~P05 통과 뒤 지원 빌드의 기본 구성에 같은 private 전환/복구를 연결한다.
+새 작업을 다른 버전으로 확장하거나 장시간/UI를 이 단위에 끼워 넣지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B05-R01 | 새 저장소 B 기본 구성 | 실제 RecordingRuntimeStorage에서 B marker/manifest/current SQL·Catalog 예약·fresh 재개방 대조. 구현 전 B 기본 선택 assertion만 예상 RED | v4.1.0 |
+| B05-R02 | 기존 자료 전환 | strict V1 managed 입력의 journal/media/old SQLite bytes·기존 ID 보존과 fresh B 조회·쓰기 확인 | v4.1.0 |
+| B05-R03 | 시작 중단 복구 연결 | 실제 coordinator로 만든 PREPARED/marker 교체/유효 target 상태에서 runtime 복구→fresh owner 확인. target 없는 intent·불량 receipt/temp는 보존·거부 | v4.1.0 |
+| B05-R04 | 지원 구성 경계 | backend/crypto 지원 빌드만 B default. 미지원 빌드의 기존 V1 유지·B 손상/미지원의 V1 자동 fallback 금지. SQLite unavailable와 rebuild 실패 구분 | v4.1.0 |
+| B05-R05 | 경로·owner 수명 | 상대/허용 OS alias·기존 ID 유지. 임의 symlink/..·fork·기존 owner 교체 거부, 성공 Open 재호출 안정성 | v4.1.0 |
+| B05-R06 | 공개 상태 계약 | 내부 generation-sqlite/jsonl 명칭은 기존 공개 sqlite-primary/jsonl-fallback에 정확 대응. degraded·channel 집계·redaction/권한은 기존 의미 유지 | v4.1.0 |
+| B05-R07 | 자원 수용값 분리 | 형식의 구성 파일1GiB·기존 물리 행16MiB+LF 범위, 자연 count/ordinal 범위 확인. 64MiB/8192 캐시 수용을 전체 수명 제한으로 사용하지 않음 | v4.1.0 |
+
+예정 focused는 `bash scripts/internal/verify_recording_runtime_generation.sh`이며 제품 archive를
+사용하는 격리 파일/기본 구성 검사다. 제품 빌드 후 실제 writer/파생/복구의 기존 default-composition
+단기 검사를 영향 범위로 수행한다. 예전 파일형식에만 결박된 검사는 동등한 공개 계약/현행 C++
+조회로 대조하고 변경 전후 기대값을 기록한다. 실제 서버 HTTP·누적 비용 판정은 원래8번이다.
+
+## B-05 소비자 보호 연결 실행 전 정의 (2026-09-25)
+
+사용자 원래6번의 첫 단위다. 기본 runtime 전환 전에 B opt-in 소비자의 보호·예약을 닫는다.
+파일/원장 형식·공개 API·ID/시간·삭제 정책·기존 V1 지원은 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B05-P01 | finalize와 임시 hold의 단일 보호 경계 | Catalog 잠금 아래 finalize durable/current 적용과 hold SQL을 한 변경분으로 게시. SQL 실패는 성공 fallback 없이 poison, fresh recovery로 내구 결과 대조. 기존 V1 경로도 유지 | v4.1.0 |
+| B05-P02 | 읽기 owner의 임시 보호 | B read-only의 playback/event hold 허용 유지. SQL 오류 rollback·메모리 불변·같은 owner 재시도, 정상 acquire/release와 overflow/underflow | v4.1.0 |
+| B05-P03 | 보호 commit 소유 결박 | Catalog→Journal→SQL 최종 commit에서 root/marker/manifest/active·cache path·PID/owner·미정리 transaction 확인. 잘못된 권위면 거부·poison, unknown 경로 쓰기 금지 | v4.1.0 |
+| B05-P04 | 예약 소비자 | writer와 DerivedJobService가 Catalog 예약을 이용. B raw Journal 예약은 계속 거부, 같은 tuple retry·V1 정상 경로 유지 | v4.1.0 |
+| B05-P05 | 재생·이벤트·pin/보존 교차 | 재생/이벤트 보호 중 삭제 거부, release 뒤 oldest-first 후보·pin·참조·tombstone·cold 상세 불일치 거부를 실제 Catalog/소비자로 대조 | v4.1.0 |
+
+focused 예정 명령은 `bash scripts/internal/verify_recording_generation_consumers.sh`다.
+구현 전 B finalize+hold 거부 assertion만 예상 RED다. 컴파일/환경/기존 회귀 오류는 실제 FAIL이다.
+관련 기존 B 공개읽기·append·checkpoint와 보호/읽기/파생 소비자 검사를 diff 근거로 선택한다.
+실제 앱·누적/장시간/UI·외부는 이 단위에서 실행하지 않는다. 격리 fixture 소유권·해시·정리와
+최초 실패→수정→재검증을 보존한다. runtime 기본 전환은 이 단위 이후 별도 정상/오류 정의로 진행한다.
+
 ## v4.1.0 S11 B안 저장 구조 구현
 
 2026-09-25 후속 1~9 순차 개발을 승인받았다. 이번 첫 단위는 기존 수용 조건과
@@ -349,7 +394,7 @@ R08 기존 ID 거부 RED(98 PASS/1 FAIL)→최종101 PASS다. manifest 영향 �
 | B-02 영속 저장 단위 | 완료(내부 연결 범위) | 형식·임시 복원·공개 Catalog B Open·현재 상태 SQLite·원문 cold 링크 집중 검증 PASS. 실제 runtime 기본 선택은 후속 |
 | B-03 정상 저장·체크포인트 | 완료(내부 opt-in 범위) | 비변경 검증·증분 쓰기·예약·변경 key SQL·수동/자동 회전·무재처리 독립 비교·영향 회귀·빌드 PASS. 누적/실제 앱은 B-07 |
 | B-04 재기동·SQLite | 완료(내부 연결 범위) | 원문 보존 전환·receipt/marker/manifest 게시·전환/회전 중단 복구165개, 기존 SQL/저장 영향 회귀1,409개·빌드 통과. 실제 runtime 기본 연결은 B-05 |
-| B-05 조회·보존·상세 수명 | 미착수 | 재생·이벤트·pin/hold·삭제·cold 증거 독립 대조 |
+| B-05 조회·보존·상세 수명 | 완료(소비자·기본 구성 단기) | 보호·예약·cold 손상 거부·runtime B default/복구·실제 2출력 decode와 관련867개/빌드 PASS; 누적·실제 HTTP는 B-07 |
 | B-06 구형 경로·검증 연결 | 미착수 | 필요한 역사 반례만 보존하고 중복 구현을 정리 |
 | B-07 누적·실제 통합 | 미실행 | 작은 반례·누적 비용·완전 출력 2개와 HTTP·해시·재기동 |
 | B-08 코드 고정·증거 정합 | 미착수 | 영향 판정 후 S11 최종 검증 범위 확정 |

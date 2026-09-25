@@ -1,0 +1,362 @@
+[
+  {
+    "source": "/private/tmp/b05-consumers-append.log",
+    "artifact": "consumers-append.log.gz",
+    "exit": 0,
+    "bytes": 18554,
+    "gzipBytes": 4144,
+    "sha256": "0f95d33a71c85ce9991a39d467a407acc8416f1a5d5498977396faece59d3b5d",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159565611,
+    "pass": 219,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.aJv4HA",
+        "bytes": 35535524,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-checkpoint.log",
+    "artifact": "consumers-checkpoint.log.gz",
+    "exit": 0,
+    "bytes": 14869,
+    "gzipBytes": 3793,
+    "sha256": "79d7759d8c506bbf261f657b7b4077dd750f702352464e6a76945caf35013c75",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159566612,
+    "pass": 133,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.q5O1Rf",
+        "bytes": 49539912,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-connection.log",
+    "artifact": "consumers-connection.log.gz",
+    "exit": 0,
+    "bytes": 1257,
+    "gzipBytes": 802,
+    "sha256": "aefd8b3a35f89be03beaebfb978fda98b335642fe374689e3e01ccf0c08a1fd4",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159568059,
+    "pass": 22,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.XgBLbV",
+        "bytes": 7987327,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-derived-jobs.log",
+    "artifact": "consumers-derived-jobs.log.gz",
+    "exit": 0,
+    "bytes": 2672,
+    "gzipBytes": 1437,
+    "sha256": "0c1daa13c6e3b0b6ccd85da6521ae3c8a03f21ead34026a282a263dbe505db54",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159568159,
+    "pass": 23,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.Gj5v7i",
+        "bytes": 10469727,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-derived-service.log",
+    "artifact": "consumers-derived-service.log.gz",
+    "exit": 0,
+    "bytes": 14451,
+    "gzipBytes": 1732,
+    "sha256": "85a4a4a87d88f74ec85d21aecf6e83ae9f860a743701f45883a36c53b21e9ce4",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159568437,
+    "pass": 43,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.IAf6S9",
+        "bytes": 20931631,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-final-source-hashes.log",
+    "artifact": "consumers-final-source-hashes.log.gz",
+    "exit": 0,
+    "bytes": 2067,
+    "gzipBytes": 940,
+    "sha256": "7ee7b42cccba4c30d6cf9ffd35213f64d770bd1ec357486cfa91c018167b31cc",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159570235,
+    "pass": 0,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-final.log",
+    "artifact": "consumers-final.log.gz",
+    "exit": 0,
+    "bytes": 12592,
+    "gzipBytes": 3191,
+    "sha256": "51d5113808aa76e489ddf2055226a6259f96f60030935227857841ac04a2e2e1",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159563350,
+    "pass": 118,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.4vwYvR",
+        "bytes": 33703416,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-green-complete.log",
+    "artifact": "consumers-green-complete.log.gz",
+    "exit": 0,
+    "bytes": 12262,
+    "gzipBytes": 3125,
+    "sha256": "e44fe5540897fd97d4d10cc2bf5fac50e552740cc5e4f99d86ffa4ff33298af2",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159562166,
+    "pass": 116,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.VgwPKw",
+        "bytes": 33630930,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-green-initial.log",
+    "artifact": "consumers-green-initial.log.gz",
+    "exit": 1,
+    "bytes": 10945,
+    "gzipBytes": 3038,
+    "sha256": "130bf0bbe28c3f3d7ae05abed03299d00bb49f354bda41bf953bd093a4291bf3",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159561502,
+    "pass": 89,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.sOSQg7",
+        "bytes": 18232680,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-product-build.log",
+    "artifact": "consumers-product-build.log.gz",
+    "exit": 0,
+    "bytes": 4466,
+    "gzipBytes": 714,
+    "sha256": "953ffef9fff82f1b2298a59703b4b9d58ce6b1129f657ad023554d3f47cdeddc",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159562220,
+    "pass": 0,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-readonly.log",
+    "artifact": "consumers-readonly.log.gz",
+    "exit": 0,
+    "bytes": 11129,
+    "gzipBytes": 2832,
+    "sha256": "dbd9eb99011bb975f6cc644d54249af4998e2a05a82f140fcc6f433b42dcb824",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159564934,
+    "pass": 106,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.IlqZO6",
+        "bytes": 32974969,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-red-fixture-fixed.log",
+    "artifact": "consumers-red-fixture-fixed.log.gz",
+    "exit": 1,
+    "bytes": 4403,
+    "gzipBytes": 2154,
+    "sha256": "5df386ef44ad29657d05c95b25f8319eabb7ce1a85a731c92354956138f8e82e",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159560968,
+    "pass": 0,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.Dt19SU",
+        "bytes": 8883182,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-red.log",
+    "artifact": "consumers-red.log.gz",
+    "exit": 1,
+    "bytes": 5587,
+    "gzipBytes": 2464,
+    "sha256": "bc7de87e5ea79684da6d8133552964b80be03e6db1597abb43784c555850c176",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159560819,
+    "pass": 0,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.EmoQHw",
+        "bytes": 0,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-consumers-retention.log",
+    "artifact": "consumers-retention.log.gz",
+    "exit": 0,
+    "bytes": 2000,
+    "gzipBytes": 956,
+    "sha256": "5156a480e91aa7e5cc38da4159e4f13fd9e278aa160040937e2a3a033f8cff65",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159570463,
+    "pass": 24,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.ffqNV2",
+        "bytes": 14692092,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-default-composition.log",
+    "artifact": "default-composition.log.gz",
+    "exit": 0,
+    "bytes": 4070,
+    "gzipBytes": 1398,
+    "sha256": "561948f7fc70d52573d0b9d1e01998f9552fdcb79b9ff752566425ac7b8487ae",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159568730,
+    "pass": 46,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.bTuEsu",
+        "bytes": 18593847,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-runtime-green-initial.log",
+    "artifact": "runtime-green-initial.log.gz",
+    "exit": 0,
+    "bytes": 3657,
+    "gzipBytes": 1547,
+    "sha256": "91748be2c7c704b9df09c41ddf6c236e6db42ad873059446f1ebab90dfec493b",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159564445,
+    "pass": 33,
+    "fail": 0,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-runtime-generation.6PwEA8",
+        "bytes": 9693273,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-runtime-product-build.log",
+    "artifact": "runtime-product-build.log.gz",
+    "exit": 0,
+    "bytes": 816,
+    "gzipBytes": 342,
+    "sha256": "2ec1391e119e69e5a88119a5355bdc152a790a43854af48b1975587a3a6b6897",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159564127,
+    "pass": 0,
+    "fail": 0,
+    "cleanup": [],
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b05-runtime-red.log",
+    "artifact": "runtime-red.log.gz",
+    "exit": 1,
+    "bytes": 1676,
+    "gzipBytes": 933,
+    "sha256": "98b039f4203aede554d7e98aac57c00d791a856b20afc8101b741911144d1d3d",
+    "uid": 501,
+    "dev": 16777234,
+    "ino": 159563292,
+    "pass": 0,
+    "fail": 1,
+    "cleanup": [
+      {
+        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-runtime-generation.cJ07l8",
+        "bytes": 9407337,
+        "absent": true
+      }
+    ],
+    "originalRemoved": true
+  }
+]

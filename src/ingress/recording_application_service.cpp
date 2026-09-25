@@ -135,9 +135,14 @@ ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthor
     if (!available)
         return {503, "Service Unavailable", "{\"error\":\"recording status unavailable\"}"};
     const auto& recovery = catalog_status.recovery;
+    // backend의 내부 식별을 새 공개 enum으로 노출하지 않는다. 조회 권위/SQL 품질의
+    // 기존 sqlite-primary와 jsonl-fallback 의미는 세대 형식에서도 동일하다.
+    const std::string public_mode =
+        (catalog_status.catalog_mode == "generation-sqlite" || catalog_status.catalog_mode == "generation-sqlite-readonly") ? "sqlite-primary" :
+        (catalog_status.catalog_mode == "generation-jsonl" || catalog_status.catalog_mode == "generation-jsonl-readonly") ? "jsonl-fallback" : catalog_status.catalog_mode;
     std::ostringstream out;
-    out << std::boolalpha << "{\"enabled\":" << enabled_ << ",\"catalogMode\":" << Quote(catalog_status.catalog_mode)
-        << ",\"degraded\":" << (catalog_status.catalog_mode != "sqlite-primary" || recovery.projection_error_count != 0 ||
+    out << std::boolalpha << "{\"enabled\":" << enabled_ << ",\"catalogMode\":" << Quote(public_mode)
+        << ",\"degraded\":" << (public_mode != "sqlite-primary" || recovery.projection_error_count != 0 ||
                                      recovery.corrupt_line_count != 0 || recovery.writer_cleanup_error_count != 0)
         << ",\"recovery\":{\"corruptLines\":" << recovery.corrupt_line_count
         << ",\"projectionErrors\":" << recovery.projection_error_count

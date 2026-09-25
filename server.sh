@@ -1226,6 +1226,8 @@ Usage:
   verify-v410-recording-generation-preappend
   verify-v410-recording-generation-append
   verify-v410-recording-generation-checkpoint
+  verify-v410-recording-generation-consumers
+  verify-v410-recording-runtime-generation
   verify-v410-recording-cutover-input
   verify-v410-recording-cutover-session
   verify-v410-recording-order-snapshot
@@ -3185,6 +3187,14 @@ case "${cmd}" in
   verify-v410-recording-generation-transaction)
     require_internal verify_recording_generation_transaction.sh
     exec bash "${INTERNAL_DIR}/verify_recording_generation_transaction.sh" "$@"
+    ;;
+  verify-v410-recording-generation-consumers)
+    require_internal verify_recording_generation_consumers.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_consumers.sh" "$@"
+    ;;
+  verify-v410-recording-runtime-generation)
+    require_internal verify_recording_runtime_generation.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_runtime_generation.sh" "$@"
     ;;
   verify-v410-recording-order-snapshot)
     require_internal verify_recording_order_history_snapshot.sh
