@@ -4,6 +4,99 @@
 정책 source-of-truth는 `AGENTS.md`다. 이 문서는 2026-09-26의 직접 관측과
 후속 제안을 분리하며, 미완료 단계를 PASS로 만들지 않는다.
 
+## 2026-09-27 B11 누적·통합·코드 고정 후 현행 판정
+
+이 절이 현재 판정이다. 아래 B10 실패 직후 및 최초 중단 표는 당시 이력으로 보존한다.
+B11-O03의 2,049개 삭제 이력 누적 비용, B11-H01 실제 HTTP, B11-I01 현행 5단계와
+B11-F01~03 최종 단기 gate를 통과했다. 30분·영향받는 녹화 UI·녹화120분은 이번 범위에서
+실행하지 않았으므로 S11과 v4.1.0 릴리즈는 아직 완료가 아니다.
+
+### 1. 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 누적 저장소·관측 비용 판정 | 완료·분할 커밋 | 2,049개 timeline/복구/관측/root/RSS 기존 상한 통과 | [결과](results.md), `3ca7ea01` |
+| 2 | 실제 HTTP·출력2개·hash·재기동 통합 | 완료·분할 커밋 | H01 74/74, I01 35+40+10+46+27, HTTP4초·두 기동·정리 통과 | [결과](results.md), `debeb12e` |
+| 3 | 코드 고정·최종 단기·증거 영향 판정 | 완료·분할 커밋 대상 | build·manifest986/986·inventory/docs/version/close-out dry-run 통과, 최초 실패 이력 보존 | [중앙 기록](../../../release-test-records.md) |
+| 4 | 분할 커밋 | 수행 | 1·2번은 독립 커밋, 3번은 최종 단기/문서 정합 커밋으로 분리 | Git log |
+| 5 | 가능하면 푸시 | 승인·문서 시점 미수행 | clean·최종 gate 확인 뒤 현재 branch 커밋만 push 예정. PR/merge/tag/Release는 제외 | AGENTS 5.2·최종 보고 |
+| 6 | 종합 보고·잔여 이슈 | 수행 | 아래 7·8절에 릴리즈 전 잔여와 승인 경계 전수 기록 | 이 문서 |
+
+### 2. 기준 대조
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| branch/VERSION/CMake | `v4.1.0`/`4.1.0`/`4.1.0` | 일치 | `verify-v410-entry-baseline` 33/33 |
+| 현재 기능 inventory | 986행·UI424·30분50·120분7 | 986/986, implementation/source/verifier986, manual UI424 | project inventory18/18·semantic negative15/15 |
+| 빌드 | 현행 source C++17/GStreamer | runtime98%·server100%, exit0 | `./server.sh build` |
+| HTTP·재기동 | 4초·출력2개·기존 보존·새 출력 | 최대3,965ms, 두 기동 각각2개, hash/HTTP200·보존·새 event/job/output | [I01 원출력](b11-current-integration-green.log.gz) |
+| cleanup | 프로세스·포트·소유 root 정리 | 실제 통합 서버 exit0·포트4/root 삭제, 최종 8080/8081/8554/8555 LISTEN 없음 | [결과](results.md), `lsof` |
+| published/release action | latest published v4.0.0, 별도 승인 | 현행 source v4.1.0·published external-not-checked, PR/merge/tag/Release 미실행 | release metadata18/18·close-out dry-run6/6 |
+
+### 3. 로드맵 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S10/B11 저장·관측 구조 | 구현·focused 회귀 완료 | O03 누적과 H01/I01 실제 통합까지 통과 | 없음·로드맵 상단 보완 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [결과](results.md) |
+| S11 최종 단기 | 과거 B09 통과 뒤 B11 변경 | B11 최종 build·inventory·semantic·docs·metadata 통과 | 현행 결과로 재고정 | [중앙 기록](../../../release-test-records.md) |
+| S11 30분 | B10 이전 코드 PASS | B11 제품 저장/복구 변경 뒤 미실행 | 기존 결과 부분 무효, 재실행 필요 | `c60d5129..HEAD` 변경 대조 |
+| S11 UI | B10 공통424+녹화8 ID PASS | UI 제품 파일 변경0. 공통424 유지, 녹화8 ID는 backend/timeline 영향으로 재실행 필요 | 부분 무효 | [B10 UI](b10-ui.md)·변경 파일 대조 |
+| S11 120분 | B10 18분48초 FAIL | B11 단기 원인 보완·통합 PASS, 최종 녹화120분은 미실행 | 미완료 유지 | [B10 실패](b10-longrun.md) |
+
+### 4. 구현·실행 연결
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 삭제 이력 저장·복구 | `recording_catalog*`, `recording_journal.cpp`, generation projection/snapshot/identity | 2,049개 삭제 이력·SQLite/JSONL 재개방·손상/ID 의미 유지 | B11-O03 |
+| 타임라인·재생 상태 | `recording_timeline_projection.cpp`, `/ops/api/recordings/timeline`, `/media/` | 전체 deleted/nonplayable·total2,049, 실제 HTTP 최대3,965ms | B11-O03·H01/I01 |
+| 실제 이벤트 출력 | current app fixture→EventRecord→reference/job→MP4 | 각 기동 완전 출력2개·HTTP200·파일 hash, 두 번째 기동 기존2개 보존 | B11-I01 |
+| final inventory | `project-feature-test-inventory.md`·implementation manifest·coverage/script verifier | B11-O03 등록, 기존 986 feature 의미 행 불변·SHA 재결속 | B11-F01/F02 |
+| 제품 UI 변경 | `c60d5129..HEAD` 제품 파일 대조 | recording 내부 11개, product UI/CSS/HTML 변경0 | `git diff --name-only` 직접 확인 |
+
+### 5. 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| 누적·HTTP·통합 PASS | 프로젝트 직접 확인 | O03/H01/I01 실제 exit·수치·원출력·cleanup | 저장/복구/단기 통합 blocker 해소 |
+| generic manifest refresh 실패 | 프로젝트 직접 확인 | items 동일이나 approval envelope 제거, validation6/global992 | 자동 승인 재생성 금지 경계 확인·산출물 폐기 |
+| SHA 한정 재결속 | 프로젝트 직접 확인+AGENTS 경계 | inventory의 새 B11 행은 986 feature parser 대상 밖, items 구조 hash 동일 | 기존 semantic approval 유지 가능 |
+| 공통 UI424 유지 | 메인 영향 판정 | UI 제품 파일 변경0, exact manifest/semantic986 유지 | 공통 UI 증거 유지; 녹화 UI로 확대 불가 |
+| 30분·녹화UI·120분 재실행 | AGENTS 직접 규칙+변경 매핑 | 저장/복구/timeline·source lifecycle 직접 변경 | 릴리즈 전 P0 |
+| 외부 서비스·실기기 제외 | 사용자 직접 지시 | 이번 릴리즈 대화 지시 | 실행·PASS 주장·후속 재추가 없음 |
+
+### 6. 테스트 필요성
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | B11 저장·관측 변경 | B11-O03/H01/I01/F01~03 | 이번 범위 실행·PASS |
+| 30분 | 진행 대상 | release 필수+저장/source lifecycle 변경 | inventory 30분50, S11 | 이번 범위 미실행, 후속 승인 필요 |
+| 공통 UI424 | 미진행(기존 유지) | 제품 UI·exact manifest 의미 변경 없음 | B10 424/424·Policy v4 | 유효 증거 유지 |
+| 녹화 UI8 ID·31 action | 진행 대상 | timeline/deleted/playable/재기동 backend 변경 | V410-S06-I27~I34 | 이번 범위 미실행, 후속 승인 필요 |
+| 녹화120분·자원 | 진행 대상 | 사용자 기존 명시+media/storage/lifecycle 직접 변경+B10 실패 | B10-L01·B11-O03/H01/I01 | 이번 범위 미실행, 후속 승인 필요 |
+| 공통120분 | 조건부 진행 | B11 변경이 녹화/storage 경계에 한정, 기존 공통 증거 전체 승계는 불가 | 7.6.2·기존 common120 | 녹화120분 결과/공통 영향으로 최종 판정 |
+| 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | AGENTS 7.6 | 실행하지 않음 |
+
+### 7. 릴리즈까지 잔여 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일·완료 기준 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | 최종30분 안정화 | 고정된 B11 코드로 30분을 실행해 memory/runtime/cleanup drift 없이 전수 PASS. 실패 시 해당 단계만 원인 확정 | 장시간 검증·필요 시 한정 수정 | AGENTS·직접 확인 | 전 |
+| 2 | P0 | 영향받는 녹화 UI 재검증 | I27~I34 31 action의 timeline 상태·우선 재생·재생/정지/탐색·Range·role/scope·viewport/theme를 현행 backend에서 확인. 공통424는 재실행하지 않음 | 실제 UI | 영향 판정+직접 확인 | 전 |
+| 3 | P0 | 녹화120분·자원 판정 | 실제 녹화·보존·삭제·복구·용량·HTTP/관측 지연·RSS/storage 추세·재기동·cleanup을 120분 동안 확인 | 장시간/자원 gate | 사용자 지시+7.6.2 | 전 |
+| 4 | P0 | S11 최종 증거·release local gate | 1~3 결과, 문서/버전/cleanup, 기존 공통120 승계 범위를 확정하고 clean build/필수 local gate를 마감 | 증거·로컬 마감 | AGENTS 직접 규칙 | 전 |
+| 5 | 별도 승인 | PR·CI·main·서명 tag·Release | 각 단계 별도 승인 후 required check→merge→signed annotated tag 검증→GitHub Release/published 확인 | 외부 변경 | AGENTS 4 | 후 |
+
+### 8. 미해소·승인 경계
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| 최종30분 | 미실행 | B11 제품 변경 뒤 이번 범위에서 제외 | 불가 | 고정 commit에서 승인 실행 |
+| 녹화 UI 현행 backend | 부분 무효 | UI 코드는 불변이나 timeline/deleted/playable backend 변경 | 공통424에는 가능, 녹화8 ID에는 불가 | 영향 UI 실행 |
+| 녹화120분·자원 | 미실행·과거 FAIL 보존 | B11 단기는 통과했으나 장시간 추세 미확인 | 불가 | 30분/UI 선수 통과 뒤 승인 실행 |
+| 공통120분 승계 | 조건부 | 기존 실행은 B11 이전 녹화 저장 경계 | 전체 release PASS에 단독 사용 불가 | 녹화120분 결과 뒤 영향 판정 |
+| PR/CI/main/tag/Release | 미실행·미승인 | 개발 branch push와 별도 | 불가 | 로컬 P0 전부 통과 후 단계별 승인 |
+| 외부 서비스·실기기 | 사용자 제외 | 이번 릴리즈에서 안 함 | 외부 PASS 불가 | 후속 대상에서 제외 |
+
 ## B11 후속 개발 마감 — 전체 S11 완료 아님
 
 승인된 계약·제품 저장/복구·관측 구조 보완을 분할 커밋했고 관련 focused 검사와 B10 실제

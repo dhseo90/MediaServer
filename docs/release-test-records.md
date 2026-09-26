@@ -1,5 +1,40 @@
 # 릴리즈 테스트 기록
 
+검증 호환 식별자: `# Release Test Records`. 문서 제목과 본문은 한글을 기준으로 유지한다.
+
+## B11 코드 고정·최종 단기 검증 (2026-09-27)
+
+독자: v4.1.0 녹화·릴리즈 판정 담당자. 수명: v4.1.0 릴리즈까지. B11 저장·복구·관측
+변경 뒤 코드 고정과 증거 유효 범위를 판정한다. 실제 30분·UI·120분은 이 단기 검증으로
+대체하지 않는다. 이 최종 단기 단계에서 제품 공개 API·외부 payload·시간제한은 변경하지 않았다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B11-F01 | 최종 빌드·정적 gate | build, 주석, 프로젝트/기능/스크립트 inventory, 문서 링크·자산, v4.1 entry·release metadata/evidence, close-out dry-run, diff 검사 | v4.1.0 |
+| B11-F02 | 구현 manifest 재결속 | B11-O03 inventory 한 행 추가가 기존 986개 feature 행·semantic proof를 바꾸지 않았는지 확인하고 inventory SHA만 재결속 | v4.1.0 |
+| B11-F03 | 기존 증거 영향 판정 | B10 이후 실제 변경 파일을 공통 UI·녹화 UI·30분·120분 경계와 대조하고 유지/부분 무효/재실행을 구분 | v4.1.0 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-F01 build | `./server.sh build`, runtime98%·server100%, exit0 | pass |
+| B11-F01 code comments | `verify-code-comments`, 1,258 files·missing0·영문-only0 | pass |
+| B11-F01 project inventory 최초 | B11-O03 행 추가 뒤 implementation manifest SHA drift 1건, 나머지 17개 검사 통과 | fail |
+| B11-F02 generic refresh 전체 검증 | `--refresh-manifest`가 986 items는 동일하게 보존했으나 REVIEW4 approval envelope를 제거해 validation6·global992 오류. 결과 폐기 | fail |
+| B11-F02 한정 재결속 | feature 986행·items 구조 hash 동일을 확인하고 inventory SHA만 `4afc023d…1422e`로 갱신. generic refresh 산출물은 보존하지 않음 | pass |
+| B11-F02 semantic 전체 | `verify-feature-implementation-evidence`, 986/986, semantic reviewed986, global0, 음성 반례15/15, exit0 | pass |
+| B11-F01 project inventory 재검증 | 986행·18/18, implementation manifest exact 연결 | pass |
+| B11-F01 coverage/script | feature coverage986/986·8/8, script inventory12/12 | pass |
+| B11-F01 docs/metadata | docs links failure0, UI assets10/10, v4.1 entry33/33, release metadata18/18, evidence index8/8 | pass |
+| B11-F01 close-out/diff | close-out dry-run6/6·tag/push 미수행 확인, `git diff --check` exit0 | pass |
+| B11-F03 영향 판정 | B10 UI 소스 뒤 변경은 recording 저장/복구/timeline 내부 11개 제품 파일이며 제품 UI 파일 변경0. 공통 UI424는 유지, 녹화 UI8 ID·31 action과 최종30분·녹화120분은 재실행 대상 | pass |
+
+최초 generic refresh 실패는 승인 원장을 자동 재생성하지 않는 REVIEW4 경계가 작동한 결과다.
+한글 문서 제목은 유지하고 기존 evidence verifier의 호환 식별자를 문서에 명시해 semantic
+trust source를 불필요하게 변경하지 않았다. token start/end/consumed는 전용 집계가 없어
+미집계다. 전체 semantic 검사 elapsed는 약 8분이며 나머지 명령의 실제 경과는 실행 도구
+반환값을 따른다. 이 단계가 만든 서버·포트·녹화 임시 root는 없고 8080/8081/8554/8555
+LISTEN 없음과 작업트리 공백 검사를 확인했다.
+
 ## B11 저장·관측 구조 보완 — 실행 전 정의 (2026-09-26)
 
 정책은 AGENTS.md, 구현 계약은 [B11 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b11-삭제-완료-상세의-현재-상태-분리-2026-09-26)이다.

@@ -518,3 +518,28 @@ H01 성공 `d5620b339c1e99a41a4d63a5c922825608db2a131118fe4ca16e7d700425e0c6`,
 I01 성공 `4a0feab7280f110ea83481e1e305f1db704bb971505876ddadbbb87610ca8d33`이다.
 실행기가 생성한 snapshot receipt 3개와 latency/process 종료 증거 4개도 같은 분할 커밋에
 보존하며 모두 소유 격리 저장소·원문 비공개 형식이다.
+
+## B11-F01~F03 코드 고정·증거 영향 판정 (2026-09-27)
+
+B11 저장·복구·관측 변경의 최종 단기 gate와 증거 유효 범위를 현행 소스에서 다시
+고정했다. 빌드, 주석, 기능·스크립트 inventory, 문서·버전·release evidence와
+close-out dry-run을 통과했다. 제품 UI 파일은 B10 뒤 바뀌지 않았지만 녹화 timeline·
+삭제·재생 가능 상태를 만드는 backend는 바뀌었으므로 공통 UI 424개 증거는 유지하고
+녹화 UI 8 ID·31 action만 재실행 대상으로 판정했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-F01 빌드·주석 | `./server.sh build`; `verify-code-comments` | pass | runtime98%·server100%, 1,258파일·누락0·영문-only0 |
+| B11-F02 최초 inventory | `verify-project-inventory` | fail | 새 B11-O03 등록에 따른 manifest inventory SHA drift 1건. 나머지17개는 통과 |
+| B11-F02 일반 refresh | implementation manifest를 일반 refresh한 뒤 전체 검증 | fail | 986 items는 같지만 REVIEW4 approval envelope가 사라져 validation6·global992. 산출물 폐기 |
+| B11-F02 한정 재결속 | 986 feature 행과 items 구조 hash 불변 확인 후 inventory SHA만 갱신 | pass | inventory SHA `4afc023d…1422e`, semantic986/986·global0·음성 반례15/15 |
+| B11-F01 inventory·문서 | project inventory18/18, coverage986/986·8/8, script12/12, links·assets·entry·metadata·evidence | pass | 링크 실패0, UI 자산10/10, v4.1 entry33/33, metadata18/18, evidence8/8 |
+| B11-F01 close-out | close-out dry-run과 `git diff --check` | pass | dry-run6/6, tag/push는 helper에서 수행하지 않음 |
+| B11-F03 영향 판정 | `c60d5129..HEAD` 제품 변경 파일과 UI·30분·120분 경계 대조 | pass | recording 내부11파일, 제품 UI/CSS/HTML 변경0. 공통UI424 유지, 녹화UI31 action·최종30분·녹화120분 재실행 |
+
+일반 refresh 실패는 승인 원장을 자동 재생성하지 못하게 하는 신뢰 경계가 작동한 결과다.
+한글 문서 제목은 유지하고 기존 verifier 호환 식별자만 명시했으며 verifier 소스와 986개
+승인 내용은 변경하지 않았다. 이 단계에서 서버·녹화 임시 root를 만들지 않았고 최종 확인에서
+8080/8081/8554/8555 LISTEN은 없었다. token start/end/consumed는 전용 집계가 없어
+미집계다. 이 PASS는 30분·실제 UI·120분을 대체하지 않으며 현행 잔여 판정은
+[릴리즈 잔여 전수표](readiness.md)를 따른다.
