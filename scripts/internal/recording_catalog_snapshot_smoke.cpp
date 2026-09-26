@@ -14,8 +14,10 @@ std::string error;
 struct Scenario {
     const char* id;
     bool good{true};
+    bool verbose{false};
     void Check(bool condition, const char* detail) {
         if (!condition) { good = false; std::cerr << id << " assertion: " << detail << '\n'; }
+        if (verbose) std::cout << id << ' ' << (condition ? "PASS " : "FAIL ") << detail << '\n';
     }
     ~Scenario() {
         std::cout << id << ' ' << (good ? "PASS" : "FAIL") << '\n';
@@ -36,6 +38,38 @@ RecordingCatalogSourceSummary SourceSummary() {
 RecordingCatalogJobSummary JobSummary() {
     return {"job-a","123","reference-a",DerivedJobState::Intent,0,4096,
         {"output-z","output-a"},{"source-z","source-a"},"mutation-job"};
+}
+RecordingRetiredV2Receipt RetiredReceipt() {
+    RecordingRetiredV2Receipt value;
+    value.segment_id = "segment-a";
+    value.store_id = "store-a";
+    value.source_id = "camera:1";
+    value.channel_id = "123";
+    value.order_request_id = "order-request-a";
+    value.order_sequence = 9;
+    value.media_epoch_id = "epoch-a";
+    value.tombstone_id = "tombstone-a";
+    value.media_start_pts = -100;
+    value.media_end_pts = 200;
+    value.time_base_num = 1;
+    value.time_base_den = 1000000000;
+    value.retention_class = RecordingRetentionClass::Continuous;
+    value.deleted_at_ms = 300;
+    value.deletion_reason = "continuous-age";
+    value.prior_relative_path = "recordings/channel-123/segment-a.mp4";
+    value.deletion_mutation_id = "mutation-delete-a";
+    value.segment_sha256 = std::string(64, 'a');
+    value.tombstone_sha256 = std::string(64, 'b');
+    value.utc_exclusion_safe = true;
+    value.utc_min_ns = 1000;
+    value.utc_max_ns = 2000;
+    return value;
+}
+bool EncodeRetired(const RecordingRetiredV2Receipt& value, std::string* bytes) {
+    return SerializeRecordingRetiredV2Receipt(value, bytes, &error);
+}
+bool DecodeRetired(const std::string& bytes, RecordingRetiredV2Receipt* value) {
+    return ParseRecordingRetiredV2Receipt(bytes, value, &error);
 }
 bool Encode(const RecordingCatalogSnapshot& value, std::string* bytes) {
     return SerializeRecordingCatalogSnapshot(value, bytes, &error);
@@ -93,6 +127,81 @@ RecordingGenerationManifest Manifest(const RecordingCatalogSnapshot& snapshot) {
 } // namespace
 int main() {
 #if MEDIA_SERVER_USE_OPENSSL
+    {
+        Scenario s{"B11-C01", true, true};
+        const auto value = RetiredReceipt();
+        std::string bytes;
+        RecordingRetiredV2Receipt parsed;
+        const std::string literal = "{\"schema\":\"media-server.recording-retired-v2.v1\",\"segmentId\":\"segment-a\",\"storeId\":\"store-a\",\"sourceId\":\"camera:1\",\"channelId\":\"123\",\"orderRequestId\":\"order-request-a\",\"orderSequence\":9,\"mediaEpochId\":\"epoch-a\",\"tombstoneId\":\"tombstone-a\",\"mediaStartPts\":-100,\"mediaEndPts\":200,\"timeBaseNum\":1,\"timeBaseDen\":1000000000,\"retentionClass\":\"continuous\",\"deletedAtMs\":300,\"deletionReason\":\"continuous-age\",\"priorRelativePath\":\"recordings/channel-123/segment-a.mp4\",\"deletionMutationId\":\"mutation-delete-a\",\"segmentSha256\":\"" +
+            std::string(64, 'a') + "\",\"tombstoneSha256\":\"" + std::string(64, 'b') +
+            "\",\"utcExclusionSafe\":true,\"utcMinNs\":1000,\"utcMaxNs\":2000}";
+        s.Check(EncodeRetired(value, &bytes) && bytes == literal && DecodeRetired(bytes, &parsed) &&
+                parsed.segment_id == value.segment_id && parsed.order_sequence == value.order_sequence &&
+                parsed.time_base_den == value.time_base_den && parsed.utc_min_ns == value.utc_min_ns &&
+                parsed.segment_sha256 == value.segment_sha256 && parsed.tombstone_sha256 == value.tombstone_sha256,
+                "canonical receipt exact roundtrip");
+        auto invalid = value;
+        invalid.segment_sha256[0] = 'G';
+        bytes = "unchanged";
+        s.Check(!EncodeRetired(invalid, &bytes) && bytes == "unchanged", "segment hash lowercase hex");
+        invalid = value;
+        invalid.tombstone_sha256[0] = 'G';
+        s.Check(!EncodeRetired(invalid, &bytes), "tombstone hash lowercase hex");
+        invalid = value;
+        invalid.order_sequence = 0;
+        s.Check(!EncodeRetired(invalid, &bytes), "positive first accepted order");
+        invalid = value;
+        invalid.order_request_id.clear();
+        s.Check(!EncodeRetired(invalid, &bytes), "order request ID required");
+        invalid = value;
+        invalid.order_request_id = "123";
+        s.Check(!EncodeRetired(invalid, &bytes), "order request numeric-only opaque ID rejected");
+        invalid = value;
+        invalid.order_request_id = "../order-request-a";
+        s.Check(!EncodeRetired(invalid, &bytes), "order request path-form opaque ID rejected");
+        invalid = value;
+        invalid.tombstone_id.clear();
+        s.Check(!EncodeRetired(invalid, &bytes), "tombstone ID required");
+        invalid = value;
+        invalid.tombstone_id = "123";
+        s.Check(!EncodeRetired(invalid, &bytes), "tombstone numeric-only opaque ID rejected");
+        invalid = value;
+        invalid.tombstone_id = "../tombstone-a";
+        s.Check(!EncodeRetired(invalid, &bytes), "tombstone path-form opaque ID rejected");
+        invalid = value;
+        invalid.prior_relative_path = "../segment-a.mp4";
+        s.Check(!EncodeRetired(invalid, &bytes), "escaping prior relative path rejected");
+        invalid = value;
+        invalid.prior_relative_path = "recordings/../channel-123/segment-a.mp4";
+        s.Check(EncodeRetired(invalid, &bytes), "existing lexical-normalized relative path remains accepted");
+        invalid = value;
+        invalid.prior_relative_path = std::string("channel-123/\x01segment-a.mp4");
+        s.Check(EncodeRetired(invalid, &bytes) && bytes.find("\\u0001") != std::string::npos &&
+                DecodeRetired(bytes, &parsed) && parsed.prior_relative_path == invalid.prior_relative_path,
+                "control path character is escaped as strict JSON");
+        invalid = value;
+        invalid.media_end_pts.reset();
+        s.Check(!EncodeRetired(invalid, &bytes), "UTC exclusion requires closed media interval");
+        invalid = value;
+        invalid.utc_exclusion_safe = false;
+        invalid.utc_min_ns.reset();
+        invalid.utc_max_ns.reset();
+        s.Check(EncodeRetired(invalid, &bytes) && DecodeRetired(bytes, &parsed) && !parsed.utc_exclusion_safe &&
+                !parsed.utc_min_ns && !parsed.utc_max_ns, "unknown UTC remains non-excluding");
+        for (const auto& bad : {literal + " ",
+             Replace(literal, "retired-v2.v1", "retired-v2.v2"),
+             Replace(literal, "\"orderSequence\":9", "\"orderSequence\":-1"),
+             Replace(literal, "\"orderSequence\":9", "\"orderSequence\":1.5"),
+             Replace(literal, "\"orderSequence\":9", "\"orderSequence\":9223372036854775808"),
+             Replace(literal, "\"timeBaseNum\":1", "\"timeBaseNum\":2147483648"),
+             Replace(literal, "\"utcExclusionSafe\":true", "\"utcExclusionSafe\":false"),
+             Replace(literal, "\"segmentId\":", "\"extra\":0,\"segmentId\":"),
+             Replace(literal, "\"deletionReason\":\"continuous-age\"", "\"deletionReason\":\"unknown\"")}) {
+            parsed.segment_id = "unchanged";
+            s.Check(!DecodeRetired(bad, &parsed) && parsed.segment_id == "unchanged",
+                    "strict receipt fields/precision/UTC/extra and output preservation");
+        }
+    }
     {
         Scenario s{"B02-S01"};
         auto value = Empty();
@@ -350,6 +459,14 @@ int main() {
         auto invalid=JobSummary();invalid.files=3;bytes="unchanged";
         s.Check(!SerializeRecordingCatalogJobSummary(invalid,&bytes,&error)&&bytes=="unchanged","crypto-off same file count rejection");
         s.Check(source.latest_mutation_id=="mutation-source","summary accepts unlocated ID; no archive/import proof");
+        auto retired=RetiredReceipt();RecordingRetiredV2Receipt parsed_retired;
+        s.Check(EncodeRetired(retired,&bytes)&&DecodeRetired(bytes,&parsed_retired)&&
+            parsed_retired.deletion_mutation_id==retired.deletion_mutation_id&&
+            parsed_retired.tombstone_sha256==retired.tombstone_sha256,
+            "crypto-off retired receipt strict codec boundary");
+        parsed_retired.segment_id="unchanged";
+        s.Check(!DecodeRetired(bytes+" ",&parsed_retired)&&parsed_retired.segment_id=="unchanged",
+            "crypto-off retired receipt noncanonical output preservation");
     }
 #endif
     return failures ? 1 : 0;

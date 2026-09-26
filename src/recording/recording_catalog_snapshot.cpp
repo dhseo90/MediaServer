@@ -4,6 +4,8 @@
 #include "domain/strict_json.h"
 #include <algorithm>
 #include <charconv>
+#include <filesystem>
+#include <limits>
 #include <map>
 #include <tuple>
 #include <unordered_set>
@@ -14,6 +16,7 @@ using Document = ingress::StrictJsonObjectDocument;
 constexpr const char* kSchema = "media-server.recording-catalog-snapshot.v1";
 constexpr const char* kSourceSchema = "media-server.recording-catalog-source-summary.v1";
 constexpr const char* kJobSchema = "media-server.recording-catalog-job-summary.v1";
+constexpr const char* kRetiredV2Schema = "media-server.recording-retired-v2.v1";
 bool Fail(std::string* error, const char* reason) {
     if (error) *error = reason;
     return false;
@@ -27,7 +30,14 @@ std::string Quote(const std::string& value) {
             case '\n': result += "\\n"; break;
             case '\r': result += "\\r"; break;
             case '\t': result += "\\t"; break;
-            default: result += c; break;
+            default:
+                if (static_cast<unsigned char>(c) < 0x20) {
+                    static constexpr char hex[] = "0123456789abcdef";
+                    result += "\\u00";
+                    result += hex[(static_cast<unsigned char>(c) >> 4) & 0x0f];
+                    result += hex[static_cast<unsigned char>(c) & 0x0f];
+                } else result += c;
+                break;
         }
     }
     return result + '"';
@@ -190,6 +200,54 @@ bool JobSummaryValid(const RecordingCatalogJobSummary& value,std::string* error)
        !UniqueIds(value.output_ids,error)||!UniqueIds(value.source_ids,error))return false;
     return value.state==DerivedJobState::Intent||value.state==DerivedJobState::Failed||value.files==value.output_ids.size();
 }
+const char* Retention(RecordingRetentionClass value) {
+    switch(value) {
+        case RecordingRetentionClass::Continuous:return "continuous";
+        case RecordingRetentionClass::Event:return "event";
+        default:return nullptr;
+    }
+}
+bool SafeRelativePath(const std::string& value) {
+    if (value.empty()) return false;
+    const std::filesystem::path path(value);
+    if (path.is_absolute()) return false;
+    const auto normalized = path.lexically_normal();
+    if (normalized.empty() || normalized == ".") return false;
+    for (const auto& part : normalized) if (part == "..") return false;
+    return true;
+}
+bool RetiredV2Valid(const RecordingRetiredV2Receipt& value,std::string* error) {
+    if(!ValidateOpaqueId(value.segment_id,error)||!ValidateOpaqueId(value.store_id,error)||
+       !ValidateRecordingReferenceId(value.source_id,error)||!ValidateRecordingReferenceId(value.channel_id,error)||
+       !ValidateOpaqueId(value.order_request_id,error)||!ValidateOpaqueId(value.media_epoch_id,error)||
+       !ValidateOpaqueId(value.tombstone_id,error)||!ValidateOpaqueId(value.deletion_mutation_id,error)||
+       !Retention(value.retention_class)||!SafeRelativePath(value.prior_relative_path)||!Hash(value.segment_sha256)||
+       !Hash(value.tombstone_sha256)||value.order_sequence<=0||value.deleted_at_ms<0||
+       value.time_base_num<=0||value.time_base_den<=0||
+       (value.media_end_pts&&*value.media_end_pts<=value.media_start_pts))return false;
+    static const char* reasons[]={"continuous-capacity","continuous-age","event-capacity","event-age","reserved-free-space","manual-corrupt-cleanup"};
+    if(std::none_of(std::begin(reasons),std::end(reasons),[&](const char* reason){return value.deletion_reason==reason;}))return false;
+    if(value.utc_exclusion_safe) {
+        if(!value.media_end_pts||!value.utc_min_ns||!value.utc_max_ns||*value.utc_min_ns>=*value.utc_max_ns)return false;
+    } else if(value.utc_min_ns||value.utc_max_ns) return false;
+    return true;
+}
+std::string OptionalInteger(const std::optional<std::int64_t>& value) {
+    return value?std::to_string(*value):"null";
+}
+bool OptionalIntegerField(const Document& document,const char* key,std::optional<std::int64_t>* output) {
+    const auto* member=document.Find(key);if(!member)return false;
+    if(member->type==ingress::StrictJsonType::Null){output->reset();return true;}
+    if(member->type!=ingress::StrictJsonType::Number)return false;
+    std::int64_t value=0;const auto& raw=member->raw;const auto parsed=std::from_chars(raw.data(),raw.data()+raw.size(),value);
+    if(parsed.ec!=std::errc{}||parsed.ptr!=raw.data()+raw.size())return false;
+    *output=value;return true;
+}
+bool Integer(const Document& document,const char* key,std::int64_t* output) {
+    const auto* member=document.Find(key);if(!member||member->type!=ingress::StrictJsonType::Number)return false;
+    const auto& raw=member->raw;const auto parsed=std::from_chars(raw.data(),raw.data()+raw.size(),*output);
+    return parsed.ec==std::errc{}&&parsed.ptr==raw.data()+raw.size();
+}
 std::string IdsJson(const std::vector<std::string>& ids) {
     std::string bytes="[";
     for(std::size_t i=0;i<ids.size();++i){if(i)bytes+=',';bytes+=Quote(ids[i]);}
@@ -259,6 +317,54 @@ bool ParseRecordingCatalogJobSummary(const std::string& bytes,RecordingCatalogJo
         if(state==JobState(candidate)){value.state=candidate;found=true;break;}
     std::string canonical;
     if(!found||!SerializeRecordingCatalogJobSummary(value,&canonical,error)||canonical!=bytes)return Fail(error,"job summary noncanonical/state invalid");
+    *output=std::move(value);if(error)error->clear();return true;
+}
+
+bool SerializeRecordingRetiredV2Receipt(const RecordingRetiredV2Receipt& value,std::string* output,std::string* error) {
+    if(!output||!RetiredV2Valid(value,error))return Fail(error,"retired V2 receipt value invalid");
+    const std::string bytes="{\"schema\":"+Quote(kRetiredV2Schema)+",\"segmentId\":"+Quote(value.segment_id)+
+        ",\"storeId\":"+Quote(value.store_id)+",\"sourceId\":"+Quote(value.source_id)+",\"channelId\":"+Quote(value.channel_id)+
+        ",\"orderRequestId\":"+Quote(value.order_request_id)+",\"orderSequence\":"+std::to_string(value.order_sequence)+
+        ",\"mediaEpochId\":"+Quote(value.media_epoch_id)+",\"tombstoneId\":"+Quote(value.tombstone_id)+
+        ",\"mediaStartPts\":"+std::to_string(value.media_start_pts)+",\"mediaEndPts\":"+OptionalInteger(value.media_end_pts)+
+        ",\"timeBaseNum\":"+std::to_string(value.time_base_num)+",\"timeBaseDen\":"+std::to_string(value.time_base_den)+
+        ",\"retentionClass\":"+Quote(Retention(value.retention_class))+",\"deletedAtMs\":"+std::to_string(value.deleted_at_ms)+
+        ",\"deletionReason\":"+Quote(value.deletion_reason)+",\"priorRelativePath\":"+Quote(value.prior_relative_path)+
+        ",\"deletionMutationId\":"+Quote(value.deletion_mutation_id)+",\"segmentSha256\":"+Quote(value.segment_sha256)+
+        ",\"tombstoneSha256\":"+Quote(value.tombstone_sha256)+",\"utcExclusionSafe\":"+(value.utc_exclusion_safe?"true":"false")+
+        ",\"utcMinNs\":"+OptionalInteger(value.utc_min_ns)+",\"utcMaxNs\":"+OptionalInteger(value.utc_max_ns)+"}";
+    *output=bytes;if(error)error->clear();return true;
+}
+
+bool ParseRecordingRetiredV2Receipt(const std::string& bytes,RecordingRetiredV2Receipt* output,std::string* error) {
+    Document document;RecordingRetiredV2Receipt value;std::string retention;
+    std::int64_t time_base_num=0,time_base_den=0;
+    if(!output||!ingress::ParseStrictJsonObjectDocument(bytes,&document,error)||document.members.size()!=23||
+       ingress::StrictJsonStringField(document,"schema")!=kRetiredV2Schema||!Text(document,"segmentId",&value.segment_id)||
+       !Text(document,"storeId",&value.store_id)||!Text(document,"sourceId",&value.source_id)||!Text(document,"channelId",&value.channel_id)||
+       !Text(document,"orderRequestId",&value.order_request_id)||!Integer(document,"orderSequence",&value.order_sequence)||
+       !Text(document,"mediaEpochId",&value.media_epoch_id)||!Text(document,"tombstoneId",&value.tombstone_id)||
+       !Integer(document,"mediaStartPts",&value.media_start_pts)||!OptionalIntegerField(document,"mediaEndPts",&value.media_end_pts)||
+       !Integer(document,"timeBaseNum",&time_base_num)||!Integer(document,"timeBaseDen",&time_base_den)||
+       !Text(document,"retentionClass",&retention)||
+       !Integer(document,"deletedAtMs",&value.deleted_at_ms)||!Text(document,"deletionReason",&value.deletion_reason)||
+       !Text(document,"priorRelativePath",&value.prior_relative_path)||!Text(document,"deletionMutationId",&value.deletion_mutation_id)||
+       !Text(document,"segmentSha256",&value.segment_sha256)||!Text(document,"tombstoneSha256",&value.tombstone_sha256)||
+       !OptionalIntegerField(document,"utcMinNs",&value.utc_min_ns)||!OptionalIntegerField(document,"utcMaxNs",&value.utc_max_ns))
+        return Fail(error,"retired V2 receipt fields invalid");
+    const auto* safe=document.Find("utcExclusionSafe");
+    if(!safe||safe->type!=ingress::StrictJsonType::Bool)return Fail(error,"retired V2 receipt UTC safety invalid");
+    value.utc_exclusion_safe=safe->bool_value;
+    if(retention=="continuous")value.retention_class=RecordingRetentionClass::Continuous;
+    else if(retention=="event")value.retention_class=RecordingRetentionClass::Event;
+    else return Fail(error,"retired V2 receipt retention invalid");
+    // timebase는 signed domain 값이므로 parsing 중 wider integer를 거쳐 narrowing을 명시 검증한다.
+    if(time_base_num<=0||time_base_den<=0||time_base_num>std::numeric_limits<std::int32_t>::max()||
+       time_base_den>std::numeric_limits<std::int32_t>::max())return Fail(error,"retired V2 receipt timebase invalid");
+    value.time_base_num=static_cast<std::int32_t>(time_base_num);
+    value.time_base_den=static_cast<std::int32_t>(time_base_den);
+    std::string canonical;
+    if(!SerializeRecordingRetiredV2Receipt(value,&canonical,error)||canonical!=bytes)return Fail(error,"retired V2 receipt noncanonical");
     *output=std::move(value);if(error)error->clear();return true;
 }
 

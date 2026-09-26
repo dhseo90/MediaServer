@@ -17,6 +17,23 @@ struct RecordingCatalogJobSummary {
     std::vector<std::string> output_ids, source_ids;
     std::string latest_mutation_id;
 };
+// 삭제 완료 V2의 hot projection 영수증이다. 원본 segment/tombstone 전문은 identity가 결박한
+// cold mutation에서 호출 단위로 재획득하며, 이 값만으로 재생 또는 상세 의미를 복원하지 않는다.
+struct RecordingRetiredV2Receipt {
+    std::string segment_id, store_id, source_id, channel_id, order_request_id, media_epoch_id, tombstone_id;
+    std::int64_t order_sequence{0};
+    std::int64_t media_start_pts{0};
+    std::optional<std::int64_t> media_end_pts;
+    std::int32_t time_base_num{1}, time_base_den{1000000000};
+    RecordingRetentionClass retention_class{RecordingRetentionClass::Unknown};
+    std::int64_t deleted_at_ms{0};
+    std::string deletion_reason, prior_relative_path, deletion_mutation_id;
+    std::string segment_sha256, tombstone_sha256;
+    // true일 때만 양 끝이 있는 보수적 UTC prefilter다. false는 unknown/open/uncertain으로
+    // 후보 제외 근거가 될 수 없다.
+    bool utc_exclusion_safe{false};
+    std::optional<std::int64_t> utc_min_ns, utc_max_ns;
+};
 // 고정 필드 순서의 canonical JSON object(LF 없음). 배열의 의미 있는 순서는 보존한다.
 // 기존 domain 값 상한만 검사하며 원문 locator/참조/상태 전이 또는 제품 import를 검증하지 않는다.
 // crypto-off도 동일하게 동작하고 실패 시 caller output은 불변이다.
@@ -24,6 +41,8 @@ bool SerializeRecordingCatalogSourceSummary(const RecordingCatalogSourceSummary&
 bool ParseRecordingCatalogSourceSummary(const std::string&, RecordingCatalogSourceSummary*, std::string* error);
 bool SerializeRecordingCatalogJobSummary(const RecordingCatalogJobSummary&, std::string*, std::string* error);
 bool ParseRecordingCatalogJobSummary(const std::string&, RecordingCatalogJobSummary*, std::string* error);
+bool SerializeRecordingRetiredV2Receipt(const RecordingRetiredV2Receipt&, std::string*, std::string* error);
+bool ParseRecordingRetiredV2Receipt(const std::string&, RecordingRetiredV2Receipt*, std::string* error);
 struct RecordingCatalogSnapshotRow {
     std::string kind, key;
     // strict JSON 값의 raw bytes다. 내부 공백/escape/필드 순서를 정규화하지 않는다.

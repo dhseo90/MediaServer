@@ -160,3 +160,70 @@ PrepareGenerationSqliteLocked/ProjectGenerationDeltaLocked이며 legacy PASS를 
 
 위 검사의 파일/서버/포트 임시 산출물은 없음. token start/end/consumed는 집계 도구 부재로 미집계,
 명령은 모두 1초 미만이며 source는 실제 명령 반환값이다. 제품/codec/누적 검증은 아직 미실행이다.
+
+### B11 상세 분포 및 메인 검토
+
+보존 tar의 snapshot 한 항목을 메모리로 읽고 manifest의 크기·SHA-256을 대조한 후
+1,102개 원본의 분포를 집계했다(Node/tar read-only, exit0, 1초 미만, 임시파일 없음).
+mapping 수는 최소1·중앙42·95백분위51·최대56, canonical segment JSON 크기는
+1,089/12,276/14,707/16,112B였다. `unknown` mapping이 하나 이상인 원본은1,098개다.
+따라서 unknown을 UTC 범위로 배제하지 않으며, 작은 고정 template만으로 누적 비용을
+마감하지 않는다. 이 집계는 제품/관측기 성능 PASS가 아니다.
+
+첫 codec 초안은 독립 RED 실행 없이 GREEN을 실행했다. TDD 절차 누락을 보존하며
+실제 RED→GREEN으로 소급 표기하지 않는다. 메인 diff 검토에서 order request/tombstone ID
+누락과 음수 PTS·signed 순서 상한 및 기존 상대경로 허용 범위의 차이를 발견해
+제품 연결 전에 보완하도록 회수했다. 새 반례의 실행·수정 결과를 다음에 기록한다.
+
+### B11-C01 codec 완료 — runtime 미연결
+
+메인이 실제 diff와 아래 원출력을 대조했다. `RecordingRetiredV2Receipt` 및 strict
+canonical serializer/parser만 추가했고 snapshot kind/import/runtime은 아직 연결하지 않았다.
+고정23필드이며 order request/tombstone ID·signed64 순서·음수 PTS·기존 lexical 상대 경로를
+보존한다. 제어문자는 JSON escape한다. SHA 필드는 형식만 검사하며 이 codec PASS는
+실제 cold 파일 무결성·삭제/재생 안전성 PASS가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-C01 음수 PTS RED | `./scripts/internal/verify_recording_catalog_snapshot.sh`, exit1 | fail | 기존 유효 음수 PTS의 exact roundtrip 및 unknown UTC assertion 실패. [원출력](b11-c01-negative-pts-red.log). cleanup removed=true |
+| B11-C01 canonical | 같은 명령, exit0 | pass |23필드 literal 왕복, 음수PTS 포함 |
+| B11-C01 segment hash | 동일 focused | pass | lowercase hex 외 거부, output 불변 |
+| B11-C01 tombstone hash | 동일 focused | pass | lowercase hex 외 거부 |
+| B11-C01 순서0 | 동일 focused | pass | 양수 order만 허용 |
+| B11-C01 order ID empty | 동일 focused | pass | 필수 ID 거부 |
+| B11-C01 order ID numeric | 동일 focused | pass | 숫자-only opaque ID 거부 |
+| B11-C01 order ID path | 동일 focused | pass | 경로 ID 거부 |
+| B11-C01 tombstone ID empty | 동일 focused | pass | 필수 ID 거부 |
+| B11-C01 tombstone ID numeric | 동일 focused | pass | 숫자-only opaque ID 거부 |
+| B11-C01 tombstone ID path | 동일 focused | pass | 경로 ID 거부 |
+| B11-C01 상대경로 escape | 동일 focused | pass | 상위 탈출 거부 |
+| B11-C01 기존 lexical 경로 | 동일 focused | pass | 안전하게 정규화되는 기존 값 허용 |
+| B11-C01 제어문자 | 동일 focused | pass | JSON escape 후 원값 왕복 |
+| B11-C01 열린 종료점 | 동일 focused | pass | UTC exclusion safe 주장 거부 |
+| B11-C01 unknown | 동일 focused | pass | UTC 범위로 제외하지 않는 표현 유지 |
+| B11-C01 후행 공백 | 동일 focused | pass | canonical 불일치 및 output 불변 |
+| B11-C01 unknown schema | 동일 focused | pass | 다른 schema 거부 |
+| B11-C01 음수 순서 | 동일 focused | pass | -1 거부 |
+| B11-C01 소수 순서 | 동일 focused | pass | 1.5 거부 |
+| B11-C01 순서 overflow | 동일 focused | pass | INT64_MAX 초과 거부 |
+| B11-C01 timebase overflow | 동일 focused | pass | INT32_MAX 초과 거부 |
+| B11-C01 모순 UTC | 동일 focused | pass | unsafe와 UTC 값 동시 표기 거부 |
+| B11-C01 extra field | 동일 focused | pass | 미등록 필드 거부 |
+| B11-C01 삭제 사유 | 동일 focused | pass | unknown 사유 거부 |
+| B02-S01 | 기존 snapshot 값/왕복 시나리오 | pass | 같은 실행 |
+| B02-S02 | 기존 snapshot 구조 시나리오 | pass | 같은 실행 |
+| B02-S03 | 기존 manifest 결박 시나리오 | pass | 같은 실행 |
+| B02-S04 | 기존 accepted-state 시나리오 | pass | 같은 실행 |
+| B02-T01 | 기존 source summary 시나리오 | pass | 같은 실행 |
+| B02-T02 | 기존 job summary 시나리오 | pass | 같은 실행 |
+| B02-S05 | crypto-off snapshot 시나리오 | pass | 같은 실행 |
+| B02-T03 | crypto-off summary·새 receipt 왕복/불변 반례 | pass | 같은 실행 |
+| B11-C01 정리·공백 | owned build root 제거 및 `git diff --check`, exit0 | pass | 원출력 cleanup removed=true |
+
+GREEN 원출력은 [보존 로그](b11-c01-codec-green.log)에 있다(B11 24 assertion, 전체9 scenario).
+source HEAD `2dc9a329`+변경, header SHA `5cac76b4486d50d6579da9b4c6fffd5a1b000053ef96ec822d1071afc4938b88`,
+implementation `dcc507a4c00241de6a7fd19bc763e785b55a19c07d113b8dd8a682f7753a66b0`,
+test `92c0d0c7fc9ce3bd7e4f2358d709cd0a62176aac21a873d9cd873b7891e0c25c`.
+token start/end/consumed 미집계(도구 부재). 실행별 elapsed는 runner가 출력하지 않아 미확인이다.
+소유 build 임시파일은 runner가 제거했고 원출력 임시 사본220B/1,609B는 저장소 사본과
+byte 대조 후 제거한다. 이전 보존된 B10 자료에는 쓰지 않았다.
