@@ -1,7 +1,7 @@
 // 파일 용도: 현행 managed 원장의 읽기 전용 compact 관측. 제품 catalog 수용·내구성 검증과 구분한다.
 import fs from 'node:fs';
 import path from 'node:path';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const need=(ok,code)=>{if(!ok)throw Error(code);};
 export const CURRENT_ROOT_CAP_BYTES=448*1024*1024;
@@ -133,16 +133,77 @@ export function normalizeCurrentRows(binary,rows){
   }
   flush();need(output.length===rows.length,'observer-native-count');return output;
 }
+export class GenerationObservationSession {
+  constructor(root,binary,{spawnChild=spawn,timeoutMs=3000,outputCap=33554432,stderrCap=65536}={}){
+    need(Number.isSafeInteger(timeoutMs)&&timeoutMs>0&&timeoutMs<=3000&&Number.isSafeInteger(outputCap)&&outputCap>0&&outputCap<=33554432&&Number.isSafeInteger(stderrCap)&&stderrCap>0&&stderrCap<=65536,'observer-native-session-limits');
+    this.root=root;this.binary=binary;this.spawnChild=spawnChild;this.timeoutMs=timeoutMs;this.outputCap=outputCap;this.stderrCap=stderrCap;
+    this.child=null;this.pending=null;this.stdout='';this.decoder=new TextDecoder('utf-8',{fatal:true});this.stdoutBytes=0;this.stderrBytes=0;this.error=null;this.errorDelivered=false;this.closed=false;this.exitPromise=null;this.exitResult=null;
+  }
+  fail(code,{terminate=true}={}){
+    if(!this.error)this.error=Error(code);
+    const pending=this.pending;this.pending=null;if(pending){clearTimeout(pending.timer);this.errorDelivered=true;pending.reject(this.error);}
+    if(terminate&&this.child)try{this.child.kill('SIGTERM');}catch{}
+    return this.error;
+  }
+  start(){
+    if(this.error)throw this.error;if(this.closed)throw Error('observer-native-session-closed');if(this.child)return;
+    let child;try{child=this.spawnChild(this.binary,['--observe-generation-session',this.root],{stdio:['pipe','pipe','pipe'],env:{PATH:process.env.PATH}});}catch{throw this.fail('observer-native-spawn-error');}
+    if(!child?.stdin||!child.stdout||!child.stderr)throw this.fail('observer-native-spawn-error');
+    this.child=child;this.exitPromise=new Promise(resolve=>child.once('close',(code,signal)=>{this.exitResult={code,signal};resolve(this.exitResult);}));
+    child.once('error',()=>this.fail('observer-native-spawn-error'));
+    child.stdout.on('data',chunk=>this.receiveStdout(chunk));
+    child.stderr.on('data',chunk=>{this.stderrBytes+=Buffer.byteLength(chunk);if(this.stderrBytes>this.stderrCap)this.fail('observer-native-stderr-cap');});
+    child.stdin.on('error',()=>this.fail('observer-native-spawn-error'));
+    child.once('close',()=>{this.child=null;try{const tail=this.decoder.decode();if(tail)this.fail('observer-native-output-invalid',{terminate:false});}catch{this.fail('observer-native-output-invalid',{terminate:false});}if(!this.closed)this.fail('observer-native-rejected',{terminate:false});});
+  }
+  receiveStdout(chunk){
+    if(this.error)return;this.stdoutBytes+=Buffer.byteLength(chunk);if(this.stdoutBytes>this.outputCap){this.fail('observer-native-output-cap');return;}
+    try{this.stdout+=this.decoder.decode(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk),{stream:true});}catch{this.fail('observer-native-output-invalid');return;}const end=this.stdout.indexOf('\n');if(end<0)return;
+    if(end!==this.stdout.length-1||!this.pending){this.fail('observer-native-output-invalid');return;}
+    const value=this.stdout.slice(0,end);this.stdout='';this.stdoutBytes=0;const pending=this.pending;this.pending=null;clearTimeout(pending.timer);pending.resolve(value);
+  }
+  request(seen){
+    if(!Number.isSafeInteger(seen)||seen<0||seen>100000)throw Error('observer-native-request-invalid');
+    this.start();if(this.pending)throw Error('observer-native-request-in-flight');
+    return new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>this.fail('observer-native-timeout'),this.timeoutMs);this.pending={resolve,reject,timer};
+      try{this.child.stdin.write(String(seen)+'\n',error=>{if(error)this.fail('observer-native-spawn-error');});}catch{this.fail('observer-native-spawn-error');}
+    });
+  }
+  async awaitExit(limitMs){
+    const timeout=Symbol('timeout');let timer;
+    try{const result=await Promise.race([this.exitPromise,new Promise(resolve=>{timer=setTimeout(resolve,limitMs,timeout);})]);
+      if(result===timeout)throw Error('observer-native-cleanup-blocked');return result;
+    }finally{clearTimeout(timer);}
+  }
+  finishExit(result){
+    if(!result||result.code!==0||result.signal){if(this.error&&!this.errorDelivered)throw this.error;if(!this.errorDelivered)throw Error('observer-native-rejected');return result;}
+    if(this.error&&!this.errorDelivered)throw this.error;return result;
+  }
+  async closeAsync(){
+    this.closed=true;const child=this.child;if(!child){if(!this.exitPromise&&!this.error)return;return this.finishExit(this.exitPromise?await this.exitPromise:undefined);}
+    const pending=this.pending;this.pending=null;if(pending){clearTimeout(pending.timer);pending.reject(Error('observer-native-session-closed'));}try{child.stdin.end();}catch{}
+    try{return this.finishExit(await this.awaitExit(250));}catch(error){if(error.message!=='observer-native-cleanup-blocked')throw error;}
+    try{child.kill('SIGTERM');}catch{}
+    try{return this.finishExit(await this.awaitExit(500));}catch(error){if(error.message!=='observer-native-cleanup-blocked')throw error;}
+    try{child.kill('SIGKILL');}catch{}
+    return this.finishExit(await this.awaitExit(500));
+  }
+}
 export class CurrentRecordingObserver {
-  constructor(root,binary,budget=new CurrentObservationBudget()){this.root=root;this.binary=binary;this.budget=budget;this.reader=null;this.prefix=[];this.ids=new Set();this.bytes=0;this.cursor=0;this.replaying=false;this.rotations=0;this.error=null;this.typeCounts=Object.fromEntries(CURRENT_JOURNAL_MUTATION_TYPES.map(type=>[type,0]));}
+  constructor(root,binary,budget=new CurrentObservationBudget(),sessionOptions={}){this.root=root;this.binary=binary;this.budget=budget;this.sessionOptions=sessionOptions;this.reader=null;this.generationSession=null;this.closed=false;this.prefix=[];this.ids=new Set();this.bytes=0;this.cursor=0;this.replaying=false;this.rotations=0;this.error=null;this.typeCounts=Object.fromEntries(CURRENT_JOURNAL_MUTATION_TYPES.map(type=>[type,0]));}
   open(){return new RecordingJournalReader(this.root,'recording-v2-mutations.jsonl',{nativeLines:true,lineBytes:16777216,pollBytes:33554432});}
   pollGeneration(){
     this.reader?.close();this.reader=null;
+    if(this.generationSession)throw Error('observer-async-session-active');
     const result=spawnSync(this.binary,['--observe-generation',this.root,String(this.prefix.length)],{encoding:'utf8',timeout:3000,maxBuffer:33554432,env:{PATH:process.env.PATH}});
     if(result.error?.code==='ETIMEDOUT')throw Error('observer-native-timeout');
     if(result.error?.code==='ENOBUFS')throw Error('observer-native-output-cap');
     need(!result.error&&!result.signal&&result.status===0,'observer-native-rejected');
     let value;try{value=JSON.parse(result.stdout);}catch{throw Error('observer-native-output-invalid');}
+    return this.acceptGeneration(value);
+  }
+  acceptGeneration(value){
     need(typeof value?.busy==='boolean','observer-native-output-invalid');
     if(value.busy)return {rows:[],busy:true,backlog:false,partialBytes:0,mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
     need(/^[a-f0-9]{64}$/.test(value.storeHash)&&/^[1-9]\d{0,19}$/.test(value.generation)&&
@@ -166,8 +227,15 @@ export class CurrentRecordingObserver {
     return {rows:value.rows,busy:false,backlog:value.backlog,partialBytes:value.partialBytes,consumedOffset:value.consumedOffset,
       mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
   }
+  async pollGenerationAsync(){
+    this.reader?.close();this.reader=null;
+    if(!this.generationSession)this.generationSession=new GenerationObservationSession(this.root,this.binary,this.sessionOptions);
+    let raw;try{raw=await this.generationSession.request(this.prefix.length);}catch(error){throw error;}
+    let value;try{value=JSON.parse(raw);}catch{throw Error('observer-native-output-invalid');}
+    return this.acceptGeneration(value);
+  }
   poll(){
-    if(this.error)throw this.error;
+    if(this.closed)throw Error('observer-closed');if(this.error)throw this.error;
     try{
       if(this.generationMode||fs.existsSync(path.join(this.root,'recording-generation.json'))){this.generationMode=true;return this.pollGeneration();}
       if(!this.reader){this.reader=this.open();this.cursor=0;}
@@ -199,7 +267,15 @@ export class CurrentRecordingObserver {
         mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
     }catch(error){this.error=error;throw error;}
   }
-  close(){this.reader?.close();}
+  async pollAsync(){
+    if(this.closed)throw Error('observer-closed');if(this.error)throw this.error;
+    try{
+      if(this.generationMode||fs.existsSync(path.join(this.root,'recording-generation.json'))){this.generationMode=true;return await this.pollGenerationAsync();}
+      return this.poll();
+    }catch(error){this.error=error;throw error;}
+  }
+  close(){if(this.generationSession)throw Error('observer-async-close-requires-await');this.reader?.close();this.reader=null;this.closed=true;}
+  async closeAsync(){this.reader?.close();this.reader=null;const session=this.generationSession;if(session){const result=await session.closeAsync();this.generationSession=null;this.closed=true;return result;}this.closed=true;}
 }
 const integer=x=>typeof x==='string'&&/^(0|[1-9]\d{0,19})$/.test(x);
 export class CurrentLongrunProgress {

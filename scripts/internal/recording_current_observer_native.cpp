@@ -59,11 +59,28 @@ std::string Normalize(const std::string& raw){
     }
     out<<'}';return out.str();
 }
+std::size_t Seen(const std::string& value){
+    Require(!value.empty()&&value.size()<7&&value.find_first_not_of("0123456789")==std::string::npos);
+    const auto seen=std::stoull(value);Require(seen<=100000&&std::to_string(seen)==value);return seen;
+}
 }
 int main(int argc,char** argv){try{
+    if(argc==3&&std::string(argv[1])=="--observe-generation-session"){
+      generation_observation::SessionCache cache;char request[8]{};
+      for(;;){std::cin.getline(request,sizeof request);if(!std::cin){Require(std::cin.eof()&&std::cin.gcount()==0);break;}Require(!std::cin.eof()&&std::cin.gcount()>0);
+        const auto seen=Seen(std::string(request,static_cast<std::size_t>(std::cin.gcount()-1)));std::cout<<generation_observation::Observe(argv[2],seen,Normalize,{},&cache)<<'\n';std::cout.flush();Require(bool(std::cout));}
+      return 0;
+    }
+    if(argc==3&&std::string(argv[1])=="--retire-metadata-fixture"){
+      const std::filesystem::path root(argv[2]);Require(root.is_absolute()&&root.filename()=="recordings"&&std::filesystem::canonical(root)==root&&
+        root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&std::filesystem::exists(root/".recording-store-format"),"fixture-root");
+      std::ifstream manifest_bytes(root/"recording-generation.json",std::ios::binary);std::string manifest((std::istreambuf_iterator<char>(manifest_bytes)),{});recording::RecordingGenerationManifest parsed;std::string error;
+      Require(bool(manifest_bytes)&&recording::ParseRecordingGenerationManifest(manifest,&parsed,&error)&&parsed.generation==42,"fixture-generation");
+      recording::RecordingRuntimeStorage storage(root);Require(storage.Open(&error),"fixture-open");Require(storage.catalog().Checkpoint(&error),"fixture-checkpoint");
+      std::cout<<"{\"fixture\":true}\n";return 0;
+    }
     if(argc==4&&std::string(argv[1])=="--observe-generation"){
-      const std::string value(argv[3]);Require(!value.empty()&&value.size()<7&&value.find_first_not_of("0123456789")==std::string::npos);
-      const auto seen=std::stoull(value);Require(seen<=100000&&std::to_string(seen)==value);
+      const auto seen=Seen(argv[3]);
       std::cout<<generation_observation::Observe(argv[2],seen,Normalize)<<'\n';return 0;
     }
     if(argc==4&&std::string(argv[1])=="--generation-fixture"){

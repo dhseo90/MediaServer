@@ -68,12 +68,12 @@ function source(id){return {sourceId:id,displayName:`S11 recording ${id}`,kind:'
   recording:{enabled:true,revision:1,continuousMaxBytes:134217728,eventMaxBytes:134217728,continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000}};}
 async function settings(app,enabled){const registry=await request(app,'GET','/ops/api/sources');for(const id of ['9101','9201']){const body=source(id);body.recording=nextRecordingSettings(registry,id,enabled);
   const r=await request(app,'PUT','/ops/api/sources/'+id,body);check(r.source?.recording?.enabled===enabled&&r.source.recording.revision===body.recording.revision,'LP26-O05 setting '+id+' '+enabled);}}
-function drain(now){let result;for(let i=0;i<128;i++){result=observer.poll();for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
+async function drain(now){let result;for(let i=0;i<128;i++){result=await observer.pollAsync();for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
 async function sample(app){const begin=performance.now();let metricsMs=null,drainMs=null,storageMs=null;
   try{const m=await collectProcess(collector,app.child.pid);metricsMs=performance.now()-begin;if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');const phaseAt=performance.now();
   if(samples.length>=10000)throw Error('sample-cap');const previous=samples.at(-1),point={...m,phaseAt,mutationCount:observer.prefix.length};samples.push(point);
   assertSampleStep(previous,point,observationStart,app.child.pid);
-  const drainStart=performance.now();let r;try{r=drain(phaseAt);point.mutationCount=r.mutationCount;}finally{drainMs=performance.now()-drainStart;}
+  const drainStart=performance.now();let r;try{r=await drain(phaseAt);point.mutationCount=r.mutationCount;}finally{drainMs=performance.now()-drainStart;}
   const storageStart=performance.now();try{rootDiagnostic('sample');}finally{storageMs=performance.now()-storageStart;}
   console.log('[current-observation] '+JSON.stringify({pid:m.pid,startIdentity:m.startIdentity,sampledAt:m.sampledAt,phaseAt,rssBytes:m.rssBytes,threadCount:m.threadCount,fdCount:m.fdCount,
     mutationCount:r.mutationCount,typeCounts:r.typeCounts,identityBytes:r.identityBytes,combinedLogicalIds:observer.budget.ids,combinedLogicalBytes:observer.budget.bytes,
@@ -173,7 +173,7 @@ try{
   if(diagnose)check(progress.records.size>=1020&&Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O15 status under 1020 actual originals');
   else check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
   summary=summarizeCurrentSamples(samples);observationStart=null;progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
-  const tail=drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
+  const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
   if(!diagnose){const before=snapshot();
   const second=await launch(stun);const s=await request(second,'GET','/ops/api/recordings/status');
   verifyStatusUsage(s);
@@ -181,8 +181,8 @@ try{
   check(disabledChannelsExact(s,expectedIds),'LP26-O05 disabled restart');
   await stop(second);const after=snapshot();check(JSON.stringify(before)===JSON.stringify(after),'LP26-O05 restart exact catalog media state');
   const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
-  await until(async()=>{drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
-  check(closedJournalComplete(drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
+  await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
+  check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
 }catch(error){failed++;try{rootDiagnostic('failure',measureCurrentRoot(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
 finally{
   observationStart=null;summary=summarizeAvailableSamples(samples);
@@ -195,7 +195,7 @@ finally{
     const slow=slowTraceSummary(text,app.result?.normalShutdownPass===true);console.log('[server-slow-diagnostic] '+JSON.stringify(slow));
     if(slow.status!=='captured'){failed++;console.log('[fail] slow-diagnostic-unavailable');}
   }catch{failed++;console.log('[fail] server-diagnostic-capture');}}
-  observer?.close();if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
+  try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
   console.log(JSON.stringify({mode:short?'current-app-observe-short':diagnoseFast?'current-status-1020-diagnostic':diagnoseOriginal?'current-status-1020-diagnostic-original':'current-recording-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
     longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,statusCumulativePass:diagnose&&failed===0&&progress?.records.size>=1020,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,

@@ -1,0 +1,38 @@
+[owned-root] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-vfKqfP","dev":16777234,"ino":160673098,"uid":501}
+[pass] B06-V03 actual B observation uses current C++ format not retained empty legacy journal
+[pass] B06-V03 same observation does not modify durable files or repeat rows
+[pass] B06-V03 append exposes one new literal reservation and preserves old prefix
+[pass] B06-V03 checkpoint changes generation without lost/repeated first acceptances
+[pass] B06-V03 incomplete last LF is observed, not consumed or called complete
+[pass] B06-V03 completed tail consumed once and identical physical retry deduplicated
+[pass] B06-V03 pending transaction is busy, never Catalog acceptance
+[pass] B06-V03 completed malformed row rejected without raw body output
+[pass] B06-V03 active symlink refused
+[pass] B06-V03 actual JS dispatch owns B prefix and refuses pending as closed
+[pass] B06-V03 canonical changed prefix is rejected and failure latched
+[pass] B06-V03 confirmed active prefix ending inside a row is rejected
+[pass] B06-V03 first pending B observation never falls back to retained legacy journal
+[pass] B06-V03 bounded batch consumes 128 then remaining physical rows exactly once
+[pass] B06-V03 actual B writer, deletion and sealed cold evidence match independent progress
+[pass] B11-O01 actual native session preserves prefix, uses bounded parse cache, and observes checkpoint
+[pass] B11-O01 actual native session rejects active inode replacement and stays failed closed
+[pass] B11-O01 cached native session rejects snapshot-inode
+[pass] B11-O01 cached native session rejects identity-content
+[pass] B11-O01 cached native session rejects root-inode
+[pass] B11-O01 async batch pending and partial tail preserve completion boundaries
+[pass] B11-O01 native rejects noncanonical oversized partial and NUL requests
+[pass] B11-O01 session request serializes one canonical line and waits for one JSON line
+[pass] B11-O01 UTF-8 response split across chunks remains one exact line
+[pass] B11-O01 transport constructor rejects limits above fixed policy caps
+[pass] B11-O01 concurrent persistent request is rejected before a second write
+[pass] B11-O01 extra session output line is rejected without publishing a body
+[pass] B11-O01 persistent request timeout is latched and then closes
+[pass] B11-O01 session stdout cap is enforced per request
+[pass] B11-O01 session stderr cap is bounded without raw stderr publication
+[pass] B11-O01 cleanup timeout is explicit and repeated close can settle after child exit
+[pass] B11-O01 pollAsync shares generation acceptance with the synchronous parser
+[pass] B11-O01 EPIPE or late child exit latches without synchronous fallback
+{"scope":"generation-observer-short","passed":33,"failed":0,"elapsedMs":10794,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-vfKqfP","bytes":12446860,"absent":true}
+
+[command-result] exit=0

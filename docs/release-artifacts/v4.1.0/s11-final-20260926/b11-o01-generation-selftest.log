@@ -1,0 +1,18 @@
+[owned-root] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-XFUQUQ","dev":16777234,"ino":160668371,"uid":501}
+[pass] B06-V03 actual B observation uses current C++ format not retained empty legacy journal
+[pass] B06-V03 same observation does not modify durable files or repeat rows
+[pass] B06-V03 append exposes one new literal reservation and preserves old prefix
+[pass] B06-V03 checkpoint changes generation without lost/repeated first acceptances
+[pass] B06-V03 incomplete last LF is observed, not consumed or called complete
+[pass] B06-V03 completed tail consumed once and identical physical retry deduplicated
+[pass] B06-V03 pending transaction is busy, never Catalog acceptance
+[pass] B06-V03 completed malformed row rejected without raw body output
+[pass] B06-V03 active symlink refused
+[pass] B06-V03 actual JS dispatch owns B prefix and refuses pending as closed
+[pass] B06-V03 canonical changed prefix is rejected and failure latched
+[pass] B06-V03 confirmed active prefix ending inside a row is rejected
+[pass] B06-V03 first pending B observation never falls back to retained legacy journal
+[pass] B06-V03 bounded batch consumes 128 then remaining physical rows exactly once
+[pass] B06-V03 actual B writer, deletion and sealed cold evidence match independent progress
+{"scope":"generation-observer-short","passed":15,"failed":0,"elapsedMs":6209,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-XFUQUQ","bytes":12091922,"absent":true}

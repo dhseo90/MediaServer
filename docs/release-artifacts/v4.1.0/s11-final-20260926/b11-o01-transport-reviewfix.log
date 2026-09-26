@@ -1,0 +1,12 @@
+[pass] B11-O01 session request serializes one canonical line and waits for one JSON line
+[pass] B11-O01 UTF-8 response split across chunks remains one exact line
+[pass] B11-O01 transport constructor rejects limits above fixed policy caps
+[pass] B11-O01 concurrent persistent request is rejected before a second write
+[pass] B11-O01 extra session output line is rejected without publishing a body
+[pass] B11-O01 persistent request timeout is latched and then closes
+[pass] B11-O01 session stdout cap is enforced per request
+[pass] B11-O01 session stderr cap is bounded without raw stderr publication
+[pass] B11-O01 pollAsync shares generation acceptance with the synchronous parser
+[fail] B11-O01 EPIPE or late child exit latches without synchronous fallback
+observer-native-rejected
+{"scope":"generation-observer-short","passed":9,"failed":1,"elapsedMs":287,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}

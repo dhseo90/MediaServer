@@ -10,6 +10,35 @@
 
 ## B11-O01 해석 재사용 준비 단위
 
+### 세션 연결·안전 회귀 완료
+
+관측 전용 native 세션을 실행 수명에 묶고 요청별3초/출력32MiB·단일 요청·실패 고정·
+UTF-8 엄격 수신·종료 대기를 추가했다. longrun drain/정리가 이를 await한다. snapshot/identity
+재해석은 bounded 캐시를 사용하지만 매번 원문/SHA·root/inode·chain 의미·전체 prefix를
+대조한다. 이력 전체 읽기와 최소 identity 증가까지 제거한 구현은 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-O01 실제 native/session | `bash scripts/internal/verify_recording_current_observer.sh --generation-self-test`, exit0,33/33,10,794ms | pass | [전수33행](b11-o01-native-green.log), 실제 writer·삭제/회전·상태/prefix·해석 재사용·root/inode/내용 변조·부분행·출력/종료 반례 |
+| B11-O01 기존 관측기 | 동일 wrapper `--self-test`, exit0,67/67,30,934ms | pass | [전수67행](b11-o01-legacy-green.log). 의도된 기존 단일 대용량 normalize 진단의3초 timeout은 이력이며 bounded 정상 경로67 PASS와 구별 |
+| B11-O01 진행 판정 | `node scripts/internal/recording_longrun_progress.test.mjs`, exit0,45/45,53ms | pass | [전수45행](b11-observer-progress.log), 실제120분 아님 |
+| B11-O01 진단·정리 계약 | `node scripts/internal/recording_current_longrun_diagnostics.test.mjs`, exit0,10/10,5.93ms | pass | [전수10행](b11-observer-diagnostics.log) |
+| B11-O01 reader 영향 검사 | `node scripts/internal/recording_journal_reader.test.mjs`, exit0,40/40,94ms | pass | 도구 출력에서40개 확인. 이 검사의 원출력 파일 미보존으로 최종 증거 승계에는 사용하지 않음; reader 로직은 변경하지 않음 |
+| B11-O01 초기 인수 실패 | async test의 `assert.rejects(session.request(...))`에 즉시 throw 표현식 전달, exit1 | fail | native 파일 거부를 검사 자체 실패로 처리했다. [인수 원출력](b11-o01-generation-selftest-handoff.log); async 함수로 감싸 기대 오류 수신 후33 GREEN |
+| B11-O01 메인 반례 준비 오류 | 새 malformed 입력 검사에서 다른 block의 root 변수 사용, exit1,21 PASS/1 FAIL | fail | [원출력](b11-o01-main-scope-failure.log); 소유 generation 경로로 고친 뒤 동일33 GREEN. 제품 오류·예상 RED 아님 |
+
+이전 담당자의 중간 실행5개와 transport6개 로그도 같은 디렉터리에 `b11-o01-generation-selftest*`,
+`b11-o01-transport*`로 보존한다. 동일 검사 결함의 반복 실행은 필요한 제품 재검증으로
+정당화하지 않는다. 메인이 회수해 즉시 throw 원인을 특정하고 수정했다. 새 세션 구현도 독립
+RED보다 구현을 먼저 작성한 절차 누락이 있으며 실제 GREEN을 RED 이력으로 바꾸지 않는다.
+
+최종 [소스 hash](b11-o01-source-sha256.txt)와 [실패 root 정리 전수](b11-o01-cleanup.json)를
+보존했다. ps가 sandbox에서 거부되어 읽기 권한 확인 후 관련 PID0을 확인했다. 실패 소유
+root5개60,919,156B를 dev/inode/uid 대조 후 삭제하고 부재를 확인했다. 각 root의277개
+plugin 링크만 제거했으며 설치 원본은 바꾸지 않았다. 재현 자료는 코드·실패/최종 로그에 남아
+다시 생성 가능하다. 성공 wrapper root12,446,860B·12,030,455B는 runner가 삭제했다.
+서버·포트 실행 없음. token 집계 없음. 실제 B10 규모 비용·HTTP·120분은 아직 미완료다.
+
 선택적 `RecordingIdentityShardParseCache`를 추가했다. 엄격 parser가 만든 불변 값만
 content hash에 결박해 보관하고, 새 입력·0/작은 예산·crypto-off는 기존 parser로 처리한다.
 chain의 descriptor hash·store/generation·순서·ID 충돌·호출자 admission은 매번 검사한다.
