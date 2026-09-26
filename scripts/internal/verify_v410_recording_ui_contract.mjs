@@ -500,6 +500,37 @@ export function writeUiLoginHandoff(root, accounts) {
   return file;
 }
 
+// UI driver는 handoff 파일 없이 이 검증 프로세스의 메모리에서 인증 정보와 브라우저 상태를 소비한다.
+// timeout은 즉시 취소 신호를 보내되 driver가 자체 browser cleanup을 끝낼 때까지 기다린다.
+export async function runRecordingUiDriverBoundary(driver, context, timeoutMs, healthy = () => true) {
+  assert(typeof driver === 'function', 'UI driver callback이 필요함');
+  assert(Number.isSafeInteger(timeoutMs) && timeoutMs > 0, 'UI driver timeout이 유효하지 않음');
+  const controller = new AbortController();
+  let timedOut = false;
+  let observationFailed = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort(new Error('UI driver timeout'));
+  }, timeoutMs);
+  const monitor = setInterval(() => {
+    try { if (healthy()) return; } catch {}
+    observationFailed = true;
+    controller.abort(new Error('UI observation unavailable'));
+  }, 250);
+  try {
+    await driver(Object.freeze({ ...context, signal: controller.signal }));
+    if (timedOut) throw new Error('UI driver timeout');
+    if (observationFailed || !healthy()) throw new Error('UI observation unavailable');
+  } catch (error) {
+    if (timedOut) throw new Error('UI driver timeout');
+    if (observationFailed) throw new Error('UI observation unavailable');
+    throw new Error('UI driver failed');
+  } finally {
+    clearTimeout(timer);
+    clearInterval(monitor);
+  }
+}
+
 export function uiLiveSource(id, file, blocked = false) {
   assert(['3','4'].includes(id) && file === `s06-channel-${id}.mp4`, 'invalid UI live source');
   return {sourceId:id,displayName:`S09 UI ${id}`,kind:'file',file,enabled:true,
@@ -662,17 +693,24 @@ async function verifyRecordingHttpLifecycle(baseUrl, seed, root, child) {
   console.log(`[S06 HTTP lifecycle] checks=${checks} fail=0 codecPlayback=NOT_RUN`);
 }
 
-export async function runVerifier(requestedMode = process.argv[2] || "--full") {
+export async function runVerifier(requestedMode = process.argv[2] || "--full", options = {}) {
   const startedAt = Date.now();
   const mode = requestedMode;
   const allowedModes = new Set(["--red-status", "--red-http-baseline", "--full", "--http-api", "--http-auth", "--ui-direct", "--ui-auth-direct", "--http-lifecycle"]);
   if (!allowedModes.has(mode)) throw new Error(`지원하지 않는 mode: ${mode}`);
-  const uiAuth = mode === '--ui-auth-direct' ? uiAuthPreparationOptions(process.argv.slice(3)) : null;
-  const uiDirect = mode === '--ui-direct' && process.argv.length > 3 ? uiAuthPreparationOptions(process.argv.slice(3)) : null;
-  if (!uiAuth && !uiDirect && process.argv.slice(3).includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI anchor');
+  assert(options && typeof options === 'object', 'verifier options가 유효하지 않음');
+  const uiArgs = options.uiArgs ?? process.argv.slice(3);
+  assert(Array.isArray(uiArgs) && uiArgs.every(value => typeof value === 'string'), 'UI args가 유효하지 않음');
+  const uiDriver = options.uiDriver;
+  const uiMode = mode === '--ui-direct' || mode === '--ui-auth-direct';
+  if (uiDriver !== undefined && (!uiMode || typeof uiDriver !== 'function')) throw new Error('UI driver는 ui-direct/ui-auth-direct mode에서만 허용됨');
+  const uiAuth = mode === '--ui-auth-direct' ? uiAuthPreparationOptions(uiArgs) : null;
+  const uiDirect = mode === '--ui-direct' && uiArgs.length > 0 ? uiAuthPreparationOptions(uiArgs) : null;
+  if (!uiAuth && !uiDirect && uiArgs.includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI anchor');
   const httpPasswords=mode==='--http-auth'?createUiAuthPasswords():null;
   let httpSeed=null;
   let currentUiSeed=null;
+  let uiAuthAccounts=null;
 
   let root = "";
   let rtspPort = 0;
@@ -749,7 +787,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     if (uiAuth) assertLocalIceEnvironment(env, uiUdpPort);
     const logState = { lineCount: 0, processErrorCode: "" };
     uiStage = 'spawn';
-    const privateLog = uiAuth ? path.join(root,'server-private.log') : null;
+    const privateLog = uiMode ? path.join(root,'server-private.log') : null;
     if (privateLog) fs.writeFileSync(privateLog,'',{flag:'wx',mode:0o600});
     let privateLogBytes = 0;
     child = spawn("./server.sh", ["foreground"], {
@@ -811,13 +849,34 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
             body:JSON.stringify(uiLiveSource(id,`s06-channel-${id}.mp4`,id==='4'))});
           assert(response.ok,'UI live source preparation failed'); await response.arrayBuffer();
         }
-        writeUiLoginHandoff(root, auth.accounts);
-        uiStage = 'proxy';
-        uiProxy = await startRecordingUiRangeProxy({root,upstreamPort:httpPort});
-        console.log(JSON.stringify({ready:true,baseUrl:uiProxy.baseUrl,observationPath:uiProxy.logPath,root,anchorUtcMs:uiAuth.anchor,accounts:auth.accounts.map(x=>x.username),actualUiPass:false}));
-      } else console.log(`[S06 UI direct 준비] ${baseUrl}/ops/events ; 종료 시 stdin에 줄바꿈. UI PASS를 자동 판정하지 않음.`);
-      uiStage = 'hold';
-      await new Promise((resolve, reject) => {
+        uiAuthAccounts=auth.accounts;
+      }
+      uiStage = 'proxy';
+      uiProxy = await startRecordingUiRangeProxy({root,upstreamPort:httpPort});
+      if (uiDriver) {
+        uiStage = 'driver';
+        try {
+          await runRecordingUiDriverBoundary(uiDriver, {
+            baseUrl: uiProxy.baseUrl,
+            root,
+            seed: currentUiSeed,
+            accounts: uiAuthAccounts ?? [],
+            observationPath: uiProxy.logPath,
+            serverLogPath: privateLog,
+            timeoutMs: uiAuth ? uiAuth.holdMs : 15 * 60 * 1000,
+          }, uiAuth ? uiAuth.holdMs : 15 * 60 * 1000,
+          () => !logState.privateLogFailed && !uiProxy?.failure &&
+            child.exitCode === null && child.signalCode === null && !logState.processErrorCode);
+        } finally {
+          uiAuthAccounts = null; // driver 종료·실패 뒤 비밀 참조를 해제하며 메모리 소거를 보장하지 않는다.
+        }
+      } else {
+        if (uiAuth) {
+          writeUiLoginHandoff(root, uiAuthAccounts);
+          console.log(JSON.stringify({ready:true,baseUrl:uiProxy.baseUrl,observationPath:uiProxy.logPath,root,anchorUtcMs:uiAuth.anchor,accounts:uiAuthAccounts.map(x=>x.username),actualUiPass:false}));
+        } else console.log(`[S06 UI direct 준비] ${uiProxy.baseUrl}/ops/events ; 종료 시 stdin에 줄바꿈. UI PASS를 자동 판정하지 않음.`);
+        uiStage = 'hold';
+        await new Promise((resolve, reject) => {
         const finish = error => {
           clearTimeout(timer);
           if (logMonitor) clearInterval(logMonitor);
@@ -831,12 +890,13 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
         const onEnd = () => finish(new Error('UI 확인 종료 입력 전 stdin 종료'));
         const onExit = () => finish(new Error('UI preparation server exited'));
         const timer = setTimeout(() => finish(new Error(uiAuth ? 'UI 확인 60분 제한 도달' : 'UI 확인 15분 제한 도달')), uiAuth ? uiAuth.holdMs : 15 * 60 * 1000);
-        const logMonitor = uiAuth ? setInterval(() => {if(logState.privateLogFailed||uiProxy?.failure)finish(new Error('private observation unavailable'));},250) : null;
-        if (uiAuth) child.once('exit',onExit);
+        const logMonitor = setInterval(() => {if(logState.privateLogFailed||uiProxy?.failure)finish(new Error('private observation unavailable'));},250);
+        child.once('exit',onExit);
         process.stdin.once('data', onData);
         process.stdin.once('end', onEnd);
         process.stdin.resume();
-      });
+        });
+      }
     } else if (mode === '--http-auth') {
       await verifyRecordingHttpAuth(baseUrl, root, httpSeed, httpPasswords);
     } else if (mode === '--http-api') {
@@ -862,7 +922,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   }
 
   const cleanupStartedAt = Date.now();
-  if (uiAuth) console.log(JSON.stringify({uiPreparationLog:uiLogReport,actualUiPass:false}));
+  if (uiMode) console.log(JSON.stringify({uiPreparationLog:uiLogReport,actualUiPass:false}));
   try {
     cleanupResult = await finishRecordingUiProxy(uiProxy, () => cleanupHarnessResources({ child, rtspPort, httpPort, root }));
   } catch (error) {

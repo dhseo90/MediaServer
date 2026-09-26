@@ -1,5 +1,30 @@
 # 릴리즈 테스트 기록
 
+## S11 녹화 UI 실행 연결 보완 — 실행 전 정의 (2026-09-26)
+
+사용자 승인 순서는 준비 보완→I30 집중→녹화 31 action→녹화120분→S11 기록·커밋·조건부 푸시다.
+제품 시간·ID·저장·auth/scope·재생 계약과 기존 timeout을 유지한다. 공통 424 UI와 30분의
+유효 증거는 제품 변경이 없는 동안 유지하며, 아래 준비 검사로 실제 UI를 대체하지 않는다.
+임시 계정은 새 프로세스에서 생성하여 driver에 메모리로 전달한다. 차단된 파일 URL을
+다른 수단으로 읽지 않는다. 기존 실제 브라우저 adapter의 설치 없는 의존성 탐색을 재사용한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B10-U01 | 메모리 UI driver·비밀 수명 | `node scripts/internal/recording_ui_driver_boundary.test.mjs`: UI 외 mode 거부, 신규 임시값 전달·handoff 미생성·보유 참조 해제·비출력 오류 확인 | v4.1.0 |
+| B10-U02 | driver 실패·취소·정리 | 같은 자체검사에서 정상/실패/timeout·AbortSignal·기존 cleanup 전파. 기존 UA/SF 준비 검사와 Range proxy 반례를 영향 회귀로 실행 | v4.1.0 |
+| B10-U03 | 녹화 UI 증거 수집 | 신규 runner의 옵션·31개 action 정의·비밀 제거·artifact containment/hash·실패 보존을 단기 자체검증. raw trace나 cookie·비밀번호 파일을 결과에 복사하지 않음 | v4.1.0 |
+| B10-U04 | 실제 I30 집중 | `node scripts/internal/run_recording_ui_acceptance.mjs --focus-i30 --output-dir <소유 경로>`: 실제 로그인·선택·native 재생/일시정지/탐색과 시간·프레임·Range 상관, crash/console·브라우저 버전·스크린샷·정리. 기존 인앱 renderer exit5는 과거 실패로 보존 | v4.1.0 |
+| B10-U05 | 실제 녹화 UI 전수 | 동일 runner `--all`: 기존 I27~I34 8 ID·31 action은 manual-ui-result-template의 개별 정의대로 실행. 자동화 증거와 메인 시각 검토·적격 판정을 결합하며 424 qualifier와 구분 | v4.1.0 |
+| B10-L01 | 녹화120분·자원 | UI 마감 후 `./server.sh verify-v410-recording-longrun --duration-minutes 120`: 현행 상한·생성/보존/삭제/복구·HTTP/관측 주기·RSS와 정리. 기존 공통120분의 승계 범위는 별도 diff 판정 | v4.1.0 |
+
+실행 결과는 [S11 결과](release-artifacts/v4.1.0/s11-final-20260926/results.md)에 연결한다.
+새 ID는 내부 검증 단위이며 제품 기능 수나 UI exact 432개를 증가시키지 않는다.
+
+B10-U01/U02 실행 결과: driver 경계 6/6, 기존 UA/SF 21/21, Range proxy 11/11,
+모두 exit0. [개별 결과·원출력·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-ui-prep.md).
+U03 실행기 초안은 메인 검토에서 느슨한 판정·실패 보존 누락을 발견하여 실제 실행 전에
+보완 중이다. 초안의 단위4개 통과를 실제 UI 적격으로 사용하지 않는다.
+
 ## B-07 누적·실제 통합 실행 전 정의 (2026-09-25)
 
 현재 판정: 작은1/16/32와 큰1,020/2,049 누적 수치 검사는 exit0이다. 이전snapshot131,857,206B
@@ -98,6 +123,14 @@ TCP 8081/8555 해제를 확인했다. [109개 개별 결과·최초 실패·정�
 [원출력·시각 상세 증거](release-artifacts/v4.1.0/s11-final-20260926/ui-baseline-full.tar.xz),
 [실행 요약](release-artifacts/v4.1.0/s11-final-20260926/results.md)을 보존한다.
 이 PASS는 녹화 추가 I27~I34의 8 ID·31 action이나 전체 432개 PASS가 아니다.
+녹화 UI 추가 실행은 I27 시간 필터·페이지, I28 이벤트 우선, I29 원본 및
+I30 실제 MP4 시간 진행을 관측한 뒤 인앱 브라우저의 영상 버튼 조작에서
+탭이 충돌해 중단됐다. 제품 서버는 당시 HTTP 200으로 별도 확인했다.
+I30 일시정지·탐색과 I31~I34, 전체 432개 적격은 미완료다. 인증 fixture의
+임시 자격증명 파일은 브라우저 보안 정책에 의해 열 수 없어 우회하지 않았고,
+실제 로그인은 미실행이다. 격리 서버·포트·자격증명 임시파일 정리는 통과했다.
+[실패와 실행 경계](release-artifacts/v4.1.0/s11-final-20260926/results.md)를 따른다.
+순차 조건상 녹화 전용 120분은 실행하지 않았다.
 
 
 ### B07 진단 단위 마감 검사 — 실행 전 정의

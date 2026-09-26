@@ -10,7 +10,7 @@
 | --- | --- | --- | --- | --- |
 | 안정화·30분 | 진행 대상 | 사용자 1번 지시·S11 필수 gate | `verify-predev --soak-minutes 30`, B09-F01 | 승인·실행 |
 | UI baseline 424 | 실행 완료·PASS | 과거 424/424는 source `8fa98a99`에 결속; 현재 source `5aed4af1`에서 전수 재실행 | `./test_ui.sh`, [개별 결과](ui-baseline-items.md) | 승인·424개 적격 및 cleanup PASS; 녹화 8 ID는 별도 |
-| 녹화 UI 8 ID·31 action·시각 교차 | 진행 대상 | 현재 릴리즈 432 ID의 신규 영역; 기존 I30 재생은 범위 한정 PASS와 전체 적격을 구분 | `docs/manual-ui-result-template.md`의 I27~I34 | 승인; 현재 소스에서 실행 필요 |
+| 녹화 UI 8 ID·31 action·시각 교차 | 일부 실행·미완료 | 현재 릴리즈 432 ID의 신규 영역; 인앱 브라우저 영상 조작 중 탭 충돌 | `docs/manual-ui-result-template.md`의 I27~I34, 아래 실패 기록 | 승인; 원인 미확정이므로 전체 적격 보류 |
 | 공통 120분 | 증거 범위 판정 | 과거 80회·409 PASS는 이전 바이너리; RTSP/WebRTC 경로 불변과 녹화 저장 변경을 구분 | `common-120-pass.md`, B08-R/C/Q | 현재 소스의 전체 PASS 자동 승계 금지 |
 | 녹화 전용 120분·자원 | 진행 대상 | 사용자 2번 지시·저장/삭제/복구 직접 변경·과거 세 차례 FAIL | `verify-v410-recording-longrun --duration-minutes 120` | 승인; 1번 통과 뒤 실행 |
 | 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | AGENTS 7.6 | 제외, PASS 아님 |
@@ -47,6 +47,8 @@ token start/end/consumed는 전용 집계가 없어 미집계이며 source는 �
 | `/tmp/media_server_predev-1790383000-55400` | 최종 30분 개별 로그 | 1,064 KiB | `server.log` 제외 278파일 압축·대조 후 삭제 | 부재 | SHA·archive 목록·직접 stat |
 | 실행 소유 `.media_server` 2개 및 `.media_server.test` 2개 | 격리 상태·통합 상세 자료 | 각각 64/64 KiB·20/104 KiB | 당시 생성·소유권·포트 확인 뒤 정확한 root만 정리 | 부재 | 사전 Git clean, 소유 UID·inode·종료 원장 |
 | `/private/tmp/media-server-s11-final-ZiYEMh` | 보고서·캡처 임시 경로 | 220 KiB | 필요한 결과 이관·byte 대조 후 정확한 root 삭제 | 부재 | 저장소 보존물·직접 `test ! -e` |
+| `.media_server.test/v4.1.0/ui-acceptance-current` | 실제 UI 424개 작업용 원본 | 약 343 MiB | 4,564파일 전체 archive 무결성·hash 확인 후 정확한 root 삭제 | 부재·압축본으로 복구 가능 | 같은 날 생성된 단일 run·UID/inode·서버/포트 종료 대조 |
+| `/private/tmp/media-server-s11-ui-bx58o8` 및 임시 archive | UI launcher 로그·압축 중간본 | 로그 약 28 KiB·archive 약 16 MiB | 저장소 gzip 원문 hash·archive hash 대조 후 정확한 대상 삭제 | 부재·저장소에 보존 | 실행 소유 경로·단일 로그 확인 |
 
 ## 실제 브라우저 공통 UI 424개
 
@@ -66,6 +68,44 @@ archive 자체 검사와 저장소 사본 hash 대조를 통과했다. [실행 �
 직접 확인했고 전체 visual/action 적격은 Policy v4 독립 판정에 근거한다.
 
 이 PASS는 기존 공통 424개에 한한다. 녹화 I27~I34 8개 ID·31개 세부 action의
-현재 실행은 아직 완료되지 않았으므로 v4.1.0 전체 432개 UI PASS가 아니다.
-녹화 전용 120분·자원 검사는 1번 UI 완료 뒤 실행한다. PR·병합·태그·Release는 이번
-개발·푸시 승인에 포함되지 않는다.
+현재 실행은 일부이며 아래 실패로 중단됐으므로 v4.1.0 전체 432개 UI PASS가 아니다.
+
+## 녹화 UI 일부 실행과 중단
+
+`--ui-direct --ui-anchor-utc-ms 1790387894111 --ui-seek-fixture` 격리 서버에서
+실제 인앱 브라우저로 I27 정상/빈값/역전/페이지, I28 이벤트 우선, I29 겹친 원본
+보기·선택을 조작했다. I30의 10초 H.264 MP4는 metadata 1280×720·readyState4와
+재생 중 `currentTime` 0.129→7.741초가 직접 관측됐다. 그 다음 브라우저의
+내장 영상 버튼 조작에서 해당 탭이 `This page crashed`로 전환됐다. 이후 서버의
+`/ops/events`는 별도 로컬 HTTP 200이고 PID 21466의 포트 63053은 LISTEN이었다.
+이는 브라우저 탭 충돌의 직접 증거이나 원인을 제품/브라우저 중 하나로 확정하지 않는다.
+I30 일시정지·탐색 및 I31~I34는 미실행/미완료이며 전체 31 action 적격은 미완료다.
+이 실행은 시각 화면의 저장소 보존 screenshot/trace가 없어 앞의 부분 관측도
+Policy v4 개별 대체 증거로 승격하지 않는다.
+
+인증 fixture는 별도 `--ui-auth-direct`로 준비했으나 임시 자격증명 파일을
+인앱 브라우저로 여는 시도가 브라우저 보안 정책에 의해 차단됐다. 우회하지 않고
+실제 로그인·역할별 조작은 미실행으로 남겼다. 두 fixture 모두 종료 exit0,
+제품 PID 21316/21466 정상 종료, 각 격리 root 삭제·RTSP/HTTP 포트 해제,
+임시 `ui-login-once.json` 부재를 확인했다. 충돌한 에이전트 생성 브라우저 탭은
+브라우저 정책이 닫기 호출도 차단하여 최종 자동 정리를 확인하지 못했다.
+
+1번 UI gate가 미완료이므로 순차 조건에 따라 2번 녹화 전용 120분·자원 검사는
+실행하지 않았다. 과거 공통 120분은 녹화 기본 비활성·이전 바이너리의 공통
+미디어 경계에 한정된 이력이다. 현재 녹화 자원 PASS나 120분 전체 승계로
+표현하지 않는다. PR·병합·태그·Release는 이번 승인에 포함되지 않는다.
+[릴리즈 잔여 전수 판정](readiness.md)은 성공·실패·미실행과 승인 경계를 분리한다.
+
+## B10 재개: 준비 보완과 원인 구분
+
+사용자는 준비 보완 → I30 집중 원인 구분 → 녹화 UI 31 action → 녹화120분 →
+S11 마감 순서를 승인했다. 이전 실패 기록은 위와 같이 보존한다.
+Codex 로컬 로그에서 해당 시각 renderer `reason=crashed`, `exitCode=5`를 확인했다.
+원인 stack은 없으므로 제품 일시정지 결함·특정 signal·GPU 원인을 단정하지 않는다.
+후속 브라우저 목록의 빈 배열로 이전 탭 정리는 확인했다.
+
+[B10 준비 결과](b10-ui-prep.md): 새 임시 계정의 메모리 전달, 취소·오류·로그 수집
+실패 경계 6개와 기존 인증/seed 21개·Range proxy 11개를 통과했다.
+제품 로직·기존 상한·합격 기준은 변경하지 않았다. 실제 I30 및 31 action은
+이 결과로 대체하지 않는다. 새 실행기는 실제 실행 전에 성공/실패 oracle와
+증거 보존 경계를 검토 중이며, 이 절 시점의 120분은 아직 미실행이다.

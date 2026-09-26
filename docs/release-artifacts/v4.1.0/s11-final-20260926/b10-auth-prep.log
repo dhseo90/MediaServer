@@ -1,0 +1,99 @@
+PASS: SF01 optional seek fixture is accepted only with explicit UI anchor
+PASS: UA01 anchor bounds and unknown options are rejected
+PASS: UA05 inherited anchor and auth values are removed from seed environment
+PASS: UA02 random temporary passwords are distinct with sufficient length
+PASS: B08-H01 temporary passwords avoid product policy pattern rejection
+PASS: UA03 actual bootstrap function orders setup five logins and four users
+PASS: UA04 one-time handoff is mode0600 and refuses overwrite
+PASS: UA07 live source payload distinguishes active quota from blocked reservation
+PASS: UA01 new auth direct mode rejects missing anchor before preparation
+[seed-anchored] [start] 2026-09-26T03:25:01Z
+[seed-anchored] Darwin arm64
+[seed-anchored] Apple clang version 21.0.0 (clang-2100.3.34.2)
+[seed-anchored] 430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+[seed-anchored] f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+[seed-anchored] 404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+[seed-anchored] b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+[seed-anchored] 6b6b2480b65621fb528b5b029b3c046c7aed000df3d6f028879c2e08a9a85056  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[seed-anchored] PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+[seed-anchored] PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+[seed-anchored] PASS: LP26-U01-A current managed UI seed oracle
+[seed-anchored] PASS: LP26-U02-A current managed UI seed oracle
+[seed-anchored] PASS: LP26-U03-A current managed UI seed oracle
+[seed-anchored] PASS: LP26-U04-A current managed UI seed oracle
+[seed-anchored] PASS: LP26-U05-A current managed UI seed oracle
+[seed-anchored] [ui-seed-summary] {"rows":145,"known":114,"unknown":31,"pages":2,"actualUiPass":false}
+[seed-anchored] [cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.c5Pa2h","bytes":11485596,"removed":true}
+[seed-anchored] [elapsed] seconds=9 source=bash-SECONDS actualUiPass=false
+[seed-anchored] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-anchored] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-anchored] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-anchored] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-anchored] [recording] file evidence unavailable: file evidence profile/bound 오류
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.c5Pa2h","bytes":11485596,"removed":true}
+PASS: UA08-anchored current seed compile root cleanup
+[ui-seed-summary] {"case":"anchored","rows":145,"known":114,"unknown":31,"pages":2,"actualUiPass":false}
+PASS: UA06 LP26-U02~06 actual managed catalog anchored scenarios and reopen
+[seed-unknown] [start] 2026-09-26T03:25:10Z
+[seed-unknown] Darwin arm64
+[seed-unknown] Apple clang version 21.0.0 (clang-2100.3.34.2)
+[seed-unknown] 430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+[seed-unknown] f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+[seed-unknown] 404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+[seed-unknown] b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+[seed-unknown] 6b6b2480b65621fb528b5b029b3c046c7aed000df3d6f028879c2e08a9a85056  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[seed-unknown] PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+[seed-unknown] PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+[seed-unknown] PASS: LP26-U01-A current managed UI seed oracle
+[seed-unknown] PASS: LP26-U02-A current managed UI seed oracle
+[seed-unknown] PASS: LP26-U03-A current managed UI seed oracle
+[seed-unknown] PASS: LP26-U04-A current managed UI seed oracle
+[seed-unknown] PASS: LP26-U05-A current managed UI seed oracle
+[seed-unknown] [ui-seed-summary] {"rows":1181,"known":0,"unknown":1181,"pages":12,"actualUiPass":false}
+[seed-unknown] [cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.r1Y6vp","bytes":11485596,"removed":true}
+[seed-unknown] [elapsed] seconds=10 source=bash-SECONDS actualUiPass=false
+[seed-unknown] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-unknown] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-unknown] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-unknown] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-unknown] [recording] file evidence unavailable: file evidence profile/bound 오류
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.r1Y6vp","bytes":11485596,"removed":true}
+PASS: UA08-unknown current seed compile root cleanup
+[ui-seed-summary] {"case":"unknown","rows":1181,"known":0,"unknown":1181,"pages":12,"actualUiPass":false}
+PASS: UA05 LP26-U02 no anchor remains unknown rather than fake 1970 UTC
+PASS: LP26-U01~05 invalid anchor duplicate row hash and completeness rejected
+PASS: SF02 bounded owned seek fixture generation completes
+PASS: SF03 actual H264 silent 1280x720 ten-second first-keyframe fixture
+[seek-fixture] {"sizeBytes":5357069,"duration":10,"codec":"h264","width":1280,"height":720,"audio":false,"firstKeyframe":true}
+PASS: SF06 malformed media metadata and symlink input directory are rejected
+[seed-seek] [start] 2026-09-26T03:25:20Z
+[seed-seek] Darwin arm64
+[seed-seek] Apple clang version 21.0.0 (clang-2100.3.34.2)
+[seed-seek] 430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+[seed-seek] f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+[seed-seek] 404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+[seed-seek] b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+[seed-seek] 6b6b2480b65621fb528b5b029b3c046c7aed000df3d6f028879c2e08a9a85056  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[seed-seek] PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+[seed-seek] PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+[seed-seek] PASS: LP26-U01-A current managed UI seed oracle
+[seed-seek] PASS: LP26-U02-A current managed UI seed oracle
+[seed-seek] PASS: LP26-U03-A current managed UI seed oracle
+[seed-seek] PASS: LP26-U04-A current managed UI seed oracle
+[seed-seek] PASS: LP26-U05-A current managed UI seed oracle
+[seed-seek] [ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[seed-seek] [cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.F1YtvL","bytes":11485596,"removed":true}
+[seed-seek] [elapsed] seconds=8 source=bash-SECONDS actualUiPass=false
+[seed-seek] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-seek] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-seek] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-seek] [recording] file evidence unavailable: file evidence profile/bound 오류
+[seed-seek] [recording] file evidence unavailable: file evidence profile/bound 오류
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.F1YtvL","bytes":11485596,"removed":true}
+PASS: UA08-seek current seed compile root cleanup
+[ui-seed-summary] {"case":"seek","rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+PASS: SF04 LP26-U08 managed original seek file actual size SHA and duration
+PASS: SF05 LP26-U08 other originals remain short and actual derived outputs remain MP4
+PASS: UA08 test root cleanup
+[cleanup] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.MzGLsL bytes=25476179 absent=true
+{"pass":21,"fail":0,"actualUi":false,"elapsedMs":27531,"elapsedSource":"Date.now verifier duration"}
