@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 파일의 생성·해시·소유권 검증 로직을 구현한다.
 #include "recording/recording_generation_files.h"
 #include <algorithm>
 #include <array>

@@ -1,3 +1,4 @@
+// 파일 용도: 봉인된 녹화 세대 cold mutation 읽기·검증을 smoke로 검증한다.
 // 호출 시 지정 archive/행의 결박만 검사한다. 전체 chain/domain/제품 Open PASS가 아니다.
 #include "recording/recording_generation_cold_mutation.h"
 #include <array>

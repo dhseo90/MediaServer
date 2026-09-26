@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 cutover 입력을 수집·검증하는 로직을 구현한다.
 #include "recording/recording_cutover_input.h"
 #include <algorithm>
 #include <array>

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 identity shard와 chain 무결성 계산을 구현한다.
 #include "recording/recording_identity_shard.h"
 #include "recording/recording_contracts.h"
 #include "domain/strict_json.h"

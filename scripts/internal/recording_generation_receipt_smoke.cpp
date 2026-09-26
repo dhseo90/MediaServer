@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 작업 receipt의 직렬화·검증 계약을 smoke로 검증한다.
 #include "recording/recording_generation_receipt.h"
 #include <algorithm>
 #include <functional>

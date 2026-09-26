@@ -1,3 +1,4 @@
+// 파일 용도: 현재 녹화 세대 active 행의 읽기 결과와 검증 계약을 선언한다.
 #pragma once
 #include "recording/recording_generation_manifest.h"
 #include "recording/recording_journal.h"

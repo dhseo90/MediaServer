@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 카탈로그의 readonly 소비 경계를 격리 smoke로 검증한다.
 // 공개 B 읽기 복원 검증. 기존 fixture 생성기를 재사용하되 이전 suite main은 실행하지 않는다.
 #define RECORDING_SCRATCH_MAIN GenerationScratchFixtureMain
 #include "recording_catalog_generation_scratch_smoke.cpp"

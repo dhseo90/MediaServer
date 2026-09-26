@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 세대 cold mutation smoke의 빌드·실행·정리를 수행한다.
 # cold 지정 원문 사용 시 검증. 제품 Open/전체 과거 복구 검사가 아니다.
 set -euo pipefail
 cold_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

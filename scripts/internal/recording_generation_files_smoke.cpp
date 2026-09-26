@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 파일 생성·검증·소유권 계약을 smoke로 검증한다.
 // B-02 파일 준비 단위 fixture. snapshot 의미/실제 catalog 통합 검증은 아니다.
 #include "recording/recording_generation_files.h"
 #include <array>

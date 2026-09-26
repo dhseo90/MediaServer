@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 카탈로그 projection의 값 fixture와 격리 smoke를 검증한다.
 // 검증된 chain 결과의 값 fixture다. 실제 B Open/SQLite/게시를 실행하지 않는다.
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_derived_selection.h"

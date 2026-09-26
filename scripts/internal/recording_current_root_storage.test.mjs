@@ -67,7 +67,7 @@ try{
     const hardlink=path.join(root,'tmp/hardlink');fs.linkSync(path.join(root,'normalize'),hardlink);assert.throws(()=>measureCurrentRoot(root),/root-unsafe-file/);fs.unlinkSync(hardlink);
   });
   check('LP26-O06-D SQLite page observation uses bounded read-only numeric PRAGMA and fails closed',()=>{
-    // Existing fixture catalog is intentionally not a SQLite database; replace only the runner result to validate safe projection.
+    // 기존 fixture catalog는 의도적으로 SQLite 데이터베이스가 아니므로 runner 결과만 바꿔 안전한 projection을 검증한다.
     const sqlite=path.join(root,'recordings/recording-catalog.sqlite3');assert(fs.existsSync(sqlite));
     const observed=measureCurrentSqlitePages(root,(_binary,args,options)=>{assert.equal(_binary,'sqlite3');assert.deepEqual(args.slice(0,2),['-readonly',sqlite]);assert(options.timeout<=3000&&options.maxBuffer<=1024);return {status:0,stdout:'4096\n10\n3\n'};});
     assert.deepEqual(observed,{status:'observed',mainBytes:5,walBytes:6,pageSize:4096,pageCount:10,freePageCount:3,livePageCount:7,liveBytes:28672,freeBytes:12288});

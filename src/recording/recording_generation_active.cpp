@@ -1,3 +1,4 @@
+// 파일 용도: 현재 녹화 세대 active 행의 읽기와 무결성 검증을 구현한다.
 #include "recording/recording_generation_active.h"
 #include <algorithm>
 #include <array>

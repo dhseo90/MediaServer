@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 카탈로그 cutover 후보 smoke의 빌드·실행·정리를 수행한다.
 # 원본 불변의 비공개 cutover 후보 검사다. 게시/복구/기본 활성화 검사가 아니다.
 set -euo pipefail
 candidate_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

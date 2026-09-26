@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 파일의 입력 source와 생성 결과 계약을 선언한다.
 #pragma once
 #include "recording/recording_generation_manifest.h"
 #include <string_view>

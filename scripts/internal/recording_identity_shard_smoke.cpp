@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 identity shard와 chain 무결성을 smoke로 검증한다.
 // 순수 값/chain fixture이며 제품 Open/Append/Checkpoint나 archive 원문 의미를 검증하지 않는다.
 #include "recording/recording_identity_shard.h"
 #include <iostream>

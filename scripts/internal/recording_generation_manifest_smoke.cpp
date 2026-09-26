@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 manifest의 직렬화와 무결성 계약을 smoke로 검증한다.
 // 독립 B manifest fixture. 실제 journal migration/append/제품 복구 검증이 아니다.
 #include "recording/recording_generation_manifest.h"
 #include <array>

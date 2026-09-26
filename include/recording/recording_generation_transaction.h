@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 작업의 private coordinator용 transaction lifecycle을 선언한다.
 #pragma once
 #include "recording/recording_generation_receipt.h"
 #include <memory>

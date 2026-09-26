@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 cutover 입력 수집과 검증 계약을 smoke로 검증한다.
 #include "recording/recording_cutover_input.h"
 #include <filesystem>
 #include <fstream>

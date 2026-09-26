@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 runtime과 세대 저장 연결의 격리 smoke를 검증한다.
 // 기본 runtime의 형식 선택·전환·복구를 실제 제품 archive에 연결하는 격리 검사다.
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_cutover_candidate.h"

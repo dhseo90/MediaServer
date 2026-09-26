@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 현재 녹화 세대 active smoke의 빌드·실행·정리를 수행한다.
 # 독립 active 후보 검사. 제품 Open/Append/Checkpoint나 과거 원문 검증이 아니다.
 set -euo pipefail
 active_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

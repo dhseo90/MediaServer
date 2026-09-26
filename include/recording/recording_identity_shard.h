@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 identity shard와 chain 검증 DTO를 선언한다.
 #pragma once
 #include "recording/recording_generation_manifest.h"
 #include "recording/recording_journal.h"

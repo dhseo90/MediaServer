@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 카탈로그 cutover 입력 smoke의 빌드·실행·정리를 수행한다.
 set -euo pipefail
 input_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 input_repo="$(cd "$input_script/../.." && pwd)"

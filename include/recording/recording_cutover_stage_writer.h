@@ -1,3 +1,4 @@
+// 파일 용도: caller 소유의 새 cutover stage에 후보 파일을 쓰는 writer를 선언한다.
 #pragma once
 #include "recording/recording_cutover_candidate.h"
 #include <memory>

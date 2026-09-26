@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 세대 snapshot의 요약 행과 직렬화 계약을 선언한다.
 #pragma once
 #include "recording/recording_generation_manifest.h"
 #include "recording/recording_identity_shard.h"

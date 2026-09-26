@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 카탈로그 scratch projection의 격리 동작을 smoke로 검증한다.
 // 기존 고정 fixture만 재사용한다. 기존 suite의 main은 호출하지 않는다.
 #define main JournalFixtureMain
 #include "recording_journal_generation_readonly_smoke.cpp"

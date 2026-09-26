@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 runtime 세대 연결 smoke의 빌드·실행·정리를 수행한다.
 # 기본 B 구성의 파일/복구 집중 검사. 실제 서버·포트·브라우저를 실행하지 않는다.
 set -euo pipefail
 runtime_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

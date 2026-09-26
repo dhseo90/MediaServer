@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 순서 이력 snapshot의 생성·직렬화·검증 로직을 구현한다.
 #include "recording/recording_order_history_snapshot.h"
 #include "recording/recording_contracts.h"
 #include "domain/strict_json.h"

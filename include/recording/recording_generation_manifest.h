@@ -1,3 +1,4 @@
+// 파일 용도: 독립 녹화 세대 저장 형식의 manifest와 파일 메타데이터를 선언한다.
 #pragma once
 // B 저장 형식의 독립 준비 도구. 기존 recording journal과 자동 연결하지 않는다.
 #include <cstdint>

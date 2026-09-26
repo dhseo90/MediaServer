@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 카탈로그 snapshot을 scratch projection으로 변환하는 로직을 구현한다.
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_generation_cold_mutation.h"
 #include "domain/strict_json.h"

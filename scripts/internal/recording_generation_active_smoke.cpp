@@ -1,3 +1,4 @@
+// 파일 용도: 현재 녹화 세대 active 행 읽기와 무결성 경계를 smoke로 검증한다.
 // B active 후보의 물리 bytes/locator 검사다. 과거 archive/domain/제품 Open 검증이 아니다.
 #include "recording/recording_generation_active.h"
 #include <array>

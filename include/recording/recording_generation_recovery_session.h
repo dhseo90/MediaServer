@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 checkpoint 복구 세션과 계획 객체를 선언한다.
 #pragma once
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_journal.h"

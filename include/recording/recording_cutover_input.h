@@ -1,3 +1,4 @@
+// 파일 용도: 카탈로그 cutover 준비에 사용하는 입력 descriptor와 행을 선언한다.
 #pragma once
 #include "recording/recording_journal.h"
 #include <cstdint>

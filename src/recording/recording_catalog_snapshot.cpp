@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 snapshot의 생성·검증·복원 로직을 구현한다.
 #include "recording/recording_catalog_snapshot.h"
 #include "recording/recording_contracts.h"
 #include "domain/strict_json.h"

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 journal 세대 readonly smoke의 빌드·실행·정리를 수행한다.
 # B Journal의 읽기 전용 권위와 v1 호환 집중 검증이다. Catalog B Open/SQLite/게시 검사는 아니다.
 set -euo pipefail
 projection_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

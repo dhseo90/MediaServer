@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 카탈로그 cutover 세션 smoke의 빌드·실행·정리를 수행한다.
 # managed v1 원본 방문과 동기 쓰기 freeze만 검사한다. 전환 게시/Catalog domain 검사는 아니다.
 set -euo pipefail
 session_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

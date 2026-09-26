@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 transaction의 stage 생성·상태 전이 로직을 구현한다.
 #include "recording/recording_generation_transaction.h"
 #include <algorithm>
 #include <cerrno>

@@ -1,3 +1,4 @@
+// 파일 용도: caller 소유 cutover stage에 후보 파일을 작성하는 writer를 구현한다.
 #include "recording/recording_cutover_stage_writer.h"
 #include "domain/strict_json.h"
 #include <algorithm>

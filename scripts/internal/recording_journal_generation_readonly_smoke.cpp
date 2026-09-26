@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 journal의 세대 readonly 소비 경계를 smoke로 검증한다.
 // B read-only Journal 준비만 검사한다. Catalog/active 의미 적용·쓰기 활성화가 아니다.
 #include "recording/recording_journal.h"
 #include "recording/recording_catalog_snapshot.h"

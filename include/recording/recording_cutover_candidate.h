@@ -1,3 +1,4 @@
+// 파일 용도: 관리형 카탈로그 cutover 후보와 준비 단계 제한을 선언한다.
 #pragma once
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_cutover_input.h"

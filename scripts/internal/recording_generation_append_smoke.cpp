@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 append 처리의 파일·identity 계약을 smoke로 검증한다.
 // 기존 검증 fixture만 사용한다. 이전 suite의 main은 실행하지 않는다.
 #define RECORDING_SCRATCH_MAIN AppendScratchFixtureMain
 #include "recording_catalog_generation_scratch_smoke.cpp"

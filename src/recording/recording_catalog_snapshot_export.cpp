@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 snapshot의 export와 직렬화 로직을 구현한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_catalog_snapshot.h"
 #include <algorithm>

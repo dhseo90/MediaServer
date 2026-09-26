@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 snapshot DTO와 직렬화 경계를 smoke로 검증한다.
 // 값/구조 결박 fixture다. 파일 SHA, domain 의미, 제품 Open/Append/Checkpoint는 검증하지 않는다.
 #include "recording/recording_catalog_snapshot.h"
 #include <algorithm>

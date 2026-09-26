@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 transaction의 생성·정리·receipt 경계를 smoke로 검증한다.
 #include "recording/recording_generation_transaction.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_cutover_candidate.h"

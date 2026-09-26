@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 순서 이력의 snapshot 후보 DTO와 직렬화 계약을 선언한다.
 #pragma once
 #include "recording/recording_journal.h"
 

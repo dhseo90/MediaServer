@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 append 전 입력 검증과 준비 경계를 smoke로 검증한다.
 // 고정 fixture만 재사용한다. 이전 suite main은 실행하지 않는다.
 #define RECORDING_SCRATCH_MAIN PreappendScratchFixtureMain
 #include "recording_catalog_generation_scratch_smoke.cpp"

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 cutover·checkpoint 작업의 receipt DTO를 선언한다.
 #pragma once
 #include "recording/recording_generation_manifest.h"
 #include <optional>

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 관측 helper의 read-only 동작을 단위 검증한다.
 // B 관측기의 실제 제품 codec/원장 반례. 서버·장시간/UI 검증은 아니다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

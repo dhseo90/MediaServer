@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 규모 probe의 결과와 경계 조건을 단위 검증한다.
 // B08-C01: 제품 실행 없이 bounded trace의 tail과 전체 완료 집계를 분리 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 consumer 참조와 보존 경계를 smoke로 검증한다.
 // 기존 고정 fixture 생성기만 재사용하고 이전 suite는 실행하지 않는다.
 #define RECORDING_SCRATCH_MAIN ConsumersScratchFixtureMain
 #include "recording_catalog_generation_scratch_smoke.cpp"

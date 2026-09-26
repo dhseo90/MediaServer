@@ -1,3 +1,4 @@
+// 파일 용도: 봉인된 녹화 세대 cold mutation의 안전한 읽기·검증을 구현한다.
 #include "recording/recording_generation_cold_mutation.h"
 #include "domain/strict_json.h"
 #include <charconv>

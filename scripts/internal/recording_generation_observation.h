@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 파일의 검증 전용 read-only 관측 helper를 선언한다.
 #pragma once
 // 검증 전용 읽기 관측. 제품 lease/복구 권위가 아니며 파일을 생성·수정하지 않는다.
 #include "domain/strict_json.h"

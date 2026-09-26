@@ -1,3 +1,4 @@
+// 파일 용도: 관리형 녹화 카탈로그 cutover 후보의 준비·게시 coordinator를 구현한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_cutover_candidate.h"
 #include "recording/recording_cutover_stage_writer.h"

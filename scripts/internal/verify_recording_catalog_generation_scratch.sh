@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 세대 카탈로그 scratch smoke의 빌드·실행·정리를 수행한다.
 # 비공개 Catalog scratch 복원 검사다. 공개 B Open/SQLite 재투영/게시 검사가 아니다.
 set -euo pipefail
 projection_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 자료구조의 규모별 비용을 격리 probe로 관측한다.
 // 검증 전용 실제 B 누적. 준비용 legacy template와 제품 B 비용을 분리한다.
 #define main file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"

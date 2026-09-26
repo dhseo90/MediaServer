@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 cutover 세션의 준비·게시 경계를 smoke로 검증한다.
 #include "recording/recording_journal.h"
 #include "recording/recording_cutover_input.h"
 #include "recording/recording_catalog_snapshot.h"

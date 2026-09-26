@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 세대 카탈로그 projection 격리 smoke의 빌드·실행·정리를 수행한다.
 # typed scratch projection 집중 검증. 제품 Open/SQLite/게시 검사가 아니다.
 set -euo pipefail
 projection_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 순서 이력 snapshot의 직렬화·검증 계약을 smoke로 검증한다.
 // 순수 DTO codec 검증. 제품 Open/원장/SQLite/manifest 게시를 실행하지 않는다.
 #include "recording/recording_order_history_snapshot.h"
 #include <algorithm>

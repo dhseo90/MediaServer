@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 세대 consumer 참조 smoke의 빌드·실행·정리를 수행한다.
 # B 소비자 보호·예약 focused. 실서버/운영 자료에 접근하지 않는다.
 set -euo pipefail
 task_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

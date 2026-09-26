@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 manifest의 생성·직렬화·검증 로직을 구현한다.
 #include "recording/recording_generation_manifest.h"
 #include "domain/strict_json.h"
 #include <algorithm>

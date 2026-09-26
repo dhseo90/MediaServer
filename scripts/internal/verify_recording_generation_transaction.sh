@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 세대 transaction smoke의 빌드·실행·정리를 수행한다.
 # 격리된 cutover/checkpoint 게시·복구 검사. 기본 runtime/미디어/UI를 실행하지 않는다.
 set -euo pipefail
 transaction_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 녹화 세대 receipt smoke의 빌드·실행·정리를 수행한다.
 # 영수증 값 codec만 검사한다. 제품 저장소/게시/복구를 실행하지 않는다.
 set -euo pipefail
 receipt_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,3 +1,4 @@
+// 파일 용도: 봉인된 녹화 세대 cold mutation의 안전한 읽기·검증 계약을 선언한다.
 #pragma once
 #include "recording/recording_identity_shard.h"
 

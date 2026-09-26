@@ -1,3 +1,4 @@
+// 파일 용도: 세대 카탈로그 snapshot을 이동 가능한 scratch projection으로 표현한다.
 #pragma once
 #include "recording/recording_catalog_snapshot.h"
 #include <map>

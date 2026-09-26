@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 세대 요청 proof의 입력·권위 분리 계약을 smoke로 검증한다.
 // 기존 B typed fixture만 재사용하며 미디어 실행이나 기존 main은 호출하지 않는다.
 #define RECORDING_SCRATCH_MAIN RequestProofScratchFixtureMain
 #include "recording_catalog_generation_scratch_smoke.cpp"
