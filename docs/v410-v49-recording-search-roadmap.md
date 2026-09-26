@@ -14,7 +14,10 @@
   후속 녹화120분은 약18분48초에 관측용 native3초 시간초과로 실패했다.
   삭제 segment/tombstone 상세가 현재 snapshot에 중복 보관되고 관측기가 이를 매번
   전체 재처리하는 경계를 확인했다. 상태 HTTP 최대1,548ms·정상 종료·정리는 확인했지만
-  승인된 B11 제품/관측 구조 보완에 착수했으며120분·자원/S11 마감은 미완료다.
+  승인된 B11 제품/관측 구조 보완과 관련 단기 검사를 마쳤다. 삭제 상세는 검증된 cold
+  이력으로 분리했고 실제 보존 자료에서 snapshot27.2→2.10MB·warm 관측40~42ms를 확인했다.
+  이는 단기/metadata 대조이며 cold 이력 누적·실제 HTTP 영향·120분·자원/S11 마감은 미완료다.
+  [B11 결과·한계](release-artifacts/v4.1.0/s11-final-20260926/results.md#b11-o02-실제-보존-자료·마감-판정)를 따른다.
   [실패·근거·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md)를 따른다.
   [기존 누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)과
   [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와

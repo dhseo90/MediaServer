@@ -6,8 +6,9 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {spawn as nodeSpawn,spawnSync} from 'node:child_process';
 import {EventEmitter} from 'node:events';
+import {fileURLToPath} from 'node:url';
 import {CurrentRecordingObserver,CurrentLongrunProgress,GenerationObservationSession,closedJournalComplete} from './recording_current_observer.mjs';
-const base=process.argv[2],transportOnly=process.argv[3]==='--transport-self-test',binary=path.join(base,'normalize'),start=performance.now();
+const base=process.argv[2],transportOnly=process.argv[3]==='--transport-self-test',metadataOnly=process.argv[3]==='--metadata-self-test',binary=path.join(base,'normalize'),start=performance.now();
 let passed=0,failed=0;
 let generationRoot=null;
 const check=(label,fn)=>{try{fn();++passed;console.log('[pass] '+label);}catch(e){++failed;console.log('[fail] '+label);throw e;}};
@@ -67,7 +68,59 @@ async function TransportSelfTest(){
     });
   }finally{if(session)await session.closeAsync().catch(()=>{});fs.rmSync(root,{recursive:true,force:true});assert.equal(fs.existsSync(root),false);}
 }
-if(transportOnly){
+async function MetadataSelfTest(){
+  const dir=fileURLToPath(new URL('../../docs/release-artifacts/v4.1.0/s11-final-20260926/',import.meta.url));
+  const archive=path.join(dir,'b10-observer-metadata.tar.xz'),manifest=JSON.parse(fs.readFileSync(path.join(dir,'b10-observer-input-manifest.json'))),hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+  const parent=fs.mkdtempSync(path.join(base,'media-server-current-observer-actual-')),root=path.join(parent,'recordings');fs.mkdirSync(root,{mode:0o700});
+  const expectedIds=new Set(),expectedSegments=new Map(),expectedDeleted=new Set();
+  check('B11-O02 fixed B10 archive hash members and every metadata byte verified',()=>{
+    assert.equal(hash(fs.readFileSync(archive)),'d0eba4711feb83742d17ff28af2f803069d92ca9f7e105d6b7e7402574f3a3ab');
+    const list=spawnSync('tar',['-tf',archive],{encoding:'utf8',timeout:3000});assert.equal(list.status,0);const names=list.stdout.trimEnd().split('\n');
+    assert.deepEqual(names.slice().sort(),manifest.files.map(f=>f.path).sort());assert.equal(new Set(names).size,names.length);
+    for(const n of names)assert(/^\.?[a-zA-Z0-9_.-]+$/.test(n)&&n!=='.'&&n!=='..');
+    const unpack=spawnSync('tar',['-xf',archive,'-C',root],{encoding:'utf8',timeout:3000});assert.equal(unpack.status,0);
+    for(const f of manifest.files){const file=path.join(root,f.path),s=fs.lstatSync(file);assert(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size===f.bytes);assert.equal(hash(fs.readFileSync(file)),f.sha256);}
+    // 문자열 식별값·집합만 독립 예상값에 사용한다. UTC/PTS를 JS 숫자로 재저장하지 않는다.
+    for(const name of names.filter(n=>/^active-[1-9]\d*\.jsonl$/.test(n)))for(const line of fs.readFileSync(path.join(root,name),'utf8').split('\n').filter(Boolean)){
+      const m=JSON.parse(line);assert.equal(typeof m.mutationId,'string');expectedIds.add(m.mutationId);
+      if(m.mutationType==='segment_v2_bound_finalized')expectedSegments.set(m.entityId,m.payload.segment.channel_id);
+      if(m.mutationType==='segment_v2_deleted')expectedDeleted.add(m.entityId);
+    }
+    assert.equal(expectedSegments.size,1116);assert.equal(expectedDeleted.size,1110);
+  });
+  const prepare=performance.now();
+  check('B11-O02 owned clone uses product checkpoint to compact current deleted details',()=>{
+    const child=spawnSync(binary,['--retire-metadata-fixture',root],{encoding:'utf8',timeout:15000,maxBuffer:16384});assert.equal(child.status,0);assert.deepEqual(JSON.parse(child.stdout),{fixture:true});
+    const m=JSON.parse(fs.readFileSync(path.join(root,'recording-generation.json')));const rows=fs.readFileSync(path.join(root,m.snapshot.name),'utf8').trimEnd().split('\n').slice(1).map(JSON.parse);
+    assert.equal(rows.filter(r=>r.kind==='retired-v2').length,1110);assert.equal(rows.filter(r=>r.kind==='tombstone-v2').length,0);assert.equal(rows.filter(r=>r.kind==='segment-v2').length,6);
+    console.log('[metadata-preparation] '+JSON.stringify({elapsedMs:performance.now()-prepare,snapshotBytes:m.snapshot.size,originals:1116,deleted:1110,mediaAvailable:false}));
+  });
+  const before=tree(root),observer=new CurrentRecordingObserver(root,binary),progress=new CurrentLongrunProgress(0),samples=[];let seen=0,last;
+  const begin=performance.now();
+  try{
+    await checkAsync('B11-O02 actual normalized backlog drains all independent IDs within unchanged observation gap',async()=>{
+      for(let batch=0;batch<128;batch++){
+        const at=performance.now();last=await observer.pollAsync();samples.push(performance.now()-at);assert.equal(last.busy,false);assert(last.rows.length<=128);
+        progress.consume(last.rows,performance.now()-begin);seen+=last.rows.length;
+        assert(performance.now()-begin<=15000,'observer backlog must fit existing 15s observation gap');if(!last.backlog)break;
+      }
+      assert(closedJournalComplete(last));assert.equal(seen,expectedIds.size);assert.deepEqual([...observer.ids].sort(),[...expectedIds].sort());
+      assert.equal(progress.records.size,1116);assert.equal(Object.values(progress.channels).reduce((s,c)=>s+c.deleted,0),1110);
+      for(const [id,channel] of expectedSegments){assert.equal(progress.records.get(id).channel,channel);assert.equal(progress.records.get(id).state,expectedDeleted.has(id)?'deleted':'finalized');}
+      console.log('[metadata-drain] '+JSON.stringify({batches:samples.length,mutations:seen,elapsedMs:performance.now()-begin,maxBatchMs:Math.max(...samples),firstBatchMs:samples[0],lastBatchMs:samples.at(-1),logicalIdentityBytes:observer.bytes}));
+    });
+    await checkAsync('B11-O02 warm immutable polls and one-shot strict comparison preserve exact prefix',async()=>{
+      const warm=[];for(let n=0;n<5;n++){const at=performance.now();const value=await observer.pollAsync();assert.equal(value.rows.length,0);assert(closedJournalComplete(value));warm.push(performance.now()-at);}
+      const at=performance.now(),strict=poll(root,seen),coldMs=performance.now()-at;assert.deepEqual(strict.prefix,observer.prefix);assert.equal(strict.rows.length,0);
+      const stats=JSON.parse(await observer.generationSession.request(seen)).parseCache;assert(stats.snapshotHits>0&&stats.identityHits>0&&stats.logicalBytes<=33554432);
+      console.log('[metadata-compare] '+JSON.stringify({warmMs:warm,oneShotMs:coldMs,parseCache:stats,nativeDeadlineMs:3000,readOutputCapBytes:33554432}));
+    });
+  }finally{await observer.closeAsync();}
+  check('B11-O02 observer closed and all durable metadata remains byte-identical',()=>{assert.deepEqual(tree(root),before);assert.equal(hash(fs.readFileSync(archive)),'d0eba4711feb83742d17ff28af2f803069d92ca9f7e105d6b7e7402574f3a3ab');assert(observer.closed);});
+}
+if(metadataOnly){
+  try{await MetadataSelfTest();}catch(e){if(!failed){++failed;console.log('[fail] B11-O02 metadata setup');}console.error(String(e.message).slice(0,300));}
+}else if(transportOnly){
   try{await TransportSelfTest();}catch(e){if(!failed){++failed;console.log('[fail] B11-O01 transport setup');}console.error(String(e.message).slice(0,300));}
 }else try{
   const root=path.join(base,'generation');generationRoot=root;fixture(root,'one');let first;
@@ -118,7 +171,7 @@ if(transportOnly){
     const s=spawnSync(binary,['--snapshot',mediaRoot],{encoding:'utf8',timeout:15000,maxBuffer:16384});assert.equal(s.status,0,s.stderr);const result=JSON.parse(s.stdout);assert.equal(result.deleted,2);assert(result.available>=2);
   });
 }catch(e){if(!failed){++failed;console.log('[fail] B06 generation fixture/setup');}console.error(String(e.message).slice(0,300));}
-if(!transportOnly&&failed===0)try{
+if(!transportOnly&&!metadataOnly&&failed===0)try{
   await checkAsync('B11-O01 actual native session preserves prefix, uses bounded parse cache, and observes checkpoint',async()=>{
     const session=new GenerationObservationSession(generationRoot,binary);try{
       const first=JSON.parse(await session.request(0));assert(first.rows.length>=3);assert.equal(first.parseCache.snapshotMisses,1);assert(first.parseCache.identityMisses>=1);

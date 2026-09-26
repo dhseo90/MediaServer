@@ -5,8 +5,54 @@
 `docs/manual-ui-checklist.md`다. 이 문서는 실제 실행 결과와 미실행을 구분한다.
 
 현재 작업은 아래 **B11 저장·관측 보완 절**이다. B10의 120분 실패 후 제품 저장/복구와
-관측 구조를 보완하고 있다. 그 앞의 표는 해당 실행 당시 이력이며 현재 전체 완료 판정이 아니다.
+관측 구조 구현·관련 집중 검사와 B10 실제 metadata 단기 대조를 마쳤다. 전체 자원/장시간
+판정은 남아 있다. 그 앞의 표는 해당 실행 당시 이력이며 현재 전체 완료 판정이 아니다.
 실행 기록의 개별 source와 한계를 유지하고 새 장시간/UI·푸시는 이번 범위에 포함하지 않는다.
+
+## B11-O02 실제 보존 자료·마감 판정
+
+`bash scripts/internal/verify_recording_current_observer.sh --metadata-self-test`는 exit0,
+5/5·22,354ms였다. [전수5행·실측·정리](b11-o02-actual-metadata.log)를 보존한다.
+88파일 원문 해시를 대조한 소유 복제본에서만 제품 checkpoint를 수행했다. 원본 archive는
+불변이며 이 입력은 실패 순간이 아닌 종료 후 metadata다. 미디어가 없어 실제 영상/HTTP
+확인 또는 장시간 완료로 사용하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 고정 입력 검증 | archive SHA와88파일 byte/hash·안전한 basename·원본1,116/삭제1,110 독립 집합 | pass | UTC/PTS를 JS 숫자로 제품 입력에 재저장하지 않음 |
+| 제품 준비 | 별도9,930.67ms, 영수증1,110/live6/full tombstone0 | pass | 기존 복구15초 유지; snapshot27,212,677→2,095,644B |
+| 실제 관측 backlog | native Normalize+JS prefix/progress,4,452개 고유 mutation·35 batch·11,090.57ms | pass |128행/batch, 전체 관측15초 유지. 첫/최대744.05ms, 마지막239.93ms |
+| 동일 종료점 비용 | 같은 코드/자료의 one-shot723.35ms, warm5회40.41~42.30ms | pass | 세션 cache snapshot40hit/1miss,identity3482hit/44miss,논리14,118,265B; 실제 RSS 상한 판정 아님 |
+| 무변경·정리 | 관측 전후 durable 파일 byte 동일, child 정상 종료, owned root61,861,887B 제거 | pass | wrapper absent=true; 서버/포트 없음 |
+
+단순 스크립트 문구나 작은 fixture가 아니라 실제 실패 규모의 입력과 실제 정규화 경로를
+확인했다. 다만 더 큰 누적 규모의 concurrent HTTP·장시간 저장량 및 자원 추세까지
+검증하지 않았다. cold journal/identity는 삭제하지 않았고 수명에 따라 계속 늘어난다.
+따라서 현재 결과만으로448MiB 전체 root 상한이나120분 통과를 보장하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 현재 상태/삭제 증거 계약 보완 | 완료·커밋 | 영수증/cold 상세 경계·보호/복구 계약 | 2dc9a329, B11 계약 |
+| 2 | 제품 저장·복구 구조 보완 | 완료·커밋 | receipt codec/projection/current maps·cold 소비·SQL/호환 회귀 | cf36c418,6098acf8,e5b2b140 및 아래 P01~03 결과 |
+| 3 | 관측 구조 보완·단기 대조 | 완료 | persistent 세션·bounded parser 재사용·안전/기존 회귀·실제 자료5/5 | b360b117,33542e22, O02 기록 |
+| 4 | 분할 커밋 | 수행 | 통과 단위만 분리; O02와 최종 기록을 별도 마감 | Git 이력 |
+| 5 | 새 장시간/UI·푸시 | 미수행 | 이번 요청 비범위 | AGENTS3·5·7.6 |
+
+후속은 (1) 큰 누적 규모의 보존 이력 증가·삭제 이력 timeline 재획득 비용 판정,
+(2) 이번 제품 diff의 실제 HTTP·이벤트/재기동 회귀와 기존30분/UI 증거 영향 확정,
+(3) 준비가 닫힌 코드에서 별도 승인된 녹화120분·자원/최종 S11 판정이다.
+과거 상세의 영구 회수는 참조·ID 충돌·복구 의무를 새로 정해야 하므로 자동 구현하지 않았다.
+이 문서는 이번 범위 마감이며 릴리즈 잔여 전수 재감사나 공개 승인 완료가 아니다.
+
+token start/end/consumed는 전용 집계 부재로 미집계, elapsed는 실제 runner 값이다.
+마감 문서 링크 최초 검사는 새 heading의 가운데점을 빠뜨린 anchor2개로 exit1이었다.
+heading과 같은 anchor로 수정하며 이 문서 결함을 제품/관측 실패나 예상 RED로 바꾸지 않는다.
+수정·최종 링크 추가 후 동일 링크 검사 exit0(markdown361/links14570/anchors207), 공백 검사 exit0,
+주석 정책 검사 exit0(1258파일/누락0/영문전용0), 새 test의 node 구문과 wrapper의 bash 구문
+각 exit0이다. 이전 제품 문서 검사 원출력187B도 [보존](b11-runtime-docs-links.log)한 뒤
+동일 byte 확인 후 임시 사본을 삭제했다. transport 임시 디렉터리와 계획했던 별도 임시 root도 부재다.
+O02 추가는 검증 전용 mode/분기이며 O01의 normal/transport 경로는 불변이다. 위33개를
+다시 전체 실행하지 않았고 새 mode의5개를 별도로 실행했다. 제품 소스·archive는 O01 build와 같다.
 
 ## B11-O01 해석 재사용 준비 단위
 

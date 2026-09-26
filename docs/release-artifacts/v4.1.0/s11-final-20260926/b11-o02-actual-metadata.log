@@ -1,0 +1,13 @@
+[owned-root] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-oZR08J","dev":16777234,"ino":160675027,"uid":501}
+[pass] B11-O02 fixed B10 archive hash members and every metadata byte verified
+[metadata-preparation] {"elapsedMs":9930.67275,"snapshotBytes":2095644,"originals":1116,"deleted":1110,"mediaAvailable":false}
+[pass] B11-O02 owned clone uses product checkpoint to compact current deleted details
+[metadata-drain] {"batches":35,"mutations":4452,"elapsedMs":11090.568459,"maxBatchMs":744.0537910000003,"firstBatchMs":744.0537910000003,"lastBatchMs":239.9262920000001,"logicalIdentityBytes":780309}
+[pass] B11-O02 actual normalized backlog drains all independent IDs within unchanged observation gap
+[metadata-compare] {"warmMs":[42.30229099999997,41.52629199999865,40.4107499999991,41.05287500000122,40.85095799999908],"oneShotMs":723.3494169999976,"parseCache":{"snapshotHits":40,"snapshotMisses":1,"identityHits":3482,"identityMisses":44,"logicalBytes":14118265},"nativeDeadlineMs":3000,"readOutputCapBytes":33554432}
+[pass] B11-O02 warm immutable polls and one-shot strict comparison preserve exact prefix
+[pass] B11-O02 observer closed and all durable metadata remains byte-identical
+{"scope":"generation-observer-short","passed":5,"failed":0,"elapsedMs":22354,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-oZR08J","bytes":61861887,"absent":true}
+
+[command-result] exit=0

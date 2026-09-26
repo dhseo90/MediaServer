@@ -28,6 +28,13 @@ closeAsync를 await하는 구조를 검사하며 실제 장시간 실행은 하�
 snapshot·identity 재해석 비용 감소이지 전체 이력 검사의 상수 시간화가 아니다. source/구문,
 관련 build·기존 observer/reader/progress 회귀와 diff 검사를 승인 범위에서 실행한다.
 
+B11-O02 명령은 `bash scripts/internal/verify_recording_current_observer.sh --metadata-self-test`다.
+SHA 고정 B10 종료 후 metadata88파일을 새 소유 root에 복제·전수 byte 대조한 뒤 제품
+checkpoint로 영수증을 만든다(준비15초). 원본1,116·삭제1,110과 전체 ID 집합을 독립 대조하고
+실제 Normalize+JS prefix/progress 경로를128행씩 drain한다. 요청3초·관측15초·32MiB 유지,
+warm5회와 동일 최종 prefix의 일회성 strict 관측을 비교하고 전체 durable byte 불변·종료·
+정리를 확인한다. 미디어 없는 사본이며 실제HTTP·120분·디스크 증가 추세 PASS가 아니다.
+
 B11-P02 실제 자료의 호환 하위 검사는 `bash scripts/internal/verify_recording_generation_scale.sh receipt-compat`다.
 보존 archive88개를 hash 대조하여 작업 전용 root에 풀고, 원본 snapshot+active의 문자열 ID·channel·checksum과
 상태·mapping 개수로 별도 기대표를 만든다. UTC/PTS 숫자를 JS로 재직렬화해 제품에 주입하지 않는다.
@@ -42,8 +49,10 @@ SHA가 고정된 종료 후 사본의 독립 예상값은 원본1,116·삭제1,1
 실행 결과·개별 항목·정리·토큰 집계 한계는 기존 [S11 결과](release-artifacts/v4.1.0/s11-final-20260926/results.md)에 이어 기록한다.
 이 표는 실행 전 정의이며 PASS가 아니다. B11-C01과 opt-in projection 준비 단위는
 해당 결과 절에서 통과를 확인했다. B11-P01~03은 제품 연결·소비자/복구 회귀·실제 metadata
-단기 검증까지 통과했다. B11-O01~02 관측 구조는 아직 미완료이며 실제 HTTP·장시간·전체 자원
-판정을 제품 focused PASS로 대체하지 않는다.
+단기 검증까지 통과했다. B11-O01은 parser22·native/session33·기존67·진행45·진단10 검사를,
+B11-O02는 실제 보존 metadata5개를 통과했다.4,452개 normalized mutation의 전체 drain11.09초,
+동일 종료점 warm40~42ms를 확인했다. 실제 HTTP·장시간·더 큰 전체 자원 판정을 이 단기
+PASS로 대체하지 않는다. 실패·절차 누락·재검증과 정리는 같은 결과 문서에 보존했다.
 
 ## S11 녹화 UI 실행 연결 보완 — 실행 전 정의 (2026-09-26)
 

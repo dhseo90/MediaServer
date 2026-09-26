@@ -2,8 +2,8 @@
 # 파일 용도: 현행 관측 준비/120분 실행 연결. 기본 실행이나 짧은 시간을 120분으로 승격하지 않는다.
 set -euo pipefail
 case "$*" in
-  --self-test|--generation-self-test|--app-observe|--diagnose-status-1020|--diagnose-status-1020-original|"--duration-minutes 120") ;;
-  *) echo 'usage: current-observer --self-test | --generation-self-test | --app-observe | --diagnose-status-1020 | --diagnose-status-1020-original | --duration-minutes 120' >&2; exit 2 ;;
+  --self-test|--generation-self-test|--metadata-self-test|--app-observe|--diagnose-status-1020|--diagnose-status-1020-original|"--duration-minutes 120") ;;
+  *) echo 'usage: current-observer --self-test | --generation-self-test | --metadata-self-test | --app-observe | --diagnose-status-1020 | --diagnose-status-1020-original | --duration-minutes 120' >&2; exit 2 ;;
 esac
 observer_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 observer_repo="$(cd "$observer_script/../.." && pwd)"
@@ -56,7 +56,9 @@ NODE
   -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 \
   -include "$observer_script/recording_archive_phase_trace.h" "$observer_run/catalog-instrumented.cpp" \
   "$observer_script/recording_current_observer_native.cpp" "${observer_libs[@]}" -o "$observer_run/normalize"
-if [[ "$1" == --generation-self-test ]];then
+if [[ "$1" == --metadata-self-test ]];then
+  node "$observer_script/recording_generation_observation.test.mjs" "$observer_run" --metadata-self-test
+elif [[ "$1" == --generation-self-test ]];then
   node "$observer_script/recording_generation_observation.test.mjs" "$observer_run"
 elif [[ "$1" == --self-test ]];then
   node "$observer_script/recording_current_observer.test.mjs" "$observer_run"
