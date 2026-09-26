@@ -98,7 +98,7 @@ struct Chain {
         return {name, static_cast<std::uint64_t>(bytes.size()), Hash(bytes)};
     }
     bool Read(const RecordingGenerationFile& file, const RecordingIdentityChainLimits& limits,
-              RecordingIdentityChainResult* result) {
+              RecordingIdentityChainResult* result, RecordingIdentityShardParseCache* cache = nullptr) {
         return ValidateRecordingIdentityShardChain(file,
             [&](const RecordingGenerationFile& descriptor, std::uint64_t limit,
                 std::string* bytes, std::string*) {
@@ -107,13 +107,48 @@ struct Chain {
                 if (found == files.end() || found->second.size() > limit) return false;
                 *bytes = found->second;
                 return true;
-            }, limits, result, &error);
+            }, limits, result, &error, cache);
     }
 };
 #endif
 } // namespace
 
 int main() {
+    {
+        Scenario s{"B11-O01-cache"};
+        const auto check=[&](bool ok,const char* name){s.Check(ok,name);std::cout << "[" << (ok?"pass":"fail") << "] B11-O01 " << name << '\n';};
+        RecordingIdentityShardParseCache cache(16384),none(0),small(1);
+        std::string raw;Encode(Base(),&raw);
+        std::shared_ptr<const RecordingIdentityShard> first,second;
+        check(cache.Parse(raw,&first,&error)&&first->rows.size()==3,"strict initial parsing");
+        check(cache.Parse(raw,&second,&error)&&second->rows.size()==3,"same bytes valid twice");
+#if MEDIA_SERVER_USE_OPENSSL
+        check(first==second&&cache.hits()==1&&cache.misses()==1&&cache.logical_bytes()<=16384,"bounded immutable reuse");
+#else
+        check(first!=second&&cache.hits()==0&&cache.logical_bytes()==0,"crypto off strict noncache fallback");
+#endif
+        auto before=second;
+        check(!cache.Parse(raw+" ",&second,&error)&&second==before,"noncanonical rejection preserves output");
+        const auto changed=Replace(raw,"mutation-a","mutation-b");
+        check(cache.Parse(changed,&second,&error)&&second!=first&&second->rows[1].mutation_id=="mutation-b","changed contents strictly reparse");
+        check(none.Parse(raw,&second,&error)&&none.logical_bytes()==0&&none.hits()==0,"zero budget accepts strict input");
+        check(small.Parse(raw,&second,&error)&&small.logical_bytes()==0&&small.hits()==0,"oversize value not retained");
+        cache.Clear();check(cache.logical_bytes()==0&&first->rows[1].mutation_id=="mutation-a","eviction keeps active immutable borrower");
+#if MEDIA_SERVER_USE_OPENSSL
+        Chain chain;const auto head=chain.Add(Base());RecordingIdentityChainResult result;
+        check(chain.Read(head,{100000,10,10},&result,&cache)&&result.physical_rows==3,"cached chain initial validation");
+        check(chain.Read(head,{100000,10,10},&result,&cache)&&result.first_acceptances.size()==2,"cached chain preserves retry semantics");
+        check(!chain.Read(head,{100000,1,10},&result,&cache),"cache never bypasses caller ID admission");
+        chain.files[head.name][5]='x';
+        check(!chain.Read(head,{100000,10,10},&result,&cache),"cache never bypasses descriptor digest");
+        chain.Add(Base());auto next=Base();next.generation=2;next.previous=head;
+        next.archives[0].name="evidence-2-0.jsonl";next.rows={next.rows[1]};next.rows[0].global_ordinal=10;next.rows[0].offset=0;
+        next.rows[0].identity=std::string(64,'d');const auto conflict=chain.Add(next);
+        check(!chain.Read(conflict,{100000,10,10},&result,&cache),"cached shards still reject cross-shard ID conflict");
+        next.rows[0].identity=std::string(64,'b');next.rows[0].global_ordinal=1;const auto overlap=chain.Add(next);
+        check(!chain.Read(overlap,{100000,10,10},&result,&cache),"cached shards still reject cross-shard ordinal overlap");
+#endif
+    }
 #if MEDIA_SERVER_USE_OPENSSL
     {
         Scenario s{"B02-H01"};

@@ -8,6 +8,24 @@
 관측 구조를 보완하고 있다. 그 앞의 표는 해당 실행 당시 이력이며 현재 전체 완료 판정이 아니다.
 실행 기록의 개별 source와 한계를 유지하고 새 장시간/UI·푸시는 이번 범위에 포함하지 않는다.
 
+## B11-O01 해석 재사용 준비 단위
+
+선택적 `RecordingIdentityShardParseCache`를 추가했다. 엄격 parser가 만든 불변 값만
+content hash에 결박해 보관하고, 새 입력·0/작은 예산·crypto-off는 기존 parser로 처리한다.
+chain의 descriptor hash·store/generation·순서·ID 충돌·호출자 admission은 매번 검사한다.
+기존 제품 호출은 기본 `nullptr`로 캐시를 사용하지 않는다. 실제 관측 세션 연결은 아직 검증 중이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-O01 parser·chain 회귀 | `bash scripts/internal/verify_recording_identity_shards.sh`, exit0; crypto-on14·off8 새 개별 검사 및 기존6 scenario | pass | [전수 원출력](b11-observer-cache.log). 동일 값/새 값·canonical/손상·0/작은 예산·ID/순서 반례 |
+| B11-O01 제품 build | `./server.sh build`, exit0; media_server100% | pass | [build 출력](b11-observer-build.log), 최초 configure/첫 compile은 도구 반환에서 확인했으며 파일에는 이후 출력 보존 |
+| B11-O01 TDD 절차 | 독립 RED보다 구현을 먼저 작성 | fail | 절차 누락을 기록하며 GREEN을 RED→GREEN으로 소급하지 않음. 위 실측 PASS 자체와 구분 |
+
+캐시 논리 상한은16MiB이며 RSS 상한이 아니다. 공유 대여 값은 eviction 뒤에도 해당 호출
+수명까지 유효하다. owned build fixture는 runner `removed=true`, 서버/포트 없음.
+token start/end/consumed 및 명령 전체 elapsed는 전용 집계 미보존으로 미집계다.
+문서 링크361개·14558 links·공백 검사 exit0. 관측·실제 규모·장시간/UI PASS는 아니다.
+
 ## 실행 범위와 증거 영향
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·기능 ID | 실행 승인 상태 |

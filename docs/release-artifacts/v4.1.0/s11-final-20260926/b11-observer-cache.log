@@ -1,0 +1,33 @@
+[pass] B11-O01 strict initial parsing
+[pass] B11-O01 same bytes valid twice
+[pass] B11-O01 bounded immutable reuse
+[pass] B11-O01 noncanonical rejection preserves output
+[pass] B11-O01 changed contents strictly reparse
+[pass] B11-O01 zero budget accepts strict input
+[pass] B11-O01 oversize value not retained
+[pass] B11-O01 eviction keeps active immutable borrower
+[pass] B11-O01 cached chain initial validation
+[pass] B11-O01 cached chain preserves retry semantics
+[pass] B11-O01 cache never bypasses caller ID admission
+[pass] B11-O01 cache never bypasses descriptor digest
+[pass] B11-O01 cached shards still reject cross-shard ID conflict
+[pass] B11-O01 cached shards still reject cross-shard ordinal overlap
+B11-O01-cache PASS
+B02-H01 PASS
+B02-H02 PASS
+B02-H03 PASS
+B02-H04 PASS
+B02-H05 PASS
+[pass] B11-O01 strict initial parsing
+[pass] B11-O01 same bytes valid twice
+[pass] B11-O01 crypto off strict noncache fallback
+[pass] B11-O01 noncanonical rejection preserves output
+[pass] B11-O01 changed contents strictly reparse
+[pass] B11-O01 zero budget accepts strict input
+[pass] B11-O01 oversize value not retained
+[pass] B11-O01 eviction keeps active immutable borrower
+B11-O01-cache PASS
+B02-H06 PASS
+[cleanup] removed=true
+
+[command-result] exit=0

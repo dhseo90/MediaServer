@@ -16,6 +16,18 @@ B10 실패를 보존하며 아래 준비/회귀 PASS로 120분 완료를 주장�
 | B11-O01 | 증분 관측 안전성 | generation observer 자체검사의 append/rotation/부분 행/중복/변경 prefix/교체/손상/busy와 새 재사용 경계. 원문 비출력·정리 | v4.1.0 |
 | B11-O02 | 실측 재현 및 누적 | 보존 B10 metadata hash 확인 후 read-only 관측, 실제와 같은 상세 분포의 누적 current/cold 비용. 기존 native3초·32MiB·15초 기준 유지 | v4.1.0 |
 
+B11-O01 실행 전 세부 등록: `verify_recording_identity_shards.sh`의 선택적 parser 캐시는
+같은 bytes 재사용·변경 bytes 재파싱·잘못된 canonical 거부·0/작은 예산 fallback·체인 중복/순서
+검사 유지·crypto-off를 확인한다. `verify_recording_current_observer.sh --generation-self-test`는
+기존15개에 persistent session의 순차/동시 요청·append/회전/부분 행/busy/128+2 batch,
+root/immutable 파일 교체·손상·prefix 불일치, malformed/추가 출력/조기 종료,
+3초 timeout·32MiB 출력 상한·stderr 상한, EOF/TERM/KILL 및 pending 취소/실제 종료를 추가한다.
+각 경우 failure latch와 raw 비출력·orphan 부재를 확인한다. longrun은 모든 drain 및 최종
+closeAsync를 await하는 구조를 검사하며 실제 장시간 실행은 하지 않는다.
+캐시는 엄격 parser의 불변 값만 보관하고 매 호출 파일 읽기/SHA·체인 의미·prefix 검사를 유지한다.
+snapshot·identity 재해석 비용 감소이지 전체 이력 검사의 상수 시간화가 아니다. source/구문,
+관련 build·기존 observer/reader/progress 회귀와 diff 검사를 승인 범위에서 실행한다.
+
 B11-P02 실제 자료의 호환 하위 검사는 `bash scripts/internal/verify_recording_generation_scale.sh receipt-compat`다.
 보존 archive88개를 hash 대조하여 작업 전용 root에 풀고, 원본 snapshot+active의 문자열 ID·channel·checksum과
 상태·mapping 개수로 별도 기대표를 만든다. UTC/PTS 숫자를 JS로 재직렬화해 제품에 주입하지 않는다.

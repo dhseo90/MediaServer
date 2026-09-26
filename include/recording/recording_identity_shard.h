@@ -5,6 +5,8 @@
 #include "recording/recording_order_history_snapshot.h"
 #include <functional>
 #include <optional>
+#include <memory>
+#include <unordered_map>
 
 namespace recording {
 struct RecordingIdentityRow {
@@ -55,6 +57,23 @@ using RecordingIdentityShardLoader = std::function<bool(const RecordingGeneratio
     std::uint64_t byte_limit, std::string* bytes, std::string* error)>;
 bool SerializeRecordingIdentityShard(const RecordingIdentityShard&, std::string*, std::string* error);
 bool ParseRecordingIdentityShard(const std::string&, RecordingIdentityShard*, std::string* error);
+// 엄격 parser가 만든 불변 값만 보관한다. 파일/세대/체인 권위는 아니며 호출마다 원문을
+// SHA로 다시 확인한다. 예산 초과는 캐시하지 않을 뿐 정상 입력을 거부하지 않는다.
+// 단일 호출자 소유이며 기본 제품 경로는 이 선택적 캐시를 사용하지 않는다.
+class RecordingIdentityShardParseCache {
+public:
+    explicit RecordingIdentityShardParseCache(std::size_t max_bytes)
+        : max_bytes_(max_bytes > 16U*1024*1024 ? 16U*1024*1024 : max_bytes) {}
+    void Clear() { entries_.clear(); bytes_ = 0; }
+    bool Parse(const std::string&, std::shared_ptr<const RecordingIdentityShard>*, std::string* error);
+    std::size_t logical_bytes() const { return bytes_; }
+    std::size_t hits() const { return hits_; }
+    std::size_t misses() const { return misses_; }
+private:
+    struct Entry { std::shared_ptr<const RecordingIdentityShard> value; std::size_t raw_bytes; };
+    std::size_t max_bytes_, bytes_{0}, hits_{0}, misses_{0};
+    std::unordered_map<std::string, Entry> entries_;
+};
 // 이전 shard를 한 개씩 읽으며 임의 길이 chain을 검사한다. limits는 호출자 자원 admission이며
 // 영속 형식 상한/제품 RSS 보장이 아니다. head부터 모든 descriptor 길이/SHA를 확인한다.
 // 결과는 원문 mutation 의미·archive bytes·snapshot 완전성의 검증 증거가 아니다.
@@ -64,5 +83,5 @@ bool ParseRecordingIdentityShard(const std::string&, RecordingIdentityShard*, st
 // 암호 없는 빌드에서도 값 codec은 작동하지만 chain 검증은 unsupported로 거부한다.
 bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
     const RecordingIdentityShardLoader&, const RecordingIdentityChainLimits&,
-    RecordingIdentityChainResult*, std::string* error);
+    RecordingIdentityChainResult*, std::string* error, RecordingIdentityShardParseCache* cache = nullptr);
 } // namespace recording

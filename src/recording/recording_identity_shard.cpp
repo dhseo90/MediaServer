@@ -313,11 +313,43 @@ bool ParseRecordingIdentityShard(const std::string& raw, RecordingIdentityShard*
     if (error) error->clear();
     return true;
 }
+bool RecordingIdentityShardParseCache::Parse(const std::string& bytes,
+    std::shared_ptr<const RecordingIdentityShard>* output, std::string* error) {
+    if (!output) return Fail(error, "identity cache output missing");
+    std::string key;
+#if MEDIA_SERVER_USE_OPENSSL
+    unsigned char digest[32]; unsigned length = 0;
+    if (EVP_Digest(bytes.data(), bytes.size(), digest, &length, EVP_sha256(), nullptr) != 1 || length != 32)
+        return Fail(error, "identity cache digest failed");
+    constexpr char hex[] = "0123456789abcdef";
+    for (auto byte : digest) { key += hex[byte >> 4]; key += hex[byte & 15]; }
+    const auto found = entries_.find(key);
+    if (found != entries_.end() && found->second.raw_bytes == bytes.size()) {
+        ++hits_; *output = found->second.value; if (error) error->clear(); return true;
+    }
+#endif
+    ++misses_;
+    auto parsed = std::make_shared<RecordingIdentityShard>();
+    if (!ParseRecordingIdentityShard(bytes, parsed.get(), error)) return false;
+    // JSON 원문 배수와 고정 DTO 비용을 합친 논리 보관 예산이다. RSS 상한은 아니다.
+    // 개수·길이는 parser 입력 bytes에 제한되며 덧셈/곱셈 전 admission을 확인한다.
+    if (!key.empty() && bytes.size() <= max_bytes_ / 4 &&
+        parsed->rows.size() <= max_bytes_ / sizeof(RecordingIdentityRow) &&
+        parsed->archives.size() <= max_bytes_ / sizeof(RecordingGenerationFile)) {
+        const auto charge = bytes.size() * 4 + parsed->rows.size() * sizeof(RecordingIdentityRow) +
+            parsed->archives.size() * sizeof(RecordingGenerationFile) + sizeof(Entry) + sizeof(RecordingIdentityShard) + 64;
+        if (charge <= max_bytes_) {
+            if (bytes_ > max_bytes_ - charge) { entries_.clear(); bytes_ = 0; }
+            entries_.emplace(key, Entry{parsed, bytes.size()}); bytes_ += charge;
+        }
+    }
+    *output = std::move(parsed); return true;
+}
 bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
     const RecordingIdentityShardLoader& loader, const RecordingIdentityChainLimits& limits,
-    RecordingIdentityChainResult* output, std::string* error) {
+    RecordingIdentityChainResult* output, std::string* error, RecordingIdentityShardParseCache* cache) {
 #if !MEDIA_SERVER_USE_OPENSSL
-    (void)head; (void)loader; (void)limits; (void)output;
+    (void)head; (void)loader; (void)limits; (void)output; (void)cache;
     return Fail(error, "identity chain unsupported without OpenSSL");
 #else
     if (!output || !loader || !limits.max_shard_bytes || !limits.max_unique_ids || !limits.max_archives)
@@ -339,8 +371,11 @@ bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
         std::string bytes;
         if (!loader(descriptor, limits.max_shard_bytes, &bytes, error) || !DigestMatches(bytes, descriptor))
             return Fail(error, "identity chain bytes/hash mismatch");
-        RecordingIdentityShard shard;
-        if (!ParseRecordingIdentityShard(bytes, &shard, error) || shard.generation != generation ||
+        RecordingIdentityShard parsed;
+        std::shared_ptr<const RecordingIdentityShard> reused;
+        if (cache ? !cache->Parse(bytes, &reused, error) : !ParseRecordingIdentityShard(bytes, &parsed, error)) return false;
+        const auto& shard = cache ? *reused : parsed;
+        if (shard.generation != generation ||
             (!store.empty() && store != shard.store_id)) return Fail(error, "identity chain generation/store mismatch");
         store = shard.store_id;
         if (!shard.rows.empty()) {
