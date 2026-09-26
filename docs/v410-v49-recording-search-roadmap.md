@@ -6,12 +6,14 @@
   실제 두 기동에서 각각 새 출력 2개·HTTP/파일 hash·기존 자료 보존·정리와
   timeline 최대 3,717ms(기존 4초 기준)를 확인했다. 9번의 코드 고정·최종 단기는
   빌드·인증·환경·문서·인벤토리·버전·정리를 확인해 로컬 범위에서 완료했다.
-  30분·실제 UI·필요120분의 새 증거와 S11 전체는 미완료다.
+  최종 소스 30분은 최초 권한·주석 gate 실패를 수정한 뒤 20회·109 PASS로
+  통과했다. 실제 UI·녹화 전용120분 및 S11 전체는 미완료다.
   [기존 누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)과
   [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
   [회수 후 누적 결과](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md),
   [실제 앱·실패 이력](release-artifacts/v4.1.0/b08-actual-app-20260925/results.md),
-  [최종 단기·영향 판정](release-artifacts/v4.1.0/b09-final-short-20260926/results.md)을 구분한다.
+  [최종 단기·영향 판정](release-artifacts/v4.1.0/b09-final-short-20260926/results.md)과
+  [최종 30분 실행](release-artifacts/v4.1.0/s11-final-20260926/results.md)을 구분한다.
   아래 S10 고정·S11 통과 표시는 당시 증거의 이력이며 이후 B 변경의 완료를 뜻하지 않는다.
 
 - 2026-09-24 O29 선행 판정: O28 후속 순차 개발에서 저장 처리 수명과 복구 원자성 경계를 확인했다.
