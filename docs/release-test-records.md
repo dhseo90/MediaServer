@@ -12,7 +12,7 @@
 | --- | --- | --- | --- |
 | B10-U01 | 메모리 UI driver·비밀 수명 | `node scripts/internal/recording_ui_driver_boundary.test.mjs`: UI 외 mode 거부, 신규 임시값 전달·handoff 미생성·보유 참조 해제·비출력 오류 확인 | v4.1.0 |
 | B10-U02 | driver 실패·취소·정리 | 같은 자체검사에서 정상/실패/timeout·AbortSignal·기존 cleanup 전파. 기존 UA/SF 준비 검사와 Range proxy 반례를 영향 회귀로 실행 | v4.1.0 |
-| B10-U03 | 녹화 UI 증거 수집 | 신규 runner의 옵션·31개 action 정의·비밀 제거·artifact containment/hash·실패 보존을 단기 자체검증. raw trace나 cookie·비밀번호 파일을 결과에 복사하지 않음 | v4.1.0 |
+| B10-U03 | 녹화 UI 증거 수집 | `node scripts/internal/recording_ui_acceptance.test.mjs`: 신규 runner의 옵션·31개 action 정의·비밀 제거·artifact containment/hash·실패 보존을 단기 자체검증. raw trace나 cookie·비밀번호 파일을 결과에 복사하지 않음 | v4.1.0 |
 | B10-U04 | 실제 I30 집중 | `node scripts/internal/run_recording_ui_acceptance.mjs --focus-i30 --output-dir <소유 경로>`: 실제 로그인·선택·native 재생/일시정지/탐색과 시간·프레임·Range 상관, crash/console·브라우저 버전·스크린샷·정리. 기존 인앱 renderer exit5는 과거 실패로 보존 | v4.1.0 |
 | B10-U05 | 실제 녹화 UI 전수 | 동일 runner `--all`: 기존 I27~I34 8 ID·31 action은 manual-ui-result-template의 개별 정의대로 실행. 자동화 증거와 메인 시각 검토·적격 판정을 결합하며 424 qualifier와 구분 | v4.1.0 |
 | B10-L01 | 녹화120분·자원 | UI 마감 후 `./server.sh verify-v410-recording-longrun --duration-minutes 120`: 현행 상한·생성/보존/삭제/복구·HTTP/관측 주기·RSS와 정리. 기존 공통120분의 승계 범위는 별도 diff 판정 | v4.1.0 |
@@ -27,7 +27,13 @@ U03 실행기 초안은 메인 검토에서 느슨한 판정·실패 보존 누�
 
 B10-U03/U04: 메인 회수·보완 후 자체검사6/6, 실제 I30 최종3/3·정리 PASS.
 두 차례 탐색 oracle 실패와 0.1초 키 이동 원인을 [전수 결과](release-artifacts/v4.1.0/s11-final-20260926/b10-i30.md)에 보존했다.
-제품 코드 변경은 없다. B10-U05 전체31 action과 L01은 아직 미실행이다.
+제품 코드 변경은 없다. 위 시점의 B10-U05/L01은 미실행이었다.
+
+B10-U05는 후속 실행에서 최종31/31·실제8개 viewport/theme·메인 시각 적격·정리를 통과했다.
+최초 검증기/fixture 실패 및 전체 조작 통과 후 console·시각 보완을
+[개별 결과와 판정](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md)에 보존했다.
+자체검사9/9·driver6/6, 제품 SHA 불변이며 공통424와 합친 UI432 ID는 적격이다.
+L01 녹화120분·자원 및 S11 전체 마감은 아직 남아 있다.
 
 ## B-07 누적·실제 통합 실행 전 정의 (2026-09-25)
 

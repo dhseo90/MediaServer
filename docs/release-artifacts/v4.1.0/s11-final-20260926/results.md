@@ -114,3 +114,12 @@ Codex 로컬 로그에서 해당 시각 renderer `reason=crashed`, `exitCode=5`�
 검사 실패 두 회를 보존한 뒤 최종3/3·정리를 통과했다. 제품 변경은 없고,
 31 action·전체 시각 적격 및 120분은 다음 단계다. 임시 증거 세 root는
 36파일 원본 byte 대조 후 제거했으며 필요한 증거는 약3.9MB 압축본으로 복구할 수 있다.
+
+## B10 녹화 UI 최종 교차 판정
+
+[전수 결과](b10-ui.md): 최종31/31 action, 실제8개 viewport/theme의 필터·영상/control,
+역할/scope·console·redaction·hash·정리를 메인이 대조해 추가8 ID를 적격으로 판정했다.
+baseline424와 합친 현재 UI 대상432 ID를 충족한다. 이전 실패와 native Chrome fallback은
+그대로 보존하며, runner의 자동 uiFulltestPass=false를 수정하지 않았다.
+제품 SHA는 이전30분·424 실행과 같고 검증기·격리 fixture만 보완했다.
+다음은 승인된 녹화120분·자원 판정이며 아직 실행하지 않았다.

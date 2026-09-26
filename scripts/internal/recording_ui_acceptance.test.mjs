@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {RECORDING_UI_ACTIONS,createResultManifest,parseAcceptanceArgs,prepareOutputDirectory,redactAcceptanceText,writeSanitizedArtifact,findSeekSeedItem,findTimelinePosition,validateI30Observation} from './run_recording_ui_acceptance.mjs';
+import {RECORDING_UI_ACTIONS,createResultManifest,parseAcceptanceArgs,prepareOutputDirectory,redactAcceptanceText,writeSanitizedArtifact,findSeekSeedItem,findTimelinePosition,validateI30Observation,assessRecordingConsole} from './run_recording_ui_acceptance.mjs';
+import {recordingGeometry,foreignPlayableMedia} from './recording_ui_after_playback.mjs';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-recording-ui-acceptance-test-'));let pass=0,fail=0;
 function check(name,fn){try{fn();pass++;console.log(`PASS: ${name}`);}catch(error){fail++;console.log(`FAIL: ${name}: ${error.message}`);}}
 try {
@@ -25,6 +26,24 @@ try {
     const good={metadata:{duration:10,videoWidth:1280,videoHeight:720,readyState:1},beforePlay:{paused:true,currentTime:0,frames:0},afterPlay:{paused:false,currentTime:1,frames:2},beforePause:{currentTime:1},afterPause:{paused:true,currentTime:1.01,elapsedMs:350},beforeSeek:{currentTime:1,frames:2},afterSeek:{currentTime:6,frames:3,seekingObserved:true,seekedObserved:true},media:[{id:'seek',status:206,range:'bytes=0-',contentRange:'bytes 0-1/10'}],selectedId:'seek'};
     assert.equal(validateI30Observation(good),true);
     for(const bad of [{...good,afterPlay:{...good.afterPlay,currentTime:0,frames:0}},{...good,afterPause:{...good.afterPause,currentTime:2}},{...good,media:[]},{...good,media:[{...good.media[0],id:'wrong'}]},{...good,afterSeek:{...good.afterSeek,frames:2}},{...good,media:[{...good.media[0],range:''}]}])assert.throws(()=>validateI30Observation(bad));
+  });
+  check('AU07 geometry는 화면 밖 control·빈 label·숨김을 거부한다',()=>{
+    const n={visible:true,width:100,height:30,left:10,right:110,label:'시간'};
+    assert(recordingGeometry([n],320));
+    for(const bad of [{...n,right:322},{...n,label:''},{...n,visible:false},{...n,width:0}])assert.throws(()=>recordingGeometry([bad],320));
+  });
+  check('AU08 타 채널 영상은 시간 확인·미확인 양쪽에서 찾고 미재생 행은 거부한다',()=>{
+    const row={playable:true,playbackUrl:'/ops/api/recordings/media/opaque'};
+    assert.equal(foreignPlayableMedia({items:[row],unplacedItems:[]}),row.playbackUrl);
+    assert.equal(foreignPlayableMedia({items:[],unplacedItems:[row]}),row.playbackUrl);
+    assert.equal(foreignPlayableMedia({items:[{...row,playable:false}],unplacedItems:[]}),null);
+  });
+  check('AU09 console은 같은 세션·action·유일 응답·명시 계약에만 결속한다',()=>{
+    const c={type:'error',text:'Failed to load resource: the server responded with a status of 403 (Forbidden)',session:1,action:'I34-operator',route:'/ops/api/users',at:3};
+    const n={requestId:1,session:1,action:c.action,route:c.route,method:'GET',status:403,at:2};
+    const e={session:1,action:c.action,route:c.route,status:403};
+    assert.equal(assessRecordingConsole([c],[n],[e]).unapproved.length,0);
+    for(const [messages,network,expected] of [[[c],[n],[]],[[{...c,session:2}],[n],[e]],[[c],[{...n,action:'other'}],[e]],[[c],[n,{...n,requestId:2}],[e]],[[{...c,type:'warning'}],[n],[e]],[[c,c],[n],[e]]])assert(assessRecordingConsole(messages,network,expected).unapproved.length>0);
   });
 } finally {fs.rmSync(root,{recursive:true,force:true});}
 console.log(JSON.stringify({pass,fail,actualUi:false}));process.exitCode=fail?1:0;

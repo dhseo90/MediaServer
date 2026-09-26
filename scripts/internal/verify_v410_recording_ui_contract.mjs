@@ -780,7 +780,8 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
     }
     const env = (mode === '--http-auth' || uiAuth)
       ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto',
-        ...(uiAuth ? {MEDIA_SERVER_WEBRTC_STUN_SERVER:`stun://127.0.0.1:${uiUdpPort}`,MEDIA_SERVER_WEBRTC_TURN_SERVER:''} : {}) })
+        // 채널 편집 UI의 파일 선택 목록은 격리 input을 읽는 /lab/files를 사용한다.
+        ...(uiAuth ? {MEDIA_SERVER_ENABLE_LAB:'1',MEDIA_SERVER_WEBRTC_STUN_SERVER:`stun://127.0.0.1:${uiUdpPort}`,MEDIA_SERVER_WEBRTC_TURN_SERVER:''} : {}) })
       : mode === '--ui-direct'
         ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_ENABLE_LAB: '1' })
         : isolatedEnv;

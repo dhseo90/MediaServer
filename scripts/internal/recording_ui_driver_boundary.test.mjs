@@ -49,6 +49,7 @@ try {
     assert.equal(driverBranch.includes('writeUiLoginHandoff('),true);
     assert(driverBranch.indexOf('writeUiLoginHandoff(')>driverBranch.indexOf('} else {'));
     assert(source.includes('finishRecordingUiProxy(uiProxy, () => cleanupHarnessResources({ child, rtspPort, httpPort, root }))'));
+    assert(source.includes("uiAuth ? {MEDIA_SERVER_ENABLE_LAB:'1',MEDIA_SERVER_WEBRTC_STUN_SERVER:"));
   });
   await check('DB06 관측 실패는 driver를 취소하고 정리 후 실패로 남긴다',async()=>{
     let cleaned=false;

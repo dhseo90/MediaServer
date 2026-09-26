@@ -8,8 +8,10 @@
   빌드·인증·환경·문서·인벤토리·버전·정리를 확인해 로컬 범위에서 완료했다.
   최종 소스 30분은 최초 권한·주석 gate 실패를 수정한 뒤 20회·109 PASS로
   통과했다. 실제 브라우저 공통 UI 424개도 Policy v4 적격으로 통과했다.
-  녹화 UI 8 ID·31 action은 일부 조작 후 인앱 브라우저 탭 충돌로 미완료다.
-  순차 조건상 녹화 전용120분을 실행하지 않았고 S11 전체는 미완료다.
+  녹화 UI의 이전 인앱 탭 충돌은 보존하고, 새 임시 계정의 native Chrome 실행으로
+  8 ID·31 action·8 viewport/theme·역할·정리와 메인 시각 적격을 마쳤다.
+  [UI 전수·실패 이력](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md)을 따른다.
+  녹화 전용120분·자원 및 S11 전체 마감은 아직 미완료다.
   [기존 누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)과
   [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
   [회수 후 누적 결과](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md),

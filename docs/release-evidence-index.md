@@ -1,5 +1,9 @@
 # Release Evidence Index
 
+- [2026-09-26 B10 녹화 UI 전수·시각 적격](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md):
+  실제31 action·8 viewport/theme·역할·정리 PASS, 메인 hybrid 적격. 기존424를 포함한
+  UI432 ID 충족. 최초 준비/검증기 실패 보존, 녹화120분·S11 전체는 별도 미완료.
+
 - [2026-09-26 B10 녹화 UI 준비 보완](release-artifacts/v4.1.0/s11-final-20260926/b10-ui-prep.md):
   메모리 계정 전달·취소·관측 경계 6개, 기존 인증/seed 21개·Range proxy 11개 PASS.
   이전 인앱 renderer 충돌 이력은 보존하며 실제 I30/31 action·녹화120분은 별도다.

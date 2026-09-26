@@ -8,6 +8,8 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {resolvePlaywrightModule,resolveNativeBrowserExecutable,secretStrippedBrowserEnv} from './v390_ui_native_adapter.mjs';
 import {runVerifier} from './verify_v410_recording_ui_contract.mjs';
+import {runRecordingBeforePlayback} from './recording_ui_before_playback.mjs';
+import {runRecordingAfterPlayback} from './recording_ui_after_playback.mjs';
 
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const actionRows=Object.freeze([
@@ -102,33 +104,47 @@ async function loginVisible(page,base,account){
   await page.locator('input[name="password"]').fill(account.password);
   await Promise.all([page.waitForURL(url=>url.pathname!=='/login'),page.locator('button[type="submit"]').click()]);
 }
+export function assessRecordingConsole(consoleRows,network,expectedErrors){
+  const consumed=new Set(),approved=[],unapproved=[];
+  for(const row of consoleRows.filter(r=>['error','warning','pageerror','crash'].includes(r.type))){
+    const status=Number(/^Failed to load resource: the server responded with a status of (\d+) \([^)]+\)$/.exec(row.text)?.[1]);
+    const candidates=network.filter(n=>!consumed.has(n.requestId)&&n.session===row.session&&n.action===row.action&&n.route===row.route&&n.status===status&&n.method==='GET'&&n.at<=row.at);
+    const latest=Math.max(...candidates.map(n=>n.at)),nearest=candidates.filter(n=>n.at===latest);
+    const contract=expectedErrors.find(e=>e.action===row.action&&e.route===row.route&&e.status===status&&(e.session===undefined||e.session===row.session));
+    if(row.type!=='error'||nearest.length!==1||!contract){unapproved.push(row);continue;}
+    consumed.add(nearest[0].requestId);approved.push({console:row,response:nearest[0],contract});
+  }
+  return {approved,unapproved,expectedErrors};
+}
 export async function runRecordingUiAcceptance(context,options){
   const root=prepareOutputDirectory(options.outputDir),results=createResultManifest(options.mode);
   const secrets=context.accounts.map(a=>a.password),artifacts=[],trace=[],consoleRows=[],media=[],pending=[],network=[];
   const resolved=resolvePlaywrightModule(),executablePath=resolveNativeBrowserExecutable();
-  let browser,page,failure=null,active=null,browserClosed=false,browserVersion=null,observationFailed=false;
+  let browser,page,failure=null,active=null,browserClosed=false,browserVersion=null,observationFailed=false,principal=null,sessionSequence=0,responseSequence=0;
+  const expectedErrors=[];
   const events={seeking:0,seeked:0};
   const write=(name,value)=>{const file=safeJoin(root,name);fs.writeFileSync(file,JSON.stringify(safeValue(value,secrets),null,2)+'\n',{mode:0o600,flag:'wx'});const artifact={path:name,sha256:hashFile(file),bytes:fs.statSync(file).size};artifacts.push(artifact);return artifact;};
   const screenshot=async name=>{
-    assert(page&&new URL(page.url()).pathname!=='/login','credential page capture forbidden');
-    const file=safeJoin(root,name+'.png');await page.screenshot({path:file,fullPage:true});
+    assert(page,'page capture required');
+    assert(await page.locator('input[type="password"]').evaluateAll(nodes=>nodes.every(node=>!node.value)),'credential page capture forbidden');
+    const file=safeJoin(root,name+'.png');await page.screenshot({path:file,fullPage:false});
     const artifact={path:name+'.png',sha256:hashFile(file),bytes:fs.statSync(file).size};artifacts.push(artifact);return artifact;
   };
   const snapshot=()=>page.locator('#opsRecordingPlayer').evaluate(node=>({paused:node.paused,currentTime:node.currentTime,readyState:node.readyState,duration:Number.isFinite(node.duration)?node.duration:null,videoWidth:node.videoWidth,videoHeight:node.videoHeight,frames:node.getVideoPlaybackQuality().totalVideoFrames,src:node.getAttribute('src'),error:node.error?.code??null,focused:document.activeElement===node}));
   const abort=()=>{if(browser)void browser.close().catch(()=>{observationFailed=true;});};
   const action=async(id,fn)=>{
     const row=results.find(r=>r.id===id);assert(row&&row.status==='notRun','duplicate action');active=row;
-    const startedAt=new Date().toISOString();trace.push({id,phase:'begin',at:startedAt,requestedRole:'admin',requestedScope:['*'],viewport:{width:1180,height:900},theme:'light'});
-    try{const detail=await fn();row.evidence.push(write(id+'.json',{id,startedAt,completedAt:new Date().toISOString(),detail}),await screenshot(id));row.status='pass';}
+    const startedAt=new Date().toISOString();trace.push({id,phase:'begin',at:startedAt,principal,viewport:page.viewportSize(),theme:await page.locator('html').getAttribute('data-theme')});
+    try{const detail=await fn();row.evidence.push(write(id+'.json',{id,startedAt,completedAt:new Date().toISOString(),observedViewport:page.viewportSize(),observedTheme:await page.locator('html').getAttribute('data-theme'),detail}),await screenshot(id));row.status='pass';}
     catch(error){row.status='fail';row.reason=redactAcceptanceText(error.message,secrets);throw error;}
-    finally{trace.push({id,phase:'end',at:new Date().toISOString(),status:row.status});}
+    finally{trace.push({id,phase:'end',at:new Date().toISOString(),status:row.status,principal});}
   };
   let timeline=null;
-  async function timelineAction(trigger,offset=0){
+  async function timelineAction(trigger,offset=0,expectedSeed=true){
     const wait=page.waitForResponse(r=>{const u=new URL(r.url());return u.pathname==='/ops/api/recordings/timeline'&&u.searchParams.get('offset')===String(offset)&&r.request().method()==='GET';});
     const [response]=await Promise.all([wait,trigger()]);assert(response.status()===200,'timeline HTTP status');timeline=await response.json();
-    const expected=context.seed.pages[offset/100];assert(expected,'expected seed page');
-    assert(JSON.stringify(timeline)===JSON.stringify(expected),'timeline differs from independent C++ seed');
+    if(expectedSeed){const expected=context.seed.pages[offset/100];assert(expected,'expected seed page');
+      assert(JSON.stringify(timeline)===JSON.stringify(expected),'timeline differs from independent C++ seed');}
     const originals=await page.locator('#opsRecordingOriginalView').isChecked();
     const visible=timeline.items.filter(r=>originals||r.kind==='event'||!r.hideByEvent);
     await page.waitForFunction(({known,unknown})=>document.querySelectorAll('#opsRecordingTimelineRows button').length===known&&document.querySelectorAll('#opsRecordingUnplacedRows button').length===unknown,{known:visible.length,unknown:timeline.unplacedItems.length});
@@ -141,29 +157,56 @@ export async function runRecordingUiAcceptance(context,options){
     for(let p=1;p<=index;p++)await timelineAction(()=>page.locator('#opsRecordingNext').click(),p*100);
     const position=findTimelinePosition(timeline,row.itemId,true),button=page.locator(position.selector).nth(position.index);
     assert(await button.isVisible()&&await button.isEnabled(),'row visible/enabled');await button.click();
-    await page.waitForFunction(url=>document.querySelector('#opsRecordingPlayer').getAttribute('src')===url,row.playbackUrl);
+    await page.waitForFunction(url=>document.querySelector('#opsRecordingPlayer').getAttribute('src')===(url||null),row.playable?row.playbackUrl:null);
     assert(await page.locator(position.selector).nth(position.index).getAttribute('aria-pressed')==='true','selected row state');
     return {itemId:row.itemId,segmentId:row.segmentId,selector:position.selector,index:position.index,src:(await snapshot()).src};
   }
-  try{
-    assert(!context.signal.aborted,'cancelled before launch');
-    browser=await resolved.playwright.chromium.launch({headless:true,executablePath,env:secretStrippedBrowserEnv(),args:['--no-first-run']});browserVersion=browser.version();
-    context.signal.addEventListener('abort',abort,{once:true});
+  async function attachPage(){
+    const session=++sessionSequence;
     const browserContext=await browser.newContext({viewport:{width:1180,height:900},colorScheme:'light',locale:'ko-KR'});
     page=await browserContext.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
-    page.on('console',message=>consoleRows.push({type:message.type(),text:redactAcceptanceText(message.text(),secrets),at:Date.now()}));
+    page.on('console',message=>{let route='';try{route=new URL(message.location().url).pathname;}catch{}consoleRows.push({type:message.type(),text:redactAcceptanceText(message.text(),secrets),route,session,action:active?.id??'preparation',at:Date.now()});});
     page.on('pageerror',error=>consoleRows.push({type:'pageerror',text:redactAcceptanceText(error.message,secrets),at:Date.now()}));
     page.on('crash',()=>consoleRows.push({type:'crash',text:'renderer crashed',at:Date.now()}));
-    page.on('response',response=>{const job=(async()=>{const u=new URL(response.url()),route=u.pathname;if(route.startsWith('/ops/api/recordings/'))network.push({route,status:response.status(),at:Date.now()});const item=await captureMediaResponse(response);if(item)media.push({...item,at:Date.now()});})();pending.push(job.catch(()=>{observationFailed=true;}));});
+    page.on('response',response=>{const job=(async()=>{const u=new URL(response.url()),route=u.pathname;if(route.startsWith('/ops/')||route==='/login')network.push({requestId:++responseSequence,route,method:response.request().method(),session,action:active?.id??'preparation',status:response.status(),at:Date.now()});const item=await captureMediaResponse(response);if(item)media.push({...item,at:Date.now()});})();pending.push(job.catch(()=>{observationFailed=true;}));});
     await page.exposeFunction('__recordingUiMediaEvent',type=>{if(type==='seeking'||type==='seeked')events[type]++;});
     // 읽기 전용 이벤트 관측만 설치한다. play/pause/currentTime 변경은 실제 control로 수행한다.
     await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const video=document.querySelector('#opsRecordingPlayer');if(video)for(const type of ['seeking','seeked'])video.addEventListener(type,()=>window.__recordingUiMediaEvent(type));}));
-    await loginVisible(page,context.baseUrl,context.accounts[0]);
+  }
+  async function switchAccount(index){
+    if(page)await page.context().close();await attachPage();principal=null;
+    if(index===null)return;
+    const account=context.accounts[index];await loginVisible(page,context.baseUrl,account);
+    const response=await page.request.get(context.baseUrl+'/auth/whoami');assert(response.status()===200,'actual principal HTTP');
+    const who=await response.json();assert(who.authenticated&&who.username===account.username&&who.role===account.role,'actual principal mismatch');
+    if(account.scopes)assert(JSON.stringify([...who.scopes].sort())===JSON.stringify([...account.scopes].sort()),'actual scopes mismatch');
+    const landing=who.role==='viewer'?'/client/live':'/ops/home';assert(new URL(page.url()).pathname===landing,'role landing mismatch');
+    principal={requestedRole:account.role,requestedScopes:account.scopes??['*'],observedRole:who.role,observedScopes:who.scopes,landing,session:sessionSequence};
+    if(who.role==='operator'){
+      const hasOps=who.scopes.includes('ops:read');
+      if(hasOps){
+        await page.waitForFunction(()=>document.querySelector('#homeUserCount')?.textContent==='권한 없음');
+        expectedErrors.push({action:active.id,session:sessionSequence,route:'/ops/api/users',status:403,reason:'기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인'});
+      }else{
+        assert((await page.locator('body').innerText()).includes('Access Denied'),'no-ops landing guard');
+        expectedErrors.push({action:active.id,session:sessionSequence,route:'/ops/home',status:403,reason:'로그인 landing의 ops:read 거부'});
+      }
+    }
+  }
+  async function openRecordings(){
     await page.goto(context.baseUrl+'/ops/events',{waitUntil:'networkidle'});
     await page.locator('#opsRecordingStartTime').fill(dateLocal(floorMinute(context.seed.startTimeMs)));
     await page.locator('#opsRecordingEndTime').fill(dateLocal(ceilMinute(context.seed.endTimeMs)));
     if(await page.locator('#opsRecordingChannelFilter').inputValue()!=='1')await timelineAction(()=>page.locator('#opsRecordingChannelFilter').selectOption('1'));
     await timelineAction(()=>page.locator('#opsRecordingLoad').click());
+  }
+  const harness={get page(){return page;},context,action,timelineAction,selectSeedRow,snapshot,getTimeline:()=>timeline,network,write,screenshot,switchAccount,openRecordings,getPrincipal:()=>principal,expectedErrors};
+  try{
+    assert(!context.signal.aborted,'cancelled before launch');
+    browser=await resolved.playwright.chromium.launch({headless:true,executablePath,env:secretStrippedBrowserEnv(),args:['--no-first-run']});browserVersion=browser.version();
+    context.signal.addEventListener('abort',abort,{once:true});
+    await switchAccount(0);await openRecordings();
+    if(options.mode==='--all')await runRecordingBeforePlayback(harness);
     const selected=await selectSeedRow(findSeekSeedItem(context.seed)),video=page.locator('#opsRecordingPlayer');
     await page.waitForFunction(()=>{const v=document.querySelector('#opsRecordingPlayer');return v.readyState>=2&&v.duration>0;});
     const metadata=await snapshot();assert(metadata.duration>=9.95&&metadata.duration<=10.1,'selected 10 second fixture');
@@ -192,8 +235,10 @@ export async function runRecordingUiAcceptance(context,options){
       validateI30Observation({metadata,beforePlay,afterPlay,beforePause,afterPause,beforeSeek,afterSeek,media,selectedId:context.seed.seek.id});
       return {control:'#opsRecordingPlayer',action:'focused ArrowRight x20',beforeSeek,afterSeek,media:media.filter(r=>r.id===context.seed.seek.id),seekStartedAt:began,rangeInterpretation:'same selected file response; seek may use buffered bytes'};
     });
+    if(options.mode==='--all')await runRecordingAfterPlayback(harness);
     assert(!observationFailed,'observation failure');
-    assert(consoleRows.every(r=>!['error','warning','pageerror','crash'].includes(r.type)),'unapproved console or renderer failure');
+    const assessment=assessRecordingConsole(consoleRows,network,expectedErrors);
+    write('console-assessment.json',assessment);assert(assessment.unapproved.length===0,'unapproved console or renderer failure');
     assert(results.every(r=>r.status==='pass'),'selected actions remain notRun');
   }catch(error){failure=redactAcceptanceText(error.message,secrets);if(active&&active.status!=='pass')active.status='fail';}
   finally{
@@ -206,7 +251,9 @@ export async function runRecordingUiAcceptance(context,options){
       try{write(name,value);}catch{failures.push(name);}
     }
     try{artifacts.push(writeSanitizedArtifact(root,'server-log.txt',fs.readFileSync(context.serverLogPath,'utf8'),secrets));}catch{failures.push('server log');}
-    try{const revision=spawnSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'});assert(revision.status===0,'source revision');write('provenance.json',{sourceCommit:revision.stdout.trim(),runnerHash:hashFile(fileURLToPath(import.meta.url)),productHash:hashFile(path.join(repo,'build-gst-onnx/media_server')),seedHash:hashFile(path.join(context.root,'ui-seed-manifest.json')),moduleVersion:resolved.moduleVersion,browserVersion,evidenceMode:'qualified-native-automation',fallback:'native Chrome instead of prior failed in-app renderer',manualIntervention:false,visualReviewRequired:true});}catch{failures.push('provenance');}
+    try{const revision=spawnSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'});assert(revision.status===0,'source revision');
+      const fingerprints=Object.fromEntries(['AGENTS.md','test/fixtures/ui_fulltest_evidence_policy_v4.json','docs/manual-ui-result-template.md','scripts/internal/run_recording_ui_acceptance.mjs','scripts/internal/recording_ui_before_playback.mjs','scripts/internal/recording_ui_after_playback.mjs','scripts/internal/verify_v410_recording_ui_contract.mjs'].map(file=>[file,hashFile(path.join(repo,file))]));
+      write('provenance.json',{sourceCommit:revision.stdout.trim(),runnerHash:hashFile(fileURLToPath(import.meta.url)),fingerprints,actionManifestSha256:crypto.createHash('sha256').update(JSON.stringify(RECORDING_UI_ACTIONS)).digest('hex'),productHash:hashFile(path.join(repo,'build-gst-onnx/media_server')),seedHash:hashFile(path.join(context.root,'ui-seed-manifest.json')),moduleVersion:resolved.moduleVersion,browserVersion,evidenceMode:'qualified-native-automation',fallback:'native Chrome instead of prior failed in-app renderer',manualIntervention:false,visualReviewRequired:true});}catch{failures.push('provenance');}
     if(failures.length)failure=failure||failures.join(', ');
     write('results.json',{mode:options.mode,results,pass:results.filter(r=>r.status==='pass').length,fail:results.filter(r=>r.status==='fail').length,notRun:results.filter(r=>r.status==='notRun').length,failure,browserClosed,artifacts:[...artifacts],visualReviewRequired:true,uiFulltestPass:false});
   }
