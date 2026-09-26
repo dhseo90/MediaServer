@@ -83,7 +83,7 @@ bool KindType(const std::string& kind, ingress::StrictJsonType* type) {
         return true;
     }
     static const char* objects[] = {"segment-v1", "segment-v2", "state-v2", "tombstone-v1",
-        "tombstone-v2", "event-link", "observation-v1", "observation-v2", "consumer-reference",
+        "tombstone-v2", "retired-v2", "event-link", "observation-v1", "observation-v2", "consumer-reference",
         "referenced-observation", "source-binding", "derived-job", "accepted-state"};
     for (const auto* name : objects) {
         if (kind == name) { *type = ingress::StrictJsonType::Object; return true; }

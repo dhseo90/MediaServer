@@ -1,0 +1,52 @@
+[scope] typed scratch domain/cross-map; active cold detail only; no product Open/SQLite/publication
+[start] 2026-09-26T05:40:34Z
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+c0253f469766a682d260ed83457852cfb36724efb6915529f34131a2f60aac78  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+3dcdd1d4f24b89402ac951f51939c405ae5c5b77a0c88b64f0790d090903b248  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+13959bfc857110f7533a659d426a8c67f86b505b75ab0844dd35f3a073abf83a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+ada682475a117b1eec5644441b5cbd60df6d63bda12850d3f87519eb3b80351a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot.cpp
+37bfb810644302f1610c301330aa1773593c6de6e47eeeff9988185570e3abfb  /Users/dhseo/Workspace/mediaServer/src/recording/recording_order_history_snapshot.cpp
+1650ede659a5dbee60475a7aa6d63d9c13beaf00a3851dc0a67dc7d924e89077  /Users/dhseo/Workspace/mediaServer/src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_ready.cpp
+080c11af4882bf5cc05ce754c03188fa28bb6110f2ddd5a605116c24f010da3a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_generation_projection.cpp
+0cb1a18bb01baa13c8664bd7a99c732c290bf5c77def6d25162a4b60f7a0abc8  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_projection_smoke.cpp
+731d4d67a24dbaff072566a516028f194c9a2051cb1091939b0e5cacaac4f4fe  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog_generation_projection.h
+e1179a1299eb8abb0039efffd11ae6ac0e40aa15a24037bf447bc89f1c048b83  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_catalog_generation_projection.sh
+B02-X01 PASS active typed maps and reservation/ordinary ID separation
+B02-X02 PASS snapshot digest mismatch unchanged
+B02-X02 PASS chain store mismatch unchanged
+B02-X02 PASS exclusive cut unchanged
+B02-X02 PASS reservation tuple mismatch
+B02-X02 PASS domain internal key mismatch
+B02-X02 PASS thin latest type/entity mismatch
+B02-X02 PASS orphan media path
+B02-X02 PASS V2 missing media path without V1 tombstone remains rejected
+B02-X02 PASS Intent independently finalized output stays valid/protected
+B02-X03 PASS active cold admission
+B02-X03 PASS active archive corruption unchanged
+B02-X03 PASS inactive archive detail is delayed, not validated
+B02-X03 PASS candidate never rewrites archive
+B02-X01 PASS historical source/channel and V2 missing locator FK accepted
+B02-X01 PASS all sixteen typed rows keep legacy V2 by default
+B11-P01 PASS legacy deleted V2 is compacted from full current projection
+B11-P01 PASS receipt-only snapshot keeps binding summary without deleted full detail
+B11-P01 PASS receipt deletion origin must be first accepted deleted mutation
+B02-X02 PASS pending terminal source/output hold reconstructed
+B02-X02 PASS tombstone requires matching deletion transition
+B02-X02 PASS pending hold rejects nonfinal source
+B02-X02 PASS event overlap channel mismatch
+B02-X02 PASS complete historical derived may later be deleted
+B02-X01 PASS Ready full canonical cold detail
+B02-X02 PASS Ready independently finalized output accepted
+B02-X01 PASS Committed ready output and path closure
+B02-X02 PASS Committed output path mismatch
+B02-X03 PASS identity head generation mismatch
+B02-X03 PASS accepted state omission
+B02-X03 PASS structural object is not domain segment
+B02-X03 PASS cold raw row corruption preserves original
+B02-X04 PASS crypto-off fail closed unchanged
+[end] 2026-09-26T05:40:46Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-projection.Vq8LJZ bytes=7581546 removed=true

@@ -14,10 +14,15 @@
 using namespace recording;
 namespace {
 std::array<bool,4> good{{true,true,true,true}};
+bool b11_good=true;
 std::string error;
 void Check(unsigned n,bool value,const char* label) {
     std::cout<<"B02-X0"<<n<<' '<<(value?"PASS ":"FAIL ")<<label<<'\n';
     if(!value){good[n-1]=false;std::cerr<<"B02-X0"<<n<<" assertion: "<<label<<" error="<<error<<'\n';}
+}
+[[maybe_unused]] void B11Check(bool value,const char* label) {
+    std::cout<<"B11-P01 "<<(value?"PASS ":"FAIL ")<<label<<'\n';
+    if(!value){b11_good=false;std::cerr<<"B11-P01 assertion: "<<label<<" error="<<error<<'\n';}
 }
 #if MEDIA_SERVER_USE_OPENSSL
 void Need(bool value){if(!value)throw std::runtime_error("fixture: "+error);}
@@ -71,8 +76,8 @@ struct Fixture {
         manifest.snapshot={"snapshot-2.jsonl",bytes.size(),Hash(bytes)};
         if(!root.empty()){std::filesystem::create_directories(root);Write(root/file.name,archive);}
     }
-    bool Build(const std::filesystem::path& root,RecordingCatalogGenerationProjection* out,std::uint64_t admission=1024*1024) const {
-        return BuildRecordingCatalogGenerationProjection(root,manifest,chain,snapshot,admission,out,&error);
+    bool Build(const std::filesystem::path& root,RecordingCatalogGenerationProjection* out,std::uint64_t admission=1024*1024,bool enable_retired_v2=false) const {
+        return BuildRecordingCatalogGenerationProjection(root,manifest,chain,snapshot,admission,out,&error,enable_retired_v2);
     }
 };
 RecordingSegmentV1 V1() {
@@ -135,9 +140,9 @@ Input ReadyInput() {
     p.output_decoded_sha256=p.source_decoded_sha256;remux.outputs.push_back(p);
     DerivedJobRecordV1 ready;Need(BuildDerivedJobReady(f.job,remux,{2},20,&ready,&error));f.job=std::move(ready);return f;
 }
-bool Rejected(const Fixture& f,const std::filesystem::path& root,std::uint64_t admission=1024*1024) {
+bool Rejected(const Fixture& f,const std::filesystem::path& root,std::uint64_t admission=1024*1024,bool enable_retired_v2=false) {
     RecordingCatalogGenerationProjection output;output.manifest.store_id="sentinel";output.mutation_ids.insert("unchanged");
-    return !f.Build(root,&output,admission)&&output.manifest.store_id=="sentinel"&&output.mutation_ids==std::set<std::string>{"unchanged"};
+    return !f.Build(root,&output,admission,enable_retired_v2)&&output.manifest.store_id=="sentinel"&&output.mutation_ids==std::set<std::string>{"unchanged"};
 }
 #endif
 }
@@ -182,12 +187,15 @@ int main(int argc,char** argv) {
         // 16종 모두 실제 domain 값을 사용한다. chain 자체는 선행 검증 결과 fixture다.
         auto all=f;all.snapshot.rows.insert(all.snapshot.rows.end(),legacy.snapshot.rows.begin(),legacy.snapshot.rows.end());
         auto removed=input.source.segment;removed.segment_id="removed-v2";removed.order_request_id="removed-order";removed.order_sequence=3;
+        for(auto& mapping:removed.mappings)mapping.uncertainty_ns=0;
         all.Order(removed.order_request_id,removed.segment_id,3);all.Row("segment-v2",removed.segment_id,SerializeRecordingSegmentV2(removed));
         all.Row("media-path",removed.segment_id,"\"removed/file.mp4\"");
         RecordingSegmentStateV2 state;state.segment_id=removed.segment_id;state.lifecycle=RecordingLifecycle::DeletionPending;state.reason="continuous-capacity";
         all.Row("state-v2",state.segment_id,SerializeRecordingSegmentStateV2(state));all.Row("deletion-reason",state.segment_id,"\"continuous-capacity\"");
         RecordingTombstoneV2 tomb2;tomb2.tombstone_id="tomb-two";tomb2.segment=removed;tomb2.deletion_reason=state.reason;tomb2.deleted_at_ms=30;
         all.Row("tombstone-v2",removed.segment_id,SerializeRecordingTombstoneV2(tomb2));
+        all.Add(RecordingMutationType::SegmentV2Deleted,"deleted-retired",removed.segment_id,SerializeRecordingTombstoneV2(tomb2));
+        all.Add(RecordingMutationType::SegmentV2Deleted,"deleted-retired-retry",removed.segment_id,SerializeRecordingTombstoneV2(tomb2));
         RecordingTombstoneV1 tomb;tomb.tombstone_id="tomb-one";tomb.segment_id="standalone";tomb.source_id="source";tomb.channel_id="channel";
         tomb.recorded_range={1000,2000};tomb.checksum_sha256=std::string(64,'a');tomb.retention_class=RecordingRetentionClass::Continuous;
         tomb.deletion_reason="continuous-age";tomb.deleted_at_ms=3000;all.Row("tombstone-v1",tomb.segment_id,SerializeRecordingTombstoneV1(tomb));
@@ -204,7 +212,64 @@ int main(int argc,char** argv) {
         all.Row("event-link",link.link_id,SerializeEventRecordingLinkV1(link));all.Seal(root);
         std::set<std::string> kinds;for(const auto& row:all.snapshot.rows)kinds.insert(row.kind);
         Check(1,kinds.size()==16&&all.Build(root,&output)&&output.tombstones.size()==1&&output.tombstones_v2.size()==1&&
-            output.referenced_observations.size()==1&&output.states_v2.size()==1,"all sixteen typed domain row kinds and standalone tombstone");
+            output.retired_v2.empty()&&output.referenced_observations.size()==1&&output.states_v2.size()==1,"all sixteen typed rows keep legacy V2 by default");
+        B11Check(all.Build(root,&output,1024*1024,true)&&output.tombstones_v2.empty()&&output.retired_v2.count(removed.segment_id)==1&&
+            output.retired_v2.at(removed.segment_id).origin.mutation_id=="deleted-retired"&&
+            output.retired_v2.at(removed.segment_id).receipt.utc_exclusion_safe&&
+            output.retired_v2.at(removed.segment_id).receipt.utc_min_ns==std::optional<std::int64_t>{100000000}&&
+            output.retired_v2.at(removed.segment_id).receipt.utc_max_ns==std::optional<std::int64_t>{120000000},
+            "legacy retry keeps earliest deletion origin and exact UTC prefilter");
+        Fixture receipt_only;auto receipt_segment=input.source.segment;receipt_segment.segment_id="receipt-segment";
+        receipt_segment.order_request_id="receipt-order";receipt_segment.order_sequence=4;
+        receipt_only.Order(receipt_segment.order_request_id,receipt_segment.segment_id,receipt_segment.order_sequence);
+        receipt_only.Add(RecordingMutationType::SegmentV2BoundFinalized,"receipt-bound",receipt_segment.segment_id,"{}");
+        std::string receipt_summary;Need(SerializeRecordingCatalogSourceSummary({receipt_segment.segment_id,"channel","source","gen","video/0",1,2,"receipt-bound"},&receipt_summary,&error));
+        receipt_only.Row("source-binding",receipt_segment.segment_id,receipt_summary);
+        RecordingTombstoneV2 receipt_tomb;receipt_tomb.tombstone_id="receipt-tomb";receipt_tomb.segment=receipt_segment;
+        receipt_tomb.deletion_reason="continuous-capacity";receipt_tomb.deleted_at_ms=30;
+        receipt_only.Add(RecordingMutationType::SegmentV2Deleted,"receipt-deleted",receipt_segment.segment_id,SerializeRecordingTombstoneV2(receipt_tomb));
+        RecordingRetiredV2Receipt receipt;receipt.segment_id=receipt_segment.segment_id;receipt.store_id="store";receipt.source_id="source";receipt.channel_id="channel";
+        receipt.order_request_id=receipt_segment.order_request_id;receipt.order_sequence=receipt_segment.order_sequence;receipt.media_epoch_id="epoch";
+        receipt.tombstone_id=receipt_tomb.tombstone_id;receipt.media_start_pts=0;receipt.media_end_pts=20000000;receipt.time_base_num=1;receipt.time_base_den=1000000000;
+        receipt.retention_class=RecordingRetentionClass::Continuous;receipt.deleted_at_ms=30;receipt.deletion_reason="continuous-capacity";receipt.prior_relative_path="channel/receipt.mp4";
+        receipt.deletion_mutation_id="receipt-deleted";receipt.segment_sha256=std::string(64,'c');receipt.tombstone_sha256=std::string(64,'d');
+        std::string receipt_json;Need(SerializeRecordingRetiredV2Receipt(receipt,&receipt_json,&error));receipt_only.Row("retired-v2",receipt.segment_id,receipt_json);receipt_only.Seal(root);
+        B11Check(!receipt_only.Build(root,&output)&&receipt_only.Build(root,&output,1024*1024,true)&&output.retired_v2.size()==1&&output.segments_v2.empty()&&output.tombstones_v2.empty()&&
+            output.states_v2.empty()&&output.media_paths.empty()&&output.deletion_reasons.empty()&&output.source_bindings.size()==1&&
+            !output.retired_v2.begin()->second.receipt.utc_exclusion_safe&&!output.retired_v2.begin()->second.receipt.utc_min_ns,
+            "receipt-only unknown UTC keeps binding summary without deleted full detail");
+        auto duplicate_tombstone=receipt_only;auto second=receipt_segment;second.segment_id="receipt-segment-two";second.order_request_id="receipt-order-two";second.order_sequence=5;
+        duplicate_tombstone.Order(second.order_request_id,second.segment_id,second.order_sequence);
+        duplicate_tombstone.Add(RecordingMutationType::SegmentV2BoundFinalized,"receipt-bound-two",second.segment_id,"{}");
+        Need(SerializeRecordingCatalogSourceSummary({second.segment_id,"channel","source","gen","video/0",1,2,"receipt-bound-two"},&receipt_summary,&error));
+        duplicate_tombstone.Row("source-binding",second.segment_id,receipt_summary);
+        auto second_tomb=receipt_tomb;second_tomb.segment=second;second_tomb.deleted_at_ms=31;
+        duplicate_tombstone.Add(RecordingMutationType::SegmentV2Deleted,"receipt-deleted-two",second.segment_id,SerializeRecordingTombstoneV2(second_tomb));
+        auto second_receipt=receipt;second_receipt.segment_id=second.segment_id;second_receipt.order_request_id=second.order_request_id;second_receipt.order_sequence=second.order_sequence;
+        second_receipt.deletion_mutation_id="receipt-deleted-two";second_receipt.prior_relative_path="channel/receipt-two.mp4";second_receipt.deleted_at_ms=31;
+        second_receipt.segment_sha256=std::string(64,'e');second_receipt.tombstone_sha256=std::string(64,'f');
+        Need(SerializeRecordingRetiredV2Receipt(second_receipt,&receipt_json,&error));duplicate_tombstone.Row("retired-v2",second.segment_id,receipt_json);duplicate_tombstone.Seal(root);
+        B11Check(duplicate_tombstone.Build(root,&output,1024*1024,true)&&output.retired_v2.size()==2&&
+            output.retired_v2.at(receipt.segment_id).receipt.tombstone_id==output.retired_v2.at(second.segment_id).receipt.tombstone_id,
+            "same tombstone ID remains valid across distinct retired segments");
+        auto preserve_legacy=all;preserve_legacy.snapshot.rows.erase(std::remove_if(preserve_legacy.snapshot.rows.begin(),preserve_legacy.snapshot.rows.end(),[&](const auto& row) {
+            return row.key==removed.segment_id&&(row.kind=="media-path"||row.kind=="deletion-reason");}),preserve_legacy.snapshot.rows.end());
+        RecordingTombstoneV1 compatibility_tomb;compatibility_tomb.tombstone_id="compatibility-tomb";compatibility_tomb.segment_id=removed.segment_id;compatibility_tomb.source_id="source";compatibility_tomb.channel_id="channel";
+        compatibility_tomb.recorded_range={1000,2000};compatibility_tomb.checksum_sha256=std::string(64,'a');compatibility_tomb.retention_class=RecordingRetentionClass::Continuous;compatibility_tomb.deletion_reason="continuous-age";compatibility_tomb.deleted_at_ms=30;
+        preserve_legacy.Row("tombstone-v1",compatibility_tomb.segment_id,SerializeRecordingTombstoneV1(compatibility_tomb));preserve_legacy.Seal(root);
+        B11Check(preserve_legacy.Build(root,&output,1024*1024,true)&&output.tombstones_v2.count(removed.segment_id)==1&&
+            !output.retired_v2.count(removed.segment_id),"path or reason incomplete legacy full stays uncompressed");
+        auto origin_missing=all;origin_missing.snapshot.rows.erase(std::remove_if(origin_missing.snapshot.rows.begin(),origin_missing.snapshot.rows.end(),[](const auto& row) {
+            return row.kind=="accepted-state"&&(row.key=="deleted-retired"||row.key=="deleted-retired-retry");}),origin_missing.snapshot.rows.end());
+        origin_missing.chain.first_acceptances.erase(std::remove_if(origin_missing.chain.first_acceptances.begin(),origin_missing.chain.first_acceptances.end(),[](const auto& entry) {
+            return entry.mutation_id=="deleted-retired"||entry.mutation_id=="deleted-retired-retry";}),origin_missing.chain.first_acceptances.end());
+        origin_missing.chain.physical_rows-=2;origin_missing.Seal(root);
+        B11Check(origin_missing.Build(root,&output,1024*1024,true)&&output.tombstones_v2.count(removed.segment_id)==1&&
+            !output.retired_v2.count(removed.segment_id),"origin-incomplete legacy full stays uncompressed");
+        auto bad_receipt=receipt_only;for(auto& row:bad_receipt.snapshot.rows)if(row.kind=="retired-v2") {
+            auto changed=receipt;changed.deletion_mutation_id="receipt-bound";Need(SerializeRecordingRetiredV2Receipt(changed,&row.value_json,&error));}
+        bad_receipt.Seal({});B11Check(Rejected(bad_receipt,root,1024*1024,true),"receipt deletion origin must be first accepted deleted mutation");
+        all.Seal(root);Need(all.Build(root,&output));
         Check(2,output.pending_hold_counts["legacy"]==1&&output.pending_hold_counts[derived.segment_id]==1,"pending terminal source/output hold reconstructed");
         bad=all;for(auto& row:bad.snapshot.rows)if(row.kind=="state-v2")row.value_json=SerializeRecordingSegmentStateV2({"media-server.recording-segment-state.v2",removed.segment_id,RecordingLifecycle::Corrupt,"checksum-mismatch"});
         bad.Seal({});Check(2,Rejected(bad,root),"tombstone requires matching deletion transition");
@@ -245,5 +310,5 @@ int main(int argc,char** argv) {
         Check(4,!BuildRecordingCatalogGenerationProjection(root,{},{},{},0,&out,&error)&&out.manifest.store_id=="sentinel"&&error.find("unsupported")!=std::string::npos,"crypto-off fail closed unchanged");
 #endif
     }catch(const std::exception& e){std::cerr<<"fixture failure: "<<e.what()<<'\n';return 2;}
-    return std::all_of(good.begin(),good.end(),[](bool value){return value;})?0:1;
+    return b11_good&&std::all_of(good.begin(),good.end(),[](bool value){return value;})?0:1;
 }

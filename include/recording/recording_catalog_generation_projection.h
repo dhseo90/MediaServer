@@ -13,6 +13,12 @@ struct RecordingGenerationJobProjection {
     RecordingCatalogJobSummary summary;
     RecordingIdentityFirstAcceptance origin;
 };
+// 현재 projection의 삭제 완료 V2 최소 상태다. 원문 segment/tombstone은 호출 수명으로도 보관하지
+// 않으며 origin만으로 뒤 단계의 제한된 cold 검증 대상을 식별한다.
+struct RecordingGenerationRetiredV2Projection {
+    RecordingRetiredV2Receipt receipt;
+    RecordingIdentityFirstAcceptance origin;
+};
 // 이동 소비 가능한 scratch 값이다. Catalog attachment/FD/런타임 lease/cache는 포함하지 않는다.
 struct RecordingCatalogGenerationProjection {
     RecordingGenerationManifest manifest;
@@ -21,6 +27,7 @@ struct RecordingCatalogGenerationProjection {
     std::map<std::string,RecordingSegmentStateV2> states_v2;
     std::map<std::string,RecordingTombstoneV1> tombstones;
     std::map<std::string,RecordingTombstoneV2> tombstones_v2;
+    std::map<std::string,RecordingGenerationRetiredV2Projection> retired_v2;
     std::map<std::string,std::string> media_paths,deletion_reasons;
     std::map<std::string,EventRecordingLinkV1> event_links;
     std::map<std::string,AnalysisObservationV1> observations;
@@ -47,5 +54,5 @@ struct RecordingCatalogGenerationProjection {
 bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root,
     const RecordingGenerationManifest&,const RecordingIdentityChainResult&,
     const RecordingCatalogSnapshot&,std::uint64_t cold_byte_admission,
-    RecordingCatalogGenerationProjection* output,std::string* error);
+    RecordingCatalogGenerationProjection* output,std::string* error,bool enable_retired_v2=false);
 } // namespace recording

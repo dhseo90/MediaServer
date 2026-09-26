@@ -227,3 +227,67 @@ test `92c0d0c7fc9ce3bd7e4f2358d709cd0a62176aac21a873d9cd873b7891e0c25c`.
 token start/end/consumed 미집계(도구 부재). 실행별 elapsed는 runner가 출력하지 않아 미확인이다.
 소유 build 임시파일은 runner가 제거했고 원출력 임시 사본220B/1,609B는 저장소 사본과
 byte 대조 후 제거한다. 이전 보존된 B10 자료에는 쓰지 않았다.
+
+### B11-P01 snapshot/projection 준비 완료 — 제품 활성화 전
+
+삭제 영수증 kind와 opt-in projection을 추가했다. 기본값은 false이며 기존 제품 Open과
+cutover는 full projection을 그대로 사용한다. 새 receipt를 제품이 소비하기 전 무조건
+축약하지 않는다. 기존 full cross-map 검증을 통과한 뒤 충분한 삭제·경로 근거가 있는
+대상만 축약한다. 서로 다른 mutation ID의 동일 삭제 재시도는 최초 ordinal을 보존하며
+같은 tombstone ID의 다른 segment를 새로 거부하지 않는다.
+
+실행 명령은 `./scripts/internal/verify_recording_catalog_generation_projection.sh`다.
+최초 RED(exit1)는 기존 full resident map assertion 실패이며 [로그](b11-p01-projection-red.log)에
+보존했다. 최초 GREEN(exit0)은 [로그](b11-p01-projection-green.log), 메인 리뷰 후 추가 반례
+GREEN(exit0, 2026-09-26 05:45:45~05:45:57 UTC, 12초)은
+[전수 원출력](b11-p01-projection-counterexamples.log)이다. 아래 36개 assertion을 대조했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B02-X01 active typed maps and reservation/ordinary ID separation | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 snapshot digest mismatch unchanged | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 chain store mismatch unchanged | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 exclusive cut unchanged | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 reservation tuple mismatch | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 domain internal key mismatch | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 thin latest type/entity mismatch | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 orphan media path | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 V2 missing media path without V1 tombstone remains rejected | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 Intent independently finalized output stays valid/protected | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 active cold admission | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 active archive corruption unchanged | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 inactive archive detail is delayed, not validated | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 candidate never rewrites archive | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X01 historical source/channel and V2 missing locator FK accepted | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X01 all sixteen typed rows keep legacy V2 by default | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 legacy retry keeps earliest deletion origin and exact UTC prefilter | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 receipt-only unknown UTC keeps binding summary without deleted full detail | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 same tombstone ID remains valid across distinct retired segments | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 path or reason incomplete legacy full stays uncompressed | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 origin-incomplete legacy full stays uncompressed | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 receipt deletion origin must be first accepted deleted mutation | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 pending terminal source/output hold reconstructed | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 tombstone requires matching deletion transition | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 pending hold rejects nonfinal source | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 event overlap channel mismatch | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 complete historical derived may later be deleted | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X01 Ready full canonical cold detail | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 Ready independently finalized output accepted | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X01 Committed ready output and path closure | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X02 Committed output path mismatch | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 identity head generation mismatch | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 accepted state omission | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 structural object is not domain segment | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X03 cold raw row corruption preserves original | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B02-X04 crypto-off fail closed unchanged | 동일 projection focused 실행; 실제 원출력 항목 | pass | runtime/SQL 미연결 |
+| B11-P01 공백 | `git diff --check`, exit0 | pass | 준비 단위 diff |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| runner 소유 projection root | 빌드·격리 fixture | 최종7,602,218B | runner EXIT 정리 | removed=true | 원출력 |
+| 위 세 로그 | 비민감 명령·hash·전수 결과 | 4,196/4,334/4,555B | 저장소 보존 | 원문 사본 유지 | 실패 이력 및 재검증 |
+
+token start/end/consumed는 집계 도구 부재로 미집계다. 이전 B10의 전체 snapshot과
+active tail을 hash 대조한 읽기 집계에서 종료 후 원본1,116·삭제1,110개를 확인했다.
+마지막 관측1,108·1,102개와 구분하며 P02의 독립 기대값에 사용한다. 제품 활성화,
+cold 재획득·SQLite·실제 누적 검사는 아직 미완료이며 이 준비 PASS로 대체하지 않는다.

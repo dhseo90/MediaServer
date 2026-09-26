@@ -60,7 +60,7 @@ bool JobType(DerivedJobState state,RecordingMutationType type) {
     }return false;
 }
 RecordingLifecycle Lifecycle(const RecordingCatalogGenerationProjection& p,const std::string& id) {
-    if(p.tombstones_v2.count(id))return RecordingLifecycle::Deleted;
+    if(p.tombstones_v2.count(id)||p.retired_v2.count(id))return RecordingLifecycle::Deleted;
     const auto state=p.states_v2.find(id);
     return state==p.states_v2.end()?RecordingLifecycle::Finalized:state->second.lifecycle;
 }
@@ -73,10 +73,67 @@ bool BindingMatches(const RecordingSourceBindingV1& live,const RecordingSourceBi
         live.incomplete_reason==saved.incomplete_reason&&live.samples.size()==saved.samples.size()&&
         std::equal(live.samples.begin(),live.samples.end(),saved.samples.begin(),[](const auto& a,const auto& b){return a.ordinal==b.ordinal&&a.pts_ns==b.pts_ns;});
 }
+bool ReceiptFromTombstone(const RecordingTombstoneV2& tombstone,const std::string& path,
+    const RecordingIdentityFirstAcceptance& origin,RecordingRetiredV2Receipt* output,std::string* error) {
+    const auto& segment=tombstone.segment;
+    if(!output||origin.first_row.type!=RecordingMutationType::SegmentV2Deleted||origin.first_row.entity_id!=segment.segment_id||
+       tombstone.deletion_reason.empty()||!IsSafeMediaRelpath(path)||SerializeRecordingSegmentV2(segment).empty()||
+       SerializeRecordingTombstoneV2(tombstone).empty())return Fail(error,"projection retired legacy receipt source invalid");
+    RecordingRetiredV2Receipt receipt;
+    receipt.segment_id=segment.segment_id;receipt.store_id=segment.store_id;receipt.source_id=segment.source_id;
+    receipt.channel_id=segment.channel_id;receipt.order_request_id=segment.order_request_id;receipt.order_sequence=segment.order_sequence;
+    receipt.media_epoch_id=segment.media_epoch_id;receipt.tombstone_id=tombstone.tombstone_id;receipt.media_start_pts=segment.media_start_pts;
+    receipt.media_end_pts=segment.media_end_pts;receipt.time_base_num=segment.time_base_num;receipt.time_base_den=segment.time_base_den;
+    receipt.retention_class=segment.retention_class;receipt.deleted_at_ms=tombstone.deleted_at_ms;receipt.deletion_reason=tombstone.deletion_reason;
+    receipt.prior_relative_path=path;receipt.deletion_mutation_id=origin.mutation_id;
+    receipt.segment_sha256=Hash(SerializeRecordingSegmentV2(segment));receipt.tombstone_sha256=Hash(SerializeRecordingTombstoneV2(tombstone));
+    bool exact_utc=!segment.mappings.empty();std::optional<std::int64_t> utc_min,utc_max;
+    for(const auto& mapping:segment.mappings) {
+        if(mapping.provenance=="unknown"||!mapping.end_pts||!mapping.utc_start_ns||!mapping.utc_end_ns||
+           !mapping.uncertainty_ns||*mapping.uncertainty_ns!=0) {exact_utc=false;break;}
+        utc_min=utc_min?std::min(*utc_min,*mapping.utc_start_ns):*mapping.utc_start_ns;
+        utc_max=utc_max?std::max(*utc_max,*mapping.utc_end_ns):*mapping.utc_end_ns;
+    }
+    receipt.utc_exclusion_safe=exact_utc&&utc_min&&utc_max&&*utc_min<*utc_max;
+    if(receipt.utc_exclusion_safe){receipt.utc_min_ns=utc_min;receipt.utc_max_ns=utc_max;}
+    std::string bytes;
+    if(!SerializeRecordingRetiredV2Receipt(receipt,&bytes,error))return Fail(error,"projection retired legacy receipt invalid");
+    *output=std::move(receipt);return true;
+}
+bool CompactLegacyRetired(RecordingCatalogGenerationProjection& p,
+    const std::map<std::string,const RecordingIdentityFirstAcceptance*>& first,std::string* error) {
+    std::map<std::string,const RecordingIdentityFirstAcceptance*> first_deleted;
+    std::set<std::string> compacted;
+    for(const auto& item:first)if(item.second->first_row.type==RecordingMutationType::SegmentV2Deleted) {
+        const auto prior=first_deleted.find(item.second->first_row.entity_id);
+        if(prior==first_deleted.end()||item.second->first_global_ordinal<prior->second->first_global_ordinal)
+            first_deleted[item.second->first_row.entity_id]=item.second;
+    }
+    for(const auto& item:p.tombstones_v2) {
+        const auto& id=item.first;const auto segment=p.segments_v2.find(id);const auto state=p.states_v2.find(id);
+        const auto path=p.media_paths.find(id);const auto reason=p.deletion_reasons.find(id);
+        const auto found=first_deleted.find(id);const auto origin=found==first_deleted.end()?nullptr:found->second;
+        // 이전 full projection이 허용하던 V1 tombstone 공존·경로/사유 부재 또는 삭제 identity 부재는
+        // receipt 최소 증거를 만들 수 없다. 첫 CrossMaps 검증을 통과한 full 값은 그대로 유지한다.
+        if(segment==p.segments_v2.end()||state==p.states_v2.end()||path==p.media_paths.end()||reason==p.deletion_reasons.end()||
+           state->second.lifecycle!=RecordingLifecycle::DeletionPending||state->second.reason!=item.second.deletion_reason||
+           reason->second!=item.second.deletion_reason||SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(item.second.segment)||
+           !origin)continue;
+        RecordingRetiredV2Receipt receipt;
+        if(!ReceiptFromTombstone(item.second,path->second,*origin,&receipt,error)||
+           !p.retired_v2.emplace(id,RecordingGenerationRetiredV2Projection{std::move(receipt),*origin}).second)
+            return Fail(error,"projection retired legacy receipt collision");
+        compacted.insert(id);
+    }
+    for(const auto& id:compacted) {
+        p.segments_v2.erase(id);p.states_v2.erase(id);p.media_paths.erase(id);p.deletion_reasons.erase(id);p.tombstones_v2.erase(id);
+    }
+    return true;
+}
 bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
     for(const auto& pair:p.segments) {
         const auto& v=pair.second;
-        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first))
+        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||p.retired_v2.count(pair.first))
             return Fail(error,"projection V1/V2/order namespace collision");
         const bool tombstone=p.tombstones.count(pair.first);
         if((v.lifecycle==RecordingLifecycle::Deleted&&!tombstone)||
@@ -107,6 +164,15 @@ bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
             SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(pair.second.segment))
             return Fail(error,"projection V2 tombstone transition mismatch");
     }
+    for(const auto& pair:p.retired_v2) {
+        const auto& v=pair.second.receipt;const auto order=p.orders.find(v.order_request_id);
+        if(pair.first!=v.segment_id||v.store_id!=p.manifest.store_id||p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||
+           p.states_v2.count(pair.first)||p.media_paths.count(pair.first)||p.deletion_reasons.count(pair.first)||
+           order==p.orders.end()||order->second.segment_id!=pair.first||order->second.channel_id!=v.channel_id||
+           order->second.sequence!=v.order_sequence||pair.second.origin.mutation_id!=v.deletion_mutation_id||
+           pair.second.origin.first_row.type!=RecordingMutationType::SegmentV2Deleted||pair.second.origin.first_row.entity_id!=pair.first)
+            return Fail(error,"projection retired V2 receipt/order/provenance mismatch");
+    }
     for(const auto& pair:p.media_paths)if(!IsSafeMediaRelpath(pair.second)||
         (!p.segments.count(pair.first)&&!p.segments_v2.count(pair.first)))return Fail(error,"projection orphan/unsafe media path");
     for(const auto& pair:p.deletion_reasons) {
@@ -116,8 +182,10 @@ bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
             return Fail(error,"projection orphan V2 deletion reason");
     }
     for(const auto& pair:p.source_bindings) {
-        const auto segment=p.segments_v2.find(pair.first);const auto& s=pair.second.summary;
-        if(segment==p.segments_v2.end()||s.source!=segment->second.source_id||s.channel!=segment->second.channel_id)
+        const auto segment=p.segments_v2.find(pair.first);const auto retired=p.retired_v2.find(pair.first);const auto& s=pair.second.summary;
+        if((segment==p.segments_v2.end()&&retired==p.retired_v2.end())||
+           (segment!=p.segments_v2.end()&&(s.source!=segment->second.source_id||s.channel!=segment->second.channel_id))||
+           (retired!=p.retired_v2.end()&&(s.source!=retired->second.receipt.source_id||s.channel!=retired->second.receipt.channel_id)))
             return Fail(error,"projection source summary namespace mismatch");
     }
     for(const auto& id:p.derived_accepted_references) {
@@ -256,7 +324,7 @@ bool ActiveDetails(const std::filesystem::path& root,std::uint64_t admission,
 bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root,
     const RecordingGenerationManifest& manifest,const RecordingIdentityChainResult& chain,
     const RecordingCatalogSnapshot& snapshot,std::uint64_t admission,
-    RecordingCatalogGenerationProjection* output,std::string* error) {
+    RecordingCatalogGenerationProjection* output,std::string* error,bool enable_retired_v2) {
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     try {
         std::string bytes,manifest_bytes;
@@ -305,6 +373,12 @@ bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root
             else if(row.kind=="tombstone-v2") {
                 RecordingTombstoneV2 value;ok=ParseRecordingTombstoneV2(row.value_json,&value,error)&&SerializeRecordingTombstoneV2(value)==row.value_json&&value.segment.segment_id==row.key;
                 if(ok)p.tombstones_v2.emplace(row.key,std::move(value));
+            } else if(row.kind=="retired-v2") {
+                RecordingRetiredV2Receipt value;ok=ParseRecordingRetiredV2Receipt(row.value_json,&value,error)&&value.segment_id==row.key;
+                const auto found=first.find(value.deletion_mutation_id);
+                ok=ok&&enable_retired_v2&&found!=first.end()&&found->second->first_row.type==RecordingMutationType::SegmentV2Deleted&&
+                    found->second->first_row.entity_id==row.key;
+                if(ok)p.retired_v2.emplace(row.key,RecordingGenerationRetiredV2Projection{std::move(value),*found->second});
             } else if(row.kind=="referenced-observation") {
                 ReferencedObservationV1 value;ok=ParseReferencedObservationV1(row.value_json,&value,error)&&SerializeReferencedObservationV1(value)==row.value_json&&value.observation.observation_id==row.key;
                 if(ok)p.referenced_observations.emplace(row.key,std::move(value));
@@ -335,11 +409,14 @@ bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root
             }
             if(!ok)return Fail(error,"projection row domain/key/provenance invalid");
         }
-        if(!CrossMaps(p,error)||!ActiveDetails(root,admission,p,error))return false;
+        // 구형 full 행은 기존 cross-map으로 먼저 전부 검증한다. 축약 대상만 내린 뒤 receipt 계약을
+        // 다시 대조하여 기존 transition 검증을 우회하지 않는다.
+        if(!CrossMaps(p,error)||(enable_retired_v2&&(!CompactLegacyRetired(p,first,error)||!CrossMaps(p,error)))||
+           !ActiveDetails(root,admission,p,error))return false;
         *output=std::move(p);if(error)error->clear();return true;
     }catch(...){return Fail(error,"projection allocation/domain failure");}
 #else
-    (void)root;(void)manifest;(void)chain;(void)snapshot;(void)admission;(void)output;
+    (void)root;(void)manifest;(void)chain;(void)snapshot;(void)admission;(void)output;(void)enable_retired_v2;
     return Fail(error,"projection unsupported: POSIX/OpenSSL required");
 #endif
 }
