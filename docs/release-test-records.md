@@ -45556,3 +45556,30 @@ elapsed109초다. 원출력은
 [B11-O03 압축 로그](release-artifacts/v4.1.0/s11-final-20260926/b11-o03-scale-green.log.gz)에
 보존했다. token start/end/consumed는 전용 집계 부재로 미집계다. 합성 단기 증거이며
 실제 HTTP·30분·UI·120분 완료 증거로 사용하지 않는다.
+
+## v4.1.0 S11 B11-H01/I01 실제 HTTP·현행 통합 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-H01 샌드박스 준비 | fixture 생성 30,008ms ETIMEDOUT, macOS 서비스 분류, 서버 미기동 | fail |
+| B11-H01 권한 조정 | 동일 명령·상한, 74/74·실제30.102초·HTTP최대1,431ms·정상종료/정리 | pass |
+| B11-I01 HTTP API | 현행 child summary 35개, exit0·cleanup=true | pass |
+| B11-I01 HTTP 인증 | 실행마다 메모리 임시 비밀번호를 사용하는 현행 child summary 40개, exit0·cleanup=true | pass |
+| B11-I01 전송 수명 | 현행 child summary 10개, exit0·cleanup=true | pass |
+| B11-I01 default composition | 현행 child summary 46개, exit0·cleanup=true | pass |
+| B11-I01 실제 앱 | 27개, 두 기동 각각2출력·HTTP/파일 hash·기존/신규 분리·종료/정리 | pass |
+
+명령은 각각 `bash scripts/internal/verify_v410_recording_foundation.sh --app-observe`와
+`bash scripts/internal/verify_v410_recording_foundation.sh --current-integration`이다.
+후자는 exit0·elapsed140,064ms, 성공 HTTP309회·최대3,965ms, timeline최대3,965ms,
+media6회·최대578ms였다. 개별 S11-CI01~11 정의와 실제 27개 앱 행은 기존 중앙 정의 및
+[현행 압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-current-integration-green.log.gz)에
+결박한다. H01 실패/성공 원출력은 각각
+[실패](release-artifacts/v4.1.0/s11-final-20260926/b11-http-observe-sandbox-fail.log.gz),
+[성공](release-artifacts/v4.1.0/s11-final-20260926/b11-http-observe-green.log.gz)이다.
+token start/end/consumed는 전용 집계 부재로 미집계다. 30분·UI·120분은 미실행이며
+이 단기 결과로 대체하지 않는다.
+
+검증기 판정 자체검사는 fixture 진단 8/8과 통합 54/54가 모두 exit0이다. 실제 앱 실행기가
+생성한 O28 snapshot receipt3개, latency trace2개, process cleanup2개는 raw path/body를
+공개하지 않는 현행 schema로 저장소에 함께 보존한다. 별도 제품 수정은 없었다.

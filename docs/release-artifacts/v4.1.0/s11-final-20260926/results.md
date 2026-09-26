@@ -494,3 +494,27 @@ timeline은 정확히 2,049개였고 모두 UTC 배치된 `deleted`·재생 불�
 일치하며 4초 HTTP 기준 안이다. 이 결과는 합성 generation 입력의 단기 비용 판정이며
 실제 HTTP·이벤트 통합, 30분·UI·120분 PASS를 대체하지 않는다. 새로운 저장 schema,
 공개 API, timeout 또는 제품 timeline 구현은 변경하지 않았다.
+
+## B11-H01/I01 실제 HTTP·현행 통합 재검증 (2026-09-27)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-H01 샌드박스 준비 | `--app-observe`의 격리 H264 fixture 생성 | fail | 30,008ms ETIMEDOUT/SIGTERM, macOS 서비스 대기 분류. 서버 기동0·HTTP 미실행. [압축 로그](b11-http-observe-sandbox-fail.log.gz) |
+| B11-H01 권한 조정 재검증 | 같은 코드·명령·30초 fixture 상한으로 실제 앱 HTTP/보존/재기동 | pass | exit0·74/74, fixture1.667초, 실제 관측30.102초, 성공 HTTP최대1,431ms, 서버3회 exit0·포트/UDP/root 정리. [압축 로그](b11-http-observe-green.log.gz) |
+| B11-I01 현행 5단계 | HTTP API→인증→수명→default composition→실제 앱 | pass | exit0·35+40+10+46+27, currentIntegrationExecutionPass=true. timeline최대3,965ms≤4초, media6회 최대578ms |
+| B11-I01 출력·재기동 | 실제 EventRecord→reference/job→출력, 종료·동일 archive 두 번째 기동 | pass | 두 기동 각각 완전 출력2개·HTTP200·소유 파일 hash, 기존 출력2개 보존과 새 event/reference/job/output 분리 |
+| B11-I01 정리 | 실제 앱 통합의 두 서버·포트·격리 root | pass | 두 서버 exit0, 강제 종료 없음, 포트4개 해제, root397,246,226B 삭제·failureCount0 |
+
+샌드박스 실패는 제품 회귀로 계산하지 않았고 최초 실패 이력은 유지했다. 같은 실패를
+반복하거나 timeout을 늘리지 않았으며, 이전 동일 macOS/GStreamer 권한 경계와 대조한 뒤
+권한 조정 환경에서 같은 검사를 한 번 실행했다. 통합 원출력은
+[압축 로그](b11-current-integration-green.log.gz)에 보존한다. 이 결과의
+`currentIntegrationExecutionPass=true`는 현행 5단계 단기 통합에 한정되며
+`fullFoundationPass/resourceTrendPass/uiFulltestPass=false`와 30분·UI·120분 미실행을 유지한다.
+
+검증기 자체검사는 fixture 진단 8/8, 통합 판정 54/54로 통과했다. 압축 로그 SHA-256은
+샌드박스 실패 `eff94e8393c02dbb865d26017a371aad6781133bd15171a3d97ef7fa09cb4fff`,
+H01 성공 `d5620b339c1e99a41a4d63a5c922825608db2a131118fe4ca16e7d700425e0c6`,
+I01 성공 `4a0feab7280f110ea83481e1e305f1db704bb971505876ddadbbb87610ca8d33`이다.
+실행기가 생성한 snapshot receipt 3개와 latency/process 종료 증거 4개도 같은 분할 커밋에
+보존하며 모두 소유 격리 저장소·원문 비공개 형식이다.
