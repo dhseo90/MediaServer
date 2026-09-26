@@ -116,6 +116,16 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         for (const auto& v : states_v2_) add("state-v2",v.first,SerializeRecordingSegmentStateV2(v.second));
         for (const auto& v : tombstones_) add("tombstone-v1",v.first,SerializeRecordingTombstoneV1(v.second));
         for (const auto& v : tombstones_v2_) add("tombstone-v2",v.first,SerializeRecordingTombstoneV2(v.second));
+        for (const auto& v : retired_v2_) {
+            const auto origin=first.find(v.second.deletion_mutation_id);
+            const auto order=orders.find(v.second.order_request_id);
+            if(origin==first.end()||origin->second->first_row.type!=RecordingMutationType::SegmentV2Deleted||
+               origin->second->first_row.entity_id!=v.first||retired_v2_links_.find(v.first)==retired_v2_links_.end()||
+               order==orders.end()||v.second.store_id!=result.store_id||order->second->order.segment_id!=v.first||
+               order->second->order.channel_id!=v.second.channel_id||order->second->order.sequence!=v.second.order_sequence||
+               !SerializeRecordingRetiredV2Receipt(v.second,&validated,error))return Fail(error,"snapshot retired V2 provenance mismatch");
+            add("retired-v2",v.first,validated);
+        }
         for (const auto& v : media_relpaths_) add("media-path",v.first,Quote(v.second));
         for (const auto& v : deletion_reasons_) add("deletion-reason",v.first,Quote(v.second));
         for (const auto& v : event_links_) add("event-link",v.first,SerializeEventRecordingLinkV1(v.second));

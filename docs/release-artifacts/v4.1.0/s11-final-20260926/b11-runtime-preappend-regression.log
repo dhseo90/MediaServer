@@ -1,0 +1,552 @@
+[start] 2026-09-26T06:20:35Z
+Darwin 27.0.0 arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+e5d72a8519447efd7e01e714d3dfc67ab628daa205ffbadd9687d646d931d103  src/recording/recording_catalog.cpp
+f86e7ea3cbe3a58c611cb042e351d2e2137d9e81d2c8b4c8bbcd8477f8be65a9  src/recording/recording_catalog_snapshot_export.cpp
+827344f4e536884c377415e75f99ab53df049122336ec7f31318079e9f0bc1d6  src/recording/recording_timeline_projection.cpp
+c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c  src/recording/recording_read_service.cpp
+5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591  src/recording/retention_coordinator.cpp
+ecef071fb2afcfe69a00654757c639760e2ce75e627ae9c777a564f08161d6a9  src/recording/recording_finalize_recovery.cpp
+31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb  src/recording/recording_file_evidence.cpp
+64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf  src/recording/recording_media_inspector.cpp
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  src/recording/recording_contracts.cpp
+728c8da121407897bae883a5e5378f43e319c2901471689aa1a00e7ccf76679a  src/recording/recording_journal.cpp
+319ef9eb696f86b0c2806da74d6600312cadfd3e54e70d2aad8bc7d7792c73e1  src/recording/recording_cutover_input.cpp
+fbed2090cf6779e06688073c547ae624e2f7c6bd3b3406276702ae300755e946  src/recording/recording_generation_transaction.cpp
+7fd444caa2244008d03e060abb3655c2650988239b1c22dd7390fb7e9ccbed67  src/recording/recording_generation_receipt.cpp
+3dcdd1d4f24b89402ac951f51939c405ae5c5b77a0c88b64f0790d090903b248  src/recording/recording_generation_manifest.cpp
+13959bfc857110f7533a659d426a8c67f86b505b75ab0844dd35f3a073abf83a  src/recording/recording_generation_cold_mutation.cpp
+fd87fe5e381436c95e827f7094d46d732f93b273c7877ceb6aa9a9dfa9ed9dc7  src/recording/recording_generation_files.cpp
+f3685cafe9c440185035955a406e303328eadc27112cb244e7e7404ea7933bd1  src/recording/recording_catalog_snapshot.cpp
+37bfb810644302f1610c301330aa1773593c6de6e47eeeff9988185570e3abfb  src/recording/recording_order_history_snapshot.cpp
+1650ede659a5dbee60475a7aa6d63d9c13beaf00a3851dc0a67dc7d924e89077  src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  src/recording/recording_derived_job_ready.cpp
+308957f98dd4bf791e8c5cd431e4e459d2cf2d70dc6e8f4470e1fe5edc5388ec  src/recording/recording_catalog_generation_projection.cpp
+1e3b000d1ea837fbc73200359c47294b545545c67ea7b01238e7be29c1846302  src/recording/recording_generation_active.cpp
+3c42ec5f9c43656fd329974de24ddeadc9f8722d6a8980e3cddb57eb105f9389  scripts/internal/recording_generation_preappend_smoke.cpp
+3e5a31d0852020b80c748a2d50e02fe96454b4b3b2566697a0b4bb88d15721b5  include/recording/recording_catalog.h
+3b34068982b4b6f372e2433e87eab291ac4ad76524cc3088b6b9ed912ae5980f  include/recording/recording_journal.h
+bedf1c1167d250b114140e2273c4d9e7ed233b6cb8d420f289f5cea61d89f9b5  include/recording/recording_generation_recovery_session.h
+c581c0b322cc32da971a88126ce9fbcd0b26371cee1a5cd1e1f9a154ef7d917c  scripts/internal/recording_catalog_generation_scratch_smoke.cpp
+17362fbda3e98e52bc9587725e499b658ea9e73e124d251b3188563a7d53514d  scripts/internal/recording_catalog_generation_projection_smoke.cpp
+6d144742f87417461ea5de566785a0618e697dbf7e5789d8f4b4e679845bfca8  scripts/internal/recording_journal_generation_readonly_smoke.cpp
+ea597198655a92950524481b7ce9f0b0b4516c3605e78e5f34974210a5228697  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_preappend.sh
+[config] crypto=1 sqlite=1 backend=1
+B03-V02 PASS first foreign store reservation rejected in empty managed store
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS unmanaged first reservation retains prior store freedom
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V03 PASS initial reservation validation unchanged then small apply
+B03-V03 PASS same tuple and time retry
+B03-V03 PASS sequence gap accepted
+B03-V03 PASS same request changed tuple
+B03-V03 PASS same request changed timestamp
+B03-V03 PASS non-increasing sequence
+B03-V03 PASS segment reused
+B03-V03 PASS foreign store rejected without binding mutation
+B03-V03 PASS ordinary request namespace
+B03-V03 PASS reserved request used by ordinary mutation
+B03-V03 PASS legacy segment cannot be reserved retroactively
+B03-V03 PASS reserved segment followed by V1 remains supported
+B03-V03 PASS int64 maximum reservation accepted
+B03-V03 PASS int64 overflow rejected
+B03-V03 PASS maximum cannot wrap
+B03-V03 PASS multiple committed outputs bound to reservations
+B03-V03 PASS late output mismatch leaves ordinary ID absent
+B03-V03 PASS duplicate output rejected without index mutation
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V01 PASS branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts segment-v1
+B03-V01 PASS branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts segment-v1
+B03-V02 PASS branch state-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch state-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS branch tombstone-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch tombstone-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS missing deletion reason must not insert map entry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS branch tombstone-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch tombstone-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts tombstone-v1
+B03-V01 PASS branch observation-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch observation-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts observation-v1
+B03-V01 PASS branch observation-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch observation-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS observation event merge leaves current value untouched
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation immutable channel merge rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts observation-v2
+B03-V01 PASS branch referenced-observation
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch referenced-observation
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS referenced observation event merge unchanged
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS referenced immutable attributes rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts referenced-observation
+B03-V01 PASS branch event-link
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch event-link
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts event-link
+B03-V01 PASS new V2 bound source validated before append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS bound envelope entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS bound same-ID retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS new V2 unbound segment validated
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS V2 malformed finalization
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V2 valid pending transition
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V2 valid deletion with reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS same ID retry preserves deleted state
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Ready to Committed validates output reservations without publication
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Committed to Complete validates without state change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS same-ID Complete retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS initial Intent validates sources before map insertion
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Intent to Failed validates without publication
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Intent to Files validates without receipt publication
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS reservation domain validation only
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Files to Ready validates current source and order
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS derived job same content validation uses current cold identity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS job type/state mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS consumer reference equal identity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS accepted reference validation does not publish acceptance
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS internal receipt domain remains managed-only (not public append authorization)
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS active job protected source rejects state mutation
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS B append reservation checkpoint remain closed
+[config] crypto=1 sqlite=0 backend=1
+B03-V02 PASS first foreign store reservation rejected in empty managed store
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS unmanaged first reservation retains prior store freedom
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V03 PASS initial reservation validation unchanged then small apply
+B03-V03 PASS same tuple and time retry
+B03-V03 PASS sequence gap accepted
+B03-V03 PASS same request changed tuple
+B03-V03 PASS same request changed timestamp
+B03-V03 PASS non-increasing sequence
+B03-V03 PASS segment reused
+B03-V03 PASS foreign store rejected without binding mutation
+B03-V03 PASS ordinary request namespace
+B03-V03 PASS reserved request used by ordinary mutation
+B03-V03 PASS legacy segment cannot be reserved retroactively
+B03-V03 PASS reserved segment followed by V1 remains supported
+B03-V03 PASS int64 maximum reservation accepted
+B03-V03 PASS int64 overflow rejected
+B03-V03 PASS maximum cannot wrap
+B03-V03 PASS multiple committed outputs bound to reservations
+B03-V03 PASS late output mismatch leaves ordinary ID absent
+B03-V03 PASS duplicate output rejected without index mutation
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V01 PASS branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts segment-v1
+B03-V01 PASS branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch segment-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts segment-v1
+B03-V02 PASS branch state-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch state-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS branch tombstone-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch tombstone-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS missing deletion reason must not insert map entry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS branch tombstone-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch tombstone-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts tombstone-v1
+B03-V01 PASS branch observation-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch observation-v1
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts observation-v1
+B03-V01 PASS branch observation-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch observation-v2
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS observation event merge leaves current value untouched
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation immutable channel merge rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts observation-v2
+B03-V01 PASS branch referenced-observation
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch referenced-observation
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS referenced observation event merge unchanged
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS referenced immutable attributes rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts referenced-observation
+B03-V01 PASS branch event-link
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS malformed branch event-link
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS shared actual Apply accepts event-link
+B03-V01 PASS new V2 bound source validated before append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS bound envelope entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS bound same-ID retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS new V2 unbound segment validated
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS V2 malformed finalization
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V2 valid pending transition
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V2 valid deletion with reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS same ID retry preserves deleted state
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Ready to Committed validates output reservations without publication
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Committed to Complete validates without state change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS same-ID Complete retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS initial Intent validates sources before map insertion
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Intent to Failed validates without publication
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Intent to Files validates without receipt publication
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS reservation domain validation only
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS Files to Ready validates current source and order
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS derived job same content validation uses current cold identity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS job type/state mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS consumer reference equal identity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS accepted reference validation does not publish acceptance
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS internal receipt domain remains managed-only (not public append authorization)
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS active job protected source rejects state mutation
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS B append reservation checkpoint remain closed
+[config] crypto=0 sqlite=1 backend=1
+B03-V02 PASS first foreign store reservation rejected in empty managed store
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS unmanaged first reservation retains prior store freedom
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V03 PASS initial reservation validation unchanged then small apply
+B03-V03 PASS same tuple and time retry
+B03-V03 PASS sequence gap accepted
+B03-V03 PASS same request changed tuple
+B03-V03 PASS same request changed timestamp
+B03-V03 PASS non-increasing sequence
+B03-V03 PASS segment reused
+B03-V03 PASS foreign store rejected without binding mutation
+B03-V03 PASS ordinary request namespace
+B03-V03 PASS reserved request used by ordinary mutation
+B03-V03 PASS legacy segment cannot be reserved retroactively
+B03-V03 PASS reserved segment followed by V1 remains supported
+B03-V03 PASS int64 maximum reservation accepted
+B03-V03 PASS int64 overflow rejected
+B03-V03 PASS maximum cannot wrap
+B03-V03 PASS multiple committed outputs bound to reservations
+B03-V03 PASS late output mismatch leaves ordinary ID absent
+B03-V03 PASS duplicate output rejected without index mutation
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V04 PASS B crypto/backend unsupported remains closed
+[config] crypto=1 sqlite=1 backend=0
+B03-V02 PASS first foreign store reservation rejected in empty managed store
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS unmanaged first reservation retains prior store freedom
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V03 PASS initial reservation validation unchanged then small apply
+B03-V03 PASS same tuple and time retry
+B03-V03 PASS sequence gap accepted
+B03-V03 PASS same request changed tuple
+B03-V03 PASS same request changed timestamp
+B03-V03 PASS non-increasing sequence
+B03-V03 PASS segment reused
+B03-V03 PASS foreign store rejected without binding mutation
+B03-V03 PASS ordinary request namespace
+B03-V03 PASS reserved request used by ordinary mutation
+B03-V03 PASS legacy segment cannot be reserved retroactively
+B03-V03 PASS reserved segment followed by V1 remains supported
+B03-V03 PASS int64 maximum reservation accepted
+B03-V03 PASS int64 overflow rejected
+B03-V03 PASS maximum cannot wrap
+B03-V03 PASS multiple committed outputs bound to reservations
+B03-V03 PASS late output mismatch leaves ordinary ID absent
+B03-V03 PASS duplicate output rejected without index mutation
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V01 PASS valid finalized before durable append
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS actual apply independently exposes one segment
+B03-V01 PASS same-ID same-envelope retry
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS schema normalization cannot hide invalid input
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS same ID changed payload rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS new ID entity mismatch
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS observation invalid domain
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown corruption reason
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS valid corruption does not change finalized lifecycle
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS deletion requested missing entity
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V02 PASS unknown mutation rejected
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS deletion request checked without lifecycle change
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS V1 tombstone historical entity difference accepted
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V01 PASS direct historical deletion request after tombstone remains supported
+B03-V02 PASS typed/ID/revision/hold/accepted/SQL/journal unchanged
+B03-V04 PASS v1 strict reopen and deleted identity preserved
+B03-V04 PASS B crypto/backend unsupported remains closed
+[end] 2026-09-26T06:21:31Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.MfZb1I bytes=36209712 removed=true

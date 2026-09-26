@@ -4,6 +4,10 @@
 정책 source-of-truth는 `AGENTS.md`, 실행 전 기능·UI 정의는 중앙 테스트 기록과
 `docs/manual-ui-checklist.md`다. 이 문서는 실제 실행 결과와 미실행을 구분한다.
 
+현재 작업은 아래 **B11 저장·관측 보완 절**이다. B10의 120분 실패 후 제품 저장/복구와
+관측 구조를 보완하고 있다. 그 앞의 표는 해당 실행 당시 이력이며 현재 전체 완료 판정이 아니다.
+실행 기록의 개별 source와 한계를 유지하고 새 장시간/UI·푸시는 이번 범위에 포함하지 않는다.
+
 ## 실행 범위와 증거 영향
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·기능 ID | 실행 승인 상태 |
@@ -140,10 +144,94 @@ S11 마감·푸시는 보류한다. 앞의30분·UI432 ID 증거를 이 실패 �
 이 절은 후속 사용자 승인(제품 저장·관측 구조 1~3, 분할 커밋)을 기록한다.
 기존 B10의 120분 실패는 아래 이력과 원증거 그대로 유지한다. 이번에는 새 장시간/UI·푸시를 실행하지 않는다.
 
+### B11 제품 경로 연결 중간 결과
+
+아래 focused·영향 회귀와 실제 metadata 검증을 마쳐 제품 연결 단위를 별도 커밋한다.
+관측기·실제 HTTP·120분·S11 전체 완료는 아니며 codec/projection 준비 커밋과 구분한다.
+메인이 구현을 회수하여 삭제 lifecycle·cold 원본/binding/job 재획득·역사 타임라인을 연결했다.
+삭제 상세는 current map/SQLite/snapshot에서 영수증으로 바꾸지만 검증된 원장 이력은 보존한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11 lifecycle 최초 RED | generation consumers, exit1 | fail | 삭제 뒤 상세 제거는 됐지만 lifecycle 확인 실패. [마지막 tool 출력](b11-runtime-red-partial.log)만 보존되어 초기 hash header는 미보존 |
+| B11 consumer 1차 | 같은 runner, exit0 | pass | [로그](b11-runtime-green-attempt.log). 이후 완료 job·타임라인 경계를 추가했으므로 전체 마감 증거 아님 |
+| B11 완료 job | 같은 runner, exit0 | pass | [로그](b11-runtime-consumers-final.log). 파일명의 final은 전체 마감 의미가 아님 |
+| B11 타임라인 누락 | 같은 runner, exit1 | fail | [로그](b11-runtime-timeline-red.log). 삭제 full을 내린 뒤 과거 행이 누락됨. exact B11-P03-T 등록이 실행 시작 뒤여서 이 실행은 진단 이력이며 완료 증거로 사용하지 않음 |
+| B11 타임라인 등록 후 재검증 | 같은 runner, exit0 | pass | [로그](b11-runtime-timeline-green.log). 4개 compile 구성, 삭제 mapping/ID/UTC·재생 불가·완료 job·손상 거부 |
+| B11 중간 전체 빌드 | `./server.sh build`, exit0 | pass | [로그](b11-runtime-build.log). 이후 경계 변경은 최종 빌드 필요. 앞서 담당자의 exit 미확인 빌드는 PASS로 사용하지 않음 |
+| B11 실제 자료 최초 | `bash scripts/internal/verify_recording_generation_scale.sh receipt-compat`, exit1 | fail | [로그](b11-runtime-actual-metadata.log). 검증기가 잘못 지정한 SQLite 파일명 때문에 catalog attachment 거부 |
+| B11 실패 코드 확인 | 같은 명령, exit1 | fail | [로그](b11-runtime-actual-open-diagnostic.log). 고정 오류 코드의 SHA만 출력하고 코드 상수와 대조. `B 읽기 catalog 소유권/경로 거부` 확인. 제품 복구 결함이라는 초기 표현 정정 |
+| B11 경로 수정 후 | 같은 명령, exit1 | fail | [로그](b11-runtime-actual-path-fixed.log). 제품 Open/조회는 성공, 검증기의 채널별 기대 개수를 전체 개수와 비교한 오류 |
+| B11 기대값 수정 후 | 같은 명령, exit0 | pass | [로그](b11-runtime-actual-oracle-fixed.log). 실제 자료 1,116개/삭제1,110개, 채널9101/9201 각각558개. 구형 full→checkpoint→receipt SQLite/fallback Open 및 cold 원문 SHA 불변 |
+
+실제 자료의 snapshot은27,212,677→2,095,644B, 영수증1,110개·잔존 full6개·full tombstone0개다.
+구형 full의 최초 Open9.27초, receipt SQLite/fallback Open1.60/1.56초, checkpoint0.235초였다.
+두 채널의 타임라인 투영은 각각 약2.54~2.59초이며 원문을 요청별로 재획득했다.
+측정된 peak RSS258,326,528B는 동일 프로세스의 구형 자료 준비/파싱 peak도 포함하여 제품 상주량과 구분한다.
+현재 측정은 HTTP 경로·실제 미디어·120분·전체 자원 마감 증거가 아니다.
+원장 archive와 identity의 선형 누적 비용은 남으며 hot 상세 축약만으로 디스크 증가를 해결했다고 하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `media-server-generation-scale.RpTw5V` | 첫 실패 실행 사본·probe·cache |83,383,245B | 원본88개 SHA 대조 후 삭제 | 부재 확인 | [정리 기록](b11-runtime-cleanup.json) |
+| `media-server-generation-scale.io6kTh` | 진단 실행 사본·probe·cache |83,383,245B | 같은 대조 후 삭제 | 부재 확인 | 같은 기록 |
+| `media-server-generation-scale.Kitumt` | 기대값 실패 사본·probe·cache |87,085,421B | 같은 대조 후 삭제 | 부재 확인 | 같은 기록 |
+| `media-server-generation-scale.oHn5AC` | 실제 자료 통과 실행 |61,992,727B | runner 소유 검증 후 삭제 | removed=true | 실제 자료 PASS 로그 |
+| `/private/tmp/b11-runtime-*.log` 중 보존 완료9개 | 텍스트 실행 로그 | 각 보존 파일 크기와 동일 | byte 대조 후 임시본 삭제 | 저장소 원출력 보존 | 위9개 로그 |
+
+plugin cache의 링크277개씩은 링크만 제거했으며 Homebrew 설치 파일은 변경하지 않았다.
+정리 전 첫 inventory는 symlink에 보수적으로 중단했고, 링크가 작업 cache 내부이며 Homebrew를 가리킴을 확인 후
+대상을 따라가지 않고 제거했다. 테스트 서버·포트는 사용하지 않았다.
+token start/end/consumed는 집계 기능 부재로 미집계. elapsed/source는 각 runner의 UTC/elapsed와 도구 exit다.
+
+### B11 제품 연결 영향 회귀 마감
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11 output ID RED | consumers runner, exit1 | fail | [로그](b11-output-id-red.log). retired source ID를 파생 출력 ID로 재사용하는 guard 누락, 지정 반례만 실패 |
+| B11 output ID GREEN | 같은 runner, exit0 | pass | [로그](b11-output-id-green.log).268 PASS, 4구성. export의 order/store/channel/sequence 결박도 추가 |
+| B11 event-output fixture 첫 실행 | 같은 runner, exit1 | fail | [로그](b11-event-output-consumers.log). 새 완료 출력까지 삭제했는데 기대 deleted 목록에 source만 둔 검증기 오류 |
+| B11 event-output 기대값 수정 | 같은 runner, exit0 | pass | [로그](b11-event-output-consumers-fixed.log).268 PASS |
+| B11 event-output 최종 | 같은 runner, exit0 | pass | [로그](b11-event-output-consumers-final.log).268 PASS. snapshot으로 완료 current를 준비하고 실제 삭제·checkpoint·Open을 실행했으며 실제 committed 전이 실행으로 주장하지 않음 |
+| B11 공통 codec | snapshot runner, exit0 | pass | [로그](b11-runtime-codec-regression.log).33 PASS, crypto off 포함 |
+| B11 typed projection | generation projection runner, exit0 | pass | [로그](b11-runtime-projection-regression.log).36 PASS |
+| B11 scratch 최초 | generation scratch runner, exit1 | fail | [로그](b11-runtime-scratch-regression.log).56 PASS/1 FAIL. V2 삭제 뒤 구형 V1 tombstone이 이어지는 early/late cut 표현 불일치 |
+| B11 scratch 수정 후 | 같은 runner, exit0 | pass | [로그](b11-runtime-scratch-fixed.log).59 PASS. 이 구형 공존 경계만 검증된 cold full로 복원하여 기존 호환 결과 유지, 기존 assertion 유지 |
+| B11 저장 전 검사 | generation preappend runner, exit0 | pass | [로그](b11-runtime-preappend-regression.log).510 PASS. 손상·권위·보호·상태 불변 및 unsupported 경계 |
+| B11 append 최초 | generation append runner, exit2 | fail | [압축 원출력](b11-runtime-append-regression.log.gz).56 PASS 뒤 기존 SQL oracle이 제거된 full tombstone 행을 요구하여 fixture 종료. PASS assertion 수로 suite 성공 처리하지 않음 |
+| B11 append 보완 | 같은 runner, exit0 | pass | [로그](b11-runtime-append-fixed.log).220 PASS. 고정 입력의 독립23필드 영수증과 기존 detail key 부재로 current oracle만 변경, 원장·내구·복구 기준 유지 |
+| B11 최종 제품 빌드 | `./server.sh build`, exit0 | pass | [로그](b11-runtime-final-build.log).100% 완료. 이후 제품 수정 없음, 검사 기대값만 보완 |
+
+`snapshot/projection/scratch/preappend/append runner`의 정확한 명령은 각각
+`./scripts/internal/verify_recording_catalog_snapshot.sh`,
+`./scripts/internal/verify_recording_catalog_generation_projection.sh`,
+`./scripts/internal/verify_recording_catalog_generation_scratch.sh`,
+`./scripts/internal/verify_recording_generation_preappend.sh`,
+`./scripts/internal/verify_recording_generation_append.sh`다.
+consumer는 `./scripts/internal/verify_recording_generation_consumers.sh`다.
+전수 assertion·구성·로그 줄·판정은 [개별 실행표](b11-runtime-items.json.gz)에 보존한다.
+서버/네트워크/포트 사용 없음, runner별 소유 temp는 모두 removed=true다.
+첫 실제 metadata PASS 뒤의 제품 변경은 deleted output ID guard/export order 대조와
+V1 tombstone 공존 호환 분기로 한정된다. B10 실제 입력에는 이 공존/파생 출력 전이가 없으므로
+같은 자료의 성능 검사를 인계만으로 반복하지 않고 해당 결과를 유지한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 제품 저장 단기 안정화 | 진행 대상·위 범위 통과 | 삭제 current·cold 소비·복구 변경 | B11-P01~03, 위 원출력 | 이번 개발 승인 |
+| 관측 준비·증분 단기 | 진행 대상·미완료 | B10 native3초 실패 원인 보완 | B11-O01~02 | 이번 개발 승인 |
+| 30분 | 이번 단계 미진행 | 새 장시간 실행 비범위, 기존 증거는 후속 diff 영향 판정 필요 | AGENTS7.6.2 및 B10 | 이번 묶음 미승인 |
+| 실제 UI | 이번 단계 미진행 | deleted timeline 영향은 focused 확인이며 실제 UI 대체 아님 | B11-P03-T | 이번 묶음 미승인 |
+| 120분 | 후속 진행 대상·이번 미실행 | B10 실패를 아직 닫지 못함 | B10 기록 및 녹화 기능 | 이번 묶음 미승인 |
+
+제품 단위 기록 반영 후 docs-links exit0(markdown361/local links14556/anchors205/failures0),
+`git diff --check` exit0를 확인했다. 추가 원출력13개도 저장소 파일과 byte 대조 후 임시본을 삭제했다.
+스테이징 후 공백 검사에서 실패 로그의 `fixture: ` 원문 trailing space 1건을 발견했다.
+원문을 고쳐 지우지 않고 해당 로그와 전수 JSON을 lossless gzip으로 보존했다. 압축 왕복 byte 동일성을 확인했다.
+
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 현재 상태·삭제 증거·cold 상세 계약 | 문서/소비자 검토 완료 | 삭제된 원본도 미래 derived selection과 완료 job 검증이 소비하므로 full값의 검증된 재획득을 유지 | [B11 계약](../../../superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b11-삭제-완료-상세의-현재-상태-분리-2026-09-26), catalog의 PrepareDerivedSourceSnapshot/AcquireDerivedJobOwnedWithEnvelopeLocked |
-| 2 | 제품 저장·복구 보완 | 구현 진행 | retired-v2 receipt·current/SQLite/snapshot·재획득과 구형 snapshot 엄격 호환 | 중앙 B11-P01~03 사전 정의 |
+| 2 | 제품 저장·복구 보완 | 제품 연결 단기 범위 완료 | retired-v2 receipt·current/SQLite/snapshot·재획득과 구형 snapshot 엄격 호환. 실제 HTTP/장시간은 미실행 | 중앙 B11-P01~03 및 위 실행표 |
 | 3 | 관측 구조·누적 확인 | 미실행 | 2번 통과 후 기존 3초/32MiB/15초 유지 검증 | 중앙 B11-O01~02 |
 | 4 | 분할 커밋 | 계약 단위부터 수행 대상 | 제품 PASS와 문서 계약 완료를 구분 | Git log 및 후속 결과 |
 

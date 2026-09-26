@@ -1,0 +1,22 @@
+[start] utc=2026-09-26T06:09:32Z mode=receipt-compat root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.io6kTh
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+22a0fd75f41b18f46ba03b127f51fff627f83c6c81ca95407f151f972ce9f9c8  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp
+3fff41d6c83afad0111801953317057ab53b2d84a36f2f59a62a128b244e2148  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh
+c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+a058a2b4a65b6b701cd69f95b3020efdfb0c74a5fc2eccc3f5b2bcf93394ae64  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h
+e2194189c5251fbd474b02db5bb336ac9c3ba201d21e81097736a30684b2dce3  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h
+3e5a31d0852020b80c748a2d50e02fe96454b4b3b2566697a0b4bb88d15721b5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+3b34068982b4b6f372e2433e87eab291ac4ad76524cc3088b6b9ed912ae5980f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+faa84bda633918f93ad73b5193c3a4c644be39e4311fba988167999d7aa4e5dd  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+728c8da121407897bae883a5e5378f43e319c2901471689aa1a00e7ccf76679a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp
+412221c6c49f0ef367f387dab0f33147ab9b640bd7378984c72997534c258f2b  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[fixture] B11 archive_files=88 segments=1116 deleted=1110 source_unchanged=true metadata_only=true
+[scope] B11 archived-actual-metadata catalog-only media-playback=not-run observer=not-run
+[diagnostic] stage=catalog-open error_sha256=afb64c62f317158976666410e15899bebbde623f5776974c0d2c348f53766762
+[fail] code=B11-catalog-open
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":42,"a":375,"e":264833,"n":2,"w":374,"h":187750,"x":333,"y":179750}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.io6kTh bytes=83383245 removed=false preserved=execution-failure dev=16777234 ino=160657976 uid=501
+[end] exit=1 elapsed_seconds=12

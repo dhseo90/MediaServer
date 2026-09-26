@@ -1,0 +1,118 @@
+[start] utc=2026-09-26T06:11:27Z mode=receipt-compat root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.oHn5AC
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+25bb6c65a473857219b9d9669ef4e6a6d221f54accd6b129623a2616e6c61777  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp
+3fff41d6c83afad0111801953317057ab53b2d84a36f2f59a62a128b244e2148  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh
+c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+a058a2b4a65b6b701cd69f95b3020efdfb0c74a5fc2eccc3f5b2bcf93394ae64  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h
+e2194189c5251fbd474b02db5bb336ac9c3ba201d21e81097736a30684b2dce3  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h
+3e5a31d0852020b80c748a2d50e02fe96454b4b3b2566697a0b4bb88d15721b5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+3b34068982b4b6f372e2433e87eab291ac4ad76524cc3088b6b9ed912ae5980f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+faa84bda633918f93ad73b5193c3a4c644be39e4311fba988167999d7aa4e5dd  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+728c8da121407897bae883a5e5378f43e319c2901471689aa1a00e7ccf76679a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp
+412221c6c49f0ef367f387dab0f33147ab9b640bd7378984c72997534c258f2b  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[fixture] B11 archive_files=88 segments=1116 deleted=1110 source_unchanged=true metadata_only=true
+[scope] B11 archived-actual-metadata catalog-only media-playback=not-run observer=not-run
+[recording-latency] {"k":0,"o":1,"s":1,"l":583,"m":1,"t":1,"r":0,"b":0,"a":208,"e":831530417,"n":1,"w":208,"h":831530209,"x":208,"y":831530209}
+[measure] op=B11-old-full-open count=1116 us=9265845 rss_peak_bytes=258326528
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":2,"t":1,"r":0,"b":831110333,"a":831110792,"e":831111083,"n":1,"w":459,"h":291,"x":459,"y":291}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":831585375,"a":831585458,"e":849685250,"n":255,"w":9716,"h":18027199,"x":84,"y":840125}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":849704667,"a":849704708,"e":867205250,"n":256,"w":9517,"h":17442235,"x":84,"y":303875}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":867229667,"a":867229708,"e":884177625,"n":256,"w":9583,"h":16892289,"x":83,"y":172125}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":884191625,"a":884191667,"e":901040167,"n":256,"w":9418,"h":16794090,"x":83,"y":224542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":901058875,"a":901058875,"e":918070542,"n":256,"w":9044,"h":16957415,"x":42,"y":252625}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":918089125,"a":918089167,"e":935022000,"n":256,"w":9548,"h":16878038,"x":42,"y":251667}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":935038667,"a":935038708,"e":951688250,"n":256,"w":9380,"h":16597453,"x":42,"y":214542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":951698458,"a":951698500,"e":968280667,"n":256,"w":9048,"h":16530409,"x":42,"y":166458}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":968290792,"a":968290833,"e":985118625,"n":256,"w":9172,"h":16775540,"x":42,"y":218333}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":985131583,"a":985131625,"e":1001873125,"n":256,"w":9341,"h":16690087,"x":84,"y":218250}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1001883333,"a":1001883375,"e":1018686625,"n":256,"w":9415,"h":16751545,"x":83,"y":215958}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1018713375,"a":1018713417,"e":1035512292,"n":256,"w":9543,"h":16746414,"x":125,"y":229417}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1035522625,"a":1035522667,"e":1052739583,"n":256,"w":9253,"h":17161167,"x":84,"y":225042}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1052759792,"a":1052759792,"e":1069648417,"n":256,"w":9343,"h":16837294,"x":125,"y":211584}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1069655500,"a":1069655542,"e":1086864250,"n":256,"w":9629,"h":17154794,"x":83,"y":265792}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1086879792,"a":1086879833,"e":1103870875,"n":256,"w":9717,"h":16936956,"x":83,"y":243458}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1103884667,"a":1103884708,"e":1120624917,"n":256,"w":9966,"h":16671616,"x":625,"y":229125}
+[start] B11-P03-T phase=old-full timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":1128268000,"a":1128268042,"e":3690170417,"n":1,"w":42,"h":2561902375,"x":42,"y":2561902375}
+[measure] op=B11-old-full-timeline count=1116 us=2561974 rss_peak_bytes=258326528
+[timeline] channel=9101 expected_segments=558 known=361 unplaced=555
+[pass] B11-P03-T total=361 unplaced_total=555 page=100
+[start] B11-P03-T phase=old-full timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":3691110958,"a":3691111000,"e":6230488083,"n":1,"w":42,"h":2539377083,"x":42,"y":2539377083}
+[measure] op=B11-old-full-timeline count=1116 us=2539431 rss_peak_bytes=258326528
+[timeline] channel=9201 expected_segments=558 known=375 unplaced=554
+[pass] B11-P03-T total=375 unplaced_total=554 page=100
+[pass] B11-P02 phase=old-full expected=1116 deleted=1110 live=6 metadata_only=true
+[recording-latency] {"k":0,"o":1,"s":1,"l":688,"m":1,"t":1,"r":0,"b":6230977708,"a":6230977792,"e":6466233083,"n":1,"w":84,"h":235255291,"x":84,"y":235255291}
+[measure] op=B11-checkpoint count=1116 us=235294 rss_peak_bytes=258326528
+[pass] B11-P02 snapshot_before=27212677 snapshot_after=2095644 receipts=1110 full_tombstones=0
+[recording-latency] {"k":0,"o":1,"s":1,"l":583,"m":1,"t":1,"r":0,"b":8812413708,"a":8812414042,"e":9604281250,"n":1,"w":334,"h":791867208,"x":334,"y":791867208}
+[measure] op=B11-receipt-sqlite-open count=1116 us=1596533 rss_peak_bytes=258326528
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1120635875,"a":1120635917,"e":9613792292,"n":255,"w":9215,"h":17546154,"x":83,"y":485750}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":3,"t":1,"r":0,"b":9603861292,"a":9603861750,"e":9603862250,"n":1,"w":458,"h":500,"x":458,"y":500}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9613802042,"a":9613802083,"e":9630694042,"n":256,"w":9538,"h":16835046,"x":125,"y":161542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9630706792,"a":9630706833,"e":9647756583,"n":256,"w":9750,"h":16994502,"x":125,"y":182000}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9647773792,"a":9647773792,"e":9664691250,"n":256,"w":9508,"h":16865452,"x":42,"y":190625}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9664699833,"a":9664699875,"e":9681916292,"n":256,"w":9626,"h":17160953,"x":125,"y":265833}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9681929208,"a":9681929250,"e":9699092792,"n":256,"w":9419,"h":17110461,"x":84,"y":248125}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9699106000,"a":9699106083,"e":9716268125,"n":256,"w":9663,"h":17109127,"x":83,"y":199166}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9716282500,"a":9716282542,"e":9733275167,"n":256,"w":9670,"h":16939997,"x":42,"y":166750}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9733292125,"a":9733292167,"e":9750206167,"n":256,"w":9165,"h":16861785,"x":84,"y":229833}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9750230167,"a":9750230208,"e":9767001292,"n":256,"w":9287,"h":16720374,"x":83,"y":229084}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9767008000,"a":9767008042,"e":9783889833,"n":256,"w":9037,"h":16830417,"x":42,"y":239292}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9783897792,"a":9783897792,"e":9800714750,"n":256,"w":9054,"h":16765819,"x":42,"y":227166}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9800720458,"a":9800720500,"e":9817592333,"n":256,"w":8882,"h":16818248,"x":84,"y":175542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9817604583,"a":9817604625,"e":9834714417,"n":256,"w":9497,"h":17056924,"x":83,"y":234125}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9834735833,"a":9834735917,"e":9851970625,"n":256,"w":9339,"h":17183754,"x":84,"y":321834}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9851984417,"a":9851984417,"e":9869425667,"n":256,"w":9332,"h":17387831,"x":84,"y":252417}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9869440083,"a":9869440125,"e":9886839583,"n":256,"w":9456,"h":17346123,"x":84,"y":244625}
+[start] B11-P03-T phase=receipt-sqlite timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":9901912125,"a":9901912250,"e":12494915333,"n":1,"w":125,"h":2593003083,"x":125,"y":2593003083}
+[measure] op=B11-receipt-sqlite-timeline count=1116 us=2593056 rss_peak_bytes=258326528
+[timeline] channel=9101 expected_segments=558 known=361 unplaced=555
+[pass] B11-P03-T total=361 unplaced_total=555 page=100
+[start] B11-P03-T phase=receipt-sqlite timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":12495829500,"a":12495829542,"e":15043433417,"n":1,"w":42,"h":2547603875,"x":42,"y":2547603875}
+[measure] op=B11-receipt-sqlite-timeline count=1116 us=2547649 rss_peak_bytes=258326528
+[timeline] channel=9201 expected_segments=558 known=375 unplaced=554
+[pass] B11-P03-T total=375 unplaced_total=554 page=100
+[pass] B11-P02 phase=receipt-sqlite expected=1116 deleted=1110 live=6 metadata_only=true
+[recording-latency] {"k":0,"o":1,"s":1,"l":583,"m":1,"t":1,"r":0,"b":15851171583,"a":15851172000,"e":16600602667,"n":1,"w":417,"h":749430667,"x":417,"y":749430667}
+[measure] op=B11-receipt-fallback-open count=1116 us=1555096 rss_peak_bytes=258326528
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":9886852417,"a":9886852458,"e":16602978208,"n":255,"w":9830,"h":17813792,"x":125,"y":570875}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":3,"t":1,"r":0,"b":16600177000,"a":16600177333,"e":16600177708,"n":1,"w":333,"h":375,"x":333,"y":375}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16602990500,"a":16602990542,"e":16619935125,"n":256,"w":9212,"h":16888502,"x":84,"y":225084}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16619944708,"a":16619944750,"e":16636872708,"n":256,"w":9614,"h":16876055,"x":42,"y":197083}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16636879625,"a":16636879667,"e":16653580708,"n":256,"w":9715,"h":16648290,"x":84,"y":155250}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16653589250,"a":16653589250,"e":16670383708,"n":256,"w":9299,"h":16741995,"x":83,"y":179125}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16670389167,"a":16670389208,"e":16687443083,"n":256,"w":9284,"h":17000917,"x":42,"y":246084}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16687452250,"a":16687452250,"e":16704944208,"n":256,"w":9170,"h":17438871,"x":42,"y":290042}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16704956375,"a":16704956417,"e":16722129500,"n":256,"w":9752,"h":17118872,"x":83,"y":166791}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16722146417,"a":16722146417,"e":16739377750,"n":256,"w":9632,"h":17177322,"x":84,"y":196583}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16739392875,"a":16739392917,"e":16756376375,"n":256,"w":9659,"h":16925970,"x":125,"y":221958}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16756401042,"a":16756401083,"e":16773569875,"n":256,"w":9117,"h":17117259,"x":42,"y":269208}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16773582542,"a":16773582583,"e":16790919875,"n":256,"w":9334,"h":17284410,"x":84,"y":248209}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16790928125,"a":16790928167,"e":16808244000,"n":256,"w":9378,"h":17262202,"x":125,"y":249208}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16808254042,"a":16808254083,"e":16825476000,"n":256,"w":8998,"h":17169625,"x":42,"y":249000}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16825493208,"a":16825493250,"e":16842418917,"n":256,"w":9161,"h":16874965,"x":42,"y":197875}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16842431917,"a":16842431917,"e":16859260458,"n":256,"w":9132,"h":16778195,"x":83,"y":169250}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16859271417,"a":16859271417,"e":16876779375,"n":256,"w":9623,"h":17455464,"x":125,"y":312542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16876798833,"a":16876798875,"e":16893987958,"n":256,"w":9664,"h":17132379,"x":84,"y":229791}
+[start] B11-P03-T phase=receipt-fallback timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":16899370250,"a":16899370292,"e":19479888792,"n":1,"w":42,"h":2580518500,"x":42,"y":2580518500}
+[measure] op=B11-receipt-fallback-timeline count=1116 us=2580566 rss_peak_bytes=258326528
+[timeline] channel=9101 expected_segments=558 known=361 unplaced=555
+[pass] B11-P03-T total=361 unplaced_total=555 page=100
+[start] B11-P03-T phase=receipt-fallback timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":19480796292,"a":19480796375,"e":22022800083,"n":1,"w":83,"h":2542003708,"x":83,"y":2542003708}
+[measure] op=B11-receipt-fallback-timeline count=1116 us=2542048 rss_peak_bytes=258326528
+[timeline] channel=9201 expected_segments=558 known=375 unplaced=554
+[pass] B11-P03-T total=375 unplaced_total=554 page=100
+[pass] B11-P02 phase=receipt-fallback expected=1116 deleted=1110 live=6 metadata_only=true
+[summary] B11_actual_metadata_compatibility=true media_playback=not-run longrun=not-run
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":16894001750,"a":16894001792,"e":22023271625,"n":74,"w":2832,"h":5714086,"x":84,"y":508167}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.oHn5AC bytes=61992727 removed=true
+[end] exit=0 elapsed_seconds=36

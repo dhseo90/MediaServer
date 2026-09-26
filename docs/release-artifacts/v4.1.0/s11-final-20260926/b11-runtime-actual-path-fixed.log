@@ -1,0 +1,44 @@
+[start] utc=2026-09-26T06:10:14Z mode=receipt-compat root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.Kitumt
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+6bd87f7c6556f4a1a52ede80c5ed3bc4f306b0379570a230888245e27e738f93  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_scale_probe.cpp
+3fff41d6c83afad0111801953317057ab53b2d84a36f2f59a62a128b244e2148  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_scale.sh
+c80f0c0c0188b024dc4258cb1b4b55474dcbdd5c889af0fb6e74c39f993565ee  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+a058a2b4a65b6b701cd69f95b3020efdfb0c74a5fc2eccc3f5b2bcf93394ae64  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_generation_observation.h
+e2194189c5251fbd474b02db5bb336ac9c3ba201d21e81097736a30684b2dce3  /Users/dhseo/Workspace/mediaServer/include/recording/recording_latency_trace.h
+3e5a31d0852020b80c748a2d50e02fe96454b4b3b2566697a0b4bb88d15721b5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+3b34068982b4b6f372e2433e87eab291ac4ad76524cc3088b6b9ed912ae5980f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+faa84bda633918f93ad73b5193c3a4c644be39e4311fba988167999d7aa4e5dd  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+728c8da121407897bae883a5e5378f43e319c2901471689aa1a00e7ccf76679a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540  /Users/dhseo/Workspace/mediaServer/src/recording/recording_runtime_composition.cpp
+412221c6c49f0ef367f387dab0f33147ab9b640bd7378984c72997534c258f2b  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[fixture] B11 archive_files=88 segments=1116 deleted=1110 source_unchanged=true metadata_only=true
+[scope] B11 archived-actual-metadata catalog-only media-playback=not-run observer=not-run
+[recording-latency] {"k":0,"o":1,"s":1,"l":583,"m":1,"t":1,"r":0,"b":0,"a":7750,"e":834486500,"n":1,"w":7750,"h":834478750,"x":7750,"y":834478750}
+[measure] op=B11-old-full-open count=1116 us=9233914 rss_peak_bytes=258260992
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":2,"t":1,"r":0,"b":834056500,"a":834056750,"e":834057125,"n":1,"w":250,"h":375,"x":250,"y":375}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":834539208,"a":834539250,"e":851599083,"n":255,"w":9253,"h":16989837,"x":42,"y":268500}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":851618292,"a":851618333,"e":868470625,"n":256,"w":9296,"h":16798538,"x":83,"y":181917}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":868481167,"a":868481208,"e":885011375,"n":256,"w":9330,"h":16476912,"x":42,"y":202250}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":885020458,"a":885020500,"e":901478292,"n":256,"w":9050,"h":16405828,"x":84,"y":178416}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":901487833,"a":901487875,"e":918019500,"n":256,"w":9031,"h":16478549,"x":42,"y":152209}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":918026250,"a":918026292,"e":934901583,"n":256,"w":9039,"h":16823016,"x":83,"y":188667}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":934916000,"a":934916042,"e":952250667,"n":256,"w":9298,"h":17281207,"x":83,"y":319959}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":952270833,"a":952270875,"e":969286833,"n":256,"w":9248,"h":16962788,"x":42,"y":273917}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":969299250,"a":969299292,"e":986514750,"n":256,"w":9422,"h":17161950,"x":125,"y":275042}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":986531333,"a":986531375,"e":1003726417,"n":256,"w":9417,"h":17142048,"x":84,"y":241250}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1003740292,"a":1003740333,"e":1020794750,"n":256,"w":8872,"h":17001746,"x":83,"y":192542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1020820792,"a":1020820833,"e":1037639792,"n":256,"w":9328,"h":16766840,"x":125,"y":168542}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1037657375,"a":1037657417,"e":1054818750,"n":256,"w":9331,"h":17106632,"x":83,"y":369666}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1054835167,"a":1054835167,"e":1071546583,"n":256,"w":10290,"h":16658296,"x":958,"y":184792}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1071558167,"a":1071558208,"e":1088388208,"n":256,"w":9247,"h":16779168,"x":84,"y":224625}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1088398750,"a":1088398792,"e":1105371042,"n":256,"w":9115,"h":16920173,"x":42,"y":273959}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1105384417,"a":1105384458,"e":1122429875,"n":256,"w":9206,"h":16991128,"x":84,"y":274959}
+[start] B11-P03-T phase=old-full timeline
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":1,"t":1,"r":0,"b":1130108333,"a":1130108375,"e":3718838333,"n":1,"w":42,"h":2588729958,"x":42,"y":2588729958}
+[measure] op=B11-old-full-timeline count=1116 us=2588790 rss_peak_bytes=258260992
+[fail] code=B11-timeline-history-count
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":1122442375,"a":1122442375,"e":3719292958,"n":109,"w":3710,"h":7661705,"x":83,"y":491917}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.Kitumt bytes=87085421 removed=false preserved=execution-failure dev=16777234 ino=160658488 uid=501
+[end] exit=1 elapsed_seconds=16

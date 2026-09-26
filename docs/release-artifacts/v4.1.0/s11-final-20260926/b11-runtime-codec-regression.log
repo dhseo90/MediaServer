@@ -1,0 +1,34 @@
+B11-C01 PASS canonical receipt exact roundtrip
+B11-C01 PASS segment hash lowercase hex
+B11-C01 PASS tombstone hash lowercase hex
+B11-C01 PASS positive first accepted order
+B11-C01 PASS order request ID required
+B11-C01 PASS order request numeric-only opaque ID rejected
+B11-C01 PASS order request path-form opaque ID rejected
+B11-C01 PASS tombstone ID required
+B11-C01 PASS tombstone numeric-only opaque ID rejected
+B11-C01 PASS tombstone path-form opaque ID rejected
+B11-C01 PASS escaping prior relative path rejected
+B11-C01 PASS existing lexical-normalized relative path remains accepted
+B11-C01 PASS control path character is escaped as strict JSON
+B11-C01 PASS UTC exclusion requires closed media interval
+B11-C01 PASS unknown UTC remains non-excluding
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS strict receipt fields/precision/UTC/extra and output preservation
+B11-C01 PASS
+B02-S01 PASS
+B02-S02 PASS
+B02-S03 PASS
+B02-S04 PASS
+B02-T01 PASS
+B02-T02 PASS
+B02-S05 PASS
+B02-T03 PASS
+[cleanup] removed=true

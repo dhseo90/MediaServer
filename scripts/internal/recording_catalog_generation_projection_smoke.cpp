@@ -111,7 +111,8 @@ Fixture Active(const Input& input) {
     std::string value;Need(SerializeRecordingCatalogSourceSummary({"segment","channel","source","gen","video/0",1,2,"bound"},&value,&error));f.Row("source-binding","segment",value);
     if(input.job.ready)for(const auto& o:input.job.ready->outputs)f.Order(o.segment.order_request_id,o.segment.segment_id,o.segment.order_sequence);
     const auto type=input.job.state==DerivedJobState::Ready?RecordingMutationType::DerivedJobReady:
-        input.job.state==DerivedJobState::Committed?RecordingMutationType::DerivedJobCommitted:RecordingMutationType::DerivedJobIntent;
+        input.job.state==DerivedJobState::Committed?RecordingMutationType::DerivedJobCommitted:
+        input.job.state==DerivedJobState::Complete?RecordingMutationType::DerivedJobComplete:RecordingMutationType::DerivedJobIntent;
     f.Add(type,"job-mutation",input.job.intent.job_id,SerializeDerivedJobRecord(input.job));
     RecordingCatalogJobSummary summary{input.job.intent.job_id,"channel","reference",input.job.state,input.job.files.size(),4096,{}, {"segment"},"job-mutation"};
     for(const auto& output:input.job.intent.outputs)summary.output_ids.push_back(output.output_id);

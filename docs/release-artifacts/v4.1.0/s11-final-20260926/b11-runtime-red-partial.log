@@ -1,0 +1,11 @@
+[capture] 실행 초기 hash header는 미보존. 아래는 tool의 마지막 출력이며 전체 로그로 주장하지 않음.
+
+B05-P03 PASS runtime probe missing parents is read-only absence
+B05-P03 PASS runtime probe empty safe root
+B05-P03 PASS runtime probe fixed temp requires recovery without interpreting bytes
+B05-P03 PASS runtime probe nofollow receipt symlink is pending, not absence
+B05-P03 PASS runtime probe rejects arbitrary root symlink and preserves output
+B05-P03 PASS runtime probe ENOTDIR is not absence
+B11-P03 PASS live V2 hold protects before retirement
+B11-P01 FAIL live delete and reopen retain receipt only and Deleted lifecycle
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.NamMJ6 bytes=9290608 removed=true

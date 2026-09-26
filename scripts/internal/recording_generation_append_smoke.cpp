@@ -171,7 +171,19 @@ void V2AndJobs(const std::filesystem::path& base) {
         SqlValue(c,"state-v2","plain",SerializeRecordingSegmentStateV2(state));
         RecordingTombstoneV2 tomb;tomb.tombstone_id="tomb-plain";tomb.segment=segment;tomb.deletion_reason=state.reason;tomb.deleted_at_ms=20;
         Need(AppendProbe::Commit(c,AM(RecordingMutationType::SegmentV2Deleted,"deleted","plain",SerializeRecordingTombstoneV2(tomb))));
-        SqlValue(c,"tombstone-v2","plain",SerializeRecordingTombstoneV2(tomb));
+        // 원장 원문은 tombstone 그대로, current SQL만 B11의 고정 영수증으로 바뀐다.
+        // 제품 receipt builder를 oracle로 재사용하지 않고 fixture 입력으로 독립 기대값을 만든다.
+        RecordingRetiredV2Receipt receipt;receipt.segment_id="plain";receipt.store_id="store";receipt.source_id="source";receipt.channel_id="channel";
+        receipt.order_request_id="plain-order";receipt.order_sequence=2;receipt.media_epoch_id="epoch";receipt.tombstone_id="tomb-plain";
+        receipt.media_start_pts=0;receipt.media_end_pts=20000000;receipt.time_base_num=1;receipt.time_base_den=1000000000;
+        receipt.retention_class=RecordingRetentionClass::Continuous;receipt.deleted_at_ms=20;receipt.deletion_reason="continuous-capacity";
+        receipt.prior_relative_path="channel/plain.mp4";receipt.deletion_mutation_id="deleted";
+        receipt.segment_sha256=Hash(SerializeRecordingSegmentV2(segment));receipt.tombstone_sha256=Hash(SerializeRecordingTombstoneV2(tomb));
+        receipt.utc_exclusion_safe=false;std::string receipt_bytes;Need(SerializeRecordingRetiredV2Receipt(receipt,&receipt_bytes,&error));
+        SqlValue(c,"retired-v2","plain",receipt_bytes);
+#if MEDIA_SERVER_USE_SQLITE3
+        if(auto* db=AppendProbe::Db(c))Check("B11-P01",AS(db,"SELECT count(*) FROM b_current WHERE id='plain' AND kind IN ('segment-v2','tombstone-v2','state-v2','media-path','deletion-reason')")=="0","retired append removes obsolete current detail keys");
+#endif
         RecordingMutationHandle envelope;Check("B03-W01",AppendProbe::Get(journal,source,&envelope)&&envelope->mutation_id=="bound","source link remains authoritative after reservation and multiple appends");
 #if MEDIA_SERVER_USE_SQLITE3
         if(auto* db=AppendProbe::Db(c)){RecordingCatalogSourceSummary summary;

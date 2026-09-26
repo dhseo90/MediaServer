@@ -11,6 +11,7 @@
 | B11-P01 | 삭제 current 축약·ID/재시도·용량·재생 거부 | generation 집중 | 변경 영향 판정 후 | 후속 녹화120분 | 영향받는 기존 녹화 UI 별도 판정 |
 | B11-P02 | full/receipt 복구·SQLite fallback·손상 거부 | projection/append/runtime | 변경 영향 판정 후 | 후속 녹화120분 | 비대상: 내부 복구 |
 | B11-P03 | pin/hold/job·과거 참조·상세 재획득 | consumers/영향 회귀/build | 변경 영향 판정 후 | 후속 녹화120분 | 기존 녹화 UI 영향 판정 |
+| B11-P03-T | 삭제 이력 timeline ID·mapping·상태 보존 | generation consumers·실자료 조회 | 변경 영향 판정 후 | 후속 녹화120분 | 기존 녹화 UI 영향 판정 |
 | B11-O01 | 관측 증분·무효화·prefix/교체 반례 | 관측기 자체검증 | 비대상: 전용 관측기 | 후속 녹화120분 준비 | 비대상: CLI |
 | B11-O02 | 실패 metadata/현실 상세 누적 비용 | 한정 실측·원본 불변/정리 | 비대상: 단기 준비 | 장시간 PASS 대체 불가 | 비대상: CLI |
 

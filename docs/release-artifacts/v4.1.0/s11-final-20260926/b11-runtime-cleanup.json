@@ -1,0 +1,42 @@
+{
+  "scope": "B11 격리 검증 실패 사본 정리 전 확인",
+  "source_archive": "b10-observer-metadata.tar.xz",
+  "logs_preserved": true,
+  "removed": true,
+  "verification": "3개 root 부재 확인. 원본 archive 88개 SHA 동일, 로그 9개 byte 대조 후 임시본 삭제. 플러그인 링크 대상은 삭제하지 않음.",
+  "roots": [
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.RpTw5V",
+      "bytes": 83383245,
+      "files": 93,
+      "links": 277,
+      "dev": 16777234,
+      "ino": 160657443,
+      "uid": 501,
+      "sourceFilesIdentical": 88,
+      "action": "작업 소유 사본/실행파일/cache 제거; 링크 대상 미삭제"
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.io6kTh",
+      "bytes": 83383245,
+      "files": 93,
+      "links": 277,
+      "dev": 16777234,
+      "ino": 160657976,
+      "uid": 501,
+      "sourceFilesIdentical": 88,
+      "action": "작업 소유 사본/실행파일/cache 제거; 링크 대상 미삭제"
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-scale.Kitumt",
+      "bytes": 87085421,
+      "files": 94,
+      "links": 277,
+      "dev": 16777234,
+      "ino": 160658488,
+      "uid": 501,
+      "sourceFilesIdentical": 88,
+      "action": "작업 소유 사본/실행파일/cache 제거; 링크 대상 미삭제"
+    }
+  ]
+}

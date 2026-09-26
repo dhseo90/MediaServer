@@ -12,11 +12,26 @@ B10 실패를 보존하며 아래 준비/회귀 PASS로 120분 완료를 주장�
 | B11-P01 | 현재 저장 축약 | 실제 generation finalize→delete→checkpoint에서 상세 중복 부재·ID 충돌·재시도·상태 집계·재생 거부 대조 | v4.1.0 |
 | B11-P02 | 복구·fallback | 기존 full snapshot/새 receipt·SQLite on/off·cold 손상/누락·중단/fresh Open 반례. 기존 generation projection/append/runtime 회귀 | v4.1.0 |
 | B11-P03 | 참조와 보호 | pin/hold/active job 유지, completed job/binding/삭제 후보의 상세 재획득·UTC unknown·범위/cap 기존 의미 대조. generation consumers/관련 회귀·build | v4.1.0 |
+| B11-P03-T | 삭제 이력 타임라인 소비 경계 | SnapshotTimelineV2의 deleted source mapping/ID/UTC·불가 상태 및 완료 job 출력 상태를 기존 full 표현과 대조. 작은 consumer 및 실제 metadata 규모에서 누락 없는 조회 확인 | v4.1.0 |
 | B11-O01 | 증분 관측 안전성 | generation observer 자체검사의 append/rotation/부분 행/중복/변경 prefix/교체/손상/busy와 새 재사용 경계. 원문 비출력·정리 | v4.1.0 |
 | B11-O02 | 실측 재현 및 누적 | 보존 B10 metadata hash 확인 후 read-only 관측, 실제와 같은 상세 분포의 누적 current/cold 비용. 기존 native3초·32MiB·15초 기준 유지 | v4.1.0 |
 
+B11-P02 실제 자료의 호환 하위 검사는 `bash scripts/internal/verify_recording_generation_scale.sh receipt-compat`다.
+보존 archive88개를 hash 대조하여 작업 전용 root에 풀고, 원본 snapshot+active의 문자열 ID·channel·checksum과
+상태·mapping 개수로 별도 기대표를 만든다. UTC/PTS 숫자를 JS로 재직렬화해 제품에 주입하지 않는다.
+SHA가 고정된 종료 후 사본의 독립 예상값은 원본1,116·삭제1,110개다. 마지막 성공 관측의
+원본1,108·삭제1,102개와 혼동하지 않으며 종료 중 확정된 tail도 포함한다.
+기존 full snapshot Open→checkpoint의 영수증 수/삭제 상세 부재→SQLite/fallback fresh Open,
+삭제 lifecycle·재생 대상 거부·live 상세와 cold 파일 불변을 대조한다. Open/복구15초는 유지한다.
+기존 B03-W04 append SQL 검사는 원장의 full tombstone이 아닌 current의 retired-v2 literal 기대값과
+기존 상세 key 5종 부재를 B11-P01로 대조한다. 원장 원문·ID·순서·내구성 검사는 유지한다.
+미디어가 없는 metadata fixture이므로 실제 재생·전체 startup/120분 검증을 대체하지 않는다.
+
 실행 결과·개별 항목·정리·토큰 집계 한계는 기존 [S11 결과](release-artifacts/v4.1.0/s11-final-20260926/results.md)에 이어 기록한다.
-현재 실행 상태는 전부 미실행이며 위 표는 PASS가 아니다.
+이 표는 실행 전 정의이며 PASS가 아니다. B11-C01과 opt-in projection 준비 단위는
+해당 결과 절에서 통과를 확인했다. B11-P01~03은 제품 연결·소비자/복구 회귀·실제 metadata
+단기 검증까지 통과했다. B11-O01~02 관측 구조는 아직 미완료이며 실제 HTTP·장시간·전체 자원
+판정을 제품 focused PASS로 대체하지 않는다.
 
 ## S11 녹화 UI 실행 연결 보완 — 실행 전 정의 (2026-09-26)
 

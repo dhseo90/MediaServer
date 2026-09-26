@@ -1,0 +1,130 @@
+[scope] private B Catalog scratch; public Open/Append/SQLite blocked; no RAM/completion claim
+[start] 2026-09-26T06:19:48Z
+e5d72a8519447efd7e01e714d3dfc67ab628daa205ffbadd9687d646d931d103  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp
+f86e7ea3cbe3a58c611cb042e351d2e2137d9e81d2c8b4c8bbcd8477f8be65a9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot_export.cpp
+5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591  /Users/dhseo/Workspace/mediaServer/src/recording/retention_coordinator.cpp
+ecef071fb2afcfe69a00654757c639760e2ce75e627ae9c777a564f08161d6a9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_finalize_recovery.cpp
+31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_media_inspector.cpp
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  /Users/dhseo/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  /Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp
+728c8da121407897bae883a5e5378f43e319c2901471689aa1a00e7ccf76679a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp
+319ef9eb696f86b0c2806da74d6600312cadfd3e54e70d2aad8bc7d7792c73e1  /Users/dhseo/Workspace/mediaServer/src/recording/recording_cutover_input.cpp
+fbed2090cf6779e06688073c547ae624e2f7c6bd3b3406276702ae300755e946  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_transaction.cpp
+7fd444caa2244008d03e060abb3655c2650988239b1c22dd7390fb7e9ccbed67  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_receipt.cpp
+3dcdd1d4f24b89402ac951f51939c405ae5c5b77a0c88b64f0790d090903b248  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+fd87fe5e381436c95e827f7094d46d732f93b273c7877ceb6aa9a9dfa9ed9dc7  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_files.cpp
+13959bfc857110f7533a659d426a8c67f86b505b75ab0844dd35f3a073abf83a  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+f3685cafe9c440185035955a406e303328eadc27112cb244e7e7404ea7933bd1  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_snapshot.cpp
+37bfb810644302f1610c301330aa1773593c6de6e47eeeff9988185570e3abfb  /Users/dhseo/Workspace/mediaServer/src/recording/recording_order_history_snapshot.cpp
+1650ede659a5dbee60475a7aa6d63d9c13beaf00a3851dc0a67dc7d924e89077  /Users/dhseo/Workspace/mediaServer/src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_selection.cpp
+9c3b463df64e6e9d75ed614f56dd310a9846aff342853bd03201249f859cafdf  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job.cpp
+a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9  /Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_ready.cpp
+308957f98dd4bf791e8c5cd431e4e459d2cf2d70dc6e8f4470e1fe5edc5388ec  /Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog_generation_projection.cpp
+1e3b000d1ea837fbc73200359c47294b545545c67ea7b01238e7be29c1846302  /Users/dhseo/Workspace/mediaServer/src/recording/recording_generation_active.cpp
+c581c0b322cc32da971a88126ce9fbcd0b26371cee1a5cd1e1f9a154ef7d917c  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_scratch_smoke.cpp
+731d4d67a24dbaff072566a516028f194c9a2051cb1091939b0e5cacaac4f4fe  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog_generation_projection.h
+3b34068982b4b6f372e2433e87eab291ac4ad76524cc3088b6b9ed912ae5980f  /Users/dhseo/Workspace/mediaServer/include/recording/recording_journal.h
+497a1cf4ac950d5d59fc41202cac6aa0b96abb3d18ee0081d76b73e33c45f85e  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_catalog_generation_scratch.sh
+3e5a31d0852020b80c748a2d50e02fe96454b4b3b2566697a0b4bb88d15721b5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h
+bedf1c1167d250b114140e2273c4d9e7ed233b6cb8d420f289f5cea61d89f9b5  /Users/dhseo/Workspace/mediaServer/include/recording/recording_generation_recovery_session.h
+17362fbda3e98e52bc9587725e499b658ea9e73e124d251b3188563a7d53514d  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_generation_projection_smoke.cpp
+6d144742f87417461ea5de566785a0618e697dbf7e5789d8f4b4e679845bfca8  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_journal_generation_readonly_smoke.cpp
+B02-Y01 PASS snapshot plus active corruption and same-ID retry
+B02-Y02 PASS live SQLite and original remain unpublished
+B02-Y02 PASS successful recovery is one-shot without ending link lease
+B02-Y02 PASS public Open write and replay remain closed
+B02-Y02 PASS active second domain failure preserves candidate live bytes SQLite and poisons owner
+B02-Y02 PASS new Journal strict reopen succeeds but unchanged domain-invalid candidate still fails
+B02-Y02 PASS identity conflict rejected before restore
+B02-Y03 PASS active job source retains resident bound to verified identity
+B02-Y03 PASS inactive source archive is not read during scratch
+B02-Y03 PASS cold missing archive fails at actual detail use
+B02-Y04 PASS pending source hold rederived without SQLite
+B02-Y04 PASS active terminal completion clears snapshot hold
+B02-Y01 PASS active reservation gap then finalization accepted
+B02-Y01 PASS later reservation rejected by Journal before scratch
+B02-Y01 PASS all sixteen snapshot row kinds imported
+[acceptance] managed v1-tomb-on-v2 live=1 error=
+[acceptance] managed v1-tomb-on-v2 strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: v1-tomb-on-v2
+[cut] v1-tomb-on-v2 cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] v1-tomb-on-v2 cut=3 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: v1-tomb-on-v2
+[acceptance] managed job-v1-output live=1 error=
+[acceptance] managed job-v1-output strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: job-v1-output
+[cut] job-v1-output cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] job-v1-output cut=4 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: job-v1-output
+[acceptance] managed job-tomb-output live=1 error=
+[acceptance] managed job-tomb-output strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: job-tomb-output
+[cut] job-tomb-output cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] job-tomb-output cut=4 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: job-tomb-output
+[acceptance] managed source-wrapper live=1 error=
+[acceptance] managed source-wrapper strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: source-wrapper
+[cut] source-wrapper cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] source-wrapper cut=3 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: source-wrapper
+[acceptance] managed job-source-tomb live=1 error=
+[acceptance] managed job-source-tomb strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: job-source-tomb
+[cut] job-source-tomb cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] job-source-tomb cut=4 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: job-source-tomb
+[acceptance] managed v2-deleted-tomb live=1 error=
+[acceptance] managed v2-deleted-tomb strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: v2-deleted-tomb
+[cut] v2-deleted-tomb cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] v2-deleted-tomb cut=5 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: v2-deleted-tomb
+[acceptance] managed committed-tomb live=1 error=
+[acceptance] managed committed-tomb strict-journal=1 strict-catalog=1 error=
+B02-Z01 PASS managed actual history and strict reopen: committed-tomb
+[cut] committed-tomb cut=1 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+[cut] committed-tomb cut=8 open=1 state=1 open_error= error=
+B02-Z03 PASS candidate cuts leave live and original unchanged
+B02-Z02 PASS EXPECTED RED actual history cut equivalence: committed-tomb
+[acceptance] mode=unmanaged reservation-then-segment-v1=1 error=
+[acceptance] reservation-reopen mode=0 journal=1 catalog=1 error=
+B02-Z01 PASS unmanaged S10-O10-equivalent explicit V2-opt-in reopen
+[acceptance] mode=managed-format-v1 reservation-then-segment-v1=1 error=
+[acceptance] reservation-reopen mode=1 journal=1 catalog=1 error=
+B02-Z01 PASS managed reservation then V1 finalize and reopen
+B02-Z02 PASS reserved then V1 finalization early cut
+B02-Z02 PASS reserved then V1 finalization late cut
+B02-Z01 PASS managed public V1 tombstone different identity accepted with independent deleted state
+B02-Z01 PASS public RequestDeletion after deleted is rejected without new bytes
+B02-Z01 PASS managed strict reopen preserves mismatched V1 tombstone state
+[cut] cut=1 JournalOpen=1 state=1 open_error= error=
+B02-Z03 PASS cut comparison never publishes live SQLite or changes bytes
+[cut] cut=2 JournalOpen=1 state=1 open_error= error=
+B02-Z03 PASS cut comparison never publishes live SQLite or changes bytes
+B02-Z02 PASS EXPECTED RED same actual managed history must restore same deleted identity on both cuts
+B02-Z01 PASS direct Journal DeletionRequested after deleted survives strict reopen unlike public request
+[cut] direct-request cut=2 open=1 state=1 open_error= error=
+B02-Z03 PASS direct request cuts preserve live and original
+[cut] direct-request cut=3 open=1 state=1 open_error= error=
+B02-Z03 PASS direct request cuts preserve live and original
+B02-Z02 PASS EXPECTED RED direct accepted request after deleted cut equivalence
+B02-Y02 PASS unsupported scratch remains closed
+B02-Y02 PASS unsupported scratch remains closed
+[end] 2026-09-26T06:20:23Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.rYLDlU bytes=22802591 removed=true

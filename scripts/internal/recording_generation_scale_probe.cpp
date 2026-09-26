@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <sstream>
 #include "recording_generation_observation.h"
 
 namespace scale {
@@ -117,6 +118,73 @@ void SingleSnapshot(const std::filesystem::path& root,std::size_t count){
  Need(snapshots==1&&bytes==manifest.snapshot.size&&current.size()==bytes&&Digest(current)==manifest.snapshot.sha256,"snapshot-single-current");
  std::cout<<"[pass] B08-C01 snapshot-count=1 count="<<count<<" bytes="<<bytes<<" generation="<<manifest.generation<<'\n';
 }
+// B10 종료 후 metadata 사본만 사용한다. 미디어가 없으므로 실제 재생/완전 복구 PASS가 아니다.
+void RetiredCompatibility(const std::filesystem::path& base) {
+ const auto root=base/"recordings";std::string error;
+ struct ExpectedRow {std::string id,channel,checksum;bool deleted;std::size_t mappings;};
+ std::vector<ExpectedRow> expected;std::ifstream input(base/"expected.tsv");std::string line;
+ while(std::getline(input,line)) {
+  std::istringstream fields(line);ExpectedRow row;std::string state,count;
+  Need(bool(std::getline(fields,row.id,'\t'))&&bool(std::getline(fields,row.channel,'\t'))&&
+   bool(std::getline(fields,state,'\t'))&&bool(std::getline(fields,row.checksum,'\t'))&&
+   bool(std::getline(fields,count))&&(state=="live"||state=="deleted"),"B11-expected-fields");
+  row.deleted=state=="deleted";row.mappings=std::stoull(count);expected.push_back(std::move(row));
+ }
+ Need(input.eof()&&expected.size()==1116,"B11-expected-count");
+ RecordingGenerationManifest initial;
+ Need(ParseRecordingGenerationManifest(Bytes(root/"recording-generation.json"),&initial,&error),"B11-initial-manifest");
+ const auto sealed=Sealed(root);std::size_t deleted=0;for(const auto& r:expected)deleted+=r.deleted;
+ Need(deleted==1110,"B11-expected-deleted-count");
+ const auto check=[&](RecordingCatalog& catalog,const std::string& phase) {
+  std::map<std::string,std::size_t> live_counts,deleted_counts;
+  for(const auto& row:expected) {
+   Need(catalog.IsDeletedSegmentId(row.id)==row.deleted,"B11-deleted-membership");
+   Need(catalog.SegmentLifecycleV2(row.id)==(row.deleted?RecordingLifecycle::Deleted:RecordingLifecycle::Finalized),"B11-lifecycle");
+   const auto value=catalog.FindSegmentV2ById(row.id);
+   if(row.deleted) {Need(!value&&!catalog.FindSegmentMediaLocation(row.id),"B11-deleted-no-media");++deleted_counts[row.channel];}
+   else {Need(value&&value->channel_id==row.channel&&value->checksum_sha256==row.checksum&&value->mappings.size()==row.mappings,"B11-live-detail");++live_counts[row.channel];}
+  }
+  std::set<std::string> channels;for(const auto& r:expected)channels.insert(r.channel);
+  for(const auto& channel:channels) {
+   RecordingLocationCatalogSnapshot locations;Need(catalog.SnapshotLocationsV2(channel,&locations,&error),"B11-location-read");
+   Need(locations.deleted_segment_ids.size()==deleted_counts[channel]&&locations.segments.size()==live_counts[channel],"B11-location-counts");
+   RecordingTimelineResult timeline;const auto begin=Clock::now();
+   std::cout<<"[start] B11-P03-T phase="<<phase<<" timeline\n";std::cout.flush();
+   ::alarm(15);const bool ok=catalog.SnapshotTimelineV2({channel,0,9000000000000LL,0,100,true},&timeline,&error);::alarm(0);
+   Metric("B11-"+phase+"-timeline",expected.size(),begin);Need(ok,"B11-timeline-read");
+   const auto channel_count=live_counts[channel]+deleted_counts[channel];
+   std::cout<<"[timeline] channel="<<channel<<" expected_segments="<<channel_count<<" known="<<timeline.total<<" unplaced="<<timeline.unplaced_total<<'\n';
+   Need(timeline.total+timeline.unplaced_total>=channel_count&&!timeline.unplaced_items.empty(),"B11-timeline-history-count");
+   for(const auto& item:timeline.unplaced_items) {
+    const auto found=std::find_if(expected.begin(),expected.end(),[&](const auto& r){return r.id==item.segment_id;});
+    Need(found!=expected.end()&&!item.members.empty()&&item.members.size()<=found->mappings,"B11-timeline-members");
+    if(found->deleted)Need(item.catalog_state=="deleted"&&!item.playable,"B11-timeline-deleted-unavailable");
+   }
+   std::cout<<"[pass] B11-P03-T total="<<timeline.total<<" unplaced_total="<<timeline.unplaced_total<<" page="<<timeline.unplaced_items.size()<<'\n';
+  }
+  std::cout<<"[pass] B11-P02 phase="<<phase<<" expected="<<expected.size()<<" deleted="<<deleted<<" live="<<expected.size()-deleted<<" metadata_only=true\n";
+ };
+ const auto open=[&](bool sqlite,bool write,const std::string& phase) {
+  const auto start=Clock::now();::alarm(15);
+  const auto natural=std::numeric_limits<std::size_t>::max();
+  RecordingJournal journal(RecordingJournal::ManagedOptions{root,initial.store_id,{1ULL<<30,1ULL<<30,1ULL<<30,16ULL*1024*1024+1,natural,natural}});
+  Need(journal.Open(&error),"B11-journal-open");RecordingCatalog::Options options(root/"recording-catalog.sqlite3",root,sqlite);
+  options.enable_v2_storage=true;options.enable_generation_writes=write;RecordingCatalog catalog(journal,options);
+  const bool opened=catalog.Open(&error);if(!opened)std::cerr<<"[diagnostic] stage=catalog-open error_sha256="<<Digest(error)<<'\n';
+  Need(opened,"B11-catalog-open");::alarm(0);Metric("B11-"+phase+"-open",expected.size(),start);check(catalog,phase);
+  if(write){const auto checkpoint=Clock::now();::alarm(15);Need(catalog.Checkpoint(&error),"B11-checkpoint");::alarm(0);Metric("B11-checkpoint",expected.size(),checkpoint);}
+ };
+ open(true,true,"old-full");Preserved(root,sealed);
+ RecordingGenerationManifest current;RecordingCatalogSnapshot snapshot;
+ Need(ParseRecordingGenerationManifest(Bytes(root/"recording-generation.json"),&current,&error)&&
+  ParseRecordingCatalogSnapshot(Bytes(root/current.snapshot.name),1ULL<<30,&snapshot,&error),"B11-current-snapshot");
+ std::size_t receipts=0,live=0,full_tombs=0;for(const auto& row:snapshot.rows){receipts+=row.kind=="retired-v2";live+=row.kind=="segment-v2";full_tombs+=row.kind=="tombstone-v2";}
+ Need(current.generation>initial.generation&&receipts==deleted&&live==expected.size()-deleted&&full_tombs==0,"B11-current-details-retired");
+ Need(current.snapshot.size<initial.snapshot.size,"B11-current-snapshot-reduced");
+ std::cout<<"[pass] B11-P02 snapshot_before="<<initial.snapshot.size<<" snapshot_after="<<current.snapshot.size<<" receipts="<<receipts<<" full_tombstones="<<full_tombs<<'\n';
+ open(true,false,"receipt-sqlite");open(false,false,"receipt-fallback");Preserved(root,sealed);
+ std::cout<<"[summary] B11_actual_metadata_compatibility=true media_playback=not-run longrun=not-run\n";
+}
 void Run(const std::filesystem::path& base,bool deleted,bool bounded){
  const std::size_t interval=bounded&&deleted?32:1;
  std::cout<<"[scope] bounded="<<bounded<<" observer_interval="<<interval<<" observer_batch_limit=128 complete_drain_at_checkpoint=true\n";
@@ -154,6 +222,7 @@ void Run(const std::filesystem::path& base,bool deleted,bool bounded){
 }
 int main(int argc,char** argv){std::cout.setf(std::ios::unitbuf);try{
  scale::program=std::filesystem::canonical(argv[0]).string();
+ if(argc==3&&std::string(argv[2])=="receipt-compat"){scale::RetiredCompatibility(argv[1]);return 0;}
  if(argc==4&&std::string(argv[1])=="--observe"){scale::ObserveWorker(argv[2],std::stoull(argv[3]));return 0;}
  if(argc==8&&std::string(argv[1])=="--reopen"){
   Output input;std::ifstream file(argv[3]);std::string segment,binding,error;scale::Need(bool(std::getline(file,segment))&&bool(std::getline(file,binding))&&ParseRecordingSegmentV2(segment,&input.segment,&error)&&ParseRecordingSourceBindingV1(binding,&input.binding,&error),"expected-template-read");

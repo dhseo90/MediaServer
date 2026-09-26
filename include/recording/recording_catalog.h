@@ -16,6 +16,7 @@
 #include <utility>
 
 #include "recording/recording_journal.h"
+#include "recording/recording_catalog_snapshot.h"
 #include "recording/recording_store_port.h"
 #include "recording/retention_coordinator.h"
 #include "recording/recording_timeline.h"
@@ -281,6 +282,8 @@ private:
     static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
     bool AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const;
+    bool AcquireRetiredV2Locked(const std::string&,RecordingTombstoneV2*,std::string*) const;
+    bool AcquireOriginalV2Locked(const std::string&,RecordingSegmentV2*,std::string*) const;
     static bool MaterializeSourceBinding(const SourceBindingEntry&,const RecordingSegmentV2&,
         const RecordingMutationHandle&,SourceBindingHandle*,std::string*);
     using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
@@ -352,6 +355,7 @@ private:
     bool SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*,std::string*) const;
     static bool DerivedSourceRelevant(const RecordingConsumerReferenceV1&,const RecordingSegmentV2&,const SourceBindingEntry*);
+    static bool RetiredSourceRelevant(const RecordingConsumerReferenceV1&,const RecordingRetiredV2Receipt&,const SourceBindingEntry*);
     bool PrepareDerivedSourceSnapshot(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*,std::optional<std::uint64_t>*,std::string*) const;
     bool FinishDerivedSourceSnapshotLocked(const RecordingConsumerReferenceV1&,
@@ -538,6 +542,10 @@ private:
     std::unordered_set<std::string> derived_accepted_references_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
     std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;
+    // 삭제 완료 V2의 현재 상태 최소 영수증과 최초 삭제 원문 cold link다. 전문은 current map에
+    // 보관하지 않으며, 소비 시마다 link를 재획득해 canonical hash와 함께 검증한다.
+    std::unordered_map<std::string, RecordingRetiredV2Receipt> retired_v2_;
+    std::unordered_map<std::string, RecordingMutationLink> retired_v2_links_;
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;
     std::unordered_map<std::string, std::string> media_relpaths_;
     std::unordered_map<std::string, std::uint64_t> hold_counts_;

@@ -43,6 +43,9 @@ bool SerializeRecordingCatalogJobSummary(const RecordingCatalogJobSummary&, std:
 bool ParseRecordingCatalogJobSummary(const std::string&, RecordingCatalogJobSummary*, std::string* error);
 bool SerializeRecordingRetiredV2Receipt(const RecordingRetiredV2Receipt&, std::string*, std::string* error);
 bool ParseRecordingRetiredV2Receipt(const std::string&, RecordingRetiredV2Receipt*, std::string* error);
+// 검증된 삭제 값에서 공통 영수증을 도출한다. 파일/전이 권위는 호출자가 확인한다.
+bool BuildRecordingRetiredV2Receipt(const RecordingTombstoneV2&,const std::string& relative_path,
+    const std::string& deletion_mutation_id,RecordingRetiredV2Receipt*,std::string* error);
 struct RecordingCatalogSnapshotRow {
     std::string kind, key;
     // strict JSON 값의 raw bytes다. 내부 공백/escape/필드 순서를 정규화하지 않는다.

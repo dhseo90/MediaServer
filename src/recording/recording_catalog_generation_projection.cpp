@@ -79,26 +79,7 @@ bool ReceiptFromTombstone(const RecordingTombstoneV2& tombstone,const std::strin
     if(!output||origin.first_row.type!=RecordingMutationType::SegmentV2Deleted||origin.first_row.entity_id!=segment.segment_id||
        tombstone.deletion_reason.empty()||!IsSafeMediaRelpath(path)||SerializeRecordingSegmentV2(segment).empty()||
        SerializeRecordingTombstoneV2(tombstone).empty())return Fail(error,"projection retired legacy receipt source invalid");
-    RecordingRetiredV2Receipt receipt;
-    receipt.segment_id=segment.segment_id;receipt.store_id=segment.store_id;receipt.source_id=segment.source_id;
-    receipt.channel_id=segment.channel_id;receipt.order_request_id=segment.order_request_id;receipt.order_sequence=segment.order_sequence;
-    receipt.media_epoch_id=segment.media_epoch_id;receipt.tombstone_id=tombstone.tombstone_id;receipt.media_start_pts=segment.media_start_pts;
-    receipt.media_end_pts=segment.media_end_pts;receipt.time_base_num=segment.time_base_num;receipt.time_base_den=segment.time_base_den;
-    receipt.retention_class=segment.retention_class;receipt.deleted_at_ms=tombstone.deleted_at_ms;receipt.deletion_reason=tombstone.deletion_reason;
-    receipt.prior_relative_path=path;receipt.deletion_mutation_id=origin.mutation_id;
-    receipt.segment_sha256=Hash(SerializeRecordingSegmentV2(segment));receipt.tombstone_sha256=Hash(SerializeRecordingTombstoneV2(tombstone));
-    bool exact_utc=!segment.mappings.empty();std::optional<std::int64_t> utc_min,utc_max;
-    for(const auto& mapping:segment.mappings) {
-        if(mapping.provenance=="unknown"||!mapping.end_pts||!mapping.utc_start_ns||!mapping.utc_end_ns||
-           !mapping.uncertainty_ns||*mapping.uncertainty_ns!=0) {exact_utc=false;break;}
-        utc_min=utc_min?std::min(*utc_min,*mapping.utc_start_ns):*mapping.utc_start_ns;
-        utc_max=utc_max?std::max(*utc_max,*mapping.utc_end_ns):*mapping.utc_end_ns;
-    }
-    receipt.utc_exclusion_safe=exact_utc&&utc_min&&utc_max&&*utc_min<*utc_max;
-    if(receipt.utc_exclusion_safe){receipt.utc_min_ns=utc_min;receipt.utc_max_ns=utc_max;}
-    std::string bytes;
-    if(!SerializeRecordingRetiredV2Receipt(receipt,&bytes,error))return Fail(error,"projection retired legacy receipt invalid");
-    *output=std::move(receipt);return true;
+    return BuildRecordingRetiredV2Receipt(tombstone,path,origin.mutation_id,output,error);
 }
 bool CompactLegacyRetired(RecordingCatalogGenerationProjection& p,
     const std::map<std::string,const RecordingIdentityFirstAcceptance*>& first,std::string* error) {

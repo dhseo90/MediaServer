@@ -273,13 +273,26 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             if(!owned_outputs.count(entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
         }
+        // 삭제 이력도 기존 공개 timeline 구성원이다. 영수증을 가짜 segment로 투영하지 않고
+        // 한 건씩 검증된 원문을 재획득해 기존 mapping/ID/미배치 판정을 그대로 사용한다.
+        for(const auto& entry:retired_v2_){const auto& receipt=entry.second;if(receipt.channel_id!=query.channel_id)continue;
+            if(receipt.retention_class!=RecordingRetentionClass::Continuous&&owned_outputs.count(entry.first))continue;
+            RecordingSegmentV2 segment;if(!AcquireOriginalV2Locked(entry.first,&segment,error))throw std::runtime_error("timeline-retired-unavailable");
+            if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,RecordingLifecycle::Deleted);continue;}
+            auto row=Base(segment,RecordingLifecycle::Deleted);row.item_id="orphan-event:"+Key(entry.first);
+            row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));
+        }
         for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second.channel!=query.channel_id)continue;
             DerivedJobHandle owned;if(!AcquireJobForReadLocked(entry.first,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
             if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);continue;}
             for(std::size_t i=0;i<job.ready->outputs.size();++i){
                 if(i>=job.intent.sources.size())throw std::runtime_error("timeline-job-invalid");
                 const auto& output=job.ready->outputs[i].segment;const auto current=segments_v2_.find(output.segment_id);
-                const bool same=current!=segments_v2_.end()&&SerializeRecordingSegmentV2(current->second)==SerializeRecordingSegmentV2(output);
+                bool same=current!=segments_v2_.end()&&SerializeRecordingSegmentV2(current->second)==SerializeRecordingSegmentV2(output);
+                if(retired_v2_.count(output.segment_id)) {
+                    RecordingSegmentV2 original;if(!AcquireOriginalV2Locked(output.segment_id,&original,error))throw std::runtime_error("timeline-retired-output-unavailable");
+                    same=SerializeRecordingSegmentV2(original)==SerializeRecordingSegmentV2(output);
+                }
                 const auto state=tombstones_.count(output.segment_id)||tombstones_v2_.count(output.segment_id)?
                     RecordingLifecycle::Deleted:EffectiveLifecycleV2Locked(output.segment_id);
                 collector.Output(job,i,state,same);

@@ -975,7 +975,7 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         if(!ValidateRecordingIdentityShardChain(snapshot.identity_head,loader,
               {limits.identity_shard_bytes,limits.identity_unique_ids,limits.identity_archives},&state->chain,error)||
            !BuildRecordingCatalogGenerationProjection(managed_root_,manifest.manifest,state->chain,snapshot,
-              limits.cold_row_bytes,&state->projection,error)||
+              limits.cold_row_bytes,&state->projection,error,true)||
            !ReadRecordingGenerationActive(managed_root_,limits.active_bytes,&state->active,error)||
            !ValidateGenerationActiveIndex(state.get(),error))return false;
         std::string observed;

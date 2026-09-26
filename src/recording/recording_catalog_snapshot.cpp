@@ -9,6 +9,9 @@
 #include <map>
 #include <tuple>
 #include <unordered_set>
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 
 namespace recording {
 namespace {
@@ -276,6 +279,36 @@ bool Ids(const Document& document,const char* key,std::vector<std::string>* ids,
 }
 } // namespace
 
+bool BuildRecordingRetiredV2Receipt(const RecordingTombstoneV2& tombstone,const std::string& path,
+    const std::string& deletion_id,RecordingRetiredV2Receipt* output,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL
+    const auto segment_bytes=SerializeRecordingSegmentV2(tombstone.segment),tombstone_bytes=SerializeRecordingTombstoneV2(tombstone);
+    if(!output||segment_bytes.empty()||tombstone_bytes.empty())return Fail(error,"retired source invalid");
+    const auto digest=[](const std::string& bytes){
+        unsigned char d[32];unsigned n=0;std::string out;
+        if(EVP_Digest(bytes.data(),bytes.size(),d,&n,EVP_sha256(),nullptr)!=1||n!=32)return out;
+        constexpr char hex[]="0123456789abcdef";for(const auto c:d){out+=hex[c>>4];out+=hex[c&15];}return out;
+    };
+    const auto& segment=tombstone.segment;RecordingRetiredV2Receipt receipt;
+    receipt.segment_id=segment.segment_id;receipt.store_id=segment.store_id;receipt.source_id=segment.source_id;receipt.channel_id=segment.channel_id;
+    receipt.order_request_id=segment.order_request_id;receipt.order_sequence=segment.order_sequence;receipt.media_epoch_id=segment.media_epoch_id;
+    receipt.tombstone_id=tombstone.tombstone_id;receipt.media_start_pts=segment.media_start_pts;receipt.media_end_pts=segment.media_end_pts;
+    receipt.time_base_num=segment.time_base_num;receipt.time_base_den=segment.time_base_den;receipt.retention_class=segment.retention_class;
+    receipt.deleted_at_ms=tombstone.deleted_at_ms;receipt.deletion_reason=tombstone.deletion_reason;receipt.prior_relative_path=path;receipt.deletion_mutation_id=deletion_id;
+    receipt.segment_sha256=digest(segment_bytes);receipt.tombstone_sha256=digest(tombstone_bytes);
+    bool exact=!segment.mappings.empty();std::optional<std::int64_t> first,last;
+    for(const auto& m:segment.mappings){
+        if(m.provenance=="unknown"||!m.end_pts||!m.utc_start_ns||!m.utc_end_ns||!m.uncertainty_ns||*m.uncertainty_ns!=0){exact=false;break;}
+        first=first?std::min(*first,*m.utc_start_ns):*m.utc_start_ns;last=last?std::max(*last,*m.utc_end_ns):*m.utc_end_ns;
+    }
+    receipt.utc_exclusion_safe=exact&&segment.media_end_pts&&first&&last&&*first<*last;
+    if(receipt.utc_exclusion_safe){receipt.utc_min_ns=first;receipt.utc_max_ns=last;}
+    std::string bytes;if(!SerializeRecordingRetiredV2Receipt(receipt,&bytes,error))return false;
+    *output=std::move(receipt);return true;
+#else
+    (void)tombstone;(void)path;(void)deletion_id;(void)output;return Fail(error,"retired hash unsupported");
+#endif
+}
 bool SerializeRecordingCatalogSourceSummary(const RecordingCatalogSourceSummary& value,std::string* output,std::string* error) {
     if(!output||!SourceSummaryValid(value,error))return Fail(error,"source summary value invalid");
     std::string bytes="{\"schema\":"+Quote(kSourceSchema)+",\"id\":"+Quote(value.id)+",\"channel\":"+Quote(value.channel)+

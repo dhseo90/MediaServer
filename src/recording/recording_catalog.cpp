@@ -68,6 +68,23 @@ std::string Escape(const std::string& value) {
     return out;
 }
 
+bool MakeRetiredReceipt(const RecordingTombstoneV2& tombstone,const std::string& path,const std::string& id,
+    RecordingRetiredV2Receipt* output) {
+    return BuildRecordingRetiredV2Receipt(tombstone,path,id,output,nullptr);
+}
+
+bool MaterializeRetiredV2(const RecordingRetiredV2Receipt& receipt,const RecordingMutationHandle& mutation,
+    RecordingTombstoneV2* output,std::string* error) {
+    RecordingTombstoneV2 tomb;RecordingRetiredV2Receipt rebuilt;std::string saved,current;
+    if(!output||!mutation||mutation->mutation_id!=receipt.deletion_mutation_id||mutation->entity_id!=receipt.segment_id||
+       mutation->mutation_type!=RecordingMutationType::SegmentV2Deleted||!ParseRecordingTombstoneV2(mutation->payload_json,&tomb,error)||
+       SerializeRecordingTombstoneV2(tomb)!=mutation->payload_json||
+       !MakeRetiredReceipt(tomb,receipt.prior_relative_path,receipt.deletion_mutation_id,&rebuilt)||
+       !SerializeRecordingRetiredV2Receipt(receipt,&saved,error)||!SerializeRecordingRetiredV2Receipt(rebuilt,&current,error)||saved!=current)
+        return Fail(error,"retired V2 상세/영수증 불일치");
+    *output=std::move(tomb);return true;
+}
+
 #if MEDIA_SERVER_USE_SQLITE3
 std::string SqliteDeletionReceipt(const RecordingTombstoneV2& value) {
     return "{\"schema\":\"media-server.recording-deletion-receipt.v1\",\"segmentId\":\""+
@@ -330,6 +347,13 @@ bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCat
         transfer(p.segments,scratch->segments_);transfer(p.segments_v2,scratch->segments_v2_);
         transfer(p.states_v2,scratch->states_v2_);transfer(p.tombstones,scratch->tombstones_);
         transfer(p.tombstones_v2,scratch->tombstones_v2_);transfer(p.media_paths,scratch->media_relpaths_);
+        for(auto& item:p.retired_v2) {
+            RecordingMutationLink link;
+            if(!journal_.MakeGenerationMutationLink(item.second.receipt.deletion_mutation_id,&link,error))return failed();
+            scratch->retired_v2_.emplace(item.first,std::move(item.second.receipt));
+            scratch->retired_v2_links_.emplace(item.first,std::move(link));
+        }
+        p.retired_v2.clear();
         transfer(p.deletion_reasons,scratch->deletion_reasons_);transfer(p.event_links,scratch->event_links_);
         transfer(p.observations,scratch->observations_);transfer(p.observations_v2,scratch->observations_v2_);
         transfer(p.consumer_references,scratch->consumer_references_);transfer(p.referenced_observations,scratch->referenced_observations_);
@@ -418,6 +442,7 @@ void RecordingCatalog::PublishGenerationMapsLocked(RecordingCatalog& source) noe
     MOVE_MAP(mutation_ids_);MOVE_MAP(accepted_segment_state_mutations_);MOVE_MAP(accepted_generation_ordinals_);
     MOVE_MAP(segments_);MOVE_MAP(segments_v2_);MOVE_MAP(source_bindings_);MOVE_MAP(derived_jobs_);
     MOVE_MAP(derived_accepted_references_);MOVE_MAP(states_v2_);MOVE_MAP(tombstones_v2_);MOVE_MAP(orders_v2_);
+    MOVE_MAP(retired_v2_);MOVE_MAP(retired_v2_links_);
     MOVE_MAP(media_relpaths_);MOVE_MAP(hold_counts_);MOVE_MAP(deletion_reasons_);MOVE_MAP(event_links_);
     MOVE_MAP(observations_);MOVE_MAP(observations_v2_);MOVE_MAP(consumer_references_);MOVE_MAP(referenced_observations_);MOVE_MAP(tombstones_);
     MOVE_MAP(catalog_mode_);
@@ -503,6 +528,7 @@ bool RecordingCatalog::PrepareGenerationSqliteLocked(const std::shared_ptr<Recor
     CURRENT_ROWS(states_v2_,"state-v2",SerializeRecordingSegmentStateV2);
     CURRENT_ROWS(tombstones_,"tombstone-v1",SerializeRecordingTombstoneV1);
     CURRENT_ROWS(tombstones_v2_,"tombstone-v2",SerializeRecordingTombstoneV2);
+    for(const auto& p:retired_v2_) {std::string value;if(!SerializeRecordingRetiredV2Receipt(p.second,&value,error)||!row("retired-v2",p.first,value))return false;}
     CURRENT_ROWS(event_links_,"event-link",SerializeEventRecordingLinkV1);
     CURRENT_ROWS(observations_,"observation-v1",SerializeAnalysisObservationV1);
     CURRENT_ROWS(observations_v2_,"observation-v2",SerializeAnalysisObservationV2);
@@ -759,7 +785,7 @@ bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&
            !media_relpaths_.count(source.segment.segment_id))return Fail(error,"derived job live source 결박 거부");
     }
     for(const auto& output:job.outputs) {
-        if(segments_v2_.count(output.output_id)||segments_.count(output.output_id)||tombstones_v2_.count(output.output_id)||tombstones_.count(output.output_id))
+        if(segments_v2_.count(output.output_id)||segments_.count(output.output_id)||tombstones_v2_.count(output.output_id)||tombstones_.count(output.output_id)||retired_v2_.count(output.output_id))
             return Fail(error,"derived job output ID 재사용 거부");
     }
     return true;
@@ -1532,7 +1558,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             if (ok && tombstones_.find(segment.segment_id) != tombstones_.end()) {
                 ok = Fail(error, "tombstone segment ID 재사용 금지");
             }
-            if (ok && segments_v2_.count(segment.segment_id)) ok=Fail(error,"V1/V2 segment ID 충돌");
+            if (ok && (segments_v2_.count(segment.segment_id)||retired_v2_.count(segment.segment_id))) ok=Fail(error,"V1/V2 segment ID 충돌");
             if (ok) {
                 const auto existing = segments_.find(segment.segment_id);
                 if (existing != segments_.end()) {
@@ -1612,7 +1638,20 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto tombstone_json = ObjectField(mutation.payload_json, "tombstone");
             RecordingTombstoneV1 tombstone;
             ok = tombstone_json && ParseRecordingTombstoneV1(*tombstone_json, &tombstone, error);
+            // 기존 V1 tombstone이 V2 삭제 뒤에 오는 이력도 수용해 왔다. 이 특수 경계는
+            // full 공존 snapshot과 동일하게 복원하여 cut 위치로 호환 상태가 달라지지 않게 한다.
+            RecordingTombstoneV2 restored;
+            const bool retired=ok&&retired_v2_.count(tombstone.segment_id)!=0;
+            if(retired)ok=AcquireRetiredV2Locked(tombstone.segment_id,&restored,error);
             if (ok&&apply) {
+                if(retired) {
+                    const auto& id=tombstone.segment_id;
+                    RecordingSegmentStateV2 state;state.segment_id=id;state.lifecycle=RecordingLifecycle::DeletionPending;
+                    state.reason=restored.deletion_reason;
+                    segments_v2_[id]=restored.segment;states_v2_[id]=std::move(state);tombstones_v2_[id]=std::move(restored);
+                    retired_v2_.erase(id);retired_v2_links_.erase(id);
+                    touch("retired-v2",id);touch("segment-v2",id);touch("state-v2",id);touch("tombstone-v2",id);
+                }
                 tombstones_[tombstone.segment_id] = tombstone;
                 const auto it = segments_.find(tombstone.segment_id);
                 if (it != segments_.end()) it->second.lifecycle = RecordingLifecycle::Deleted;
@@ -1709,14 +1748,27 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                tombstone.segment.segment_id==mutation.entity_id&&!DerivedJobProtectsLocked(mutation.entity_id);
             const auto segment=segments_v2_.find(mutation.entity_id);
             const auto old=tombstones_v2_.find(mutation.entity_id);
-            if(ok && old!=tombstones_v2_.end()) {
+            if(ok&&retired_v2_.count(mutation.entity_id)) {
+                RecordingTombstoneV2 prior;
+                ok=AcquireRetiredV2Locked(mutation.entity_id,&prior,error)&&SerializeRecordingTombstoneV2(prior)==SerializeRecordingTombstoneV2(tombstone);
+            } else if(ok && old!=tombstones_v2_.end()) {
                 ok=SerializeRecordingTombstoneV2(old->second)==SerializeRecordingTombstoneV2(tombstone);
             } else if(ok) {
                 ok=segment!=segments_v2_.end() && EffectiveLifecycleV2Locked(mutation.entity_id)==RecordingLifecycle::DeletionPending &&
                    SerializeRecordingSegmentV2(segment->second)==SerializeRecordingSegmentV2(tombstone.segment) &&
                    (apply?deletion_reasons_[mutation.entity_id]:
                     (deletion_reasons_.count(mutation.entity_id)?deletion_reasons_.at(mutation.entity_id):std::string{}))==tombstone.deletion_reason;
-                if(ok&&apply) {tombstones_v2_[mutation.entity_id]=tombstone;hold_counts_.erase(mutation.entity_id);touch("tombstone-v2",mutation.entity_id);touch("hold",mutation.entity_id);}
+                if(ok&&apply) {
+                    if(generation_backend_||generation_row) {
+                        const auto path=media_relpaths_.find(mutation.entity_id);RecordingRetiredV2Receipt receipt;
+                        if(path==media_relpaths_.end()||!MakeRetiredReceipt(tombstone,path->second,mutation.mutation_id,&receipt) ||
+                           !retired_v2_.emplace(mutation.entity_id,std::move(receipt)).second)ok=false;
+                        else {retired_v2_links_[mutation.entity_id]=accepted_link;segments_v2_.erase(mutation.entity_id);states_v2_.erase(mutation.entity_id);
+                            media_relpaths_.erase(mutation.entity_id);deletion_reasons_.erase(mutation.entity_id);touch("retired-v2",mutation.entity_id);
+                            touch("segment-v2",mutation.entity_id);touch("state-v2",mutation.entity_id);touch("media-path",mutation.entity_id);touch("deletion-reason",mutation.entity_id);}
+                    } else {tombstones_v2_[mutation.entity_id]=tombstone;touch("tombstone-v2",mutation.entity_id);}
+                    hold_counts_.erase(mutation.entity_id);touch("hold",mutation.entity_id);
+                }
             }
             if(!ok)Fail(error,"V2 삭제 완료 전이 거부");
             break;
@@ -1848,6 +1900,7 @@ bool RecordingCatalog::ProjectGenerationDeltaLocked(const GenerationDelta& delta
             else if(kind=="state-v2")DELTA_VALUE(states_v2_,SerializeRecordingSegmentStateV2);
             else if(kind=="tombstone-v1")DELTA_VALUE(tombstones_,SerializeRecordingTombstoneV1);
             else if(kind=="tombstone-v2")DELTA_VALUE(tombstones_v2_,SerializeRecordingTombstoneV2);
+            else if(kind=="retired-v2") {const auto i=retired_v2_.find(id);if(i!=retired_v2_.end()){present=SerializeRecordingRetiredV2Receipt(i->second,&value,error);if(!present)return fail();}}
             else if(kind=="event-link")DELTA_VALUE(event_links_,SerializeEventRecordingLinkV1);
             else if(kind=="observation-v1")DELTA_VALUE(observations_,SerializeAnalysisObservationV1);
             else if(kind=="observation-v2")DELTA_VALUE(observations_v2_,SerializeAnalysisObservationV2);
@@ -1996,7 +2049,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
 bool RecordingCatalog::ValidateV2Locked(const RecordingSegmentV2& v,const std::string& relative,std::string* error) const {
     if(!options_.enable_v2_storage||!ValidateRecordingSegmentV2(v,error)||!IsSafeMediaRelpath(relative))
         return Fail(error,"V2 opt-in/metadata/path 오류");
-    if(tombstones_.count(v.segment_id)||segments_.count(v.segment_id))return Fail(error,"V2 삭제/V1 ID 충돌");
+    if(tombstones_.count(v.segment_id)||retired_v2_.count(v.segment_id)||segments_.count(v.segment_id))return Fail(error,"V2 삭제/V1 ID 충돌");
     const auto found=segments_v2_.find(v.segment_id);
     if(found!=segments_v2_.end()) {
         if(EffectiveLifecycleV2Locked(v.segment_id)!=RecordingLifecycle::Finalized)
@@ -2123,6 +2176,21 @@ bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,
         return Fail(error,"source binding 상세 재획득 거부");
     *out=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));return true;
 }
+bool RecordingCatalog::AcquireRetiredV2Locked(const std::string& id,RecordingTombstoneV2* out,std::string* error) const {
+    try {
+        const auto receipt=retired_v2_.find(id);const auto link=retired_v2_links_.find(id);RecordingMutationHandle mutation;
+        if(receipt!=retired_v2_.end()&&link!=retired_v2_links_.end()&&journal_.AcquireMutationLink(link->second,&mutation,error)&&
+           MaterializeRetiredV2(receipt->second,mutation,out,error))return true;
+    }catch(...){}
+    derived_job_state_authoritative_=false;return Fail(error,"retired V2 상세 재획득 거부");
+}
+bool RecordingCatalog::AcquireOriginalV2Locked(const std::string& id,RecordingSegmentV2* out,std::string* error) const {
+    if(!out)return false;
+    const auto full=segments_v2_.find(id);if(full!=segments_v2_.end()){*out=full->second;return true;}
+    if(!retired_v2_.count(id))return false;
+    RecordingTombstoneV2 tomb;if(!AcquireRetiredV2Locked(id,&tomb,error))return false;
+    *out=std::move(tomb.segment);return true;
+}
 bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const {
     if(out)out->reset();
     const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"source binding 상세 재획득 거부");};
@@ -2134,8 +2202,8 @@ bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,Sou
         RecordingMutationHandle mutation;
         if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||mutation->mutation_id!=entry.latest_mutation_id||
            mutation->entity_id!=id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
-        const auto original=segments_v2_.find(id);
-        if(original==segments_v2_.end()||!MaterializeSourceBinding(entry,original->second,mutation,out,error))return failed();
+        RecordingSegmentV2 original;
+        if(!AcquireOriginalV2Locked(id,&original,error)||!MaterializeSourceBinding(entry,original,mutation,out,error))return failed();
         // 삭제/현재 미디어 상태가 아니라, 원장에 저장한 불변 원본 결박을 검증한다.
         entry.weak=*out;return true;
     }catch(...){if(out)out->reset();return failed();}
@@ -2167,9 +2235,9 @@ bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::strin
            record.state!=entry.state||record.files.size()!=entry.files||record.intent.reserved_bytes!=entry.reserved_bytes||
            record.intent.outputs.size()!=entry.output_ids.size()||record.intent.sources.size()!=entry.source_ids.size())return failed();
         for(std::size_t i=0;i<record.intent.outputs.size();++i)if(record.intent.outputs[i].output_id!=entry.output_ids[i])return failed();
-        for(std::size_t i=0;i<record.intent.sources.size();++i){const auto& source=record.intent.sources[i];const auto original=segments_v2_.find(source.segment.segment_id);
-            if(source.segment.segment_id!=entry.source_ids[i]||original==segments_v2_.end()||
-               SerializeRecordingSegmentV2(original->second)!=SerializeRecordingSegmentV2(source.segment)||
+        for(std::size_t i=0;i<record.intent.sources.size();++i){const auto& source=record.intent.sources[i];RecordingSegmentV2 original;
+            if(source.segment.segment_id!=entry.source_ids[i]||!AcquireOriginalV2Locked(source.segment.segment_id,&original,error)||
+               SerializeRecordingSegmentV2(original)!=SerializeRecordingSegmentV2(source.segment)||
                !ValidateRecordingSourceBindingForSegment(source.binding,source.segment,error))return failed();}
         *out=std::make_shared<const DerivedJobRecordV1>(std::move(record));entry.weak=*out;if(envelope)*envelope=std::move(mutation);return true;
     }catch(...){if(out)out->reset();return failed();}
@@ -2181,9 +2249,9 @@ bool RecordingCatalog::JobReadCurrentLocked(const DerivedJobEntry& entry,const D
        record.intent.sources.size()!=entry.source_ids.size())return false;
     for(std::size_t i=0;i<record.intent.outputs.size();++i)if(record.intent.outputs[i].output_id!=entry.output_ids[i])return false;
     for(std::size_t i=0;i<record.intent.sources.size();++i){const auto& source=record.intent.sources[i];
-        const auto current=segments_v2_.find(source.segment.segment_id);
-        if(source.segment.segment_id!=entry.source_ids[i]||current==segments_v2_.end()||
-           SerializeRecordingSegmentV2(current->second)!=SerializeRecordingSegmentV2(source.segment))return false;}
+        RecordingSegmentV2 current;
+        if(source.segment.segment_id!=entry.source_ids[i]||!AcquireOriginalV2Locked(source.segment.segment_id,&current,nullptr)||
+           SerializeRecordingSegmentV2(current)!=SerializeRecordingSegmentV2(source.segment))return false;}
     return true;
 }
 bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobHandle* out,JobReadContext* context,std::string* error,bool* strict_content) const {
@@ -2361,6 +2429,7 @@ std::optional<RecordingSegmentV2> RecordingCatalog::FindSegmentV2ById(const std:
     return found->second;
 }
 RecordingLifecycle RecordingCatalog::EffectiveLifecycleV2Locked(const std::string& id) const {
+    if(retired_v2_.count(id))return RecordingLifecycle::Deleted;
     if(!segments_v2_.count(id))return RecordingLifecycle::Unknown;
     if(tombstones_.count(id)||tombstones_v2_.count(id))return RecordingLifecycle::Deleted;
     const auto state=states_v2_.find(id);
@@ -2426,6 +2495,11 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
     if(!opened_||!CanWriteLocked(error))return false;
     const auto payload=SerializeRecordingTombstoneV2(tombstone);
     const auto& id=tombstone.segment.segment_id;
+    if(retired_v2_.count(id)) {
+        RecordingTombstoneV2 prior;
+        if(payload.empty()||!AcquireRetiredV2Locked(id,&prior,error)||SerializeRecordingTombstoneV2(prior)!=payload)return Fail(error,"V2 tombstone 재시도 충돌");
+        if(error)error->clear();return true;
+    }
     const auto prior=tombstones_v2_.find(id);
     if(prior!=tombstones_v2_.end()) {
         if(payload.empty()||SerializeRecordingTombstoneV2(prior->second)!=payload)return Fail(error,"V2 tombstone 재시도 충돌");
@@ -2478,6 +2552,8 @@ bool RecordingCatalog::SnapshotLocationsV2(const std::string& channel, Recording
         if(segment.channel_id==channel&&EffectiveLifecycleV2Locked(id)==RecordingLifecycle::Finalized)snapshot.segments.push_back(segment);
     for(const auto& [id,tombstone]:tombstones_v2_)
         if(tombstone.segment.channel_id==channel)snapshot.deleted_segment_ids.push_back(id);
+    for(const auto& [id,receipt]:retired_v2_)
+        if(receipt.channel_id==channel)snapshot.deleted_segment_ids.push_back(id);
     for(const auto& [id,tombstone]:tombstones_)
         if(tombstone.channel_id==channel)snapshot.deleted_segment_ids.push_back(id);
     std::sort(snapshot.segments.begin(),snapshot.segments.end(),[](const auto& a,const auto& b){
@@ -2631,7 +2707,7 @@ bool RecordingCatalog::FinalizeSegmentLocked(const RecordingSegmentV1& segment,
                                              std::string* error) {
     if (!opened_) return Fail(error, "catalog가 열리지 않음");
     if (!ValidateRecordingSegmentV1(segment, error) || segment.lifecycle != RecordingLifecycle::Finalized) return false;
-    if (segments_v2_.count(segment.segment_id)) return Fail(error,"V1/V2 ID 충돌");
+    if (segments_v2_.count(segment.segment_id)||retired_v2_.count(segment.segment_id)) return Fail(error,"V1/V2 ID 충돌");
     if (tombstones_.find(segment.segment_id) != tombstones_.end()) {
         return Fail(error, "tombstone segment ID 재사용 금지");
     }
@@ -3008,11 +3084,33 @@ bool RecordingCatalog::DerivedSourceRelevant(const RecordingConsumerReferenceV1&
         }
     return !unrelated;
 }
+bool RecordingCatalog::RetiredSourceRelevant(const RecordingConsumerReferenceV1& reference,
+    const RecordingRetiredV2Receipt& receipt,const SourceBindingEntry* metadata) {
+    if(receipt.source_id!=reference.source_id||receipt.channel_id!=reference.channel_id||receipt.retention_class!=RecordingRetentionClass::Continuous)return false;
+    const auto& request=*reference.request;
+    const __int128 begin=(static_cast<__int128>(request.start_ms)-request.pre_ms)*1000000;
+    const __int128 end=(static_cast<__int128>(request.end_ms)+request.post_ms)*1000000;
+    if(request.time_basis=="media-pts-ms") {
+        if(metadata&&*metadata&&reference.original) {
+            const auto& original=*reference.original;
+            if(metadata->generation!=original.source_generation||metadata->order!=original.generation_order||metadata->track!=original.track_id)return false;
+        }
+        if(receipt.media_end_pts) {
+            const __int128 scale=static_cast<__int128>(receipt.time_base_num)*1000000000;
+            if(static_cast<__int128>(*receipt.media_end_pts)*scale<=begin*receipt.time_base_den||
+               static_cast<__int128>(receipt.media_start_pts)*scale>=end*receipt.time_base_den)return false;
+        }
+    }else if(request.time_basis=="utc-ms"&&receipt.utc_exclusion_safe&&receipt.utc_min_ns&&receipt.utc_max_ns) {
+        if(*receipt.utc_max_ns<=begin||*receipt.utc_min_ns>=end)return false;
+    }
+    return true;
+}
 bool RecordingCatalog::PrepareDerivedSourceSnapshot(const RecordingConsumerReferenceV1& reference,
     std::vector<RecordingDerivedSourceSnapshotEntry>* result,std::optional<std::uint64_t>* revision,std::string* error) const {
     if(result)result->clear();
     revision->reset();
-    struct Candidate {RecordingDerivedSourceSnapshotEntry output;std::optional<SourceBindingEntry> binding;};
+    struct Candidate {RecordingDerivedSourceSnapshotEntry output;std::optional<SourceBindingEntry> binding;
+        std::optional<RecordingRetiredV2Receipt> retired;RecordingMutationLink deletion;};
     std::vector<Candidate> candidates;std::uint64_t captured=0;
     {
         recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -3032,8 +3130,37 @@ bool RecordingCatalog::PrepareDerivedSourceSnapshot(const RecordingConsumerRefer
         // 상한 초과의 기존 상세 검증/거부 순서는 locked 경로에 맡긴다.
         if(candidates.size()>256)return true;
     }
+    for(const auto& [id,receipt]:retired_v2_) {
+        const auto metadata=source_bindings_.find(id);
+        if(!RetiredSourceRelevant(reference,receipt,metadata==source_bindings_.end()?nullptr:&metadata->second))continue;
+        const auto link=retired_v2_links_.find(id);
+        if(link==retired_v2_links_.end()){derived_job_state_authoritative_=false;return Fail(error,"retired source link 없음");}
+        Candidate candidate;candidate.retired=receipt;candidate.deletion=link->second;
+        candidate.output.lifecycle=RecordingLifecycle::Deleted;candidate.output.deleted=true;
+        if(metadata!=source_bindings_.end())candidate.binding=metadata->second;
+        candidates.push_back(std::move(candidate));if(candidates.size()>256)return true;
+    }
     }
     for(auto& candidate:candidates) {
+        if(candidate.retired) {
+            RecordingMutationHandle mutation;
+            {
+                recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+                if(!source_snapshot_revision_valid_||source_snapshot_revision_!=captured){result->clear();return true;}
+                if(!derived_job_state_authoritative_||!CanReadLocked(error)||!journal_.AcquireMutationLink(candidate.deletion,&mutation,error)){
+                    derived_job_state_authoritative_=false;result->clear();return false;
+                }
+            }
+            RecordingTombstoneV2 tomb;bool valid=false;
+            try{valid=MaterializeRetiredV2(*candidate.retired,mutation,&tomb,error);}catch(...){}
+            if(!valid){
+                recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);result->clear();
+                if(!source_snapshot_revision_valid_||source_snapshot_revision_!=captured)return true;
+                derived_job_state_authoritative_=false;return Fail(error,"retired source 상세 검증 거부");
+            }
+            candidate.output.segment=std::move(tomb.segment);
+            if(!DerivedSourceRelevant(reference,candidate.output.segment,candidate.binding?&*candidate.binding:nullptr))continue;
+        }
         if(candidate.binding) {
             SourceBindingHandle binding;RecordingMutationHandle mutation;bool materialized=false;
             {
@@ -3106,6 +3233,18 @@ bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerRefer
         entry.deleted=tombstones_v2_.count(id)!=0||entry.lifecycle==RecordingLifecycle::Deleted;
         result->push_back(std::move(entry));
     }
+    for(const auto& [id,receipt]:retired_v2_) {
+        const auto metadata=source_bindings_.find(id);const auto* binding_metadata=metadata==source_bindings_.end()?nullptr:&metadata->second;
+        if(!RetiredSourceRelevant(reference,receipt,binding_metadata))continue;
+        RecordingSegmentV2 segment;SourceBindingHandle binding;
+        if(!AcquireOriginalV2Locked(id,&segment,error)){result->clear();return false;}
+        if(!DerivedSourceRelevant(reference,segment,binding_metadata))continue;
+        if(!AcquireSourceBindingOwnedLocked(id,&binding,error)||(binding_metadata&&!binding)||
+           (binding&&!ValidateRecordingSourceBindingForSegment(*binding,segment,error))){derived_job_state_authoritative_=false;result->clear();return false;}
+        if(result->size()==256){result->clear();return Fail(error,"derived source relevant snapshot cap exceeded");}
+        RecordingDerivedSourceSnapshotEntry entry;entry.segment=std::move(segment);if(binding)entry.binding=*binding;
+        entry.lifecycle=RecordingLifecycle::Deleted;entry.deleted=true;result->push_back(std::move(entry));
+    }
     std::sort(result->begin(),result->end(),[](const auto& a,const auto& b){
         return std::tie(a.segment.store_id,a.segment.order_sequence,a.segment.segment_id)<
                std::tie(b.segment.store_id,b.segment.order_sequence,b.segment.segment_id);
@@ -3136,6 +3275,7 @@ bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
             availability.segment_id=output.segment.segment_id;
             const auto path=media_relpaths_.find(availability.segment_id);
             if(path!=media_relpaths_.end())availability.relative_path=path->second;
+            else if(const auto retired=retired_v2_.find(availability.segment_id);retired!=retired_v2_.end())availability.relative_path=retired->second.prior_relative_path;
             availability.lifecycle=EffectiveLifecycleV2Locked(availability.segment_id);
             availability.catalog_available=segments_v2_.count(availability.segment_id)!=0&&
                 !tombstones_v2_.count(availability.segment_id)&&
@@ -3413,7 +3553,7 @@ bool RecordingCatalog::IsDeletedSegmentId(
     const std::string& segment_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     const auto segment = segments_.find(segment_id);
-    return tombstones_v2_.count(segment_id) || tombstones_.find(segment_id) != tombstones_.end() ||
+    return retired_v2_.count(segment_id)||tombstones_v2_.count(segment_id) || tombstones_.find(segment_id) != tombstones_.end() ||
         (segment != segments_.end() && segment->second.lifecycle == RecordingLifecycle::Deleted);
 }
 
