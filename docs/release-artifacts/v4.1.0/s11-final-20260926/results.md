@@ -123,3 +123,40 @@ baseline424와 합친 현재 UI 대상432 ID를 충족한다. 이전 실패와 n
 그대로 보존하며, runner의 자동 uiFulltestPass=false를 수정하지 않았다.
 제품 SHA는 이전30분·424 실행과 같고 검증기·격리 fixture만 보완했다.
 다음은 승인된 녹화120분·자원 판정이며 아직 실행하지 않았다.
+
+## B10 녹화120분 실패와 후속 경계
+
+이후 실행은 약18분48초에 `observer-native-timeout`으로 exit1이었다.
+개별1555 PASS/1 FAIL이며120분을 완료하지 못했다. 실제 상태 HTTP225회는200·
+최대1,548ms, 서버/포트/UDP·소유 임시root 정리는 완료했다.
+검증기의 전체 snapshot/identity 재처리 비용과, 삭제된 segment/tombstone 상세의
+현재 snapshot 중복 누적을 확인했다. 종료 뒤 read-only 진단1회는2.63초였으며
+제품 수정·timeout 확대·장시간 반복은 하지 않았다.
+[원출력·1,556개 전수·원인·재현 입력·정리](b10-longrun.md)와
+[현행 릴리즈 잔여](readiness.md)를 따른다.1~3분할 커밋은 보존하고4번 실패로5번
+S11 마감·푸시는 보류한다. 앞의30분·UI432 ID 증거를 이 실패 때문에 자동 폐기하지 않는다.
+# B11 저장·관측 보완 착수 및 계약 판정
+
+이 절은 후속 사용자 승인(제품 저장·관측 구조 1~3, 분할 커밋)을 기록한다.
+기존 B10의 120분 실패는 아래 이력과 원증거 그대로 유지한다. 이번에는 새 장시간/UI·푸시를 실행하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 현재 상태·삭제 증거·cold 상세 계약 | 문서/소비자 검토 완료 | 삭제된 원본도 미래 derived selection과 완료 job 검증이 소비하므로 full값의 검증된 재획득을 유지 | [B11 계약](../../../superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b11-삭제-완료-상세의-현재-상태-분리-2026-09-26), catalog의 PrepareDerivedSourceSnapshot/AcquireDerivedJobOwnedWithEnvelopeLocked |
+| 2 | 제품 저장·복구 보완 | 구현 진행 | retired-v2 receipt·current/SQLite/snapshot·재획득과 구형 snapshot 엄격 호환 | 중앙 B11-P01~03 사전 정의 |
+| 3 | 관측 구조·누적 확인 | 미실행 | 2번 통과 후 기존 3초/32MiB/15초 유지 검증 | 중앙 B11-O01~02 |
+| 4 | 분할 커밋 | 계약 단위부터 수행 대상 | 제품 PASS와 문서 계약 완료를 구분 | Git log 및 후속 결과 |
+
+계약/반례 검토는 메인, 소비자 반례 감사는 기존 단일 담당자다. SQLite legacy 경로의
+삭제 축약과 B generation의 full current 투영을 구분했다. 실제 보완 대상은
+PrepareGenerationSqliteLocked/ProjectGenerationDeltaLocked이며 legacy PASS를 대체 근거로 쓰지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11 계약 링크 최초 | `./server.sh verify-docs-links`, exit1 | fail | 신규 중앙 기록 anchor 1건 오류. 제품 실행 없음 |
+| B11 계약 링크 수정 후 | 같은 명령, exit0 | pass | markdown361·local links14524·images22·anchors204·failures0 |
+| B11 계약 자산 | `./server.sh verify-docs-ui-assets`, exit0 | pass | 10 PASS/0 FAIL. 실제 UI 재실행 증거 아님 |
+| B11 결과 반영 후 링크·공백 | `./server.sh verify-docs-links` 및 `git diff --check`, exit0 | pass | local links14525·anchors205·failures0. 계약 기록을 별도 커밋하며 제품 구현 PASS를 뜻하지 않음 |
+
+위 검사의 파일/서버/포트 임시 산출물은 없음. token start/end/consumed는 집계 도구 부재로 미집계,
+명령은 모두 1초 미만이며 source는 실제 명령 반환값이다. 제품/codec/누적 검증은 아직 미실행이다.

@@ -1,5 +1,10 @@
 # Release Evidence Index
 
+- [2026-09-26 B10 녹화120분 중단·원인·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md):
+  약18분48초에 observer native3초 제한으로 FAIL. 현재 snapshot 전체 재처리·삭제 상세 중복
+  보관을 확인했다. 상태 HTTP225회200·최대1,548ms와 정상 종료·정리는 확인했으나120분·
+  자원/S11 마감은 미완료다. 현행 잔여·권한 경계는 [전수표](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)다.
+
 - [2026-09-26 B10 녹화 UI 전수·시각 적격](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md):
   실제31 action·8 viewport/theme·역할·정리 PASS, 메인 hybrid 적격. 기존424를 포함한
   UI432 ID 충족. 최초 준비/검증기 실패 보존, 녹화120분·S11 전체는 별도 미완료.
@@ -11,9 +16,9 @@
 - [2026-09-26 S11 최종 30분·UI·장시간 증거](release-artifacts/v4.1.0/s11-final-20260926/results.md):
   현재 제품 소스의 30분은 최초 실행 권한·주석 gate 실패를 보존하고
   최종 20회·109 PASS/0 FAIL로 통과했다. 실제 브라우저 공통 UI도
-  424/424 및 Policy v4 적격으로 통과했다. 녹화 UI는 일부 조작 뒤 인앱 탭
-  충돌로 미완료이고 녹화 전용 120분은 순차 중단으로 미실행이다. 공통 120분의
-  현행 증거 범위 판정도 별도이며 릴리즈 완료가 아니다.
+  424/424 및 Policy v4 적격으로 통과했다. 최초 인앱 충돌 이력 뒤 녹화UI31 action도
+  native Chrome과 메인 시각 교차로 마감했다. 후속 녹화120분의 실패는 위 B10을 따른다.
+  공통120분은 불변 구성요소 한정 승계이며 현행 전체 프로세스의 장시간 PASS가 아니다.
 
 - [2026-09-25 B 기본 연결·누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md):
   요청1~7은 구현·검증·분할 커밋했다.8번의1/16/32·1,020/2,049 누적 수치는 통과했으나

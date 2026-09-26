@@ -11,7 +11,11 @@
   녹화 UI의 이전 인앱 탭 충돌은 보존하고, 새 임시 계정의 native Chrome 실행으로
   8 ID·31 action·8 viewport/theme·역할·정리와 메인 시각 적격을 마쳤다.
   [UI 전수·실패 이력](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md)을 따른다.
-  녹화 전용120분·자원 및 S11 전체 마감은 아직 미완료다.
+  후속 녹화120분은 약18분48초에 관측용 native3초 시간초과로 실패했다.
+  삭제 segment/tombstone 상세가 현재 snapshot에 중복 보관되고 관측기가 이를 매번
+  전체 재처리하는 경계를 확인했다. 상태 HTTP 최대1,548ms·정상 종료·정리는 확인했지만
+  승인된 B11 제품/관측 구조 보완에 착수했으며120분·자원/S11 마감은 미완료다.
+  [실패·근거·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md)를 따른다.
   [기존 누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)과
   [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
   [회수 후 누적 결과](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md),

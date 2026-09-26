@@ -792,6 +792,51 @@ binding 투영 중복 제거는 LP26-R01로 분리하고, 기존 SQLite 파일�
 
 ## 6. 계약의 반례와 구현 완료 증거
 
+### B11 삭제 완료 상세의 현재 상태 분리 (2026-09-26)
+
+사용자 승인 범위는 계약 → 제품 저장/복구 → 관측 구조 보완이며 각각 통과 후 커밋한다.
+이번 범위는 과거 상세의 **영구 삭제가 아니라 현재 상태에서 cold 이력으로 내리는 것**이다.
+B10의 120분 실패·원본 metadata는 보존하며, 새 120분/UI 실행·푸시·릴리즈는 포함하지 않는다.
+
+1. 삭제 완료 전이는 기존 segment/state/reason, 파일 부재, hold·pin·작업 보호를 먼저 검증한다.
+   성공한 generation 저장소의 삭제 ID는 현재 상세 segment/tombstone 복제 대신 내부
+   `retired-v2` 영수증과 기존 최초 수락 identity·order를 유지한다. pending/corrupt/live와
+   활성 작업 보호 대상에는 이 축약을 적용하지 않는다. 공개 mutation/API/시간값은 바꾸지 않는다.
+2. 영수증은 ID·store/source/channel·순서·media epoch·PTS/timebase·보존 종류,
+   삭제 시각/사유, 이전 상대 경로, 최초 삭제 mutation ID와 canonical segment/tombstone SHA-256,
+   UTC 후보 선별용 보수적 범위를 담는다. 가변 길이 프레임/mapping 상세는 담지 않는다.
+   UTC 불확실·unknown·열린 구간은 제외 근거로 쓰지 않는다. 범위의 빈틈은 cold 상세로
+   다시 판단하며, 요약값을 완전한 segment나 실제 재생 근거로 반환하지 않는다.
+3. 동일 삭제 재시도, 과거 binding/job/이벤트 참조의 상세 검증, 관련 삭제 원본의 후보 판정은
+   최초 수락 mutation의 검증된 cold 위치에서 원문을 다시 읽어 의미와 hash를 대조한다.
+   읽은 상세는 호출 수명만 소유한다. 손상/누락/다른 owner·ID·내용이면 기존 fail-closed를
+   유지하며 삭제 영상은 어떤 경우에도 다시 재생 가능으로 승격하지 않는다.
+4. snapshot·SQLite current projection은 영수증만 저장하고 상세를 중복 투영하지 않는다.
+   cold archive·identity·order·source binding provenance·consumer/job 참조는 삭제하지 않는다.
+   fresh Open은 영수증·순서·삭제 provenance를 검증하고 비활성 상세를 모두 상주시키지 않는다.
+   기존 full segment/tombstone snapshot은 엄격하게 읽고 축약한다. 구형 형식에 대한 강제
+   offline 변환이나 미디어/개발 자료 삭제는 하지 않는다. SQLite는 계속 선택적 projection이다.
+5. 관측기는 검증된 불변 파일과 새 append를 구분한다. 재사용은 같은 root/store, 파일 identity,
+   내용 hash·generation/cut·수락 prefix에 결속하고 교체·축소·모순·손상은 거부한다.
+   처음 읽는 데이터는 제한된 처리량으로 이어 읽되 검증 완료 전 성공 관측으로 세지 않는다.
+   기존 native 3초, 호출 읽기/출력 32MiB, 관측 공백 15초, HTTP 4초를 늘리지 않는다.
+   재사용 실패를 빈 결과/PASS로 바꾸거나 snapshot 검증을 생략하지 않는다.
+
+정량 판정은 B10 보존 입력(종료 후 상태이며 실패 순간과 동일하다고 하지 않음), 같은 상세 분포의
+누적 입력, 고정 live 수의 반복 삭제/재개방으로 한다. 준비·제품·관측 비용을 구분하고,
+최소 identity/영수증의 선형 증가와 불변 archive 보존은 허용 범위를 명시한다.
+전체 디스크/RAM 상수나 제품 RSS SLO를 새로 주장하지 않는다. 과거 30분·UI 증거는
+제품 변경 diff 이후 영향 범위를 별도로 판정하며 이 계약만으로 승계하지 않는다.
+
+| ID | 합격·반례 기준 |
+| --- | --- |
+| B11-C01 | receipt strict codec·잘못된 ID/순서/정밀도/UTC 보수성·미등록 필드·hash 거부 |
+| B11-P01 | 정상 삭제 후 current 상세 중복 부재, ID 재사용·서로 다른 삭제 재시도 거부, lifecycle/상태 bytes/재생 거부 유지 |
+| B11-P02 | 기존 full snapshot과 새 receipt의 Open/SQLite fallback, checkpoint/중단 복구, 손상 cold 재획득 거부 |
+| B11-P03 | pin/hold/활성 job 보호, 완료 job·binding·과거 참조, media/UTC 후보 및 256개 cap 의미 보존 |
+| B11-O01 | append/rotation/부분 행·동일 ID·변경 prefix/root/파일 교체·손상·busy 경계 및 증분 처리 자체검증 |
+| B11-O02 | B10 실제 metadata 불변 대조와 현실 상세 누적 비용, 기존 3초/32MiB/15초 유지; 장시간 PASS 대체 금지 |
+
 | ID | 반례/대상 | 합격 기준 |
 | --- | --- | --- |
 | LP17-C01 | 같은 ID지만 내용/owner/세대가 다른 재사용 | 부적합 캐시는 폐기·전체 검증으로 복귀; 정상 입력은 같은 결과, 실제 충돌·손상은 기존대로 거부 |

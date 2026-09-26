@@ -1,5 +1,23 @@
 # 릴리즈 테스트 기록
 
+## B11 저장·관측 구조 보완 — 실행 전 정의 (2026-09-26)
+
+정책은 AGENTS.md, 구현 계약은 [B11 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b11-삭제-완료-상세의-현재-상태-분리-2026-09-26)이다.
+계약→제품→관측 순서와 분할 커밋만 승인됐다. 새 장시간/UI·푸시는 이번 비범위다.
+B10 실패를 보존하며 아래 준비/회귀 PASS로 120분 완료를 주장하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B11-C01 | 삭제 영수증 codec와 계약 | strict 왕복·입력/오류/경계 반례. 문서 링크·자산·diff 검사 및 메인 소비 경계 검토 | v4.1.0 |
+| B11-P01 | 현재 저장 축약 | 실제 generation finalize→delete→checkpoint에서 상세 중복 부재·ID 충돌·재시도·상태 집계·재생 거부 대조 | v4.1.0 |
+| B11-P02 | 복구·fallback | 기존 full snapshot/새 receipt·SQLite on/off·cold 손상/누락·중단/fresh Open 반례. 기존 generation projection/append/runtime 회귀 | v4.1.0 |
+| B11-P03 | 참조와 보호 | pin/hold/active job 유지, completed job/binding/삭제 후보의 상세 재획득·UTC unknown·범위/cap 기존 의미 대조. generation consumers/관련 회귀·build | v4.1.0 |
+| B11-O01 | 증분 관측 안전성 | generation observer 자체검사의 append/rotation/부분 행/중복/변경 prefix/교체/손상/busy와 새 재사용 경계. 원문 비출력·정리 | v4.1.0 |
+| B11-O02 | 실측 재현 및 누적 | 보존 B10 metadata hash 확인 후 read-only 관측, 실제와 같은 상세 분포의 누적 current/cold 비용. 기존 native3초·32MiB·15초 기준 유지 | v4.1.0 |
+
+실행 결과·개별 항목·정리·토큰 집계 한계는 기존 [S11 결과](release-artifacts/v4.1.0/s11-final-20260926/results.md)에 이어 기록한다.
+현재 실행 상태는 전부 미실행이며 위 표는 PASS가 아니다.
+
 ## S11 녹화 UI 실행 연결 보완 — 실행 전 정의 (2026-09-26)
 
 사용자 승인 순서는 준비 보완→I30 집중→녹화 31 action→녹화120분→S11 기록·커밋·조건부 푸시다.
@@ -33,7 +51,12 @@ B10-U05는 후속 실행에서 최종31/31·실제8개 viewport/theme·메인 �
 최초 검증기/fixture 실패 및 전체 조작 통과 후 console·시각 보완을
 [개별 결과와 판정](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md)에 보존했다.
 자체검사9/9·driver6/6, 제품 SHA 불변이며 공통424와 합친 UI432 ID는 적격이다.
-L01 녹화120분·자원 및 S11 전체 마감은 아직 남아 있다.
+L01 녹화120분은 이후 약18분48초에 관측 native3초 시간초과로 실패했다.
+개별1555 PASS/1 FAIL·상태 HTTP225회200·최대1,548ms, 정상 종료·정리는 확인했다.
+전체 snapshot/identity 재처리와 삭제 상세의 snapshot 중복 보관을 확인하고,
+종료 후 read-only 진단1회(2.63초·원본 불변)와 metadata 최소 보존을 마쳤다.
+[전체 원출력·개별 전수·원인·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md).
+120분·자원 판정·S11 마감은 미완료다. 제품 수정·상한 완화·추가 장시간 재시도는 하지 않았다.
 
 ## B-07 누적·실제 통합 실행 전 정의 (2026-09-25)
 
