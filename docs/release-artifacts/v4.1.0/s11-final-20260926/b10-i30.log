@@ -1,0 +1,84 @@
+[start] 2026-09-26T03:34:55Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+6b6b2480b65621fb528b5b029b3c046c7aed000df3d6f028879c2e08a9a85056  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.rq0zVe","bytes":11485596,"removed":true}
+[elapsed] seconds=8 source=bash-SECONDS actualUiPass=false
+[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false
+[ui-seed-selection] {"seekSegmentId":"ef07f022-0381-4d9e-8f41-bed5016ec398","eventOutputIds":[{"scenario":"full","ids":["dj-1f1fdd36e8edbc7cfe9c198a21dd936a5f207ee770121ad6d07b856d6542459e-o0","dj-1f1fdd36e8edbc7cfe9c198a21dd936a5f207ee770121ad6d07b856d6542459e-o1"]},{"scenario":"partial","ids":["dj-44a3391afac9dbcc114424c9c9495408b685ccb74bb588749817434fceaab26d-o0","dj-44a3391afac9dbcc114424c9c9495408b685ccb74bb588749817434fceaab26d-o1"]}],"actualUiPass":false}
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-LXuqEE","rootBeforeBytes":15666465,"rootBeforeEntries":434,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":25039,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":64610,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":64611,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":375,"verifierElapsedMs":17708,"uiUdpClosed":true}
+recording UI acceptance failed; inspect private sanitized evidence
+[start] 2026-09-26T03:36:43Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+6b6b2480b65621fb528b5b029b3c046c7aed000df3d6f028879c2e08a9a85056  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.USHa63","bytes":11485596,"removed":true}
+[elapsed] seconds=9 source=bash-SECONDS actualUiPass=false
+[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false
+[ui-seed-selection] {"seekSegmentId":"d80f90b5-3a99-4308-b7ca-2e1dbaeb6867","eventOutputIds":[{"scenario":"full","ids":["dj-18456e6466acad3c43c2ffa30c2424b6b8cd4b4a6494a7803cc34fecf5d2f073-o0","dj-18456e6466acad3c43c2ffa30c2424b6b8cd4b4a6494a7803cc34fecf5d2f073-o1"]},{"scenario":"partial","ids":["dj-7cfebeed2cced6627f84a0e59a66aef36cb492eaa9f0e5f45d1860082c5ecfd0-o0","dj-7cfebeed2cced6627f84a0e59a66aef36cb492eaa9f0e5f45d1860082c5ecfd0-o1"]}],"actualUiPass":false}
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-lX9cOJ","rootBeforeBytes":15666465,"rootBeforeEntries":434,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":25278,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":64735,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":64736,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":1011,"verifierElapsedMs":17283,"uiUdpClosed":true}
+recording UI acceptance failed; inspect private sanitized evidence
+[start] 2026-09-26T03:38:09Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+6b6b2480b65621fb528b5b029b3c046c7aed000df3d6f028879c2e08a9a85056  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.8agIGE","bytes":11485596,"removed":true}
+[elapsed] seconds=8 source=bash-SECONDS actualUiPass=false
+[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false
+[ui-seed-selection] {"seekSegmentId":"a7ce454d-a355-4331-a141-0151a67a29d0","eventOutputIds":[{"scenario":"full","ids":["dj-b3d7baf8d1a4270777e324edb8384d61b899cfbca325797fcc664dc7e1bb4647-o0","dj-b3d7baf8d1a4270777e324edb8384d61b899cfbca325797fcc664dc7e1bb4647-o1"]},{"scenario":"partial","ids":["dj-aedc2278210477d7c6b3723378c4c5f02515bf35f8412ccd32eabbbc9cd150f2-o0","dj-aedc2278210477d7c6b3723378c4c5f02515bf35f8412ccd32eabbbc9cd150f2-o1"]}],"actualUiPass":false}
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-y3RQb9","rootBeforeBytes":15702834,"rootBeforeEntries":434,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":25431,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":64857,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":64858,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":970,"verifierElapsedMs":17613,"uiUdpClosed":true}
+{"pass":3,"notRun":0,"uiFulltestPass":false,"outputDir":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-recording-ui-acceptance-focus-50nv89"}
