@@ -118,6 +118,18 @@ void SingleSnapshot(const std::filesystem::path& root,std::size_t count){
  Need(snapshots==1&&bytes==manifest.snapshot.size&&current.size()==bytes&&Digest(current)==manifest.snapshot.sha256,"snapshot-single-current");
  std::cout<<"[pass] B08-C01 snapshot-count=1 count="<<count<<" bytes="<<bytes<<" generation="<<manifest.generation<<'\n';
 }
+void HistoricalTimeline(RecordingCatalog& catalog,std::size_t count){
+ RecordingTimelineResult timeline;std::string error;const auto start=Clock::now();
+ Need(catalog.SnapshotTimelineV2({"probe-channel",0,9000000000000LL,0,100,true},&timeline,&error),"B11-O03-timeline-query");
+ const auto elapsed=Us(start);Metric("B11-O03-deleted-timeline",count,start);
+ Need(timeline.total+timeline.unplaced_total==count,"B11-O03-timeline-count");
+ Need(timeline.unplaced_items.size()<=100,"B11-O03-timeline-page");
+ for(const auto& item:timeline.items)Need(item.catalog_state=="deleted"&&!item.playable,"B11-O03-timeline-state");
+ for(const auto& item:timeline.unplaced_items)Need(item.catalog_state=="deleted"&&!item.playable,"B11-O03-timeline-state");
+ Need(elapsed<=4000000,"B11-O03-timeline-deadline");
+ std::cout<<"[pass] B11-O03 timeline count="<<count<<" total="<<timeline.total
+          <<" unplaced="<<timeline.unplaced_total<<" page="<<timeline.unplaced_items.size()<<" us="<<elapsed<<'\n';
+}
 // B10 종료 후 metadata 사본만 사용한다. 미디어가 없으므로 실제 재생/완전 복구 PASS가 아니다.
 void RetiredCompatibility(const std::filesystem::path& base) {
  const auto root=base/"recordings";std::string error;
@@ -210,6 +222,7 @@ void Run(const std::filesystem::path& base,bool deleted,bool bounded){
     Need(seen==count*(deleted?4:2),"complete-drain-count");
     std::cout<<"[pass] B08-C01 complete-drain count="<<count<<" mutations="<<seen<<'\n';
     SingleSnapshot(root,count);
+    if(deleted&&count==2049)HistoricalTimeline(c,count);
    }
    std::cout<<"[pass] B07-S03 checkpoint-old-detail-unchanged count="<<count<<'\n';
   }

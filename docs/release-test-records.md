@@ -15,6 +15,7 @@ B10 실패를 보존하며 아래 준비/회귀 PASS로 120분 완료를 주장�
 | B11-P03-T | 삭제 이력 타임라인 소비 경계 | SnapshotTimelineV2의 deleted source mapping/ID/UTC·불가 상태 및 완료 job 출력 상태를 기존 full 표현과 대조. 작은 consumer 및 실제 metadata 규모에서 누락 없는 조회 확인 | v4.1.0 |
 | B11-O01 | 증분 관측 안전성 | generation observer 자체검사의 append/rotation/부분 행/중복/변경 prefix/교체/손상/busy와 새 재사용 경계. 원문 비출력·정리 | v4.1.0 |
 | B11-O02 | 실측 재현 및 누적 | 보존 B10 metadata hash 확인 후 read-only 관측, 실제와 같은 상세 분포의 누적 current/cold 비용. 기존 native3초·32MiB·15초 기준 유지 | v4.1.0 |
+| B11-O03 | 2,049개 삭제 이력의 누적 조회 판정 | `bounded-deleted`가 실제 generation finalize→delete→checkpoint를 수행한 뒤 한 채널 timeline 전체 계수·100개 page·deleted/재생 불가를 대조한다. timeline 4초, SQLite/JSONL 재개방 15초, native 관측 3초와 root448MiB/RSS1GiB를 늘리지 않고 확인한다. 실패하면 비용 구간만 보완하며 120분 PASS로 사용하지 않는다 | v4.1.0 |
 
 B11-O01 실행 전 세부 등록: `verify_recording_identity_shards.sh`의 선택적 parser 캐시는
 같은 bytes 재사용·변경 bytes 재파싱·잘못된 canonical 거부·0/작은 예산 fallback·체인 중복/순서
@@ -45539,3 +45540,19 @@ fixture 잔여와4번 합성 자식을 정리하고 초기 cleanup 보고를 정
 
 최종 관련 검사: 문서 링크 exit0·자산10/10·등록18/18(986행)·실행 연결8/8·diff exit0.
 [개별 결과](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-final-items.md.gz)와 원로그를 보존한다.
+
+## v4.1.0 S11 B11-O03 누적 삭제 이력 단기 판정 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-O03 정확 계수·삭제 상태 | 실제 generation 전이 2,049개를 checkpoint 뒤 timeline으로 조회. total+unplaced가 정확히 2,049이며 반환된 모든 known/unplaced 항목이 deleted·재생 불가인지 확인 | pass |
+| B11-O03 timeline 4초 | 전체 투영 2,486,353us, total2,049/unplaced0 | pass |
+| B11-O03 native 관측 3초 | 8,196 mutation 증분 관측 1,217,889us | pass |
+| B11-O03 SQLite/JSONL 15초 | 재개방 2,861,412/2,787,091us | pass |
+| B11-O03 저장·RSS·정리 | root51,810,038B, peak RSS141,574,144B, 소유 temp63,821,405B removed=true | pass |
+
+명령은 `bash scripts/internal/verify_recording_generation_scale.sh bounded-deleted`, exit0,
+elapsed109초다. 원출력은
+[B11-O03 압축 로그](release-artifacts/v4.1.0/s11-final-20260926/b11-o03-scale-green.log.gz)에
+보존했다. token start/end/consumed는 전용 집계 부재로 미집계다. 합성 단기 증거이며
+실제 HTTP·30분·UI·120분 완료 증거로 사용하지 않는다.

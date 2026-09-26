@@ -472,3 +472,25 @@ token start/end/consumed는 집계 도구 부재로 미집계다. 이전 B10의 
 active tail을 hash 대조한 읽기 집계에서 종료 후 원본1,116·삭제1,110개를 확인했다.
 마지막 관측1,108·1,102개와 구분하며 P02의 독립 기대값에 사용한다. 제품 활성화,
 cold 재획득·SQLite·실제 누적 검사는 아직 미완료이며 이 준비 PASS로 대체하지 않는다.
+
+## B11-O03 2,049개 삭제 이력 누적 비용 판정 (2026-09-27)
+
+현행 generation 저장 계약으로 원본 2,049개를 finalize→delete한 뒤 checkpoint와
+SQLite/JSONL 재개방, native 증분 관측, 전체 timeline 투영을 한 실행에서 대조했다.
+timeline은 정확히 2,049개였고 모두 UTC 배치된 `deleted`·재생 불가 항목이었다.
+미배치 페이지는 0개였으며 이는 누락이 아니라 해당 fixture의 모든 mapping이 유효했기 때문이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-O03 삭제 이력 timeline | `bash scripts/internal/verify_recording_generation_scale.sh bounded-deleted`, exit0·109초 | pass | 2,049개 정확 계수, total=2,049/unplaced=0, 모든 항목 deleted·재생 불가, 2,486,353us≤4초 |
+| B11-O03 native 관측 | 같은 실행의 8,196 mutation 증분 관측 | pass | 1,217,889us≤3초, 전체 drain과 독립 hash 대조 유지 |
+| B11-O03 복구 | 같은 실행의 SQLite/JSONL 재개방 | pass | 2,861,412/2,787,091us≤15초, snapshot 3,335,709B·generation39 |
+| B11-O03 저장·메모리 상한 | 같은 실행의 실제 root/RSS 계측 | pass | root 51,810,038B≤448MiB, peak RSS 141,574,144B≤1GiB |
+| B11-O03 정리 | runner 소유 root 63,821,405B 제거 | pass | removed=true, 서버·포트 사용 없음 |
+
+[압축 원출력](b11-o03-scale-green.log.gz)은 36,814B, SHA-256
+`c85a85a1feaf189e3a6617e2291882828f5c8234d795f847ce91674c2637c8fd`다.
+`recording-complete-summary`의 최대 lock hold 2,486,331,125ns는 timeline 전체 투영과
+일치하며 4초 HTTP 기준 안이다. 이 결과는 합성 generation 입력의 단기 비용 판정이며
+실제 HTTP·이벤트 통합, 30분·UI·120분 PASS를 대체하지 않는다. 새로운 저장 schema,
+공개 API, timeout 또는 제품 timeline 구현은 변경하지 않았다.
