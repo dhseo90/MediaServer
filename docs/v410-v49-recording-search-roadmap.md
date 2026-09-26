@@ -7,7 +7,8 @@
   timeline 최대 3,717ms(기존 4초 기준)를 확인했다. 9번의 코드 고정·최종 단기는
   빌드·인증·환경·문서·인벤토리·버전·정리를 확인해 로컬 범위에서 완료했다.
   최종 소스 30분은 최초 권한·주석 gate 실패를 수정한 뒤 20회·109 PASS로
-  통과했다. 실제 UI·녹화 전용120분 및 S11 전체는 미완료다.
+  통과했다. 실제 브라우저 공통 UI 424개도 Policy v4 적격으로 통과했다.
+  녹화 UI 8 ID·31 action, 녹화 전용120분 및 S11 전체는 미완료다.
   [기존 누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)과
   [현재 회수 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
   [회수 후 누적 결과](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md),

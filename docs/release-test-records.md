@@ -89,6 +89,16 @@ TCP 8081/8555 해제를 확인했다. [109개 개별 결과·최초 실패·정�
 [전수 구조화 원출력](release-artifacts/v4.1.0/s11-final-20260926/predev-30-summary.json)을 따른다.
 이 결과는 현행 UI 432개 또는 녹화 전용 120분의 완료 증거가 아니다.
 
+### S11 최종 공통 UI 424개 (2026-09-26)
+
+현재 source `5aed4af1`의 `./test_ui.sh`가 exit0, 실제 브라우저 exact
+424/424 PASS·FAIL/미실행/미지원0으로 종료했다. 독립 Policy v4 판정에서
+424개 적격, `uiFulltestPass=true`, 시각·redaction·console·수동 개입 경계 및
+서버/포트/임시 자료 cleanup PASS를 확인했다. [424개 개별 판정표](release-artifacts/v4.1.0/s11-final-20260926/ui-baseline-items.md),
+[원출력·시각 상세 증거](release-artifacts/v4.1.0/s11-final-20260926/ui-baseline-full.tar.xz),
+[실행 요약](release-artifacts/v4.1.0/s11-final-20260926/results.md)을 보존한다.
+이 PASS는 녹화 추가 I27~I34의 8 ID·31 action이나 전체 432개 PASS가 아니다.
+
 
 ### B07 진단 단위 마감 검사 — 실행 전 정의
 
