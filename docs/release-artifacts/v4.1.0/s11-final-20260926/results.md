@@ -684,3 +684,19 @@ root 계약11/11과 실제 앱73/73이 통과했으며 live page 조회 부재�
 unlink의 일시적 nlink0을 hardlink 손상으로 오분류한 검증기 결함을 확인했고, 전체 root
 재측정으로 보완한 뒤 동일 실제 앱74/74가 통과했다. 120분 PASS는 아직 아니며
 [상세 실패·보완·정리](b11-recording-120-attempt5.md)를 따른다.
+
+### B11-G03 120분 6차 세대 회전 오판
+
+6차는 약55분4초·4,597 pass 뒤 live root 측정이 `root-unsafe-file`로 중단됐다.
+합계 finalized3,278/deleted3,274, HTTP200·1ms, failure-live365,923,300B/448MiB였고
+서버 exit0·포트/UDP 폐쇄였다. 최대 RSS579,436,544B, warmup 뒤 증가율은
+1.3563MiB/min이었다.
+
+제품의 세대 원자 commit은 관리 component를 `linkat`으로 stage에서 root에 승격하고
+fsync 뒤 stage 링크를 제거한다. 실패 순간 snapshot2개·transaction1개가 함께 관측됐고,
+종료 후 recordings에는 symlink·특수 파일·다중 링크가 남지 않았다. 관측기가 이 정상적인
+짧은 링크 수2 상태를 영구 hardlink 손상으로 오판한 것이 직접 원인이다.
+
+일반 hardlink 거부를 완화하지 않고, 검증된 generation transaction 활성 구간의 관리
+파일만 root 전체 재측정 대상으로 제한한다. [상세 실패·재개 경계](b11-recording-120-attempt6.md)를
+따르며 집중 검증과 120분 전체 재실행 전에는 장시간 PASS가 아니다.

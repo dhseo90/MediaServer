@@ -45807,6 +45807,20 @@ SHA-256은 `210d17be84b37ee5a435e6f7ff45207687483363e906a8ffef890ff4b0175c2d`다
 | B11-G03 live unlink 보완 | 전체 측정 재시작, hardlink·특수 파일 거부 유지, root 자체검사11/11 | pass |
 | B11-G03 실제 앱 최종 | 동일 명령 exit0·74/74·실제30.199초·3회 기동/복구/정리 | pass |
 
+## v4.1.0 S11 B11-G03 녹화 120분 6차 세대 회전 오판 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 6차 | 두 채널 상시녹화·순환 삭제·상태/자원 관측, 3,304,162ms·4,597/1 | fail |
+| B11-G03 제품·저장 경계 | HTTP200·1ms, finalized3,278·deleted3,274, root365,923,300B, 서버 exit0·포트/UDP 폐쇄 | pass |
+| B11-G03 자원 관측 | 최대 RSS579,436,544B, warmup 뒤 1.3563MiB/min, FD -6·thread 0 | pass |
+| B11-G03 세대 회전 판정 | 정상 transaction 중 관리 파일 링크 수2를 영구 hardlink로 오판 | fail |
+| B11-G03 종료 후 대조 | recordings symlink·특수 파일·다중 링크 없음, 세대 파일 링크 수1 | pass |
+
+압축 원출력과 원인·재개 경계는
+`docs/release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt6.md`에 보존한다.
+집중 보완 검사는 120분 전체 PASS를 대체하지 않는다.
+
 5차 실패의 직접 원인은 제품 HTTP·저장 상한이 아니라 검증 전용 persistent 세션의 큰
 snapshot 재파싱과 누적 prefix 직렬화였다. snapshot 원문 객체를 작은 정확 증명으로 바꾸고
 세션에는 시작/종단 SHA-256으로 결박된 최대128개 delta만 전달했다. 응답 직전 snapshot
