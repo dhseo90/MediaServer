@@ -45782,3 +45782,14 @@ PRAGMA와 제품 rollback-mode writer 커밋의 교차가 generation owner fail-
 [압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt4.log.gz)을
 따른다. token start/end/consumed는 전용 집계 부재로 미집계다. focused PASS는 120분 PASS가
 아니며 이전 실패 규모를 넘는 누적 진단과 120분 전체 재실행이 남는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-O15 1,020개 누적 상태 | 실제 두 채널 합계 원본1,032개, finalized1,032·deleted1,024, 상태 HTTP200/2ms | pass |
+| B11-O15 비간섭·종료 | live SQLite page 조회0, post-stop pageCount948, 서버 exit0·포트/UDP·root 정리 | pass |
+
+명령은 `bash scripts/internal/verify_recording_current_observer.sh --diagnose-status-1020`,
+exit0·532,186ms·1,246/1,246다. root는 292,402,327B/448MiB, 후반 RSS 추세는
+3.410MiB/min이었다. [압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-status1020-after-sqlite-fix.log.gz)
+SHA-256은 `210d17be84b37ee5a435e6f7ff45207687483363e906a8ffef890ff4b0175c2d`다.
+이 진단은 4차 실패 규모를 넘는 원인 구분 증거이며 120분·자원 PASS로 사용하지 않는다.

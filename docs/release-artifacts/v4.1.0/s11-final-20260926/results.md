@@ -666,3 +666,8 @@ writer 커밋과 충돌하면 generation owner가 fail-closed가 되는 경로�
 root 계약11/11과 실제 앱73/73이 통과했으며 live page 조회 부재와 post-stop page 조회,
 정상 종료·복구·정리도 확인했다. [상세 실패·보완 기록](b11-recording-120-attempt4.md)을
 따른다. 이전 실패 규모를 넘는 누적 진단과 120분 전체 재실행 전에는 장시간 PASS가 아니다.
+
+후속 1,020개 진단은 원본1,032개·1,246/1,246, 상태 HTTP200/2ms, 정상 종료·정리로
+통과했다. 4차 실패의 원본854개를 같은 코드·입력에서 넘겼고 live SQLite page 조회는
+재발하지 않았다. 이는 관측기 간섭 원인을 닫는 집중 증거이며 120분 전체·자원 PASS를
+대체하지 않는다. [압축 원출력](b11-status1020-after-sqlite-fix.log.gz)을 보존했다.
