@@ -317,3 +317,20 @@ local gate·푸시는 아직 완료 evidence가 아니다.
 [8차 상세 기록](b11-recording-120-attempt8.md)에 실패 receipt, 집중 검사, SHA-256과
 정리 전수표를 보존한다. 현재 재개 순서는 녹화 120분 전체 1회 → 통과 시 S11 최종
 로컬 gate이며, 30분·UI 전체를 다시 시작하지 않는다.
+
+## B11-G03 120분 10차 완료와 현재 재개 판정 (2026-09-28)
+
+9차 generation 전환 관측 비용 보완 뒤 10차가 실제 7,200.547초·10,093 PASS·
+0 FAIL·exit 0으로 완료됐다. 채널별 finalized3,590/deleted3,588, 상태 API
+최대1,017ms, drain 최대1,614.976ms, root413,002,799B/448MiB, partial0이다.
+
+| 판정 대상 | 직접 확인 | 현재 판정 | 다음 조건 |
+| --- | --- | --- | --- |
+| 녹화 120분 | 실제 duration7,200.547초·표본1,440·기능 실패0 | pass | 최종 gate에서 증거 결속 확인 |
+| 자원 상한 | peak RSS794,443,776B/1GiB, warmup 뒤1.4436MiB/min, FD -8·thread -3 | pass | 수치 보존; 무기한 누수 부재로 확대 금지 |
+| 저장·지연 | root413,002,799B/448MiB, HTTP1,017ms/4초, drain1,614.976ms/3초 | pass | 기준 유지 |
+| 종료·복구·정리 | PID3개 exit0, 포트/UDP 폐쇄, 원본 불변, 복제본·root 부재 | pass | 최종 cleanup 대조 |
+| S11 최종 로컬 gate | 미실행 | pending | build·auth·media·inventory·문서·버전·증거 정합 실행 |
+
+상세는 [10차 기록](b11-recording-120-attempt10.md)을 따른다. 현재 순서는 S11 최종
+로컬 gate이며, 이미 통과한 30분·UI 전체는 변경 영향 없이 재실행하지 않는다.

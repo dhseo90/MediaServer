@@ -45887,6 +45887,25 @@ token start/end/consumed는 전용 집계 부재로 미집계다. 같은 기준�
 따른다. focused PASS는 120분 PASS가 아니며 동일 기준의 전체 재실행 뒤 자원 판정이 남는다.
 token start/end/consumed는 전용 집계 부재로 미집계다.
 
+## v4.1.0 S11 B11-G03 녹화 120분 10차 완료 (2026-09-28)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 10차 | 실제7,200.547초·10,093/10,093, 채널별 finalized3,590/deleted3,588 | pass |
+| B11-G03 상태·관측 지연 | 상태 API 최대1,017ms/4초, drain 최대1,614.976ms/3초 | pass |
+| B11-G03 저장 상한 | final/post-stop413,002,799B/448MiB, partial0 | pass |
+| B11-G03 자원 수동 판정 | 1,440표본, peak RSS794,443,776B/1GiB, warmup 뒤1.4436MiB/min, 전체 FD-8/thread-3 | pass |
+| B11-G03 종료·복구 | 주 PID·복구 PID2개 exit0, 포트/UDP 폐쇄, 원본 불변·복제본 정리 | pass |
+| B11-G03 실행 root 정리 | wrapper root413,002,799B 삭제·부재 | pass |
+
+`recording_longrun_summary.mjs`의 `resourceTrendPass=false/reviewRequired=true`는 자동
+합격 방지용 고정 출력이다. 8,192/64MiB checkpoint cache 입장 상한을 전체 RSS
+보장으로 쓰지 않고, LP26-O10-E의 프로세스1GiB·root448MiB와 고정 지연·핸들·
+정상 종료/정리를 직접 대조해 120분 자원 gate를 PASS로 판정했다. 양의 RSS 기울기는
+원자료로 보존하며 무기한 누수 부재로 확대하지 않는다. [상세 기록과 cleanup 전수표](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt10.md),
+[압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt10.log.gz)을
+따른다. token start/end/consumed는 전용 집계가 없어 미집계다.
+
 5차 실패의 직접 원인은 제품 HTTP·저장 상한이 아니라 검증 전용 persistent 세션의 큰
 snapshot 재파싱과 누적 prefix 직렬화였다. snapshot 원문 객체를 작은 정확 증명으로 바꾸고
 세션에는 시작/종단 SHA-256으로 결박된 최대128개 delta만 전달했다. 응답 직전 snapshot

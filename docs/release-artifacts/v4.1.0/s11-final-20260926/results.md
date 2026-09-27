@@ -740,3 +740,22 @@ segment7,184/deleted7,178/available6을 확인했다. 계약11/11, generation �
 observer67/67, 실제 앱73/73도 통과했다. timeout·API·파일·시간/ID·보존/복구 기준은
 바꾸지 않았다. [상세 실패·집중 검증·정리](b11-recording-120-attempt8.md)를 따른다.
 집중 결과는 전체 120분 PASS를 대신하지 않으며 자원 최종 판정도 재실행 뒤 확정한다.
+
+### B11-G03 녹화 120분 10차 완료와 자원 판정
+
+10차는 동일 3초/4초/448MiB/1GiB 기준으로 실제 7,200,546.871ms를 채웠고
+10,093 PASS·0 FAIL·exit 0이다. 채널별 finalized3,590/deleted3,588,
+상태 API 최대1,017ms, 관측 drain 최대1,614.976ms, final root413,002,799B,
+partial0을 확인했다. 주 PID와 복구 PID 2개는 모두 정상 종료했고 HTTP/RTSP·UDP,
+복제본과 실행 root 정리도 통과했다.
+
+자원 원자료는 1,440표본·최대 RSS794,443,776B, warmup 뒤1.4436MiB/min,
+전체 FD -8·thread -3이다. summary의 `resourceTrendPass=false/reviewRequired=true`는
+자동 합격 방지용 고정 경계다. 전체 RSS와 다른 8,192/64MiB cache 입장 상한으로
+판정하지 않고, 직접 계약인 1GiB·448MiB·지연·핸들·종료/정리 기준을 대조해
+120분 자원 gate를 PASS로 판정했다. 무기한 누수 부재나 외부 실기기 증거로 확대하지 않는다.
+
+[10차 상세 기록](b11-recording-120-attempt10.md)과
+[압축 원출력](b11-recording-120-attempt10.log.gz)을 따른다. 9차의 표본1,299
+generation 전환 timeout은 표본1,440까지 재발하지 않았다. 다음 순서는 S11 최종 로컬
+gate이며 30분·UI 전체를 다시 시작하지 않는다.
