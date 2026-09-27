@@ -578,3 +578,27 @@ token 사용량은 전용 집계가 없어 미집계다. 이 결과는 실제 �
 정리 확인의 첫 shell 명령은 반복 변수 `path`가 zsh 특수 배열을 덮어써 뒤따른
 `lsof/bash/git` 탐색이 실패했다. 제품·파일에는 영향이 없고 shell 종료 후 안전한
 `cleanup_target` 변수로 동일 부재·포트·문서·diff 검사를 재실행해 통과했다.
+
+## B11-G02 영향 녹화 UI 재검증 (2026-09-27)
+
+고정된 B11 backend에서 실제 native Chrome으로 I27~I34의 31 action을 실행했다.
+exit0, 31 pass·0 fail·0 notRun이며 공통424는 UI 제품 변경이 없어 재실행하지 않았다.
+메인이 320/390/760/1180 light/dark, 재생·탐색, viewer redaction 화면을 직접 대조했다.
+따라서 공통424와 이번 녹화8 ID를 합친 현행 UI 대상432개가 적격이다.
+
+재생은 readyState4·10초·1280×720 영상에서 0→0.665초·25프레임, 일시정지는
+359ms 동안 0.785초·28프레임 유지, 탐색은 0.785→2.785초·28→265프레임과
+동일 파일 HTTP206 Range로 확인했다. 일부 캡처의 native loading 장식은 재생 근거로
+사용하지 않았다. console 승인 반례10·미승인0, artifact95/95 SHA·크기·경로 일치,
+텍스트54개 민감 패턴0이다. runner의 `uiFulltestPass=false`는 자동 자기승격 금지이며
+메인 hybrid 판정과 구분한다.
+
+[전수31행·시각·정리](b11-final-ui.md), [전체 증거](b11-final-ui-evidence.tar.xz),
+[원출력](b11-final-ui.log.gz)을 보존한다. archive 6,894,344B, SHA-256
+`05c0693e514fc59b25c189fc53b4fe4676a767131910231a0908927f5b877e8d`,
+원출력 gzip SHA-256은
+`690abbe00ff1af3c8369074c24d74a7cf2aeb7fd8fe00973ccce9356a20d16ad`다.
+제품 격리 root 17,386,436B/444항목은 runner가 제거했고 PID93479 exit0,
+RTSP58100·HTTP58101·UDP 닫힘을 확인했다. acceptance/log 소유 root는 archive와
+문서 대조 뒤 제거하고 부재를 확인했다. token 사용량은 전용 집계가 없어 미집계다.
+이 결과는 녹화 전용120분·자원 판정을 대신하지 않는다.

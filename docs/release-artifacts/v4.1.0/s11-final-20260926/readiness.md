@@ -39,8 +39,8 @@ B11-F01~03 최종 단기 gate를 통과했다. 30분·영향받는 녹화 UI·�
 | --- | --- | --- | --- | --- |
 | S10/B11 저장·관측 구조 | 구현·focused 회귀 완료 | O03 누적과 H01/I01 실제 통합까지 통과 | 없음·로드맵 상단 보완 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [결과](results.md) |
 | S11 최종 단기 | 과거 B09 통과 뒤 B11 변경 | B11 최종 build·inventory·semantic·docs·metadata 통과 | 현행 결과로 재고정 | [중앙 기록](../../../release-test-records.md) |
-| S11 30분 | B10 이전 코드 PASS | B11 제품 저장/복구 변경 뒤 미실행 | 기존 결과 부분 무효, 재실행 필요 | `c60d5129..HEAD` 변경 대조 |
-| S11 UI | B10 공통424+녹화8 ID PASS | UI 제품 파일 변경0. 공통424 유지, 녹화8 ID는 backend/timeline 영향으로 재실행 필요 | 부분 무효 | [B10 UI](b10-ui.md)·변경 파일 대조 |
+| S11 30분 | B10 이전 코드 PASS | B11 고정 코드에서 2,429초·20회·109 PASS 재실행 | 해소 | [B11-G01](results.md#b11-g01-최종-30분-안정화-재검증-2026-09-27) |
+| S11 UI | B10 공통424+녹화8 ID PASS | 공통424 유지, 영향 녹화8 ID·31 action을 현행 backend에서31 PASS 재실행·메인 시각 적격 | 해소 | [B11-G02](b11-final-ui.md) |
 | S11 120분 | B10 18분48초 FAIL | B11 단기 원인 보완·통합 PASS, 최종 녹화120분은 미실행 | 미완료 유지 | [B10 실패](b10-longrun.md) |
 
 ### 4. 구현·실행 연결
@@ -80,8 +80,8 @@ B11-F01~03 최종 단기 gate를 통과했다. 30분·영향받는 녹화 UI·�
 
 | 순서 | 우선순위 | 잔여 이슈 | 해야 할 일·완료 기준 | 성격 | 근거 유형 | release action 전·후 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | P0 | 최종30분 안정화 | 고정된 B11 코드로 30분을 실행해 memory/runtime/cleanup drift 없이 전수 PASS. 실패 시 해당 단계만 원인 확정 | 장시간 검증·필요 시 한정 수정 | AGENTS·직접 확인 | 전 |
-| 2 | P0 | 영향받는 녹화 UI 재검증 | I27~I34 31 action의 timeline 상태·우선 재생·재생/정지/탐색·Range·role/scope·viewport/theme를 현행 backend에서 확인. 공통424는 재실행하지 않음 | 실제 UI | 영향 판정+직접 확인 | 전 |
+| 1 | 완료 | 최종30분 안정화 | B11-G01 2,429초·20회·109 PASS·0 FAIL·정리 PASS | 장시간 검증 | 직접 확인 | 전 |
+| 2 | 완료 | 영향받는 녹화 UI 재검증 | B11-G02 I27~I34 31 PASS·시각/권한/재생·정리 적격, 공통424 유지 | 실제 UI | 직접 확인 | 전 |
 | 3 | P0 | 녹화120분·자원 판정 | 실제 녹화·보존·삭제·복구·용량·HTTP/관측 지연·RSS/storage 추세·재기동·cleanup을 120분 동안 확인 | 장시간/자원 gate | 사용자 지시+7.6.2 | 전 |
 | 4 | P0 | S11 최종 증거·release local gate | 1~3 결과, 문서/버전/cleanup, 기존 공통120 승계 범위를 확정하고 clean build/필수 local gate를 마감 | 증거·로컬 마감 | AGENTS 직접 규칙 | 전 |
 | 5 | 별도 승인 | PR·CI·main·서명 tag·Release | 각 단계 별도 승인 후 required check→merge→signed annotated tag 검증→GitHub Release/published 확인 | 외부 변경 | AGENTS 4 | 후 |
@@ -90,8 +90,8 @@ B11-F01~03 최종 단기 gate를 통과했다. 30분·영향받는 녹화 UI·�
 
 | 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
 | --- | --- | --- | --- | --- |
-| 최종30분 | 미실행 | B11 제품 변경 뒤 이번 범위에서 제외 | 불가 | 고정 commit에서 승인 실행 |
-| 녹화 UI 현행 backend | 부분 무효 | UI 코드는 불변이나 timeline/deleted/playable backend 변경 | 공통424에는 가능, 녹화8 ID에는 불가 | 영향 UI 실행 |
+| 최종30분 | 실행 완료·PASS | B11-G01 현행 코드에서 재실행 | 가능 | 109행·summary·원출력 보존 |
+| 녹화 UI 현행 backend | 실행 완료·PASS | B11-G02 현행 backend에서31 action·시각·정리 적격 | 가능 | 공통424와 결합해432 대상 적격 |
 | 녹화120분·자원 | 미실행·과거 FAIL 보존 | B11 단기는 통과했으나 장시간 추세 미확인 | 불가 | 30분/UI 선수 통과 뒤 승인 실행 |
 | 공통120분 승계 | 조건부 | 기존 실행은 B11 이전 녹화 저장 경계 | 전체 release PASS에 단독 사용 불가 | 녹화120분 결과 뒤 영향 판정 |
 | PR/CI/main/tag/Release | 미실행·미승인 | 개발 branch push와 별도 | 불가 | 로컬 P0 전부 통과 후 단계별 승인 |

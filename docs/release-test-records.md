@@ -2,6 +2,31 @@
 
 검증 호환 식별자: `# Release Test Records`. 문서 제목과 본문은 한글을 기준으로 유지한다.
 
+## B11 이후 영향 녹화 UI 재검증 (2026-09-27)
+
+독자: v4.1.0 검증·릴리즈 담당자. 수명: v4.1.0 릴리즈까지. B11 저장·복구·timeline
+변경의 영향을 받는 I27~I34만 현행 backend에서 재실행했다. 제품 UI가 바뀌지 않은 공통
+424개는 유효 증거를 유지했으며 다시 실행하지 않았다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B11-G02 | 녹화 UI 8 ID·31 action | 실제 native Chrome에서 timeline·이벤트 우선·원본 전환·재생/정지/탐색·상태·권한·redaction·8 viewport/theme를 조작하고 독립 응답·DOM·프레임·시각 증거 대조 | v4.1.0 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G02 31 action | 31 pass·0 fail·0 notRun, exact 8 feature ID | pass |
+| B11-G02 재생·탐색 | 10초·1280×720, 재생 25프레임 진행, 일시정지 유지, 탐색 후 265프레임·동일 파일 HTTP206 Range | pass |
+| B11-G02 시각 | 320/390/760/1180 light/dark의 필터·날짜·조회·영상/control 전체 표시를 메인이 직접 대조 | pass |
+| B11-G02 권한·증거 | admin/operator/viewer/anonymous, 미승인 console0, artifact95/95 SHA·경로·크기 및 민감 패턴0 | pass |
+| B11-G02 정리 | browser 종료, PID93479 exit0, RTSP58100·HTTP58101·UDP 닫힘, 제품 root 삭제 | pass |
+
+[31행 전수·시각 판정](release-artifacts/v4.1.0/s11-final-20260926/b11-final-ui.md),
+[95개 전체 증거](release-artifacts/v4.1.0/s11-final-20260926/b11-final-ui-evidence.tar.xz),
+[실행 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-final-ui.log.gz)을 보존한다.
+runner의 `uiFulltestPass=false`는 자동 자기승격 금지 표식이며 메인 hybrid 판정과 분리한다.
+공통424와 결합한 현재 UI 대상432개가 적격이다. 이 결과는 녹화120분을 대체하지 않는다.
+token start/end/consumed는 전용 집계가 없어 미집계다.
+
 ## B11 이후 최종 30분 안정화 (2026-09-27)
 
 독자: v4.1.0 검증·릴리즈 담당자. 수명: v4.1.0 릴리즈까지. 고정된 B11 제품 코드에서
