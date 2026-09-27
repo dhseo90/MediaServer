@@ -2,51 +2,51 @@
 
 | 파일 | 유형 | 상태 | pass | fail | skip | 핵심 detail |
 | --- | --- | --- | ---: | ---: | ---: | --- |
-| /private/tmp/media-server-s11-final30-qB75Wn/predev-30-summary.json | predev | pass | 109 | 0 | 1 | durationSec=2428 steps=110 failed= skipped=external-turn-hard-gate |
+| /tmp/media_server_predev-1790474915-5117_summary.json | predev | pass | 109 | 0 | 1 | durationSec=2438 steps=110 failed= skipped=external-turn-hard-gate |
 
 ## 상세
 
-### predev-30-summary.json
+### media_server_predev-1790474915-5117_summary.json
 
-- durationSec: `2428`
+- durationSec: `2438`
 - soakMinutes: `30`
-- step `build`: `pass` duration=`1.0` log=`/tmp/media_server_predev-1790466942-63722/build.log`
-- step `server-start-queue-256`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/server.log`
-- step `integrated-smoke`: `pass` duration=`593.0` log=`/tmp/media_server_predev-1790466942-63722/integrated_smoke.log`
+- step `build`: `pass` duration=`1.0` log=`/tmp/media_server_predev-1790474915-5117/build.log`
+- step `server-start-queue-256`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/server.log`
+- step `integrated-smoke`: `pass` duration=`602.0` log=`/tmp/media_server_predev-1790474915-5117/integrated_smoke.log`
 - step `external-turn-hard-gate`: `skip` duration=`0.0` log=``
-- step `soak-1-va-events`: `pass` duration=`35.0` log=`/tmp/media_server_predev-1790466942-63722/soak_1_va_events.log`
-- step `soak-1-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_1_event_post_schema.log`
-- step `soak-1-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790466942-63722/soak_1_event_post_recovery.log`
-- step `soak-1-redaction`: `pass` duration=`39.0` log=`/tmp/media_server_predev-1790466942-63722/soak_1_redaction.log`
-- step `soak-1-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_1_runtime_idle.json`
-- step `soak-2-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790466942-63722/soak_2_va_events.log`
-- step `soak-2-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_2_event_post_schema.log`
-- step `soak-2-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_2_event_post_recovery.log`
-- step `soak-2-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790466942-63722/soak_2_redaction.log`
-- step `soak-2-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_2_runtime_idle.json`
-- step `soak-3-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790466942-63722/soak_3_va_events.log`
-- step `soak-3-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_3_event_post_schema.log`
-- step `soak-3-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790466942-63722/soak_3_event_post_recovery.log`
-- step `soak-3-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790466942-63722/soak_3_redaction.log`
-- step `soak-3-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_3_runtime_idle.json`
-- step `soak-4-va-events`: `pass` duration=`35.0` log=`/tmp/media_server_predev-1790466942-63722/soak_4_va_events.log`
-- step `soak-4-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_4_event_post_schema.log`
-- step `soak-4-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790466942-63722/soak_4_event_post_recovery.log`
-- step `soak-4-redaction`: `pass` duration=`39.0` log=`/tmp/media_server_predev-1790466942-63722/soak_4_redaction.log`
-- step `soak-4-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_4_runtime_idle.json`
-- step `soak-5-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790466942-63722/soak_5_va_events.log`
-- step `soak-5-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_5_event_post_schema.log`
-- step `soak-5-event-post-recovery`: `pass` duration=`5.0` log=`/tmp/media_server_predev-1790466942-63722/soak_5_event_post_recovery.log`
-- step `soak-5-redaction`: `pass` duration=`39.0` log=`/tmp/media_server_predev-1790466942-63722/soak_5_redaction.log`
-- step `soak-5-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_5_runtime_idle.json`
-- step `soak-6-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790466942-63722/soak_6_va_events.log`
-- step `soak-6-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_6_event_post_schema.log`
-- step `soak-6-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790466942-63722/soak_6_event_post_recovery.log`
-- step `soak-6-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790466942-63722/soak_6_redaction.log`
-- step `soak-6-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_6_runtime_idle.json`
-- step `soak-7-va-events`: `pass` duration=`35.0` log=`/tmp/media_server_predev-1790466942-63722/soak_7_va_events.log`
-- step `soak-7-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_7_event_post_schema.log`
-- step `soak-7-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790466942-63722/soak_7_event_post_recovery.log`
-- step `soak-7-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790466942-63722/soak_7_redaction.log`
-- step `soak-7-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790466942-63722/soak_7_runtime_idle.json`
-- step `soak-8-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790466942-63722/soak_8_va_events.log`
+- step `soak-1-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790474915-5117/soak_1_va_events.log`
+- step `soak-1-event-post-schema`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790474915-5117/soak_1_event_post_schema.log`
+- step `soak-1-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790474915-5117/soak_1_event_post_recovery.log`
+- step `soak-1-redaction`: `pass` duration=`39.0` log=`/tmp/media_server_predev-1790474915-5117/soak_1_redaction.log`
+- step `soak-1-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_1_runtime_idle.json`
+- step `soak-2-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790474915-5117/soak_2_va_events.log`
+- step `soak-2-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_2_event_post_schema.log`
+- step `soak-2-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_2_event_post_recovery.log`
+- step `soak-2-redaction`: `pass` duration=`41.0` log=`/tmp/media_server_predev-1790474915-5117/soak_2_redaction.log`
+- step `soak-2-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_2_runtime_idle.json`
+- step `soak-3-va-events`: `pass` duration=`35.0` log=`/tmp/media_server_predev-1790474915-5117/soak_3_va_events.log`
+- step `soak-3-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_3_event_post_schema.log`
+- step `soak-3-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_3_event_post_recovery.log`
+- step `soak-3-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790474915-5117/soak_3_redaction.log`
+- step `soak-3-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_3_runtime_idle.json`
+- step `soak-4-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790474915-5117/soak_4_va_events.log`
+- step `soak-4-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_4_event_post_schema.log`
+- step `soak-4-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_4_event_post_recovery.log`
+- step `soak-4-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790474915-5117/soak_4_redaction.log`
+- step `soak-4-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_4_runtime_idle.json`
+- step `soak-5-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790474915-5117/soak_5_va_events.log`
+- step `soak-5-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_5_event_post_schema.log`
+- step `soak-5-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_5_event_post_recovery.log`
+- step `soak-5-redaction`: `pass` duration=`41.0` log=`/tmp/media_server_predev-1790474915-5117/soak_5_redaction.log`
+- step `soak-5-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_5_runtime_idle.json`
+- step `soak-6-va-events`: `pass` duration=`35.0` log=`/tmp/media_server_predev-1790474915-5117/soak_6_va_events.log`
+- step `soak-6-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_6_event_post_schema.log`
+- step `soak-6-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1790474915-5117/soak_6_event_post_recovery.log`
+- step `soak-6-redaction`: `pass` duration=`40.0` log=`/tmp/media_server_predev-1790474915-5117/soak_6_redaction.log`
+- step `soak-6-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_6_runtime_idle.json`
+- step `soak-7-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790474915-5117/soak_7_va_events.log`
+- step `soak-7-event-post-schema`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790474915-5117/soak_7_event_post_schema.log`
+- step `soak-7-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1790474915-5117/soak_7_event_post_recovery.log`
+- step `soak-7-redaction`: `pass` duration=`39.0` log=`/tmp/media_server_predev-1790474915-5117/soak_7_redaction.log`
+- step `soak-7-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1790474915-5117/soak_7_runtime_idle.json`
+- step `soak-8-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1790474915-5117/soak_8_va_events.log`

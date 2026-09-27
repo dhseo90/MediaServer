@@ -93,7 +93,7 @@ token start/end/consumed는 전용 집계가 없어 미집계다.
 | B11-G01 통합 smoke | build·서버 기동·codec·VA overlay·redaction 포함 | pass |
 | B11-G01 20회 반복 | 각 회차 VA events·Event POST schema/recovery·redaction·runtime idle | pass |
 | B11-G01 queue·정리 | event queue 재기동, main/queue runtime idle, 두 서버 종료, ports-clean | pass |
-| B11-G01 전수 판정 | exit0·2,429초·109 PASS·0 FAIL·0 notRun | pass |
+| B11-G01 전수 판정 | G03 writer 반영 최종 재실행 exit0·2,438초·109 PASS·0 FAIL·0 notRun | pass |
 
 외부 TURN 1건은 사용자 지정 외부 서비스 제외와 옵션 미지정으로 실행하지 않았으며 PASS로
 계산하지 않았다. [109개 개별 결과](release-artifacts/v4.1.0/s11-final-20260926/predev-30-items.md),

@@ -124,7 +124,7 @@ token start/end/consumed 및 명령 전체 elapsed는 전용 집계 미보존으
 | 첫 실행: 서버 시작 | 같은 30분 명령의 `server-start-queue-256` | fail | 로컬 RTSP bind `Operation not permitted`; soak 미진입·제품 실패 미판정. 3 pass/1 fail, 나머지 건너뜀. 원문 서버 로그에는 source URL이 있어 저장소에 보존하지 않음 |
 | 권한 조정 후 통합 smoke | 로컬 소켓 권한의 같은 명령, `integrated-smoke` | fail | 71개 파일의 상단 용도 주석 누락·영어 전용 주석 1개. 4 pass/1 fail, soak 미진입. [실패 요약](predev-30-comment-fail-summary.json), [정적 실패 원출력](predev-30-comment-fail.log.gz) |
 | 한정 수정·집중 검증 | 71개 파일의 한글 용도 주석과 영어 주석 1개 번역, `verify-code-comments` | pass | 1,253파일·누락0·영어전용0; 변경은 주석뿐, 제품 로직·합격 기준 불변 |
-| 최종 30분 | `./server.sh verify-predev --soak-minutes 30 --fail-fast --heartbeat-interval 60` | pass | exit0, 2,437초·실제 반복20회, 109 pass/0 fail/0 notRun. 외부 TURN 1건 skip은 제외 범위. [전수 109행](predev-30-items.md)·[구조화 요약](predev-30-summary.json)·[보고](predev-30-report.md)·[원출력](predev-30.log.gz) |
+| 최종 30분 | `./server.sh verify-predev --soak-minutes 30 --fail-fast --heartbeat-interval 60` | pass | G03 writer 반영 최종 재실행 exit0, 2,438초·실제 반복20회, 109 pass/0 fail/0 notRun. 외부 TURN 1건 skip은 제외 범위. [전수 109행](predev-30-items.md)·[구조화 요약](predev-30-summary.json)·[보고](predev-30-report.md)·[원출력](predev-30.log.gz) |
 | 종료·정리 | 정상 종료 원장의 서버 2개 PID와 TCP 8081/8555 | pass | 양 PID aliveAfter=false, LISTEN 없음, ports-clean. [민감 서버 로그 제외 개별 로그](predev-30-steps.tar.gz) 278파일 |
 
 최종 요약 SHA-256은 `7fa011bd59a8933ff2f0db7251b85932b0807dce48ca57d9a340918ce2662371`,
@@ -547,13 +547,14 @@ close-out dry-run을 통과했다. 제품 UI 파일은 B10 뒤 바뀌지 않았�
 ## B11-G01 최종 30분 안정화 재검증 (2026-09-27)
 
 고정된 B11 코드에서 `./server.sh verify-predev --soak-minutes 30 --fail-fast
---heartbeat-interval 60`을 실행했다. 전체 exit0, monotonic duration 2,429초,
+--heartbeat-interval 60`을 G03 writer 반영 최종 코드에서 다시 실행했다. 전체 exit0,
+monotonic duration 2,438초,
 반복20회, 109 PASS·0 FAIL·0 notRun이다. 외부 TURN 1건은 사용자 지정 외부 서비스
 제외와 옵션 미지정으로 실행하지 않았으며 PASS에 포함하지 않았다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B11-G01 통합 smoke | build·서버 기동·codec matrix·VA overlay·redaction | pass | 593초, 기존 기준 유지 |
+| B11-G01 통합 smoke | build·서버 기동·codec matrix·VA overlay·redaction | pass | 602초, 기존 기준 유지 |
 | B11-G01 반복 안정화 | 20회 VA events·Event POST schema/recovery·redaction·runtime idle | pass | 매 관측에서 resource/registry active streams 1/1 |
 | B11-G01 queue 재기동 | queue2 서버·Event POST queue·runtime idle | pass | 두 번째 서버 포함 정상 종료 |
 | B11-G01 정리 | 두 서버 aliveAfter=false, 8555/8081 해제·ports-clean | pass | 강제 종료 없음 |
@@ -562,18 +563,18 @@ close-out dry-run을 통과했다. 제품 UI 파일은 B10 뒤 바뀌지 않았�
 [보고서](predev-30-report.md), [단계 압축본](predev-30-steps.tar.gz),
 [원출력](predev-30.log.gz)을 현행 실행 결과로 갱신했다. 단계 압축본에서는 원본 source URL이
 포함될 수 있는 `server.log`를 제외했다. 원출력·summary·report SHA-256은 각각
-`aad2c12a6343b171ab164286c7a406e5dfdb1398fb8e248006d27fa1ab2fd322`,
-`f404085baa92ccd9fbb29a9138e1ca73e1717f382bd8186feb96cb2a035417c3`,
-`7bfc4b3d95871e9d2865766e7091d4e9d6e0eb6ddc0efb7a8433f521a11f039f`다.
+`fb5701608677ce450c2b87fd45b3b5371aec92056b4b525b3a51b8d18cff275c`,
+`6d5183a9f84d45fcb3a14bc822f11761c29d4e40cf530bde0780d5f3558d1e4e`,
+`a2c1b7fdb9749e42e519c3ae6b7b5d99d73088b0c463935bfa4923f555f067a1`다.
 token 사용량은 전용 집계가 없어 미집계다. 이 결과는 실제 녹화 UI와 녹화120분을
 대체하지 않으며 다음 순서는 영향받는 I27~I34 재검증이다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| 저장소 `.media_server` | 이번 predev 서버가 만든 격리 녹화 상태 | 64KiB | 증적 대조 후 정확한 root 삭제 | 부재 | UID·생성 시각·파일 목록·포트 종료 확인 |
-| `/tmp/media_server_predev-1790466942-63722` | 279개 단계 로그 | 1,064KiB | `server.log` 제외 압축·해시 대조 후 삭제 | 부재·압축본 보존 | archive 279개·민감 문자열 검사 |
-| `/private/tmp/media-server-s11-final30-qB75Wn` | summary·report·원출력 | 160KiB | 저장소 이관·SHA 대조 후 삭제 | 부재·저장소 보존 | 위 SHA-256 |
-| `/tmp/media_server_predev-1790466942-63722_report.html` | 임시 HTML 보고서 | 8KiB | Markdown/JSON 보존 후 삭제 | 부재 | 소유 실행 경로 |
+| 저장소 `.media_server` | 이번 predev 서버가 만든 격리 녹화 상태 | 64KiB | 증적 대조 후 정확한 root 삭제 | 부재 | UID501·11:08 생성·파일 목록·포트 종료 확인 |
+| `/tmp/media_server_predev-1790474915-5117` | 279개 단계 로그 | 1,064KiB | `server.log` 제외 압축·해시 대조 후 삭제 | 부재·압축본 보존 | archive 278파일·민감 문자열 검사 |
+| `/private/tmp/media-server-b11-final30-rerun-NylUa5` | 실행 원출력 | 24KiB | gzip 이관·SHA 대조 후 삭제 | 부재·저장소 보존 | 위 SHA-256 |
+| `/tmp/media_server_predev-1790474915-5117_{summary.json,report.md,report.html}` | 구조화 요약·보고 | 약137KiB | JSON/Markdown 이관 후 삭제 | 부재·저장소 보존 | 위 SHA-256 |
 
 정리 확인의 첫 shell 명령은 반복 변수 `path`가 zsh 특수 배열을 덮어써 뒤따른
 `lsof/bash/git` 탐색이 실패했다. 제품·파일에는 영향이 없고 shell 종료 후 안전한
