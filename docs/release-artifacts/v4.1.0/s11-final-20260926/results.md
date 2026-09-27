@@ -543,3 +543,38 @@ close-out dry-run을 통과했다. 제품 UI 파일은 B10 뒤 바뀌지 않았�
 8080/8081/8554/8555 LISTEN은 없었다. token start/end/consumed는 전용 집계가 없어
 미집계다. 이 PASS는 30분·실제 UI·120분을 대체하지 않으며 현행 잔여 판정은
 [릴리즈 잔여 전수표](readiness.md)를 따른다.
+
+## B11-G01 최종 30분 안정화 재검증 (2026-09-27)
+
+고정된 B11 코드에서 `./server.sh verify-predev --soak-minutes 30 --fail-fast
+--heartbeat-interval 60`을 실행했다. 전체 exit0, monotonic duration 2,429초,
+반복20회, 109 PASS·0 FAIL·0 notRun이다. 외부 TURN 1건은 사용자 지정 외부 서비스
+제외와 옵션 미지정으로 실행하지 않았으며 PASS에 포함하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B11-G01 통합 smoke | build·서버 기동·codec matrix·VA overlay·redaction | pass | 593초, 기존 기준 유지 |
+| B11-G01 반복 안정화 | 20회 VA events·Event POST schema/recovery·redaction·runtime idle | pass | 매 관측에서 resource/registry active streams 1/1 |
+| B11-G01 queue 재기동 | queue2 서버·Event POST queue·runtime idle | pass | 두 번째 서버 포함 정상 종료 |
+| B11-G01 정리 | 두 서버 aliveAfter=false, 8555/8081 해제·ports-clean | pass | 강제 종료 없음 |
+
+[전수 109행](predev-30-items.md), [구조화 요약](predev-30-summary.json),
+[보고서](predev-30-report.md), [단계 압축본](predev-30-steps.tar.gz),
+[원출력](predev-30.log.gz)을 현행 실행 결과로 갱신했다. 단계 압축본에서는 원본 source URL이
+포함될 수 있는 `server.log`를 제외했다. 원출력·summary·report SHA-256은 각각
+`aad2c12a6343b171ab164286c7a406e5dfdb1398fb8e248006d27fa1ab2fd322`,
+`f404085baa92ccd9fbb29a9138e1ca73e1717f382bd8186feb96cb2a035417c3`,
+`7bfc4b3d95871e9d2865766e7091d4e9d6e0eb6ddc0efb7a8433f521a11f039f`다.
+token 사용량은 전용 집계가 없어 미집계다. 이 결과는 실제 녹화 UI와 녹화120분을
+대체하지 않으며 다음 순서는 영향받는 I27~I34 재검증이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 저장소 `.media_server` | 이번 predev 서버가 만든 격리 녹화 상태 | 64KiB | 증적 대조 후 정확한 root 삭제 | 부재 | UID·생성 시각·파일 목록·포트 종료 확인 |
+| `/tmp/media_server_predev-1790466942-63722` | 279개 단계 로그 | 1,064KiB | `server.log` 제외 압축·해시 대조 후 삭제 | 부재·압축본 보존 | archive 279개·민감 문자열 검사 |
+| `/private/tmp/media-server-s11-final30-qB75Wn` | summary·report·원출력 | 160KiB | 저장소 이관·SHA 대조 후 삭제 | 부재·저장소 보존 | 위 SHA-256 |
+| `/tmp/media_server_predev-1790466942-63722_report.html` | 임시 HTML 보고서 | 8KiB | Markdown/JSON 보존 후 삭제 | 부재 | 소유 실행 경로 |
+
+정리 확인의 첫 shell 명령은 반복 변수 `path`가 zsh 특수 배열을 덮어써 뒤따른
+`lsof/bash/git` 탐색이 실패했다. 제품·파일에는 영향이 없고 shell 종료 후 안전한
+`cleanup_target` 변수로 동일 부재·포트·문서·diff 검사를 재실행해 통과했다.

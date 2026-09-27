@@ -2,6 +2,30 @@
 
 검증 호환 식별자: `# Release Test Records`. 문서 제목과 본문은 한글을 기준으로 유지한다.
 
+## B11 이후 최종 30분 안정화 (2026-09-27)
+
+독자: v4.1.0 검증·릴리즈 담당자. 수명: v4.1.0 릴리즈까지. 고정된 B11 제품 코드에서
+30분 안정화와 runtime/port cleanup을 재확인한다. 공통 UI·녹화 UI·120분을 대신하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B11-G01 | 최종 30분 안정화 | `verify-predev --soak-minutes 30 --fail-fast --heartbeat-interval 60`, 20회 VA/Event POST/redaction/runtime idle, queue 재기동·port cleanup | v4.1.0 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G01 통합 smoke | build·서버 기동·codec·VA overlay·redaction 포함 | pass |
+| B11-G01 20회 반복 | 각 회차 VA events·Event POST schema/recovery·redaction·runtime idle | pass |
+| B11-G01 queue·정리 | event queue 재기동, main/queue runtime idle, 두 서버 종료, ports-clean | pass |
+| B11-G01 전수 판정 | exit0·2,429초·109 PASS·0 FAIL·0 notRun | pass |
+
+외부 TURN 1건은 사용자 지정 외부 서비스 제외와 옵션 미지정으로 실행하지 않았으며 PASS로
+계산하지 않았다. [109개 개별 결과](release-artifacts/v4.1.0/s11-final-20260926/predev-30-items.md),
+[구조화 요약](release-artifacts/v4.1.0/s11-final-20260926/predev-30-summary.json),
+[보고서](release-artifacts/v4.1.0/s11-final-20260926/predev-30-report.md),
+[민감 로그 제외 단계 압축본](release-artifacts/v4.1.0/s11-final-20260926/predev-30-steps.tar.gz),
+[안전한 실행 원출력](release-artifacts/v4.1.0/s11-final-20260926/predev-30.log.gz)을 보존한다.
+token start/end/consumed는 전용 집계가 없어 미집계다.
+
 ## B11 코드 고정·최종 단기 검증 (2026-09-27)
 
 독자: v4.1.0 녹화·릴리즈 판정 담당자. 수명: v4.1.0 릴리즈까지. B11 저장·복구·관측
