@@ -45866,6 +45866,27 @@ timeout·공개 API·파일·시간/ID·보존/복구·4초/448MiB 기준은 바
 token start/end/consumed는 전용 집계 부재로 미집계다. 같은 기준의 전체 재실행과 자원
 최종 판정이 남으며 집중 PASS를 120분 PASS로 승격하지 않는다.
 
+## v4.1.0 S11 B11-G03 녹화 120분 9차 세대 전환 관측 비용 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 9차 | 약108분, 9,061 pass 뒤 세대 전환 표본의 관측기 3초 timeout | fail |
+| B11-G03 제품·저장 경계 | HTTP200·약2ms, finalized6,464·deleted6,460, post-stop381,470,099B, 서버 exit0·포트/UDP 폐쇄 | pass |
+| B11-G03 자원 원자료 | 1,299표본·최대RSS737,820,672B·warmup 뒤2.204MiB/min·FD+2·thread0 | pass |
+| B11-G03 직접 원인 | generation76→77 전환 때 77개 immutable shard를 전수 재검증해 drain3,002.468ms | fail |
+| B11-G03 증분 계약 | exact previous/file binding·full 결과 동등성·손상/순서/ID/예약 거부·전체 검증 fallback | pass |
+| B11-G03 집중 회귀 | identity on/off·generation·metadata·checkpoint/consumer·observer67/67·build·diffcheck | pass |
+| B11-G03 실제 전환 | 77→78에서 chainExtensions1, snapshot 약1,014ms·chain 약84ms | pass |
+| B11-G03 정리 | 실패 root·복제본·임시 원출력 제거, 압축 로그·비민감 tree receipt 보존 | pass |
+
+9차 실패는 제품 API·writer가 아니라 검증 관측기의 immutable chain 중복 처리였다.
+증분 조건을 입증할 수 없거나 proof 예산을 넘으면 기존 전체 검증으로 복귀하며 timeout과
+공개/영속 계약은 바꾸지 않았다. [상세 기록](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt9.md)과
+[압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt9.log.gz),
+[실패 root receipt](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt9-root-receipt.json)를
+따른다. focused PASS는 120분 PASS가 아니며 동일 기준의 전체 재실행 뒤 자원 판정이 남는다.
+token start/end/consumed는 전용 집계 부재로 미집계다.
+
 5차 실패의 직접 원인은 제품 HTTP·저장 상한이 아니라 검증 전용 persistent 세션의 큰
 snapshot 재파싱과 누적 prefix 직렬화였다. snapshot 원문 객체를 작은 정확 증명으로 바꾸고
 세션에는 시작/종단 SHA-256으로 결박된 최대128개 delta만 전달했다. 응답 직전 snapshot
