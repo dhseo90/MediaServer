@@ -135,3 +135,77 @@ B12와 S11의 승인된 로컬 검증 범위는 완료다. 최종30분·UI432·�
 `push: not performed`는 dry-run 자체가 push하지 않았다는 뜻이며, 승인된 `v4.1.0` 개발
 branch push는 최종 clean 확인 뒤 별도로 수행했다. token start/end/consumed는 하위
 명령별 전용 집계가 없어 미집계다.
+
+## B13 재감사 후 마감
+
+2026-09-28 사용자 승인으로 인증 진단, 최종 코드 증거 연결, 문서 정합, 공개 준비 검사를
+순서대로 보완한다. 위 B12의 실행 PASS는 보존하되 `로컬 release blocker 해소`를 공개 준비
+검사까지 완료했다는 뜻으로 사용하지 않는다. 최초 인증 두 실패의 원인은 여전히 미확정이다.
+제품 인증 정책·API·timeout·비밀번호 수명은 변경하지 않는다. 공통 `expect_eq`의 한정된
+실패 진단만 보완하고 승인된 `verify_password_change_lifecycle` 본문은 그대로 유지한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 인증 집중·영향 안정화 | 진행 대상 | 진단 실패의 상태 누락 | AUTH-P10/P11·공통 expect_eq | 사용자 1번 개발 승인 |
+| 증거·문서·공개 로컬 검사 | 진행 대상 | 최종 diff 연결과 현재 문서 불일치, 공개 gate 미실행 | B13-E02/D03/P04 | 사용자 2~4번 승인 |
+| 30분·실제 UI·120분 재실행 | 조건부 진행 | 증거 대조로 기존 증거가 성립하지 않는 경계가 확인될 때만 필요성 재판정 | AGENTS 7.6.2 | 이번 자동 실행 제외 |
+| 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | 현행 release 정책 | 제외 |
+| PR·CI·병합·tag·Release | 미진행 | 이번은 개발 브랜치 푸시까지만 승인 | AGENTS 4·5 | 별도 승인 전 미실행 |
+
+현재는 사전등록 상태다. 단계별 실제 exit·원출력·전수 결과·cleanup을 아래에 기록한다.
+token start/end/consumed는 실행별 집계 도구가 없어 미집계이며 elapsed는 실제 실행에서 기록한다.
+
+### B13 1번 인증 진단 완료
+
+공통 `expect_eq`의 실패 분기에 고정 검사명·expected=302인 경우만 허용했다. 상태는
+3자리 숫자 또는 `invalid`로 기록하며 임의 label·본문·비밀번호는 출력하지 않는다.
+성공 출력·비교·실패 exit와 제품 코드는 불변이다. 메인이 diff와 실제 원출력을 직접 검토했다.
+`verify_password_change_lifecycle`과 `fail`은 HEAD와 바이트 동일하다. 함수 시작부터 닫는
+중괄호까지 SHA-256은 각각 `e99abc9ba9afbe39040ae46bfe165873b0b9189d82509ca9b4140d099286bb5b`,
+`529d8aa687adb1346163f50d5f0dec517c5645fbd7fd55e4ec225091792abc7c`다.
+AUTH-P10/P11 준비 행은 기존 기능 parser 대상이 아니며 기존 986행 및 승인 items SHA
+`5e9263ee47dce850e383df69c74b6fb845d8d8524779f6530cc64b7efb729575`는 불변이다.
+manifest 전체 재생성 없이 inventory 문서 SHA만 직접 대조 후 갱신했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| AUTH-P10/P11 예상 RED | `env -i PATH="$PATH" node --test scripts/internal/recording_auth_preparation.test.mjs`; exit1, 18/20 | fail | 신규 진단 2개만 실패; 1,509.707ms |
+| AUTH-P10/P11 GREEN | 동일 명령; exit0, 20/20 | pass | 최종 1,638.770ms; 빈값·비밀 label·다른 expected 포함 |
+| AUTH-P11 본문·승인 의미 | 두 함수 바이트·기능986행·승인 items 대조 | pass | 진단이 승인 readback 본문을 다시 바꾸지 않음 |
+| AUTH-P11 inventory | `./server.sh verify-project-inventory`; exit0, 최상위18/18·featureRows986 | pass | 내부 출력5,081행 별도 전수 보존 |
+| AUTH-P11 실제 users | `MEDIA_SERVER_VERIFY_AUTH_VISUAL=0 ./server.sh verify-auth-users`; exit0, 72/72 | pass | 새 임시값·격리 계정/포트, 종료·root1,968KiB 제거 |
+| AUTH-P11 문법·공백 | `bash -n scripts/internal/verify_auth_workflow.sh`, `git diff --check`; exit0 | pass | 제품 빌드·실제 UI 재실행 아님 |
+
+[자체검사 원출력 8묶음](b13-auth-unit-outputs.json.gz), [실제 users](b13-auth-users.log.gz),
+[inventory](b13-inventory.log.gz), [개별 전수 결과표](b13-auth-items.md.gz)를 보존한다.
+작업공간·사용자 임시 절대경로만 치환했고 비밀 원문은 없다. 자체검사 압축 SHA는
+`5cc9bf02f308d93010d5c77a101ccbbfaa4151edfd786c2fd0695c9a59714c7d`, users는
+`4be8026d0cf2bd00a9fe3efc3905acde7e7a3e04a228badfa76712bfb22a4487`, inventory는
+`86e155f7aee99bd27c7df3677fa3afcd5b635b1e6fb3bfbea5fc5069a21a1459`다.
+최초 RED 래퍼는 셸 예약 변수 사용으로 exit 수집이 실패했다. 원출력을 남기고 예약 변수를
+제거한 동일 RED를 실행했으며 환경 실패를 제품 실패/예상 RED로 승격하지 않았다.
+메인의 초기 manifest 전문 대조도 도구 출력 버퍼에서 중단돼, 내용을 바꾸지 않고 Git blob
+동일성 비교로 확인했다. 실제 users/inventory의 총 elapsed는 별도 래퍼 계측 부재로 미집계다.
+과거 AUTH-B12-01/04의 원인은 소급 확정하지 않는다. 이번 결과는 진단 공백 해소와 현행
+회귀 PASS이며 과거 실패의 제품 원인 해결을 뜻하지 않는다.
+
+진단 원출력 정리: 아래 소유 UID·일반 디렉터리·stdout/stderr 두 파일만 있는 것을 확인하고
+원본 SHA와 압축본 내 원본 SHA를 대조한 뒤 삭제·부재를 확인했다. 압축 증거로 복구 가능하다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-b13-auth-red.FhYbmo | 자체검사 원출력 | 4754B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-red.cJbsOf | 자체검사 원출력 | 4747B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-green.ChYPW2 | 자체검사 원출력 | 2409B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-bashn.E7FlQd | 자체검사 원출력 | 0B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-diffcheck.QP7agL | 자체검사 원출력 | 0B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-green-final.63wHgm | 자체검사 원출력 | 2411B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-bashn-final.bsv4M0 | 자체검사 원출력 | 0B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+| /private/tmp/media-server-b13-auth-diffcheck-final.s9RDHS | 자체검사 원출력 | 0B | SHA 대조 후 삭제 | 부재 | b13-auth-unit-outputs.json.gz 보존 |
+
+후속 문서 링크·자산·주석 검사는 모두 exit0(각 190.453ms·46.714ms·240.707ms)이다.
+개별 결과표는 총5,233행(자체검사4회80행·inventory 내부5,081행·실제users72행)이다.
+실패 상세의 반복 출력은 같은 검사를 중복 집계하지 않았다. 표 SHA-256은
+`45b2c348a544807adbdd79581a5b4aabc2d26749c006eb7e3b251be4b178d127`이다.
+[정적 검사 원출력](b13-stage1-gates.json.gz)을 보존한다. 메인 실행의 로그 전용 임시 경로는
+2~4번 기록 이관까지 같은 작업에서 사용하며 서버·비밀 저장소는 남아 있지 않다.

@@ -260,6 +260,14 @@ expect_eq() {
   local expected="$2"
   local label="$3"
   if [[ "${actual}" != "${expected}" ]]; then
+    # 이 고정 비교만 진단하며 label과 비정상 actual 원문은 노출하지 않는다.
+    if [[ "${label}" == "password change to temporary password succeeds" && "${expected}" == "302" ]]; then
+      local diagnostic_actual="invalid"
+      if [[ "${actual}" =~ ^[0-9]{3}$ ]]; then
+        diagnostic_actual="${actual}"
+      fi
+      printf '[diagnostic] check=password-change-temporary expected=302 actual=%s\n' "${diagnostic_actual}" >&2
+    fi
     fail "${label}: expected ${expected}, got ${actual}"
   fi
   pass "${label}: ${actual}"

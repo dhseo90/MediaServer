@@ -2,6 +2,33 @@
 
 검증 호환 식별자: `# Release Test Records`. 문서 제목과 본문은 한글을 기준으로 유지한다.
 
+## v4.1.0 S11 B13 재감사 후 마감 (2026-09-28)
+
+독자: 현재 릴리즈 검토자. 수명: v4.1.0 실행 기록. 정책은 AGENTS.md이며 상세 결과는
+[B13 진행 기록](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-재감사-후-마감)을 따른다.
+사용자 승인 범위는 인증 진단 → 최종 코드 증거 연결 → 문서 정합 → 공개 준비 검사와
+분할 커밋·조건 충족 시 개발 브랜치 푸시다. 새 제품 변경·장시간/UI 재실행·외부 릴리즈는 제외한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AUTH-P10 | 비밀번호 변경 안전 진단 | 고정 label/expected만 대상, 3자리 상태 또는 invalid만 출력. 정상·HTTP 오류·잘못된 값·임의 label과 비밀 반례; 비교/exit 불변 | v4.1.0 |
+| AUTH-P11 | readback·실제 인증 회귀 | 승인 lifecycle 함수 본문 SHA 불변, 자체검사·inventory 통과 후 auth-users 72개·종료/정리. 예상 RED는 신규 안전 상태 진단 assertion만 | v4.1.0 |
+| B13-E02 | 최종 코드 증거 대조 | UI/30분 뒤 세 제품 커밋과 인증 진단 복원을 실제 diff·focused/장시간 원출력에 연결, 유지·누락 구분 | v4.1.0 |
+| B13-D03 | 현재 설명 정합 | backlog/version/roadmap/evidence의 완료 범위·실행 순서 정정, 링크·자산·metadata·공백 검사 | v4.1.0 |
+| B13-P04 | 공개 준비 실제 검사 | public readiness·출처·source-only bundle·Actions 설정/로컬 대응 검사. dry-run·실제 CI·published 구분 | v4.1.0 |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| B13 단계별 검사 | 위 순서대로 실행 예정 | 사전등록, 아직 미실행 | 이 정의 자체는 PASS가 아님 |
+| 새 장시간·실제 UI | 기존 결과 영향 대조만 수행 | 동일 검사 자동 반복 금지 | 새 실행 PASS로 표기하지 않음 |
+| 외부 릴리즈·실기기 | PR/merge/tag/Release 미실행, 외부 서비스·실기기 제외 | 별도 승인 부재·사용자 제외 | 공개/외부 PASS가 아님 |
+
+1번 실제 결과: AUTH-P10/P11 예상 RED18/20 → 최종 GREEN20/20, 문법·공백,
+project inventory18/18·986행, 격리 auth-users72/72를 통과했다. 전체 개별 결과는
+[B13 전수표](release-artifacts/v4.1.0/s11-final-20260926/b13-auth-items.md.gz), 원출력·정리·
+절차 오류는 [B13 상세](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-1번-인증-진단-완료)를 따른다.
+남은 2~4번은 아직 완료가 아니다.
+
 ## B11 녹화 전용 120분 1차 실패 (2026-09-27)
 
 독자: v4.1.0 검증·릴리즈 담당자. 수명: 최초 실패 이력 보존. B11-G01 30분과

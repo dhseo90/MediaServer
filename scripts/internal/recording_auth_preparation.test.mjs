@@ -30,6 +30,41 @@ function shellFunction(name){
   assert(end>start,'검사할 shell 함수 끝 없음');
   return text.slice(start,end+2);
 }
+function runExpectEq({actual,expected='302',label='password change to temporary password succeeds'}){
+  const script=`${shellFunction('fail')}\n${shellFunction('expect_eq')}\npass_count=0\npass(){ pass_count=$((pass_count + 1)); echo "[pass] $*"; }\nexpect_eq "$ACTUAL" "$EXPECTED" "$LABEL"`;
+  return spawnSync('/bin/bash',['-c',script],{env:{...clean,ACTUAL:actual,EXPECTED:expected,LABEL:label},encoding:'utf8'});
+}
+test('AUTH-P10 임시 비밀번호 변경 실패는 고정 check와 정규화한 HTTP 상태를 진단',()=>{
+  const success=runExpectEq({actual:'302'});
+  assert.equal(success.status,0);
+  assert.equal(success.stdout,'[pass] password change to temporary password succeeds: 302\n');
+  assert.equal(success.stderr,'');
+  for(const actual of ['400','500','000']){
+    const result=runExpectEq({actual});
+    assert.equal(result.status,1);
+    assert.match(result.stderr,new RegExp(`check=password-change-temporary expected=302 actual=${actual}`));
+    assert.equal(result.stdout,'');
+  }
+});
+test('AUTH-P11 임시 비밀번호 변경 진단은 비정상값을 숨기고 대상 비교에만 출력',()=>{
+  const marker=randomBytes(24).toString('hex');
+  for(const actual of ['','malformed','400\n'+marker,marker]){
+    const result=runExpectEq({actual});
+    assert.equal(result.status,1);
+    assert.match(result.stderr,/check=password-change-temporary expected=302 actual=invalid/);
+    if(actual)assert.equal(result.stderr.includes(actual),false);
+    assert.equal(result.stderr.includes(marker),false);
+  }
+  for(const item of [
+    {actual:marker,label:marker},
+    {actual:marker,expected:'200'},
+  ]){
+    const result=runExpectEq(item);
+    assert.equal(result.status,1);
+    assert.equal(result.stderr.includes('check=password-change-temporary'),false);
+    assert.equal(result.stderr.includes(marker),false);
+  }
+});
 test('AUTH-P03 json_quote 비밀은 Node argv에 나타나지 않는다',()=>{
   const value=randomBytes(24).toString('hex');
   const script=`${shellFunction('json_quote')}\nnode(){ for arg in "$@"; do if [[ "$arg" == "$PROBE_VALUE" ]]; then printf 'credential-argv-detected\\n' >&2; fi; done; command node "$@"; }\njson_quote "$PROBE_VALUE"`;

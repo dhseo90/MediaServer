@@ -1242,6 +1242,8 @@ LP04-A/B: 실패 구간 PTS 지정 gate 자체검사와 실제 1회 재현. 안�
 | AUTH-P07 | 기존 인증 회귀: bootstrap/users/routes·role/scope/history 기대값 유지; 자체검사 후 격리 실제3모드 별도기록 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
 | AUTH-P08 | S06 선수조건: 외부5env 없이 기존 Node memory auth 경로 선택, 기존 read-model/API/lifecycle 순서 유지 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
 | AUTH-P09 | 등록기 정합성: operator env 강제조건 제거 후 안전 준비경계 검사, 누락된보안연결 거부 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P10 | 비밀번호 변경 상태 진단: 공통 expect_eq의 기존 비교·exit를 유지하고 고정 검사명·3자리 상태만 기록; 임의 label/본문/비밀·잘못된 상태는 출력 금지. 정상·HTTP 오류·잘못된 값·비대상 검사 반례 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P11 | 승인 readback 보존: verify_password_change_lifecycle 본문 불변, 공통 진단의 자체검사·inventory 후 격리 auth-users 실제 실행. 최초 미확정 실패는 해결로 승격하지 않음 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
 
 개별 명령·예상 RED·실제 결과는 [인증 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/auth-preparation.md)에 보존한다. 사전등록은 PASS가 아니다.
 
