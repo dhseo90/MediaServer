@@ -45762,3 +45762,23 @@ token start/end/consumed는 전용 집계 부재로 미집계다. 30분·UI·120
 검증기 판정 자체검사는 fixture 진단 8/8과 통합 54/54가 모두 exit0이다. 실제 앱 실행기가
 생성한 O28 snapshot receipt3개, latency trace2개, process cleanup2개는 raw path/body를
 공개하지 않는 현행 schema로 저장소에 함께 보존한다. 별도 제품 수정은 없었다.
+
+## v4.1.0 S11 B11-G03 녹화 120분 4차 실패와 관측 비간섭 보완 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 4차 | 두 채널 상시녹화·순환 삭제·상태/자원 관측 | fail |
+| B11-O05 live SQLite 비간섭 | 제품 실행 중 논리 파일 크기만 측정하고 SQLite page PRAGMA는 모든 서버 종료 뒤 실행 | pass |
+| B11-O03 root 저장 계약 | live page 조회 금지·post-stop 순서·기존 cap/오류 경계 11개 | pass |
+| B11-O05 실제 앱 단기 | 녹화·삭제·3회 기동·복구·상태 용량·종료·포트/UDP·root 정리 73개 | pass |
+
+4차는 exit1·869,813ms·1,201 pass/1 fail이며 HTTP503으로 중단됐다. 마지막 정상 상태는
+두 채널 각각 finalized427/deleted425, mutation3,410, root308,094,395B/448MiB였다.
+종료 저장소 복제본은 segment855/deleted850/available5로 복구됐다. live read-only SQLite
+PRAGMA와 제품 rollback-mode writer 커밋의 교차가 generation owner fail-closed로 이어지는
+검증기 간섭 범위를 분리했으며 제품 저장/API/timeout은 변경하지 않았다.
+
+[상세 기록](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt4.md)과
+[압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt4.log.gz)을
+따른다. token start/end/consumed는 전용 집계 부재로 미집계다. focused PASS는 120분 PASS가
+아니며 이전 실패 규모를 넘는 누적 진단과 120분 전체 재실행이 남는다.

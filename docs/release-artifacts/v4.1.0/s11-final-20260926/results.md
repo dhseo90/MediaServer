@@ -652,3 +652,17 @@ exit0·포트/UDP·로그 진단은 정상이다. 종료 저장소5,300행의 �
 두 채널 녹화·삭제·재기동·복구와 종료·포트·UDP·임시 root 정리도 통과했다. 실패 root와
 wrapper 임시는 최소 증거 이관 뒤 삭제하고 부재를 확인했다. [focused 결과](b11-root-stable-focused.log)는
 재개 조건만 충족하며 녹화 전용 120분 PASS를 대신하지 않는다.
+
+### B11-G03 120분 4차 live SQLite reader 간섭 실패
+
+4차는 약14분30초·1,201 pass 뒤 상태 API가 1ms 만에 HTTP503을 반환해 중단됐다.
+마지막 정상 표본은 두 채널 각각 finalized427/deleted425, root 약308.1MB/448MiB였다.
+서버는 정상 종료했고 종료 저장소 복제본의 native 복구도 segment855/deleted850/
+available5로 통과했으므로 저장 손상·상한·HTTP 지연은 직접 원인이 아니다.
+
+검증기가 매 live 표본에서 별도 read-only SQLite PRAGMA를 실행했고, 제품의 rollback-mode
+writer 커밋과 충돌하면 generation owner가 fail-closed가 되는 경로를 확인했다. live에서는
+논리 파일 크기만 측정하고 SQLite page 통계는 모든 서버 종료 뒤 한 번만 읽도록 바꿨다.
+root 계약11/11과 실제 앱73/73이 통과했으며 live page 조회 부재와 post-stop page 조회,
+정상 종료·복구·정리도 확인했다. [상세 실패·보완 기록](b11-recording-120-attempt4.md)을
+따른다. 이전 실패 규모를 넘는 누적 진단과 120분 전체 재실행 전에는 장시간 PASS가 아니다.
