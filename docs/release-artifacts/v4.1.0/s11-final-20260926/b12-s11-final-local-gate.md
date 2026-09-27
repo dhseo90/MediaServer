@@ -209,3 +209,41 @@ manifest 전체 재생성 없이 inventory 문서 SHA만 직접 대조 후 갱�
 `45b2c348a544807adbdd79581a5b4aabc2d26749c006eb7e3b251be4b178d127`이다.
 [정적 검사 원출력](b13-stage1-gates.json.gz)을 보존한다. 메인 실행의 로그 전용 임시 경로는
 2~4번 기록 이관까지 같은 작업에서 사용하며 서버·비밀 저장소는 남아 있지 않다.
+
+### B13 2번 최종 소스와 증거 연결
+
+제품의 마지막 변경은 `c4735579`이며 `c4735579..dae8f3ae`의 `src/`·`include/` diff는 없다.
+UI 실행 source는 `0c14c340`, 최종30분은 `f9c80d1e`의 writer 보완 뒤 실행됐고,
+녹화120분 10차와 B12 통합은 뒤의 두 제품 변경도 포함한다. 이 차이를 숨기고 모든 실행이
+동일 HEAD였다고 표현하지 않는다. 아래 대조는 기존 증거 유지 판정이며 새 실행 PASS가 아니다.
+
+| 변경 | 실제 경로·의미 | 후속 직접 증거 | 기존 영역 판정 |
+| --- | --- | --- | --- |
+| `f9c80d1e` | `recording_journal.cpp`·generation active의 큰 행 가역 저장/읽기. 논리 envelope·ID·DTO·미디어 바이트 불변 | append222·active4·cold4·checkpoint143·consumer268·observer33·계약135, build, 최종30분 및 120분10차 | 기존 녹화 UI 유지. 압축 표현 자체는 이후 focused·30분·120분으로 대조 |
+| `aab14160` | `ResolveMediaWithContext`에서 권위 있는 삭제 ID를 먼저 거부. 기존 비삭제 재생·hold·파일 검사는 동일 | [8차 후속](b11-recording-120-attempt8.md)의 삭제/fallback/ID 거부 소비자·동일 자료 media 판정·실제앱73, 120분10차와 B12 통합 | I30 재생·탐색 및 I31 삭제/손상 UI의 응답 의미 유지. 30분의 공통 VA/Event POST/idle 반복도 불변 |
+| `c4735579` | identity chain 공용 검증 결과에 archive descriptor 추가. Extension 호출은 검증 관측기에 한정, checkpoint 결과도 descriptor를 유지 | [9차 후속](b11-recording-120-attempt9.md)의 full/extension 동등성·손상·checkpoint/consumer, 120분10차·B12 통합 | UI DTO·media·권한 불변. 제품 소유 결과의 영향은 focused와 최종 장시간이 확인 |
+| `679291af` | 임시 HTTP assertion을 원래 `expect_eq`로 복원. 비교는 동일한 `actual != expected` | 당시72 PASS는 복원 전 실행임을 정정. B13에서 복원된 본문+공통 진단 상태의 실제72 PASS·inventory18 PASS | UI-004 본문 바이트 유지, 최종 실제 회귀로 실행 순서 공백도 해소 |
+| `dae8f3ae` | 공통 실패 진단만 한정 추가, 제품/API·성공 판정·승인 검사 본문 불변 | AUTH-P10/P11의20 PASS·실제users72·986행/승인 items 불변 | 공통 UI424와 녹화31 action의 정상·시각 증거 유지. 인증 제품을 수정한 것으로 확대하지 않음 |
+
+공통 UI의 exact ID424 및 I27~I34의8 ID/31 action, 시각/역할/viewport는 기존 그대로다.
+I27 필터/페이지·I28 우선순위·I29 원본 전환·I32 용량/활성/blocked·I33 이동·I34 권한/시각은
+후속 diff에서 구현/표출 계약이 바뀌지 않았다. I30/I31은 위 삭제 조회 대조로 보강했다.
+공통120분은 공통 미디어·분석·런타임 구성요소에 한정해 기존80회409 PASS를 유지하며
+변경된 녹화 저장·삭제·복구의 장시간 증거는 녹화120분10차를 사용한다.
+
+[기계 대조 영수증](b13-evidence-audit.json): 녹화 UI 압축본의 선언95 artifact를 모두
+stream으로 읽어 SHA/크기를 대조했고31/0/0·브라우저 종료를 확인했다. B12 압축 로그20개도
+SHA/크기 일치, 최종30분109/0·20회와 녹화120분10,093/0·종료/포트 원출력을 확인했다.
+현재 보완은 UI/30분/120분 전체를 새로 실행할 근거가 아니며 기존 증거를 유지한다.
+자원 gate는120분/해당 입력의 상한 준수까지만 인정하고 양의 RSS 기울기를 숨기지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B13-E02 source | 마지막 제품 commit 이후 src/include 변경0, 후속3커밋의 호출·응답·저장 의미 대조 | pass |
+| B13-E02 UI | 선언95 artifact hash/size·31 action·0 fail/notRun·browserClosed 대조 | pass |
+| B13-E02 장시간 | 기존30분20회109 PASS와120분10,093 PASS·실제duration·정리 대조 | pass |
+| B13-E02 B12 | 압축 로그20개 SHA·크기 일치 | pass |
+| B13-E02 문서 | `./server.sh verify-docs-links`, `git diff --check`; exit0 | pass |
+
+영수증의 대조 elapsed는15,958.171ms이며 기존 artifact를 메모리에서만 읽어 복구 임시
+미디어·서버·포트를 만들지 않았다. token은 별도 집계 부재로 미집계다.

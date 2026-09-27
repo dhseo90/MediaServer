@@ -27,7 +27,10 @@
 project inventory18/18·986행, 격리 auth-users72/72를 통과했다. 전체 개별 결과는
 [B13 전수표](release-artifacts/v4.1.0/s11-final-20260926/b13-auth-items.md.gz), 원출력·정리·
 절차 오류는 [B13 상세](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-1번-인증-진단-완료)를 따른다.
-남은 2~4번은 아직 완료가 아니다.
+2번은 최종 제품3커밋·인증 복원/진단을 실행 소스와 연결하고 기존 UI·30분·120분을
+유지 판정했다. [대응표](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-2번-최종-소스와-증거-연결)와
+[무결성 영수증](release-artifacts/v4.1.0/s11-final-20260926/b13-evidence-audit.json)을 따른다.
+3~4번은 아직 완료가 아니다.
 
 ## B11 녹화 전용 120분 1차 실패 (2026-09-27)
 
