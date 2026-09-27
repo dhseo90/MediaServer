@@ -98,9 +98,17 @@ try{
   });
   check('LP26-O06-C runner retains timeout and emits periodic and failure measurements',()=>{
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
-    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure',measureCurrentRootStable(root,{sqlitePages:true}),true)"));
+    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure-live',measureCurrentRootStable(root),true)"));
     assert(runner.includes("const storage=measureCurrentRootStable(root);if(storage.capExceeded){rootDiagnostic('root-cap')"));
-    assert(runner.includes("rootDiagnostic('final',measureCurrentRootStable(root,{sqlitePages:true}),true)"));assert(runner.includes('journalMutationTypesCoverage'));
+    assert(runner.includes("rootDiagnostic('final-live',measureCurrentRootStable(root),true)"));assert(runner.includes('journalMutationTypesCoverage'));
+  });
+  check('B11-O05 live SQLite PRAGMA를 금지하고 종료 뒤에만 page 통계를 측정',()=>{
+    const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
+    assert(runner.includes('function rootDiagnostic(reason,measurement=measureCurrentRootStable(root),final=false)'));
+    const stopped=runner.indexOf('for(const app of processes)try{await stop(app);}catch{failed++;}');
+    const postStop=runner.indexOf("rootDiagnostic('post-stop',measureCurrentRootStable(root,{sqlitePages:true}),true)");
+    assert(stopped>=0&&postStop>stopped);
+    const live=runner.slice(0,stopped);assert(!live.includes("measureCurrentRootStable(root,{sqlitePages:true})"));
   });
   check('B06-V04 staged components count as transaction, not committed generation',()=>{
     const before=measureCurrentRoot(root);write('recordings/.recording-generation-prepare-'+ 'a'.repeat(32)+'/snapshot-8.jsonl',151);

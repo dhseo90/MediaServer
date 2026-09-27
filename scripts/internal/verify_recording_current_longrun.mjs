@@ -28,7 +28,8 @@ function check(ok,label){if(!ok)throw Error(label);passed++;console.log('[pass] 
 function size(dir){let bytes=0,entries=0;function visit(p){const s=fs.lstatSync(p);if(++entries>100000)throw Error('root-entry-bound');
   if(s.isSymbolicLink()){if(!p.startsWith(path.join(root,'gst-cache')+path.sep))throw Error('root-unsafe-symlink');bytes+=s.size;return;}
   if(s.isDirectory())for(const n of fs.readdirSync(p))visit(path.join(p,n));else{if(!s.isFile()||s.nlink!==1)throw Error('root-unsafe-file');bytes+=s.size;}}visit(dir);return bytes;}
-function rootDiagnostic(reason,measurement=measureCurrentRootStable(root,{sqlitePages:true}),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
+// live SQLite에 별도 reader lock을 만들지 않는다. page PRAGMA는 writer 종료 뒤 post-stop에서만 실행한다.
+function rootDiagnostic(reason,measurement=measureCurrentRootStable(root),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
   const journalMutationTypesCoverage=observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable';
   console.log('[root-storage] '+JSON.stringify({reason,final,elapsedMs:Math.round(performance.now()-start),journalMutationTypes,journalMutationTypesCoverage,...measurement}));return measurement;}
 function cadence(){if(observationStart!==null){const now=performance.now(),previous=samples.at(-1)?.phaseAt??observationStart;
@@ -183,11 +184,12 @@ try{
   const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
   await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
   check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
-  }catch(error){failed++;try{rootDiagnostic('failure',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
+  }catch(error){failed++;try{rootDiagnostic('failure-live',measureCurrentRootStable(root),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
 finally{
   observationStart=null;summary=summarizeAvailableSamples(samples);
-  try{rootDiagnostic('final',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
+  try{rootDiagnostic('final-live',measureCurrentRootStable(root),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
   for(const app of processes)try{await stop(app);}catch{failed++;}
+  try{rootDiagnostic('post-stop',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{failed++;console.log('[root-storage] '+JSON.stringify({reason:'post-stop',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
   for(const app of processes){try{fs.closeSync(app.logFd);const text=fs.readFileSync(app.log,'utf8');
     const categories=['file evidence unavailable','storageBlocked','shutdown','ERROR','WARNING'].map(code=>({code,count:text.split(code).length-1}));
     const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));
