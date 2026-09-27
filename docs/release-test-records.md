@@ -45912,13 +45912,38 @@ token start/end/consumed는 전용 집계 부재로 미집계다.
 [상세 기록과 압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md)을
 따른다. 두 실패는 서로 다른 위치였고 최종 실행에서 재현되지 않아 제품 원인을 확정하거나
 해결 완료로 승격하지 않는다. 전송 실패 분류만 유지하고 assertion용 임시 진단은 제거했다.
-제품 API·인증 정책·timeout은 변경하지 않았다. B12 나머지 게이트는 미실행이다.
+제품 API·인증 정책·timeout은 변경하지 않았다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AUTH-B12-07 project inventory 첫 실행 | 임시 상태 진단이 UI-004 readback 본문 hash를 바꿔 최상위17/18 | fail |
 | AUTH-B12-08 승인 readback 원형 복원 | 일회 상태 진단 호출·자체검사 제거, 제품/API 변경 없음 | pass |
 | AUTH-B12-09 project inventory 재검증 | 18/18·featureRows986 | pass |
+
+## v4.1.0 S11 B12 최종 로컬 게이트 완료 (2026-09-28)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B12-G01 build | 현행 runtime·server build, exit0 | pass |
+| B12-G02 현행 녹화 5단계 | 최초 샌드박스 listen 권한 실패 보존, 동일 검사 권한 조정 35+40+10+46+27·두 기동·완전 출력2+2·해시·정리 | pass |
+| B12-G03 인증 | bootstrap19·users72·routes146, 임시 난수·격리 root/포트 정리 | pass |
+| B12-G04 환경·inventory | GStreamer20, project18/18·featureRows986, coverage8/8·986/986, script12/12 | pass |
+| B12-G05 버전·증거 | entry33/33, release evidence8/8, metadata18/18 | pass |
+| B12-G06 정적·문서 | 주석1,258파일·누락0, 링크373문서·실패0, UI 자산10/10, diffcheck | pass |
+| B12-G07 close-out | dry-run6/6, tag·push·Release 미수행 | pass |
+| B12-G08 cleanup | 통합/auth/GStreamer 소유 root 부재, 8080/8081/8554/8555 LISTEN 없음 | pass |
+
+통합 JSON의 `terminalObservations[].fullOutputPass=false`는 독립 terminal 관측이 전체
+페이지 적격을 대신하지 못하도록 항상 false인 안전 필드다. 전체 페이지 검사에서는 두
+기동 모두 출력이 `complete/finalized/playable`이고 `observedOutputCounts=[2,2]`,
+`actualEventPass=true`, `restartPass=true`, `failed=0`이었다. latency·boundary와 wrapper의
+전체영역 false 필드도 실행하지 않은 다른 모드를 PASS로 만들지 않는 경계이며 이번 실제 앱
+모드의 실패가 아니다. 최종30분·UI432·녹화120분은 각각 별도 증거로 결속한다.
+
+[B12 상세 결과·SHA-256·실패 이력·정리](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md)를
+따른다. 외부 서비스·실기기는 사용자 제외로 미실행이며, PR·CI·main 병합·서명 tag·GitHub
+Release·published 확인은 별도 승인 전 미실행이다. token start/end/consumed는 하위 명령별
+전용 집계가 없어 미집계다.
 
 `recording_longrun_summary.mjs`의 `resourceTrendPass=false/reviewRequired=true`는 자동
 합격 방지용 고정 출력이다. 8,192/64MiB checkpoint cache 입장 상한을 전체 RSS
@@ -45940,3 +45965,11 @@ stat과 manifest/root를 재확인하며 one-shot 전체 prefix, 손상·교체�
 연결했다. 실패/환경 준비 root는 evidence 이관·프로세스 부재 확인 뒤 삭제했고 최종 성공
 root는 wrapper가 257,158,113B를 제거했다. token start/end/consumed는 전용 집계 부재로
 미집계다. focused PASS는 120분 PASS가 아니며 같은 기준의 전체 재실행이 남는다.
+
+## v4.1.0 S11 현재 최종 판정 (2026-09-28)
+
+위 1~9차 실패·focused 보완 문단은 당시 이력이다. 10차 녹화120분은 실제
+7,200.547초·10,093 PASS·0 FAIL과 자원 수동 판정을 통과했고, 이어 B12 최종 로컬
+게이트도 전 항목을 통과했다. 현재 판정과 외부 release action 경계는
+[B12 상세 기록](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md)을
+따른다.

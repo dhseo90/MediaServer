@@ -759,3 +759,26 @@ partial0을 확인했다. 주 PID와 복구 PID 2개는 모두 정상 종료했�
 [압축 원출력](b11-recording-120-attempt10.log.gz)을 따른다. 9차의 표본1,299
 generation 전환 timeout은 표본1,440까지 재발하지 않았다. 다음 순서는 S11 최종 로컬
 gate이며 30분·UI 전체를 다시 시작하지 않는다.
+
+## B12 S11 최종 로컬 게이트 완료
+
+현행 소스에서 build, 녹화 5단계 158개, auth bootstrap/users/routes 19/72/146,
+GStreamer 환경20, project inventory18/18·featureRows986, coverage8/8·986/986,
+script12/12, v4.1 entry33/33, release evidence8/8, metadata18/18, 주석 정책,
+문서 링크·UI 자산, close-out dry-run6/6과 diffcheck를 통과했다.
+
+현행 녹화 통합의 첫 샌드박스 실행은 제품 기동 전 로컬 listen 권한 거부로 실패했고
+정리했다. 권한 조정 동일 실행에서는 두 기동 모두 완전 출력2개·HTTP200·파일 hash,
+기존 출력 보존·새 event/reference/job/output, 정상 종료·포트·root 정리가 통과했다.
+terminal 관측기의 `fullOutputPass=false`는 전체 페이지 PASS 대체를 막는 고정 안전
+필드이며, 실제 합격은 전체 페이지 완전성·독립 terminal 관측 결속과
+`observedOutputCounts=[2,2]`로 확인했다.
+
+인증 users의 서로 다른 두 실패와 임시 상태 진단에 따른 UI-004 승인 readback drift를
+보존했다. 승인 본문을 원형 복원한 뒤 users72/72와 inventory18/18을 통과했으며 제품
+인증 정책·API·timeout은 바꾸지 않았다. 실행 소유 root·포트·임시 경로 정리도 완료했다.
+
+[B12 상세 결과·원출력 SHA-256·정리](b12-s11-final-local-gate.md)를 따른다. 최종30분,
+UI432, 녹화120분과 B12를 결합해 개발 브랜치의 로컬 release blocker는 해소됐다.
+외부 서비스·실기기는 사용자 제외이고 PR·CI·main 병합·서명 tag·GitHub Release·
+published 확인은 별도 승인 전 미실행이다.

@@ -1,5 +1,12 @@
 # Release Evidence Index
 
+- [2026-09-28 v4.1.0 S11 최종 로컬 게이트](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md):
+  최종30분 109개·UI432개·녹화120분 10,093개 증거에 이어 build, 현행 녹화158개,
+  auth19/72/146, GStreamer20, inventory986, 문서·버전·metadata·close-out dry-run을
+  현행 소스에서 통과했다. 최초 샌드박스 listen 실패와 auth 두 실패, UI-004 승인
+  readback 복원 이력을 보존한다. 개발 브랜치의 로컬 blocker는 해소됐지만 PR·CI·main
+  병합·서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다.
+
 - [2026-09-27 B11-G03 저장 상한 원인 보완](release-test-records.md#b11-g03-저장-상한-원인-보완):
   append-only 세대 원장의 큰 bound/delete 행을 기존 가역 wrapper로 append하되 논리 상한·
   ID·순서·projection·plain 원장 호환을 유지한다. 최초 RED와 reader 재기동 실패를 보존하고
@@ -14,8 +21,8 @@
   삭제 이력2,049개의 timeline·관측·SQLite/JSONL 재개방·root/RSS 상한과 실제 앱
   HTTP4초·두 기동의 완전 출력2개·hash·기존 보존·새 출력·정리를 통과했다.
   [현행 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)은
-  최종 단기 gate와 증거 영향을 결속한다. 공통 UI424 증거는 유지하고 최종30분·영향받는
-  녹화 UI8 ID/31 action·녹화120분·S11 최종 마감은 아직 미실행이다.
+  최종 단기 gate와 증거 영향을 결속한다. 이후 최종30분·영향받는 녹화 UI8 ID/31 action·
+  녹화120분·S11 최종 로컬 마감까지 완료했으며 현재 판정은 위 B12를 따른다.
 
 - [2026-09-26 B10 녹화120분 중단·원인·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md):
   약18분48초에 observer native3초 제한으로 FAIL. 현재 snapshot 전체 재처리·삭제 상세 중복

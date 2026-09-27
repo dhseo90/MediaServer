@@ -9,10 +9,12 @@
 이 절이 현재 판정이다. 아래 B10 실패 직후 및 최초 중단 표는 당시 이력으로 보존한다.
 B11-O03의 2,049개 삭제 이력 누적 비용, B11-H01 실제 HTTP, B11-I01 현행 5단계와
 B11-F01~03 최종 단기 gate, 최종30분, 영향받는 녹화 UI를 통과했다. 녹화120분은 저장
-상한·관측 비용·live 파일시스템 원자 전이와 검증기 경계의 실패 이력을 보존했다. 7차에서
-세그먼트 partial→final 게시를 영구 hardlink로 오판한 범위까지 한정 보완했고 root13/13·
-generation36/36·observer67/67·실제 앱73/73이 통과했다. 녹화120분 전체 재실행과 그 뒤
-S11 최종 gate가 남아 v4.1.0 릴리즈는 아직 완료가 아니다.
+상한·관측 비용·live 파일시스템 원자 전이와 검증기 경계의 실패 이력을 보존한 뒤 10차에서
+실제7,200.547초·10,093 PASS·0 FAIL과 자원 상한·복구·정리를 통과했다. B12 최종 로컬
+gate도 build·현행 녹화158·auth19/72/146·환경20·inventory986·문서/버전/metadata·
+close-out dry-run을 통과했다. 따라서 개발 브랜치의 로컬 release blocker는 해소됐다.
+외부 서비스·실기기는 사용자 제외이며 PR·CI·main 병합·서명 tag·GitHub Release·published
+확인은 별도 승인 전 미실행이므로 공개 릴리즈 자체는 아직 완료가 아니다.
 
 ### 1. 지시 전수
 
@@ -20,9 +22,9 @@ S11 최종 gate가 남아 v4.1.0 릴리즈는 아직 완료가 아니다.
 | --- | --- | --- | --- | --- |
 | 1 | 누적 저장소·관측 비용 판정 | 완료·분할 커밋 | 2,049개 timeline/복구/관측/root/RSS 기존 상한 통과 | [결과](results.md), `3ca7ea01` |
 | 2 | 실제 HTTP·출력2개·hash·재기동 통합 | 완료·분할 커밋 | H01 74/74, I01 35+40+10+46+27, HTTP4초·두 기동·정리 통과 | [결과](results.md), `debeb12e` |
-| 3 | 코드 고정·최종 단기·증거 영향 판정 | 완료·분할 커밋 대상 | build·manifest986/986·inventory/docs/version/close-out dry-run 통과, 최초 실패 이력 보존 | [중앙 기록](../../../release-test-records.md) |
+| 3 | 코드 고정·최종 단기·증거 영향 판정 | 완료·분할 커밋 | build·manifest986/986·inventory/docs/version/close-out dry-run 통과, 최초 실패 이력 보존 | [중앙 기록](../../../release-test-records.md) |
 | 4 | 분할 커밋 | 수행 | 1·2번은 독립 커밋, 3번은 최종 단기/문서 정합 커밋으로 분리 | Git log |
-| 5 | 가능하면 푸시 | 승인·문서 시점 미수행 | clean·최종 gate 확인 뒤 현재 branch 커밋만 push 예정. PR/merge/tag/Release는 제외 | AGENTS 5.2·최종 보고 |
+| 5 | 가능하면 푸시 | 승인·최종 조건 대조 중 | 최종 기록 커밋·clean 확인 뒤 현재 branch만 push. PR/merge/tag/Release는 제외 | AGENTS 5.2·최종 보고 |
 | 6 | 종합 보고·잔여 이슈 | 수행 | 아래 7·8절에 릴리즈 전 잔여와 승인 경계 전수 기록 | 이 문서 |
 
 ### 2. 기준 대조
@@ -44,7 +46,8 @@ S11 최종 gate가 남아 v4.1.0 릴리즈는 아직 완료가 아니다.
 | S11 최종 단기 | 과거 B09 통과 뒤 B11 변경 | B11 최종 build·inventory·semantic·docs·metadata 통과 | 현행 결과로 재고정 | [중앙 기록](../../../release-test-records.md) |
 | S11 30분 | B10 이전 코드 PASS | G03 저장 writer 반영 최종 코드에서 2,438초·20회·109 PASS·0 FAIL 재실행 | 해소 | [B11-G01/G03](results.md) |
 | S11 UI | B10 공통424+녹화8 ID PASS | 공통424 유지, 영향 녹화8 ID·31 action을 현행 backend에서31 PASS 재실행·메인 시각 적격 | 해소 | [B11-G02](b11-final-ui.md) |
-| S11 120분 | B10 18분48초 FAIL | B11 7차 약17분27초 세그먼트 게시 오판 FAIL, root13/13·generation36/36·observer67/67·실제 앱73/73 보완 PASS, 전체 재실행 전 | 미완료 유지 | [B11-G03](results.md#b11-g03-녹화-120분-1차-실패와-저장-상한-보완-2026-09-27) |
+| S11 120분 | B10과 B11 1~9차 실패 이력 | B11 10차 실제7,200.547초·10,093 PASS·0 FAIL, 자원 상한·복구·정리 PASS | 해소·과거 실패 유지 | [B11-G03](b11-recording-120-attempt10.md) |
+| S11 최종 로컬 gate | 120분 뒤 잔여 | B12 build·녹화158·auth19/72/146·환경20·inventory986·문서/버전/metadata·close-out PASS | 해소 | [B12](b12-s11-final-local-gate.md) |
 
 ### 4. 구현·실행 연결
 
@@ -75,8 +78,8 @@ S11 최종 gate가 남아 v4.1.0 릴리즈는 아직 완료가 아니다.
 | 30분 | 진행 대상 | release 필수+저장/source lifecycle 변경 | inventory 30분50, S11 | 승인·최종 코드 109/109 PASS |
 | 공통 UI424 | 미진행(기존 유지) | 제품 UI·exact manifest 의미 변경 없음 | B10 424/424·Policy v4 | 유효 증거 유지 |
 | 녹화 UI8 ID·31 action | 진행 대상 | timeline/deleted/playable/재기동 backend 변경 | V410-S06-I27~I34 | 승인·현행 backend 31/31 PASS |
-| 녹화120분·자원 | 진행 대상 | 사용자 기존 명시+media/storage/lifecycle 직접 변경+B10 실패 | B10-L01·B11-O03/H01/I01 | 승인·7차 실패 뒤 focused 보완 PASS, 전체 재실행 전 |
-| 공통120분 | 조건부 진행 | B11 변경이 녹화/storage 경계에 한정, 기존 공통 증거 전체 승계는 불가 | 7.6.2·기존 common120 | 녹화120분 결과/공통 영향으로 최종 판정 |
+| 녹화120분·자원 | 진행 대상 | 사용자 기존 명시+media/storage/lifecycle 직접 변경+B10 실패 | B10-L01·B11-O03/H01/I01 | 승인·10차 전체 PASS·수동 자원 판정 완료 |
+| 공통120분 | 미진행(기존 한정 승계) | B11 변경은 녹화/storage 경계, 공통 불변 구성요소의 기존 80회·409 PASS 유지 | 7.6.2·기존 common120·최종 녹화120분 | 영향 대조 완료, 새 공통120분 불필요 |
 | 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | AGENTS 7.6 | 실행하지 않음 |
 
 ### 7. 릴리즈까지 잔여 순서
@@ -85,8 +88,8 @@ S11 최종 gate가 남아 v4.1.0 릴리즈는 아직 완료가 아니다.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 완료 | 최종30분 안정화 | B11-G03 writer 변경분을 포함한 최종 코드에서 2,438초·20회·109 PASS·정리 PASS | 장시간 검증 | 직접 확인+7.6.2 | 전 |
 | 2 | 완료 | 영향받는 녹화 UI 재검증 | B11-G02 I27~I34 31 PASS·시각/권한/재생·정리 적격, 공통424 유지 | 실제 UI | 직접 확인 | 전 |
-| 3 | P0 | 녹화120분·자원 판정 | G03 1차 root 상한 실패와 보완 뒤 실제 녹화·보존·삭제·복구·용량·HTTP/관측 지연·RSS/storage 추세·재기동·cleanup을 처음부터 120분 확인 | 장시간/자원 gate | 사용자 지시+7.6.2 | 전 |
-| 4 | P0 | S11 최종 증거·release local gate | 1~3 결과, 문서/버전/cleanup, 기존 공통120 승계 범위를 확정하고 clean build/필수 local gate를 마감 | 증거·로컬 마감 | AGENTS 직접 규칙 | 전 |
+| 3 | 완료 | 녹화120분·자원 판정 | 10차 실제7,200.547초·10,093 PASS·0 FAIL, HTTP/관측/RSS/root/복구/cleanup 직접 판정 | 장시간/자원 gate | 직접 확인+7.6.2 | 전 |
+| 4 | 완료 | S11 최종 증거·release local gate | B12 build·인증·녹화 통합·환경·inventory·문서·버전·증거·close-out·cleanup PASS | 증거·로컬 마감 | 직접 확인+AGENTS | 전 |
 | 5 | 별도 승인 | PR·CI·main·서명 tag·Release | 각 단계 별도 승인 후 required check→merge→signed annotated tag 검증→GitHub Release/published 확인 | 외부 변경 | AGENTS 4 | 후 |
 
 ### 8. 미해소·승인 경계
@@ -95,8 +98,9 @@ S11 최종 gate가 남아 v4.1.0 릴리즈는 아직 완료가 아니다.
 | --- | --- | --- | --- | --- |
 | 최종30분 | 실행 완료·PASS | G03 writer 반영 뒤 동일30분 재실행 | 가능 | 109행·summary·원출력·정리 보존 |
 | 녹화 UI 현행 backend | 실행 완료·PASS | B11-G02 현행 backend에서31 action·시각·정리 적격 | 가능 | 공통424와 결합해432 대상 적격 |
-| 녹화120분·자원 | 7차 FAIL·focused 보완 PASS | 약17분27초 세그먼트 게시 오판, focused 보완은 장시간 대체 불가 | 불가 | 같은 기준의 120분 전체 재실행 |
-| 공통120분 승계 | 조건부 | 기존 실행은 B11 이전 녹화 저장 경계 | 전체 release PASS에 단독 사용 불가 | 녹화120분 결과 뒤 영향 판정 |
+| 녹화120분·자원 | 실행 완료·PASS | 10차 전체120분과 자원 수동 판정 완료, 1~9차 실패 유지 | 가능 | 상세 원출력·정리 보존 |
+| 공통120분 승계 | 영향 대조 완료 | 녹화/storage 변경은 녹화120분이 직접 검증, 공통 불변 구성요소는 기존 80회·409 PASS 유지 | 한정 사용 가능 | 새 공통120분 재실행 불필요 |
+| S11 최종 로컬 gate | 실행 완료·PASS | B12 승인 범위 전부 통과·정리 완료 | 가능 | 최종 기록 커밋·개발 branch push |
 | PR/CI/main/tag/Release | 미실행·미승인 | 개발 branch push와 별도 | 불가 | 로컬 P0 전부 통과 후 단계별 승인 |
 | 외부 서비스·실기기 | 사용자 제외 | 이번 릴리즈에서 안 함 | 외부 PASS 불가 | 후속 대상에서 제외 |
 

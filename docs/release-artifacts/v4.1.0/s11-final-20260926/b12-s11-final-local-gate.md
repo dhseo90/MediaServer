@@ -53,10 +53,83 @@ PR·병합·tag·GitHub Release는 사용자 제외 또는 미승인 범위다.
 | 파일 | SHA-256 | 크기 | 내용 |
 | --- | --- | ---: | --- |
 | `b12-project-inventory-first.log.gz` | `dd4f5cce2453b0977aa437700e520d71ffa120928ab05c318f3003401a542d8c` | 16,638B | UI-004 readback trust drift 1건·17/18 |
-| `b12-project-inventory-pass.log.gz` | `7acd111af88069ab49bd29df0024b3d0ff33d90dc97c8417a56275a64c16fbf5` | 16,573B | 원형 복원 뒤 18/18·986행 |
+| `b12-project-inventory-pass.log.gz` | `ec6a6f9e72fc1e7dd4e09e42fec5e447632437987f99e9a484f2b0db6dd6436f` | 16,573B | 원형 복원 뒤 최종 재검증 18/18·986행 |
 
-## 현재 상태
+## 현행 녹화 5단계 판정
 
-build, 현행 녹화 5단계, auth bootstrap/users/routes, GStreamer 환경과 project inventory까지
-실행됐다. feature/script inventory 이후 단계는 아직 미실행이므로 B12 전체와 S11 로컬
-게이트는 완료가 아니다.
+샌드박스 첫 실행은 로컬 listen 권한 거부로 제품 기동 전에 실패했고 실행 root·포트를
+정리했다. 동일 코드·상한을 권한 조정 환경에서 한 번 재실행해 35+40+10+46+27=158개
+검사와 두 기동을 통과했다. 두 기동 모두 EventRecord와 같은 reference/job의 완전 출력
+2개를 HTTP 200·파일 SHA-256으로 확인했고, 재기동 뒤 기존 출력 보존과 새 event/reference/
+job/output 분리도 통과했다.
+
+최종 JSON의 `terminalObservations[].fullOutputPass=false`는 실패가 아니다. 독립 terminal
+관측기가 전체 페이지 적격 PASS를 대신하지 못하도록 `createTerminalObservation.status()`가
+항상 false로 내보내는 안전 필드다. 실제 완전성은 전체 페이지의 `eventOutputs()`가 두 행
+모두 `complete/finalized/playable`임을 검사하고 `requireCompletionEvidence()`가 독립
+terminal 관측과 함께 결속했다. `latencyPass=false`와 `boundaryDiagnosticPass=false`도
+각각 별도 실행 모드 전용 기본값이다. 이번 모드의 직접 합격 필드는 `failed=0`,
+`actualEventPass=true`, `restartPass=true`, `observedOutputCounts=[2,2]`, cleanup PASS다.
+wrapper의 `fullFoundationPass/resourceTrendPass/uiFulltestPass=false`도 현행 단기 통합을
+30분·120분·UI 전체 PASS로 확대하지 않는 고정 경계이며, 각 영역의 별도 최종 증거를
+대체하지 않는다.
+
+## 최종 로컬 게이트 결과
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| B12-G01 build | `./server.sh build` | pass | runtime·server 100%, exit 0 |
+| B12-G02 현행 녹화 통합 | `verify-v410-recording-foundation --current-integration` | pass | 첫 샌드박스 listen 권한 실패 보존, 권한 조정 동일 검사 158개·두 기동·출력 2+2·정리 PASS |
+| B12-G03 auth bootstrap | `verify-auth-bootstrap` | pass | 19/19, 실행 소유 root·포트 정리 |
+| B12-G04 auth users | `verify-auth-users` | pass | 최종 72/72, 위 최초 두 실패 이력 보존 |
+| B12-G05 auth routes | `verify-auth-routes` | pass | 146/146, 실행 소유 root·포트 정리 |
+| B12-G06 GStreamer 환경 | `verify-gst-environment` | pass | 20/20, 실행별 temp root 제거 |
+| B12-G07 project inventory | `verify-project-inventory` | pass | 승인 readback 복원 뒤 18/18·featureRows986 |
+| B12-G08 feature coverage | `verify-feature-inventory-coverage` | pass | 8/8·986/986·missing0 |
+| B12-G09 script inventory | `verify-script-inventory` | pass | 12/12 |
+| B12-G10 v4.1 entry | `verify-v410-entry-baseline` | pass | 33/33 |
+| B12-G11 release evidence | `verify-release-evidence-index` | pass | 8/8 |
+| B12-G12 release metadata | `verify-release-metadata` | pass | 18/18, published는 외부 미확인 |
+| B12-G13 주석 정책 | `verify-code-comments` | pass | 1,258파일·누락0·영문-only0 |
+| B12-G14 문서 링크 | `verify-docs-links` | pass | markdown373·로컬 링크14,688·실패0 |
+| B12-G15 UI 문서 자산 | `verify-docs-ui-assets` | pass | 10/10 |
+| B12-G16 close-out | `verify-release-closeout-helper --dry-run` | pass | 6/6, tag·push·Release 미수행 |
+| B12-G17 diff | `git diff --check` | pass | exit 0 |
+
+## 추가 원출력과 무결성
+
+| 파일 | SHA-256 | 크기 | 내용 |
+| --- | --- | ---: | --- |
+| `b12-build.log.gz` | `821fe22883416e79ebc99f392622d5cd7a0342343960f77b5fe43f1c2aa04c89` | 243B | 최종 build |
+| `b12-recording-integration-sandbox-fail.log.gz` | `4c2bec19df6ec2a0c09c2f21dd1a44079ac3058d2e9d499ba31fd9497edf4038` | 863B | 제품 기동 전 로컬 listen 권한 실패·정리 |
+| `b12-recording-integration-pass.log.gz` | `c9bc2e8406bbe511f464687805a07cbe221bb699a1a5a4b60690f64a56eeab56` | 32,295B | 동일 통합 158개·두 기동 PASS |
+| `b12-auth-bootstrap.log.gz` | `e5cacddaaafb500ea8e8735c2a8e16e9dfb67a1907c3b1d7e2bc24005f8ec0b8` | 645B | auth bootstrap 19/19 |
+| `b12-auth-routes.log.gz` | `19749eb7929e4af97f31c4a28edb8e96f6e3b0a9b2ce916021c92c4107616c17` | 2,163B | auth routes 146/146 |
+| `b12-gst-environment.log.gz` | `39219e9686259db8d78c449b34a3650f4352ca10ed220eefcc0169276ccc6c54` | 834B | GStreamer 환경 20/20 |
+| `b12-code-comments.log.gz` | `f77e56f911362f61bd73b0bc1167a284a0633bc92504049158aa9296a1b7c5b9` | 138B | 주석 정책 |
+| `b12-feature-coverage.log.gz` | `e3169a2ac4d7fc02a247ac0a8470bd66606f2d2001d24e276f1ae91fea2183b3` | 401B | 기능 coverage |
+| `b12-script-inventory.log.gz` | `bc2ce9e650d4248f6374e44b5ac5b94ff6906b6b30e5ea0badac0f1cb3004a1b` | 506B | 스크립트 inventory |
+| `b12-entry-baseline.log.gz` | `b46c4bc98e2327904cce176986fdcc10afd3aca4448859d200a49345706ab237` | 394B | v4.1 entry |
+| `b12-release-evidence-index.log.gz` | `cd0ba398a5624e98106e271579823606c045ab9ffe4580bbb10d8d08a601d30e` | 330B | release evidence index |
+| `b12-release-metadata.log.gz` | `e8539f82c6e06449320fcaab0b7cad0d28e8e4e96ae77ddeb6730df3c92333a6` | 559B | release metadata |
+| `b12-docs-links.log.gz` | `c9c1ec257c2526b25a61ef3168d6a7e1615e2460d4088d11f81532d867612345` | 187B | 문서 링크 |
+| `b12-docs-ui-assets.log.gz` | `aa1db1202c66c2479d145f23e5f31f7b2b6f54cee118461890b6fbeb0aa5672d` | 364B | UI 문서 자산 |
+| `b12-closeout.log.gz` | `3157f2f984989bfcec6d2fd03bce0b0c73dc19e191f66a0673bc318050b724b3` | 330B | close-out dry-run |
+
+현행 통합이 생성한 latency 증거 2개와 process 종료 증거 2개도
+`../s11-preparation-mapping/`에 보존한다. 각각의 SHA-256은 latency
+`b9f7c239…26ff6`, `bbf6a6d0…673cb`, process `a37b8528…a4e21`,
+`06c54340…ae6d`이며 raw media·자격증명은 포함하지 않는다.
+
+## 정리와 최종 판정
+
+현행 통합 root, auth root, GStreamer temp root는 모두 삭제됐다. 최종 확인에서
+8080/8081/8554/8555 LISTEN과 `media-server-current-integration-*`,
+`media-server-auth-*`, `media-server-gst-environment-*` 잔여 경로가 없다.
+압축 이관 전 `/private/tmp` 로그는 최종 무결성 확인 뒤 삭제한다.
+
+B12와 S11의 승인된 로컬 검증 범위는 완료다. 최종30분·UI432·녹화120분과 이 로컬
+게이트를 결합해 v4.1.0 개발 브랜치의 로컬 release blocker는 해소됐다. 외부 서비스·
+실기기는 사용자 지시에 따라 미실행·제외이며 PASS로 계산하지 않는다. PR·CI·main 병합·
+서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. token start/end/
+consumed는 하위 명령별 전용 집계가 없어 미집계다.

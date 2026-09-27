@@ -26,7 +26,12 @@
   최대 RSS794,443,776B/1GiB·root413,002,799B/448MiB·drain1,614.976ms/3초·
   상태 API1,017ms/4초와 정상 종료·복구·정리를 확인했다. 자원 요약기의
   `reviewRequired`는 자동 합격 방지 경계이므로 원자료를 수동 판정했으며, 이 결과를
-  무기한 누수 부재로 확대하지 않는다. S11 최종 로컬 gate와 기록 마감은 잔여다.
+  무기한 누수 부재로 확대하지 않는다. S11 최종 로컬 gate는 build, 현행 녹화158개,
+  auth19/72/146, GStreamer20, inventory986, 문서·버전·metadata와 close-out dry-run까지
+  통과해 기록 마감을 완료했다. 최초 샌드박스 listen 실패·auth 두 실패와 승인 readback
+  복원 이력은 보존한다. 이에 따라 v4.1.0 개발 브랜치의 로컬 release blocker는 해소됐다.
+  외부 서비스·실기기는 사용자 제외이며 PR·CI·main 병합·서명 tag·GitHub Release·
+  published 확인은 별도 승인 전 미실행이다.
   [B11 결과·한계](release-artifacts/v4.1.0/s11-final-20260926/results.md)와
   [현행 잔여 전수표](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)를 따른다.
   [실패·근거·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md)를 따른다.
@@ -335,7 +340,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
 | 9 | V410-S09 | P0 | 종료·대체됨(성공 완료 아님): 기존 통합 검증의 성과·실패·수정 이력 보존. 설계 보강은 S10, 최종 검증은 S11로 분리 |
 | 10 | V410-S10 | P0 | 제품 구현·구형 소비자 조사·제품 코드 고정·PREP 소스 증적 재결속 완료. 실제 브라우저 및 S11 전체 완료는 아님 |
-| 11 | V410-S11 | P0 | 과거 실제30분·공통UI424·녹화UI31조작·공통120분 이력과 실패를 보존한다. 이후 B11 저장·복구·관측 변경의 삭제 이력2,049개 누적 비용, 실제 HTTP4초·두 기동/출력2개/hash/보존·정리, 현행 build·inventory986·문서·버전 단기 gate를 통과했다. G03 writer 반영 최종 코드의30분도2,438초·20회·109 PASS·0 FAIL로 재통과했다. 공통UI424 증거 유지와 backend 영향을 받는 녹화UI8 ID·31 action의 현행 재검증31 PASS를 결합해 UI432개가 적격이다. 녹화120분 10차는 실제7,200.547초·10,093 PASS·0 FAIL, RSS/root/지연 상한·복구·정리까지 수동 자원 판정 PASS다. 최종 로컬 gate·증거/버전 완료 판정은 잔여다. 앞선 모든 120분 실패는 PASS로 덮어쓰지 않는다 |
+| 11 | V410-S11 | P0 | 로컬 범위 완료: 과거 실제30분·공통UI424·녹화UI31조작·공통120분 이력과 실패를 보존한다. B11 저장·복구·관측 변경의 삭제 이력2,049개 누적 비용, 실제 HTTP4초·두 기동/출력2개/hash/보존·정리, G03 writer 반영 최종30분2,438초·20회·109 PASS·0 FAIL을 확인했다. 공통UI424 유지와 녹화UI8 ID·31 action 재검증을 결합해 UI432개가 적격이다. 녹화120분 10차는 실제7,200.547초·10,093 PASS·0 FAIL, RSS/root/지연 상한·복구·정리까지 수동 자원 판정 PASS다. B12 최종 로컬 gate도 build·현행 녹화158·auth19/72/146·환경20·inventory986·문서/버전/metadata·close-out dry-run을 통과했다. 앞선 모든 실패는 PASS로 덮어쓰지 않는다. 외부 서비스·실기기는 사용자 제외, 외부 release action은 별도 승인 전 미실행이다 |
 
 S11 저장 비용 잔여는 [B안 구현 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b안-구현-계약)에 따라
 현재 상태·증분 원장·과거 증거 분리로 순차 보완한다. O28 비용 측정과 O29 분기 반례의 과거 결과는 유지한다.
