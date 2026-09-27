@@ -23,6 +23,37 @@ B11-G02 녹화 UI 통과 뒤 같은 고정 코드에서 녹화 전용 120분을 
 포함한 물리 root 상한이다. 상한 증액·fixture 제외·cold 원장 임의 삭제로 PASS를 만들지 않는다.
 120분·자원 판정과 뒤 S11 최종 gate는 미완료다. token 사용량은 전용 집계가 없어 미집계다.
 
+### B11-G03 저장 상한 원인 보완
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B11-G03-P | append-only 원장 물리 표현 | 지원되는 큰 bound/delete 논리 행을 정규 검증한 뒤 이득이 있을 때 기존 가역 wrapper로 append. 논리 상한·ID·순서·projection·plain 호환 유지 | v4.1.0 |
+
+최초 focused RED는 큰 bound가 plain active 행으로 저장되는 `B11-G03` 한 항목으로 고정했다.
+writer만 수정한 첫 GREEN 시도에서는 재기동 active reader가 wrapper를 비정규 행으로 거부해
+실패했다. reader가 정규 논리 행 또는 정규 wrapper만 허용하고 기존 parser의 길이·CRC·type·
+내부 정규성 검증을 그대로 거치도록 보완했다. 최종 focused·영향 회귀와 장시간 결과는
+완료 뒤 같은 절에 추가하며, 이 준비만으로 120분 PASS를 주장하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03-P append | writer·재기동·ID/순서·admission, 222개 assertion | pass |
+| B11-G03-P active/cold | 정규 wrapper·locator·16MiB 복원 상한·손상 거부, 각 4개 | pass |
+| B11-G03-P checkpoint/consumer | 회전·복구·SQLite on/off·retired 참조/보호, 143+268개 | pass |
+| B11-G03-P observer | 실제 C++ 형식·증분/회전/부분행·native session, 33개 | pass |
+| B11-G03-P 계약·빌드 | 녹화 계약 135개, runtime98%·server100% | pass |
+
+[append](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-append-green.log),
+[active](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-active-green.log),
+[cold](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-cold-green.log),
+[checkpoint](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-checkpoint-green.log),
+[consumer](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-consumers-green.log),
+[observer](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-observer-selftest.log),
+[계약](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-recording-contracts.log),
+[빌드](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-build.log)의 원출력을 보존한다.
+총 809개 관련 assertion이 PASS했고 각 임시 root는 제거됐다. token start/end/consumed는
+전용 집계가 없어 미집계다.
+
 ## B11 이후 영향 녹화 UI 재검증 (2026-09-27)
 
 독자: v4.1.0 검증·릴리즈 담당자. 수명: v4.1.0 릴리즈까지. B11 저장·복구·timeline

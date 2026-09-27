@@ -1,0 +1,138 @@
+^D[verify] build v4.1.0 recording contract smoke: /tmp/media_server_v410_recording_contracts-4705
+[pass] opaque ID 허용
+[pass] 빈 opaque ID 거부
+[pass] path opaque ID 거부
+[pass] SQLite rowid 형태 opaque ID 거부
+[pass] 반개구간 겹침
+[pass] 맞닿은 반개구간 비겹침
+[pass] 빈 반개구간 거부
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] V1 segment golden row count
+[pass] unknown optional field를 포함한 segment parse:
+[pass] segment provenance semantic
+[pass] segment UTC/end PTS semantic
+[pass] segment media/checksum semantic
+[pass] segment lifecycle/retention semantic
+[pass] unknown optional field 뒤 known ID 보존
+[pass] PTS/timebase exact 보존
+[pass] public JSON에 filesystem path 비노출
+[pass] segment canonical 재parse
+[pass] PTS/timebase round-trip
+[pass] unknown lifecycle를 호환 parse
+[pass] unknown lifecycle를 Unknown으로 보존
+[pass] unknown lifecycle 비재생
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] segments.jsonl parse[0]:
+[pass] segments.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] segments.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] segments.jsonl missing required ID rejected
+[pass] segments.jsonl canonical parse[0]:
+[pass] segments.jsonl canonical parity[0]
+[pass] segments.jsonl parse[1]:
+[pass] segments.jsonl additive optional known semantic parity[1]
+[pass] V1 schema probe anchor
+[pass] segments.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] segments.jsonl missing required ID rejected
+[pass] segments.jsonl canonical parse[1]:
+[pass] segments.jsonl canonical parity[1]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] event-links.jsonl parse[0]:
+[pass] event-links.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] event-links.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] event-links.jsonl missing required ID rejected
+[pass] event-links.jsonl canonical parse[0]:
+[pass] event-links.jsonl canonical parity[0]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] observations.jsonl parse[0]:
+[pass] observations.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] observations.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] observations.jsonl missing required ID rejected
+[pass] observations.jsonl canonical parse[0]:
+[pass] observations.jsonl canonical parity[0]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] tombstones.jsonl parse[0]:
+[pass] tombstones.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] tombstones.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] tombstones.jsonl missing required ID rejected
+[pass] tombstones.jsonl canonical parse[0]:
+[pass] tombstones.jsonl canonical parity[0]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] link ID/provenance semantic
+[pass] link requested range/status semantic
+[pass] link overlap/missing semantic
+[pass] link fallback/time semantic
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] observation ID/provenance semantic
+[pass] observation exact locator semantic
+[pass] observation detection semantic
+[pass] observation association/time semantic
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] tombstone ID/provenance semantic
+[pass] tombstone range/checksum/legacy retention semantic
+[pass] tombstone segment ID 재사용 거부
+[pass] 새 segment ID 허용
+[pass] S10-M01 V2 accepts adjacent media and backward overlapping UTC mappings
+[pass] S10-M01 literal parser preserves exact int64 above double precision
+[pass] S10-M01 serializer matches independent canonical literal
+[pass] S10-M02 unknown final media endpoint and null UTC roundtrip
+[pass] S10-M02 actual UTC zero remains known
+[pass] S10-M03 empty mappings rejected
+[pass] S10-M03 initial media gap rejected
+[pass] S10-M03 interior media gap rejected
+[pass] S10-M03 media overlap rejected
+[pass] S10-M03 final media gap rejected
+[pass] S10-M03 duplicate mapping ID rejected
+[pass] S10-M03 reversed mapping media rejected
+[pass] S10-M03 reversed segment media rejected
+[pass] S10-M03 nonfinal unknown media end rejected
+[pass] S10-M03 known missing UTC endpoint rejected
+[pass] S10-M03 negative uncertainty rejected
+[pass] S10-M03 nonincreasing known UTC rejected
+[pass] S10-M03 unknown with UTC value rejected
+[pass] S10-M03 unknown without reason rejected
+[pass] S10-M03 estimated without reason rejected
+[pass] S10-M04 reason byte limit rejected
+[pass] S10-M04 exact 256 unique adjacent mappings accepted
+[pass] S10-M04 mapping count limit rejected
+[pass] S10-M04 exact 256 byte estimated reason accepted
+[pass] S10-M02 bounded unknown mapping preserves media endpoint
+[pass] S10-M04 exact JSON size limit accepted
+[pass] S10-M04 nonpositive order rejected
+[pass] S10-M04 nonpositive timebase rejected
+[pass] S10-M04 invalid opaque ID rejected
+[pass] S10-M04 nonfinalized lifecycle rejected
+[pass] S10-M04 invalid physical integrity rejected
+[pass] S10-M04 V2 unknown retention rejected
+[pass] S10-M04 oversized physical string rejected by validator and serializer
+[pass] S10-M04 parser rejects and preserves output schema
+[pass] S10-M04 parser rejects and preserves output unknown-key
+[pass] S10-M04 parser rejects and preserves output duplicate-key
+[pass] S10-M04 parser rejects and preserves output integer-overflow
+[pass] S10-M04 parser rejects and preserves output fraction
+[pass] S10-M04 parser rejects and preserves output wrong-type
+[pass] S10-M04 parser rejects and preserves output timebase-overflow
+[pass] S10-M04 parser rejects and preserves output mapping-schema
+[pass] S10-M04 parser rejects and preserves output provenance
+[pass] S10-M04 parser rejects and preserves output unknown-retention
+[pass] S10-M04 parser rejects and preserves output mapping-key
+[pass] S10-M04 parser rejects and preserves output json-cap
+[pass] S10-M04 parser null output rejected
+[verify-v410-recording-contracts] pass=135 fail=0
+[cleanup] path=/tmp/media_server_v410_recording_contracts-4705 bytes=734040 removed=true

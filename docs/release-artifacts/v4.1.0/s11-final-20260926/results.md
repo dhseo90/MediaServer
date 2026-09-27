@@ -602,3 +602,22 @@ exit0, 31 pass·0 fail·0 notRun이며 공통424는 UI 제품 변경이 없어 �
 RTSP58100·HTTP58101·UDP 닫힘을 확인했다. acceptance/log 소유 root는 archive와
 문서 대조 뒤 제거하고 부재를 확인했다. token 사용량은 전용 집계가 없어 미집계다.
 이 결과는 녹화 전용120분·자원 판정을 대신하지 않는다.
+
+## B11-G03 녹화 120분 1차 실패와 저장 상한 보완 (2026-09-27)
+
+30분과 녹화 UI 통과 뒤 녹화 전용 120분을 실행했으나 약 51분 51초에 격리 root가
+448MiB 상한을 826,740B 초과해 FAIL했다. 당시 두 채널은 각각 finalized1,547·deleted1,545,
+최종 HTTP2ms·관측 약1.329초였고 정상 종료·포트·root 정리는 통과했다. 직접 원인은 영상
+순환 삭제가 아니라 봉인 active 원장119개·125,602,008B의 append-only 누적이다.
+
+상한 증액·fixture 제외·cold 증거 삭제를 사용하지 않고, 지원되는 큰 bound/delete 행을
+기존 가역 wrapper로 append 시점부터 저장하도록 보완했다. 공개 논리 envelope와 ID·순서·
+projection·시간·plain 원장 호환은 유지하고 logical admission은 압축 전에 적용한다.
+최초 writer-only GREEN에서 active reader 재기동 거부가 드러난 이력도 보존했다.
+
+최종 append222·active4·cold4·checkpoint143·consumer268·observer33·계약135, 총809개
+assertion과 build가 PASS했고 모든 focused 임시 root를 제거했다. 최초 실패 증거와 focused
+원출력은 [중앙 기록](../../../release-test-records.md#b11-g03-저장-상한-원인-보완)을 따른다.
+제품 저장 경로가 바뀌었으므로 최종30분은 해당 변경분에 대해 재실행하고, 논리 API/UI가
+불변인 녹화 UI31 action은 유지 판정한 뒤 녹화120분 전체를 처음부터 다시 실행한다.
+이 focused PASS 자체는 장시간 PASS가 아니다.

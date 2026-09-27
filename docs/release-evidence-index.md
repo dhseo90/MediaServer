@@ -1,5 +1,10 @@
 # Release Evidence Index
 
+- [2026-09-27 B11-G03 저장 상한 원인 보완](release-test-records.md#b11-g03-저장-상한-원인-보완):
+  append-only 세대 원장의 큰 bound/delete 행을 기존 가역 wrapper로 append하되 논리 상한·
+  ID·순서·projection·plain 원장 호환을 유지한다. 최초 RED와 reader 재기동 실패를 보존하고
+  최종 관련 809개 assertion·build를 통과했다. 녹화120분 전체 재검증 전이므로 장시간 PASS는 아니다.
+
 - [2026-09-27 B11 녹화120분 1차 실패](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt1.md):
   약51분51초에 격리 root가448MiB를826,740B 초과해 FAIL했다. HTTP·증분 관측·순환 삭제와
   정상 종료/정리는 통과했으나 봉인 active 원장119개·125.6MB가 누적됐다. 상한 완화나
