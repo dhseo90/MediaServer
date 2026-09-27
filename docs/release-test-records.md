@@ -45898,6 +45898,22 @@ token start/end/consumed는 전용 집계 부재로 미집계다.
 | B11-G03 종료·복구 | 주 PID·복구 PID2개 exit0, 포트/UDP 폐쇄, 원본 불변·복제본 정리 | pass |
 | B11-G03 실행 root 정리 | wrapper root413,002,799B 삭제·부재 | pass |
 
+## v4.1.0 S11 B12 최종 로컬 게이트 인증 사용자 진단 (2026-09-28)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AUTH-B12-01 최초 auth users | 사용자 생성 첫 POST 전 포괄 transport 오류, 정상 종료·root 삭제 | fail |
+| AUTH-B12-02 curl 진단 예상 RED | HTTP400/connect 안전 분류 신규 assertion, 17/18 | fail |
+| AUTH-B12-03 curl 진단 GREEN | 상태·전송 allowlist, 원문 URL/token 미노출, 18/18 | pass |
+| AUTH-B12-04 두 번째 auth users | reset 뒤 비밀번호 변경 assertion에서 중단, 최초 실패는 미재현 | fail |
+| AUTH-B12-05 상태 진단 자체검사 | 실제 3자리 상태만 보존, unsafe 입력 `invalid`, 19/19 | pass |
+| AUTH-B12-06 최종 auth users | 동일 명령 72/72, 정상 종료·root 삭제 | pass |
+
+[상세 기록과 압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md)을
+따른다. 두 실패는 서로 다른 위치였고 최종 실행에서 재현되지 않아 제품 원인을 확정하거나
+해결 완료로 승격하지 않는다. 제품 API·인증 정책·timeout은 변경하지 않았다. B12 나머지
+게이트는 미실행이다.
+
 `recording_longrun_summary.mjs`의 `resourceTrendPass=false/reviewRequired=true`는 자동
 합격 방지용 고정 출력이다. 8,192/64MiB checkpoint cache 입장 상한을 전체 RSS
 보장으로 쓰지 않고, LP26-O10-E의 프로세스1GiB·root448MiB와 고정 지연·핸들·

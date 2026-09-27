@@ -61,6 +61,36 @@ test('AUTH-P03 curl config 내용 보존·argv/환경에는 비밀 없음',()=>o
   assert.equal(got.input.includes('data = "@/owned/file"\n'),true);assert.equal(got.input.includes('data-binary = "a\\r\\nb"\n'),true);
   assert.equal(got.env.HTTP_PROXY,undefined);assert.equal(got.env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD,undefined);
 }));
+test('AUTH-P03 curl 실패는 비밀 원문 없이 HTTP 상태와 전송 종류만 분류',()=>owned(root=>{
+  const helper=path.join(directory,'recording_auth_preparation.mjs');
+  const marker=randomBytes(24).toString('hex');
+  const cases=[
+    {exit:22,stderr:`curl: (22) The requested URL returned error: 400 token=${marker}\n`,expected:'code=http-400'},
+    {exit:7,stderr:`curl: (7) Failed to connect to 127.0.0.1 token=${marker}\n`,expected:'code=connect'},
+  ];
+  for(const item of cases){
+    const fake=path.join(root,'curl');
+    fs.writeFileSync(fake,`#!/usr/bin/env node\nprocess.stderr.write(${JSON.stringify(item.stderr)});process.exit(${item.exit});\n`,{mode:0o700});
+    const args=['-fsS','http://127.0.0.1:12345/fixture?token='+marker];
+    const result=spawnSync(process.execPath,[helper,'curl'],{
+      env:{PATH:root+path.delimiter+process.env.PATH},input:args.join('\0')+'\0',encoding:'utf8'
+    });
+    assert.equal(result.status,1);
+    assert.match(result.stderr,new RegExp(`\\b${item.expected}\\b`));
+    assert.equal(result.stderr.includes(marker),false);
+    assert.equal(result.stdout,'');
+  }
+}));
+test('AUTH-P06 HTTP 상태 불일치는 3자리 상태만 보존하고 원문은 숨김',()=>{
+  const marker=randomBytes(24).toString('hex');
+  const source=shellFunction('expect_http_status');
+  const script=`${source}\npass(){ :; }\nfail(){ exit 1; }\nexpect_http_status "$ACTUAL" 302 password-change-temporary`;
+  const numeric=spawnSync('/bin/bash',['-c',script],{env:{...clean,ACTUAL:'400'},encoding:'utf8'});
+  assert.equal(numeric.status,1);assert.match(numeric.stderr,/expected=302 actual=400/);
+  const unsafe=spawnSync('/bin/bash',['-c',script],{env:{...clean,ACTUAL:'400 '+marker},encoding:'utf8'});
+  assert.equal(unsafe.status,1);assert.match(unsafe.stderr,/expected=302 actual=invalid/);
+  assert.equal(unsafe.stderr.includes(marker),false);
+});
 test('AUTH-P03 URL newline·외부주소·옵션주입 거부와 config escaping',()=>{
   for(const url of ['http://127.0.0.1:123/a\noutput=/bad','http://example.invalid:123/','http://u:p@127.0.0.1:123/'])assert.throws(()=>curlConfig([url]));
   assert.throws(()=>curlConfig(['--config','/outside','http://127.0.0.1:123/']));

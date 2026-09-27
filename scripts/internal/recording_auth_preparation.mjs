@@ -59,11 +59,23 @@ export function readArguments(buffer){
   if(buffer.length>16*1024*1024||buffer.at(-1)!==0)throw Error('argument-framing');
   return buffer.toString('utf8').slice(0,-1).split('\0');
 }
+export function curlFailureCode(result){
+  if(result?.error)return 'spawn';
+  if(result?.signal)return 'signal';
+  const exitCode=Number(result?.status);
+  const stderr=Buffer.isBuffer(result?.stderr)?result.stderr.toString('utf8'):String(result?.stderr||'');
+  if(exitCode===22){
+    const status=stderr.match(/returned error:\s*([1-5][0-9]{2})(?:\D|$)/)?.[1];
+    return status?`http-${status}`:'http-error';
+  }
+  const known=new Map([[5,'proxy'],[6,'dns'],[7,'connect'],[28,'timeout'],[52,'empty-response'],[56,'receive']]);
+  return known.get(exitCode)||'transport';
+}
 export function runCurl(args){
   const result=spawnSync('curl',['-q','--config','-'],{input:curlConfig(args),env:childEnvironment(),maxBuffer:32*1024*1024});
   if(result.error||result.signal||result.status!==0){
     // curl 오류는 요청 URL/token을 포함할 수 있으므로 원문을 내보내지 않는다.
-    process.stderr.write('[fail] 인증 HTTP transport 실패\n');return 1;
+    process.stderr.write(`[fail] 인증 HTTP 실패 code=${curlFailureCode(result)}\n`);return 1;
   }
   process.stdout.write(result.stdout);return 0;
 }
