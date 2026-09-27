@@ -45844,6 +45844,28 @@ SHA-256은 `210d17be84b37ee5a435e6f7ff45207687483363e906a8ffef890ff4b0175c2d`다
 제품 저장 형식·공개 API·시간/ID·보존/복구·3초/4초/448MiB 기준은 변경하지 않았다.
 집중 검사는 120분 전체 PASS를 대체하지 않으며 token 사용량은 전용 집계 부재로 미집계다.
 
+## v4.1.0 S11 B11-G03 녹화 120분 8차 종료 후 삭제 미디어 조회 비용 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 8차 live | 검증7,201,978ms, 두 채널 각각 finalized3,589·deleted3,587 | pass |
+| B11-G03 상태·저장·종료 | HTTP200·약1~3ms, root425,852,619B, 서버 exit0·포트/UDP 폐쇄 | pass |
+| B11-G03 자원 원자료 | 최대RSS769,458,176B, warmup 뒤1.928MiB/min, FD -6·thread0 | pass |
+| B11-G03 종료 snapshot | 고정15초에서 query 완료·media 진행 중 timeout, 전체10,066/2·exit1 | fail |
+| B11-G03 예상 RED | 삭제 판정이 segment·event-link 조회보다 앞서야 하는 계약 10/1 | fail |
+| B11-G03 삭제 fail-closed | ID 검증 직후 tombstone 확인, 기존 비삭제 재생·fallback 경로 유지 | pass |
+| B11-G03 대규모 동일 조건 | 같은 저장소·15초, 총9.761초·media0.320초·digest/계수 동일 | pass |
+| B11-G03 집중 회귀 | 계약11/11·generation 소비자·build·observer67/67 | pass |
+| B11-G03 실제 앱 최초 준비 | 샌드박스 macOS 서비스 대기 30초 timeout·서버 기동0 | fail |
+| B11-G03 실제 앱 집중 | 권한 적용 동일 상한, exit0·73/73·30.190초·재기동/복구/정리 | pass |
+
+8차 live는 유효한 부분 증거이나 종료 snapshot 실패 때문에 녹화120분 suite는 FAIL이다.
+timeout·공개 API·파일·시간/ID·보존/복구·4초/448MiB 기준은 바꾸지 않았다. 실패 receipt,
+원출력 SHA-256, 원인, 집중 증거와 cleanup 전수표는
+`docs/release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt8.md`에 보존한다.
+token start/end/consumed는 전용 집계 부재로 미집계다. 같은 기준의 전체 재실행과 자원
+최종 판정이 남으며 집중 PASS를 120분 PASS로 승격하지 않는다.
+
 5차 실패의 직접 원인은 제품 HTTP·저장 상한이 아니라 검증 전용 persistent 세션의 큰
 snapshot 재파싱과 누적 prefix 직렬화였다. snapshot 원문 객체를 작은 정확 증명으로 바꾸고
 세션에는 시작/종단 SHA-256으로 결박된 최대128개 delta만 전달했다. 응답 직전 snapshot

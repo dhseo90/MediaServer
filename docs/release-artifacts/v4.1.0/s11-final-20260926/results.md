@@ -724,3 +724,19 @@ directory fsync 뒤 partial을 unlink한다. 같은 inode의 정확한
 실패했으며 동일 상한의 권한 적용 실행에서 fixture1.392초·실제 녹화30.171초·서버3회
 재기동/복구/종료/정리가 통과했다. [상세 실패·보완·정리](b11-recording-120-attempt7.md)를
 따른다. 이 focused 결과는 녹화120분 전체 PASS를 대신하지 않는다.
+
+### B11-G03 120분 8차 종료 후 삭제 미디어 조회 비용
+
+8차는 검증 duration7,201,978ms로 두 채널 live 120분을 끝까지 수행했다. 채널별
+finalized3,589·deleted3,587, 상태 HTTP200·약1~3ms, 저장425,852,619B/448MiB,
+서버 exit0·포트/UDP 폐쇄였다. 최대 RSS769,458,176B, warmup 뒤 1.928MiB/min,
+FD -6·thread 0의 원자료도 확보했다. 다만 종료 복제본 첫 native snapshot이
+query 완료 뒤 media 단계에서 고정15초 timeout되어 suite는 10,066/2·exit1이다.
+
+직접 원인은 7,178개 삭제 ID마다 삭제 판정보다 먼저 segment와 네 종류 event-link를
+반복 조회한 것이다. ID 검증 직후 권위 있는 tombstone에서 fail-closed하도록 보완했고,
+같은 대규모 저장소·같은 15초 상한에서 총9.761초·media0.320초, 동일 digest와
+segment7,184/deleted7,178/available6을 확인했다. 계약11/11, generation 소비자, build,
+observer67/67, 실제 앱73/73도 통과했다. timeout·API·파일·시간/ID·보존/복구 기준은
+바꾸지 않았다. [상세 실패·집중 검증·정리](b11-recording-120-attempt8.md)를 따른다.
+집중 결과는 전체 120분 PASS를 대신하지 않으며 자원 최종 판정도 재실행 뒤 확정한다.
