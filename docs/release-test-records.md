@@ -45906,13 +45906,19 @@ token start/end/consumed는 전용 집계 부재로 미집계다.
 | AUTH-B12-02 curl 진단 예상 RED | HTTP400/connect 안전 분류 신규 assertion, 17/18 | fail |
 | AUTH-B12-03 curl 진단 GREEN | 상태·전송 allowlist, 원문 URL/token 미노출, 18/18 | pass |
 | AUTH-B12-04 두 번째 auth users | reset 뒤 비밀번호 변경 assertion에서 중단, 최초 실패는 미재현 | fail |
-| AUTH-B12-05 상태 진단 자체검사 | 실제 3자리 상태만 보존, unsafe 입력 `invalid`, 19/19 | pass |
+| AUTH-B12-05 임시 상태 진단 | 3자리 상태 한정 진단 19/19 뒤 UI-004 승인 readback 본문 보존을 위해 원형 복원 | pass |
 | AUTH-B12-06 최종 auth users | 동일 명령 72/72, 정상 종료·root 삭제 | pass |
 
 [상세 기록과 압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md)을
 따른다. 두 실패는 서로 다른 위치였고 최종 실행에서 재현되지 않아 제품 원인을 확정하거나
-해결 완료로 승격하지 않는다. 제품 API·인증 정책·timeout은 변경하지 않았다. B12 나머지
-게이트는 미실행이다.
+해결 완료로 승격하지 않는다. 전송 실패 분류만 유지하고 assertion용 임시 진단은 제거했다.
+제품 API·인증 정책·timeout은 변경하지 않았다. B12 나머지 게이트는 미실행이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AUTH-B12-07 project inventory 첫 실행 | 임시 상태 진단이 UI-004 readback 본문 hash를 바꿔 최상위17/18 | fail |
+| AUTH-B12-08 승인 readback 원형 복원 | 일회 상태 진단 호출·자체검사 제거, 제품/API 변경 없음 | pass |
+| AUTH-B12-09 project inventory 재검증 | 18/18·featureRows986 | pass |
 
 `recording_longrun_summary.mjs`의 `resourceTrendPass=false/reviewRequired=true`는 자동
 합격 방지용 고정 출력이다. 8,192/64MiB checkpoint cache 입장 상한을 전체 RSS

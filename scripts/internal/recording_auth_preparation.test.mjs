@@ -81,16 +81,6 @@ test('AUTH-P03 curl 실패는 비밀 원문 없이 HTTP 상태와 전송 종류�
     assert.equal(result.stdout,'');
   }
 }));
-test('AUTH-P06 HTTP 상태 불일치는 3자리 상태만 보존하고 원문은 숨김',()=>{
-  const marker=randomBytes(24).toString('hex');
-  const source=shellFunction('expect_http_status');
-  const script=`${source}\npass(){ :; }\nfail(){ exit 1; }\nexpect_http_status "$ACTUAL" 302 password-change-temporary`;
-  const numeric=spawnSync('/bin/bash',['-c',script],{env:{...clean,ACTUAL:'400'},encoding:'utf8'});
-  assert.equal(numeric.status,1);assert.match(numeric.stderr,/expected=302 actual=400/);
-  const unsafe=spawnSync('/bin/bash',['-c',script],{env:{...clean,ACTUAL:'400 '+marker},encoding:'utf8'});
-  assert.equal(unsafe.status,1);assert.match(unsafe.stderr,/expected=302 actual=invalid/);
-  assert.equal(unsafe.stderr.includes(marker),false);
-});
 test('AUTH-P03 URL newline·외부주소·옵션주입 거부와 config escaping',()=>{
   for(const url of ['http://127.0.0.1:123/a\noutput=/bad','http://example.invalid:123/','http://u:p@127.0.0.1:123/'])assert.throws(()=>curlConfig([url]));
   assert.throws(()=>curlConfig(['--config','/outside','http://127.0.0.1:123/']));

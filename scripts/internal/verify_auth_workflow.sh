@@ -265,21 +265,6 @@ expect_eq() {
   pass "${label}: ${actual}"
 }
 
-expect_http_status() {
-  local actual="$1"
-  local expected="$2"
-  local label="$3"
-  local reported="invalid"
-  if [[ "${actual}" =~ ^[0-9]{3}$ ]]; then
-    reported="${actual}"
-  fi
-  if [[ "${actual}" != "${expected}" ]]; then
-    echo "[fail] 인증 HTTP status mismatch: check=${label} expected=${expected} actual=${reported}" >&2
-    fail "${label}"
-  fi
-  pass "${label}: ${actual}"
-}
-
 file_mode() {
   local path="$1"
   if stat -f '%Lp' "${path}" >/dev/null 2>&1; then
@@ -1458,7 +1443,7 @@ verify_password_change_lifecycle() {
     --data-urlencode "password=${SECOND_PREVIOUS_PASSWORD}" \
     --data-urlencode "confirm=${SECOND_PREVIOUS_PASSWORD}" \
     "${BASE}/password/change")"
-  expect_http_status "${temporary_change_code}" "302" "password-change-temporary"
+  expect_eq "${temporary_change_code}" "302" "password change to temporary password succeeds"
   expect_eq "$(login_status_code "viewer-smoke" "${SECOND_PREVIOUS_PASSWORD}" "${VIEWER_COOKIE}")" "302" \
     "temporary password login succeeds"
 
