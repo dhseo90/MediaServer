@@ -10,12 +10,16 @@
 - 최신 공개 GitHub Release: `v4.0.0`
 - 최신 공개 roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v4.0.0`와 현재 source tag `v4.1.0`을 기록합니다.
+- source-only release 기준 tag는 published tag `v4.0.0`와 현재 source tag `v4.1.0`을 구분합니다. 후자는 생성 목표이며 실제 생성·서명·푸시 완료를 뜻하지 않습니다.
 - `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `4.1.0` roadmap은 v4.1.0 Recording Foundation이며 S00 조사·설계
-차단선만 완료된 source-only/live-only 개발 source입니다. 게시된 v4.0.0 signed tag와 GitHub Release가
+현재 소스 트리의 `4.1.0` roadmap은 v4.1.0 Recording Foundation이며 상시·이벤트 녹화,
+보존·조회/재생·검색 준비 metadata와 S10 보강을 구현한 개발 소스입니다. S11 제품 검증
+증거와 공개 준비/외부 릴리즈 상태는 현재 로드맵 및 증적 색인에서 구분합니다.
+초기의 `source-only/live-only` 설명은 S00 당시 이력이다. 현재 source-only는 공개 패키지에
+runtime/model binary를 포함하지 않는다는 뜻이며 녹화 기능
+미구현이나 live-only를 뜻하지 않습니다. 게시된 v4.0.0 signed tag와 GitHub Release가
 최신 공개 기준입니다. v4.0.0 publish 완료는 signed tag, source-only GitHub Release,
 `verify-release-metadata --published` evidence로 확인합니다. v3.9.1 previous published
 baseline, v3.9.0/v3.8.0 historical published baseline과 후속 기능별 완료 evidence는

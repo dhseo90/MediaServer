@@ -24,8 +24,9 @@ PR·병합·tag·GitHub Release는 사용자 제외 또는 미승인 범위다.
 | AUTH-B12-06 최종 실제 실행 | 동일 `verify-auth-users` | pass | 72/72, 비밀번호 생성·scope·reset·history·invite·access request, 정상 종료·root 삭제 |
 
 최초 두 실패는 서로 다른 경계였고 최종 실행에서는 모두 재현되지 않았다. 따라서 제품
-결함이나 해결 완료로 단정하지 않는다. 재발 시에는 비밀 원문 없이 HTTP 상태 또는 전송
-종류를 보존하므로 같은 포괄 전송 실패를 반복하지 않는다. 두 번째 assertion용 임시 상태
+결함이나 해결 완료로 단정하지 않는다. 전송 오류는 비밀 원문 없이 HTTP 상태 또는 전송
+종류를 보존하지만, 두 번째 assertion용 임시 상태 진단 제거 뒤에는 상태 유실이 다시
+가능했다. 아래 B13에서 공통 helper에 한정 진단을 추가해 이 공백을 보완했다. 당시 임시 상태
 진단은 최종 PASS 뒤 제거해 UI-004 승인 readback 결속을 유지했다. timeout·제품 인증
 정책·API·payload는 변경하지 않았다.
 
@@ -128,8 +129,9 @@ wrapper의 `fullFoundationPass/resourceTrendPass/uiFulltestPass=false`도 현행
 `media-server-auth-*`, `media-server-gst-environment-*` 잔여 경로가 없다.
 압축 이관 전 `/private/tmp` 로그는 최종 무결성 확인 뒤 삭제한다.
 
-B12와 S11의 승인된 로컬 검증 범위는 완료다. 최종30분·UI432·녹화120분과 이 로컬
-게이트를 결합해 v4.1.0 개발 브랜치의 로컬 release blocker는 해소됐다. 외부 서비스·
+B12의 승인된 제품 로컬 검증 범위는 완료다. 최종30분·UI432·녹화120분과 이 로컬
+게이트는 제품 검증 증거이며, 공개 준비 검사까지 모두 끝났다는 기존 표현은 B13에서
+정정한다. dry-run은 공개 저장소·배포 실제 검사를 실행하지 않는다. 외부 서비스·
 실기기는 사용자 지시에 따라 미실행·제외이며 PASS로 계산하지 않는다. PR·CI·main 병합·
 서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. close-out 원출력의
 `push: not performed`는 dry-run 자체가 push하지 않았다는 뜻이며, 승인된 `v4.1.0` 개발
@@ -247,3 +249,24 @@ SHA/크기 일치, 최종30분109/0·20회와 녹화120분10,093/0·종료/포�
 
 영수증의 대조 elapsed는15,958.171ms이며 기존 artifact를 메모리에서만 읽어 복구 임시
 미디어·서버·포트를 만들지 않았다. token은 별도 집계 부재로 미집계다.
+
+### B13 3번 문서 정합 완료
+
+backlog의 UI/120분 미완료·versioning의 S00/live-only 설명을 현재 녹화 구현/제품 검증
+상태와 맞췄다. source-only 배포와 제품 녹화 기능을 분리했고, source tag는 생성 목표라고
+명시했다. roadmap·색인·전수표의 포괄적인 blocker0 표현을 공개 준비 검사와 분리했다.
+v3.9.0 runner 설명은 당시 이력으로 한정했다. B12의 users72는 진단 복원 전, inventory18은
+복원 후라는 실제 순서로 정정했으며 B13 users72를 과거 실행으로 소급하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| B13-D03 최초 metadata | `./server.sh verify-release-metadata`; exit1, 16/18 | fail | source tag/과거 source-only·live-only 식별 문구2개 누락. 뒤 명령 보류 |
+| B13-D03 metadata 재검증 | 같은 명령; exit0, 18/18 | pass | 두 문구를 현재 사실·과거 이력으로 정확히 구분해 보존; 검증기/판정 수정 없음 |
+| B13-D03 entry | `./server.sh verify-v410-entry-baseline`; exit0, 33/33 | pass | 소스·published·제외 범위 구분 |
+| B13-D03 evidence | `./server.sh verify-release-evidence-index`; exit0, 8/8 | pass | 실행/미실행 경계 |
+| B13-D03 reconciliation | `./server.sh verify-post-release-reconciliation`; exit0 | pass | 실행/판정 어휘 검사이며 실제 published 확인 아님 |
+| B13-D03 링크·자산 | `./server.sh verify-docs-links`, `verify-docs-ui-assets`; exit0 | pass | 자산10/10·링크 오류0, 실제 새 UI 실행 아님 |
+
+[2·3번 원출력·개별 결과](b13-document-gates.json.gz)에 최초 실패와 각 명령 elapsed를
+보존했다. 문서 검사 외 새 서버·미디어·포트는 만들지 않았다. token은 별도 집계 부재로
+미집계다. 이제 4번 공개 준비 실제 검사가 남으며 이를 위 단기 gate로 대체하지 않는다.

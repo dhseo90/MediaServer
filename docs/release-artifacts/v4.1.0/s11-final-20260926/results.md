@@ -776,11 +776,17 @@ terminal 관측기의 `fullOutputPass=false`는 전체 페이지 PASS 대체를 
 `observedOutputCounts=[2,2]`로 확인했다.
 
 인증 users의 서로 다른 두 실패와 임시 상태 진단에 따른 UI-004 승인 readback drift를
-보존했다. 승인 본문을 원형 복원한 뒤 users72/72와 inventory18/18을 통과했으며 제품
+보존했다. 당시 users72/72는 임시 진단이 있던 상태에서, inventory18/18은 승인 본문을
+원형 복원한 뒤 통과했다. B13에서 복원된 본문과 공통 진단 보완 상태의 users72/72를
+새로 확인해 실행 순서 공백을 해소했다. 제품
 인증 정책·API·timeout은 바꾸지 않았다. 실행 소유 root·포트·임시 경로 정리도 완료했다.
 
 [B12 상세 결과·원출력 SHA-256·정리](b12-s11-final-local-gate.md)를 따른다. 최종30분,
 UI432, 녹화120분과 B12를 결합해 개발 브랜치의 로컬 release blocker는 해소됐다.
+
+위 B12 결론은 당시 제품 검증 범위다. B13 재감사에서 공개 준비 실제 검사와 문서 정합은
+별도 마감이 필요함을 정정했다. [현행 전수 판정](readiness.md)과
+[B13 완료 범위](b12-s11-final-local-gate.md#b13-재감사-후-마감)를 우선한다.
 외부 서비스·실기기는 사용자 제외이고 PR·CI·main 병합·서명 tag·GitHub Release·
 published 확인은 별도 승인 전 미실행이다. 승인된 `v4.1.0` 개발 branch push는 clean·
 ahead26/behind0 확인 뒤 수행했으며 외부 release action 완료로 확대하지 않는다.

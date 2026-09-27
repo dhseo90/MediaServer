@@ -29,7 +29,10 @@
   무기한 누수 부재로 확대하지 않는다. S11 최종 로컬 gate는 build, 현행 녹화158개,
   auth19/72/146, GStreamer20, inventory986, 문서·버전·metadata와 close-out dry-run까지
   통과해 기록 마감을 완료했다. 최초 샌드박스 listen 실패·auth 두 실패와 승인 readback
-  복원 이력은 보존한다. 이에 따라 v4.1.0 개발 브랜치의 로컬 release blocker는 해소됐다.
+  복원 이력은 보존한다. B13에서 인증 안전 진단·현행 users72를 확인하고, UI/30분 뒤
+  제품 변경과 focused/120분 증거를 연결해 기존 결과를 유지 판정했다. 제품 검증 통과와
+  공개 준비 실제 검사 완료는 다르며, 로컬 release blocker가 모두 해소됐다는 이전
+  포괄 표현은 정정한다. 현재 마감 상태는 아래 현행 전수표를 따른다.
   외부 서비스·실기기는 사용자 제외이며 PR·CI·main 병합·서명 tag·GitHub Release·
   published 확인은 별도 승인 전 미실행이다. 승인된 `v4.1.0` 개발 branch는 clean 확인 뒤
   origin에 동기화했다.

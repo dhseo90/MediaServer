@@ -1,10 +1,16 @@
 # Release Evidence Index
 
+- [2026-09-28 B13 재감사 후 마감](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-재감사-후-마감):
+  인증 진단20·현행users72·inventory18 통과, 최종 제품 변경과 기존 UI/30분/120분 증거 연결.
+  과거 실패와 무기한 자원 보장 한계를 유지한다. 공개 준비 실제 검사·문서 정합과 외부
+  릴리즈는 구분하며 [현재 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)을 따른다.
+
 - [2026-09-28 v4.1.0 S11 최종 로컬 게이트](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md):
   최종30분 109개·UI432개·녹화120분 10,093개 증거에 이어 build, 현행 녹화158개,
   auth19/72/146, GStreamer20, inventory986, 문서·버전·metadata·close-out dry-run을
   현행 소스에서 통과했다. 최초 샌드박스 listen 실패와 auth 두 실패, UI-004 승인
-  readback 복원 이력을 보존한다. 개발 브랜치의 로컬 blocker는 해소됐지만 PR·CI·main
+  readback 복원 이력을 보존한다. 이는 당시 제품 검증 범위이며 공개 준비까지 완료했다는
+  포괄 표현은 B13에서 정정했다. PR·CI·main
   병합·서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. 승인된
   `v4.1.0` 개발 branch push는 clean 확인 뒤 별도로 수행했다.
 

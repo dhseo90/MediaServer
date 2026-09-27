@@ -125,6 +125,11 @@ redaction/크기/보존 사유를 기록합니다.
 
 ## v3.9.0 Longrun Runner 역할
 
+아래 역할 구분은 v3.9.0 당시 runner·evidence 이력이다. 현재 v4.1.0의 승인된
+`verify-predev --soak-minutes 30/120`와 녹화 전용120분 증거의 유효성은 AGENTS.md
+7.6.2 및 현재 S11 증거 연결표로 판단한다. 과거 runner 설명만으로 현재 PASS를
+폐기하거나 다른 장시간 실행을 자동 추가하지 않는다.
+
 v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`입니다.
 
 - `verify-predev` remains legacy/compatibility cumulative predev runner.
@@ -138,7 +143,7 @@ v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`�
 
 이 역할 분리는 과거 evidence를 다시 해석하지 않습니다. 이전 release의
 `verify-predev --soak-minutes 30/120` PASS 행은 historical/compatibility evidence로
-남기고, v3.9.0 이후 release-grade first-fail 장시간 evidence는
+남기고, 당시 release-grade first-fail 장시간 evidence는
 `verify-v390-server-longrun` summary/report로 분리합니다.
 `media-server.runtime-media-longrun-trigger-matrix.v1`의 v3.9.0 release-grade 30분/120분
 server longrun row도 `verify-v390-server-longrun --duration-minutes 30/120`을 표준

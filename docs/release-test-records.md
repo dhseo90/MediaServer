@@ -30,7 +30,10 @@ project inventory18/18·986행, 격리 auth-users72/72를 통과했다. 전체 �
 2번은 최종 제품3커밋·인증 복원/진단을 실행 소스와 연결하고 기존 UI·30분·120분을
 유지 판정했다. [대응표](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-2번-최종-소스와-증거-연결)와
 [무결성 영수증](release-artifacts/v4.1.0/s11-final-20260926/b13-evidence-audit.json)을 따른다.
-3~4번은 아직 완료가 아니다.
+3번은 backlog/version/roadmap/정책·현재 기록을 정정했다. metadata 최초16/18 FAIL을
+정확한 현재/과거 문구 구분으로 보완해18/18 PASS, entry33·evidence8·reconciliation·
+문서 링크/자산 검사를 통과했다. [원출력·개별 결과](release-artifacts/v4.1.0/s11-final-20260926/b13-document-gates.json.gz)를 보존한다.
+4번 공개 준비 검사는 아직 완료가 아니다.
 
 ## B11 녹화 전용 120분 1차 실패 (2026-09-27)
 
