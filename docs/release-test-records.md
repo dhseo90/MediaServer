@@ -45824,6 +45824,26 @@ SHA-256은 `210d17be84b37ee5a435e6f7ff45207687483363e906a8ffef890ff4b0175c2d`다
 `docs/release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt6.md`에 보존한다.
 집중 보완 검사는 120분 전체 PASS를 대체하지 않는다.
 
+## v4.1.0 S11 B11-G03 녹화 120분 7차 세그먼트 게시 오판 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 7차 | 두 채널 상시녹화·순환 삭제·상태/자원 관측, 1,046,949ms·1,453/1 | fail |
+| B11-G03 제품·저장 경계 | HTTP200·1ms, bound final1,036·deleted1,032, root316,933,359B, 서버 exit0·포트/UDP 폐쇄 | pass |
+| B11-G03 자원 관측 | 최대 RSS479,854,592B, warmup 뒤 2.284MiB/min, FD -6·thread 0 | pass |
+| B11-G03 세그먼트 게시 판정 | 정상 partial→final no-replace 게시의 링크 수2를 영구 hardlink로 오판 | fail |
+| B11-G03 종료 후 대조 | recordings symlink·특수 파일·다중 링크 없음, media6·partial0 | pass |
+| B11-G03 예상 RED | 실제 이름·inode의 final/partial 두 링크를 기존 관측기가 거부 | fail |
+| B11-G03 게시 보완 | 정확한 이름·같은 inode의 MP4/WebM 게시만 전체 재측정, 일반/지속 hardlink 거부 유지 | pass |
+| B11-G03 집중 회귀 | root13/13·generation36/36·observer67/67 | pass |
+| B11-G03 실제 앱 최초 준비 | 샌드박스 macOS 서비스 대기 30초 timeout·서버 기동0 | fail |
+| B11-G03 실제 앱 집중 | 권한 적용 동일 상한, exit0·73/73·30.171초·서버3회·복구/종료/정리 | pass |
+
+압축 원출력·SHA-256·원인·cleanup 전수표는
+`docs/release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt7.md`에 보존한다.
+제품 저장 형식·공개 API·시간/ID·보존/복구·3초/4초/448MiB 기준은 변경하지 않았다.
+집중 검사는 120분 전체 PASS를 대체하지 않으며 token 사용량은 전용 집계 부재로 미집계다.
+
 5차 실패의 직접 원인은 제품 HTTP·저장 상한이 아니라 검증 전용 persistent 세션의 큰
 snapshot 재파싱과 누적 prefix 직렬화였다. snapshot 원문 객체를 작은 정확 증명으로 바꾸고
 세션에는 시작/종단 SHA-256으로 결박된 최대128개 delta만 전달했다. 응답 직전 snapshot

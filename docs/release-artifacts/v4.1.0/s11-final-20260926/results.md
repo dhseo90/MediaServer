@@ -705,3 +705,22 @@ fsync 뒤 stage 링크를 제거한다. 실패 순간 snapshot2개·transaction1
 통과했다. 실제 앱은 30.188초 동안 두 채널 녹화·삭제, 서버3회 재기동·복구, 종료·포트/
 UDP 폐쇄와 289,373,785B root 제거를 확인했다. 일반 hardlink·symlink·특수 파일과
 끝나지 않는 transaction 거부는 유지한다. 이 focused 결과는 재실행 조건만 충족한다.
+
+### B11-G03 120분 7차 세그먼트 게시 오판
+
+7차는 약17분27초·1,453 pass 뒤 live root 측정이 다시 `root-unsafe-file`로 중단됐다.
+이번에는 generation transaction이 없었고 failure-live의 media5·partial1이 종료 뒤
+media6·partial0으로 정리됐다. 마지막 상태 요청은 HTTP200·1ms, root316,933,359B/
+448MiB였으며 서버 exit0·포트/UDP 폐쇄와 제품 로그 오류0을 확인했다.
+
+제품의 세그먼트 확정은 검증한 partial을 final 이름으로 `linkat`하여 no-replace 게시하고
+directory fsync 뒤 partial을 unlink한다. 같은 inode의 정확한
+`final + final.partial.<UUID>` 두 링크를 관측기가 영구 hardlink로 오판한 것이 직접
+원인이다. 일반 hardlink를 허용하지 않고 이 게시 쌍만 전체 root 재측정 대상으로
+제한했으며, 지속 쌍은 최대32회 뒤 계속 거부한다.
+
+예상 RED 뒤 root13/13·generation36/36·observer67/67과 권한 적용 실제 앱73/73이
+통과했다. 실제 앱 최초 샌드박스 준비는 제품 기동 전 macOS 서비스 대기 30초 timeout으로
+실패했으며 동일 상한의 권한 적용 실행에서 fixture1.392초·실제 녹화30.171초·서버3회
+재기동/복구/종료/정리가 통과했다. [상세 실패·보완·정리](b11-recording-120-attempt7.md)를
+따른다. 이 focused 결과는 녹화120분 전체 PASS를 대신하지 않는다.
