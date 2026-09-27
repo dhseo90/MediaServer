@@ -23,6 +23,7 @@ export function statCurrentRunEntry(root,file,stat=fs.lstatSync){
 export const CURRENT_JOURNAL_MUTATION_TYPES=Object.freeze(['segment_finalized','event_link_created','observation_put','observation_v2_put','deletion_requested','deletion_completed','corruption_detected','recording_order_reserved','segment_v2_finalized','segment_v2_bound_finalized','consumer_reference_put','derived_reference_accepted','referenced_observation_put','derived_job_intent','derived_job_files','derived_job_ready','derived_job_committed','derived_job_complete','derived_job_failed','segment_v2_state','segment_v2_deleted']);
 const categoryTotal=(categories,names)=>names.reduce((total,name)=>({bytes:total.bytes+categories[name].bytes,files:total.files+categories[name].files}),{bytes:0,files:0});
 const generationManagedCategory=category=>['generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction'].includes(category);
+const mediaPartialName=/^(.+\.(?:mp4|webm))\.partial\.[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 function currentGenerationTransactionActive(root,lstat){
   for(const name of ['.recording-generation-transaction.json','.recording-generation-transaction.stage']){
     try{const stat=lstat(path.join(root,'recordings',name));if(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1)return true;return false;}
@@ -31,6 +32,19 @@ function currentGenerationTransactionActive(root,lstat){
   return false;
 }
 function retryGenerationTransition(){throw Object.assign(Error('root-generation-transition'),{code:'EAGAIN'});}
+function currentMediaPublicationActive(file,stat,lstat){
+  const directory=path.dirname(file),name=path.basename(file),partial=mediaPartialName.exec(name);
+  const candidates=partial?[partial[1]]:/\.(?:mp4|webm)$/.test(name)?fs.readdirSync(directory).filter(candidate=>{
+    const match=mediaPartialName.exec(candidate);return match?.[1]===name;
+  }):[];
+  for(const candidate of candidates){
+    const other=path.join(directory,candidate);
+    let current;try{current=lstat(other);}catch(error){if(error?.code==='ENOENT')continue;throw error;}
+    if(current.isFile()&&!current.isSymbolicLink()&&(current.nlink===1||current.nlink===2)&&current.dev===stat.dev&&current.ino===stat.ino)return true;
+  }
+  return false;
+}
+function retryMediaPublication(){throw Object.assign(Error('root-media-publication'),{code:'EAGAIN'});}
 // sqlite3는 read-only PRAGMA만 수행한다. 실행기를 찾지 못하거나 live DB를 읽지 못하면 관측을 실패로 만들지 않고 unavailable로 남긴다.
 export function measureCurrentSqlitePages(root,run=spawnSync){
   // 파일 용량 관측만 담당한다. manifest 존재는 Catalog 유효성 판정이 아니다.
@@ -108,6 +122,15 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryGenerationTransition();
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentGenerationTransactionActive(root,lstat))retryGenerationTransition();
       }
+      // FinalizeRecordingFile은 동일 디렉터리에서 검증한 partial을 final 이름으로
+      // no-replace link한 뒤 디렉터리를 fsync하고 partial을 unlink한다. 정확한 이름·inode의
+      // 두 링크만 게시 중으로 인정하고, 한 항목만 더하지 않도록 전체 측정을 다시 시작한다.
+      if(stat.nlink===2&&(itemCategory==='media'||itemCategory==='mediaPartial')){
+        const current=statCurrentRunEntry(root,file,lstat);
+        if(!current)throw Object.assign(Error('media entry changed during scan'),{code:'ENOENT'});
+        if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryMediaPublication();
+        if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentMediaPublicationActive(file,current,lstat))retryMediaPublication();
+      }
       need(stat.nlink===1,'root-unsafe-file');
     }else need(false,'root-unsafe-file');
     need(Number.isSafeInteger(stat.size)&&stat.size>=0&&Number.isSafeInteger(totalBytes+stat.size),'root-size-bound');
@@ -124,7 +147,7 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
 // live writer의 rename/unlink와 비원자 순회가 교차하면 일부 항목을 생략하지 않고 전체 측정을 다시 시작한다.
 // 지속 ENOENT와 다른 권한/형식 오류는 고정 코드로 실패시켜 root 상한을 완화하지 않는다.
 export function measureCurrentRootStable(root,options={}){
-  let transientTreeRetries=0,missingRetries=0,generationRetries=0;
+  let transientTreeRetries=0,missingRetries=0,generationRetries=0,mediaPublicationRetries=0;
   for(;;)try{return {...measureCurrentRoot(root,options),transientTreeRetries};}
   catch(error){
     if(error?.code==='ENOENT'){
@@ -132,6 +155,9 @@ export function measureCurrentRootStable(root,options={}){
     }
     if(error?.code==='EAGAIN'&&error?.message==='root-generation-transition'){
       if(generationRetries++>=31)throw Error('root-generation-transition-retry-exhausted');transientTreeRetries++;continue;
+    }
+    if(error?.code==='EAGAIN'&&error?.message==='root-media-publication'){
+      if(mediaPublicationRetries++>=31)throw Error('root-media-publication-retry-exhausted');transientTreeRetries++;continue;
     }
     throw error;
   }

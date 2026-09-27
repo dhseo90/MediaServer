@@ -56,6 +56,21 @@ try{
     assert.equal(fs.lstatSync(promoted).nlink,2);assert(receiptReads>1);
     fs.unlinkSync(staged);fs.unlinkSync(promoted);fs.rmdirSync(stage);
   });
+  check('B11-O04 세그먼트 partial 무교체 게시의 두 링크는 전체 측정만 재시작',()=>{
+    const nonce='12345678-1234-1234-1234-123456789abc',directory=path.join(root,'recordings','publish');
+    fs.mkdirSync(directory);const final=path.join(directory,'segment.mp4'),partial=final+'.partial.'+nonce;
+    fs.writeFileSync(partial,Buffer.alloc(23));fs.linkSync(partial,final);let mediaReads=0;
+    const measured=measureCurrentRootStable(root,{lstat:file=>{
+      if((file===partial||file===final)&&++mediaReads===4)fs.unlinkSync(partial);
+      return fs.lstatSync(file);
+    }});
+    assert(measured.transientTreeRetries>=1);assert.equal(measured.categories.media.bytes,23);
+    assert.equal(measured.categories.media.files,1);assert.equal(measured.categories.mediaPartial.files,0);
+    fs.linkSync(final,partial);
+    assert.throws(()=>measureCurrentRootStable(root),/root-media-publication-retry-exhausted/);
+    assert.equal(fs.lstatSync(final).nlink,2);
+    fs.unlinkSync(partial);fs.unlinkSync(final);fs.rmdirSync(directory);
+  });
   check('LP26-O06-A disjoint categories preserve exact aggregate and redact names',()=>{
     const files=[['input/private-source.mp4','input'],['recordings/channel/segment.mp4','media'],['recordings/recording-v2-mutations.jsonl','journal'],
       ['recordings/.recording-checkpoint.tmp','checkpoint'],['recordings/recording-catalog.sqlite3','sqlite'],['recordings/recording-catalog.sqlite3-wal','wal'],
