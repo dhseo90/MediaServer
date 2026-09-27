@@ -55,5 +55,15 @@ test('O28-D05 snapshot의 기존 15초·16KiB 상한과 성공 검사 계약을 
   assert(body.includes("check(originalUnchanged,'LP26-O05 original journal bytes unchanged')"));assert(!body.includes("'recording-v2-mutations.jsonl'"));
   assert(source.includes("MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'"));assert(body.includes('validatedPhaseReceipt(r.stderr)'));assert(body.includes('detached:true'));assert(body.includes('process.kill(-r.pid,0)'));assert(!body.includes('console.log(r.stderr)'));
 });
+test('B11-G03 삭제 미디어는 segment·event-link 조회 전에 fail-closed 한다',()=>{
+  const source=fs.readFileSync(new URL('../../src/recording/recording_read_service.cpp',import.meta.url),'utf8');
+  const start=source.indexOf('std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithContext(');
+  const end=source.indexOf('\n    if(segment_v2)',start);
+  const body=source.slice(start,end);
+  const deleted=body.indexOf('catalog_.IsDeletedSegmentId(segment_id)');
+  assert(start>=0&&end>start&&deleted>=0);
+  assert(deleted<body.indexOf('catalog_.FindSegmentById(segment_id)'));
+  assert(deleted<body.indexOf('AllLinks(catalog_)'));
+});
 test('O28-R03 observer wrapper는 실패 또는 cleanup-blocked root를 보존한다',()=>{const source=fs.readFileSync(new URL('./verify_recording_current_observer.sh',import.meta.url),'utf8');assert(source.includes("OBSERVER_PRIOR=\"$prior\""));assert(source.includes("reason:'failed-run'"));assert(source.includes("cleanup blocker: preserve root"));});
 test('O28-R04 accumulation runner와 EXIT는 사전 manifest·parent/child 실패·미종료 group을 보존한다',()=>{const runner=fs.readFileSync(new URL('./recording_accumulation_run.mjs',import.meta.url),'utf8'),wrapper=fs.readFileSync(new URL('./verify_recording_accumulation_probe.sh',import.meta.url),'utf8'),before=runner.indexOf('manifestBefore=sourceManifest(manifestEntries)'),run=runner.indexOf('try{',before),after=runner.lastIndexOf('sourceManifest(manifestEntries)');assert(before>=0&&before<run&&after>run);for(const marker of ['preserveAccumulationReceipt','process.kill(-child.pid,0)',"'process-group-open'",'parentFailureCode','processes,firstFailureIndex','safeResources()',".receipt-preserved"])assert(runner.includes(marker));assert(wrapper.includes("reason:'evidence-missing'"));assert(wrapper.includes("reason:'evidence-unverified'"));assert(wrapper.includes('process.exit(1)'));assert(wrapper.includes('PROBE_PRIOR="$result"'));});

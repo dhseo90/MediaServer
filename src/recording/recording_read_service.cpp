@@ -370,6 +370,9 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
 std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithContext(
     const std::string& channel_id,const std::string& segment_id,RecordingCatalog::JobReadContext* context) const {
     if (!ValidateOpaqueId(segment_id, nullptr)) return {};
+    // 삭제 ID는 어떤 fallback/파생 경로로도 재생 가능해질 수 없다. 누적 삭제 이력에서
+    // segment와 event-link 전수를 반복 조회하지 않고, 권위 있는 삭제 상태에서 먼저 닫는다.
+    if (catalog_.IsDeletedSegmentId(segment_id)) return {};
     const auto segment = catalog_.FindSegmentById(segment_id);
     const auto segment_v2 = catalog_.FindSegmentV2ById(segment_id);
     const auto links = AllLinks(catalog_);
