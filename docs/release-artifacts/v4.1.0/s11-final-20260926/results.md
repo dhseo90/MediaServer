@@ -700,3 +700,8 @@ fsync 뒤 stage 링크를 제거한다. 실패 순간 snapshot2개·transaction1
 일반 hardlink 거부를 완화하지 않고, 검증된 generation transaction 활성 구간의 관리
 파일만 root 전체 재측정 대상으로 제한한다. [상세 실패·재개 경계](b11-recording-120-attempt6.md)를
 따르며 집중 검증과 120분 전체 재실행 전에는 장시간 PASS가 아니다.
+
+보완 뒤 root 안전 계약12/12, 세대 관측36/36, 소규모 관측67/67과 실제 앱73/73이
+통과했다. 실제 앱은 30.188초 동안 두 채널 녹화·삭제, 서버3회 재기동·복구, 종료·포트/
+UDP 폐쇄와 289,373,785B root 제거를 확인했다. 일반 hardlink·symlink·특수 파일과
+끝나지 않는 transaction 거부는 유지한다. 이 focused 결과는 재실행 조건만 충족한다.

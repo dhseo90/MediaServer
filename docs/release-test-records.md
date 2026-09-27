@@ -45816,6 +45816,9 @@ SHA-256은 `210d17be84b37ee5a435e6f7ff45207687483363e906a8ffef890ff4b0175c2d`다
 | B11-G03 자원 관측 | 최대 RSS579,436,544B, warmup 뒤 1.3563MiB/min, FD -6·thread 0 | pass |
 | B11-G03 세대 회전 판정 | 정상 transaction 중 관리 파일 링크 수2를 영구 hardlink로 오판 | fail |
 | B11-G03 종료 후 대조 | recordings symlink·특수 파일·다중 링크 없음, 세대 파일 링크 수1 | pass |
+| B11-G03 세대 회전 보완 | 관리 파일 두 링크+활성 receipt만 전체 재측정, 일반 hardlink·지속 transaction 거부 유지 | pass |
+| B11-G03 집중 회귀 | root12/12·generation36/36·observer67/67 | pass |
+| B11-G03 실제 앱 집중 | exit0·73/73·30.188초·서버3회·복구/종료/정리 | pass |
 
 압축 원출력과 원인·재개 경계는
 `docs/release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt6.md`에 보존한다.

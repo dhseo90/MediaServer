@@ -22,6 +22,15 @@ export function statCurrentRunEntry(root,file,stat=fs.lstatSync){
 // 공개 로그에 원문 mutation type을 반영하지 않도록 제품 enum의 알려진 이름만 누적한다.
 export const CURRENT_JOURNAL_MUTATION_TYPES=Object.freeze(['segment_finalized','event_link_created','observation_put','observation_v2_put','deletion_requested','deletion_completed','corruption_detected','recording_order_reserved','segment_v2_finalized','segment_v2_bound_finalized','consumer_reference_put','derived_reference_accepted','referenced_observation_put','derived_job_intent','derived_job_files','derived_job_ready','derived_job_committed','derived_job_complete','derived_job_failed','segment_v2_state','segment_v2_deleted']);
 const categoryTotal=(categories,names)=>names.reduce((total,name)=>({bytes:total.bytes+categories[name].bytes,files:total.files+categories[name].files}),{bytes:0,files:0});
+const generationManagedCategory=category=>['generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction'].includes(category);
+function currentGenerationTransactionActive(root,lstat){
+  for(const name of ['.recording-generation-transaction.json','.recording-generation-transaction.stage']){
+    try{const stat=lstat(path.join(root,'recordings',name));if(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1)return true;return false;}
+    catch(error){if(error?.code!=='ENOENT')throw error;}
+  }
+  return false;
+}
+function retryGenerationTransition(){throw Object.assign(Error('root-generation-transition'),{code:'EAGAIN'});}
 // sqlite3는 read-only PRAGMA만 수행한다. 실행기를 찾지 못하거나 live DB를 읽지 못하면 관측을 실패로 만들지 않고 unavailable로 남긴다.
 export function measureCurrentSqlitePages(root,run=spawnSync){
   // 파일 용량 관측만 담당한다. manifest 존재는 Catalog 유효성 판정이 아니다.
@@ -83,16 +92,26 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
     need(++entries<=100000,'root-entry-bound');
     const stat=statCurrentRunEntry(root,file,lstat);
     if(!stat){transientJournalMisses++;return;}
+    const itemCategory=category(parts);
     if(stat.isSymbolicLink())need(parts.length>1&&parts[0]==='gst-cache','root-unsafe-symlink');
     else if(stat.isDirectory()){for(const name of fs.readdirSync(file))visit(path.join(file,name),[...parts,name]);return;}
     else if(stat.isFile()){
       // 이름 조회 직후 writer가 unlink하면 macOS lstat 결과가 일시적으로 nlink=0일 수 있다.
       // 이 항목을 누락하거나 허용하지 않고 전체 비원자 측정을 다시 시작한다.
       if(stat.nlink===0)throw Object.assign(Error('entry unlinked during scan'),{code:'ENOENT'});
+      // 세대 transaction은 검증한 component를 stage와 root에 잠시 두 링크로 결속한 뒤
+      // root fsync와 stage unlink를 수행한다. 관리 파일의 정확한 두 링크만 재확인하며,
+      // transaction 종료 또는 활성 receipt가 입증되면 부분 합산하지 않고 전체를 다시 잰다.
+      if(stat.nlink===2&&generationManagedCategory(itemCategory)){
+        const current=statCurrentRunEntry(root,file,lstat);
+        if(!current)throw Object.assign(Error('generation entry changed during scan'),{code:'ENOENT'});
+        if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryGenerationTransition();
+        if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentGenerationTransactionActive(root,lstat))retryGenerationTransition();
+      }
       need(stat.nlink===1,'root-unsafe-file');
     }else need(false,'root-unsafe-file');
     need(Number.isSafeInteger(stat.size)&&stat.size>=0&&Number.isSafeInteger(totalBytes+stat.size),'root-size-bound');
-    const item=categories[category(parts)];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
+    const item=categories[itemCategory];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
   }
   need(fs.lstatSync(root).isDirectory()&&!fs.lstatSync(root).isSymbolicLink(),'root-unsafe-directory');visit(root,[]);
   const ownership={productRecording:categoryTotal(categories,['media','mediaPartial','journal','checkpoint','generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction','sqlite','wal','sqliteAux','recordingsOther']),
@@ -105,9 +124,17 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
 // live writer의 rename/unlink와 비원자 순회가 교차하면 일부 항목을 생략하지 않고 전체 측정을 다시 시작한다.
 // 지속 ENOENT와 다른 권한/형식 오류는 고정 코드로 실패시켜 root 상한을 완화하지 않는다.
 export function measureCurrentRootStable(root,options={}){
-  for(let attempt=0;attempt<3;attempt++)try{return {...measureCurrentRoot(root,options),transientTreeRetries:attempt};}
-  catch(error){if(error?.code!=='ENOENT')throw error;if(attempt===2)throw Error('root-snapshot-retry-exhausted');}
-  throw Error('root-snapshot-retry-exhausted');
+  let transientTreeRetries=0,missingRetries=0,generationRetries=0;
+  for(;;)try{return {...measureCurrentRoot(root,options),transientTreeRetries};}
+  catch(error){
+    if(error?.code==='ENOENT'){
+      if(missingRetries++>=2)throw Error('root-snapshot-retry-exhausted');transientTreeRetries++;continue;
+    }
+    if(error?.code==='EAGAIN'&&error?.message==='root-generation-transition'){
+      if(generationRetries++>=31)throw Error('root-generation-transition-retry-exhausted');transientTreeRetries++;continue;
+    }
+    throw error;
+  }
 }
 export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false&&result.busy!==true;}
 export function disabledChannelsExact(status,expected){

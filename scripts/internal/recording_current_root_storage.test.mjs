@@ -35,6 +35,27 @@ try{
     assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{if(file===rotating)throw Object.assign(Error('permission'),{code:'EACCES'});return fs.lstatSync(file);}}),{code:'EACCES'});
     fs.unlinkSync(rotating);
   });
+  check('B11-O04 세대 transaction의 일시적 두 링크는 전체 측정만 재시작',()=>{
+    const recordings=path.join(root,'recordings'),stage=path.join(recordings,'.recording-generation-prepare-'+ 'b'.repeat(32));
+    fs.mkdirSync(stage);const staged=path.join(stage,'snapshot-81.jsonl'),promoted=path.join(recordings,'snapshot-81.jsonl');
+    fs.writeFileSync(staged,Buffer.alloc(19));fs.linkSync(staged,promoted);
+    const receipt=path.join(recordings,'.recording-generation-transaction.json');let receiptReads=0;
+    const measured=measureCurrentRootStable(root,{lstat:file=>{
+      if(file===receipt){
+        if(receiptReads++===0){const stat=fs.lstatSync(promoted);fs.unlinkSync(staged);return new Proxy(stat,{get(target,key){return key==='nlink'?1:Reflect.get(target,key,target);}});}
+        throw Object.assign(Error('transaction closed'),{code:'ENOENT'});
+      }
+      return fs.lstatSync(file);
+    }});
+    assert.equal(measured.transientTreeRetries,1);assert.equal(measured.categories.generationSnapshot.bytes,19);
+    fs.linkSync(promoted,staged);receiptReads=0;
+    assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{
+      if(file===receipt){receiptReads++;const stat=fs.lstatSync(promoted);return new Proxy(stat,{get(target,key){return key==='nlink'?1:Reflect.get(target,key,target);}});}
+      return fs.lstatSync(file);
+    }}),/root-generation-transition-retry-exhausted/);
+    assert.equal(fs.lstatSync(promoted).nlink,2);assert(receiptReads>1);
+    fs.unlinkSync(staged);fs.unlinkSync(promoted);fs.rmdirSync(stage);
+  });
   check('LP26-O06-A disjoint categories preserve exact aggregate and redact names',()=>{
     const files=[['input/private-source.mp4','input'],['recordings/channel/segment.mp4','media'],['recordings/recording-v2-mutations.jsonl','journal'],
       ['recordings/.recording-checkpoint.tmp','checkpoint'],['recordings/recording-catalog.sqlite3','sqlite'],['recordings/recording-catalog.sqlite3-wal','wal'],

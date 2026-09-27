@@ -52,3 +52,29 @@ symlink·특수 파일·다중 링크는 없었고 모든 세대 파일은 일�
 | 6차 원출력 | 장시간 원출력 | 2,664,711B | gzip 이관 | 152,622B 보존 | 위 SHA-256 |
 
 보완 반례·집중 검증과 소유 root 정리가 통과한 뒤에만 120분 전체 재실행 조건이 성립한다.
+
+## 보완과 집중 검증
+
+관리 세대 범주는 snapshot·identity·evidence·manifest·transaction으로 고정했다. 관측된
+링크 수가 정확히 2일 때 같은 파일을 다시 확인하고, 링크가 1로 해소됐거나 링크 수 1의
+활성 transaction receipt가 있을 때만 `root-generation-transition`으로 전체 root 측정을
+다시 시작한다. 일반 경로 hardlink, 링크 수 2 초과, symlink·특수 파일은 기존처럼 즉시
+거부한다. transaction이 계속 남으면 최대32회 뒤
+`root-generation-transition-retry-exhausted`로 실패한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 예상 RED | 활성 transaction의 관리 snapshot 두 링크 반례가 기존 `root-unsafe-file`로 실패 | fail |
+| root 안전 계약 | 새 반례·일반 hardlink/symlink·지속 transaction·ENOENT 포함 12/12 | pass |
+| 세대 관측 계약 | `--generation-self-test`, 36/36 | pass |
+| 소규모 관측·복구 | `--self-test`, 67/67 | pass |
+| 실제 앱 집중 검증 | `--app-observe`, exit0·73/73·실제30.188초 | pass |
+| 실제 앱 수명·정리 | 서버3회 정상 종료·복구 receipt3개·포트/UDP 폐쇄·289,373,785B root 제거 | pass |
+
+[실제 앱 압축 원출력](b11-generation-transition-app.log.gz)의 SHA-256은
+`5061c6af7cb903d120a3587518d0a12a8461598dfda0e89fc1ea174a1d7abf68`이다.
+새 O28 receipt 3개의 SHA-256은
+`64a61546159ce0867f8cdbf33a763e21b752a6634aba4b69fcb57f57f9ce721e`,
+`4e255e075519128efb51ab23fe5ce3a4ce5a6a44b1029044f03884c159029151`,
+`a5b56ce585c5c049d85a36a8376f0dd272df6c61c4031924809cdb32994b5f83`다.
+집중 결과와 임시 root 정리는 통과했지만 녹화 120분 전체 PASS는 아직 아니다.

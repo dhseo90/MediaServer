@@ -43,7 +43,7 @@ B11-F01~03 최종 단기 gate와 당시 30분·영향받는 녹화 UI를 통과�
 | S11 최종 단기 | 과거 B09 통과 뒤 B11 변경 | B11 최종 build·inventory·semantic·docs·metadata 통과 | 현행 결과로 재고정 | [중앙 기록](../../../release-test-records.md) |
 | S11 30분 | B10 이전 코드 PASS | G03 저장 writer 반영 최종 코드에서 2,438초·20회·109 PASS·0 FAIL 재실행 | 해소 | [B11-G01/G03](results.md) |
 | S11 UI | B10 공통424+녹화8 ID PASS | 공통424 유지, 영향 녹화8 ID·31 action을 현행 backend에서31 PASS 재실행·메인 시각 적격 | 해소 | [B11-G02](b11-final-ui.md) |
-| S11 120분 | B10 18분48초 FAIL | B11 6차 약55분4초 세대 transaction 회전 오판 FAIL, 제품·저장·종료 정상, 관측기 집중 보완·전체 재실행 전 | 미완료 유지 | [B11-G03](results.md#b11-g03-녹화-120분-1차-실패와-저장-상한-보완-2026-09-27) |
+| S11 120분 | B10 18분48초 FAIL | B11 6차 약55분4초 세대 transaction 회전 오판 FAIL, root12/12·generation36/36·observer67/67·실제 앱73/73 보완 PASS, 전체 재실행 전 | 미완료 유지 | [B11-G03](results.md#b11-g03-녹화-120분-1차-실패와-저장-상한-보완-2026-09-27) |
 
 ### 4. 구현·실행 연결
 
