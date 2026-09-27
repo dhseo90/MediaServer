@@ -161,6 +161,10 @@ void V2AndJobs(const std::filesystem::path& base) {
         const auto bound=AM(RecordingMutationType::SegmentV2BoundFinalized,"bound","segment","{\"segment\":"+SerializeRecordingSegmentV2(input.source.segment)+
             ",\"mediaRelpath\":\"channel/source.mp4\",\"sourceBinding\":"+SerializeRecordingSourceBindingV1(*input.source.binding)+"}");
         Check("B03-W01",AppendProbe::Commit(c,bound)&&c.FindSourceBinding("segment").has_value(),"bound V2 append exposes strict active cold source");
+        const auto active_after_bound=Read(root/"active-2.jsonl");
+        Check("B11-G03",active_after_bound.find("media-server.recording-compressed-mutation.v1")!=std::string::npos&&
+            active_after_bound.find(SerializeRecordingMutationV1(bound))==std::string::npos,
+            "large bound V2 append uses reversible physical wrapper without duplicate logical row");
         RecordingMutationLink source;Need(AppendProbe::Link(journal,"bound",&source));
         Need(c.ReserveRecordingOrder("store","plain-order","plain","channel",&order,&error));
         auto segment=input.source.segment;segment.segment_id="plain";segment.order_request_id="plain-order";segment.order_sequence=2;

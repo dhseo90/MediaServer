@@ -20,7 +20,8 @@ struct RecordingGenerationActiveReadResult {
 // prefix는 비어 있거나 LF로 끝나는 완결행 경계여야 한다. prefix를 포함한 active 첫 행부터
 // cut_ordinal을 부여한다. caller admission은 전체
 // active 물리 bytes의 상한이며 결과 envelope/문자열 객체 overhead의 정확한 RSS 상한이 아니다.
-// 완결 canonical envelope와 locator만 검증한다. 과거 evidence 원문, 중복 ID/상태 전이,
+// 완결 canonical 논리 envelope 또는 지원되는 canonical 가역 물리 wrapper와 locator만 검증한다.
+// 과거 evidence 원문, 중복 ID/상태 전이,
 // snapshot domain, 제품 Open/Append/Checkpoint를 검증/게시하지 않는다.
 // manifest 선행 검증은 snapshot/prefix IO 및 helper lock 생성 부작용을 가질 수 있다.
 // active 데이터는 수정하지 않는다. 실패하면 output 불변, crypto-off는 unsupported다.

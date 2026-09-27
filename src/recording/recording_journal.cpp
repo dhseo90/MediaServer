@@ -2706,8 +2706,16 @@ bool RecordingJournal::AppendGenerationLocked(const void* owner,const RecordingM
         if(!retry&&(state.identities.size()>=generation_limits_.identity_unique_ids||slot>=std::numeric_limits<std::uint64_t>::max()-cut))
             return Fail(error,"B ID admission/ordinal 고갈");
         const auto ordinal=retry?(historical?state.chain.first_acceptances.at(slot).first_global_ordinal:state.active.rows.at(slot).global_ordinal):cut+slot;
-        const std::string raw=bytes+"\n";const auto current=static_cast<std::uint64_t>(state.active_binding.st_size);
-        if(!retry&&(raw.size()>generation_limits_.cold_row_bytes||current>generation_limits_.active_bytes||raw.size()>generation_limits_.active_bytes-current))return Fail(error,"B active/cold row admission 초과");
+        // append-only 세대 원장은 뒤의 삭제 전이에서 앞 bound 행을 다시 쓸 수 없다.
+        // 지원하는 큰 영상 상세는 처음부터 기존 가역 wrapper로만 물리 압축하되,
+        // identity·projection·반환값은 검증된 논리 envelope를 계속 사용한다.
+        if(m.mutation_type==RecordingMutationType::SegmentV2BoundFinalized||
+           m.mutation_type==RecordingMutationType::SegmentV2Deleted)
+            parsed.physical_json=CompressArchive(bytes);
+        const std::string raw=PhysicalRecordingMutation(parsed)+"\n";const auto current=static_cast<std::uint64_t>(state.active_binding.st_size);
+        if(!retry&&(bytes.size()>generation_limits_.cold_row_bytes||raw.size()>generation_limits_.cold_row_bytes||
+           current>generation_limits_.active_bytes||raw.size()>generation_limits_.active_bytes-current))
+            return Fail(error,"B active/cold row admission 초과");
         auto row=std::shared_ptr<RecordingGenerationRecoveryRow>(new RecordingGenerationRecoveryRow);
         row->mutation=parsed;row->retry=retry;row->global_ordinal=ordinal;row->identity=identity;
         auto ref=std::make_shared<RecordingGenerationMutationRef>();

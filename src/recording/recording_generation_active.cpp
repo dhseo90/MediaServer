@@ -136,7 +136,8 @@ bool ReadRecordingGenerationActive(const std::filesystem::path& root,std::uint64
             if(end==std::string::npos||end==offset)return Fail(error,"active incomplete/empty row");
             RecordingGenerationActiveRow row;
             const auto line=bytes.substr(offset,end-offset);
-            if(!ParseRecordingMutationV1(line,&row.mutation,error)||SerializeRecordingMutationV1(row.mutation)!=line)
+            if(!ParseRecordingMutationV1(line,&row.mutation,error)||
+               (row.mutation.physical_json.empty()?SerializeRecordingMutationV1(row.mutation):row.mutation.physical_json)!=line)
                 return Fail(error,"active noncanonical/invalid envelope");
             if(result.rows.size()>std::numeric_limits<std::uint64_t>::max()-manifest.cut_ordinal)
                 return Fail(error,"active ordinal overflow");

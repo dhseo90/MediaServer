@@ -772,8 +772,8 @@ pending finalize/삭제/복구 및 event/analysis/consumer의 **실제 재생·�
 ### LP26-R02 삭제 bound 행의 가역 물리 표현
 
 위 수명 계약의 영구 삭제 조건은 아직 충족되지 않았다. 따라서 이번 S11 보완은
-상세 프레임/파일 증거를 지우는 최소 영수증으로 승격하지 않는다. 대신 삭제가
-확정된 `SegmentV2BoundFinalized` 한 행의 **물리 표현만** checkpoint에서
+상세 프레임/파일 증거를 지우는 최소 영수증으로 승격하지 않는다. 대신 지원되는
+`SegmentV2BoundFinalized`와 `SegmentV2Deleted` 한 행의 **물리 표현만**
 `media-server.recording-compressed-mutation.v1`로 바꿀 수 있다. 독립 파일이나
 SQLite 필수화 없이 기존 JSONL 한 행·동일 위치·동일 mutation ID와 순서를 유지한다.
 압축 전 논리 envelope는 변경하지 않으며 공개 serializer·Replay·catalog·consumer는
@@ -789,6 +789,23 @@ SQLite 필수화 없이 기존 JSONL 한 행·동일 위치·동일 mutation ID�
 binding 투영 중복 제거는 LP26-R01로 분리하고, 기존 SQLite 파일의 물리 회수와
 120분 상한/잠금·복구 비용은 LP26-R02 통과 후 별도 실측한다. 직접 링크 검증기와
 제품 모두 zlib을 필수로 결박해 다른 PC에서 읽기 기능이 달라지지 않게 한다.
+
+#### B11-G03 append-only 세대 원장 보완
+
+최종 녹화 120분 1차 실행은 영상 순환 삭제와 현재 상태 축약이 정상이어도, 세대 원장의
+봉인 active 파일이 약 1MiB 단위로 계속 남아 root 상한을 먼저 소진함을 확인했다.
+append-only 원장은 뒤의 삭제 전이에서 이미 봉인된 bound 행을 다시 쓸 수 없으므로
+checkpoint에서만 압축하는 방식으로는 이 누적을 줄일 수 없다. 상한을 늘리거나 입력
+fixture를 제외하거나 cold 원장을 지우는 방식은 채택하지 않는다.
+
+세대 writer는 위 두 지원 type의 논리 envelope를 먼저 정규 검증하고 ID·순서·projection을
+확정한 뒤, 512바이트 이상이며 실제 물리 크기가 줄어드는 경우에만 기존 가역 wrapper를
+append 시점부터 쓴다. 압축이 이득이 없으면 기존 논리 행을 그대로 쓴다. 논리 행 상한은
+압축 전에 적용하므로 wrapper가 큰 입력의 수용 제한을 우회하지 않는다. active reader는
+정규 논리 행과 정규 wrapper만 허용하며 wrapper의 길이·CRC32·base64·내부 type·정규
+직렬화를 다시 검증한다. 공개 API/schema, mutation ID·순서, 시간값, cold 복구 의미와
+기존 plain 원장 호환은 바꾸지 않는다. 기존 원장의 파괴적 재작성이나 format migration도
+하지 않는다.
 
 ## 6. 계약의 반례와 구현 완료 증거
 
