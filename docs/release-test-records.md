@@ -2190,6 +2190,26 @@ slow-only ring은 메모리64행이며 정상 종료시 최대33280bytes/process
 | 장시간/실앱/UI | 이번 변경 후 제품 실행 | 이번1번은 focused/build만 수행 | 기존120분 실패·실앱 진단 회수·UI 미확인 유지 |
 | 다음 잔여이슈 | 누적 synthetic fixture/제품 성능 원인 수정 | 이번1번 범위 밖 | 미착수 |
 
+## v4.1.0 S11 B11-G03 120분 2차 준비 실패·관측기 보완 (2026-09-27)
+
+최종 writer가 압축 active 행을 생성한 뒤 실행한 녹화 전용 120분 2차는 약 11초의 준비
+단계에서 `observer-native-rejected`로 중단됐다. root 262,873,004B는 448MiB 상한 아래였고
+제품 서버는 exit0·포트/UDP 정리 PASS였다. 제품 writer/reader가 아니라 검증 전용 active
+tail 관측기가 복원된 논리 행을 물리 wrapper 원문과 직접 비교한 것이 원인이다.
+
+관측기의 plain/wrapper 물리 대조를 뒤쪽 raw 검증과 같은 계약으로 통일하고 실제 writer의
+checkpoint 전 압축 active 행 반례를 추가했다. generation34/34, observer67/67, 실제 앱
+73/73이 통과했다. 실제 앱은 두 채널 finalized14/deleted12, HTTP·재기동·복구·종료·정리를
+확인했다. 첫 샌드박스 실행의 macOS 서비스 fixture timeout은 제품 기동 전 환경 실패로
+보존하고, 권한 조정 1회에서 같은 30초 상한으로 fixture1.4초·전체 PASS를 확인했다.
+
+[실패·보완·cleanup 전수](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt2.md),
+[120분 실패 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt2.log.gz),
+[generation 34행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-generation.log),
+[observer 67행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-observer.log),
+[실제 앱 73행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-app.log)을 보존한다.
+이 결과는 focused/단기 PASS이며 녹화 전용 120분 PASS가 아니다.
+
 ## v4.1.0 S11 LP26-O08 native 관측 실패 구분 — 실행 전 정의
 
 녹화 전용 120분 2차는 약 394초에 `observer-native-rejected`로 실패했다.

@@ -163,6 +163,12 @@ if(metadataOnly){
     const o=new CurrentRecordingObserver(batchRoot,binary),a=o.poll();assert.equal(a.rows.length,128);assert.equal(a.backlog,true);
     const b=o.poll();assert.equal(b.rows.length,2);assert.equal(b.backlog,false);assert.equal(o.poll().rows.length,0);o.close();
   });
+  check('B11-O02 actual compressed active rows remain observable',()=>{
+    const mediaRoot=path.join(base,'active-compressed-recordings');
+    const r=spawnSync(binary,['--generation-active-media-fixture',mediaRoot],{encoding:'utf8',timeout:15000,maxBuffer:33554432});assert.equal(r.status,0,r.stderr);
+    const activeBytes=fs.readFileSync(active(mediaRoot),'utf8');assert(activeBytes.includes('media-server.recording-compressed-mutation.v1'));
+    const o=new CurrentRecordingObserver(mediaRoot,binary),a=o.poll();assert(a.rows.some(row=>row.type==='segment_v2_bound_finalized'));assert.equal(o.poll().rows.length,0);o.close();
+  });
   check('B06-V03 actual B writer, deletion and sealed cold evidence match independent progress',()=>{
     const mediaRoot=path.join(base,'recordings'),r=spawnSync(binary,['--generation-media-fixture',mediaRoot],{encoding:'utf8',timeout:15000,maxBuffer:33554432});assert.equal(r.status,0,r.stderr);
     const o=new CurrentRecordingObserver(mediaRoot,binary),a=o.poll(),p=new CurrentLongrunProgress(0),deleted=p.consume(a.rows,1);

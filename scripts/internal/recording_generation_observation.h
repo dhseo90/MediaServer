@@ -115,7 +115,8 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
         tail.archives.push_back({manifest.active.name,active.size(),Digest(active)});
         std::size_t off=0;while(off<active.size()){
             const auto end=active.find('\n',off);Need(end!=std::string::npos&&end>off&&end-off<16*1024*1024);
-            const auto text=active.substr(off,end-off);RecordingMutationV1 m;Need(ParseRecordingMutationV1(text,&m,&error)&&SerializeRecordingMutationV1(m)==text);
+            const auto text=active.substr(off,end-off);RecordingMutationV1 m;Need(ParseRecordingMutationV1(text,&m,&error)&&
+                (m.physical_json.empty()?SerializeRecordingMutationV1(m):m.physical_json)==text);
             Need(tail.rows.size()-historical_rows<UINT64_MAX-manifest.cut_ordinal);RecordingIdentityRow r;r.mutation_id=m.mutation_id;r.type=m.mutation_type;r.entity_id=m.entity_id;r.occurred_at_ms=m.occurred_at_ms;
             r.global_ordinal=manifest.cut_ordinal+tail.rows.size()-historical_rows;r.identity=Identity(m);r.archive_slot=active_slot;r.offset=off;r.length=end-off+1;r.raw_sha256=Digest(active.substr(off,r.length));
             if(m.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 order;Need(ParseRecordingOrderReservationV1(m.payload_json,&order,&error));r.reservation=order;}

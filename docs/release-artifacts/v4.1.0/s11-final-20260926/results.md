@@ -622,3 +622,15 @@ assertion과 build가 PASS했고 모든 focused 임시 root를 제거했다. 최
 제품 저장 경로가 바뀌었으므로 최종30분은 해당 변경분에 대해 재실행하고, 논리 API/UI가
 불변인 녹화 UI31 action은 유지 판정한 뒤 녹화120분 전체를 처음부터 다시 실행한다.
 이 focused PASS 자체는 장시간 PASS가 아니다.
+
+### B11-G03 120분 2차 준비 실패와 관측기 보완
+
+writer 반영 뒤 120분 2차는 약 11초에 검증 전용 observer가 첫 압축 active 행을
+거부해 중단됐다. root는 약262.9MB로 상한 미달이고 서버 종료·포트·UDP 정리는
+통과했다. active tail 앞단만 논리 재직렬화와 물리 wrapper를 비교하던 불일치를
+고쳤으며 제품 저장/API/시간·ID 계약은 변경하지 않았다.
+
+실제 압축 active 반례를 포함한 generation34/34, observer67/67, 실제 앱73/73이 통과했다.
+첫 실제 앱 focused 시도의 macOS 서비스 fixture timeout은 제품 기동 전 환경 실패로
+남기고 권한 조정 1회에서 동일 상한으로 통과했다. [상세 실패·보완 기록](b11-recording-120-attempt2.md)을
+따르며 이 결과는 120분 전체 PASS를 대체하지 않는다.

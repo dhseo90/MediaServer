@@ -117,10 +117,12 @@ int main(int argc,char** argv){try{
       std::string digest;{archive_phase::Scope digest_scope(archive_phase::Phase::Digest);std::sort(evidence.begin(),evidence.end());std::string joined;for(const auto& e:evidence)joined+=e+'\n';digest=Hash(joined);}
       {archive_phase::Scope output_scope(archive_phase::Phase::Output);std::cout<<"{\"digest\":"<<Quote(digest)<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';std::cout.flush();Require(bool(std::cout),"output");}return 0;
     }
-    if(argc==3&&(std::string(argv[1])=="--fixture"||std::string(argv[1])=="--generation-media-fixture")){
-      const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root.parent_path())==root.parent_path()&&
+    if(argc==3&&(std::string(argv[1])=="--fixture"||std::string(argv[1])=="--generation-media-fixture"||
+                  std::string(argv[1])=="--generation-active-media-fixture")){
+      const auto active_fixture=std::string(argv[1])=="--generation-active-media-fixture";const std::filesystem::path root(argv[2]);
+      Require((root.filename()=="recordings"||(active_fixture&&root.filename()=="active-compressed-recordings"))&&std::filesystem::canonical(root.parent_path())==root.parent_path()&&
         root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&!std::filesystem::exists(root));
-      gst_init(nullptr,nullptr);const bool generation=std::string(argv[1])=="--generation-media-fixture";
+      gst_init(nullptr,nullptr);const bool generation=std::string(argv[1])!="--fixture";
       std::unique_ptr<Store> legacy;std::unique_ptr<recording::RecordingRuntimeStorage> runtime;std::string error;
       if(generation){runtime=std::make_unique<recording::RecordingRuntimeStorage>(root);Require(runtime->Open(&error));}else legacy=std::make_unique<Store>(root);
       auto& journal=generation?runtime->journal():legacy->journal;auto& catalog=generation?runtime->catalog():legacy->catalog;
@@ -133,6 +135,7 @@ int main(int argc,char** argv){try{
       std::vector<recording::RecordingSegmentV2> segments;
       for(const auto& channel:{"9101","9201"}){recording::RecordingLocationCatalogSnapshot values;Require(catalog.SnapshotLocationsV2(channel,&values,&error));segments.insert(segments.end(),values.segments.begin(),values.segments.end());}
       Require(segments.size()>=4);
+      if(active_fixture){std::cout<<"{\"fixture\":true}\n";return 0;}
       for(const auto& channel:{"9101","9201"}){const auto it=std::find_if(segments.begin(),segments.end(),[&](const auto& s){return s.channel_id==channel;});Require(it!=segments.end());
         const auto location=catalog.FindSegmentMediaLocation(it->segment_id);Require(bool(location)&&catalog.RequestDeletion(it->segment_id,"continuous-capacity",&error));
         Require(std::filesystem::remove(location->first/location->second));
