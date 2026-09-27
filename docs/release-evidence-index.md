@@ -5,7 +5,8 @@
   auth19/72/146, GStreamer20, inventory986, 문서·버전·metadata·close-out dry-run을
   현행 소스에서 통과했다. 최초 샌드박스 listen 실패와 auth 두 실패, UI-004 승인
   readback 복원 이력을 보존한다. 개발 브랜치의 로컬 blocker는 해소됐지만 PR·CI·main
-  병합·서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다.
+  병합·서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. 승인된
+  `v4.1.0` 개발 branch push는 clean 확인 뒤 별도로 수행했다.
 
 - [2026-09-27 B11-G03 저장 상한 원인 보완](release-test-records.md#b11-g03-저장-상한-원인-보완):
   append-only 세대 원장의 큰 bound/delete 행을 기존 가역 wrapper로 append하되 논리 상한·

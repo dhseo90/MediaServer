@@ -782,4 +782,5 @@ terminal 관측기의 `fullOutputPass=false`는 전체 페이지 PASS 대체를 
 [B12 상세 결과·원출력 SHA-256·정리](b12-s11-final-local-gate.md)를 따른다. 최종30분,
 UI432, 녹화120분과 B12를 결합해 개발 브랜치의 로컬 release blocker는 해소됐다.
 외부 서비스·실기기는 사용자 제외이고 PR·CI·main 병합·서명 tag·GitHub Release·
-published 확인은 별도 승인 전 미실행이다.
+published 확인은 별도 승인 전 미실행이다. 승인된 `v4.1.0` 개발 branch push는 clean·
+ahead26/behind0 확인 뒤 수행했으며 외부 release action 완료로 확대하지 않는다.

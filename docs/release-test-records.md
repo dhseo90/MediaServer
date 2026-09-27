@@ -45972,4 +45972,5 @@ root는 wrapper가 257,158,113B를 제거했다. token start/end/consumed는 전
 7,200.547초·10,093 PASS·0 FAIL과 자원 수동 판정을 통과했고, 이어 B12 최종 로컬
 게이트도 전 항목을 통과했다. 현재 판정과 외부 release action 경계는
 [B12 상세 기록](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md)을
-따른다.
+따른다. 승인된 `v4.1.0` 개발 branch push는 clean 확인 뒤 수행했으며 PR·CI·main·tag·
+Release 완료 증거로 사용하지 않는다.

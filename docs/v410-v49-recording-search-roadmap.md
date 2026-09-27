@@ -31,7 +31,8 @@
   통과해 기록 마감을 완료했다. 최초 샌드박스 listen 실패·auth 두 실패와 승인 readback
   복원 이력은 보존한다. 이에 따라 v4.1.0 개발 브랜치의 로컬 release blocker는 해소됐다.
   외부 서비스·실기기는 사용자 제외이며 PR·CI·main 병합·서명 tag·GitHub Release·
-  published 확인은 별도 승인 전 미실행이다.
+  published 확인은 별도 승인 전 미실행이다. 승인된 `v4.1.0` 개발 branch는 clean 확인 뒤
+  origin에 동기화했다.
   [B11 결과·한계](release-artifacts/v4.1.0/s11-final-20260926/results.md)와
   [현행 잔여 전수표](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)를 따른다.
   [실패·근거·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md)를 따른다.

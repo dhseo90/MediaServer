@@ -24,7 +24,7 @@ close-out dry-run을 통과했다. 따라서 개발 브랜치의 로컬 release 
 | 2 | 실제 HTTP·출력2개·hash·재기동 통합 | 완료·분할 커밋 | H01 74/74, I01 35+40+10+46+27, HTTP4초·두 기동·정리 통과 | [결과](results.md), `debeb12e` |
 | 3 | 코드 고정·최종 단기·증거 영향 판정 | 완료·분할 커밋 | build·manifest986/986·inventory/docs/version/close-out dry-run 통과, 최초 실패 이력 보존 | [중앙 기록](../../../release-test-records.md) |
 | 4 | 분할 커밋 | 수행 | 1·2번은 독립 커밋, 3번은 최종 단기/문서 정합 커밋으로 분리 | Git log |
-| 5 | 가능하면 푸시 | 승인·최종 조건 대조 중 | 최종 기록 커밋·clean 확인 뒤 현재 branch만 push. PR/merge/tag/Release는 제외 | AGENTS 5.2·최종 보고 |
+| 5 | 가능하면 푸시 | 수행 | clean·ahead26/behind0 확인 뒤 승인 범위의 `v4.1.0` 개발 branch를 origin에 동기화. PR/merge/tag/Release는 제외 | Git push·최종 보고 |
 | 6 | 종합 보고·잔여 이슈 | 수행 | 아래 7·8절에 릴리즈 전 잔여와 승인 경계 전수 기록 | 이 문서 |
 
 ### 2. 기준 대조
@@ -101,6 +101,7 @@ close-out dry-run을 통과했다. 따라서 개발 브랜치의 로컬 release 
 | 녹화120분·자원 | 실행 완료·PASS | 10차 전체120분과 자원 수동 판정 완료, 1~9차 실패 유지 | 가능 | 상세 원출력·정리 보존 |
 | 공통120분 승계 | 영향 대조 완료 | 녹화/storage 변경은 녹화120분이 직접 검증, 공통 불변 구성요소는 기존 80회·409 PASS 유지 | 한정 사용 가능 | 새 공통120분 재실행 불필요 |
 | S11 최종 로컬 gate | 실행 완료·PASS | B12 승인 범위 전부 통과·정리 완료 | 가능 | 최종 기록 커밋·개발 branch push |
+| 개발 branch push | 수행 | 승인된 `v4.1.0`만 origin에 동기화 | release action 완료 증거 아님 | PR·CI·main·tag·Release 별도 승인 |
 | PR/CI/main/tag/Release | 미실행·미승인 | 개발 branch push와 별도 | 불가 | 로컬 P0 전부 통과 후 단계별 승인 |
 | 외부 서비스·실기기 | 사용자 제외 | 이번 릴리즈에서 안 함 | 외부 PASS 불가 | 후속 대상에서 제외 |
 

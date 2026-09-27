@@ -131,5 +131,7 @@ wrapper의 `fullFoundationPass/resourceTrendPass/uiFulltestPass=false`도 현행
 B12와 S11의 승인된 로컬 검증 범위는 완료다. 최종30분·UI432·녹화120분과 이 로컬
 게이트를 결합해 v4.1.0 개발 브랜치의 로컬 release blocker는 해소됐다. 외부 서비스·
 실기기는 사용자 지시에 따라 미실행·제외이며 PASS로 계산하지 않는다. PR·CI·main 병합·
-서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. token start/end/
-consumed는 하위 명령별 전용 집계가 없어 미집계다.
+서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. close-out 원출력의
+`push: not performed`는 dry-run 자체가 push하지 않았다는 뜻이며, 승인된 `v4.1.0` 개발
+branch push는 최종 clean 확인 뒤 별도로 수행했다. token start/end/consumed는 하위
+명령별 전용 집계가 없어 미집계다.
