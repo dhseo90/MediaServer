@@ -45793,3 +45793,29 @@ exit0·532,186ms·1,246/1,246다. root는 292,402,327B/448MiB, 후반 RSS 추세
 3.410MiB/min이었다. [압축 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-status1020-after-sqlite-fix.log.gz)
 SHA-256은 `210d17be84b37ee5a435e6f7ff45207687483363e906a8ffef890ff4b0175c2d`다.
 이 진단은 4차 실패 규모를 넘는 원인 구분 증거이며 120분·자원 PASS로 사용하지 않는다.
+
+## v4.1.0 S11 B11-G03 녹화 120분 5차 실패와 관측기 보완 (2026-09-27)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B11-G03 120분 5차 | 두 채널 상시녹화·순환 삭제·상태/자원 관측, 6,374,818ms·8,885/1 | fail |
+| B11-G03 제품·저장 경계 | HTTP200·2ms, finalized6,340·deleted6,336, root424,124,908B, 서버 exit0·포트/UDP 폐쇄 | pass |
+| B11-G03 세대 관측 증명 | 큰 snapshot 정확 증명·delta prefix·JS 원자 반영, generation36/36 | pass |
+| B11-G03 소규모·metadata | observer67/67, metadata5/5·4,452 mutation, warm43.852~45.003ms | pass |
+| B11-G03 5차 저장소 비용 | cold reconnect2,887.136ms, warm complete1,287.417ms, 고정3초 이내 | pass |
+| B11-G03 live unlink 분류 최초 | 일시적 nlink0을 root-unsafe-file로 분류, 서버 exit0·포트 폐쇄 | fail |
+| B11-G03 live unlink 보완 | 전체 측정 재시작, hardlink·특수 파일 거부 유지, root 자체검사11/11 | pass |
+| B11-G03 실제 앱 최종 | 동일 명령 exit0·74/74·실제30.199초·3회 기동/복구/정리 | pass |
+
+5차 실패의 직접 원인은 제품 HTTP·저장 상한이 아니라 검증 전용 persistent 세션의 큰
+snapshot 재파싱과 누적 prefix 직렬화였다. snapshot 원문 객체를 작은 정확 증명으로 바꾸고
+세션에는 시작/종단 SHA-256으로 결박된 최대128개 delta만 전달했다. 응답 직전 snapshot
+stat과 manifest/root를 재확인하며 one-shot 전체 prefix, 손상·교체·pending 거부는 유지한다.
+공개 API·제품 저장 format·시간/ID·보존/복구·3초/4초 상한은 변경하지 않았다.
+
+[상세 기록](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt5.md)과
+[압축 5차 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt5.log.gz)을
+따른다. focused 원출력 5개·scale 로그와 최종 실제 앱 snapshot receipt3개도 상세 기록에
+연결했다. 실패/환경 준비 root는 evidence 이관·프로세스 부재 확인 뒤 삭제했고 최종 성공
+root는 wrapper가 257,158,113B를 제거했다. token start/end/consumed는 전용 집계 부재로
+미집계다. focused PASS는 120분 PASS가 아니며 같은 기준의 전체 재실행이 남는다.

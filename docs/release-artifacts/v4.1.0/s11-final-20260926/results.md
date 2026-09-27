@@ -671,3 +671,16 @@ root 계약11/11과 실제 앱73/73이 통과했으며 live page 조회 부재�
 통과했다. 4차 실패의 원본854개를 같은 코드·입력에서 넘겼고 live SQLite page 조회는
 재발하지 않았다. 이는 관측기 간섭 원인을 닫는 집중 증거이며 120분 전체·자원 PASS를
 대체하지 않는다. [압축 원출력](b11-status1020-after-sqlite-fix.log.gz)을 보존했다.
+
+### B11-G03 120분 5차 관측기 누적 비용 실패
+
+5차는 약106분15초·8,885 pass 뒤 표본1,273의 persistent 관측이 3,002.592ms로
+고정 3초 상한을 2.592ms 넘겨 중단됐다. 제품은 HTTP200·2ms, root424,124,908B/448MiB,
+서버 exit0·포트/UDP 폐쇄였으며 private log의 ERROR/WARNING/storageBlocked는 0이다.
+
+큰 snapshot의 정확 증명과 세션 delta prefix를 적용하고 교체·변조·pending·manifest/root
+불변·JS atomic 반영 반례를 유지했다. generation36/36, observer67/67, metadata5/5와
+5차 저장소 cold2,887.136ms/warm1,287.417ms가 통과했다. 실제 앱 첫 재검증에서 live
+unlink의 일시적 nlink0을 hardlink 손상으로 오분류한 검증기 결함을 확인했고, 전체 root
+재측정으로 보완한 뒤 동일 실제 앱74/74가 통과했다. 120분 PASS는 아직 아니며
+[상세 실패·보완·정리](b11-recording-120-attempt5.md)를 따른다.

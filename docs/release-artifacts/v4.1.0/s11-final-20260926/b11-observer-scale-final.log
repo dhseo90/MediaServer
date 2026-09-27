@@ -1,0 +1,3 @@
+{"case":"cold-reconnect","seen":25354,"elapsedMs":2887.135792,"prefixStart":25354,"prefixRows":42,"rows":42,"backlog":false,"snapshotHits":0,"snapshotMisses":1,"identityHits":76,"identityMisses":78,"logicalBytes":4765141,"readBytes":24435888}
+{"case":"warm-complete","seen":25396,"elapsedMs":1287.4165000000003,"prefixStart":25396,"prefixRows":0,"rows":0,"backlog":false,"snapshotHits":1,"snapshotMisses":1,"identityHits":152,"identityMisses":156,"logicalBytes":9535557,"readBytes":11565666}
+{"exit":0,"signal":null}
