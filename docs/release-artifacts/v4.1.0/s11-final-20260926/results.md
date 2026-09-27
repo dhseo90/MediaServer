@@ -765,7 +765,8 @@ gate이며 30분·UI 전체를 다시 시작하지 않는다.
 현행 소스에서 build, 녹화 5단계 158개, auth bootstrap/users/routes 19/72/146,
 GStreamer 환경20, project inventory18/18·featureRows986, coverage8/8·986/986,
 script12/12, v4.1 entry33/33, release evidence8/8, metadata18/18, 주석 정책,
-문서 링크·UI 자산, close-out dry-run6/6과 diffcheck를 통과했다.
+문서 링크·UI 자산, close-out dry-run6/6과 diffcheck를 통과했다. 첫 증거 커밋 뒤
+close-out을 clean 상태에서 재실행해 `gitStatusLines=0`도 확인했다.
 
 현행 녹화 통합의 첫 샌드박스 실행은 제품 기동 전 로컬 listen 권한 거부로 실패했고
 정리했다. 권한 조정 동일 실행에서는 두 기동 모두 완전 출력2개·HTTP200·파일 hash,

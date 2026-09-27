@@ -45930,7 +45930,7 @@ token start/end/consumed는 전용 집계 부재로 미집계다.
 | B12-G04 환경·inventory | GStreamer20, project18/18·featureRows986, coverage8/8·986/986, script12/12 | pass |
 | B12-G05 버전·증거 | entry33/33, release evidence8/8, metadata18/18 | pass |
 | B12-G06 정적·문서 | 주석1,258파일·누락0, 링크373문서·실패0, UI 자산10/10, diffcheck | pass |
-| B12-G07 close-out | dry-run6/6, tag·push·Release 미수행 | pass |
+| B12-G07 close-out | 첫 증거 커밋 뒤 clean 재실행 dry-run6/6·gitStatusLines0, tag·push·Release 미수행 | pass |
 | B12-G08 cleanup | 통합/auth/GStreamer 소유 root 부재, 8080/8081/8554/8555 LISTEN 없음 | pass |
 
 통합 JSON의 `terminalObservations[].fullOutputPass=false`는 독립 terminal 관측이 전체

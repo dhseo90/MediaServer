@@ -89,7 +89,7 @@ close-out dry-run을 통과했다. 따라서 개발 브랜치의 로컬 release 
 | 1 | 완료 | 최종30분 안정화 | B11-G03 writer 변경분을 포함한 최종 코드에서 2,438초·20회·109 PASS·정리 PASS | 장시간 검증 | 직접 확인+7.6.2 | 전 |
 | 2 | 완료 | 영향받는 녹화 UI 재검증 | B11-G02 I27~I34 31 PASS·시각/권한/재생·정리 적격, 공통424 유지 | 실제 UI | 직접 확인 | 전 |
 | 3 | 완료 | 녹화120분·자원 판정 | 10차 실제7,200.547초·10,093 PASS·0 FAIL, HTTP/관측/RSS/root/복구/cleanup 직접 판정 | 장시간/자원 gate | 직접 확인+7.6.2 | 전 |
-| 4 | 완료 | S11 최종 증거·release local gate | B12 build·인증·녹화 통합·환경·inventory·문서·버전·증거·close-out·cleanup PASS | 증거·로컬 마감 | 직접 확인+AGENTS | 전 |
+| 4 | 완료 | S11 최종 증거·release local gate | B12 build·인증·녹화 통합·환경·inventory·문서·버전·증거·clean close-out·cleanup PASS | 증거·로컬 마감 | 직접 확인+AGENTS | 전 |
 | 5 | 별도 승인 | PR·CI·main·서명 tag·Release | 각 단계 별도 승인 후 required check→merge→signed annotated tag 검증→GitHub Release/published 확인 | 외부 변경 | AGENTS 4 | 후 |
 
 ### 8. 미해소·승인 경계

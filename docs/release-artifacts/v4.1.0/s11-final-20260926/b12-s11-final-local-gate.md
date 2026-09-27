@@ -93,7 +93,7 @@ wrapper의 `fullFoundationPass/resourceTrendPass/uiFulltestPass=false`도 현행
 | B12-G13 주석 정책 | `verify-code-comments` | pass | 1,258파일·누락0·영문-only0 |
 | B12-G14 문서 링크 | `verify-docs-links` | pass | markdown373·로컬 링크14,688·실패0 |
 | B12-G15 UI 문서 자산 | `verify-docs-ui-assets` | pass | 10/10 |
-| B12-G16 close-out | `verify-release-closeout-helper --dry-run` | pass | 6/6, tag·push·Release 미수행 |
+| B12-G16 close-out | `verify-release-closeout-helper --dry-run` | pass | 첫 증거 커밋 뒤 clean 재실행 6/6·gitStatusLines0, tag·push·Release 미수행 |
 | B12-G17 diff | `git diff --check` | pass | exit 0 |
 
 ## 추가 원출력과 무결성
@@ -114,7 +114,7 @@ wrapper의 `fullFoundationPass/resourceTrendPass/uiFulltestPass=false`도 현행
 | `b12-release-metadata.log.gz` | `e8539f82c6e06449320fcaab0b7cad0d28e8e4e96ae77ddeb6730df3c92333a6` | 559B | release metadata |
 | `b12-docs-links.log.gz` | `c9c1ec257c2526b25a61ef3168d6a7e1615e2460d4088d11f81532d867612345` | 187B | 문서 링크 |
 | `b12-docs-ui-assets.log.gz` | `aa1db1202c66c2479d145f23e5f31f7b2b6f54cee118461890b6fbeb0aa5672d` | 364B | UI 문서 자산 |
-| `b12-closeout.log.gz` | `3157f2f984989bfcec6d2fd03bce0b0c73dc19e191f66a0673bc318050b724b3` | 330B | close-out dry-run |
+| `b12-closeout.log.gz` | `b7bc6e3fe5a4e2718547d57a76fa22a21c627383eb80f8715491394f1f28ec07` | 335B | 첫 증거 커밋 뒤 clean close-out dry-run |
 
 현행 통합이 생성한 latency 증거 2개와 process 종료 증거 2개도
 `../s11-preparation-mapping/`에 보존한다. 각각의 SHA-256은 latency
