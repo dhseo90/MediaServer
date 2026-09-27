@@ -28,7 +28,10 @@ try{
     const rotating=write('recordings/channel/rotating.mp4',17);let misses=0;
     const measured=measureCurrentRootStable(root,{lstat:file=>{if(file===rotating&&misses++===0)throw Object.assign(Error('entry vanished'),{code:'ENOENT'});return fs.lstatSync(file);}});
     assert.equal(measured.transientTreeRetries,1);assert.equal(measured.categories.media.bytes,17);assert.equal(measured.categories.media.files,1);
+    let unlinks=0;const unlinked=measureCurrentRootStable(root,{lstat:file=>{const stat=fs.lstatSync(file);if(file===rotating&&unlinks++===0)return new Proxy(stat,{get(target,key){return key==='nlink'?0:Reflect.get(target,key,target);}});return stat;}});
+    assert.equal(unlinked.transientTreeRetries,1);assert.equal(unlinked.categories.media.bytes,17);
     let attempts=0;assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{if(file===rotating){attempts++;throw Object.assign(Error('entry vanished'),{code:'ENOENT'});}return fs.lstatSync(file);}}),/root-snapshot-retry-exhausted/);assert.equal(attempts,3);
+    assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{const stat=fs.lstatSync(file);return file===rotating?new Proxy(stat,{get(target,key){return key==='nlink'?0:Reflect.get(target,key,target);}}):stat;}}),/root-snapshot-retry-exhausted/);
     assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{if(file===rotating)throw Object.assign(Error('permission'),{code:'EACCES'});return fs.lstatSync(file);}}),{code:'EACCES'});
     fs.unlinkSync(rotating);
   });

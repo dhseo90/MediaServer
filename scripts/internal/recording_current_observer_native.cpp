@@ -68,7 +68,7 @@ int main(int argc,char** argv){try{
     if(argc==3&&std::string(argv[1])=="--observe-generation-session"){
       generation_observation::SessionCache cache;char request[8]{};
       for(;;){std::cin.getline(request,sizeof request);if(!std::cin){Require(std::cin.eof()&&std::cin.gcount()==0);break;}Require(!std::cin.eof()&&std::cin.gcount()>0);
-        const auto seen=Seen(std::string(request,static_cast<std::size_t>(std::cin.gcount()-1)));std::cout<<generation_observation::Observe(argv[2],seen,Normalize,{},&cache)<<'\n';std::cout.flush();Require(bool(std::cout));}
+        const auto seen=Seen(std::string(request,static_cast<std::size_t>(std::cin.gcount()-1)));std::cout<<generation_observation::Observe(argv[2],seen,Normalize,{},&cache,true)<<'\n';std::cout.flush();Require(bool(std::cout));}
       return 0;
     }
     if(argc==3&&std::string(argv[1])=="--retire-metadata-fixture"){

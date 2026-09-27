@@ -61,6 +61,11 @@ async function TransportSelfTest(){
       const good=new CurrentRecordingObserver(root,'ignored',undefined,{spawnChild:fakeSpawn(`process.stdin.on('data',()=>process.stdout.write('${transportReply}\\n'));`)});
       assert.equal((await good.pollAsync()).mutationCount,0);await good.closeAsync();
     });
+    check('B11-O01 malformed delta end proof leaves JS prefix and budget unchanged',()=>{
+      const observer=new CurrentRecordingObserver(root,'ignored'),row={id:'delta-id',entity:'delta-entity',type:'recording_order_reserved',identity:'a'.repeat(64),occurredAtMs:'1'},token=JSON.stringify([row.id,row.entity,row.type,row.identity,row.occurredAtMs]);
+      assert.throws(()=>observer.acceptGeneration({busy:false,storeHash:'b'.repeat(64),generation:'1',prefixStart:0,prefixHash:crypto.createHash('sha256').digest('hex'),prefixEndHash:'0'.repeat(64),prefix:[token],rows:[row],backlog:false,partialBytes:0,consumedOffset:0}),/prefix-mismatch/);
+      assert.equal(observer.prefix.length,0);assert.equal(observer.ids.size,0);assert.equal(observer.bytes,0);assert.equal(observer.budget.ids,0);observer.close();
+    });
     await checkAsync('B11-O01 EPIPE or late child exit latches without synchronous fallback',async()=>{
       const bad=new CurrentRecordingObserver(root,'ignored',undefined,{spawnChild:fakeSpawn('process.exit(1);')});await assert.rejects(bad.pollAsync(),/observer-native-rejected/);await assert.rejects(bad.pollAsync(),/observer-native-rejected/);assert.throws(()=>bad.poll(),/observer-native-rejected/);await bad.closeAsync();
       const late=new CurrentRecordingObserver(root,'ignored',undefined,{spawnChild:fakeSpawn(`process.stdin.once('data',()=>{process.stdout.write('${transportReply}\\n');setTimeout(()=>process.exit(1),10);});`)});
@@ -180,8 +185,8 @@ if(metadataOnly){
 if(!transportOnly&&!metadataOnly&&failed===0)try{
   await checkAsync('B11-O01 actual native session preserves prefix, uses bounded parse cache, and observes checkpoint',async()=>{
     const session=new GenerationObservationSession(generationRoot,binary);try{
-      const first=JSON.parse(await session.request(0));assert(first.rows.length>=3);assert.equal(first.parseCache.snapshotMisses,1);assert(first.parseCache.identityMisses>=1);
-      const second=JSON.parse(await session.request(first.prefix.length));assert.equal(second.rows.length,0);assert(second.parseCache.snapshotHits>=1);assert(second.parseCache.identityHits>=1);
+      const first=JSON.parse(await session.request(0));assert(first.rows.length>=3);assert.equal(first.prefixStart,0);assert.match(first.prefixHash,/^[a-f0-9]{64}$/);assert.match(first.prefixEndHash,/^[a-f0-9]{64}$/);assert.equal(first.parseCache.snapshotMisses,1);assert(first.parseCache.identityMisses>=1);
+      const second=JSON.parse(await session.request(first.prefix.length));assert.equal(second.rows.length,0);assert.equal(second.prefix.length,0);assert.equal(second.prefixStart,first.prefix.length);assert(second.parseCache.snapshotHits>=1);assert(second.parseCache.identityHits>=1);
       fixture(generationRoot,'checkpoint');const checkpoint=JSON.parse(await session.request(first.prefix.length));assert.notEqual(checkpoint.generation,first.generation);assert(checkpoint.parseCache.snapshotMisses>second.parseCache.snapshotMisses);
     }finally{await session.closeAsync();}
   });
@@ -190,12 +195,13 @@ if(!transportOnly&&!metadataOnly&&failed===0)try{
       const initial=await session.request(0);assert.equal(JSON.parse(initial).busy,false);fs.renameSync(file,moved);fs.symlinkSync(path.basename(moved),file);await assert.rejects(session.request(0),/observer-native-rejected/);await assert.rejects(async()=>session.request(0),/observer-native-rejected/);
     }finally{try{if(fs.lstatSync(file).isSymbolicLink())fs.unlinkSync(file);}catch{}try{fs.renameSync(moved,file);}catch{}await session.closeAsync();}
   });
-  for(const kind of ['snapshot-inode','identity-content','root-inode'])await checkAsync('B11-O01 cached native session rejects '+kind,async()=>{
+  for(const kind of ['snapshot-inode','snapshot-content','identity-content','root-inode'])await checkAsync('B11-O01 cached native session rejects '+kind,async()=>{
     const r=path.join(base,'guard-'+kind);fixture(r,'one');fixture(r,'checkpoint');const o=new CurrentRecordingObserver(r,binary);
     const manifest=JSON.parse(fs.readFileSync(path.join(r,'recording-generation.json'))),snapshot=fs.readFileSync(path.join(r,manifest.snapshot.name),'utf8').split('\n')[0];
     let restore=()=>{};
     try{await o.pollAsync();
       if(kind==='snapshot-inode'){const f=path.join(r,manifest.snapshot.name),m=f+'.owned';fs.renameSync(f,m);fs.copyFileSync(m,f);restore=()=>{fs.unlinkSync(f);fs.renameSync(m,f);};}
+      else if(kind==='snapshot-content'){const f=path.join(r,manifest.snapshot.name),b=fs.readFileSync(f);const bad=Buffer.from(b);bad[5]^=1;fs.writeFileSync(f,bad);restore=()=>fs.writeFileSync(f,b);}
       else if(kind==='identity-content'){const f=path.join(r,JSON.parse(snapshot).identityHead.name),b=fs.readFileSync(f);const bad=Buffer.from(b);bad[5]^=1;fs.writeFileSync(f,bad);restore=()=>fs.writeFileSync(f,b);}
       else{const moved=r+'.owned';fs.renameSync(r,moved);fs.cpSync(moved,r,{recursive:true});restore=()=>{fs.rmSync(r,{recursive:true});fs.renameSync(moved,r);};}
       await assert.rejects(o.pollAsync(),/observer-native-rejected/);await assert.rejects(o.pollAsync(),/observer-native-rejected/);

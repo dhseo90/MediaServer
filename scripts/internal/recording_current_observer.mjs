@@ -1,9 +1,11 @@
 // 파일 용도: 현행 managed 원장의 읽기 전용 compact 관측. 제품 catalog 수용·내구성 검증과 구분한다.
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const need=(ok,code)=>{if(!ok)throw Error(code);};
+const prefixDigest=tokens=>{const hash=crypto.createHash('sha256'),size=Buffer.allocUnsafe(8);for(const token of tokens){size.writeBigUInt64BE(BigInt(Buffer.byteLength(token)));hash.update(size);hash.update(token);}return hash.digest('hex');};
 export const CURRENT_ROOT_CAP_BYTES=448*1024*1024;
 // 격리 실행 root의 live 디렉터리를 비원자적으로 순회할 때만 사용한다.
 // SQLite rollback journal은 목록화 직후 트랜잭션 종료로 사라질 수 있다.
@@ -83,7 +85,12 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
     if(!stat){transientJournalMisses++;return;}
     if(stat.isSymbolicLink())need(parts.length>1&&parts[0]==='gst-cache','root-unsafe-symlink');
     else if(stat.isDirectory()){for(const name of fs.readdirSync(file))visit(path.join(file,name),[...parts,name]);return;}
-    else need(stat.isFile()&&stat.nlink===1,'root-unsafe-file');
+    else if(stat.isFile()){
+      // 이름 조회 직후 writer가 unlink하면 macOS lstat 결과가 일시적으로 nlink=0일 수 있다.
+      // 이 항목을 누락하거나 허용하지 않고 전체 비원자 측정을 다시 시작한다.
+      if(stat.nlink===0)throw Object.assign(Error('entry unlinked during scan'),{code:'ENOENT'});
+      need(stat.nlink===1,'root-unsafe-file');
+    }else need(false,'root-unsafe-file');
     need(Number.isSafeInteger(stat.size)&&stat.size>=0&&Number.isSafeInteger(totalBytes+stat.size),'root-size-bound');
     const item=categories[category(parts)];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
   }
@@ -213,25 +220,32 @@ export class CurrentRecordingObserver {
   acceptGeneration(value){
     need(typeof value?.busy==='boolean','observer-native-output-invalid');
     if(value.busy)return {rows:[],busy:true,backlog:false,partialBytes:0,mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
+    const delta=Number.isSafeInteger(value.prefixStart);
     need(/^[a-f0-9]{64}$/.test(value.storeHash)&&/^[1-9]\d{0,19}$/.test(value.generation)&&
-      Array.isArray(value.prefix)&&value.prefix.length<=100000&&value.prefix.length>=this.prefix.length&&Array.isArray(value.rows)&&
-      value.rows.length<=128&&value.prefix.length-this.prefix.length===value.rows.length&&typeof value.backlog==='boolean'&&
+      Array.isArray(value.prefix)&&value.prefix.length<=100000&&Array.isArray(value.rows)&&value.rows.length<=128&&
+      (delta?(value.prefixStart===this.prefix.length&&/^[a-f0-9]{64}$/.test(value.prefixHash)&&/^[a-f0-9]{64}$/.test(value.prefixEndHash)&&value.prefix.length===value.rows.length):
+        (value.prefix.length>=this.prefix.length&&value.prefix.length-this.prefix.length===value.rows.length))&&typeof value.backlog==='boolean'&&
       Number.isSafeInteger(value.partialBytes)&&value.partialBytes>=0&&Number.isSafeInteger(value.consumedOffset)&&value.consumedOffset>=0,'observer-native-output-invalid');
     need(!this.storeHash||this.storeHash===value.storeHash,'observer-store-changed');
     need(!this.generation||BigInt(value.generation)>=BigInt(this.generation),'observer-generation-regressed');
-    for(let i=0;i<this.prefix.length;i++)need(value.prefix[i]===this.prefix[i],'observer-checkpoint-prefix-mismatch');
-    const before=this.prefix.length;
+    if(delta)need(prefixDigest(this.prefix)===value.prefixHash,'observer-checkpoint-prefix-mismatch');
+    else for(let i=0;i<this.prefix.length;i++)need(value.prefix[i]===this.prefix[i],'observer-checkpoint-prefix-mismatch');
+    const before=this.prefix.length,staged=[],stagedIds=new Set(),stagedCounts={},stagedTokens=[],stagedBytes=[];let addedBytes=0;
     for(const [index,row] of value.rows.entries()){
       need(typeof row.id==='string'&&typeof row.entity==='string'&&/^[a-f0-9]{64}$/.test(row.identity),'observer-compact-shape');
       need(typeof row.occurredAtMs==='string'&&/^-?(0|[1-9]\d*)$/.test(row.occurredAtMs),'observer-compact-time');
       const type=row.type==='event_link_receipt'?'event_link_created':row.type,token=JSON.stringify([row.id,row.entity,type,row.identity,row.occurredAtMs]);
-      need(value.prefix[before+index]===token&&!this.ids.has(row.id)&&Object.hasOwn(this.typeCounts,type),'observer-generation-row-mismatch');
-      const bytes=Buffer.byteLength(token);need(this.prefix.length<100000&&this.bytes+bytes<=33554432,'observer-id-cap');this.budget.reserve(2,bytes);
-      this.ids.add(row.id);this.prefix.push(token);this.bytes+=bytes;this.typeCounts[type]++;
+      need(value.prefix[(delta?0:before)+index]===token&&!this.ids.has(row.id)&&!stagedIds.has(row.id)&&Object.hasOwn(this.typeCounts,type),'observer-generation-row-mismatch');
+      const bytes=Buffer.byteLength(token);addedBytes+=bytes;need(Number.isSafeInteger(addedBytes)&&before+staged.length<100000&&this.bytes+addedBytes<=33554432,'observer-id-cap');
+      staged.push(row);stagedIds.add(row.id);stagedCounts[type]=(stagedCounts[type]??0)+1;stagedTokens.push(token);stagedBytes.push(bytes);
     }
+    if(delta)need(prefixDigest([...this.prefix,...stagedTokens])===value.prefixEndHash,'observer-checkpoint-prefix-mismatch');
+    if(staged.length)this.budget.reserve(staged.length*2,addedBytes);
+    for(let i=0;i<staged.length;i++){this.ids.add(staged[i].id);this.prefix.push(stagedTokens[i]);this.bytes+=stagedBytes[i];}
+    for(const [type,count] of Object.entries(stagedCounts))this.typeCounts[type]+=count;
     if(this.generation&&this.generation!==value.generation)this.rotations++;
     this.generation=value.generation;this.storeHash=value.storeHash;
-    return {rows:value.rows,busy:false,backlog:value.backlog,partialBytes:value.partialBytes,consumedOffset:value.consumedOffset,
+    return {rows:staged,busy:false,backlog:value.backlog,partialBytes:value.partialBytes,consumedOffset:value.consumedOffset,
       mutationCount:this.prefix.length,identityBytes:this.bytes,rotations:this.rotations,typeCounts:{...this.typeCounts},catalogAcceptancePass:false};
   }
   async pollGenerationAsync(){
