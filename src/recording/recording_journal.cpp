@@ -2422,6 +2422,8 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         plan->chain.head={"identity-"+std::to_string(plan->generation)+".jsonl",pending.identity_bytes.size(),RawHash(pending.identity_bytes)};
         if(plan->chain.shards==UINT64_MAX||shard.rows.size()>UINT64_MAX-plan->chain.physical_rows)return Fail(error,"B checkpoint count overflow");
         ++plan->chain.shards;plan->chain.physical_rows+=shard.rows.size();
+        for(const auto& file:shard.archives)plan->chain.archive_files.push_back(file);
+        std::sort(plan->chain.archive_files.begin(),plan->chain.archive_files.end(),[](const auto& a,const auto& b){return a.name<b.name;});
         std::unordered_map<std::string,std::size_t> first;
         for(std::size_t i=0;i<plan->chain.first_acceptances.size();++i)first.emplace(plan->chain.first_acceptances[i].mutation_id,i);
         for(const auto& row:shard.rows){const auto found=first.find(row.mutation_id);

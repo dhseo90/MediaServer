@@ -271,6 +271,50 @@ int main() {
                 result.first_acceptances[0].first_archive.name == "active-1.jsonl" &&
                 result.first_acceptances[1].first_archive.name == "active-1.jsonl",
                 "validated identity/order projection returned atomically");
+        const auto validated = result;
+        auto active_row = next.rows[0]; active_row.mutation_id = "mutation-b"; active_row.entity_id = "segment-b";
+        active_row.identity = std::string(64, 'e'); active_row.raw_sha256 = std::string(64, 'f');
+        active_row.global_ordinal = 11; active_row.offset = 0;
+        RecordingIdentityChainResult active_result;
+        const RecordingGenerationFile active_file{"active-2.jsonl", 1000, std::string(64, '9')};
+        s.Check(ValidateRecordingIdentityActiveExtension(validated, active_file, {active_row}, limits,
+                    &active_result, &error) && active_result.head.name == validated.head.name &&
+                active_result.shards == validated.shards && active_result.physical_rows == validated.physical_rows + 1 &&
+                active_result.maximum_global_ordinal == std::optional<std::uint64_t>{11} &&
+                active_result.first_acceptances.size() == validated.first_acceptances.size() + 1 &&
+                active_result.archive_files.size() == validated.archive_files.size() + 1,
+                "active extension preserves immutable authority and adds one strict row");
+        auto published = next; published.generation = 3; published.previous = head;
+        published.archives = {{"evidence-3-0.jsonl", 1000, std::string(64, '8')}};
+        published.rows = {active_row}; published.rows[0].archive_slot = 0;
+        const auto published_head = chain.Add(published);
+        RecordingIdentityChainResult full, incremental;
+        const auto same_acceptances=[](const auto& a,const auto& b){if(a.size()!=b.size())return false;for(std::size_t i=0;i<a.size();++i){if(a[i].mutation_id!=b[i].mutation_id||a[i].first_global_ordinal!=b[i].first_global_ordinal||a[i].occurrences!=b[i].occurrences||a[i].first_row.entity_id!=b[i].first_row.entity_id||a[i].first_row.identity!=b[i].first_row.identity||a[i].first_archive.name!=b[i].first_archive.name||a[i].first_archive.size!=b[i].first_archive.size||a[i].first_archive.sha256!=b[i].first_archive.sha256)return false;}return true;};
+        s.Check(chain.Read(published_head, limits, &full) &&
+                ValidateRecordingIdentityShardChainExtension(validated, published_head, published, limits,
+                    &incremental, &error) &&
+                incremental.shards == full.shards && incremental.physical_rows == full.physical_rows &&
+                incremental.maximum_global_ordinal == full.maximum_global_ordinal &&
+                same_acceptances(incremental.first_acceptances,full.first_acceptances) &&
+                incremental.archive_files.size() == full.archive_files.size() &&
+                incremental.order_history.bound_store == full.order_history.bound_store &&
+                incremental.order_history.maximum == full.order_history.maximum &&
+                incremental.order_history.reservations.size() == full.order_history.reservations.size() &&
+                incremental.order_history.ordinary_ids == full.order_history.ordinary_ids &&
+                incremental.order_history.legacy_segments == full.order_history.legacy_segments,
+                "published extension is equivalent to full chain validation");
+        auto bad_published = published; bad_published.previous->sha256[0] = bad_published.previous->sha256[0]=='0'?'1':'0';
+        s.Check(!ValidateRecordingIdentityShardChainExtension(validated, published_head, bad_published, limits,
+                    &incremental, &error), "published extension requires exact previous head");
+        auto bad_active = active_row; bad_active.global_ordinal = 10;
+        s.Check(!ValidateRecordingIdentityActiveExtension(validated, active_file, {bad_active}, limits,
+                    &active_result, &error), "active extension rejects ordinal overlap");
+        bad_active=active_row;bad_active.mutation_id="mutation-a";
+        s.Check(!ValidateRecordingIdentityActiveExtension(validated, active_file, {bad_active}, limits,
+                    &active_result, &error), "active extension rejects prior ID identity conflict");
+        auto archive_limited = limits; archive_limited.max_archives = validated.archive_files.size();
+        s.Check(!ValidateRecordingIdentityActiveExtension(validated, active_file, {active_row}, archive_limited,
+                    &active_result, &error), "active extension keeps archive admission");
         auto third = next; third.generation = 3; third.previous = head;
         third.archives.clear(); third.rows.clear();
         s.Check(chain.Read(chain.Add(third), limits, &result) && result.shards == 3 &&

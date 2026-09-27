@@ -262,6 +262,73 @@ bool DigestMatches(const std::string& raw, const RecordingGenerationFile& descri
     for (auto c : digest) { hash += hex[c >> 4]; hash += hex[c & 15]; }
     return hash == descriptor.sha256;
 }
+bool SameFile(const RecordingGenerationFile& a, const RecordingGenerationFile& b) {
+    return a.name == b.name && a.size == b.size && a.sha256 == b.sha256;
+}
+bool MergeValidatedExtension(const RecordingIdentityChainResult& base,
+    const std::vector<RecordingGenerationFile>& archives, const std::vector<RecordingIdentityRow>& rows,
+    const RecordingIdentityChainLimits& limits, RecordingIdentityChainResult* output, std::string* error) {
+    if (!output || !limits.max_shard_bytes || !limits.max_unique_ids || !limits.max_archives ||
+        base.store_id.empty() || !base.shards || base.first_acceptances.size() > limits.max_unique_ids ||
+        base.archive_files.size() > limits.max_archives)
+        return Fail(error, "identity extension base/output/admission invalid");
+    RecordingIdentityChainResult result = base;
+    std::unordered_map<std::string, std::size_t> first;
+    for (std::size_t i = 0; i < result.first_acceptances.size(); ++i) {
+        const auto& accepted = result.first_acceptances[i];
+        if (accepted.mutation_id != accepted.first_row.mutation_id ||
+            accepted.first_global_ordinal != accepted.first_row.global_ordinal || !accepted.occurrences ||
+            !first.emplace(accepted.mutation_id, i).second)
+            return Fail(error, "identity extension base acceptance invalid");
+    }
+    std::unordered_map<std::string, RecordingGenerationFile> known_archives;
+    for (const auto& file : result.archive_files) {
+        std::uint64_t generation = 0;
+        if (!Descriptor(file) || !ArchiveGeneration(file.name, &generation) ||
+            !known_archives.emplace(file.name, file).second)
+            return Fail(error, "identity extension base archive invalid");
+    }
+    for (const auto& file : archives) {
+        std::uint64_t generation = 0;
+        if (!Descriptor(file) || !ArchiveGeneration(file.name, &generation) || known_archives.count(file.name) ||
+            result.archive_files.size() >= limits.max_archives)
+            return Fail(error, "identity extension archive conflict/admission invalid");
+        known_archives.emplace(file.name, file); result.archive_files.push_back(file);
+    }
+    auto ordinal = base.maximum_global_ordinal;
+    if (rows.size() > std::numeric_limits<std::uint64_t>::max() - result.physical_rows)
+        return Fail(error, "identity extension physical count overflow");
+    for (const auto& row : rows) {
+        if (row.archive_slot >= archives.size() || (ordinal && row.global_ordinal <= *ordinal))
+            return Fail(error, "identity extension row archive/order invalid");
+        ordinal = row.global_ordinal;
+        const auto found = first.find(row.mutation_id);
+        if (found == first.end()) {
+            if (result.first_acceptances.size() >= limits.max_unique_ids)
+                return Fail(error, "identity extension ID admission exceeded");
+            first.emplace(row.mutation_id, result.first_acceptances.size());
+            result.first_acceptances.push_back({row.mutation_id, row.global_ordinal, 1, row,
+                archives[static_cast<std::size_t>(row.archive_slot)]});
+        } else {
+            auto& accepted = result.first_acceptances[found->second];
+            if (!SameIdentity(accepted.first_row, row) || accepted.occurrences == std::numeric_limits<std::uint64_t>::max())
+                return Fail(error, "identity extension repeated ID conflict/overflow");
+            ++accepted.occurrences;
+        }
+    }
+    result.physical_rows += rows.size(); result.maximum_global_ordinal = ordinal;
+    std::vector<const RecordingIdentityRow*> ordered; ordered.reserve(result.first_acceptances.size());
+    for (const auto& accepted : result.first_acceptances) ordered.push_back(&accepted.first_row);
+    result.order_history = {};
+    if (!OrderedReservations(std::move(ordered), error, &result)) return false;
+    std::sort(result.first_acceptances.begin(), result.first_acceptances.end(), [](const auto& a, const auto& b) {
+        return a.first_global_ordinal < b.first_global_ordinal;
+    });
+    std::sort(result.archive_files.begin(), result.archive_files.end(), [](const auto& a, const auto& b) {
+        return a.name < b.name;
+    });
+    *output = std::move(result); if (error) error->clear(); return true;
+}
 #endif
 } // namespace
 
@@ -427,12 +494,54 @@ bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
     for (const auto& item : first)
         result.first_acceptances.push_back({item.first, item.second.row.global_ordinal,
             item.second.occurrences, item.second.row, item.second.archive});
+    for (const auto& item : archives) result.archive_files.push_back(item.second.file);
     std::sort(result.first_acceptances.begin(), result.first_acceptances.end(), [](const auto& a, const auto& b) {
         return a.first_global_ordinal < b.first_global_ordinal;
+    });
+    std::sort(result.archive_files.begin(), result.archive_files.end(), [](const auto& a, const auto& b) {
+        return a.name < b.name;
     });
     *output = std::move(result);
     if (error) error->clear();
     return true;
+#endif
+}
+bool ValidateRecordingIdentityShardChainExtension(const RecordingIdentityChainResult& base,
+    const RecordingGenerationFile& head, const RecordingIdentityShard& extension,
+    const RecordingIdentityChainLimits& limits, RecordingIdentityChainResult* output, std::string* error) {
+#if !MEDIA_SERVER_USE_OPENSSL
+    (void)base; (void)head; (void)extension; (void)limits; (void)output;
+    return Fail(error, "identity extension unsupported without OpenSSL");
+#else
+    std::uint64_t generation = 0; std::string bytes;
+    if (!extension.previous || !SameFile(*extension.previous, base.head) ||
+        !NamedGeneration(head.name, "identity-", &generation) || generation != extension.generation ||
+        extension.store_id != base.store_id || !SerializeRecordingIdentityShard(extension, &bytes, error) ||
+        !DigestMatches(bytes, head)) return Fail(error, "identity published extension binding invalid");
+    RecordingIdentityChainResult result;
+    if (!MergeValidatedExtension(base, extension.archives, extension.rows, limits, &result, error)) return false;
+    if (result.shards == std::numeric_limits<std::uint64_t>::max())
+        return Fail(error, "identity extension shard count overflow");
+    ++result.shards; result.head = head; *output = std::move(result);
+    if (error) error->clear(); return true;
+#endif
+}
+bool ValidateRecordingIdentityActiveExtension(const RecordingIdentityChainResult& base,
+    const RecordingGenerationFile& active, const std::vector<RecordingIdentityRow>& rows,
+    const RecordingIdentityChainLimits& limits, RecordingIdentityChainResult* output, std::string* error) {
+#if !MEDIA_SERVER_USE_OPENSSL
+    (void)base; (void)active; (void)rows; (void)limits; (void)output;
+    return Fail(error, "identity active extension unsupported without OpenSSL");
+#else
+    std::uint64_t generation = 0;
+    if (!NamedGeneration(base.head.name, "identity-", &generation) || generation == std::numeric_limits<std::uint64_t>::max())
+        return Fail(error, "identity active extension generation invalid");
+    RecordingIdentityShard validation; validation.store_id = base.store_id; validation.generation = generation + 1;
+    validation.previous = base.head; validation.archives = {active}; validation.rows = rows;
+    std::string bytes;
+    if (!SerializeRecordingIdentityShard(validation, &bytes, error))
+        return Fail(error, "identity active extension rows invalid");
+    return MergeValidatedExtension(base, validation.archives, validation.rows, limits, output, error);
 #endif
 }
 } // namespace recording

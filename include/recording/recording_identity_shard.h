@@ -44,6 +44,8 @@ struct RecordingIdentityChainResult {
     std::optional<std::uint64_t> maximum_global_ordinal;
     // 검증이 실제 시작된 descriptor. 후속 snapshot의 head 결박에 사용한다.
     RecordingGenerationFile head;
+    // chain 검증에서 수용한 archive descriptor 전수다. 증분 검증 시 이름·내용 충돌을 다시 확인한다.
+    std::vector<RecordingGenerationFile> archive_files;
     std::vector<RecordingIdentityFirstAcceptance> first_acceptances;
     RecordingOrderHistorySnapshot order_history;
 };
@@ -84,4 +86,13 @@ private:
 bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
     const RecordingIdentityShardLoader&, const RecordingIdentityChainLimits&,
     RecordingIdentityChainResult*, std::string* error, RecordingIdentityShardParseCache* cache = nullptr);
+// 완전 검증한 immutable chain에 바로 다음 게시 shard 하나를 연결한다. previous/head가 정확히
+// 이어지지 않으면 거부하며 caller는 전체 chain 검증으로 복귀해야 한다.
+bool ValidateRecordingIdentityShardChainExtension(const RecordingIdentityChainResult& base,
+    const RecordingGenerationFile& head, const RecordingIdentityShard& extension,
+    const RecordingIdentityChainLimits&, RecordingIdentityChainResult*, std::string* error);
+// 완전 검증한 immutable chain에 현재 active의 완료 행만 투영한다. 영속 shard 수/head는 바꾸지 않는다.
+bool ValidateRecordingIdentityActiveExtension(const RecordingIdentityChainResult& base,
+    const RecordingGenerationFile& active, const std::vector<RecordingIdentityRow>& rows,
+    const RecordingIdentityChainLimits&, RecordingIdentityChainResult*, std::string* error);
 } // namespace recording

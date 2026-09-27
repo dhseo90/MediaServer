@@ -187,7 +187,15 @@ if(!transportOnly&&!metadataOnly&&failed===0)try{
     const session=new GenerationObservationSession(generationRoot,binary);try{
       const first=JSON.parse(await session.request(0));assert(first.rows.length>=3);assert.equal(first.prefixStart,0);assert.match(first.prefixHash,/^[a-f0-9]{64}$/);assert.match(first.prefixEndHash,/^[a-f0-9]{64}$/);assert.equal(first.parseCache.snapshotMisses,1);assert(first.parseCache.identityMisses>=1);
       const second=JSON.parse(await session.request(first.prefix.length));assert.equal(second.rows.length,0);assert.equal(second.prefix.length,0);assert.equal(second.prefixStart,first.prefix.length);assert(second.parseCache.snapshotHits>=1);assert(second.parseCache.identityHits>=1);
-      fixture(generationRoot,'checkpoint');const checkpoint=JSON.parse(await session.request(first.prefix.length));assert.notEqual(checkpoint.generation,first.generation);assert(checkpoint.parseCache.snapshotMisses>second.parseCache.snapshotMisses);
+      fixture(generationRoot,'checkpoint');const checkpoint=JSON.parse(await session.request(first.prefix.length));assert.notEqual(checkpoint.generation,first.generation);assert(checkpoint.parseCache.snapshotMisses>second.parseCache.snapshotMisses);assert.equal(checkpoint.parseCache.chainExtensions,1);assert(checkpoint.parseCache.logicalBytes<=33554432);
+    }finally{await session.closeAsync();}
+  });
+  await checkAsync('B11-O03 one observation parses each historical identity shard once',async()=>{
+    const r=path.join(base,'single-parse-chain');fixture(r,'one');fixture(r,'checkpoint');fixture(r,'two');fixture(r,'checkpoint');fixture(r,'three');
+    const session=new GenerationObservationSession(r,binary);try{
+      const value=JSON.parse(await session.request(0));assert.equal(value.busy,false);assert(value.rows.length>=3);
+      for(const field of ['snapshotMicros','activeMicros','chainMicros','outputMicros'])assert(Number.isSafeInteger(value.parseCache[field])&&value.parseCache[field]>=0);
+      assert.equal(value.parseCache.identityHits,1);
     }finally{await session.closeAsync();}
   });
   await checkAsync('B11-O01 actual native session rejects active inode replacement and stays failed closed',async()=>{
