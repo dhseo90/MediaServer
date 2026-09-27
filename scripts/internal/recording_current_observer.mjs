@@ -95,6 +95,13 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
   return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,ownership,transientJournalMisses,
     ...(sqlitePages?{sqlitePages:measureCurrentSqlitePages(root)}:{}),measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
 }
+// live writer의 rename/unlink와 비원자 순회가 교차하면 일부 항목을 생략하지 않고 전체 측정을 다시 시작한다.
+// 지속 ENOENT와 다른 권한/형식 오류는 고정 코드로 실패시켜 root 상한을 완화하지 않는다.
+export function measureCurrentRootStable(root,options={}){
+  for(let attempt=0;attempt<3;attempt++)try{return {...measureCurrentRoot(root,options),transientTreeRetries:attempt};}
+  catch(error){if(error?.code!=='ENOENT')throw error;if(attempt===2)throw Error('root-snapshot-retry-exhausted');}
+  throw Error('root-snapshot-retry-exhausted');
+}
 export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false&&result.busy!==true;}
 export function disabledChannelsExact(status,expected){
   const channels=status?.channels;if(!Array.isArray(channels)||!Array.isArray(expected))return false;

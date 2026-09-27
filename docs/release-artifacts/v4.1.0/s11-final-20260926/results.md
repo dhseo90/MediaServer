@@ -634,3 +634,21 @@ writer 반영 뒤 120분 2차는 약 11초에 검증 전용 observer가 첫 압�
 첫 실제 앱 focused 시도의 macOS 서비스 fixture timeout은 제품 기동 전 환경 실패로
 남기고 권한 조정 1회에서 동일 상한으로 통과했다. [상세 실패·보완 기록](b11-recording-120-attempt2.md)을
 따르며 이 결과는 120분 전체 PASS를 대체하지 않는다.
+
+### B11-G03 120분 3차 live root 측정 실패
+
+3차는 약22분21초·1,859 pass 뒤 표본268의 live root 측정에서 중단됐다. 표본267까지
+finalized1,320/deleted1,316, drain503ms·HTTP2ms였고 root는 약347.4MB/448MiB였다.
+metrics·drain 뒤 `root-storage` 출력 전에 비정형 파일시스템 오류가 발생했으며 서버
+exit0·포트/UDP·로그 진단은 정상이다. 종료 저장소5,300행의 독립 재생도 통과했다.
+
+원인은 비원자 root 순회가 live rename/unlink와 교차할 때 SQLite journal 외 ENOENT를
+원시 오류로 내보낸 검증기 경계다. 누락 집계 대신 전체 측정을 최대3회 다시 시작하고,
+지속 실패·권한·unsafe 파일은 계속 fail-closed로 두는 보완을 적용한다.
+[상세 실패·재개 경계](b11-recording-120-attempt3.md)를 따른다. focused 검증과 120분
+전체 재실행 전에는 장시간 PASS가 아니다.
+
+전체 root 재측정 보완 뒤 단위 반례 10/10과 실제 앱 단기 73/73이 통과했다. 실제 앱의
+두 채널 녹화·삭제·재기동·복구와 종료·포트·UDP·임시 root 정리도 통과했다. 실패 root와
+wrapper 임시는 최소 증거 이관 뒤 삭제하고 부재를 확인했다. [focused 결과](b11-root-stable-focused.log)는
+재개 조건만 충족하며 녹화 전용 120분 PASS를 대신하지 않는다.

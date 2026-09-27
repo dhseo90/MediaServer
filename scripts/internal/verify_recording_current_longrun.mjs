@@ -6,7 +6,7 @@ import os from 'node:os';
 import dgram from 'node:dgram';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRoot,summarizeFixtureGeneration} from './recording_current_observer.mjs';
+import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration} from './recording_current_observer.mjs';
 import {collectProcess} from './recording_foundation_observer.mjs';
 import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay} from './recording_longrun_progress.mjs';
 import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
@@ -28,12 +28,12 @@ function check(ok,label){if(!ok)throw Error(label);passed++;console.log('[pass] 
 function size(dir){let bytes=0,entries=0;function visit(p){const s=fs.lstatSync(p);if(++entries>100000)throw Error('root-entry-bound');
   if(s.isSymbolicLink()){if(!p.startsWith(path.join(root,'gst-cache')+path.sep))throw Error('root-unsafe-symlink');bytes+=s.size;return;}
   if(s.isDirectory())for(const n of fs.readdirSync(p))visit(path.join(p,n));else{if(!s.isFile()||s.nlink!==1)throw Error('root-unsafe-file');bytes+=s.size;}}visit(dir);return bytes;}
-function rootDiagnostic(reason,measurement=measureCurrentRoot(root,{sqlitePages:true}),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
+function rootDiagnostic(reason,measurement=measureCurrentRootStable(root,{sqlitePages:true}),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
   const journalMutationTypesCoverage=observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable';
   console.log('[root-storage] '+JSON.stringify({reason,final,elapsedMs:Math.round(performance.now()-start),journalMutationTypes,journalMutationTypesCoverage,...measurement}));return measurement;}
 function cadence(){if(observationStart!==null){const now=performance.now(),previous=samples.at(-1)?.phaseAt??observationStart;
   if(now-previous>15000){console.log('[sample-gap] '+JSON.stringify({previousAt:previous,observedAt:now,gapMs:now-previous,limitMs:15000}));throw Error('sample-gap');}}}
-function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=measureCurrentRoot(root);if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
+function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=measureCurrentRootStable(root);if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
 async function until(fn,ms=15000){const end=performance.now()+ms;while(performance.now()<end){budget();const v=await fn();if(v)return v;await pause(100);}throw Error('observation-wait-timeout');}
 function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')};
   const values={SKIP_LOCAL_ENV:1,SKIP_BUILD:1,BIN_PATH:path.join(repo,'build-gst-onnx/media_server'),AUTH_MODE:'off',ENABLE_AI:0,ENABLE_LAB:0,ENABLE_OPS:1,ENABLE_CLIENT:0,ENABLE_YOUTUBE_SOURCE:0,
@@ -183,10 +183,10 @@ try{
   const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
   await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
   check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
-}catch(error){failed++;try{rootDiagnostic('failure',measureCurrentRoot(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
+  }catch(error){failed++;try{rootDiagnostic('failure',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
 finally{
   observationStart=null;summary=summarizeAvailableSamples(samples);
-  try{rootDiagnostic('final',measureCurrentRoot(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
+  try{rootDiagnostic('final',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
   for(const app of processes)try{await stop(app);}catch{failed++;}
   for(const app of processes){try{fs.closeSync(app.logFd);const text=fs.readFileSync(app.log,'utf8');
     const categories=['file evidence unavailable','storageBlocked','shutdown','ERROR','WARNING'].map(code=>({code,count:text.split(code).length-1}));

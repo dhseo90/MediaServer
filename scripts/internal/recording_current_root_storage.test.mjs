@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentSqlitePages,statCurrentRunEntry,isTransientSqliteJournalMiss} from './recording_current_observer.mjs';
+import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentRootStable,measureCurrentSqlitePages,statCurrentRunEntry,isTransientSqliteJournalMiss} from './recording_current_observer.mjs';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-root-storage-test-'));
 fs.chmodSync(root,0o700);
 const start=performance.now();let passed=0,failed=0;
@@ -23,6 +23,14 @@ try{
     assert.equal(live.transientJournalMisses,1);
     assert.equal(live.totalBytes,0);
     fs.unlinkSync(journal);
+  });
+  check('B11-O04 live 파일 소멸은 전체 측정 재시작 후 정확히 포함',()=>{
+    const rotating=write('recordings/channel/rotating.mp4',17);let misses=0;
+    const measured=measureCurrentRootStable(root,{lstat:file=>{if(file===rotating&&misses++===0)throw Object.assign(Error('entry vanished'),{code:'ENOENT'});return fs.lstatSync(file);}});
+    assert.equal(measured.transientTreeRetries,1);assert.equal(measured.categories.media.bytes,17);assert.equal(measured.categories.media.files,1);
+    let attempts=0;assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{if(file===rotating){attempts++;throw Object.assign(Error('entry vanished'),{code:'ENOENT'});}return fs.lstatSync(file);}}),/root-snapshot-retry-exhausted/);assert.equal(attempts,3);
+    assert.throws(()=>measureCurrentRootStable(root,{lstat:file=>{if(file===rotating)throw Object.assign(Error('permission'),{code:'EACCES'});return fs.lstatSync(file);}}),{code:'EACCES'});
+    fs.unlinkSync(rotating);
   });
   check('LP26-O06-A disjoint categories preserve exact aggregate and redact names',()=>{
     const files=[['input/private-source.mp4','input'],['recordings/channel/segment.mp4','media'],['recordings/recording-v2-mutations.jsonl','journal'],
@@ -90,9 +98,9 @@ try{
   });
   check('LP26-O06-C runner retains timeout and emits periodic and failure measurements',()=>{
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
-    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure',measureCurrentRoot(root,{sqlitePages:true}),true)"));
-    assert(runner.includes("const storage=measureCurrentRoot(root);if(storage.capExceeded){rootDiagnostic('root-cap')"));
-    assert(runner.includes("rootDiagnostic('final',measureCurrentRoot(root,{sqlitePages:true}),true)"));assert(runner.includes('journalMutationTypesCoverage'));
+    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure',measureCurrentRootStable(root,{sqlitePages:true}),true)"));
+    assert(runner.includes("const storage=measureCurrentRootStable(root);if(storage.capExceeded){rootDiagnostic('root-cap')"));
+    assert(runner.includes("rootDiagnostic('final',measureCurrentRootStable(root,{sqlitePages:true}),true)"));assert(runner.includes('journalMutationTypesCoverage'));
   });
   check('B06-V04 staged components count as transaction, not committed generation',()=>{
     const before=measureCurrentRoot(root);write('recordings/.recording-generation-prepare-'+ 'a'.repeat(32)+'/snapshot-8.jsonl',151);

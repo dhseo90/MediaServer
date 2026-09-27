@@ -2210,6 +2210,29 @@ checkpoint 전 압축 active 행 반례를 추가했다. generation34/34, observ
 [실제 앱 73행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-app.log)을 보존한다.
 이 결과는 focused/단기 PASS이며 녹화 전용 120분 PASS가 아니다.
 
+## v4.1.0 S11 B11-G03 120분 3차 live root 측정 실패 (2026-09-27)
+
+120분 3차는 약 22분 21초·1,859 pass 뒤 표본268의 live root 측정에서 중단됐다.
+표본267까지 finalized1,320/deleted1,316, drain503ms·HTTP2ms·root347,351,557B였고,
+최종 root347,945,279B는448MiB 상한 아래였다. 서버는 exit0, 포트/UDP와 로그 진단은
+정상이다. 표본268은 metrics·drain을 완료하고 `storageMs` 구간에 진입했지만
+`root-storage` 출력 전 `redacted-error`가 발생했다.
+
+종료 저장소의 독립 observer 재생42 poll·5,300 mutation은 통과했다. 따라서 이번 직접
+실패는 제품 원장 손상이나 이전 압축 active 거부가 아니라, 비원자 root 순회와 live 파일
+회전 사이의 ENOENT를 일반 오류로 처리한 검증기 경계다. 파일을 건너뛰지 않고 전체 측정을
+최대3회 다시 시작하며, 지속 ENOENT와 다른 오류는 fail-closed로 유지하는 반례를 등록했다.
+[상세](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt3.md)와
+[원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt3.log.gz)을 따른다.
+focused PASS 뒤에도 녹화 전용120분은 처음부터 다시 실행해야 한다.
+
+보완 뒤 root 저장 반례는 10/10, 실제 앱 단기는 73/73으로 통과했다. ENOENT 한 번은
+전체 측정을 다시 시작해 정확 집계하고, 지속 ENOENT는 3회 뒤 고정 오류, EACCES는 즉시
+FAIL하는 기준을 확인했다. 실제 앱은 두 채널 녹화·삭제·재기동·복구와 정상 종료·정리를
+확인했다. [focused 결과](release-artifacts/v4.1.0/s11-final-20260926/b11-root-stable-focused.log)를
+따르며 장시간 결과는 계속 미완료다. 실패 root·wrapper·진단 임시는 증거 이관 뒤 삭제하고
+부재를 확인했다.
+
 ## v4.1.0 S11 LP26-O08 native 관측 실패 구분 — 실행 전 정의
 
 녹화 전용 120분 2차는 약 394초에 `observer-native-rejected`로 실패했다.
