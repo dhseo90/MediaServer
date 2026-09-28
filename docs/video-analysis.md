@@ -1,7 +1,7 @@
-# Video Analysis / VA Guide
+# 영상 분석 구조와 연동 계약
 
-이 문서는 MediaServer의 영상 분석(VA) 엔진, Rule/Scenario 구조,
-API, event payload를 설명합니다.
+이 문서는 분석 기능을 개발·연동하는 독자를 위한 현행 기술 안내입니다.
+MediaServer의 영상 분석(VA) 엔진, Rule/Scenario 구조, API와 event payload를 설명합니다.
 UI 화면 사용법은 [ui-guide.md](./ui-guide.md),
 환경변수 전체 목록은 [config-reference.md](./config-reference.md),
 현재 검증 기준은 [stream-verification.md](./stream-verification.md)를 봅니다.
@@ -58,6 +58,10 @@ VA는 기존 RTSP/WebRTC relay path를 대체하지 않고, 같은 source stream
 - opt-in Event POST
 - opt-in EventRecord JSON Lines 저장
 - opt-in WebRTC DataChannel metadata
+- 같은 분석 프레임의 원본 식별 근거가 있을 때 관리 녹화와 이벤트 연결
+
+상시 녹화·이벤트 파생 영상·타임라인 재생은 [녹화 설정과 API](config-reference.md#녹화-저장소와-시작-복구)를
+따릅니다. 아래의 snapshot/clip hook은 이 관리 녹화와 별개인 짧은 프레임 증거 저장입니다.
 
 일반 overlay는 `va=1`로 켭니다.
 저장된 영상 분석 설정은 `vaRule=<숫자>`로 호출합니다.
@@ -217,9 +221,8 @@ Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진�
 
 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema,
 Scenario 판단 로직은 바꾸지 않습니다.
-default-off, diagnostic, enforce opt-in 검증은 replay/event/metadata 경로를 통과했습니다.
-다만 현재 샘플에서 ID continuity 개선 근거는 제한적이므로
-default on 전환은 보류합니다.
+default-off, diagnostic, enforce opt-in의 영향은 replay/event/metadata 경로에서 구분해 검증합니다.
+fixture의 개선만으로 제품 전체의 ID continuity를 보장하거나 default-on으로 전환하지 않습니다.
 
 ### TrackStateManager
 
@@ -744,9 +747,10 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
   gate와 privacy/retention approval을 함께 확인합니다. missing/invalid/mismatched model은
   NoOp fallback으로 닫고, 이 승인 경계를 제품 default-on 또는 model bundle 승인으로
   해석하지 않습니다.
-- 현재 v2.1.0 기준 model approval, invalid/missing model fixture, metadata 비노출,
-  default-off 안정화와 default-on 비승격은 `verify-reid-advanced-tracking`으로
-  확인합니다. 현재 v2.1.0 검증은 통합 command set과 release evidence index로 확인합니다.
+- model approval, invalid/missing model fixture, metadata 비노출과 default-off 경계의
+  정적 검사는 `verify-reid-advanced-tracking`에 연결됩니다. 실제 모델 추론·미디어 전송이나
+  제품 default-on 승인은 이 정적 검사로 대체하지 않습니다. 실행 범위와 명령은
+  [검증 가이드](stream-verification.md)를 따릅니다.
 - v1.8.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 - privacy threat model에서는 embedding vector, bbox crop, track-linked
@@ -779,7 +783,7 @@ Homography는 camera별 image point를 ground-plane point로 변환하는 option
 {
   "schema": "media-server.va.event.v1",
   "eventId": "evt_1710000000000_1",
-  "timestamp": "2026-04-30T00:00:00Z",
+  "timestamp": "2024-03-09T16:00:00Z",
   "timestampMs": 1710000000000,
   "source": {
     "key": "file:sample_h264.mp4",
@@ -821,6 +825,8 @@ Homography는 camera별 image point를 ground-plane point로 변환하는 option
 }
 ```
 
+위 값은 설명용 예시이며 `timestamp`와 `timestampMs`는 같은 UTC 순간입니다.
+`source.pts`는 별도의 미디어 시간값이므로 UTC로 직접 해석하지 않습니다.
 Replay output의 `events[]`도 같은 핵심 구조를 유지합니다.
 내부 TrackHealth snapshot은 `metadata_json` 안에
 `media-server.va.event-track-health.v1` wrapper로 붙을 수 있습니다.
@@ -830,17 +836,16 @@ Replay output의 `events[]`도 같은 핵심 구조를 유지합니다.
 
 EventRecord는 운영 조회와 snapshot/clip evidence 연결을 위한
 내부 metadata 저장 구조입니다.
-기본값은 비활성입니다.
-이 기능은 짧은 이벤트 근거 frame 저장용이며,
-장기 영상 녹화나 VMS/NVR은 아닙니다.
+EventRecord 파일 저장은 기본 비활성입니다. snapshot/clip hook은 짧은 이벤트 근거
+frame 저장용이며, 상시 녹화 파일을 만드는 recorder와 구분합니다.
 Event POST payload, WebRTC DataChannel metadata,
 SSE/WS metadata schema와 별도로 동작합니다.
 
-현재 1차 구현 범위:
+EventRecord 저장·조회 범위:
 
 - EventRecord file storage
 - active/archive records 조회 API
-- Runtime Dashboard 수동 검색 UI
+- Ops 대시보드의 이벤트 요약과 `/ops/events` 진단·조회 화면
 - 비파괴 compaction snapshot 생성/목록/다운로드/삭제
 - JSON Lines rotation/retention/recovery summary
 
@@ -861,7 +866,19 @@ SSE/WS metadata schema와 별도로 동작합니다.
 - preEventMs / postEventMs
 - metadata
 
-저장은 active JSON Lines 파일 append 방식이며 DB 의존성은 없습니다.
+시간·녹화 연결 근거가 있으면 `timeBasis`, `timeAnchorUtcMs`, `timeAnchorPtsMs`,
+`streamEpochId`, `recordingLinkId`, `recordingCompleteness`가 선택적으로 포함됩니다.
+`startTime` 등의 숫자만 Unix 시간으로 가정하지 않습니다. 기준과 원본 대응 근거가 없는 값을
+현재 시각으로 보충하거나, 연결 ID가 있다는 이유만으로 완전한 영상이라고 판정하지 않습니다.
+이 항목은 EventRecord 저장 모델이며 Event POST·WebRTC·SSE/WS에 같은 필드를 추가한다는 뜻이 아닙니다.
+
+관리 녹화의 이벤트 연결은 같은 분석 결과의 원본 식별·샘플 근거를 사용합니다. EventRecord 파일
+저장과 관리 녹화 연결의 활성 조건은 별개입니다. 원본이 부족하거나 시간 대응을 입증할 수 없으면
+부분 결과 또는 미연결 상태를 유지합니다. 파생 영상 생성·조회는
+[이벤트 녹화 연결](config-reference.md#이벤트-녹화-연결)과 [녹화 조회·재생](ui-guide.md#녹화-조회와-재생-v410-s06)을 봅니다.
+
+EventRecord 파일 저장은 active JSON Lines append 방식이며 DB 의존성은 없습니다.
+관리 녹화 Catalog의 저장·복구 형식은 이 JSON Lines 파일과 다릅니다.
 저장 실패는 counter와 로그에 남기고 streaming/event 출력은 계속 진행합니다.
 
 저장 파일 운영 정책:
@@ -883,10 +900,10 @@ Snapshot/clip hook 상태:
 - 기본 NoOp
 - 활성화 시 분석 raw frame rolling buffer에서 snapshot media file과 pre/post frame bundle을 생성
 - snapshot은 JPEG를 우선 사용하고 encoder 사용 불가 시 PPM/PGM evidence file로 fallback
-- clip은 MP4가 아니라 frame bundle directory와 `manifest.json` 구조
+- 이 hook의 clip은 frame bundle directory와 `manifest.json` 구조이며 관리 녹화의 파생 MP4와 구분
 - pre/post buffer는 config와 내부 stream/frame 상한으로 제한
 - `/lab/analysis/event-storage/status`와 `/ops/api/events/status`의
-  `evidencePolicy`는 제품 범위를 명시합니다.
+  `evidencePolicy`는 이 짧은 프레임 증거 기능의 범위를 명시합니다. 제품 전체의 녹화 지원 여부가 아닙니다.
   - `scope=event-short-evidence`
   - `longRecording=false`
   - `videoArchive=false`
@@ -941,16 +958,14 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 compacted snapshot 파일만 대상으로 목록/다운로드/삭제를 허용합니다.
 rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니다.
 
-개발/검증 API와 운영 대시보드 세부 확인 흐름은 이 API를 수동 검색 UI 또는 custom client에서 사용할 수 있게 노출합니다.
+개발 API는 custom client에서 소비할 수 있으며 운영자 화면의 실제 조작은
+[UI 가이드](ui-guide.md)에서 설명합니다.
 
-- 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
-- `offset`과 `limit`으로 active/archive 합산 결과를 페이지 단위로 넘길 수 있고, UI는 이전/다음 페이지 버튼으로 이 값을 사용합니다.
-- `snapshotPath`와 `clipPath`는 table badge, detail evidence summary, 원본 JSON, preview route에서 확인합니다.
+- `offset`과 `limit`으로 active/archive 합산 결과를 페이지 단위로 조회합니다.
+- `snapshotPath`와 `clipPath`는 EventRecord 및 허용된 evidence preview route로 확인합니다.
 - evidence filter는 snapshot만 있는 record, clip manifest가 있는 record,
   둘 다 있는 record, 둘 다 없는 record를
   active/archive/compaction query에서 같은 조건으로 거릅니다.
-  Runtime Dashboard detail은 snapshot/clip preview 상태를 별도 문구로 표시하고,
-  clip frame preview link를 파일명 기준으로 정렬된 일부 샘플로 보여줍니다.
 - `/ops/events` 직접/진단 route는 evidence policy, evidence filter, archive 포함, offset paging을 표시하되 독립 제품 탭으로 승격하지 않습니다.
 - `/ops/events`의 evidence column은 다음 다운로드를 제공합니다.
   - `/lab/analysis/events/evidence?download=1` 개별 다운로드
@@ -979,7 +994,8 @@ rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니
 - preview route는 configured snapshot/clip 디렉터리 아래의
   `.jpg/.jpeg/.ppm/.pgm/.json` evidence만 허용합니다.
   snapshot은 inline image preview, clip은 manifest JSON과 frame file link를 제공합니다.
-- 영상 검색/재생, 장기 녹화, MP4 muxing은 포함하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence만 저장합니다.
+- 이 preview/bundle 경로는 짧은 frame evidence용입니다. 관리 녹화의 타임라인·영상 재생·MP4 생성은
+  별도 녹화 경로를 사용하며, 자연어 영상 검색은 후속 로드맵입니다.
 
 Evidence retention cleanup job:
 
@@ -992,6 +1008,7 @@ Evidence retention cleanup job:
 ```
 
 기본은 dry-run이며, 실제 삭제는 `--apply`를 붙인 경우에만 수행합니다.
+소유한 증거 디렉터리와 보존 조건을 먼저 확인해야 하며 관리 녹화 root에는 이 도구를 적용하지 않습니다.
 Job은 snapshot directory의 `.jpg/.jpeg/.ppm/.pgm`, clip directory의
 `manifest.json`을 가진 frame bundle directory, compaction snapshot cleanup을
 대상으로 합니다. UI/API의 evidence 원본 DELETE 차단 정책은 유지하고,
@@ -1011,21 +1028,15 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
 
 `VaRuntimeMetadataBuilder`는 WebRTC DataChannel, runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.
 
-현재 구현 상태:
+구성요소의 역할:
 
-- 구현 완료: 내부 `VaRuntimeMetadataFrame` 구조와 builder
-- 구현 완료: WebRTC DataChannel 호환 serializer
-- 구현 완료: SSE/WebSocket side-channel용 runtime metadata JSON 직렬화
-- 구현 완료: runtime dashboard의 Overview/Tracks/Scenarios/Scenario Timeline/Events/Metadata/Tracking Issues drill-down 1차 표시
-- 구현 완료: Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널
-- 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
-- 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
-- 구현 완료: WebSocket command/filter/subscribe-unsubscribe control
-- 구현 완료: state-dump/runtime debug 계층의 `scenarioTimeline[]`
-  phase entered/elapsed, cooldown remaining, event emitted/dedupe count 1차 표시
-- 구현 완료: `/ops/dashboard` Live VA Event Quality 패널의 Scenario Timeline과
-  TrackHealth issue grouping/focus summary/filter
-- 구현 완료: WebSocket 기반 Custom RTSP + WS metadata overlay renderer 예제
+| 구성요소 | 범위 |
+| --- | --- |
+| `VaRuntimeMetadataFrame`과 serializer | 내부 분석 상태를 전송별 호환 schema로 투영 |
+| WebRTC DataChannel | 영상 세션과 연결된 metadata 수신 |
+| SSE/WebSocket | 별도 metadata 구독, filter/include 및 WebSocket 구독 제어 |
+| `/ops/dashboard` | state-dump·metrics를 이용한 Scenario Timeline, TrackHealth 그룹·필터와 운영 요약 |
+| `scripts/examples` | SSE 수신, OpenCV RTSP+SSE/WS overlay, WebRTC 수신 예제. 제품 UI와 구분 |
 
 내부 schema:
 
@@ -1069,8 +1080,8 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
 - scenarioName
 - scenarioPhase
 
-Runtime dashboard는 이 값과 `/metrics`, `/state-dump`, `/events`를 재사용해
-drill-down UI를 구성합니다.
+운영 대시보드는 runtime/status와 선택 tap의 `/metrics`, `/state-dump`, 이벤트 요약을
+조합합니다. 내부 frame의 모든 필드를 제품 UI에 그대로 표시하는 것은 아닙니다.
 
 기존 외부 event JSON/API/POST 형식은
 이 내부 frame이나 dashboard/debug UI 때문에 바뀌지 않습니다.
@@ -1084,11 +1095,11 @@ WebRTC DataChannel은 기존 외부 schema인
 - 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영합니다.
 - `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은
   dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다.
-- WebRTC metadata viewer URL도 SSE/WS와 같은
+- WebRTC metadata 세션 요청도 SSE/WS와 같은
   `eventType`, `scenarioName`, `trackId`, `zoneId` filter를 받을 수 있습니다.
 - 필터는 schema 변경 없이 `tracks`/`events` 배열 범위에만 적용됩니다.
 - Custom client는 filter/include 조합을 preset으로 저장해
-  같은 query를 WebRTC metadata viewer, SSE, WS URL에 다시 적용할 수 있습니다.
+  지원되는 query를 WebRTC 세션, SSE, WS URL에 다시 적용할 수 있습니다.
 
 message size 보호는 두 단계로 둡니다.
 
@@ -1130,37 +1141,10 @@ WebRTC metadata interval 튜닝 기준:
   `MEDIA_SERVER_WEBRTC_TRACE=1`의 `[webrtc-metadata] close` 로그 또는
   longrun summary에서 확인한다.
 
-2026-04-30 로컬 단일 WebRTC viewer 측정:
-
-- 파일: `imports/va_tracking_event_1280x720_30fps_h264.mp4`
-- 유지 시간: 8초
-
-| `vaMetadataIntervalMs` | 수신 메시지 | 평균 수신 간격 | sequence gap 추정 | 평균 `abs(syncDeltaMs)` | 최대 `abs(syncDeltaMs)` | client `bufferedAmount` max |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 100 | 71 | 117.03ms | 179 | 173.83ms | 266ms | 0 |
-| 200 | 38 | 219.54ms | 210 | 174.21ms | 266ms | 0 |
-| 500 | 16 | 516.07ms | 225 | 174.56ms | 266ms | 0 |
-
-추가 공격 조건:
-
-- `vaMetadataIntervalMs=0`
-- `vaMetadataMaxBufferedBytes=1024`
-- 같은 환경에서 8초 실행
-
-관찰 결과:
-
-- 수신 메시지 250개
-- 평균 수신 간격 32.86ms
-- sequence gap 추정 0
-- client `bufferedAmount` max 0
-- 이 로컬 조건에서는 max buffered bytes 초과 drop이 재현되지 않음
-
-권장값:
-
-- 다채널/운영 기본: 현재 기본값 `500ms` 유지.
-- Lab 단일 viewer에서 더 부드러운 client-side overlay가 필요할 때: `200ms`부터 테스트.
-- 단일 스트림 sync 진단/데모: `100ms` 사용 가능. 단, `bufferedAmount`, sequence gap, CPU/네트워크 사용량을 함께 확인한다.
-- `100ms`에서도 sync delta가 줄지 않으면 interval보다 analysis latency, PTS 기준, frame sampling, inference cadence를 먼저 본다.
+운영 기본값은 `500ms`입니다. 더 짧은 interval은 수신 빈도·`bufferedAmount`·sequence gap·
+CPU/네트워크를 함께 측정해 선택합니다. interval을 줄여도 sync delta가 줄지 않으면 analysis latency,
+PTS 기준, frame sampling과 inference cadence를 먼저 봅니다. 과거 한 입력의 단기 측정값은
+다른 입력·장시간 환경의 보장값으로 사용하지 않습니다.
 
 ## 13. WebRTC VA Metadata DataChannel
 
@@ -1234,35 +1218,34 @@ custom browser client용 schema/example는
 
 전송 주기와 message/buffer 상한은 config/query로 제한합니다. DataChannel 생성/전송 실패가 audio/video streaming 실패로 이어지면 안 됩니다.
 
-Lab의 WebRTC 메타데이터 뷰어는 이 메시지를 수신해
-browser client-side canvas overlay를 그릴 수 있습니다.
+현재 [WebRTC 수신 예제](webrtc-metadata-client.md)는 video와 metadata 상태·JSON을 표시합니다.
+제품 Ops/Client 화면에 구형 Lab canvas 뷰어나 아래 custom overlay 동작이 구현돼 있다는 뜻은 아닙니다.
+
+별도 browser client가 canvas overlay를 구현할 때의 좌표 기준:
+
 `bbox`는 원본 frame 기준 normalized `[0, 1]` 좌표입니다.
-viewer는 `video.videoWidth/videoHeight`와
-현재 표시 영역의 letterbox offset을 사용해 화면 좌표로 변환합니다.
+client는 `video.videoWidth/videoHeight`와 현재 표시 영역의 letterbox offset을 사용해
+화면 좌표로 변환해야 합니다.
 `frameWidth/frameHeight`는 metadata가 계산된 원본 frame 크기 진단값이며, `coordinateSpace`는 현재 `normalized-frame`입니다.
-WebRTC 메타데이터 뷰어는 영상 위에 server-side bbox를 합성하지 않습니다.
-DataChannel metadata를 받은 브라우저 canvas가 현재 관측 중인 track만 그립니다.
+DataChannel 자체는 영상에 bbox를 합성하지 않습니다. client canvas에서는 현재 관측 중인 track만 그리며,
 `missedFrameCount > 0` 또는 lost/terminated track은 상태/진단용으로는 유지할 수 있지만
-viewer overlay 대상에서는 제외합니다.
-client-side overlay는 WebRTC browser viewer 전용입니다.
-RTSP 일반 viewer는 metadata DataChannel을 이해하지 못하므로
-기존 server-side overlay를 사용합니다.
+overlay 대상에서는 제외해야 합니다. 서버 합성 여부는 별도 요청 설정입니다.
+RTSP 일반 viewer는 metadata DataChannel을 이해하지 못하므로 기존 server-side overlay를 사용합니다.
 
 Fallback 정책:
 
 - RTSP/server-side overlay는 가까운 PTS 분석 결과가 없을 때 기존처럼 latest result fallback을 사용할 수 있습니다.
 - WebRTC DataChannel payload는 fallback 사용 여부를 `syncStatus=fallback-latest`로 명시합니다.
-- WebRTC client-side overlay는 기본적으로 `fallback-latest` metadata를 그리지 않습니다.
+- Custom client-side overlay는 기본적으로 `fallback-latest` metadata를 그리지 않도록 구성합니다.
   현재 표시 중인 video frame과 bbox가 어긋나는 것을 피하기 위한 정책입니다.
-- Lab viewer에서 `fallback metadata 표시(opt-in)`을 켜거나
-  URL에 `clientOverlayFallback=1` 또는 `vaMetadataDrawFallback=1`을 전달한 경우에만
-  fallback metadata를 흐리게 표시합니다.
-- fallback metadata가 숨겨진 횟수는 WebRTC 메타데이터 뷰어의 `Fallback 숨김` 지표로 확인합니다.
-- fallback을 숨겨도 WebRTC video/audio stream과 DataChannel 수신은 계속 유지됩니다.
+- 서버의 fallback payload 허용은 영상 합성 설정 또는 `clientOverlayFallback=1` /
+  `vaMetadataDrawFallback=1`에 연결됩니다. 이 query가 브라우저의 표시 버튼·렌더러를 만드는 것은 아닙니다.
+- fallback을 표시하기로 한 custom client는 흐리게 구분하고, 숨김·drop을 별도 진단해야 합니다.
+  overlay 숨김을 이유로 WebRTC video/audio stream이나 DataChannel 수신을 끊지 않습니다.
 
 Sync 진단 필드:
 
-- `videoFramePtsMs`: WebRTC video overlay probe가 현재 처리 중인 video frame PTS를 ms로 환산한 값입니다.
+- `videoFramePtsMs`: WebRTC video overlay probe의 시간값을 원본 PTS로 대응시킨 뒤 ms로 환산한 값입니다.
 - `analysisPtsMs`: DataChannel payload에 사용된 분석 결과 PTS입니다.
 - `syncDeltaMs`: `analysisPtsMs - videoFramePtsMs`입니다. 양수면 분석 결과가 video frame보다 뒤쪽 PTS입니다.
 - `syncStatus`: `exact`, `near`, `fallback-latest`, `missing`, `stale` 중 하나입니다.
@@ -1277,7 +1260,9 @@ top-level 확장입니다.
 기존 `tracks[]`, `events[]`, WebRTC audio/video 흐름,
 RTSP server-side overlay fallback, Event POST/API payload 형식은 바꾸지 않습니다.
 
-Client-side overlay draw / memory guard:
+Custom client-side overlay의 draw / memory guard 설계 기준:
+
+아래는 별도 renderer 구현 시 유지할 기준이며, 현행 수신 예제의 구현 완료 목록이 아닙니다.
 
 - DataChannel message 수신 시점에는 overlay를 즉시 그리지 않고 bounded metadata buffer에 저장합니다.
 - overlay draw는 `requestVideoFrameCallback`의 현재 video presentation frame 기준으로 수행합니다.
@@ -1292,9 +1277,7 @@ Client-side overlay draw / memory guard:
 - 일정 시간 video frame callback이 없으면 `videoStalled=true`로 표시하고
   overlay를 stale clear합니다.
   이 상태에서도 DataChannel 수신은 유지하지만 bbox overlay는 새 metadata 기준으로 움직이지 않습니다.
-- 검증용 query(`verify-webrtc-va-metadata`)에서만 synthetic metadata를 주입해
-  buffer 상한과 drop counter를 자동 확인합니다.
-  일반 viewer 동작에는 노출하지 않습니다.
+- synthetic metadata를 사용하는 renderer 자체검사는 실제 전송·영상 동기화 검증과 구분합니다.
 
 검증:
 
@@ -1302,20 +1285,17 @@ Client-side overlay draw / memory guard:
 ./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8080
 ```
 
-이 검증은 browser `RTCPeerConnection`으로 다음 항목을 확인합니다.
+이 검증은 별도 브라우저 검증 컨텍스트의 `RTCPeerConnection`으로 다음 항목을 확인합니다.
 
 - video track
 - ICE connected
 - `va-metadata` DataChannel open
 - 최소 1개 metadata message 수신
+- schema, tracks/events 배열과 sync diagnostic 필드
 
-`verify-webrtc-va-metadata`는 WebRTC metadata viewer를 열고 다음 항목을 검증합니다.
-
-- requestVideoFrameCallback frame 증가
-- fallback-latest 기본 숨김
-- metadata buffer 상한
-- stale clear
-- video stall 중 overlay draw 중단
+이 명령의 현재 실행 경로는 제품 화면의 canvas, `requestVideoFrameCallback`, fallback 표시·
+stale clear·video stall 중 draw 중단을 검사하지 않습니다. metadata 수신 성공을 해당 UI 동작이나
+UI 풀테스트 통과로 확대하지 않습니다. 실제 서버·브라우저 실행은 별도 검증 범위입니다.
 
 ## 14. SSE Metadata Side-Channel
 
@@ -1349,8 +1329,8 @@ Metadata : http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1
 ```
 
 VLC/ffplay/IINA 같은 일반 RTSP viewer는 SSE metadata를 표시하지 않습니다.
-Lab의 개발자 요청 URL 패널은 RTSP 원본 스트림과 SSE metadata stream을
-`커스텀 RTSP + 메타데이터 연결 정보`로 함께 보여줍니다.
+Custom client에서는 RTSP 원본 스트림과 SSE metadata stream을 직접 조합합니다.
+원본 URL·raw metadata는 개발/운영자용이며 viewer 제품 화면에 노출하지 않습니다.
 SSE stream 자체는
 `./server.sh verify-sse-metadata --http-base http://127.0.0.1:8080`로
 smoke 검증할 수 있습니다.
@@ -1478,19 +1458,21 @@ python3 scripts/examples/va_rtsp_ws_overlay_client.py \
 
 VA overlay는 출력 방식에 따라 역할이 다릅니다.
 
-| 방식 | 현재 상태 | 설명 |
+| 방식 | 제공 범위 | 설명 |
 | --- | --- | --- |
-| RTSP 서버 오버레이 | 구현 완료 | 일반 RTSP player가 볼 수 있도록 서버가 bbox/label을 영상 위에 직접 합성 |
-| WebRTC Server-side Overlay | 구현 완료 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
-| WebRTC Client-side Overlay | 구현 완료 | `vaMetadata=1` DataChannel metadata를 브라우저 canvas가 그리는 Lab viewer 전용 표시 |
-| Custom SSE Metadata Client | 구현 완료 | `scripts/examples/va_metadata_sse_client.py`가 side-channel metadata 수신과 schema/count/timestamp 확인을 담당 |
-| Custom RTSP + SSE Side-channel Overlay | 구현 완료 | RTSP raw video와 SSE runtime metadata를 받아 client-side bbox/trackId/className 표시 |
+| RTSP 서버 오버레이 | 서버 기능 | 일반 RTSP player가 볼 수 있도록 서버가 bbox/label을 영상 위에 직접 합성 |
+| WebRTC Server-side Overlay | 서버 기능 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
+| WebRTC Client-side Overlay | 연동 설계 기준 | DataChannel metadata를 이용한 별도 renderer 구현 대상. 현행 수신 예제는 canvas renderer가 아님 |
+| Custom SSE Metadata Client | 예제 | `scripts/examples/va_metadata_sse_client.py`가 metadata 수신과 schema/count/timestamp 확인을 담당 |
+| Custom RTSP + SSE/WS Side-channel Overlay | 예제 | RTSP raw video와 SSE/WS runtime metadata를 받아 client-side bbox/trackId/className 표시 |
 
 RTSP 일반 viewer(VLC/ffplay/IINA)는 WebRTC DataChannel을 이해하지 못합니다.
 RTSP에서 metadata UI가 필요하면 server-side overlay를 사용하거나,
 custom client가 RTSP raw stream과 SSE/WS side-channel을 별도로 조합해야 합니다.
 
 Runtime Console 장시간 검증:
+
+다음은 별도 승인이 필요한 장시간 실행 예시입니다. 문서 검사로 실행하거나 현재 통과 증거로 간주하지 않습니다.
 
 ```bash
 ./server.sh verify-va-runtime-console-longrun \
@@ -1504,7 +1486,7 @@ Runtime Console 장시간 검증:
 이 명령은 다음 항목을 함께 유지합니다.
 
 - WebRTC DataChannel 수신
-- dashboard polling
+- dashboard가 사용하는 runtime/state API polling(제품 화면 조작 아님)
 - SSE side-channel
 - 선택 RTSP server-side overlay consumer
 
@@ -1546,19 +1528,10 @@ Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식�
 - event POST/storage status
 - tap/state-dump API
 
-화면에 노출하는 값은 다음 성격으로 구분합니다.
-
-- Overview
-- vaRule runtime 상태
-- Tracks
-- Scenarios
-- Scenario Timeline
-- Events
-- Metadata
-- Tracking Issues
-대시보드가 열려 있지 않을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
-
-Scenario Timeline은 읽기 전용 debug UI입니다.
+현행 `/ops/dashboard`의 VA 품질 패널은 페이지 진입·새로고침 시 선택 tap의 state-dump와
+metrics를 읽습니다. URL hash의 tap 선택, 룰이 연결된 tap, 첫 active tap 순서로 대상을 정합니다.
+구형 Runtime Console의 탭·자동 2초 갱신 설정을 현재 화면 기능으로 안내하지 않습니다.
+Scenario Timeline과 TrackHealth 그룹은 운영자의 읽기 전용 진단이며 viewer 화면에 노출하지 않습니다.
 
 | 항목 | 설명 |
 | --- | --- |
@@ -1572,12 +1545,11 @@ Scenario Timeline은 읽기 전용 debug UI입니다.
 
 event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
 
-현재 vaRule Runtime Debug와 Scenarios/Scenario Timeline table은
-state-dump/metrics에 이미 노출된 값과
+현재 Ops VA 품질 패널은 state-dump/metrics에 이미 노출된 값과
 `analyticsState.debugState.scenarioTimeline[]`을 사용합니다.
 phase entered time, elapsed time, cooldown remaining, event emitted/dedupe count는
 debug/state-dump 계층에서만 표시합니다.
-정밀 timeline/debug 필드 초안은
+정밀 timeline/debug 필드 기준은
 [scenario-timeline-debug.md](./scenario-timeline-debug.md)에 분리해 관리합니다.
 
 ## 18. Replay 검증
@@ -1654,7 +1626,8 @@ baseline 비교 기준:
   실험용 ONNX Re-ID extractor hook은 있지만,
   운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.
 - EventRecord 저장은 기본 비활성입니다.
-- snapshot/clip hook은 짧은 EventRecord evidence frame 저장용입니다. 장기 녹화, MP4 muxing, VMS/NVR 기능은 포함하지 않습니다.
+- snapshot/clip hook은 짧은 EventRecord evidence frame 저장용입니다. 별도 관리 녹화는
+  상시 세그먼트·이벤트 파생 영상·보존·타임라인 재생을 제공하지만 자연어 영상 검색이나 완성형 VMS/NVR을 뜻하지 않습니다.
 - Homography는 optional입니다. 설정이 없거나 실패하면 image 좌표 fallback을 사용합니다.
 - ScenarioEngine은 기존 RuleEventEngine과 별도입니다. 기존 Intrusion/LineCrossing event를 끄거나 바꾸지 않습니다.
 - UI 상세 사용법은 [ui-guide.md](./ui-guide.md)에 있습니다. 이 문서는 UI 조작법을 길게 다루지 않습니다.

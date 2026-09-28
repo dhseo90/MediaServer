@@ -1,0 +1,139 @@
+{
+  "schema": "media-server.v411-documentation-checks.v1",
+  "scope": "분석 기술 문서와 관련 정적 검사. 실제 제품/UI/장시간 검증 아님.",
+  "baseCommit": "8786b95b01fda8b57126acb4867889c65ce2b1ee",
+  "source": {
+    "docs/video-analysis.md": "b5047d4caba920566edf7863f5a3999a1bcbf3e525451959de7d0f2189263aae",
+    "src/analysis/event_storage.cpp": "218a0f7c4736f3b83ad8aa7559276396d78c94ab20b398797e074e6a238162bd",
+    "src/ingress/product_ui_page_scripts.cpp": "0558e9854a1da0c12e92bd6d0bdfe5dfe4e429610a4ce59da8bbad17549003cd",
+    "src/ingress/webrtc_http_server_ops_incidents.cpp": "c2fb3315035211f2a2149bba0fad1e5e904f2b51e45159b2f11432efe1fb0dac",
+    "scripts/internal/verify_webrtc_va_metadata.mjs": "7db875d4e024dac745174cacb7b7b395f941cba3dd6160d3dde90fb1a6456e4a",
+    "scripts/examples/webrtc_va_metadata_client.html": "1848101a8a19003ccf2f6101e5335f9d37b9209f66cfdb4224ad27c34035a5df"
+  },
+  "environment": {
+    "node": "v24.13.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "expected": "각 명령 exit 0. 기존 tracker/privacy/scenario 계약 및 문서 연결 유지.",
+  "preservation": {
+    "commit": "8786b95b01fda8b57126acb4867889c65ce2b1ee",
+    "path": "docs/video-analysis.md",
+    "sha256": "4044c1896c6be84e9874e40a50fbc89844d99c22f014934dce54d1e9c4a771e4",
+    "originalBlobVerified": true,
+    "remote": "미확인: 이번 실행에서 원격 조회 없음",
+    "removed": "과거 2026-04-30 interval 측정 표·구형 Lab UI 설명. 기술 계약/설계 기준은 현재 문서에 유지."
+  },
+  "commands": [
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-bot-sort-deepsort-research-boundary"
+      ],
+      "startedAt": "2026-09-28T21:54:45.841Z",
+      "endedAt": "2026-09-28T21:54:46.299Z",
+      "elapsedMs": 456.904375,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] runtime tracker policy rejects BoT-SORT tokens\n[pass] runtime tracker policy rejects DeepSORT tokens\n[pass] runtime tracker policy keeps current allowed values\n[pass] ObjectTracker runtime kind Lite exists\n[pass] ObjectTracker runtime kind KalmanLite exists\n[pass] ObjectTracker runtime kind ByteTrack exists\n[pass] ObjectTracker implementation rejects research tracker tokens\n[pass] benchmark harness accepts only current tracker policies\n[pass] research boundary docs block tracker product scope expansion\n[pass] server command exposes research boundary verifier command\n[pass] server command exposes research boundary verifier script\n[pass] script inventory exposes research boundary verifier script\n\n== BoT-SORT/DeepSORT research boundary summary ==\n- pass: 12\n- fail: 0\n- status: pass\n",
+      "stderr": ""
+    },
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-oc-sort-benchmark-boundary"
+      ],
+      "startedAt": "2026-09-28T21:54:46.300Z",
+      "endedAt": "2026-09-28T21:54:46.615Z",
+      "elapsedMs": 314.527417,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] OC-SORT is not a runtime tracker policy value\n[pass] ObjectTracker runtime kind Lite exists\n[pass] ObjectTracker runtime kind KalmanLite exists\n[pass] ObjectTracker runtime kind ByteTrack exists\n[pass] ObjectTracker implementation rejects OC-SORT tokens\n[pass] benchmark harness accepts only current tracker policies\n[pass] OC-SORT benchmark boundary is documented without product-scope expansion\n[pass] server command exposes OC-SORT boundary verifier command\n[pass] server command exposes OC-SORT boundary verifier script\n[pass] script inventory exposes OC-SORT boundary verifier script\n\n== OC-SORT benchmark boundary summary ==\n- pass: 10\n- fail: 0\n- status: pass\n",
+      "stderr": ""
+    },
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-reid-advanced-tracking"
+      ],
+      "startedAt": "2026-09-28T21:54:46.615Z",
+      "endedAt": "2026-09-28T21:54:46.926Z",
+      "elapsedMs": 310.95341699999994,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] Re-ID appearance hook default is disabled\n[pass] Re-ID default appearance extractor is noop\n[pass] Re-ID default model path is empty\n[pass] Re-ID default model checksum is empty\n[pass] Re-ID default model provenance is empty\n[pass] close object guard default is off\n[pass] appearance execution stays bounded outside media hot path\n[pass] external metadata serializers do not expose appearance identity material\n[pass] appearance diagnostics expose aggregate status only\n[pass] model checksum provenance opt-in gate is wired\n[pass] close object benchmark boundary remains available\n[pass] docs pin privacy review boundaries\n\n== Re-ID / advanced tracking experiment summary ==\n- pass: 12\n- fail: 0\n- status: pass\n",
+      "stderr": ""
+    }
+  ],
+  "notRun": [
+    "실제 모델 추론·Auth·미디어·녹화·UI·30분·120분 실행",
+    "외부 서비스·실기기",
+    "원격 작업"
+  ],
+  "cleanup": {
+    "temporaryFiles": "없음",
+    "processesAndPorts": "동기 정적 자식 명령만 실행, 서버/포트/계정 생성 없음"
+  },
+  "usage": {
+    "tokens": "실행별 토큰 집계 없음"
+  },
+  "review": {
+    "read": "메인 video-analysis 전체 1661행 읽음. 변경 관련 소스/직접 소비자 대조.",
+    "unchanged": "제품 코드·공개 schema·기능 ID·테스트 기대값 변경 없음"
+  },
+  "directChecks": {
+    "kind": "메모리 내 문서 JSON/명령 식별자·Git 바이트 대조",
+    "items": [
+      {
+        "name": "Event POST 설명 예시 UTC 문자열/epoch millisecond 일치",
+        "pass": true
+      },
+      {
+        "name": "evidence cleanup 명령·audit·bundle 수명 안내 보존",
+        "pass": true
+      },
+      {
+        "name": "변경 전 실제 원문 SHA-256 확인",
+        "pass": true
+      }
+    ]
+  },
+  "sourceUnchanged": true,
+  "finalChecks": [
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T21:55:13.633Z",
+      "endedAt": "2026-09-28T21:55:13.989Z",
+      "elapsedMs": 355.010833,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14888\n- local images: 14\n- local anchors: 265\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "docs/video-analysis.md",
+        "docs/release-artifacts/v4.1.1/analysis-documentation/result.json"
+      ],
+      "startedAt": "2026-09-28T21:55:13.990Z",
+      "endedAt": "2026-09-28T21:55:13.998Z",
+      "elapsedMs": 8.662209000000018,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
