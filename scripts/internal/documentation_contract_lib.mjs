@@ -66,6 +66,23 @@ export function validateArchitectureContractDocumentation(text) {
   return errors;
 }
 
+// 전체 파일의 역사 SHA와 현행 metadata 소비 계약 연결을 구분한다. payload 동작 검사는 아니다.
+export function validateWebRtcMetadataDocumentation(text) {
+  const errors = [];
+  for (const identifier of [
+    'media-server.webrtc.va-metadata.v1', 'va-metadata', 'vaMetadata=1',
+    '/webrtc/session', '/client/api/views/{viewId}/webrtc/session', 'lab:read',
+    'coordinateSpace=normalized-frame', 'tracks', 'events',
+    'videoFramePtsMs', 'analysisPtsMs', 'syncDeltaMs', 'syncStatus', 'syncToleranceMs',
+    'scripts/examples/webrtc_va_metadata_client.html', 'verify-webrtc-va-metadata',
+  ]) {
+    if (typeof text !== 'string' || !text.includes(identifier)) {
+      errors.push('WebRTC metadata 문서의 계약/소비 경로 식별자 누락: ' + identifier);
+    }
+  }
+  return errors;
+}
+
 export function validateVerificationDocumentation({agents, verification}) {
   const errors = [];
   if (!hasDocumentLink(agents, 'docs/stream-verification.md')) errors.push('AGENTS: 검증 기준 문서 링크 없음');

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation} from './documentation_contract_lib.mjs';
+import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation, validateWebRtcMetadataDocumentation} from './documentation_contract_lib.mjs';
 import {validatePolicy, evaluateEvidence} from './ui_fulltest_evidence_policy_v4_lib.mjs';
 
 const read = (p) => fs.readFileSync(new URL('../../' + p, import.meta.url), 'utf8');
@@ -196,14 +196,31 @@ test('DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패', () => 
   }
 });
 
+test('DOC-METADATA-01 현행 소비 계약 유지·제목과 문장 변경 허용', () => {
+  const text = read('docs/webrtc-metadata-client.md');
+  assert.deepEqual(validateWebRtcMetadataDocumentation(text), []);
+  assert.deepEqual(validateWebRtcMetadataDocumentation(text.replace(/^#{1,6}.*$/gm, '# 새 제목') + '\n한글 사용 안내\n'), []);
+});
+test('DOC-METADATA-02 문서·권한·좌표·동기화·예제 연결 누락 거부', () => {
+  assert(validateWebRtcMetadataDocumentation(undefined).length > 0);
+  const text = read('docs/webrtc-metadata-client.md');
+  for (const identifier of [
+    'media-server.webrtc.va-metadata.v1', 'vaMetadata=1', 'lab:read',
+    '/client/api/views/{viewId}/webrtc/session', 'coordinateSpace=normalized-frame',
+    'videoFramePtsMs', 'analysisPtsMs', 'syncDeltaMs', 'syncStatus', 'syncToleranceMs',
+    'scripts/examples/webrtc_va_metadata_client.html', 'verify-webrtc-va-metadata',
+  ]) assert(validateWebRtcMetadataDocumentation(text.replaceAll(identifier, '')).some(error => error.includes(identifier)), identifier);
+});
+
 test('DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파', async t => {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const architecture = 'docs/media-server-architecture.md';
   const artifactGuide = 'docs/integrator-contract-artifact.md';
+  const metadataGuide = 'docs/webrtc-metadata-client.md';
   const header = 'include/ingress/http_auth.h';
   const sample = 'test/fixtures/integrator_contract_artifact/samples/event-post.json';
   const digest = p => crypto.createHash('sha256').update(read(p)).digest('hex');
-  const before = Object.fromEntries([architecture, artifactGuide, header, sample].map(p => [p, digest(p)]));
+  const before = Object.fromEntries([architecture, artifactGuide, metadataGuide, header, sample].map(p => [p, digest(p)]));
   const cases = [
     ['문서 제목·녹화 설명 변경', null, 0, ''],
     ['필수 권한 설명 제거', {path: architecture, remove: 'RequireScope'}, 1, '식별자 누락'],
@@ -211,6 +228,10 @@ test('DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 �
     ['현행 문서 부재', {missing: architecture}, 1, 'missing freeze target'],
     ['현재 제품 파일 부재', {missing: header}, 1, 'missing freeze target'],
     ['연동 안내 명령 제거', {path: artifactGuide, remove: './server.sh verify-integrator-contract-artifact'}, 1, 'missing snippet'],
+    ['metadata 문서 부재', {missing: metadataGuide}, 1, 'missing freeze target'],
+    ['metadata 권한 설명 제거', {path: metadataGuide, remove: 'lab:read'}, 1, '계약/소비 경로 식별자 누락'],
+    ['역사 감사에서도 metadata 좌표 설명 검사', {path: metadataGuide, remove: 'coordinateSpace=normalized-frame', historicalAudit: true}, 1, '계약/소비 경로 식별자 누락'],
+    ['역사 감사의 metadata 문서 pin 변경', {path: metadataGuide, append: '\n설명 변경\n', historicalAudit: true}, 1, 'docs/webrtc-metadata-client.md: sha256 mismatch'],
     ['역사 감사의 인증 코드 pin 변경', {path: header, append: '\n// changed\n', historicalAudit: true}, 1, 'include/ingress/http_auth.h: sha256 mismatch'],
     ['실제 sample pin 변경', {path: sample, append: '\n'}, 1, 'sha256 mismatch'],
   ];
@@ -229,7 +250,7 @@ test('DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 �
         const relative = path.relative(root, String(file));
         const raw = read.call(this, file, options);
         let text = String(raw);
-        if ([${JSON.stringify(architecture)}, ${JSON.stringify(artifactGuide)}].includes(relative)) {
+        if ([${JSON.stringify(architecture)}, ${JSON.stringify(artifactGuide)}, ${JSON.stringify(metadataGuide)}].includes(relative)) {
           text = text.replace(/^#{1,6}.*$/gm, '# 표현 변경') + '\\n별개 녹화 설명 갱신\\n';
         }
         if (relative === mutation?.path) {
@@ -255,6 +276,12 @@ test('DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 �
       assert.notEqual(changedHash, before[header]);
       assert(result.stderr.includes(header + ': sha256 mismatch ' + changedHash + ' != '), result.stderr);
       assert(!result.stderr.includes(header + ': sha256 mismatch ' + before[header] + ' != '), '기존 불일치를 새 변이 검출로 대체 금지');
+    }
+    if (mutation?.path === metadataGuide && mutation.append) {
+      const rewritten = read(metadataGuide).replace(/^#{1,6}.*$/gm, '# 표현 변경') + '\n별개 녹화 설명 갱신\n' + mutation.append;
+      const changedHash = crypto.createHash('sha256').update(rewritten).digest('hex');
+      assert(result.stderr.includes(metadataGuide + ': sha256 mismatch ' + changedHash + ' != '), result.stderr);
+      assert(!result.stderr.includes(metadataGuide + ': sha256 mismatch ' + before[metadataGuide] + ' != '), '기존 문서 불일치를 새 변이 검출로 대체 금지');
     }
     assert(result.stdout.includes('runtime Auth/Rule/media verification: not-run-by-this-command'));
     assert(result.stdout.includes(mutation?.historicalAudit ? 'historical source byte audit: executed' : 'historical source byte audit: not-run'));

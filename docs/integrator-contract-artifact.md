@@ -44,10 +44,11 @@ field를 고정합니다. `schema-review-checklist.md`는 payload mutation 요�
 v2.0.0 entry freeze gate입니다. artifact 파일, source contract 문서, 그리고
 Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준 파일의
 SHA-256을 기록한 기준선입니다. 현행 검사에서는 bundle의 pin, 현재 안내 문서의 연결,
-과거 제품 파일의 바이트 감사를 구분합니다. 서버 구조와 이 안내의 과거 문서 hash는
+과거 제품 파일의 바이트 감사를 구분합니다. 서버 구조·이 안내·WebRTC metadata 소비 안내의 과거 문서 hash는
 역사 값으로 보존하되, 현행 설명 전체를 그 바이트에 고정하지 않습니다.
 서버 구조에서는 권한·공개 소비 경로 식별자, 이 안내에서는 artifact 식별자·명령·연결을
-검사합니다. 문서의 의미 검토와 실제 인증·전송 회귀를 이 정적 검사로 대체하지 않습니다.
+검사합니다. WebRTC metadata 안내는 scope·session 경로·좌표·동기화·예제 연결을 확인합니다.
+문서의 의미 검토와 실제 인증·전송 회귀를 이 정적 검사로 대체하지 않습니다.
 과거 Auth·Rule 구현 파일의 전체 hash는 `--historical-source-pins` 감사 옵션으로 대조합니다.
 현재 구현의 리팩토링도 이 감사에서는 차이로 보고되며, 그 결과를 현재 제품의 기능 실패나
 기능 PASS로 바꾸지 않습니다. 기존 baseline·checksum 값은 갱신하지 않습니다.
@@ -121,7 +122,9 @@ artifact 자체 검증:
 - `field-index.json`, `CHANGELOG.md`, `schema-review-checklist.md`가 bundle에
   포함되고 manifest와 일치함
 - `freeze-baseline.json`의 bundle SHA-256 pin과 명시된 역사 근거를 확인함.
-  서버 구조·이 안내는 현행 식별자와 연결을 검사하며, 다른 계약 문서의 기존 pin은 유지함.
+  서버 구조·이 안내·WebRTC metadata 소비 안내는 현행 식별자와 연결을 검사합니다.
+  이 문서들의 과거 전체 바이트는 `--historical-source-pins` 감사로 구분하고,
+  sample/schema 및 그 밖의 기존 pin은 유지합니다.
   payload나 권한 계약 변경은 여전히 별도 검토·영향 회귀가 필요함
 - `checksums.json`이 현재 bundle file과 `v230-conformance.json`의 SHA-256을
   일치하게 고정함

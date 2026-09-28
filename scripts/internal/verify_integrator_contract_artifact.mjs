@@ -9,7 +9,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { validateArchitectureContractDocumentation } from "./documentation_contract_lib.mjs";
+import { validateArchitectureContractDocumentation, validateWebRtcMetadataDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -26,8 +26,8 @@ Checks:
   - README/changelog/field index/schema review checklist가 manifest와 일치
   - sample payload가 제공된 JSON Schema subset을 만족
   - sample에 source URL/userinfo/credential/token/hash 노출 후보가 없음
-  - freeze baseline의 artifact pin과 현행 구조 문서의 권한·소비 경로 연결
-  - live contract 문서, backlog, server.sh, script inventory 연결 유지
+  - freeze baseline의 artifact pin과 현행 구조·metadata 문서의 권한·소비 경로 연결
+  - 현행 계약 문서, 문서 색인, server.sh, script inventory 연결 유지
 
 --historical-source-pins는 과거 문서·제품 파일의 전체 SHA 대조를 추가하는 감사 옵션이다.
 기본 artifact 검사와 실제 Auth/Rule/전송 동작 검증은 서로 다르다.
@@ -424,7 +424,7 @@ function freezeBaselineFailures(baseline, manifest) {
       failures.push(`${entry.path}: missing freeze target`);
       continue;
     }
-    if (entry.path === "docs/media-server-architecture.md" || entry.path === "docs/integrator-contract-artifact.md") {
+    if (["docs/media-server-architecture.md", "docs/integrator-contract-artifact.md", "docs/webrtc-metadata-client.md"].includes(entry.path)) {
       // 과거 SHA 값은 기록으로 유지한다. 현행 설명을 당시 파일 바이트에 묶거나
       // 문서 갱신 때마다 baseline을 새 PASS로 덮어쓰지 않는다. bundle은 아래 기존
       // pin/손상 거부 경로, 과거 제품 파일의 바이트 대조는 명시적 감사 옵션을 사용한다.
@@ -433,6 +433,9 @@ function freezeBaselineFailures(baseline, manifest) {
         failures.push(`${entry.path}: contract group mismatch`);
       }
       if (architecture) failures.push(...validateArchitectureContractDocumentation(fs.readFileSync(absolutePath, "utf8")));
+      if (entry.path === "docs/webrtc-metadata-client.md") {
+        failures.push(...validateWebRtcMetadataDocumentation(fs.readFileSync(absolutePath, "utf8")));
+      }
       // artifact 안내의 현행 식별자·명령·문서 연결은 documentation references 검사에서 확인한다.
       if (!args.historicalSourcePins) continue;
     }

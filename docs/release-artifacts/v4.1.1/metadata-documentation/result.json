@@ -1,0 +1,249 @@
+{
+  "schema": "media-server.v411-documentation-checks.v1",
+  "scope": "WebRTC metadata 소비·시나리오 state-dump 안내와 문서 검증기의 자체검사. 제품/브라우저/장시간 검증 아님.",
+  "baseCommit": "cef6a7699c88c5854816e899eca48e58827ef7db",
+  "expected": [
+    "현행 문서·제목/한글 표현 변경은 전체 파일의 과거 SHA 때문에 실패하지 않음",
+    "권한/session 경로·좌표·sync·예제/명령 식별자 누락은 거부",
+    "명시적 역사 바이트 감사는 변경된 문서 SHA를 거부하며 기존 fixture/sample pin은 유지",
+    "문서 링크·관련 static consumer exit0. 실제 runtime/UI/성능 PASS로 확대하지 않음"
+  ],
+  "planned": [
+    [
+      "node",
+      [
+        "--test",
+        "scripts/internal/documentation_contract.test.mjs"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-integrator-contract-artifact"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-vlm-boundary"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-docs-links"
+      ]
+    ],
+    [
+      "git",
+      [
+        "diff",
+        "--check"
+      ]
+    ]
+  ],
+  "status": "passed",
+  "commands": [
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "scripts/internal/documentation_contract.test.mjs"
+      ],
+      "startedAt": "2026-09-28T22:17:58.034Z",
+      "endedAt": "2026-09-28T22:17:59.106Z",
+      "elapsedMs": 1071.9052909999998,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.706167ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.389125ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.174292ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.298583ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.0855ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.66075ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.168583ms)\n✔ DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용 (0.409667ms)\n✔ DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패 (0.614875ms)\n▶ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파\n  ✔ 현행 화면·JS·CSS·문서 (37.552541ms)\n  ✔ 화면 marker 누락: data-testid=\"ops-rule-scenario-review-loop\" (34.732417ms)\n  ✔ 화면 marker 누락: data-review-loop=\"expected-event-type-conflict-missing-reference-preset-eventrecord-coverage\" (34.96275ms)\n  ✔ 화면 marker 누락: id=\"opsRulesReviewEventRecordLink\" (35.31225ms)\n  ✔ 화면 marker 누락: data-event-record-coverage-link=\"/ops/events\" (34.724792ms)\n  ✔ JS 연결 누락 (35.163042ms)\n  ✔ CSS 연결 누락 (36.01275ms)\n  ✔ 문서의 검사 범위 누락 (34.898625ms)\n✔ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파 (286.286125ms)\n▶ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부\n  ✔ 과거 backlog 없이 현행 shell 검사 (25.317792ms)\n  ✔ 과거 backlog 없이 현행 token 검사 (22.034792ms)\n  ✔ Client CSS 누락 (22.074042ms)\n  ✔ Client JS 누락 (21.729709ms)\n  ✔ 공통 CSS 누락 (22.883542ms)\n  ✔ shell 문서 연결 누락 (22.213125ms)\n  ✔ shell 명령 등록 누락 (23.355459ms)\n  ✔ token 검사 등록 누락 (23.945875ms)\n  ✔ token 문서 연결 누락 (23.736625ms)\n  ✔ raw 색상 반례 (23.526334ms)\n  ✔ 분리된 Client raw 색상 반례 (24.107958ms)\n  ✔ 분리된 Client token hook 누락 (23.903458ms)\n✔ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부 (279.464833ms)\n✔ DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결 (0.195375ms)\n✔ DOC-ARCH-02 제목·배치·녹화 설명은 과거 파일 해시로 고정하지 않음 (0.210208ms)\n✔ DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패 (0.259416ms)\n✔ DOC-METADATA-01 현행 소비 계약 유지·제목과 문장 변경 허용 (0.102417ms)\n✔ DOC-METADATA-02 문서·권한·좌표·동기화·예제 연결 누락 거부 (0.1805ms)\n▶ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파\n  ✔ 문서 제목·녹화 설명 변경 (30.542ms)\n  ✔ 필수 권한 설명 제거 (29.676708ms)\n  ✔ 역사 감사에서도 현행 권한 설명 검사 (30.640958ms)\n  ✔ 현행 문서 부재 (28.4435ms)\n  ✔ 현재 제품 파일 부재 (29.450875ms)\n  ✔ 연동 안내 명령 제거 (29.474875ms)\n  ✔ metadata 문서 부재 (28.98375ms)\n  ✔ metadata 권한 설명 제거 (29.433167ms)\n  ✔ 역사 감사에서도 metadata 좌표 설명 검사 (31.375625ms)\n  ✔ 역사 감사의 metadata 문서 pin 변경 (30.785583ms)\n  ✔ 역사 감사의 인증 코드 pin 변경 (32.030208ms)\n  ✔ 실제 sample pin 변경 (30.573584ms)\n✔ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파 (365.459292ms)\nℹ tests 49\nℹ suites 0\nℹ pass 49\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1051.76625\n",
+      "stderr": ""
+    },
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-integrator-contract-artifact"
+      ],
+      "startedAt": "2026-09-28T22:17:59.107Z",
+      "endedAt": "2026-09-28T22:17:59.187Z",
+      "elapsedMs": 80.20112499999982,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] manifest files are present\n[pass] v2.3.0 conformance artifact pins checksum/runtime/redaction evidence\n[pass] v2.3.0 checksum manifest matches current bundle files\n[pass] v2.3.0 checksum manifest negative fixture fails\n[pass] bundle support docs pin review boundaries\n[pass] sample payloads match manifest identifiers\n[pass] schema samples keep known live identifiers pinned\n[pass] samples avoid operational exposure candidates\n[pass] documentation references integrator artifact\n[pass] current source registry evolution preserves the external transport boundary\n[pass] contract baseline pins artifacts; current documentation references remain valid\n[pass] v2.0.0 entry freeze baseline negative fixture fails\n\n== Integrator contract artifact verification summary ==\n- artifactDir: test/fixtures/integrator_contract_artifact\n- pass: 12\n- fail: 0\n- historical source byte audit: not-run (use --historical-source-pins)\n- runtime Auth/Rule/media verification: not-run-by-this-command\n",
+      "stderr": ""
+    },
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-vlm-boundary"
+      ],
+      "startedAt": "2026-09-28T22:17:59.188Z",
+      "endedAt": "2026-09-28T22:17:59.769Z",
+      "elapsedMs": 581.586667,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] current inventory closes the VLM boundary scope without runtime claims\n[pass] VLM principles keep YOLO/Rule/Scenario and media contracts immutable\n[pass] contract freeze baseline remains the schema drift gate\n[pass] VLM implementation artifacts preserve boundary non-scope invariants\n[pass] server command and script inventory register the VLM boundary verifier\n\n== VLM boundary verification summary ==\n- pass: 5\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T22:17:59.770Z",
+      "endedAt": "2026-09-28T22:18:00.210Z",
+      "elapsedMs": 440.35574999999994,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14919\n- local images: 14\n- local anchors: 284\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "diff",
+        "--check"
+      ],
+      "startedAt": "2026-09-28T22:18:00.210Z",
+      "endedAt": "2026-09-28T22:18:00.223Z",
+      "elapsedMs": 12.793708000000152,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "notRun": [
+    "실제 WebRTC/VA runtime·권한 회귀",
+    "실제 UI·브라우저·30분·120분·외부 서비스/실기기",
+    "성능·FPS·latency 비교",
+    "전체 v4.1.1 문서 정리 및 릴리즈 판정"
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "paths": [],
+    "reason": "메모리 주입·정적 검사. 서버·포트·브라우저·임시 디렉터리 생성 없음"
+  },
+  "source": {
+    "docs/webrtc-metadata-client.md": "46787fb4ee76e3842a228affe572900942b6e3978534aa13f6cfb665326cfa84",
+    "docs/scenario-timeline-debug.md": "c91eb9580bd49a15b0e48efb97cbd9f1744354a11f4d460062b23367e4449d0d",
+    "docs/integrator-contract-artifact.md": "7059cce84bcace38eff0516fc439dda6a39b32aa3eb592c128c726ed4ac7108d",
+    "scripts/internal/documentation_contract_lib.mjs": "11b672ef438d7318b62cb2c4d8ed071f8d08d6beaa05514356ca91b76c040c43",
+    "scripts/internal/documentation_contract.test.mjs": "3aa774831e903998939b9634be971d08a071333afaa46ae4c580acb4d13891aa",
+    "scripts/internal/verify_integrator_contract_artifact.mjs": "65e6c6ba2a4279a75ab3452f2121c1bb146651dc3da266e454a4ab3227ca07f2"
+  },
+  "environment": {
+    "node": "v24.13.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "preservation": [
+    {
+      "commit": "cef6a7699c88c5854816e899eca48e58827ef7db",
+      "path": "docs/webrtc-metadata-client.md",
+      "bytes": 3961,
+      "sha256": "1965d85d879f85a2aafc35dada2170820897b6153de0b8d81dfd1a8001ff331a",
+      "originalGitBlobRead": true,
+      "preEditBinaryComparison": false,
+      "originalReadTextVerified": "담당자 메모리 원문과 Git 전문 대조 일치",
+      "remote": "이번 실행 원격 미확인"
+    },
+    {
+      "commit": "cef6a7699c88c5854816e899eca48e58827ef7db",
+      "path": "docs/scenario-timeline-debug.md",
+      "bytes": 6096,
+      "sha256": "392740c8428d1ad8aead04ae1cdcb10c5dd4206bb1a04c3d7409cdbca9116934",
+      "originalGitBlobRead": true,
+      "preEditBinaryComparison": false,
+      "originalReadTextVerified": "담당자 메모리 원문과 Git 전문 대조 일치",
+      "remote": "이번 실행 원격 미확인"
+    },
+    {
+      "commit": "cef6a7699c88c5854816e899eca48e58827ef7db",
+      "path": "docs/integrator-contract-artifact.md",
+      "bytes": 7655,
+      "sha256": "3387844ac58ecede5f5e0679cdbd029b4e2db8b768e203f99adfdc247517ad7e",
+      "originalGitBlobRead": true,
+      "preEditBinaryComparison": false,
+      "originalReadTextVerified": "앞선 커밋 기준 원본 확인",
+      "remote": "이번 실행 원격 미확인"
+    }
+  ],
+  "review": {
+    "documents": "메인: 변경 전후 전문·실제 diff 검토. 단일 Astra/xhigh 담당자가 두 문서 정리; 하위 없음",
+    "actualSources": [
+      "src/analysis/event_rule_engine.cpp BuildDebugState/BuildScenarioTimelineItem/TimestampMsFromNs",
+      "src/analysis/scenario_engine.cpp ToString",
+      "src/ingress/webrtc_http_server.cpp AnalysisDebugScenarioTimelineJsonValue/AppendNullableInt64Json",
+      "src/ingress/webrtc_http_server_runtime.cpp require_lab_principal/require_generic_media_principal",
+      "src/ingress/product_ui_page_scripts.cpp renderDashboardScenarioTimeline/dashboardPrimaryTap",
+      "scripts/examples/webrtc_va_metadata_client.html 전체",
+      "scripts/internal/verify_webrtc_va_metadata.mjs",
+      "scripts/internal/verify_va_runtime_console.py 해당 JSON 검사"
+    ],
+    "productEdits": false,
+    "oldBaselineShaUnchanged": true
+  },
+  "sourceUnchanged": true,
+  "measurement": {
+    "tokens": "실행 묶음별 미집계. 전체 goal 누적 사용량과 구분하며 추정하지 않음",
+    "elapsed": "commands의 실제 elapsedMs",
+    "source": "개별 명령 출력과 SHA256"
+  },
+  "followup": {
+    "reason": "메인 최종 검토에서 기존의 현장 표시 우선순위·threshold 재튜닝 후속 후보를 명시적으로 보존. 과거 RC 완료 선언은 복원하지 않음",
+    "evidenceImpact": "설계 후보 설명 2행만 추가. metadata/도구/시나리오 필드·소비 계약·실행 경로 불변으로 기존 자체검사 재사용, 링크·공백만 재확인",
+    "source": {
+      "docs/webrtc-metadata-client.md": "46787fb4ee76e3842a228affe572900942b6e3978534aa13f6cfb665326cfa84",
+      "docs/scenario-timeline-debug.md": "86d9b967b9ddc55c2aff9a2a9f009f37a17e0345a4d0b6c01c81a8c5ad8ab181",
+      "docs/integrator-contract-artifact.md": "7059cce84bcace38eff0516fc439dda6a39b32aa3eb592c128c726ed4ac7108d",
+      "scripts/internal/documentation_contract_lib.mjs": "11b672ef438d7318b62cb2c4d8ed071f8d08d6beaa05514356ca91b76c040c43",
+      "scripts/internal/documentation_contract.test.mjs": "3aa774831e903998939b9634be971d08a071333afaa46ae4c580acb4d13891aa",
+      "scripts/internal/verify_integrator_contract_artifact.mjs": "65e6c6ba2a4279a75ab3452f2121c1bb146651dc3da266e454a4ab3227ca07f2"
+    },
+    "commands": [
+      {
+        "command": "./server.sh",
+        "args": [
+          "verify-docs-links"
+        ],
+        "startedAt": "2026-09-28T22:19:06.063Z",
+        "endedAt": "2026-09-28T22:19:06.412Z",
+        "elapsedMs": 347.682292,
+        "exit": 0,
+        "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14919\n- local images: 14\n- local anchors: 284\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+        "stderr": ""
+      },
+      {
+        "command": "git",
+        "args": [
+          "diff",
+          "--check"
+        ],
+        "startedAt": "2026-09-28T22:19:06.413Z",
+        "endedAt": "2026-09-28T22:19:06.426Z",
+        "elapsedMs": 13.604709000000014,
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  "conclusion": {
+    "status": "passed",
+    "scope": "문서/도구 자체검증 한정",
+    "counts": {
+      "documentationSelfTests": 49,
+      "integratorArtifact": 12,
+      "vlmBoundary": 5
+    },
+    "scenarioFutureCandidatePreserved": true,
+    "productOrFixtureChanges": false,
+    "actualRuntimeOrUi": false
+  }
+}
