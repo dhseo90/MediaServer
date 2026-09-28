@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation, validateWebRtcMetadataDocumentation, hasDocumentFieldValue, validateOnvifSupportMatrixDocumentation} from './documentation_contract_lib.mjs';
+import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation, validateWebRtcMetadataDocumentation, hasDocumentFieldValue, validateOnvifSupportMatrixDocumentation, validateOnvifNoDeviceDocumentation, validateOnvifRtspsDocumentation} from './documentation_contract_lib.mjs';
 import {validatePolicy, evaluateEvidence} from './ui_fulltest_evidence_policy_v4_lib.mjs';
 
 const read = (p) => fs.readFileSync(new URL('../../' + p, import.meta.url), 'utf8');
@@ -257,6 +257,13 @@ test('DOC-ONVIF 현행 지원 안내와 검사 정의 분리·계약 누락 거�
     ['matrix 옛 버전·제목·실행 일지 없이 검사', 'protocol_support_matrix', {prose:true}, 0, ''],
     ['profile 옛 영문 제목 없이 검사', 'probe_fixture_contract', {prose:true}, 0, ''],
     ['completion 옛 버전 없이 검사', 'no_device_completion', {prose:true}, 0, ''],
+    ['no-device 과거 실행 문장 없이 현행 정의 검사', 'no_device_mode', {prose:true}, 0, ''],
+    ['no-device summary schema 누락', 'no_device_mode', {path:'docs/onvif-no-device-verification.md',remove:'media-server.onvif-no-device-suite-summary.v1'}, 1, 'schema'],
+    ['no-device 실장비 미확인 필드 누락', 'no_device_completion', {path:'docs/onvif-no-device-verification.md',remove:'realDeviceEndpointSuccess'}, 1, 'realDeviceEndpointSuccess'],
+    ['no-device 실패 검사 옵션 누락', 'no_device_mode', {path:'docs/onvif-no-device-verification.md',remove:'--expect-failure'}, 1, '--expect-failure'],
+    ['no-device 성공 fixture 실제 실패 유지', 'no_device_mode', {path:'test/fixtures/onvif_no_device_suite_success_summary.json',successFailure:true}, 1, 'success summary result status'],
+    ['no-device fixture 정제 누락', 'no_device_mode', {path:'test/fixtures/onvif_no_device_suite_failure_summary.json',leak:true}, 1, 'forbidden token'],
+    ['no-device runner schema 불일치', 'no_device_mode', {path:'scripts/internal/verify_onvif_no_device_suite.mjs',remove:'media-server.onvif-no-device-suite-summary.v1'}, 1, 'summary schema'],
     ['WS-Discovery 미지원 판정 제거', 'protocol_support_matrix', {path:matrix,row:'ONVIF WS-Discovery'}, 1, 'unsupported'],
     ['Profile G 미지원 판정 제거', 'no_device_completion', {path:matrix,row:'ONVIF Profile G / Recording / Replay'}, 1, 'unsupported'],
     ['HTTPS OpenSSL 조건 제거', 'protocol_support_matrix', {path:matrix,remove:'OpenSSL'}, 1, 'OpenSSL'],
@@ -282,11 +289,13 @@ test('DOC-ONVIF 현행 지원 안내와 검사 정의 분리·계약 누락 거�
         const rel=path.relative(root,String(file));
         if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(rel)) throw new Error('과거 원장 읽기 금지');
         const raw=original.call(this,file,options); let text=String(raw);
-        if(mutation.prose && rel.startsWith('docs/onvif-')) text=text.replace(/^#{1,6}.*$/gm,'# 한글 제목').replaceAll('v1.8.0','').replace(/2026-05-15[\\s\\S]*?local simulator fixture 성공은 보고에서 분리합니다\\./g,'');
+        if(mutation.prose && rel.startsWith('docs/onvif-')) text=text.replace(/^#{1,6}.*$/gm,'# 한글 제목').replaceAll('v1.8.0','').replace(/2026-05-15[\\s\\S]*?실제 ONVIF[\\s\\S]*?수행하지 않았습니다\\./g,'');
         if(rel===mutation.path){
           if(mutation.remove) text=text.replaceAll(mutation.remove,'');
           if(mutation.row) text=text.split('\\n').map(line=>line.startsWith('| '+mutation.row+' |')?line.replaceAll('비지원','지원').replaceAll('미지원','지원'):line).join('\\n');
           if(mutation.failure){const d=JSON.parse(text);d.completed=d.total;d.failed=null;text=JSON.stringify(d);}
+          if(mutation.successFailure){const d=JSON.parse(text);d.results[0].status=1;text=JSON.stringify(d);}
+          if(mutation.leak){const d=JSON.parse(text);d.unexpected='operator-entered-secret';text=JSON.stringify(d);}
         }
         return Buffer.isBuffer(raw)?Buffer.from(text):text;
       };
@@ -298,6 +307,77 @@ test('DOC-ONVIF 현행 지원 안내와 검사 정의 분리·계약 누락 거�
     if(reason)assert((r.stdout+r.stderr).includes(reason),r.stdout+r.stderr);
     if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),before,'반례 뒤 원본 불변');
   });
+});
+
+test('DOC-ONVIF-DEFINITION 현행 정의의 제목·문장 위치와 계약 누락 구분', () => {
+  for (const [path, validate, identifiers] of [
+    ['docs/onvif-no-device-verification.md', validateOnvifNoDeviceDocumentation,
+      ['generatedAt', 'results', 'MEDIA_SERVER_ONVIF_FIELD_ENDPOINT', '--output', 'onvif-field-smoke-gate.md']],
+    ['docs/onvif-rtsps-draft-policy.md', validateOnvifRtspsDocumentation,
+      ['rtsps://', 'kind=rtsp', 'rtspUrl', 'POST /ops/api/onvif/import-draft', 'OpenSSL', 'onvif-tls-transport-policy.md']],
+  ]) {
+    const doc = read(path);
+    assert.deepEqual(validate(doc), [], path);
+    assert.deepEqual(validate(doc.replace(/^#{1,6}.*$/gm, '# 다른 제목').replaceAll('(./', '(').split('\n\n').reverse().join('\n\n')), [], path);
+    assert(validate('').length > 0, path);
+    for (const id of identifiers) assert(validate(doc.replaceAll(id, '')).some(error => error.includes(id)), path + ': ' + id);
+  }
+  const doc = read('docs/onvif-no-device-verification.md');
+  assert(validateOnvifNoDeviceDocumentation(doc.replaceAll('미확인', '성공')).some(error => error.includes('realDeviceEndpointSuccess')));
+});
+
+test('DOC-ONVIF-TLS 문서 preflight 변경은 실제 TLS 실행을 대체하지 않음', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  for (const [name, remove, expected, reason] of [
+    ['현행 문서 preflight만 통과', '', 0, 'preflight-only; actual TLS not-run'],
+    ['문서 TLS 명령 누락 거부', 'verify-onvif-https-tls-fixture', 1, 'no-device doc missing TLS fixture term'],
+    ['별도 C++ transport 검사 경계 누락 거부', 'SendOnvifSoapHttp', 1, 'no-device doc missing TLS fixture term'],
+  ]) await t.test(name, () => {
+    const program = `
+      import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)}, original=fs.readFileSync;
+      fs.readFileSync=function(p,options){const raw=original.call(this,p,options);if(path.relative(root,String(p))!=='docs/onvif-no-device-verification.md')return raw;const text=String(raw).replaceAll(${JSON.stringify(remove)},'');return Buffer.isBuffer(raw)?Buffer.from(text):text;};
+      // 실제 인증서 생성/소켓 이전에 종료한다. 이 경계를 통과했다는 사실만 검사한다.
+      fs.mkdtempSync=()=>{console.log('preflight-only; actual TLS not-run');process.exit(0);};
+      for(const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[key]=()=>{throw new Error('문서 preflight에서 파일 쓰기 금지');};
+      await import(pathToFileURL(path.join(root,'scripts/internal/verify_onvif_https_tls_fixture.mjs')).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,expected,r.stdout+r.stderr);
+    assert((r.stdout+r.stderr).includes(reason),r.stdout+r.stderr);
+  });
+});
+
+test('DOC-ONVIF-SUITE 실행기 실패 전파·후속 중단·summary는 격리 stub으로 확인', async t => {
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const expected=JSON.parse(read('test/fixtures/onvif_no_device_suite_success_summary.json')).results.map(r=>r.command);
+  const before=crypto.createHash('sha256').update(read('scripts/internal/verify_onvif_no_device_suite.mjs')).digest('hex');
+  for(const [name, failAt, status, exit] of [['전 단계 성공 구조',0,0,0],['4단계 실패 시 뒤 단계 미실행',4,7,7],['자식 종료 status 없음은 실패',4,null,1]]) await t.test(name,()=>{
+    const program=`
+      import fs from 'node:fs';import path from 'node:path';import cp from 'node:child_process';import {syncBuiltinESMExports} from 'node:module';import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)},calls=[];
+      cp.spawnSync=(file,args)=>{if(file!==path.join(root,'server.sh'))throw new Error('예상 외 자식 실행');calls.push('./server.sh '+args.join(' '));return {status:calls.length===${failAt}?${JSON.stringify(status)}:0};};
+      syncBuiltinESMExports();
+      fs.mkdirSync=()=>{};
+      fs.writeFileSync=(p,raw)=>{if(p!==path.join(root,'in-memory-summary.json'))throw new Error('예상 외 쓰기');console.log('__SUMMARY__'+JSON.stringify({summary:JSON.parse(raw),calls}));};
+      for(const key of ['appendFileSync','unlinkSync','rmSync','renameSync'])fs[key]=()=>{throw new Error('실행기 자체검사 파일 쓰기 금지');};
+      const script=path.join(root,'scripts/internal/verify_onvif_no_device_suite.mjs');
+      process.argv=[process.execPath,script,'--json-output','in-memory-summary.json'];
+      await import(pathToFileURL(script).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,exit,r.stdout+r.stderr);
+    const lines=r.stdout.split('\n').filter(line=>line.startsWith('__SUMMARY__'));
+    assert.equal(lines.length,1);
+    const {summary,calls}=JSON.parse(lines[0].slice('__SUMMARY__'.length));
+    assert.equal(summary.total,expected.length);assert.deepEqual(calls,expected.slice(0,failAt||expected.length));
+    assert.equal(summary.completed,failAt?failAt-1:expected.length);assert.equal(summary.failed,failAt?expected[failAt-1]:null);
+    assert.equal(summary.realDeviceEndpointSuccess,'미확인');assert.equal(summary.mode,'실장비 제외');
+    assert.equal(summary.schema,'media-server.onvif-no-device-suite-summary.v1');assert(Number.isFinite(Date.parse(summary.generatedAt)));
+    assert.deepEqual(summary.results,calls.map((command,index)=>({index:index+1,command,ok:!failAt||index+1<failAt,status:failAt&&index+1===failAt?exit:0})));
+  });
+  assert.equal(crypto.createHash('sha256').update(read('scripts/internal/verify_onvif_no_device_suite.mjs')).digest('hex'),before);
+  assert.equal(fs.existsSync(new URL('../../in-memory-summary.json',import.meta.url)),false);
 });
 
 test('DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결', () => {

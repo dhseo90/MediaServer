@@ -73,8 +73,9 @@ for (const term of [
 
 for (const term of [
   "verify-onvif-https-tls-fixture",
-  "trusted fixture success",
-  "fixture TLS server/client 실행",
+  "verify-onvif-http-transport",
+  "SendOnvifSoapHttp",
+  "realDeviceEndpointSuccess",
 ]) {
   assertContains(noDeviceDoc, term, `no-device doc missing TLS fixture term: ${term}`);
 }

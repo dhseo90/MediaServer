@@ -78,6 +78,52 @@ export function validateOnvifSupportMatrixDocumentation(text) {
   return errors;
 }
 
+// 실장비 제외 검사의 현행 명령/출력 계약을 연결한다. 과거 수행 시각·완료 문구는 요구하지 않는다.
+// 이 문서 검사는 suite 실행이나 실장비 성공을 증명하지 않는다.
+export function validateOnvifNoDeviceDocumentation(text) {
+  const errors = [], doc = String(text || '');
+  for (const [field, value] of [['mode', '실장비 제외'], ['realDeviceEndpointSuccess', '미확인']]) {
+    if (!hasDocumentFieldValue(doc, field, value)) errors.push('no-device summary field/value missing: ' + field);
+  }
+  for (const id of [
+    'media-server.onvif-no-device-suite-summary.v1', 'generatedAt', 'total', 'completed', 'failed',
+    'results', 'index', 'command', 'ok', 'status', 'GetStreamUri', 'Media2', 'Media',
+    'SourceRegistry', 'PublishedView', 'loopback', 'redaction',
+    'test/fixtures/onvif_no_device_suite_success_summary.json',
+    'test/fixtures/onvif_no_device_suite_failure_summary.json',
+    'test/fixtures/onvif_synthetic_vendor_fixture_pack.json',
+    'verify-onvif-no-device-suite --json-output', '--allow-missing-endpoint',
+    '--expect-failure', '--credential-ref-present', '--output',
+    'MEDIA_SERVER_ONVIF_FIELD_ENDPOINT',
+    ...['no-device-mode', 'no-device-completion', 'protocol-support-matrix',
+      'https-tls-fixture', 'auth-injection-loopback', 'probe-profile-variants',
+      'synthetic-vendor-fixtures', 'local-simulator', 'soap-fault-matrix',
+      'field-smoke-gate', 'field-http-probe', 'closed-loopback-failure-matrix',
+      'field-smoke-redaction', 'field-smoke-sample-bundle'].map(name => 'verify-onvif-' + name),
+  ]) if (!doc.includes(id)) errors.push('no-device definition missing: ' + id);
+  for (const link of ['onvif-protocol-support-matrix.md', 'onvif-field-smoke-gate.md',
+    'onvif-tls-transport-policy.md', 'onvif-credential-reference-policy.md']) {
+    if (!hasDocumentLink(doc, link)) errors.push('no-device contract link missing: ' + link);
+  }
+  return errors;
+}
+
+export function validateOnvifRtspsDocumentation(text) {
+  const errors = [], doc = String(text || '');
+  for (const id of ['GetStreamUri', 'Media2', 'Media', 'rtsp://', 'rtsps://',
+    'sourceDraft', 'kind=rtsp', 'rtspUrl', '/ops/sources', 'POST /ops/api/onvif/import-draft',
+    'https://', 'OpenSSL', 'SendOnvifSoapHttp', '미확인',
+    'test/fixtures/onvif_probe_result_rtsps_stub.json', 'verify-onvif-rtsps-draft-policy',
+    'verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json',
+    'verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp']) {
+    if (!doc.includes(id)) errors.push('RTSPS definition missing: ' + id);
+  }
+  for (const link of ['onvif-protocol-support-matrix.md', 'onvif-live-source-support.md', 'onvif-tls-transport-policy.md']) {
+    if (!hasDocumentLink(doc, link)) errors.push('RTSPS contract link missing: ' + link);
+  }
+  return errors;
+}
+
 // 사용자 안내는 출력 계약과 승인 기준으로 연결한다. 옛 영문 제목/설명 문장을 요구하지 않는다.
 // 승인 양식의 필수 항목·실제 승인·시각 품질 판정은 각각의 독립 검사/검토 범위다.
 export function validateVisualArtifactGuideDocumentation(guide) {

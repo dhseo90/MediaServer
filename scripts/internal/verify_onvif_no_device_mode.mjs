@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { hasDocumentLink } from "./documentation_contract_lib.mjs";
+import { hasDocumentLink, validateOnvifNoDeviceDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -51,60 +51,9 @@ const expectedSummarySchema = "media-server.onvif-no-device-suite-summary.v1";
 
 const checks = [];
 
-check("no-device document defines field-device exclusion boundary", () => {
-  assertContains(noDeviceDoc, "실장비 제외", "missing explicit 실장비 제외 wording");
-  assertContains(noDeviceDoc, "미확인", "missing 미확인 reporting wording");
-  assertContains(noDeviceDoc, "실장비 endpoint 성공", "missing real endpoint success caveat");
-  assertContains(noDeviceDoc, "실제 ONVIF 카메라를 사용한 field smoke를 수행하지 않았습니다", "missing explicit no real camera statement");
-  assertContains(noDeviceDoc, "공개 인터넷에 노출된 임의 ONVIF endpoint", "missing public endpoint exclusion");
-  assertContains(noDeviceDoc, "local simulator fixture smoke", "missing local simulator substitute scope");
-  assertContains(noDeviceDoc, "local simulator variant", "missing local simulator variant scope");
-  assertContains(noDeviceDoc, "non-RTSP GetStreamUri 실패", "missing local simulator non-RTSP failure scope");
-  assertContains(noDeviceDoc, "synthetic fixture", "missing synthetic fixture scope");
-  assertContains(noDeviceDoc, "synthetic profile variant", "missing synthetic profile variant scope");
-  assertContains(noDeviceDoc, "vendor-style synthetic fixture", "missing vendor-style synthetic fixture scope");
-  assertContains(noDeviceDoc, "Media/Media2 empty-profile", "missing empty profile failure scope");
-  assertContains(noDeviceDoc, "loopback", "missing loopback scope");
-  assertContains(noDeviceDoc, "closed loopback failure matrix", "missing closed loopback matrix scope");
-  assertContains(noDeviceDoc, "redaction", "missing redaction scope");
-  assertContains(noDeviceDoc, "SourceRegistry/PublishedView", "missing draft contract scope");
-});
-
-check("no-device command list keeps endpoint-free probes", () => {
-  assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-suite", "missing no-device suite command");
-  assertContains(noDeviceDoc, "verify-onvif-no-device-suite --json-output", "missing no-device suite JSON command");
-  assertContains(noDeviceDoc, expectedSummarySchema, "missing no-device summary schema");
-  assertContains(noDeviceDoc, "schema drift guard", "missing no-device schema drift guard wording");
-  assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_success_summary.json", "missing success summary fixture path");
-  assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "missing failure summary fixture path");
-  assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
-  assertContains(noDeviceDoc, "verify-onvif-no-device-completion", "missing no-device completion command");
-  assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
-  assertContains(noDeviceDoc, "verify-onvif-https-tls-fixture", "missing HTTPS TLS fixture command");
-  assertContains(noDeviceDoc, "trusted fixture success", "missing HTTPS TLS trusted fixture wording");
-  assertContains(noDeviceDoc, "verify-onvif-auth-injection-loopback", "missing auth injection loopback command");
-  assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
-  assertContains(noDeviceDoc, "verify-onvif-synthetic-vendor-fixtures", "missing synthetic vendor fixture command");
-  assertContains(noDeviceDoc, "test/fixtures/onvif_synthetic_vendor_fixture_pack.json", "missing synthetic vendor fixture path");
-  assertContains(noDeviceDoc, "verify-onvif-local-simulator", "missing local simulator command");
-  assertContains(noDeviceDoc, "verify-onvif-soap-fault-matrix", "missing SOAP fault matrix command");
-  assertContains(noDeviceDoc, "SOAP Fault/malformed response matrix", "missing SOAP fault matrix wording");
-  assertContains(noDeviceDoc, "verify-onvif-field-smoke-gate", "missing field smoke gate command");
-  assertContains(noDeviceDoc, "no-device suite 통과는 field smoke gate pass가 아닙니다", "missing field gate caveat");
-  assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
-  assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
-  assertContains(noDeviceDoc, "verify-onvif-closed-loopback-failure-matrix", "missing closed loopback failure matrix command");
-  assertContains(noDeviceDoc, "http://127.0.0.1:9/onvif/device_service", "missing closed loopback endpoint");
-});
-
-check("no-device command list keeps sanitized failure probes", () => {
-  assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
-  assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
-  assertContains(noDeviceDoc, "--credential-ref-present", "missing credential reference flag");
-  assertContains(noDeviceDoc, "verify-onvif-field-smoke-redaction", "missing redaction verification");
-  assertContains(noDeviceDoc, "verify-onvif-field-smoke-sample-bundle", "missing sample bundle verification");
-  assertContains(noDeviceDoc, "query string credential/token sentinel", "missing query sentinel redaction scope");
-  assertContains(noDeviceDoc, "--output JSON artifact redaction", "missing output artifact redaction scope");
+check("no-device current definition preserves commands, output and field-device exclusion", () => {
+  const errors = validateOnvifNoDeviceDocumentation(noDeviceDoc);
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("live support document links no-device mode without claiming field success", () => {
@@ -140,8 +89,7 @@ check("no-device summary schema version drift guard is pinned", () => {
   assert(runnerSchema === expectedSummarySchema, "runner summary schema constant mismatch");
   assert(successSummaryFixture.schema === runnerSchema, "success summary fixture schema drifted from runner");
   assert(failureSummaryFixture.schema === runnerSchema, "failure summary fixture schema drifted from runner");
-  assertContains(noDeviceDoc, `"schema": "${runnerSchema}"`, "no-device doc JSON example schema mismatch");
-  assertContains(noDeviceDoc, "runner 상수, 성공 예시, 성공 fixture, 실패 fixture", "no-device doc missing schema guard participants");
+  assertContains(noDeviceDoc, runnerSchema, "no-device doc schema mismatch");
 });
 
 check("no-device success summary fixture preserves completed command state", () => {
@@ -265,6 +213,7 @@ console.log("");
 console.log("== ONVIF no-device verification summary ==");
 console.log("- mode: 실장비 제외");
 console.log("- realDeviceEndpointSuccess: 미확인");
+console.log("- evidence: 문서·runner·정의 fixture 정적 검사; actual suite not-run");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

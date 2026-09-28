@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentFieldValue } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -200,7 +201,7 @@ check("sample report includes gate review status", () => {
 
 check("no-device suite includes the gate verifier without claiming real device success", () => {
   assertContains(suiteScript, "verify-onvif-field-smoke-gate", "suite missing gate verifier");
-  assertContains(noDeviceDoc, "no-device suite 통과는 field smoke gate pass가 아닙니다", "no-device doc missing field gate caveat");
+  assert(hasDocumentFieldValue(noDeviceDoc, "realDeviceEndpointSuccess", "미확인"), "no-device doc must keep field success unverified");
   assertContains(liveSupportDoc, "미확인", "live support doc missing unverified field boundary");
 });
 

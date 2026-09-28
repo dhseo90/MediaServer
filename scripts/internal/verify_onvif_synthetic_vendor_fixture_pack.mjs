@@ -247,7 +247,7 @@ check("docs reference synthetic vendor fixture verification without claiming fie
   for (const doc of [noDeviceDoc]) {
     assertContains(doc, "test/fixtures/onvif_synthetic_vendor_fixture_pack.json", "doc missing vendor fixture path");
     assertContains(doc, "verify-onvif-synthetic-vendor-fixtures", "doc missing vendor fixture command");
-    assertContains(doc, "vendor-style synthetic fixture", "doc missing vendor-style wording");
+    // 합성 원본 provenance와 실제 fixture 내용은 별도 검사한다. 안내 문장의 영문 표현을 고정하지 않는다.
   }
   assertContains(liveSupportDoc, "미확인", "live support doc must keep field success unverified");
   assertContains(noDeviceDoc, "실장비 endpoint 성공", "no-device doc must keep real endpoint caveat");
