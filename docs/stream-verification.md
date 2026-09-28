@@ -44,6 +44,13 @@ sidecar 원문 저장·자동 runtime 호출 반례와 분리된 UI control 누�
 입력은 자식 프로세스 메모리에서만 바꾸고 실제 제품/fixture hash를 대조한다.
 기존 명령 결속·UI 파일 위치 실패와 신규 예상 RED를 구분하고, 실제 인증/HTTP/UI 실행 PASS로 확대하지 않는다.
 
+`V26-V28-DOC-01`~`06`은 같은 자체검사의 v260~v280 정적 기능 검증기 15개에 적용한다.
+종료 기록·옛 제목 없이 정상 실행하고, 현행 ID·문서 계약·제품 식별자·UI 정의·독립 실행 연결의
+누락은 exit 1이어야 한다. 인증·규칙 저장·source API 등 기존 runtime 명령을 정적 동반 검사로
+바꾸지 않는다. 입력은 격리 자식 프로세스의 메모리에서만 변경하며 제품/fixture 파일은 불변이어야 한다.
+옛 제목·backlog 읽기에 따른 예상 RED와 기존 기능 검사 실패를 구분한다.
+실제 제품·브라우저·장시간·외부 장치 검증은 실행하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

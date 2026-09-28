@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S04 Runtime dashboard baseline/sparkline 후보와 비범위 경계를 검증한다.
 
@@ -14,23 +15,27 @@ const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
-const roadmapEvidence = [backlog, inventory].join("\n");
 
-check("roadmap records V260-S04 runtime dashboard trend boundary", () => {
-  assert(
-    /\| 4 \| V260-S04 \| P2 \| (진행|완료) \| Runtime dashboard trends \|/.test(backlog) ||
-      /\| V260-S04 \| 완료 \| Runtime dashboard baseline\/sparkline/.test(backlog),
-    "backlog V260-S04 row must be 진행/완료 in active table or 완료 in completed baseline table"
-  );
-  for (const snippet of [
-    "Runtime dashboard baseline/sparkline",
-    "장기 녹화",
-    "verify-v260-runtime-dashboard-trends",
-  ]) {
-    assertIncludes(roadmapEvidence, snippet, "V260-S04 roadmap evidence");
+const definitionIds = ["UI-048","EVT-048","LAB-072","SAFE-055"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/runtime/status"],
+    command: "verify-v260-runtime-dashboard-trends", script: "verify_v260_runtime_dashboard_trends.mjs",
+    featureIds: ["UI-048","EVT-048","LAB-072"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-055","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -100,15 +105,6 @@ check("CSS and UI smoke track the runtime trend card", () => {
 });
 
 check("feature inventory and command catalog track S04", () => {
-  for (const snippet of [
-    "| V260-S04 Runtime dashboard trends | `UI-048`, `EVT-048`, `LAB-072`, `SAFE-055` | `verify-v260-runtime-dashboard-trends` |",
-    "| UI-048 | `/ops/dashboard` Runtime dashboard trend card |",
-    "| EVT-048 | dashboard runtime baseline/sparkline summary |",
-    "| LAB-072 | V260-S04 runtime dashboard trend static guard |",
-    "| SAFE-055 | V260-S04 runtime trend storage/schema boundary |",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S04 row");
-  }
   assertIncludes(streamVerification, "verify-v260-runtime-dashboard-trends", "stream verification S04 command");
   assertIncludes(serverSh, "verify-v260-runtime-dashboard-trends", "server.sh S04 command");
   assertIncludes(serverSh, "verify_v260_runtime_dashboard_trends.mjs", "server.sh S04 script target");
@@ -128,7 +124,7 @@ check("S04 keeps longrun, schema, media, and client exposure side effects absent
     assert(!server.includes(forbidden) &&
       !pageScripts.includes(forbidden) &&
       !inventory.includes(forbidden) &&
-      !backlog.includes(forbidden),
+      !currentDefinitions.includes(forbidden),
     `forbidden S04 snippet present: ${forbidden}`);
   }
 });
@@ -141,6 +137,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.6.0 S04 runtime dashboard trends 통과 ==");
 
 function readText(filePath) {

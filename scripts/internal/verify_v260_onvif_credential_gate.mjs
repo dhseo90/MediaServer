@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S03 ONVIF credential binding/store gate와 redaction guard 경계를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -15,14 +16,33 @@ const liveImportHeader = readText("include/ingress/onvif_live_import.h");
 const opsSourcesScript = readText("src/ingress/product_ui_ops_sources_script.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const credentialPolicy = readText("docs/onvif-credential-reference-policy.md");
 const storeDesign = readText("docs/onvif-credential-store-integration-design.md");
 const streamVerification = readText("docs/stream-verification.md");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const credentialGateBlock = extractCppFunctionBlock(liveImport, "std::string OnvifCredentialGateJson(");
 const credentialGateUiBlock = extractNamedFunctionBlock(opsSourcesScript, "renderOnvifCredentialGate");
 const opsSourcesRouteBlock = extractNamedFunctionBlock(opsSourcesScript, "renderSourceReliabilitySearchMetrics");
+
+const definitionIds = ["UI-047","SRC-031","LAB-071","SAFE-054"];
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: credentialPolicy + "\n" + storeDesign, identifiers: ["media-server.onvif-credential-binding-gate.v1"],
+    command: "verify-v260-onvif-credential-gate", script: "verify_v260_onvif_credential_gate.mjs",
+    featureIds: ["UI-047","LAB-071"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SRC-031","verify-ops-source-registry-api"],["SAFE-054","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
+  }
+});
 
 check("fixture records S03 store selection, fallback, exclusions, and redaction gate", () => {
   const fixture = readJson("test/fixtures/onvif_credential_binding_gate.json");
@@ -123,13 +143,8 @@ check("source:write guard remains the only write gate for ONVIF credential bindi
 });
 
 check("docs, inventory, smoke, and command catalog track S03", () => {
-  const hasCurrentRoadmapRow = /\| 3 \| V260-S03 \| P1 \| (진행|완료) \| ONVIF credential gate \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V260-S03 | 완료 | ONVIF credential binding/store gate 설계와 redaction guard |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V260-S03 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.onvif-credential-binding-gate.v1",
-    "V260-S03",
     "primaryStoreProvider: none",
     "fallbackProviders: in-memory-fixture",
     "local-encrypted 제외",
@@ -146,15 +161,6 @@ check("docs, inventory, smoke, and command catalog track S03", () => {
     "credentialGate",
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke S03 marker");
-  }
-  for (const snippet of [
-    "| UI-047 | `/ops/sources` ONVIF credential gate |",
-    "| SRC-031 | ONVIF credential binding/store gate |",
-    "| LAB-071 | V260-S03 ONVIF credential gate static guard |",
-    "| SAFE-054 | V260-S03 ONVIF credential redaction boundary |",
-    "verify-v260-onvif-credential-gate",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S03 row");
   }
   assertIncludes(streamVerification, "verify-v260-onvif-credential-gate", "stream verification S03 command");
   assertIncludes(serverSh, "verify-v260-onvif-credential-gate", "server.sh S03 command");
@@ -191,6 +197,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.6.0 S03 ONVIF credential gate 통과 ==");
 
 function readText(filePath) {

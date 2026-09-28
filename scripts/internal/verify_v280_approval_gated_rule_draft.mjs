@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.8.0 S03 Approval-gated Rule Draft Readiness와 no-auto-save/no-auto-apply 경계를 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -14,27 +15,31 @@ const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const manualChecklist = readText("docs/manual-ui-checklist.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
-check("roadmap records V280-S03 as active/completed approval-gated rule draft work", () => {
-  assert(/\| 3 \| V280-S03 \| P0 \| (진행|완료) \| Approval-gated Rule Draft Readiness \|/.test(backlog),
-    "backlog V280-S03 row must be 진행 or 완료 while S03 is under development");
-  for (const snippet of [
-    "media-server.ops.approval-gated-rule-draft-readiness.v1",
-    "approval state",
-    "validation summary",
-    "staged draft",
-    "no-auto-save/no-auto-apply",
-    "rule registry 자동 write 없음",
-    "verify-v280-approval-gated-rule-draft",
-  ]) {
-    assertIncludes(backlog, snippet, "V280-S03 backlog");
+const definitionIds = ["UI-056","RULE-104","EVT-056","LAB-080","SAFE-066"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.approval-gated-rule-draft-readiness.v1"],
+    command: "verify-v280-approval-gated-rule-draft", script: "verify_v280_approval_gated_rule_draft.mjs",
+    featureIds: ["UI-056","RULE-104","EVT-056","LAB-080"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-066","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -141,18 +146,7 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S03", ()
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft`",
-    "| UI-056 | `/ops/rules` Approval-gated Rule Draft Readiness |",
-    "| RULE-104 | approval-gated staged rule draft 후보 |",
-    "| EVT-056 | Ops approval-gated rule draft readiness state |",
-    "| LAB-080 | V280-S03 approval-gated rule draft static guard |",
-    "| SAFE-066 | V280-S03 approval-gated rule draft boundary |",
-    "verify-v280-approval-gated-rule-draft",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S03 row");
-  }
-  assertIncludes(manualChecklist, "| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` |", "manual UI checklist S03 row");
+  assert(manualChecklist.split(/\r?\n/).some(line => definitionIds.every(id => line.includes("`" + id + "`")) && line.includes("verify-v280-approval-gated-rule-draft")), "manual UI checklist S03 row: 기능 ID·명령 연결 누락");
   for (const id of ["UI-056", "RULE-104", "EVT-056", "LAB-080"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v280-approval-gated-rule-draft", `${id} manifest verifier command drift`);
   }
@@ -180,7 +174,7 @@ check("S03 keeps forbidden auto save/apply/replay/registry/schema/media side eff
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S03 snippet present: ${forbidden}`);
   }
 });
@@ -193,6 +187,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.8.0 S03 approval-gated rule draft 통과 ==");
 
 function readText(filePath) {

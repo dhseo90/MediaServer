@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S02 rule suggestion 후보의 incident-to-rule manual review/draft 연결 경계를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -16,24 +17,27 @@ const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const ruleSmoke = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const ruleDoc = readText("docs/vlm-rule-suggestion-candidates.md");
 const streamVerification = readText("docs/stream-verification.md");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
-check("roadmap and docs record V260-S02 incident-to-rule boundary", () => {
-  const hasCurrentRoadmapRow = /\| 2 \| V260-S02 \| P1 \| (진행|완료) \| Rule suggestion review \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V260-S02 | 완료 | Rule suggestion 후보의 manual review/draft workflow 연결 |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V260-S02 row must be present in current or archived roadmap format");
-  for (const snippet of [
-    "media-server.ops.incident-rule-suggestion-review.v1",
-    "incident-to-rule manual review",
-    "sourceCandidateReport",
-    "draft-only manual save",
-    "verify-v260-rule-suggestion-review",
-  ]) {
-    assertIncludes(ruleDoc, snippet, "rule suggestion S02 doc");
+const definitionIds = ["UI-046","EVT-047","LAB-070","SAFE-053"];
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: ruleDoc, identifiers: ["media-server.ops.incident-rule-suggestion-review.v1", "sourceCandidateReport", "/ops/rules"],
+    command: "verify-v260-rule-suggestion-review", script: "verify_v260_rule_suggestion_review.mjs",
+    featureIds: ["UI-046","EVT-047","LAB-070"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-053","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -103,15 +107,6 @@ check("smoke, inventory, and command catalog track S02", () => {
   ]) {
     assertIncludes(ruleSmoke, snippet, "rule UI smoke keeps draft-only check");
   }
-  for (const snippet of [
-    "| UI-046 | `/ops/events` Incident-to-rule suggestion review |",
-    "| EVT-047 | Ops incident-to-rule suggestion review view model |",
-    "| LAB-070 | V260-S02 rule suggestion review static guard |",
-    "| SAFE-053 | V260-S02 incident-to-rule draft-only boundary |",
-    "verify-v260-rule-suggestion-review",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S02 row");
-  }
   assertIncludes(streamVerification, "verify-v260-rule-suggestion-review", "stream verification S02 command");
   assertIncludes(serverSh, "verify-v260-rule-suggestion-review", "server.sh S02 command");
   assertIncludes(serverSh, "verify_v260_rule_suggestion_review.mjs", "server.sh S02 script target");
@@ -143,6 +138,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.6.0 S02 rule suggestion review 통과 ==");
 
 function readText(filePath) {

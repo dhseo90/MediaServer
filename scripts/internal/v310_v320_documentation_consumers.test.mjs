@@ -113,6 +113,8 @@ function invoke(name, mutation = {}) {
       if (mutation.schema && (relative.startsWith('src/') || relative.startsWith('include/'))) value = value.replaceAll(mutation.schema, 'missing-contract-schema');
       if (mutation.removeId && relative === 'docs/project-feature-test-inventory.md') value = value.split('\n').filter(line => !line.startsWith('| ' + mutation.removeId + ' |')).join('\n');
       if (mutation.manual && relative === 'docs/manual-ui-checklist.md') value = '';
+      if (mutation.renameLabels && relative === 'docs/manual-ui-checklist.md') value = value.replace(/\| V[0-9]+[^|\n]*\|/g, '| 표현을 바꾼 기능 제목 |');
+      if (mutation.renameLabels && relative === 'docs/project-feature-test-inventory.md') value = value.replace(/^(\| [A-Z]+-[0-9]+ \|)[^|\n]*\|/gm, '$1 표현을 바꾼 정의 제목 |');
       if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');
       if (mutation.currentDocIdentifier && relative.startsWith('docs/') && relative !== 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.currentDocIdentifier, 'missing-current-contract');
       if (mutation.fixturePath === relative) {
@@ -263,6 +265,206 @@ test('VLM-DOC 현행 계약과 종료 기록 분리', async t => {
     await t.test('06 현행 UI control 누락 거부', () => rejected(invoke('vlm_review_action_workflow', {
       control: 'data-vlm-review-action-workflow="ops-only-review-state"',
     }), 'data-vlm-review-action-workflow'));
+  } finally {
+    assert.deepEqual(snapshot(), before, '실제 제품/fixture 파일 변경 금지');
+  }
+});
+test('V26-V28-DOC 현행 정의와 종료 기록 분리', async t => {
+  const cases = [
+  {
+    "name": "v270_incident_triage_board",
+    "id": "UI-050",
+    "schema": "media-server.ops.incident-triage-board.v1",
+    "identifier": "media-server.ops.incident-triage-board.v1",
+    "currentDoc": true,
+    "manual": false,
+    "others": [
+      "SAFE-058"
+    ]
+  },
+  {
+    "name": "v260_rule_suggestion_review",
+    "id": "UI-046",
+    "schema": "media-server.ops.incident-rule-suggestion-review.v1",
+    "identifier": "media-server.ops.incident-rule-suggestion-review.v1",
+    "currentDoc": true,
+    "manual": false,
+    "others": [
+      "SAFE-053"
+    ]
+  },
+  {
+    "name": "v260_incident_memory_productization",
+    "id": "UI-045",
+    "schema": "media-server.ops.vlm-summary-candidate-review.v1",
+    "identifier": "media-server.ops.vlm-summary-candidate-review.v1",
+    "currentDoc": true,
+    "manual": false,
+    "others": [
+      "SAFE-052"
+    ]
+  },
+  {
+    "name": "v280_approval_gated_rule_draft",
+    "id": "UI-056",
+    "schema": "media-server.ops.approval-gated-rule-draft-readiness.v1",
+    "identifier": "media-server.ops.approval-gated-rule-draft-readiness.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SAFE-066"
+    ]
+  },
+  {
+    "name": "v270_operator_outcome_memory",
+    "id": "UI-054",
+    "schema": "media-server.ops.operator-outcome-memory.v1",
+    "identifier": "media-server.ops.operator-outcome-memory.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SAFE-062"
+    ]
+  },
+  {
+    "name": "v270_rule_what_if_preview",
+    "id": "UI-053",
+    "schema": "media-server.ops.rule-what-if-preview.v1",
+    "identifier": "media-server.ops.rule-what-if-preview.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SAFE-061"
+    ]
+  },
+  {
+    "name": "v270_operational_action_pack",
+    "id": "UI-052",
+    "schema": "media-server.ops.operational-action-pack.v1",
+    "identifier": "media-server.ops.operational-action-pack.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SAFE-060"
+    ]
+  },
+  {
+    "name": "v270_incident_decision_scorecard",
+    "id": "UI-051",
+    "schema": "media-server.ops.incident-decision-scorecard.v1",
+    "identifier": "media-server.ops.incident-decision-scorecard.v1",
+    "currentDoc": true,
+    "manual": false,
+    "others": [
+      "SAFE-059"
+    ]
+  },
+  {
+    "name": "v280_client_safe_followup_digest",
+    "id": "CLIENT-024",
+    "schema": "media-server.client.follow-up-digest.v1",
+    "identifier": "media-server.client.follow-up-digest.v1",
+    "currentDoc": false,
+    "manual": true,
+    "others": [
+      "SAFE-069"
+    ]
+  },
+  {
+    "name": "v260_scenario_cross_zone_reentry",
+    "id": "UI-049",
+    "schema": "configured-zones",
+    "identifier": "configured-zones",
+    "currentDoc": true,
+    "manual": false,
+    "others": [
+      "RULE-103",
+      "SAFE-056"
+    ]
+  },
+  {
+    "name": "v260_onvif_credential_gate",
+    "id": "UI-047",
+    "schema": "media-server.onvif-credential-binding-gate.v1",
+    "identifier": "media-server.onvif-credential-binding-gate.v1",
+    "currentDoc": true,
+    "manual": false,
+    "others": [
+      "SRC-031",
+      "SAFE-054"
+    ]
+  },
+  {
+    "name": "v280_runtime_evidence_window",
+    "id": "UI-058",
+    "schema": "media-server.ops.runtime-evidence-window.v1",
+    "identifier": "media-server.ops.runtime-evidence-window.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SAFE-068"
+    ]
+  },
+  {
+    "name": "v260_runtime_dashboard_trends",
+    "id": "UI-048",
+    "schema": "page-session-only",
+    "identifier": "/ops/api/runtime/status",
+    "currentDoc": false,
+    "manual": false,
+    "others": [
+      "SAFE-055"
+    ]
+  },
+  {
+    "name": "v280_incident_action_readiness_queue",
+    "id": "UI-055",
+    "schema": "media-server.ops.incident-action-readiness-queue.v1",
+    "identifier": "media-server.ops.incident-action-readiness-queue.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SAFE-065"
+    ]
+  },
+  {
+    "name": "v280_evidence_intake_field_readiness",
+    "id": "UI-057",
+    "schema": "media-server.ops.evidence-intake-field-readiness.v1",
+    "identifier": "media-server.ops.evidence-intake-field-readiness.v1",
+    "currentDoc": true,
+    "manual": true,
+    "others": [
+      "SRC-032",
+      "SAFE-067"
+    ]
+  }
+];
+  const before = snapshot();
+  const reject = (result, reason) => {
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert(result.stdout.includes('실패') && result.stdout.includes(reason), result.stdout + result.stderr);
+  };
+  try {
+    for (const c of cases) {
+      await t.test('01 종료 기록·옛 제목 없이 정상 ' + c.name, () => {
+        const r = invoke(c.name, {renameLabels: true});
+        assert.equal(r.status, 0, r.stdout + r.stderr);
+        assert(r.stdout.includes('uiFulltest: not-run-by-this-command'));
+        assert(r.stdout.includes('longrun30Or120: not-run-by-this-command'));
+      });
+      await t.test('02 현행 ID 누락 ' + c.name, () => reject(invoke(c.name, {removeId: c.id}), c.id));
+      await t.test('03 문서 계약 누락 ' + c.name, () => reject(invoke(c.name, {
+        [c.currentDoc ? 'currentDocIdentifier' : 'identifier']: c.identifier,
+      }), c.identifier));
+      await t.test('04 기존 제품 검사 실패 전파 ' + c.name, () => {
+        const r = invoke(c.name, {schema: c.schema});
+        assert.equal(r.status, 1, r.stdout + r.stderr);
+        assert(r.stdout.includes('실패'), r.stdout + r.stderr);
+      });
+      if (c.manual) await t.test('05 실제 UI 정의 연결 유지 ' + c.name, () => reject(invoke(c.name, {manual: true}), 'manual UI'));
+      for (const id of c.others) await t.test('06 독립 실행 연결 유지 ' + c.name + ' ' + id, () => reject(invoke(c.name, {mapping: id}), id));
+    }
   } finally {
     assert.deepEqual(snapshot(), before, '실제 제품/fixture 파일 변경 금지');
   }

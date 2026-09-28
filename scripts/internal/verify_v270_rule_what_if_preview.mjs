@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.7.0 S04 Rule What-if Preview와 draft-only/manual-save 경계를 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -14,33 +15,31 @@ const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const manualChecklist = readText("docs/manual-ui-checklist.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
-const roadmapEvidence = [backlog, inventory, manualChecklist].join("\n");
 
-check("roadmap records V270-S04 as active/completed Rule What-if Preview work", () => {
-  assert(
-    /\| 4 \| V270-S04 \| P1 \| (진행|완료) \| Rule What-if Preview \|/.test(backlog) ||
-      /\| V270-S04 \| 완료 \| Rule What-if Preview \|/.test(backlog),
-    "backlog V270-S04 row must be 진행/완료 in active table or 완료 in completed baseline table"
-  );
-  for (const snippet of [
-    "media-server.ops.rule-what-if-preview.v1",
-    "selected incident/EventRecord",
-    "rule suggestion 후보",
-    "/ops/rules",
-    "draft-only",
-    "full replay engine",
-    "자동 저장",
-    "자동 적용",
-    "verify-v270-rule-what-if-preview",
-  ]) {
-    assertIncludes(roadmapEvidence, snippet, "V270-S04 roadmap evidence");
+const definitionIds = ["UI-053","EVT-053","LAB-077","SAFE-061"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.rule-what-if-preview.v1"],
+    command: "verify-v270-rule-what-if-preview", script: "verify_v270_rule_what_if_preview.mjs",
+    featureIds: ["UI-053","EVT-053","LAB-077"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-061","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -136,17 +135,7 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S04", ()
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V270-S04 Rule What-if Preview | `UI-053`, `EVT-053`, `LAB-077`, `SAFE-061` | `verify-v270-rule-what-if-preview` |",
-    "| UI-053 | `/ops/events` Rule What-if Preview |",
-    "| EVT-053 | Ops rule what-if preview view model |",
-    "| LAB-077 | V270-S04 rule what-if preview static guard |",
-    "| SAFE-061 | V270-S04 rule what-if preview boundary |",
-    "verify-v270-rule-what-if-preview",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S04 row");
-  }
-  assertIncludes(manualChecklist, "| V270-S04 Rule What-if Preview | `UI-053`, `EVT-053`, `LAB-077`, `SAFE-061` |", "manual UI checklist S04 row");
+  assert(manualChecklist.split(/\r?\n/).some(line => definitionIds.every(id => line.includes("`" + id + "`")) && line.includes("verify-v270-rule-what-if-preview")), "manual UI checklist S04 row: 기능 ID·명령 연결 누락");
   assert(implementationManifest.items.find(item => item.id === "LAB-077")?.verifierEvidence?.command === "verify-v270-rule-what-if-preview", "LAB-077 manifest verifier command drift");
   assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
@@ -169,7 +158,7 @@ check("S04 keeps forbidden replay/rule/provider/schema/media side effects absent
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S04 snippet present: ${forbidden}`);
   }
 });
@@ -182,6 +171,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.7.0 S04 rule what-if preview 통과 ==");
 
 function readText(filePath) {

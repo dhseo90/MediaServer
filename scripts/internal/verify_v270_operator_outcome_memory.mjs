@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.7.0 S05 Operator outcome memory와 review/audit 기반 history hint 경계를 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -14,30 +15,31 @@ const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const manualChecklist = readText("docs/manual-ui-checklist.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
-const roadmapEvidence = [backlog, inventory, manualChecklist, streamVerification].join("\n");
 
-check("roadmap records V270-S05 as active/completed Operator outcome memory work", () => {
-  const hasCurrentRoadmapRow = /\| 5 \| V270-S05 \| P1 \| (진행|완료) \| Operator outcome memory \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V270-S05 | 완료 | Operator outcome memory |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V270-S05 row must be present in current or archived roadmap format");
-  for (const snippet of [
-    "media-server.ops.operator-outcome-memory.v1",
-    "accept/dismiss/review-needed",
-    "deterministic history hint",
-    "Ops review state/audit",
-    "EventRecord top-level 변경 없음",
-    "client/viewer 비노출",
-    "verify-v270-operator-outcome-memory",
-  ]) {
-    assertIncludes(roadmapEvidence, snippet, "V270-S05 roadmap evidence");
+const definitionIds = ["UI-054","EVT-054","LAB-078","SAFE-062"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.operator-outcome-memory.v1"],
+    command: "verify-v270-operator-outcome-memory", script: "verify_v270_operator_outcome_memory.mjs",
+    featureIds: ["UI-054","EVT-054","LAB-078"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-062","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -121,17 +123,7 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S05", ()
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V270-S05 Operator outcome memory | `UI-054`, `EVT-054`, `LAB-078`, `SAFE-062` | `verify-v270-operator-outcome-memory` |",
-    "| UI-054 | `/ops/events` Operator Outcome Memory |",
-    "| EVT-054 | Ops operator outcome memory view model |",
-    "| LAB-078 | V270-S05 operator outcome memory static guard |",
-    "| SAFE-062 | V270-S05 operator outcome memory boundary |",
-    "verify-v270-operator-outcome-memory",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S05 row");
-  }
-  assertIncludes(manualChecklist, "| V270-S05 Operator outcome memory | `UI-054`, `EVT-054`, `LAB-078`, `SAFE-062` |", "manual UI checklist S05 row");
+  assert(manualChecklist.split(/\r?\n/).some(line => definitionIds.every(id => line.includes("`" + id + "`")) && line.includes("verify-v270-operator-outcome-memory")), "manual UI checklist S05 row: 기능 ID·명령 연결 누락");
   for (const id of ["UI-054", "EVT-054", "LAB-078"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-operator-outcome-memory", `${id} manifest verifier command drift`);
   }
@@ -160,7 +152,7 @@ check("S05 keeps forbidden persistence/client/provider/schema/media side effects
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S05 snippet present: ${forbidden}`);
   }
 });
@@ -173,6 +165,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.7.0 S05 operator outcome memory 통과 ==");
 
 function readText(filePath) {

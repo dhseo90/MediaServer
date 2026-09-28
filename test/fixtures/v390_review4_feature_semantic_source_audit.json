@@ -10352,7 +10352,7 @@
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
           "symbol": "canonical-assertion:media-server.vlm-summary-search-candidates.v1",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderVlmSummaryCandidateReview\"), \"media-server.vlm-summary-search-candidates.v1\", \"UI-045 block-scoped canonical product state\");",
-          "line": 101,
+          "line": 105,
           "contextSha256": "3c30a10f4fa1da7210fee00f814a6cef6edcb76ef07a58a70b5f465c865c1bf4"
         },
         "verifier": {
@@ -10394,14 +10394,14 @@
           "kind": "structural-producer-assertion",
           "witness": "media-server.vlm-summary-search-candidates.v1 is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5267",
-          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:101"
+          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:105"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-incident-memory-productization",
-          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:101",
+          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:105",
           "target": "server.sh:2974"
         }
       ],
@@ -10468,7 +10468,7 @@
           "sha256": "1d3176728551b5b769e21f2a1adbac7220fa48f9043c589a713315294e1bbbca"
         }
       },
-      "sourceFlowDigest": "7fb0e391f5bdd2d6eedc6796259d722e9be85343a561bebc555e870c9ef9a8cd",
+      "sourceFlowDigest": "1308153a105dbab220964a30710fb18196d33baaf0ab6e452df71309b21e61e5",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -10511,10 +10511,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
             "symbol": "canonical-assertion:media-server.vlm-summary-search-candidates.v1",
-            "trackedBlobSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+            "trackedBlobSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
             "enclosingBodySha256": "a512db52793fc908931b69af07522aebe2949d131be1363e9d731e487d5ad7d9",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 113,
+            "enclosingBodyStartLine": 84,
+            "enclosingBodyEndLine": 117,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -10526,7 +10526,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+        "verifierFileSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
         "dispatch": {
           "command": "verify-v260-incident-memory-productization",
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
@@ -10593,7 +10593,7 @@
           "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
           "symbol": "check:ops events consume incident rule suggestion review",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderIncidentRuleSuggestionReview\"), \"ops-incident-rule-suggestion-review\", \"UI-046 report block-scoped canonical product state\");",
-          "line": 78,
+          "line": 82,
           "contextSha256": "cba7ff6935b148237fb7cc93f2b532e7eb2dc513b39d77289d48d1f5b38f2429"
         },
         "verifier": {
@@ -10635,14 +10635,14 @@
           "kind": "structural-producer-assertion",
           "witness": "ops-incident-rule-suggestion-review is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:4291",
-          "target": "scripts/internal/verify_v260_rule_suggestion_review.mjs:78"
+          "target": "scripts/internal/verify_v260_rule_suggestion_review.mjs:82"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-rule-suggestion-review",
-          "source": "scripts/internal/verify_v260_rule_suggestion_review.mjs:78",
+          "source": "scripts/internal/verify_v260_rule_suggestion_review.mjs:82",
           "target": "server.sh:2978"
         }
       ],
@@ -10702,7 +10702,7 @@
           "sha256": "76b6f62cea55b93172624aeda89c436840333badd34411bf094be5bc7ac3d9b2"
         }
       },
-      "sourceFlowDigest": "de60f955d5af334c7cba269a9603b80f5aba0bacd68dd2636cb16806375f5482",
+      "sourceFlowDigest": "eab8a8d7ba4a9f444c6641714ab99998fe15df52dac5cfcad1e5b8667424ac28",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -10745,10 +10745,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
             "symbol": "check:ops events consume incident rule suggestion review",
-            "trackedBlobSha256": "71d91d88054903e8327232c3396328bbe586386ebf0191716946ab91c0b4381f",
+            "trackedBlobSha256": "ca8d2a975a67a4e437e1fafe9051c49e966f225ffe889beab379886a93faa783",
             "enclosingBodySha256": "137a0935421bc4586bb848d057ad2350f483302831b152347517d4687c6f0e5b",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 89,
+            "enclosingBodyStartLine": 71,
+            "enclosingBodyEndLine": 93,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -10760,7 +10760,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "71d91d88054903e8327232c3396328bbe586386ebf0191716946ab91c0b4381f",
+        "verifierFileSha256": "ca8d2a975a67a4e437e1fafe9051c49e966f225ffe889beab379886a93faa783",
         "dispatch": {
           "command": "verify-v260-rule-suggestion-review",
           "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
@@ -10827,7 +10827,7 @@
           "file": "scripts/internal/verify_v260_onvif_credential_gate.mjs",
           "symbol": "canonical-assertion:onvifCredentialGateStatus",
           "anchor": "assertIncludes(gateBlock, \"onvifCredentialGateStatus\", \"UI-047 block-scoped canonical product state\");",
-          "line": 97,
+          "line": 117,
           "contextSha256": "06ce2aa702da1cbc44eb3a3d5839f104e32c15d8061a1558aaeb4bb0127128db"
         },
         "verifier": {
@@ -10869,14 +10869,14 @@
           "kind": "structural-producer-assertion",
           "witness": "onvifCredentialGateStatus is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_ops_sources_script.cpp:110",
-          "target": "scripts/internal/verify_v260_onvif_credential_gate.mjs:97"
+          "target": "scripts/internal/verify_v260_onvif_credential_gate.mjs:117"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-onvif-credential-gate",
-          "source": "scripts/internal/verify_v260_onvif_credential_gate.mjs:97",
+          "source": "scripts/internal/verify_v260_onvif_credential_gate.mjs:117",
           "target": "server.sh:2982"
         }
       ],
@@ -10950,7 +10950,7 @@
           "sha256": "5ae68a1c88716761569111577c5fca147f1c1ca403cffa1c7adc8f3697f8d990"
         }
       },
-      "sourceFlowDigest": "5be70ffda0a214405ad2a4b68f57a6aaef5a6d5b62dd452d915ef55d51b30f92",
+      "sourceFlowDigest": "914dc9fbbc2201a23fa164a7e558786d05125cba5a545db662d49af6377e9cf0",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -10993,10 +10993,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_onvif_credential_gate.mjs",
             "symbol": "canonical-assertion:onvifCredentialGateStatus",
-            "trackedBlobSha256": "58db3bdd9a64fb5c37d492c527edd37a873f42981d0b9abb061d7275f17f8659",
+            "trackedBlobSha256": "04b9da134fa074db51012d063e2f19c0ffe804ce3f0fcb1f66829a448503bd05",
             "enclosingBodySha256": "ddd4bc0a1d18b6a8de1e2542ac387b38689fd4de11c9b60b4fbabe81a87e8047",
-            "enclosingBodyStartLine": 78,
-            "enclosingBodyEndLine": 115,
+            "enclosingBodyStartLine": 98,
+            "enclosingBodyEndLine": 135,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -11008,7 +11008,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "58db3bdd9a64fb5c37d492c527edd37a873f42981d0b9abb061d7275f17f8659",
+        "verifierFileSha256": "04b9da134fa074db51012d063e2f19c0ffe804ce3f0fcb1f66829a448503bd05",
         "dispatch": {
           "command": "verify-v260-onvif-credential-gate",
           "file": "scripts/internal/verify_v260_onvif_credential_gate.mjs",
@@ -11075,7 +11075,7 @@
           "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
           "symbol": "canonical-assertion:renderDashboardRuntimeTrend",
           "anchor": "assertIncludes(pageScripts, \"renderDashboardRuntimeTrend\", \"UI-048 canonical product state\");",
-          "line": 66,
+          "line": 71,
           "contextSha256": "4b20be540fc827eed6d08707751a807d3240b50ba4d62a2ac5f87e2364b1481a"
         },
         "verifier": {
@@ -11117,14 +11117,14 @@
           "kind": "structural-producer-assertion",
           "witness": "renderDashboardRuntimeTrend is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:184",
-          "target": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:66"
+          "target": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:71"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-runtime-dashboard-trends",
-          "source": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:66",
+          "source": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:71",
           "target": "server.sh:2986"
         }
       ],
@@ -11174,7 +11174,7 @@
           "sha256": "b134fea6d8e126092952a2f455ddc95c922943d448a9198086af931597a31ee4"
         }
       },
-      "sourceFlowDigest": "76ff3b7fd6d212ee0e504da55d129c88bc6d5e92b25d6453948df17cb8202500",
+      "sourceFlowDigest": "c0dfbef2c573b61e43568b4fb061dcbfa3cfc0715559cccf60910738a6d271da",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -11217,10 +11217,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
             "symbol": "canonical-assertion:renderDashboardRuntimeTrend",
-            "trackedBlobSha256": "9df33246c20ee6429512d4129829de2444964b1d12ee72696f647bdd8f404104",
+            "trackedBlobSha256": "e93344f56da9636c96bcb7a5f91b4b81c4ec1568010ace9db177d13f22785ef9",
             "enclosingBodySha256": "cad715cd4fa543fdfd3e959fe28f42553244127206bfa06f9f18a3e55d19bebc",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 82,
+            "enclosingBodyStartLine": 57,
+            "enclosingBodyEndLine": 87,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -11232,7 +11232,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "9df33246c20ee6429512d4129829de2444964b1d12ee72696f647bdd8f404104",
+        "verifierFileSha256": "e93344f56da9636c96bcb7a5f91b4b81c4ec1568010ace9db177d13f22785ef9",
         "dispatch": {
           "command": "verify-v260-runtime-dashboard-trends",
           "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
@@ -11299,7 +11299,7 @@
           "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
           "symbol": "canonical-assertion:reEntryZoneIds",
           "anchor": "assertIncludes(pageScripts, \"reEntryZoneIds\", \"UI-049 canonical product state\");",
-          "line": 115,
+          "line": 122,
           "contextSha256": "57a56a146690ce37a5ef125e7246278c25634d686ffc59fe4b0ab410426b5e57"
         },
         "verifier": {
@@ -11341,14 +11341,14 @@
           "kind": "structural-producer-assertion",
           "witness": "reEntryZoneIds is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:6722",
-          "target": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:115"
+          "target": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:122"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-scenario-cross-zone-reentry",
-          "source": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:115",
+          "source": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:122",
           "target": "server.sh:2990"
         }
       ],
@@ -11408,7 +11408,7 @@
           "sha256": "4088b48b573b263d718a643b4eb08756dfb4aab0294ec776159043c0807d3df2"
         }
       },
-      "sourceFlowDigest": "28123020114e7ff4a72d1aa62b7fe781d2a681b223c2753b57de3f8e263339a5",
+      "sourceFlowDigest": "500b085410bf853ac7fa1c1fdf7de66288900ca4d9d4b66137d9f144c3e05219",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -11451,10 +11451,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
             "symbol": "canonical-assertion:reEntryZoneIds",
-            "trackedBlobSha256": "8da7e9e513929b95d6bb1083cb481b012c364b8609277df76d8eca1d353beb1d",
+            "trackedBlobSha256": "06d60a8b1b188c318845bb2e55ed5f2c4dfeb4464996c19d36f25c72e6ecb30d",
             "enclosingBodySha256": "11e917130390d6dacf9483232f3c4c02512a67aa2618f6b816f9aaf9f1491089",
-            "enclosingBodyStartLine": 102,
-            "enclosingBodyEndLine": 119,
+            "enclosingBodyStartLine": 109,
+            "enclosingBodyEndLine": 126,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -11466,7 +11466,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8da7e9e513929b95d6bb1083cb481b012c364b8609277df76d8eca1d353beb1d",
+        "verifierFileSha256": "06d60a8b1b188c318845bb2e55ed5f2c4dfeb4464996c19d36f25c72e6ecb30d",
         "dispatch": {
           "command": "verify-v260-scenario-cross-zone-reentry",
           "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
@@ -11533,7 +11533,7 @@
           "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
           "symbol": "canonical-assertion:media-server.ops.incident-triage-board.v1",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderIncidentTriageBoard\"), \"media-server.ops.incident-triage-board.v1\", \"UI-050 block-scoped canonical product state\");",
-          "line": 101,
+          "line": 106,
           "contextSha256": "ca7b2a798e6b4a9a1b785be0cbfe3ff3ec3a97fc4e6033f1108884dd8c481409"
         },
         "verifier": {
@@ -11575,14 +11575,14 @@
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.incident-triage-board.v1 is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5324",
-          "target": "scripts/internal/verify_v270_incident_triage_board.mjs:101"
+          "target": "scripts/internal/verify_v270_incident_triage_board.mjs:106"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-triage-board",
-          "source": "scripts/internal/verify_v270_incident_triage_board.mjs:101",
+          "source": "scripts/internal/verify_v270_incident_triage_board.mjs:106",
           "target": "server.sh:2998"
         }
       ],
@@ -11649,7 +11649,7 @@
           "sha256": "c42dd1c8b1eca1a0a8a1be013bff35bea45124f6a88620281104552d48d2f581"
         }
       },
-      "sourceFlowDigest": "6036052bebc32e0f08d86f8fe22df7eff7956f8a64bb8d521566d698632e5131",
+      "sourceFlowDigest": "8e4c07a7ac09d2c382158936868f4fef57d2c76603d55a2b05931ad74ff41ff9",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -11692,10 +11692,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
             "symbol": "canonical-assertion:media-server.ops.incident-triage-board.v1",
-            "trackedBlobSha256": "c2f2667ba8e083d8446c4bc37eb9b9f166711e1bd54c38fc776931e0426e933c",
+            "trackedBlobSha256": "c599a0b98f6c5fbdacbd79ec7d5ffbf157c7ecaf574e519a41e96ecd99e84598",
             "enclosingBodySha256": "533291b6587094bb0d62fd6b411d1c2864f689a9d2720ee7b228378901a8562f",
-            "enclosingBodyStartLine": 76,
-            "enclosingBodyEndLine": 112,
+            "enclosingBodyStartLine": 81,
+            "enclosingBodyEndLine": 117,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -11707,7 +11707,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "c2f2667ba8e083d8446c4bc37eb9b9f166711e1bd54c38fc776931e0426e933c",
+        "verifierFileSha256": "c599a0b98f6c5fbdacbd79ec7d5ffbf157c7ecaf574e519a41e96ecd99e84598",
         "dispatch": {
           "command": "verify-v270-incident-triage-board",
           "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
@@ -11774,7 +11774,7 @@
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
           "symbol": "canonical-assertion:UI-051-score-rank",
           "anchor": "assertIncludes(scorecardBlock, snippet, \"UI-051 score and rank renderer projection\");",
-          "line": 144,
+          "line": 148,
           "contextSha256": "53c33ccb5949fff82437b0ac82bfc0b705406204017d61a0e9c88484c5dff2b0"
         },
         "verifier": {
@@ -11816,14 +11816,14 @@
           "kind": "structural-producer-assertion",
           "witness": "the canonical verifier asserts score and rank projection inside the exact renderer block",
           "source": "src/ingress/product_ui_page_scripts.cpp:5395",
-          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:144"
+          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:148"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-decision-scorecard",
-          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:144",
+          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:148",
           "target": "server.sh:3002"
         }
       ],
@@ -11905,7 +11905,7 @@
           "sha256": "a8b5b27f751e0d8e870fa97a407af1fa64f22a9501557fdc2e50d19d82700e1f"
         }
       },
-      "sourceFlowDigest": "cd3255835eee8298a87f57f713a95164ccfb9dc7cdf577e0fb71784d1815d782",
+      "sourceFlowDigest": "6ae7fcbd5b65832163e81a55de6d8e6946ee5426c1b64c88eb95303a62a50f35",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -11948,10 +11948,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
             "symbol": "canonical-assertion:UI-051-score-rank",
-            "trackedBlobSha256": "b21be81874f3c40cbab8ac30afa26591223975f431d89c1e63c7409b06e0ccbb",
+            "trackedBlobSha256": "579149553f585069374d17feff8cd323c0b9501532256ea22adeb1a3755e6236",
             "enclosingBodySha256": "7b2aaf077b5377f7dc2f00c5c5c2e151ec5122ce44473e390e86afe30e542106",
-            "enclosingBodyStartLine": 112,
-            "enclosingBodyEndLine": 161,
+            "enclosingBodyStartLine": 116,
+            "enclosingBodyEndLine": 165,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -11963,7 +11963,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "b21be81874f3c40cbab8ac30afa26591223975f431d89c1e63c7409b06e0ccbb",
+        "verifierFileSha256": "579149553f585069374d17feff8cd323c0b9501532256ea22adeb1a3755e6236",
         "dispatch": {
           "command": "verify-v270-incident-decision-scorecard",
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
@@ -12030,7 +12030,7 @@
           "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
           "symbol": "canonical-assertion:operationalActionPack",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderOperationalActionPack\"), \"operationalActionPack\", \"UI-052 block-scoped canonical product state\");",
-          "line": 97,
+          "line": 98,
           "contextSha256": "6f598ab6294366deab68e22d7623be628eb84dd5e5ca0f66d3f7d8b78e9267d2"
         },
         "verifier": {
@@ -12072,14 +12072,14 @@
           "kind": "structural-producer-assertion",
           "witness": "operationalActionPack is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5418",
-          "target": "scripts/internal/verify_v270_operational_action_pack.mjs:97"
+          "target": "scripts/internal/verify_v270_operational_action_pack.mjs:98"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-operational-action-pack",
-          "source": "scripts/internal/verify_v270_operational_action_pack.mjs:97",
+          "source": "scripts/internal/verify_v270_operational_action_pack.mjs:98",
           "target": "server.sh:3006"
         }
       ],
@@ -12150,7 +12150,7 @@
           "sha256": "947b052aaa1b563d072e6d4a224c49a11cff78bfc74c7e527cbb46d6f16b3905"
         }
       },
-      "sourceFlowDigest": "85f817b1e9dcfe207bdb681bbb0f9bafeeaf7dc11eb7ecc2c3065849b5aa8791",
+      "sourceFlowDigest": "aa5efeb3c020827977cf50b6c58adb4c9f69ca6b6df481de630ab1c08fec9f91",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -12193,10 +12193,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
             "symbol": "canonical-assertion:operationalActionPack",
-            "trackedBlobSha256": "f8dbf2b14f45784a1850fa390f8c7da785c0e3eb7def8237ed3f380d7c9f6407",
+            "trackedBlobSha256": "301d51416fbda3b2f2a9a9eb2f8456bf50444ee27b8e3f6344d096deb849fc8e",
             "enclosingBodySha256": "6c0bb608c85467ac3a042bb0d822b8a610be0d5159053aba9965429ae4e02199",
-            "enclosingBodyStartLine": 75,
-            "enclosingBodyEndLine": 110,
+            "enclosingBodyStartLine": 76,
+            "enclosingBodyEndLine": 111,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -12208,7 +12208,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f8dbf2b14f45784a1850fa390f8c7da785c0e3eb7def8237ed3f380d7c9f6407",
+        "verifierFileSha256": "301d51416fbda3b2f2a9a9eb2f8456bf50444ee27b8e3f6344d096deb849fc8e",
         "dispatch": {
           "command": "verify-v270-operational-action-pack",
           "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
@@ -12275,7 +12275,7 @@
           "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
           "symbol": "canonical-assertion:ruleWhatIfPreview",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderRuleWhatIfPreview\"), \"ruleWhatIfPreview\", \"UI-053 block-scoped canonical product state\");",
-          "line": 99,
+          "line": 98,
           "contextSha256": "bf03abae4b54a4cefe46d38bd005a2f0a3e6eec35aa326381d506c963abc8d40"
         },
         "verifier": {
@@ -12317,14 +12317,14 @@
           "kind": "structural-producer-assertion",
           "witness": "ruleWhatIfPreview is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5654",
-          "target": "scripts/internal/verify_v270_rule_what_if_preview.mjs:99"
+          "target": "scripts/internal/verify_v270_rule_what_if_preview.mjs:98"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-rule-what-if-preview",
-          "source": "scripts/internal/verify_v270_rule_what_if_preview.mjs:99",
+          "source": "scripts/internal/verify_v270_rule_what_if_preview.mjs:98",
           "target": "server.sh:3010"
         }
       ],
@@ -12394,7 +12394,7 @@
           "sha256": "8cb3ec51c838a7b9ae789889405438058ff29203f54e88a497b8f93013b488dc"
         }
       },
-      "sourceFlowDigest": "aee7e3e7abd40a0e40c767826e4e9fbf10f610f4846b35cd47c0f54908a5334a",
+      "sourceFlowDigest": "b0a2dd0b038ad071c3163a3c207d7c740b77d9f864b9f11f25e11afa024efa78",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -12437,10 +12437,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
             "symbol": "canonical-assertion:ruleWhatIfPreview",
-            "trackedBlobSha256": "8416ec5d3f1377d0d7be1f9a54cf4e8bf07ff32ee52b5005e3682733483600c8",
+            "trackedBlobSha256": "591733998eb4f4bcd0112bfcfd658611bfea8896b8524210d841090fcae5f2cd",
             "enclosingBodySha256": "ffb2f9f36c08eb3baa2d5984a47c51271a2db150b49db82a4bd1be0c8ecf46a9",
-            "enclosingBodyStartLine": 78,
-            "enclosingBodyEndLine": 112,
+            "enclosingBodyStartLine": 77,
+            "enclosingBodyEndLine": 111,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -12452,7 +12452,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8416ec5d3f1377d0d7be1f9a54cf4e8bf07ff32ee52b5005e3682733483600c8",
+        "verifierFileSha256": "591733998eb4f4bcd0112bfcfd658611bfea8896b8524210d841090fcae5f2cd",
         "dispatch": {
           "command": "verify-v270-rule-what-if-preview",
           "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
@@ -12519,7 +12519,7 @@
           "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
           "symbol": "canonical-assertion:operatorOutcomeMemory",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderOperatorOutcomeMemory\"), \"operatorOutcomeMemory\", \"UI-054 block-scoped canonical product state\");",
-          "line": 99,
+          "line": 101,
           "contextSha256": "62abea2fad0ad10b68b349776f9db8791cd9266c1506d096ed50987a2f5ce2a3"
         },
         "verifier": {
@@ -12561,14 +12561,14 @@
           "kind": "structural-producer-assertion",
           "witness": "operatorOutcomeMemory is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5759",
-          "target": "scripts/internal/verify_v270_operator_outcome_memory.mjs:99"
+          "target": "scripts/internal/verify_v270_operator_outcome_memory.mjs:101"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-operator-outcome-memory",
-          "source": "scripts/internal/verify_v270_operator_outcome_memory.mjs:99",
+          "source": "scripts/internal/verify_v270_operator_outcome_memory.mjs:101",
           "target": "server.sh:3014"
         }
       ],
@@ -12627,7 +12627,7 @@
           "sha256": "b042cbfaa713dd2cb69a0b6bffff7bb3c08dc722833f2c3d2ccb8e6b0ec0c414"
         }
       },
-      "sourceFlowDigest": "636415ff5c1cabd20e5bc7a88f5ef7874425ba1c72d11fc51a8537360270e842",
+      "sourceFlowDigest": "a41db1d1236ee26446ada34ec6644696a8a50f74f3f89e4b55bcb02b498e5d77",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -12670,10 +12670,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
             "symbol": "canonical-assertion:operatorOutcomeMemory",
-            "trackedBlobSha256": "3aa517bba9cfab4fbd1c9b1f24b6f8cb8146b1f057f5a11f9173b71e1766102f",
+            "trackedBlobSha256": "ca5a6da433bd61184eea9dbe7a0c196480bee675f34d0f45edc6965fa68b0c85",
             "enclosingBodySha256": "0d4503e130a728747719e72a299b4e020307734ebd515b8940352ff02a37b735",
-            "enclosingBodyStartLine": 77,
-            "enclosingBodyEndLine": 111,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 113,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -12685,7 +12685,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "3aa517bba9cfab4fbd1c9b1f24b6f8cb8146b1f057f5a11f9173b71e1766102f",
+        "verifierFileSha256": "ca5a6da433bd61184eea9dbe7a0c196480bee675f34d0f45edc6965fa68b0c85",
         "dispatch": {
           "command": "verify-v270-operator-outcome-memory",
           "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
@@ -12752,7 +12752,7 @@
           "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
           "symbol": "canonical-assertion:incidentActionReadinessQueue",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderIncidentActionReadinessQueue\"), \"incidentActionReadinessQueue\", \"UI-055 block-scoped canonical product state\");",
-          "line": 91,
+          "line": 97,
           "contextSha256": "26947af3ec0889a8903462d0b680c9720d62ccf12e54ce6cdf7522182f66bad6"
         },
         "verifier": {
@@ -12794,14 +12794,14 @@
           "kind": "structural-producer-assertion",
           "witness": "incidentActionReadinessQueue is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5481",
-          "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:91"
+          "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:97"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-incident-action-readiness-queue",
-          "source": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:91",
+          "source": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:97",
           "target": "server.sh:3022"
         }
       ],
@@ -12884,7 +12884,7 @@
           "sha256": "2ca62ababd6f779cf9e3ab57dcf005a6b695bd796eaae004ceb38485233594a9"
         }
       },
-      "sourceFlowDigest": "150e0946281030ad44ade6285674cd7b29fd283d0bdc42bb7d7db79dd8fc78c1",
+      "sourceFlowDigest": "55df3fc9e9e8ca1ac4d4f7a3df807da880c17154485590075dfc9ae2d8e54a34",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -12927,10 +12927,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
             "symbol": "canonical-assertion:incidentActionReadinessQueue",
-            "trackedBlobSha256": "a8e079e857992dbbf2ee2edbb22ddf675eafa80f1eeeb90d82b3b525a0eb356f",
+            "trackedBlobSha256": "ea9917ed5e4e9640d89f978c2c3488b7c3c5f99fd49ac3334a419af65e943897",
             "enclosingBodySha256": "f42bf36133b86e8a247e1b4fc70088d4bf3a95c1f9234a96c8d4b8910fe6e941",
-            "enclosingBodyStartLine": 70,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 76,
+            "enclosingBodyEndLine": 114,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -12942,7 +12942,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a8e079e857992dbbf2ee2edbb22ddf675eafa80f1eeeb90d82b3b525a0eb356f",
+        "verifierFileSha256": "ea9917ed5e4e9640d89f978c2c3488b7c3c5f99fd49ac3334a419af65e943897",
         "dispatch": {
           "command": "verify-v280-incident-action-readiness-queue",
           "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
@@ -13009,7 +13009,7 @@
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
           "symbol": "canonical-assertion:approvalDraft",
           "anchor": "assertIncludes(approvalDraftBlock, \"approvalDraft\", \"UI-056 block-scoped canonical product state\");",
-          "line": 80,
+          "line": 85,
           "contextSha256": "f746270636adbfd576247025e5b4159d843653263a91eebfb45e6023c05b8ebc"
         },
         "verifier": {
@@ -13051,14 +13051,14 @@
           "kind": "structural-producer-assertion",
           "witness": "approvalDraft is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:6330",
-          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:80"
+          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:85"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-approval-gated-rule-draft",
-          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:80",
+          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:85",
           "target": "server.sh:3026"
         }
       ],
@@ -13126,7 +13126,7 @@
           "sha256": "5b0f31e78a81593e4ee2d7e76573b99a16c5fb82d11c56eb713a26895deb9c19"
         }
       },
-      "sourceFlowDigest": "997404f839b57f56e6430d4008de157b28f5169a28fcecb7ab7ac0d92969094d",
+      "sourceFlowDigest": "cedaa4c9e2fbcb5853e9cd8252041aa711e076c39f740b4b9d054817639482f4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -13169,10 +13169,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
             "symbol": "canonical-assertion:approvalDraft",
-            "trackedBlobSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+            "trackedBlobSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
             "enclosingBodySha256": "0cb5941e044e1346dd1464bd30e7121ce4431f870869bf3447ce6902fbc3278d",
-            "enclosingBodyStartLine": 78,
-            "enclosingBodyEndLine": 127,
+            "enclosingBodyStartLine": 83,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -13184,7 +13184,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+        "verifierFileSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
         "dispatch": {
           "command": "verify-v280-approval-gated-rule-draft",
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
@@ -13251,7 +13251,7 @@
           "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
           "symbol": "canonical-assertion:evidenceIntakeFieldReadiness",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderEvidenceIntakeFieldReadiness\"), \"evidenceIntakeFieldReadiness\", \"UI-057 block-scoped canonical product state\");",
-          "line": 103,
+          "line": 108,
           "contextSha256": "36a0ce71af3550b05f21b961c243ec908c8228d7442b609689233268d554eb1b"
         },
         "verifier": {
@@ -13293,14 +13293,14 @@
           "kind": "structural-producer-assertion",
           "witness": "evidenceIntakeFieldReadiness is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5537",
-          "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:103"
+          "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:108"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-evidence-intake-field-readiness",
-          "source": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:103",
+          "source": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:108",
           "target": "server.sh:3030"
         }
       ],
@@ -13374,7 +13374,7 @@
           "sha256": "32e237ff273f589579961b899a26ac6ee0b2792d91d4a95968056ccbb705df52"
         }
       },
-      "sourceFlowDigest": "08c586e79ffb3415eda76b1f2e9a4fc3b50598e836c88d3d437b5b1479dc72b2",
+      "sourceFlowDigest": "c268fe6a85ebb3d3b34682847f1d19c2a3697aa1536c542d8c09a904543cc588",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -13417,10 +13417,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
             "symbol": "canonical-assertion:evidenceIntakeFieldReadiness",
-            "trackedBlobSha256": "ba202490808afb6df4225f92f7aba434bada5ae684179da426a4e36cac095c6e",
+            "trackedBlobSha256": "e1601cef31b4b2966a8218c46f8cb0135a31eda69f920f2c68ea6498e6839bdc",
             "enclosingBodySha256": "30f2ac9f86acbab73d89a39adbcdfe527e7a5e54f65b4d24f0d7e1fe0dcf5cb1",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 119,
+            "enclosingBodyStartLine": 84,
+            "enclosingBodyEndLine": 124,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -13432,7 +13432,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ba202490808afb6df4225f92f7aba434bada5ae684179da426a4e36cac095c6e",
+        "verifierFileSha256": "e1601cef31b4b2966a8218c46f8cb0135a31eda69f920f2c68ea6498e6839bdc",
         "dispatch": {
           "command": "verify-v280-evidence-intake-field-readiness",
           "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
@@ -13499,7 +13499,7 @@
           "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
           "symbol": "canonical-assertion:runtimeEvidenceWindow",
           "anchor": "assertIncludes(extractNamedFunctionBlock(script, \"renderRuntimeEvidenceWindow\"), \"runtimeEvidenceWindow\", \"UI-058 block-scoped canonical product state\");",
-          "line": 98,
+          "line": 104,
           "contextSha256": "4d0d71eb316b411d0678b99a8f6c36c721f0c795d2599153d0e16dcec438d9b9"
         },
         "verifier": {
@@ -13541,14 +13541,14 @@
           "kind": "structural-producer-assertion",
           "witness": "runtimeEvidenceWindow is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:5600",
-          "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:98"
+          "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:104"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-runtime-evidence-window",
-          "source": "scripts/internal/verify_v280_runtime_evidence_window.mjs:98",
+          "source": "scripts/internal/verify_v280_runtime_evidence_window.mjs:104",
           "target": "server.sh:3034"
         }
       ],
@@ -13615,7 +13615,7 @@
           "sha256": "705289ceb6202017033393444e787593998a440a2e1e142439225c6da2436559"
         }
       },
-      "sourceFlowDigest": "d8bd5c95bf00dd0caa88bd6a6dccbc79a1b9d22c678f87a4aa7ceee255b73312",
+      "sourceFlowDigest": "7ca9eb6587c56639453343ed04189112c477f63d940a74f3b80722d3e232516e",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -13658,10 +13658,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
             "symbol": "canonical-assertion:runtimeEvidenceWindow",
-            "trackedBlobSha256": "1d08408e5517314cf2846b30712b434ef95a752672f9f33bea7eb5de07a0b644",
+            "trackedBlobSha256": "9aebfdc59137255162d790279bc987b4db2a711fdd00c164e010ef2846159614",
             "enclosingBodySha256": "7a46fa71818d584c888e2026c43cd5084028ba08b5e4c9da9e228a8aea159131",
-            "enclosingBodyStartLine": 74,
-            "enclosingBodyEndLine": 114,
+            "enclosingBodyStartLine": 80,
+            "enclosingBodyEndLine": 120,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -13673,7 +13673,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "1d08408e5517314cf2846b30712b434ef95a752672f9f33bea7eb5de07a0b644",
+        "verifierFileSha256": "9aebfdc59137255162d790279bc987b4db2a711fdd00c164e010ef2846159614",
         "dispatch": {
           "command": "verify-v280-runtime-evidence-window",
           "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
@@ -77559,6 +77559,7 @@
         "routeTokens": [],
         "schemaTokens": [],
         "fieldTokens": [
+          "reEntryMode=configured-zones",
           "reEntryZoneIds",
           "same-zone",
           "re-entry",
@@ -77583,6 +77584,7 @@
           {
             "kind": "field",
             "tokens": [
+              "reEntryMode=configured-zones",
               "reEntryZoneIds",
               "same-zone",
               "re-entry",
@@ -77604,7 +77606,7 @@
           "sha256": "d25c84dab358b24b80e1713682e6dd3c6effc4cae997d0695e2fd2ed27d469a0"
         }
       },
-      "sourceFlowDigest": "bb8cdc80f90f14cad61b6ead57a719cd718dc867c5b02e594b0f55e6882aae2f",
+      "sourceFlowDigest": "f647f16d5954b509ff544a13a9b3e70f21215f4e3cdaa599c9c7fa9256a467a0",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -77729,7 +77731,7 @@
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
           "symbol": "canonical-readback:RULE-104",
           "anchor": "assert(ruleRegistryWritePerformed === false && autoRuleApplied === false && eventPostPayloadChanged === false, \"RULE-104 approvalGatedRuleDraft staged-only registryWrite/autoApply/mutation Changed absence\");",
-          "line": 55,
+          "line": 60,
           "contextSha256": "15482a5a879df7411806cc605978a9e618ad4074311c11741d8cbc9b34717fa5"
         },
         "verifier": {
@@ -77771,14 +77773,14 @@
           "kind": "structural-producer-assertion",
           "witness": "RULE-104 canonical product state is independently checked by its functional verifier",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2798",
-          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:55"
+          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:60"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-approval-gated-rule-draft",
-          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:55",
+          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:60",
           "target": "server.sh:3026"
         }
       ],
@@ -77856,7 +77858,7 @@
           "sha256": "6b59b7dd1ed778f97f896b659febf8ee870da43adf2819a264e063aa7a5e760d"
         }
       },
-      "sourceFlowDigest": "6e88da3ea23b24e77550a91d1d4621477d96f3dd2dec825c88378891b8463e47",
+      "sourceFlowDigest": "63de31bb8dda9acece721a724142ec2cec88c4fe6ffbb87758b16c9dd1b3cd04",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -77899,10 +77901,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
             "symbol": "canonical-readback:RULE-104",
-            "trackedBlobSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+            "trackedBlobSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
             "enclosingBodySha256": "116fe47be454339e1dc41ad9324ab4d5e867b36f5af46517adf38a0c3449e916",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 76,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 81,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -77914,7 +77916,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+        "verifierFileSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
         "dispatch": {
           "command": "verify-v280-approval-gated-rule-draft",
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
@@ -88565,7 +88567,7 @@
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
           "symbol": "incident-projection-source-contract",
           "anchor": "assert(eventProjectionBlock.includes(\"FinalizeDocument\") && incidentMemory.includes(\"media-server.incident-text-projection.v1\") && !eventProjectionBlock.includes(\"WebRTC\") && !eventProjectionBlock.includes(\"SSE\"), \"Event POST/WebRTC/SSE incident projection finalization must remain local-only\");",
-          "line": 29,
+          "line": 32,
           "contextSha256": "dad3f240a5f73d3055912d5f6563b0678b6bc1aec3ff276ed3092cd20642d981"
         },
         "verifier": {
@@ -88607,14 +88609,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts FinalizeDocument. media-server.incident-text-projection.v1 WebRTC SSE",
           "source": "src/analysis/incident_memory.cpp:1167",
-          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:29"
+          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:32"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-incident-memory-productization",
-          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:29",
+          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:32",
           "target": "server.sh:2974"
         }
       ],
@@ -88670,7 +88672,7 @@
           "sha256": "1b57f1b9daa09c4887a9cfa283bc77a288072f87ccb48818ed32452db89d912e"
         }
       },
-      "sourceFlowDigest": "510623d6932b56749de88d95235d1b639acdc4b47dd5e7ef27f2bb8a3796b600",
+      "sourceFlowDigest": "82862851337f2dbc87dd40a22e5094ccf0ad8717414efcdba726e868d90c3d9c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -88713,10 +88715,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
             "symbol": "incident-projection-source-contract",
-            "trackedBlobSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+            "trackedBlobSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
             "enclosingBodySha256": "6aebff06cb51a9d5c800144763b6d04f36872b53e52b099a1f0d6c22715634e6",
-            "enclosingBodyStartLine": 28,
-            "enclosingBodyEndLine": 31,
+            "enclosingBodyStartLine": 31,
+            "enclosingBodyEndLine": 34,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -88728,7 +88730,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+        "verifierFileSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
         "dispatch": {
           "command": "verify-v260-incident-memory-productization",
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
@@ -88796,7 +88798,7 @@
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
           "symbol": "incident-memory-source-contract",
           "anchor": "assert(memorySearchBlock.includes(\"impl_->Search\") && incidentMemoryHeader.includes(\"media-server.incident-memory-index.v1\"), \"incident memory search delegation schema mismatch\");",
-          "line": 30,
+          "line": 33,
           "contextSha256": "719d77a8fb4adfc35f10bcae5f1d44a89e35eb88fa7370b1788f7fe3df7937db"
         },
         "verifier": {
@@ -88838,14 +88840,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts impl_->Search. media-server.incident-memory-index.v1",
           "source": "src/analysis/incident_memory.cpp:1065",
-          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:30"
+          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:33"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-incident-memory-productization",
-          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:30",
+          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:33",
           "target": "server.sh:2974"
         }
       ],
@@ -88895,7 +88897,7 @@
           "sha256": "62509203497a4666d01ec33683e3c4aaa5324e50e7ea2507667aff64fdeb3007"
         }
       },
-      "sourceFlowDigest": "5a92286bb4e4fa4684087877c42fb0566b84747e8cfa47676c7e2bc3ce40c297",
+      "sourceFlowDigest": "4411b0c048a942de4eda23365a96f5920693c6f06d38347d91970c0cab206f7a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -88938,10 +88940,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
             "symbol": "incident-memory-source-contract",
-            "trackedBlobSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+            "trackedBlobSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
             "enclosingBodySha256": "6aebff06cb51a9d5c800144763b6d04f36872b53e52b099a1f0d6c22715634e6",
-            "enclosingBodyStartLine": 28,
-            "enclosingBodyEndLine": 31,
+            "enclosingBodyStartLine": 31,
+            "enclosingBodyEndLine": 34,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -88953,7 +88955,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+        "verifierFileSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
         "dispatch": {
           "command": "verify-v260-incident-memory-productization",
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
@@ -90256,7 +90258,7 @@
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
           "symbol": "EVT-046:source-assertion",
           "anchor": "assertIncludes(summaryCandidateReviewBlock, \"media-server.ops.vlm-summary-candidate-review.v1\", \"/ops/api/events/reviews Ops VLM summary candidate review API\");",
-          "line": 50,
+          "line": 54,
           "contextSha256": "7155cd8c7e2292cb93ea35607dddad5d2624da257a17c1da6d2ad73b8fcbceeb"
         },
         "verifier": {
@@ -90298,14 +90300,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The structural oracle binds /ops/api/events/reviews memorySearch.vlmSummaryCandidateReview sourceCandidateReport memorySearch vlmSummaryCandidateReview VLM WebRTC SSE to media-server.vlm-summary-search-candidates.v1 and media-server.ops.vlm-summary-candidate-review.v1.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3170",
-          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:50"
+          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:54"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-incident-memory-productization",
-          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:50",
+          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:54",
           "target": "server.sh:2974"
         }
       ],
@@ -90379,7 +90381,7 @@
           "sha256": "7449409e6e238b6cd41a0b1072178376f23960f612e59af3ef0435ec867d622c"
         }
       },
-      "sourceFlowDigest": "ad5e84d5315d09aefae675c8fb6925631fca969a9ed5b9c4b11e3aa3a5d3780f",
+      "sourceFlowDigest": "8bcf6f1c5fc5a460a9d409c959fe18cf64c54889d828503609817d976121bcc6",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -90422,10 +90424,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
             "symbol": "EVT-046:source-assertion",
-            "trackedBlobSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+            "trackedBlobSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
             "enclosingBodySha256": "2bac4c9e5ad17838a3ef5dc7d57d6f3f7d5771286c811f0b1fbb49b02212208c",
-            "enclosingBodyStartLine": 49,
-            "enclosingBodyEndLine": 78,
+            "enclosingBodyStartLine": 53,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -90437,7 +90439,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+        "verifierFileSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
         "dispatch": {
           "command": "verify-v260-incident-memory-productization",
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
@@ -90505,7 +90507,7 @@
           "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
           "symbol": "EVT-047:source-assertion",
           "anchor": "assertIncludes(ruleSuggestionReviewBlock, \"media-server.ops.incident-rule-suggestion-review.v1\", \"/ops/api/events/reviews incident rule suggestion review API\");",
-          "line": 41,
+          "line": 45,
           "contextSha256": "389acb7051b732c5c24f54d02a7d578e9ee069b77aafd2a2773f1a44170a93a7"
         },
         "verifier": {
@@ -90547,14 +90549,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The structural oracle binds /ops/api/events/reviews incidentRuleSuggestionReview ruleSuggestion WebRTC SSE to media-server.ops.incident-rule-suggestion-review.v1.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1285",
-          "target": "scripts/internal/verify_v260_rule_suggestion_review.mjs:41"
+          "target": "scripts/internal/verify_v260_rule_suggestion_review.mjs:45"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-rule-suggestion-review",
-          "source": "scripts/internal/verify_v260_rule_suggestion_review.mjs:41",
+          "source": "scripts/internal/verify_v260_rule_suggestion_review.mjs:45",
           "target": "server.sh:2978"
         }
       ],
@@ -90620,7 +90622,7 @@
           "sha256": "7924c5911dee50f533a9b6996b1700c9ae977686f65adb16ef68b1397ddcb1d0"
         }
       },
-      "sourceFlowDigest": "7468c4a3bcb9c05ced77a8982091b392538150d9704238353b0d67709ed8f36e",
+      "sourceFlowDigest": "a016c1e8a8cc2091b82d94660cd3cc76d3c9a0e44ff983b631bf86dcc8a557f2",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -90663,10 +90665,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
             "symbol": "EVT-047:source-assertion",
-            "trackedBlobSha256": "71d91d88054903e8327232c3396328bbe586386ebf0191716946ab91c0b4381f",
+            "trackedBlobSha256": "ca8d2a975a67a4e437e1fafe9051c49e966f225ffe889beab379886a93faa783",
             "enclosingBodySha256": "da9513d993a78e6edcc8e643390e80eac5fd294d8cc278bd4ecbe100e033a333",
-            "enclosingBodyStartLine": 40,
-            "enclosingBodyEndLine": 65,
+            "enclosingBodyStartLine": 44,
+            "enclosingBodyEndLine": 69,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -90678,7 +90680,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "71d91d88054903e8327232c3396328bbe586386ebf0191716946ab91c0b4381f",
+        "verifierFileSha256": "ca8d2a975a67a4e437e1fafe9051c49e966f225ffe889beab379886a93faa783",
         "dispatch": {
           "command": "verify-v260-rule-suggestion-review",
           "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
@@ -90746,7 +90748,7 @@
           "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
           "symbol": "runtime-trend-source-contract",
           "anchor": "assertIncludes(trendBlock, \"dashboardRuntimeTrendSamples\", \"RTSP/WebRTC dashboard runtime trend samples\");",
-          "line": 54,
+          "line": 59,
           "contextSha256": "642239f68ce9900d426fd67af75d1162882636c56b4d6a531bb4c22a0e967159"
         },
         "verifier": {
@@ -90788,14 +90790,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts dashboardRuntimeTrendSamples. /ops/dashboard /ops/api/runtime/status WebRTC SSE RTSP",
           "source": "src/ingress/product_ui_page_scripts.cpp:207",
-          "target": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:54"
+          "target": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:59"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-runtime-dashboard-trends",
-          "source": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:54",
+          "source": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:59",
           "target": "server.sh:2986"
         }
       ],
@@ -90855,7 +90857,7 @@
           "sha256": "b0e5292dec39e81d267c749e546889c022c026e9b55358b6728b7d25f8d718ca"
         }
       },
-      "sourceFlowDigest": "ea109127f22d20f0c20c1faaaa03aaa2f658990abc5567f6aed16c11fe3bda40",
+      "sourceFlowDigest": "44fa753ba8992bb33a46e57f270161c1f1687f75ef455ee6372af9810bd97836",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -90898,10 +90900,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
             "symbol": "runtime-trend-source-contract",
-            "trackedBlobSha256": "9df33246c20ee6429512d4129829de2444964b1d12ee72696f647bdd8f404104",
+            "trackedBlobSha256": "e93344f56da9636c96bcb7a5f91b4b81c4ec1568010ace9db177d13f22785ef9",
             "enclosingBodySha256": "cad715cd4fa543fdfd3e959fe28f42553244127206bfa06f9f18a3e55d19bebc",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 82,
+            "enclosingBodyStartLine": 57,
+            "enclosingBodyEndLine": 87,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -90913,7 +90915,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "9df33246c20ee6429512d4129829de2444964b1d12ee72696f647bdd8f404104",
+        "verifierFileSha256": "e93344f56da9636c96bcb7a5f91b4b81c4ec1568010ace9db177d13f22785ef9",
         "dispatch": {
           "command": "verify-v260-runtime-dashboard-trends",
           "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
@@ -90981,7 +90983,7 @@
           "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
           "symbol": "EVT-049:bounded-reentry-oracle",
           "anchor": "assert(scenarioEvaluateBlock.includes(\"update.confirmed = true;  // configured-zone re-entry confirmation\"),",
-          "line": 45,
+          "line": 52,
           "contextSha256": "7cf597125151902d5cb49e1b0d99fdd08c20a8f5337bd4ccddfe5d72cfdf0a1d"
         },
         "verifier": {
@@ -91023,14 +91025,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts update.confirmed.",
           "source": "src/analysis/re_entry_scenario.cpp:120",
-          "target": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:45"
+          "target": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:52"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-scenario-cross-zone-reentry",
-          "source": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:45",
+          "source": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:52",
           "target": "server.sh:2990"
         }
       ],
@@ -91086,7 +91088,7 @@
           "sha256": "6c8baa00ba6960b96ebebb84c5e9b4b75d9f3b95f6d259e360fd14c9fabe67d5"
         }
       },
-      "sourceFlowDigest": "98ceec597c23ad420690fb753c43aa07a6c18e85f6df8df354975782e73f46c1",
+      "sourceFlowDigest": "3bb04e967b340852e6a8f54bdb6c7e7e151f6e3e696bb572960f168b1dbde703",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -91129,10 +91131,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
             "symbol": "EVT-049:bounded-reentry-oracle",
-            "trackedBlobSha256": "8da7e9e513929b95d6bb1083cb481b012c364b8609277df76d8eca1d353beb1d",
+            "trackedBlobSha256": "06d60a8b1b188c318845bb2e55ed5f2c4dfeb4464996c19d36f25c72e6ecb30d",
             "enclosingBodySha256": "35cd13b8cbe478a1ee44b96da44e9e04f9c67bf7954f7e2327f0e0f3b30c1bb8",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 50,
+            "enclosingBodyEndLine": 74,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -91144,7 +91146,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8da7e9e513929b95d6bb1083cb481b012c364b8609277df76d8eca1d353beb1d",
+        "verifierFileSha256": "06d60a8b1b188c318845bb2e55ed5f2c4dfeb4464996c19d36f25c72e6ecb30d",
         "dispatch": {
           "command": "verify-v260-scenario-cross-zone-reentry",
           "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
@@ -91212,7 +91214,7 @@
           "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
           "symbol": "EVT-050:source-assertion",
           "anchor": "assertIncludes(triageBoardViewBlock, \"media-server.ops.incident-triage-board.v1\", \"/ops/api/events/reviews incident triage board API\");",
-          "line": 42,
+          "line": 47,
           "contextSha256": "96fad28bc129ab8d3b0f20dd45fa80f854af1016dda50c1f484e7f3a520aa779"
         },
         "verifier": {
@@ -91254,14 +91256,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The structural oracle binds /ops/api/events/reviews incidentTriageBoard VLM WebRTC SSE to media-server.ops.incident-triage-board.v1.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1503",
-          "target": "scripts/internal/verify_v270_incident_triage_board.mjs:42"
+          "target": "scripts/internal/verify_v270_incident_triage_board.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-triage-board",
-          "source": "scripts/internal/verify_v270_incident_triage_board.mjs:42",
+          "source": "scripts/internal/verify_v270_incident_triage_board.mjs:47",
           "target": "server.sh:2998"
         }
       ],
@@ -91325,7 +91327,7 @@
           "sha256": "351ce4da315b19bfb56f3e9fcc81f4a10c89d39f5a625bf0e9c257aa44c18c09"
         }
       },
-      "sourceFlowDigest": "caf7a620dc906ed8533f5d7019e959e2affbca62be253584a63fba373eb71713",
+      "sourceFlowDigest": "452452f70c073aeb51fce667b232f94ee615a07b8759952ad3b4012d981746b8",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -91368,10 +91370,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
             "symbol": "EVT-050:source-assertion",
-            "trackedBlobSha256": "c2f2667ba8e083d8446c4bc37eb9b9f166711e1bd54c38fc776931e0426e933c",
+            "trackedBlobSha256": "c599a0b98f6c5fbdacbd79ec7d5ffbf157c7ecaf574e519a41e96ecd99e84598",
             "enclosingBodySha256": "07bdbb7f7fc28abff11d53f7d976191cd2f709abd4b323ce2d0b2c235d4a0769",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 74,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 79,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -91383,7 +91385,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "c2f2667ba8e083d8446c4bc37eb9b9f166711e1bd54c38fc776931e0426e933c",
+        "verifierFileSha256": "c599a0b98f6c5fbdacbd79ec7d5ffbf157c7ecaf574e519a41e96ecd99e84598",
         "dispatch": {
           "command": "verify-v270-incident-triage-board",
           "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
@@ -91450,7 +91452,7 @@
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
           "symbol": "canonical-functional-assertion:EVT-051-score-basis",
           "anchor": "assertIncludes(decisionScorecardItemBlock, snippet, \"EVT-051 deterministic score basis\");",
-          "line": 68,
+          "line": 72,
           "contextSha256": "394a364103513acd225cf2728931fd1d27ce0045883c1a0fde7d8f3baf0319de"
         },
         "verifier": {
@@ -91492,14 +91494,14 @@
           "kind": "structural-producer-assertion",
           "witness": "the canonical verifier asserts every authoritative score basis inside the exact item producer block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1691",
-          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:68"
+          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:72"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-decision-scorecard",
-          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:68",
+          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:72",
           "target": "server.sh:3002"
         }
       ],
@@ -91563,7 +91565,7 @@
           "sha256": "67a3229995d5128a71dd505b83dee9a6fe195a167d87b97f72110883ddb49ed9"
         }
       },
-      "sourceFlowDigest": "4e872091f1c66a452fbeeb6fc1ff68aa98a3e2d4495dd65364d2bebeb54b3076",
+      "sourceFlowDigest": "9e246302a0760d0afa59be95b8d5934226a03fec0c26c8d8e0acb70c529a0830",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -91606,10 +91608,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
             "symbol": "canonical-functional-assertion:EVT-051-score-basis",
-            "trackedBlobSha256": "b21be81874f3c40cbab8ac30afa26591223975f431d89c1e63c7409b06e0ccbb",
+            "trackedBlobSha256": "579149553f585069374d17feff8cd323c0b9501532256ea22adeb1a3755e6236",
             "enclosingBodySha256": "ad427ce9220cfbf62115144c3e41b6504f92391f6bceda0d5d0f28c4ca2766da",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 110,
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 114,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -91621,7 +91623,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "b21be81874f3c40cbab8ac30afa26591223975f431d89c1e63c7409b06e0ccbb",
+        "verifierFileSha256": "579149553f585069374d17feff8cd323c0b9501532256ea22adeb1a3755e6236",
         "dispatch": {
           "command": "verify-v270-incident-decision-scorecard",
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
@@ -91688,7 +91690,7 @@
           "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
           "symbol": "canonical-functional-assertion:EVT-052",
           "anchor": "assertIncludes(evt052ProjectionBlock, \"media-server.ops.operational-action-pack.v1\", \"EVT-052 block-scoped canonical projection\");",
-          "line": 50,
+          "line": 51,
           "contextSha256": "dbd99b2d92167ae177af6839a19483f59a208dfbccaaa94b111b598e160808d0"
         },
         "verifier": {
@@ -91730,14 +91732,14 @@
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.operational-action-pack.v1 is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1857",
-          "target": "scripts/internal/verify_v270_operational_action_pack.mjs:50"
+          "target": "scripts/internal/verify_v270_operational_action_pack.mjs:51"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-operational-action-pack",
-          "source": "scripts/internal/verify_v270_operational_action_pack.mjs:50",
+          "source": "scripts/internal/verify_v270_operational_action_pack.mjs:51",
           "target": "server.sh:3006"
         }
       ],
@@ -91799,7 +91801,7 @@
           "sha256": "ae4e4f6284b489c7491cdd5358ca354dd997485827524dc27966620a93420e05"
         }
       },
-      "sourceFlowDigest": "752acff4b7fedb4b78d836968b879ee9066b0ab6f87f085f6f11f1449dee62ae",
+      "sourceFlowDigest": "51be4deeb8d8cbcc4f44c396470f124380f3ef2ce4e9f1beb329390909464928",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -91842,10 +91844,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
             "symbol": "canonical-functional-assertion:EVT-052",
-            "trackedBlobSha256": "f8dbf2b14f45784a1850fa390f8c7da785c0e3eb7def8237ed3f380d7c9f6407",
+            "trackedBlobSha256": "301d51416fbda3b2f2a9a9eb2f8456bf50444ee27b8e3f6344d096deb849fc8e",
             "enclosingBodySha256": "707a8cdb9f823ea1df89a084fd0956b9bfe634ef67ba88d92017867cdf8109d3",
-            "enclosingBodyStartLine": 45,
-            "enclosingBodyEndLine": 73,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 74,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -91857,7 +91859,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f8dbf2b14f45784a1850fa390f8c7da785c0e3eb7def8237ed3f380d7c9f6407",
+        "verifierFileSha256": "301d51416fbda3b2f2a9a9eb2f8456bf50444ee27b8e3f6344d096deb849fc8e",
         "dispatch": {
           "command": "verify-v270-operational-action-pack",
           "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
@@ -91924,7 +91926,7 @@
           "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
           "symbol": "canonical-functional-assertion:EVT-053",
           "anchor": "assertIncludes(evt053ProjectionBlock, \"manualSaveRequired\", \"EVT-053 block-scoped canonical projection\");",
-          "line": 52,
+          "line": 51,
           "contextSha256": "993bbd560a734ac98fb8c388a2ae1c24c18764d1b0d7661cf345c46245f56881"
         },
         "verifier": {
@@ -91966,14 +91968,14 @@
           "kind": "structural-producer-assertion",
           "witness": "manualSaveRequired is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2597",
-          "target": "scripts/internal/verify_v270_rule_what_if_preview.mjs:52"
+          "target": "scripts/internal/verify_v270_rule_what_if_preview.mjs:51"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-rule-what-if-preview",
-          "source": "scripts/internal/verify_v270_rule_what_if_preview.mjs:52",
+          "source": "scripts/internal/verify_v270_rule_what_if_preview.mjs:51",
           "target": "server.sh:3010"
         }
       ],
@@ -92035,7 +92037,7 @@
           "sha256": "16c3b250c4cf33041565c98b395212ef0b8b9be45c5f5a4242b714dda9a08bb8"
         }
       },
-      "sourceFlowDigest": "fc82f698304dc1b50e0794857ce3bda1d637395b081613ba5e900d7e89d361e7",
+      "sourceFlowDigest": "665d4e68438b52f899d4502cfdeb0764823fdda615261a906b068deb5f448cbf",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -92078,10 +92080,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
             "symbol": "canonical-functional-assertion:EVT-053",
-            "trackedBlobSha256": "8416ec5d3f1377d0d7be1f9a54cf4e8bf07ff32ee52b5005e3682733483600c8",
+            "trackedBlobSha256": "591733998eb4f4bcd0112bfcfd658611bfea8896b8524210d841090fcae5f2cd",
             "enclosingBodySha256": "0b0e862225e69d7260e5fc50c26766aa2e68dd7957de30d02f33f2a9715bf8ef",
-            "enclosingBodyStartLine": 47,
-            "enclosingBodyEndLine": 76,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 75,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -92093,7 +92095,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8416ec5d3f1377d0d7be1f9a54cf4e8bf07ff32ee52b5005e3682733483600c8",
+        "verifierFileSha256": "591733998eb4f4bcd0112bfcfd658611bfea8896b8524210d841090fcae5f2cd",
         "dispatch": {
           "command": "verify-v270-rule-what-if-preview",
           "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
@@ -92160,7 +92162,7 @@
           "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
           "symbol": "canonical-functional-assertion:EVT-054",
           "anchor": "assertIncludes(evt054ProjectionBlock, \"media-server.ops.operator-outcome-memory.v1\", \"EVT-054 block-scoped canonical projection\");",
-          "line": 49,
+          "line": 51,
           "contextSha256": "820ed653be7d0b349e26f35c7cae50444a0888aa386f893421a432c74ed55b4a"
         },
         "verifier": {
@@ -92202,14 +92204,14 @@
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.operator-outcome-memory.v1 is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3078",
-          "target": "scripts/internal/verify_v270_operator_outcome_memory.mjs:49"
+          "target": "scripts/internal/verify_v270_operator_outcome_memory.mjs:51"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-operator-outcome-memory",
-          "source": "scripts/internal/verify_v270_operator_outcome_memory.mjs:49",
+          "source": "scripts/internal/verify_v270_operator_outcome_memory.mjs:51",
           "target": "server.sh:3014"
         }
       ],
@@ -92271,7 +92273,7 @@
           "sha256": "7d9062bb115f014606040b7be032b95cd051c0fc2c27b5b71ade130c013027e5"
         }
       },
-      "sourceFlowDigest": "675821112200d21423f34e072c24d2c3f95788cb08a94794620ba3e3488ee8dc",
+      "sourceFlowDigest": "155a94bde8464dd683ba25cfe8a34e932ad2a39bc9a23bda19cce1f60df08ba5",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -92314,10 +92316,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
             "symbol": "canonical-functional-assertion:EVT-054",
-            "trackedBlobSha256": "3aa517bba9cfab4fbd1c9b1f24b6f8cb8146b1f057f5a11f9173b71e1766102f",
+            "trackedBlobSha256": "ca5a6da433bd61184eea9dbe7a0c196480bee675f34d0f45edc6965fa68b0c85",
             "enclosingBodySha256": "391040a543ae596c61fb88c526704e25ef85837061dccfefa0d1aad52d9e4863",
-            "enclosingBodyStartLine": 44,
-            "enclosingBodyEndLine": 75,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 77,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -92329,7 +92331,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "3aa517bba9cfab4fbd1c9b1f24b6f8cb8146b1f057f5a11f9173b71e1766102f",
+        "verifierFileSha256": "ca5a6da433bd61184eea9dbe7a0c196480bee675f34d0f45edc6965fa68b0c85",
         "dispatch": {
           "command": "verify-v270-operator-outcome-memory",
           "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
@@ -92396,7 +92398,7 @@
           "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
           "symbol": "canonical-functional-assertion:EVT-055",
           "anchor": "assertIncludes(evt055ProjectionBlock, \"media-server.ops.incident-action-readiness-queue.v1\", \"EVT-055 block-scoped canonical projection\");",
-          "line": 45,
+          "line": 51,
           "contextSha256": "e4d65b0fd0392dec8e96f2629634bf6e9b861ae81db9ddfd5c5fb787945b3c06"
         },
         "verifier": {
@@ -92438,14 +92440,14 @@
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.incident-action-readiness-queue.v1 is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2061",
-          "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:45"
+          "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:51"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-incident-action-readiness-queue",
-          "source": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:45",
+          "source": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:51",
           "target": "server.sh:3022"
         }
       ],
@@ -92501,7 +92503,7 @@
           "sha256": "b4ccf83e1631a1363e99d694814716416babc5b64d905d76f57264a97353a125"
         }
       },
-      "sourceFlowDigest": "e463037f6b773c732fc9c0d85161a55bc9c2ccd343dddc3ce2bb960c9663a1cf",
+      "sourceFlowDigest": "f58c9d66f2f99b2203f1a4e2e276ab89a555acd87eced8908a965dbcea2160f8",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -92544,10 +92546,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
             "symbol": "canonical-functional-assertion:EVT-055",
-            "trackedBlobSha256": "a8e079e857992dbbf2ee2edbb22ddf675eafa80f1eeeb90d82b3b525a0eb356f",
+            "trackedBlobSha256": "ea9917ed5e4e9640d89f978c2c3488b7c3c5f99fd49ac3334a419af65e943897",
             "enclosingBodySha256": "aa9a5cd4f13e5747b836e3c05c54f297291a54aa16e8ed5714ecf3e9fa61a5a8",
-            "enclosingBodyStartLine": 40,
-            "enclosingBodyEndLine": 68,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 74,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -92559,7 +92561,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a8e079e857992dbbf2ee2edbb22ddf675eafa80f1eeeb90d82b3b525a0eb356f",
+        "verifierFileSha256": "ea9917ed5e4e9640d89f978c2c3488b7c3c5f99fd49ac3334a419af65e943897",
         "dispatch": {
           "command": "verify-v280-incident-action-readiness-queue",
           "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
@@ -92626,7 +92628,7 @@
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
           "symbol": "canonical-functional-assertion:EVT-056",
           "anchor": "assertIncludes(evt056ProjectionBlock, \"noAutoApply\", \"EVT-056 block-scoped canonical projection\");",
-          "line": 49,
+          "line": 54,
           "contextSha256": "b18a392565327e0face177283eeeccaf66fc9ba7aad09a57b53defc3a55d2e6c"
         },
         "verifier": {
@@ -92668,14 +92670,14 @@
           "kind": "structural-producer-assertion",
           "witness": "noAutoApply is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2796",
-          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:49"
+          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:54"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-approval-gated-rule-draft",
-          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:49",
+          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:54",
           "target": "server.sh:3026"
         }
       ],
@@ -92736,7 +92738,7 @@
           "sha256": "8dc60c1c68799a3206ba0c21697d78802d57ae873a6519ae81ed72b7797101f3"
         }
       },
-      "sourceFlowDigest": "5cae8c012373fd432e0b6c2d24402e21bf071c92c8f09efc5f2316ecf4ee7526",
+      "sourceFlowDigest": "41a98701b18fb97dfd339d22dfd3ee0452f17225e6f1d58c83681abd7c1a1c5c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -92779,10 +92781,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
             "symbol": "canonical-functional-assertion:EVT-056",
-            "trackedBlobSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+            "trackedBlobSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
             "enclosingBodySha256": "116fe47be454339e1dc41ad9324ab4d5e867b36f5af46517adf38a0c3449e916",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 76,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 81,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -92794,7 +92796,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+        "verifierFileSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
         "dispatch": {
           "command": "verify-v280-approval-gated-rule-draft",
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
@@ -92861,7 +92863,7 @@
           "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
           "symbol": "canonical-functional-assertion:EVT-057",
           "anchor": "assert(!evt057ProjectionBlock.includes(\"\\\\\\\"credentialMaterialExposed\\\\\\\":true\") && evt057ProjectionBlock.includes(\"\\\\\\\"credentialMaterialExposed\\\\\\\":false\"), \"EVT-057 credentialMaterialExposed redacted canonical projection\");",
-          "line": 49,
+          "line": 54,
           "contextSha256": "dbdab6f65580642376985dba1e941199be7ba90292822aea335fd59928963cf1"
         },
         "verifier": {
@@ -92903,14 +92905,14 @@
           "kind": "structural-producer-assertion",
           "witness": "credentialMaterialExposed is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2292",
-          "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:49"
+          "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:54"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-evidence-intake-field-readiness",
-          "source": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:49",
+          "source": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:54",
           "target": "server.sh:3030"
         }
       ],
@@ -92996,7 +92998,7 @@
           "sha256": "d0feca6a90f2dd0e41b9576cbe7631e4339c7083b1aa0fc30b8e516fc813368b"
         }
       },
-      "sourceFlowDigest": "0af021e8fdb0a5ce8282b593199bb92f722684bbb8639d5ee8bf41904bd1b574",
+      "sourceFlowDigest": "2c6dddae68ec2460ae6910a0cae69a11c742496d869720eb442072aec862a00f",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -93039,10 +93041,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
             "symbol": "canonical-functional-assertion:EVT-057",
-            "trackedBlobSha256": "ba202490808afb6df4225f92f7aba434bada5ae684179da426a4e36cac095c6e",
+            "trackedBlobSha256": "e1601cef31b4b2966a8218c46f8cb0135a31eda69f920f2c68ea6498e6839bdc",
             "enclosingBodySha256": "2eb1b29885bebe5f1af332009b0eda11e73cb87306258e01b702fe95dac2716f",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 77,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -93054,7 +93056,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ba202490808afb6df4225f92f7aba434bada5ae684179da426a4e36cac095c6e",
+        "verifierFileSha256": "e1601cef31b4b2966a8218c46f8cb0135a31eda69f920f2c68ea6498e6839bdc",
         "dispatch": {
           "command": "verify-v280-evidence-intake-field-readiness",
           "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
@@ -93121,7 +93123,7 @@
           "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
           "symbol": "canonical-functional-assertion:EVT-058",
           "anchor": "assertIncludes(evt058ProjectionBlock, \"boundedLocalBuffer\", \"EVT-058 block-scoped canonical projection\");",
-          "line": 48,
+          "line": 54,
           "contextSha256": "49e78ae17032402ca580d2193576e034230d1d8730fdaacbaab84b1dc51848ed"
         },
         "verifier": {
@@ -93163,14 +93165,14 @@
           "kind": "structural-producer-assertion",
           "witness": "boundedLocalBuffer is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2426",
-          "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:48"
+          "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:54"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-runtime-evidence-window",
-          "source": "scripts/internal/verify_v280_runtime_evidence_window.mjs:48",
+          "source": "scripts/internal/verify_v280_runtime_evidence_window.mjs:54",
           "target": "server.sh:3034"
         }
       ],
@@ -93231,7 +93233,7 @@
           "sha256": "c3c1d797aa803b8ff67913f74b5d77e70bef0f58b79e0e3f2e164e29d233b936"
         }
       },
-      "sourceFlowDigest": "312e917d56754fa839eecc85400b893682c677b50080c1c8537cd6afb4621421",
+      "sourceFlowDigest": "ded95a3021881c35b278ada75ba40f3d4272780858f95dc348f06b2dc2cb9362",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -93274,10 +93276,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
             "symbol": "canonical-functional-assertion:EVT-058",
-            "trackedBlobSha256": "1d08408e5517314cf2846b30712b434ef95a752672f9f33bea7eb5de07a0b644",
+            "trackedBlobSha256": "9aebfdc59137255162d790279bc987b4db2a711fdd00c164e010ef2846159614",
             "enclosingBodySha256": "36fdc360e6b52a56ec678eb86e60c73deafea78d2b149594ef844dea0c5749fb",
-            "enclosingBodyStartLine": 40,
-            "enclosingBodyEndLine": 72,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 78,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -93289,7 +93291,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "1d08408e5517314cf2846b30712b434ef95a752672f9f33bea7eb5de07a0b644",
+        "verifierFileSha256": "9aebfdc59137255162d790279bc987b4db2a711fdd00c164e010ef2846159614",
         "dispatch": {
           "command": "verify-v280-runtime-evidence-window",
           "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
@@ -105618,7 +105620,7 @@
           "file": "scripts/internal/verify_v280_client_safe_followup_digest.mjs",
           "symbol": "CLIENT-024:canonical-functional-readback",
           "anchor": "assert(followUpDigestApiBlock.includes(\"media-server.client.follow-up-digest.v1\") && followUpDigestRendererBlock.includes(\"followUpDigest\") && followUpDigestRendererBlock.includes(\"client-safe-followup-digest\"), \"CLIENT-024 exact followUpDigest renderer/schema readback missing\");",
-          "line": 61,
+          "line": 83,
           "contextSha256": "1b5cfa81cd5962d992c4f2ed6833b68c3d84f50a00329f51ce8ee9e05f0028ed"
         },
         "verifier": {
@@ -105660,14 +105662,14 @@
           "kind": "structural-producer-assertion",
           "witness": "CLIENT-024 exact renderer/producer state is bound to the canonical functional assertion and independent observed readback.",
           "source": "src/ingress/webrtc_http_server.cpp:3370",
-          "target": "scripts/internal/verify_v280_client_safe_followup_digest.mjs:61"
+          "target": "scripts/internal/verify_v280_client_safe_followup_digest.mjs:83"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-client-safe-followup-digest",
-          "source": "scripts/internal/verify_v280_client_safe_followup_digest.mjs:61",
+          "source": "scripts/internal/verify_v280_client_safe_followup_digest.mjs:83",
           "target": "server.sh:3038"
         }
       ],
@@ -105752,7 +105754,7 @@
           "sha256": "01910134f31ab4d063da1ea27405868626916f2384602f326b76de112ab9f20c"
         }
       },
-      "sourceFlowDigest": "aaf7515da6fa3451a05893eb7a97d961e90f8477d218acfb5c56d5f9a1e1f151",
+      "sourceFlowDigest": "a03e872f1a3ebad9e86410c7da6001f3497696eb785a19fcb51384680e0efcc8",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -105795,10 +105797,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_client_safe_followup_digest.mjs",
             "symbol": "CLIENT-024:canonical-functional-readback",
-            "trackedBlobSha256": "cc07e724e6f463cd1a4ffd8a5f96ba401e500ec3d3a5d613fc724c269c2d1197",
+            "trackedBlobSha256": "320ba70e1b3d21c28e11d296d3b6c852e549e714688570d836c412ad8cd48bed",
             "enclosingBodySha256": "c831b0d0362f635078ab036fb51e00b25afbcc8bae8983862e2712285350cee9",
-            "enclosingBodyStartLine": 51,
-            "enclosingBodyEndLine": 86,
+            "enclosingBodyStartLine": 73,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -105810,7 +105812,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "cc07e724e6f463cd1a4ffd8a5f96ba401e500ec3d3a5d613fc724c269c2d1197",
+        "verifierFileSha256": "320ba70e1b3d21c28e11d296d3b6c852e549e714688570d836c412ad8cd48bed",
         "dispatch": {
           "command": "verify-v280-client-safe-followup-digest",
           "file": "scripts/internal/verify_v280_client_safe_followup_digest.mjs",
@@ -132319,7 +132321,7 @@
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
           "symbol": "LAB-069:exact-oracle",
           "anchor": "assert(summaryCandidateReviewBlock.includes(\"sourceCandidateReport\"),",
-          "line": 51,
+          "line": 55,
           "contextSha256": "9b793a02eeb30fa2da5474700a9462560e629e8b0747381ccde97474ad11b973"
         },
         "verifier": {
@@ -132361,14 +132363,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts sourceCandidateReport from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3178",
-          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:51"
+          "target": "scripts/internal/verify_v260_incident_memory_productization.mjs:55"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-incident-memory-productization",
-          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:51",
+          "source": "scripts/internal/verify_v260_incident_memory_productization.mjs:55",
           "target": "server.sh:2974"
         }
       ],
@@ -132430,7 +132432,7 @@
           "sha256": "7d678996f83f2d7ba754902caad0d6b807eedbfb2a2d72d67baff40f8b8e2a77"
         }
       },
-      "sourceFlowDigest": "5f561cef658935eaff77bbfbbfd589e8e139d3c0b6dadf0a78ad702bf2ae173c",
+      "sourceFlowDigest": "fa5582ff37baf3e9e48d9bc062b6f871bd03f2ace0929959824ec64288f5f56a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -132473,10 +132475,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
             "symbol": "LAB-069:exact-oracle",
-            "trackedBlobSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+            "trackedBlobSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
             "enclosingBodySha256": "2bac4c9e5ad17838a3ef5dc7d57d6f3f7d5771286c811f0b1fbb49b02212208c",
-            "enclosingBodyStartLine": 49,
-            "enclosingBodyEndLine": 78,
+            "enclosingBodyStartLine": 53,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -132488,7 +132490,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f24a8c72cf4ab833571e1bd47119a92b334ebe4f26d137ae0e6618692453ae74",
+        "verifierFileSha256": "468e90c5da475aad341fab5bac0136d19757b9ff4c73f632404e3c166d84a399",
         "dispatch": {
           "command": "verify-v260-incident-memory-productization",
           "file": "scripts/internal/verify_v260_incident_memory_productization.mjs",
@@ -132556,7 +132558,7 @@
           "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
           "symbol": "LAB-070:exact-oracle",
           "anchor": "assert(ruleSuggestionReviewBlock.includes(\"matchingRuleSuggestionPresent\"),",
-          "line": 42,
+          "line": 46,
           "contextSha256": "056f18360fd084ab44dd484a7026d2efed0b62a4ba105a93ea262a0170b37982"
         },
         "verifier": {
@@ -132598,14 +132600,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts matchingRuleSuggestionPresent from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1293",
-          "target": "scripts/internal/verify_v260_rule_suggestion_review.mjs:42"
+          "target": "scripts/internal/verify_v260_rule_suggestion_review.mjs:46"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-rule-suggestion-review",
-          "source": "scripts/internal/verify_v260_rule_suggestion_review.mjs:42",
+          "source": "scripts/internal/verify_v260_rule_suggestion_review.mjs:46",
           "target": "server.sh:2978"
         }
       ],
@@ -132667,7 +132669,7 @@
           "sha256": "20d6c6bdd058e2dd453f79179032730f9e070262055bc08473e102f67cb31545"
         }
       },
-      "sourceFlowDigest": "438b372c0af75edee5ea8798a29c9004b666cb5f9a6fc98a2fbd24a752087aeb",
+      "sourceFlowDigest": "15ec351f74e9ba960c26ec34898089b6f687bb9682c626b1fa33b00f1e584f6e",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -132710,10 +132712,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
             "symbol": "LAB-070:exact-oracle",
-            "trackedBlobSha256": "71d91d88054903e8327232c3396328bbe586386ebf0191716946ab91c0b4381f",
+            "trackedBlobSha256": "ca8d2a975a67a4e437e1fafe9051c49e966f225ffe889beab379886a93faa783",
             "enclosingBodySha256": "da9513d993a78e6edcc8e643390e80eac5fd294d8cc278bd4ecbe100e033a333",
-            "enclosingBodyStartLine": 40,
-            "enclosingBodyEndLine": 65,
+            "enclosingBodyStartLine": 44,
+            "enclosingBodyEndLine": 69,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -132725,7 +132727,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "71d91d88054903e8327232c3396328bbe586386ebf0191716946ab91c0b4381f",
+        "verifierFileSha256": "ca8d2a975a67a4e437e1fafe9051c49e966f225ffe889beab379886a93faa783",
         "dispatch": {
           "command": "verify-v260-rule-suggestion-review",
           "file": "scripts/internal/verify_v260_rule_suggestion_review.mjs",
@@ -132793,7 +132795,7 @@
           "file": "scripts/internal/verify_v260_onvif_credential_gate.mjs",
           "symbol": "LAB-071:exact-oracle",
           "anchor": "assert(credentialGateBlock.includes(\"credentialReferenceStatus\") && opsSourcesRouteBlock.includes(\"/ops/sources\") && exactBooleanFlagValue(credentialGateBlock, \"referenceValueExposed\") === false, \"LAB-071 ONVIF credentialReferenceStatus must remain redacted on /ops/sources\");",
-          "line": 53,
+          "line": 73,
           "contextSha256": "d7dfc79742f0d4e6f20b42fc8f0c9a05314338e332e2d0ba22280b3013644f1a"
         },
         "verifier": {
@@ -132835,14 +132837,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts credentialReferenceStatus from the computed source flow.",
           "source": "src/ingress/onvif_live_import.cpp:411",
-          "target": "scripts/internal/verify_v260_onvif_credential_gate.mjs:53"
+          "target": "scripts/internal/verify_v260_onvif_credential_gate.mjs:73"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-onvif-credential-gate",
-          "source": "scripts/internal/verify_v260_onvif_credential_gate.mjs:53",
+          "source": "scripts/internal/verify_v260_onvif_credential_gate.mjs:73",
           "target": "server.sh:2982"
         }
       ],
@@ -132906,7 +132908,7 @@
           "sha256": "fa84408c75dd8a5f360c6202a9250ca8ace0842a1c959febdd7510dc034b2ab3"
         }
       },
-      "sourceFlowDigest": "c7db1dfd683074eb121afa1e37c71f6946a66f316331f524f2dc023e8d85211f",
+      "sourceFlowDigest": "8941670ad9829e78b7e9e68b54088eb15401f8a3ee3fc657b0ed369bddc47e47",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -132949,10 +132951,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_onvif_credential_gate.mjs",
             "symbol": "LAB-071:exact-oracle",
-            "trackedBlobSha256": "58db3bdd9a64fb5c37d492c527edd37a873f42981d0b9abb061d7275f17f8659",
+            "trackedBlobSha256": "04b9da134fa074db51012d063e2f19c0ffe804ce3f0fcb1f66829a448503bd05",
             "enclosingBodySha256": "f1cec51b54654245e862db463ad1263d7db437aea91afc5c09059e1972481ec1",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 76,
+            "enclosingBodyStartLine": 72,
+            "enclosingBodyEndLine": 96,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -132964,7 +132966,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "58db3bdd9a64fb5c37d492c527edd37a873f42981d0b9abb061d7275f17f8659",
+        "verifierFileSha256": "04b9da134fa074db51012d063e2f19c0ffe804ce3f0fcb1f66829a448503bd05",
         "dispatch": {
           "command": "verify-v260-onvif-credential-gate",
           "file": "scripts/internal/verify_v260_onvif_credential_gate.mjs",
@@ -133032,7 +133034,7 @@
           "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
           "symbol": "LAB-072:exact-oracle",
           "anchor": "assertIncludes(trendBlock, \"dashboardRuntimeTrendSamples\", \"RTSP/WebRTC dashboard runtime trend samples\");",
-          "line": 54,
+          "line": 59,
           "contextSha256": "642239f68ce9900d426fd67af75d1162882636c56b4d6a531bb4c22a0e967159"
         },
         "verifier": {
@@ -133074,14 +133076,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts dashboardRuntimeTrendSamples from the computed source flow.",
           "source": "src/ingress/product_ui_page_scripts.cpp:207",
-          "target": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:54"
+          "target": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:59"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-runtime-dashboard-trends",
-          "source": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:54",
+          "source": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs:59",
           "target": "server.sh:2986"
         }
       ],
@@ -133135,7 +133137,7 @@
           "sha256": "9032740f5207bb0d4421a9550564a34bc9438f3fcc716a40a580dfb7a019ca30"
         }
       },
-      "sourceFlowDigest": "318353b634b0a9a649005c4422e42c66e79efdc28ba1c3438cdaf8012d73575b",
+      "sourceFlowDigest": "53bd3550170e42dcccd4eeb6834550e4f97c7e7106e2c45bb6ba45fde94a95bb",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -133178,10 +133180,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
             "symbol": "LAB-072:exact-oracle",
-            "trackedBlobSha256": "9df33246c20ee6429512d4129829de2444964b1d12ee72696f647bdd8f404104",
+            "trackedBlobSha256": "e93344f56da9636c96bcb7a5f91b4b81c4ec1568010ace9db177d13f22785ef9",
             "enclosingBodySha256": "cad715cd4fa543fdfd3e959fe28f42553244127206bfa06f9f18a3e55d19bebc",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 82,
+            "enclosingBodyStartLine": 57,
+            "enclosingBodyEndLine": 87,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -133193,7 +133195,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "9df33246c20ee6429512d4129829de2444964b1d12ee72696f647bdd8f404104",
+        "verifierFileSha256": "e93344f56da9636c96bcb7a5f91b4b81c4ec1568010ace9db177d13f22785ef9",
         "dispatch": {
           "command": "verify-v260-runtime-dashboard-trends",
           "file": "scripts/internal/verify_v260_runtime_dashboard_trends.mjs",
@@ -133261,7 +133263,7 @@
           "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
           "symbol": "LAB-073:exact-oracle",
           "anchor": "assert(scenarioEvaluateBlock.includes(\"update.confirmed = true;  // configured-zone re-entry confirmation\"),",
-          "line": 45,
+          "line": 52,
           "contextSha256": "7cf597125151902d5cb49e1b0d99fdd08c20a8f5337bd4ccddfe5d72cfdf0a1d"
         },
         "verifier": {
@@ -133303,14 +133305,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts update.confirmed from the computed source flow.",
           "source": "src/analysis/re_entry_scenario.cpp:111",
-          "target": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:45"
+          "target": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:52"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-scenario-cross-zone-reentry",
-          "source": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:45",
+          "source": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs:52",
           "target": "server.sh:2990"
         }
       ],
@@ -133360,7 +133362,7 @@
           "sha256": "cf0a38cbdca66f474579284ae9fad3ddba4295696831d5d95751eb5b3ca0291e"
         }
       },
-      "sourceFlowDigest": "2d778910f2a845114273165a9d260cbb5595764bafef2c237f14130ad5afeef0",
+      "sourceFlowDigest": "efbd988cbe77062c8fa5b42bd7e6550798aaf87beda643c285eee08ac4410960",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -133403,10 +133405,10 @@
           "readback": {
             "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
             "symbol": "LAB-073:exact-oracle",
-            "trackedBlobSha256": "8da7e9e513929b95d6bb1083cb481b012c364b8609277df76d8eca1d353beb1d",
+            "trackedBlobSha256": "06d60a8b1b188c318845bb2e55ed5f2c4dfeb4464996c19d36f25c72e6ecb30d",
             "enclosingBodySha256": "35cd13b8cbe478a1ee44b96da44e9e04f9c67bf7954f7e2327f0e0f3b30c1bb8",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 50,
+            "enclosingBodyEndLine": 74,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -133418,7 +133420,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8da7e9e513929b95d6bb1083cb481b012c364b8609277df76d8eca1d353beb1d",
+        "verifierFileSha256": "06d60a8b1b188c318845bb2e55ed5f2c4dfeb4464996c19d36f25c72e6ecb30d",
         "dispatch": {
           "command": "verify-v260-scenario-cross-zone-reentry",
           "file": "scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs",
@@ -133486,7 +133488,7 @@
           "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
           "symbol": "LAB-074:exact-oracle",
           "anchor": "assert(triageBoardViewBlock.includes(\"cardCount\") &&",
-          "line": 43,
+          "line": 48,
           "contextSha256": "1d5194692063f23218c085e7ffe006def011e1b460fa9d42d4d3e795ca31ed15"
         },
         "verifier": {
@@ -133528,14 +133530,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts cardCount from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1516",
-          "target": "scripts/internal/verify_v270_incident_triage_board.mjs:43"
+          "target": "scripts/internal/verify_v270_incident_triage_board.mjs:48"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-triage-board",
-          "source": "scripts/internal/verify_v270_incident_triage_board.mjs:43",
+          "source": "scripts/internal/verify_v270_incident_triage_board.mjs:48",
           "target": "server.sh:2998"
         }
       ],
@@ -133587,7 +133589,7 @@
           "sha256": "a2389cf22fdc76eb5d9f1b3651b2c818e60f05abbcc8f45a23d5a2835cb6e5c8"
         }
       },
-      "sourceFlowDigest": "795ca1f9fcf98d27f229e1069d2295f7f94fed262a08d1628fc120f660a27337",
+      "sourceFlowDigest": "805ef3684a6ca799a4da7b9fb3fc48f1378bc9edb3b7f686ec98fbeffc9f63ac",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -133630,10 +133632,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
             "symbol": "LAB-074:exact-oracle",
-            "trackedBlobSha256": "c2f2667ba8e083d8446c4bc37eb9b9f166711e1bd54c38fc776931e0426e933c",
+            "trackedBlobSha256": "c599a0b98f6c5fbdacbd79ec7d5ffbf157c7ecaf574e519a41e96ecd99e84598",
             "enclosingBodySha256": "07bdbb7f7fc28abff11d53f7d976191cd2f709abd4b323ce2d0b2c235d4a0769",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 74,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 79,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -133645,7 +133647,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "c2f2667ba8e083d8446c4bc37eb9b9f166711e1bd54c38fc776931e0426e933c",
+        "verifierFileSha256": "c599a0b98f6c5fbdacbd79ec7d5ffbf157c7ecaf574e519a41e96ecd99e84598",
         "dispatch": {
           "command": "verify-v270-incident-triage-board",
           "file": "scripts/internal/verify_v270_incident_triage_board.mjs",
@@ -133713,7 +133715,7 @@
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
           "symbol": "LAB-075:exact-oracle",
           "anchor": "assertIncludes(decisionScorecardViewBlock, snippet, \"LAB-075 scoreRank ordering and rank readback\");",
-          "line": 82,
+          "line": 86,
           "contextSha256": "8341adf9d2f86da94c6d2a796b1888e4a4d67130e790a8a4b06b058c1e18441c"
         },
         "verifier": {
@@ -133755,14 +133757,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts score ordering, eventId tie-break, and contiguous scoreRank.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1712",
-          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:82"
+          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:86"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-decision-scorecard",
-          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:82",
+          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:86",
           "target": "server.sh:3002"
         }
       ],
@@ -133814,7 +133816,7 @@
           "sha256": "86cac67aa28f2402ba2afc3eda7eb58f603521ee09826a6566d35fc9027e6431"
         }
       },
-      "sourceFlowDigest": "3c0ed76eefb018d324f90b5d83cb50be881305a7b614d239e160165c7c077878",
+      "sourceFlowDigest": "854a67b1226f0e567ccf241c03db8540ed26702189fe281367e4fa886400e75d",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -133857,10 +133859,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
             "symbol": "LAB-075:exact-oracle",
-            "trackedBlobSha256": "b21be81874f3c40cbab8ac30afa26591223975f431d89c1e63c7409b06e0ccbb",
+            "trackedBlobSha256": "579149553f585069374d17feff8cd323c0b9501532256ea22adeb1a3755e6236",
             "enclosingBodySha256": "ad427ce9220cfbf62115144c3e41b6504f92391f6bceda0d5d0f28c4ca2766da",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 110,
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 114,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -133872,7 +133874,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "b21be81874f3c40cbab8ac30afa26591223975f431d89c1e63c7409b06e0ccbb",
+        "verifierFileSha256": "579149553f585069374d17feff8cd323c0b9501532256ea22adeb1a3755e6236",
         "dispatch": {
           "command": "verify-v270-incident-decision-scorecard",
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
@@ -133940,7 +133942,7 @@
           "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
           "symbol": "LAB-076:exact-oracle",
           "anchor": "assert(evt052ProjectionBlock.includes(\"media-server.ops.operational-action-pack.v1\"), \"LAB-076 operational action pack schema block readback mismatch\");",
-          "line": 51,
+          "line": 52,
           "contextSha256": "e86d8e49bd43a76fbb37af1601e45abc35168e6f3fe2ed86405646b3ade1e55a"
         },
         "verifier": {
@@ -133982,14 +133984,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.operational-action-pack.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1857",
-          "target": "scripts/internal/verify_v270_operational_action_pack.mjs:51"
+          "target": "scripts/internal/verify_v270_operational_action_pack.mjs:52"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-operational-action-pack",
-          "source": "scripts/internal/verify_v270_operational_action_pack.mjs:51",
+          "source": "scripts/internal/verify_v270_operational_action_pack.mjs:52",
           "target": "server.sh:3006"
         }
       ],
@@ -134039,7 +134041,7 @@
           "sha256": "7c67352a02e168f8ba3f698439e85f24fb1f1db45a8c00637bb0dcfb0fa2ea59"
         }
       },
-      "sourceFlowDigest": "5aa26e8cc9149052482faea8bb9073b270cc1db5f06973b174ff217bea25b219",
+      "sourceFlowDigest": "9a892f86b9e8f6807561df62321cf8f1b75739ae0b1b6a3e838558cb2e56c6c1",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -134082,10 +134084,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
             "symbol": "LAB-076:exact-oracle",
-            "trackedBlobSha256": "f8dbf2b14f45784a1850fa390f8c7da785c0e3eb7def8237ed3f380d7c9f6407",
+            "trackedBlobSha256": "301d51416fbda3b2f2a9a9eb2f8456bf50444ee27b8e3f6344d096deb849fc8e",
             "enclosingBodySha256": "707a8cdb9f823ea1df89a084fd0956b9bfe634ef67ba88d92017867cdf8109d3",
-            "enclosingBodyStartLine": 45,
-            "enclosingBodyEndLine": 73,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 74,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -134097,7 +134099,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f8dbf2b14f45784a1850fa390f8c7da785c0e3eb7def8237ed3f380d7c9f6407",
+        "verifierFileSha256": "301d51416fbda3b2f2a9a9eb2f8456bf50444ee27b8e3f6344d096deb849fc8e",
         "dispatch": {
           "command": "verify-v270-operational-action-pack",
           "file": "scripts/internal/verify_v270_operational_action_pack.mjs",
@@ -134165,7 +134167,7 @@
           "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
           "symbol": "LAB-077:exact-oracle",
           "anchor": "assert(evt053ProjectionBlock.includes(\"media-server.ops.rule-what-if-preview.v1\") && evt053ProjectionBlock.includes(\"/ops/rules\"), \"LAB-077 rule what-if schema and /ops/rules draft route readback mismatch\");",
-          "line": 53,
+          "line": 52,
           "contextSha256": "78f77ab4b80b8e80d1942897b4849732030e1bbff4f8f46b2acb478580ca58da"
         },
         "verifier": {
@@ -134207,14 +134209,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.rule-what-if-preview.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2581",
-          "target": "scripts/internal/verify_v270_rule_what_if_preview.mjs:53"
+          "target": "scripts/internal/verify_v270_rule_what_if_preview.mjs:52"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-rule-what-if-preview",
-          "source": "scripts/internal/verify_v270_rule_what_if_preview.mjs:53",
+          "source": "scripts/internal/verify_v270_rule_what_if_preview.mjs:52",
           "target": "server.sh:3010"
         }
       ],
@@ -134268,7 +134270,7 @@
           "sha256": "9f0692cf627ac58584f8db83ab23a0e746703e06dcb492e772fef187121ec1f3"
         }
       },
-      "sourceFlowDigest": "b6e098560e7a0c1aca570c60d29c02fd97cab817a2d794301927bdca05c7e183",
+      "sourceFlowDigest": "7944a6bcb13559d56116369b4e68fa791c6fcd69d6b86e16e7160c73d25b5c35",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -134311,10 +134313,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
             "symbol": "LAB-077:exact-oracle",
-            "trackedBlobSha256": "8416ec5d3f1377d0d7be1f9a54cf4e8bf07ff32ee52b5005e3682733483600c8",
+            "trackedBlobSha256": "591733998eb4f4bcd0112bfcfd658611bfea8896b8524210d841090fcae5f2cd",
             "enclosingBodySha256": "0b0e862225e69d7260e5fc50c26766aa2e68dd7957de30d02f33f2a9715bf8ef",
-            "enclosingBodyStartLine": 47,
-            "enclosingBodyEndLine": 76,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 75,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -134326,7 +134328,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8416ec5d3f1377d0d7be1f9a54cf4e8bf07ff32ee52b5005e3682733483600c8",
+        "verifierFileSha256": "591733998eb4f4bcd0112bfcfd658611bfea8896b8524210d841090fcae5f2cd",
         "dispatch": {
           "command": "verify-v270-rule-what-if-preview",
           "file": "scripts/internal/verify_v270_rule_what_if_preview.mjs",
@@ -134394,7 +134396,7 @@
           "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
           "symbol": "LAB-078:exact-oracle",
           "anchor": "assert(evt054ProjectionBlock.includes(\"media-server.ops.operator-outcome-memory.v1\"), \"LAB-078 operator outcome memory schema block readback mismatch\");",
-          "line": 50,
+          "line": 52,
           "contextSha256": "ade5a67cb59f9e750e550c7ae08cb1eb68d59faff27f91cb54e5be7a11250fb2"
         },
         "verifier": {
@@ -134436,14 +134438,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.operator-outcome-memory.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3078",
-          "target": "scripts/internal/verify_v270_operator_outcome_memory.mjs:50"
+          "target": "scripts/internal/verify_v270_operator_outcome_memory.mjs:52"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-operator-outcome-memory",
-          "source": "scripts/internal/verify_v270_operator_outcome_memory.mjs:50",
+          "source": "scripts/internal/verify_v270_operator_outcome_memory.mjs:52",
           "target": "server.sh:3014"
         }
       ],
@@ -134493,7 +134495,7 @@
           "sha256": "f79616c0d73efc33c3e0889a49b1559e45b8e6138747ca50a5517a5df378e8a8"
         }
       },
-      "sourceFlowDigest": "a1fb2ad50386c2c96767f0d1128832f0c46b0f4e337835a84d5a1245bdda11ff",
+      "sourceFlowDigest": "81a62b0b5f57ca2fb8acd53e294352d6dd3a6693aa834f79729a39054a572cac",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -134536,10 +134538,10 @@
           "readback": {
             "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
             "symbol": "LAB-078:exact-oracle",
-            "trackedBlobSha256": "3aa517bba9cfab4fbd1c9b1f24b6f8cb8146b1f057f5a11f9173b71e1766102f",
+            "trackedBlobSha256": "ca5a6da433bd61184eea9dbe7a0c196480bee675f34d0f45edc6965fa68b0c85",
             "enclosingBodySha256": "391040a543ae596c61fb88c526704e25ef85837061dccfefa0d1aad52d9e4863",
-            "enclosingBodyStartLine": 44,
-            "enclosingBodyEndLine": 75,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 77,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -134551,7 +134553,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "3aa517bba9cfab4fbd1c9b1f24b6f8cb8146b1f057f5a11f9173b71e1766102f",
+        "verifierFileSha256": "ca5a6da433bd61184eea9dbe7a0c196480bee675f34d0f45edc6965fa68b0c85",
         "dispatch": {
           "command": "verify-v270-operator-outcome-memory",
           "file": "scripts/internal/verify_v270_operator_outcome_memory.mjs",
@@ -134619,7 +134621,7 @@
           "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
           "symbol": "LAB-079:exact-oracle",
           "anchor": "assert(evt055ProjectionBlock.includes(\"media-server.ops.incident-action-readiness-queue.v1\") && routeBlock.includes(\"/ops/api/events/reviews\") && exactBooleanFlagValue(evt055ProjectionBlock, \"autoActionWritePerformed\") === false && exactBooleanFlagValue(evt055ProjectionBlock, \"externalDeliveryPerformed\") === false, \"LAB-079 readiness queue must remain no-write/no-send on canonical review route\");",
-          "line": 49,
+          "line": 55,
           "contextSha256": "e965cc5434ad621d665fa88a120e10d835da038fefff74c8f0f696d56dea2246"
         },
         "verifier": {
@@ -134661,14 +134663,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.incident-action-readiness-queue.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2061",
-          "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:49"
+          "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:55"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-incident-action-readiness-queue",
-          "source": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:49",
+          "source": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:55",
           "target": "server.sh:3022"
         }
       ],
@@ -134747,7 +134749,7 @@
           "sha256": "6a0ad602b7ef811db5ed296878f610cb0a3b050ee51a27fefd0daec0659220c8"
         }
       },
-      "sourceFlowDigest": "01ae089a247160cc3f0cf80df711056b6be443c538053514a50d59b8c90ec3f7",
+      "sourceFlowDigest": "8a3e7fcd72b370b32c40a0d9c3be67090fd6a8f855f809e951b5cd747674af25",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -134790,10 +134792,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
             "symbol": "LAB-079:exact-oracle",
-            "trackedBlobSha256": "a8e079e857992dbbf2ee2edbb22ddf675eafa80f1eeeb90d82b3b525a0eb356f",
+            "trackedBlobSha256": "ea9917ed5e4e9640d89f978c2c3488b7c3c5f99fd49ac3334a419af65e943897",
             "enclosingBodySha256": "aa9a5cd4f13e5747b836e3c05c54f297291a54aa16e8ed5714ecf3e9fa61a5a8",
-            "enclosingBodyStartLine": 40,
-            "enclosingBodyEndLine": 68,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 74,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -134805,7 +134807,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a8e079e857992dbbf2ee2edbb22ddf675eafa80f1eeeb90d82b3b525a0eb356f",
+        "verifierFileSha256": "ea9917ed5e4e9640d89f978c2c3488b7c3c5f99fd49ac3334a419af65e943897",
         "dispatch": {
           "command": "verify-v280-incident-action-readiness-queue",
           "file": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs",
@@ -134873,7 +134875,7 @@
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
           "symbol": "LAB-080:exact-oracle",
           "anchor": "assert(evt056ProjectionBlock.includes(\"media-server.ops.approval-gated-rule-draft-readiness.v1\") && routeBlock.includes(\"/ops/api/events/reviews\"), \"LAB-080 approval-gated draft schema and review route readback mismatch\");",
-          "line": 48,
+          "line": 53,
           "contextSha256": "add0586da81f91814b48afd0a7bad9f3979482e0417457d11f1fb59bf4990476"
         },
         "verifier": {
@@ -134915,14 +134917,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.approval-gated-rule-draft-readiness.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2771",
-          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:48"
+          "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:53"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-approval-gated-rule-draft",
-          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:48",
+          "source": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:53",
           "target": "server.sh:3026"
         }
       ],
@@ -134982,7 +134984,7 @@
           "sha256": "2e28732b5adcf3cd1c08d423c70732a9449738ff2a0e8baef531ff26b6c9c78f"
         }
       },
-      "sourceFlowDigest": "530d146d3d768924925cb0a7cb2ed6ccd85ae9371fc21c50cebb17e5e899f53d",
+      "sourceFlowDigest": "0e8fdb5e9769c0f20a7ca32742eb8e0170226ab44be3f5c34f9685e42171b4d3",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -135025,10 +135027,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
             "symbol": "LAB-080:exact-oracle",
-            "trackedBlobSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+            "trackedBlobSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
             "enclosingBodySha256": "116fe47be454339e1dc41ad9324ab4d5e867b36f5af46517adf38a0c3449e916",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 76,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 81,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -135040,7 +135042,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "7103ef345eff688c16ffe80aa15ddfc0d00901b6a738f4a95fe17cd3194556c8",
+        "verifierFileSha256": "f33524ea9c0c6df0af6f73bf665a52be80cf9e1bc01e4a19f54f441db2d6152f",
         "dispatch": {
           "command": "verify-v280-approval-gated-rule-draft",
           "file": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs",
@@ -135108,7 +135110,7 @@
           "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
           "symbol": "LAB-081:exact-oracle",
           "anchor": "assert(evt057ProjectionBlock.includes(\"media-server.ops.evidence-intake-field-readiness.v1\") && routeBlock.includes(\"/ops/api/events/reviews\") && exactBooleanFlagValue(evt057ProjectionBlock, \"credentialMaterialExposed\") === false, \"LAB-081 evidence intake must remain redacted on canonical review route\");",
-          "line": 48,
+          "line": 53,
           "contextSha256": "eeebd631fcba2efa051329c33f8c981f687ebe6bda039104ae471b897cacecd2"
         },
         "verifier": {
@@ -135150,14 +135152,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.evidence-intake-field-readiness.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2269",
-          "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:48"
+          "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:53"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-evidence-intake-field-readiness",
-          "source": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:48",
+          "source": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:53",
           "target": "server.sh:3030"
         }
       ],
@@ -135217,7 +135219,7 @@
           "sha256": "20bdcb3573804e42f27d327bfda316a6a1cc8b65c656c8bb8d8db7848998b27d"
         }
       },
-      "sourceFlowDigest": "4040f69b11508fc713fcd1b425be9a3d3cba74dcfbbf3f851d4ae22287b611de",
+      "sourceFlowDigest": "2bbd9f4a73d0e6d263c24983f7e18d429ed01e11198b02da89151d99b7e90201",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -135260,10 +135262,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
             "symbol": "LAB-081:exact-oracle",
-            "trackedBlobSha256": "ba202490808afb6df4225f92f7aba434bada5ae684179da426a4e36cac095c6e",
+            "trackedBlobSha256": "e1601cef31b4b2966a8218c46f8cb0135a31eda69f920f2c68ea6498e6839bdc",
             "enclosingBodySha256": "2eb1b29885bebe5f1af332009b0eda11e73cb87306258e01b702fe95dac2716f",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 77,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -135275,7 +135277,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ba202490808afb6df4225f92f7aba434bada5ae684179da426a4e36cac095c6e",
+        "verifierFileSha256": "e1601cef31b4b2966a8218c46f8cb0135a31eda69f920f2c68ea6498e6839bdc",
         "dispatch": {
           "command": "verify-v280-evidence-intake-field-readiness",
           "file": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs",
@@ -135343,7 +135345,7 @@
           "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
           "symbol": "LAB-082:exact-oracle",
           "anchor": "assert(evt058ProjectionBlock.includes(\"media-server.ops.runtime-evidence-window.v1\") && routeBlock.includes(\"/ops/api/events/reviews\"), \"LAB-082 runtime evidence window schema and review route readback mismatch\");",
-          "line": 47,
+          "line": 53,
           "contextSha256": "9077f5e8e208030a47741faadec29f3ce205c48ab95a14242e7312fecf2a790d"
         },
         "verifier": {
@@ -135385,14 +135387,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.runtime-evidence-window.v1 from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2422",
-          "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:47"
+          "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:53"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-runtime-evidence-window",
-          "source": "scripts/internal/verify_v280_runtime_evidence_window.mjs:47",
+          "source": "scripts/internal/verify_v280_runtime_evidence_window.mjs:53",
           "target": "server.sh:3034"
         }
       ],
@@ -135452,7 +135454,7 @@
           "sha256": "17206d6b084e9313711e94aeb4e880684099a978c6c3940c952d9990be1a9052"
         }
       },
-      "sourceFlowDigest": "e0336d4fa675dfa210243df9b6c5f7e39ca5df5b28d0f72b0a9a95373f04f0f4",
+      "sourceFlowDigest": "8c5df2a927b73d43b57ff256ea1410162b84d982826f03b2bf0c491aa4791d4c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -135495,10 +135497,10 @@
           "readback": {
             "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
             "symbol": "LAB-082:exact-oracle",
-            "trackedBlobSha256": "1d08408e5517314cf2846b30712b434ef95a752672f9f33bea7eb5de07a0b644",
+            "trackedBlobSha256": "9aebfdc59137255162d790279bc987b4db2a711fdd00c164e010ef2846159614",
             "enclosingBodySha256": "36fdc360e6b52a56ec678eb86e60c73deafea78d2b149594ef844dea0c5749fb",
-            "enclosingBodyStartLine": 40,
-            "enclosingBodyEndLine": 72,
+            "enclosingBodyStartLine": 46,
+            "enclosingBodyEndLine": 78,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -135510,7 +135512,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "1d08408e5517314cf2846b30712b434ef95a752672f9f33bea7eb5de07a0b644",
+        "verifierFileSha256": "9aebfdc59137255162d790279bc987b4db2a711fdd00c164e010ef2846159614",
         "dispatch": {
           "command": "verify-v280-runtime-evidence-window",
           "file": "scripts/internal/verify_v280_runtime_evidence_window.mjs",
@@ -235279,5 +235281,5 @@
       }
     }
   ],
-  "candidateDigest": "2ee1d33c5575b03b25b91ec0e8a1c477b4232e0f6c2d8a125c5811c711d4d64c"
+  "candidateDigest": "f1539bb107254a441565f24d9f036363d1e0aa960e32a8c0b4df7e9cbf8c70f5"
 }
