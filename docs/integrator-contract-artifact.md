@@ -43,8 +43,14 @@ field를 고정합니다. `schema-review-checklist.md`는 payload mutation 요�
 `freeze-baseline.json`은 `media-server.v200-contract-schema-freeze.v1` schema의
 v2.0.0 entry freeze gate입니다. artifact 파일, source contract 문서, 그리고
 Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준 파일의
-SHA-256을 고정하며, drift가 있으면 schema review 없이 v2.0.0 신규 기능으로
-넘어가지 않습니다.
+SHA-256을 기록한 기준선입니다. 현행 검사에서는 bundle의 pin, 현재 안내 문서의 연결,
+과거 제품 파일의 바이트 감사를 구분합니다. 서버 구조와 이 안내의 과거 문서 hash는
+역사 값으로 보존하되, 현행 설명 전체를 그 바이트에 고정하지 않습니다.
+서버 구조에서는 권한·공개 소비 경로 식별자, 이 안내에서는 artifact 식별자·명령·연결을
+검사합니다. 문서의 의미 검토와 실제 인증·전송 회귀를 이 정적 검사로 대체하지 않습니다.
+과거 Auth·Rule 구현 파일의 전체 hash는 `--historical-source-pins` 감사 옵션으로 대조합니다.
+현재 구현의 리팩토링도 이 감사에서는 차이로 보고되며, 그 결과를 현재 제품의 기능 실패나
+기능 PASS로 바꾸지 않습니다. 기존 baseline·checksum 값은 갱신하지 않습니다.
 
 `checksums.json`은 `media-server.integrator-contract-checksums.v1` schema의
 V230-S07 checksum companion입니다. `manifest.json`에 포함된 sample/schema/support
@@ -114,8 +120,9 @@ artifact 자체 검증:
   노출 후보가 없음
 - `field-index.json`, `CHANGELOG.md`, `schema-review-checklist.md`가 bundle에
   포함되고 manifest와 일치함
-- `freeze-baseline.json`의 SHA-256 pin이 artifact와 source contract 문서의 현재
-  내용과 일치하며, intentional drift는 schema review가 필요함
+- `freeze-baseline.json`의 bundle SHA-256 pin과 명시된 역사 근거를 확인함.
+  서버 구조·이 안내는 현행 식별자와 연결을 검사하며, 다른 계약 문서의 기존 pin은 유지함.
+  payload나 권한 계약 변경은 여전히 별도 검토·영향 회귀가 필요함
 - `checksums.json`이 현재 bundle file과 `v230-conformance.json`의 SHA-256을
   일치하게 고정함
 - `v230-conformance.json`이 runtime delivery smoke와 client redaction evidence를
@@ -123,3 +130,14 @@ artifact 자체 검증:
 
 Runtime delivery smoke는 별도입니다. 위 artifact 검증만 실행했다면 Event POST,
 WebRTC, SSE, WebSocket delivery가 실제로 재검증됐다고 보고하지 않습니다.
+
+과거 전체 파일 pin을 현재 파일과 대조할 때만 다음 감사 옵션을 사용합니다.
+이 옵션은 과거 Git 자료를 fetch하거나 작업 파일로 복원하지 않습니다.
+
+```bash
+./server.sh verify-integrator-contract-artifact --historical-source-pins
+```
+
+실제 권한·저장 payload의 동작 확인은 `verify-auth-bootstrap`, `verify-auth-users`,
+`verify-auth-routes`, `verify-ops-rules-roundtrip` 등 해당 변경의 영향 검증으로 수행합니다.
+이 명령들은 artifact 검사에서 자동 실행하지 않습니다.

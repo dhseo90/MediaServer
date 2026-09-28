@@ -31,6 +31,26 @@ export function hasDocumentLink(text, target) {
     .some((match) => match[1].split('#')[0].replace(/^\.\//, '') === target);
 }
 
+// 구조 문서 전체의 옛 SHA는 녹화 등 별개 기능 설명까지 동결한다. 현행 문서에서는
+// 권한·공개 소비 경로의 식별자 연결을 확인하고, 의미는 코드 리뷰/인증 회귀로 판정한다.
+// 이것은 Auth 동작이나 과거 freeze 시점의 파일 바이트를 검증하는 함수가 아니다.
+export function validateArchitectureContractDocumentation(text) {
+  const errors = [];
+  for (const identifier of [
+    'Principal', 'UserRegistry', 'SessionStore', 'RequireRole', 'RequireScope',
+    'MEDIA_SERVER_AUTH_MODE=auto', '/setup', '/auth/whoami',
+    'admin', 'operator', 'viewer', 'integrator',
+    'ops:read', 'lab:read', 'view:read:{viewId}',
+    'dashboard:read:{viewId}', 'event:read:{viewId}', 'metadata:read:{viewId}',
+    '/client/api/views/{viewId}/webrtc/session',
+  ]) {
+    if (typeof text !== 'string' || !text.includes(identifier)) {
+      errors.push('서버 구조 문서의 권한/소비 경로 식별자 누락: ' + identifier);
+    }
+  }
+  return errors;
+}
+
 export function validateVerificationDocumentation({agents, verification}) {
   const errors = [];
   if (!hasDocumentLink(agents, 'docs/stream-verification.md')) errors.push('AGENTS: 검증 기준 문서 링크 없음');
