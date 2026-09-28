@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { parseServerDispatches as parseFixedServerDispatches } from "./script_dispatch_parser.mjs";
+import { validateVerificationDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -175,16 +176,8 @@ check("auth verifier has no hardcoded test password defaults", () => {
   ]) {
     assert(!/qweasd0-|wrong-qweasd/i.test(text), `${label}: hardcoded auth verifier password remains`);
   }
-  for (const envName of [
-    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
-    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
-  ]) {
-    assert(streamVerification.includes(envName), `stream verification docs missing ${envName}`);
-    assert(agents.includes(envName), `AGENTS.md missing ${envName}`);
-  }
+  const documentationErrors = validateVerificationDocumentation({agents, verification: streamVerification});
+  assert(documentationErrors.length === 0, documentationErrors.join('; '));
   assert(authWorkflow.includes('recording_auth_preparation.sh') && authWorkflow.includes('auth_generate_passwords'), 'auth workflow missing isolated credential bootstrap');
   const preparation=readText(path.join(rootDir,'scripts/internal/recording_auth_preparation.mjs'));
   assert(preparation.includes("randomBytes(24)") && preparation.includes("['-q','--config','-']"), 'auth preparation missing CSPRNG/stdin transport boundary');

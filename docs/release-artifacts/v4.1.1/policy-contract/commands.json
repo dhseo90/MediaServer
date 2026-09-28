@@ -1,0 +1,104 @@
+{
+  "scope": "문서 검증 도구 자체검사. 실제 제품/UI/장시간 검사 아님",
+  "results": [
+    {
+      "id": "ui-policy",
+      "command": [
+        "./server.sh",
+        "verify-ui-fulltest-evidence-policy-v4"
+      ],
+      "startedAt": "2026-09-28T13:28:47.363Z",
+      "elapsedMs": 318.189083,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "ui-policy.stdout.txt",
+      "stderr": "ui-policy.stderr.txt"
+    },
+    {
+      "id": "ui-policy-contract",
+      "command": [
+        "./server.sh",
+        "verify-ui-fulltest-evidence-policy-v4-contract"
+      ],
+      "startedAt": "2026-09-28T13:28:47.682Z",
+      "elapsedMs": 21323.926041,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "ui-policy-contract.stdout.txt",
+      "stderr": "ui-policy-contract.stderr.txt"
+    },
+    {
+      "id": "project-inventory",
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "startedAt": "2026-09-28T13:29:09.007Z",
+      "elapsedMs": 41210.204083000004,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "project-inventory.stdout.txt",
+      "stderr": "project-inventory.stderr.txt"
+    },
+    {
+      "id": "script-inventory",
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "startedAt": "2026-09-28T13:29:50.217Z",
+      "elapsedMs": 61600.903167000004,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "script-inventory.stdout.txt",
+      "stderr": "script-inventory.stderr.txt"
+    },
+    {
+      "id": "docs-links",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T13:30:51.818Z",
+      "elapsedMs": 365.778833999997,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "docs-links.stdout.txt",
+      "stderr": "docs-links.stderr.txt"
+    },
+    {
+      "id": "ci-parity",
+      "command": [
+        "./server.sh",
+        "verify-ci-local-gate-parity"
+      ],
+      "startedAt": "2026-09-28T13:30:52.184Z",
+      "elapsedMs": 33.65837499999907,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "ci-parity.stdout.txt",
+      "stderr": "ci-parity.stderr.txt"
+    },
+    {
+      "id": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "startedAt": "2026-09-28T13:30:52.218Z",
+      "elapsedMs": 145.2360830000107,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "diff-check.stdout.txt",
+      "stderr": "diff-check.stderr.txt"
+    }
+  ]
+}
