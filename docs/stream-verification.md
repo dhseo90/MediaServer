@@ -104,6 +104,23 @@ manifest 검증은 정상 입력의 **전체 986개**를 먼저 검사한다. �
 | MANIFEST-SPLIT-03 | 전체 검사와 집합+모든 항목 검사 합성 일치. 불완전 fixture의 실패 유지 |
 | MANIFEST-SPLIT-04 | 변경된 항목의 실제 오류 검출과 원본 입력 불변 |
 
+v400 정책 호환 명령의 현행 안전 경계는 `v400_current_policy.mjs`에서 검사한다.
+과거 완료 표·중앙 실행 원장·당시 제목·파일 개수 상한은 현행 합격 조건이 아니다.
+기존 fixture 중 현재 계약에 필요한 입력만 사용하고 과거 source/시각/선택은 덮어쓰지 않는다.
+`node --test scripts/internal/v400_current_policy.test.mjs`는 다음 도구 자체검사다.
+구현 전 예상 RED는 공통 검사 함수 부재이며 제품 실행 실패와 구분한다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| V400-CURRENT-01 | 과거 문서가 없는 격리 입력에서도 현행 소스·fixture·dispatch 검사 가능 |
+| V400-CURRENT-02 | 비구현 쓰기 false 토큰, 5개 결정·승인 원본, field-smoke 비실행 경계 훼손 거부 |
+| V400-CURRENT-03 | Ops 기본 메뉴·workspace·Event POST 경계 훼손과 빈 검사 목록 거부 |
+| V400-CURRENT-04 | 이벤트 sidecar의 pin·dry-run·개인정보 조건 검사. 상시녹화 금지로 확대하지 않음 |
+| V400-CURRENT-05 | 실제 dispatch 대상·화면 소유/검증 연결 누락 거부. 과거 파일 개수 고정 없음 |
+| V400-CURRENT-06 | 경로 이탈·외부 symlink·잘못된 CLI 옵션 거부, 실패 exit 전파, 제품/UI/장시간 미실행 표시 |
+| V400-CURRENT-07 | 전체 inventory 집합·독립 REVIEW4 승인과 지정 6개 소스 proof 대조, 승인/소스 훼손 거부 |
+| V400-CURRENT-08 | 986/424/50/7 정의 및 wrapper/coverage의 실행 증거 분리 유지 |
+
 ### 영향별 1 문서 전용 변경
 
 최소 `git diff --check`. 허용 범위에서 `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`를 추가한다.
@@ -291,11 +308,11 @@ UI 풀테스트·30분·120분·published metadata 또는 release action evidenc
 | v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.1.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
 | v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | 현행 `VERSION`·release context·README와 문서 연결을 확인하는 로컬 문서 검사입니다. 현재 source를 과거 4.0.0으로 고정하지 않으며 제품/UI/장시간/원격 공개 실행 증거가 아닙니다. |
 | v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 현행 로컬 문서 검사로 연결하는 호환 명령입니다. 과거 사용자 승인·완료 기록을 요구하거나 현재 작업 승인으로 재사용하지 않습니다. 신규 호출은 `verify-release-metadata`를 사용합니다. |
-| v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424 유지, v390 verifier·contract·fixture 상한, v400 command allowlist, wrapper PASS와 실행 PASS 분리를 검사합니다. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (4) | `./server.sh verify-v400-local-ops-policy-freeze` | v3.9 defer 5개를 4.0 `policy-frozen` / `not-implemented-write-paths`로 유지하고 field smoke는 별도 `conditional-not-run`입니다. 기존 v390 deferral/signoff verifier는 재사용만 합니다. write 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (5) | `./server.sh verify-v400-incident-os-policy` | 기존 `/ops/events` 검색/timeline/resolution을 Ops-only `policy-frozen` 면으로 유지하고 primary nav 승격과 새 event type을 금지합니다. Incident OS 제품 승격, Event POST schema 변경, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (6) | `./server.sh verify-v400-evidence-ops-policy` | EventRecord/clip/retention을 `policy-frozen` opt-in·비-VMS로 유지하고 default-on 저장은 v4.1.0입니다. Evidence default-on 제품화, VMS/NVR archive API, 24/7 상시녹화, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (7) | `./server.sh verify-v400-local-ops-stabilization` | 역사적 v390 verifier 118개를 `keep-118-not-deleted`로 유지하고, stream-verification 현재 source `4.0.0`과 inherited 3.9 행을 구분하며, v320 page-owner/bundle drift를 `recorded-not-fixed`로 남깁니다. 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+| v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424/50/7 현행 정의, 기존 v400 명령 연결, wrapper/coverage의 비실행 경계와 지정 6개 REVIEW4 승인·소스 proof를 검사합니다. 과거 파일 개수·완료 표·전체 파일 hash 고정은 검사하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (4) | `./server.sh verify-v400-local-ops-policy-freeze` | 5개 미구현/제외 기능의 기존 독립 결정·현재 false 토큰과 명령 연결을 검사합니다. field-smoke 자료의 비실행 상태는 실제 외부 검증 PASS가 아닙니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (5) | `./server.sh verify-v400-incident-os-policy` | Ops 기본 메뉴·이벤트 workspace·Event POST 기존 선언과 검사 명령 연결을 확인합니다. 과거 v4.1.0 이월 표기를 현재 제품 금지 정책으로 적용하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (6) | `./server.sh verify-v400-evidence-ops-policy` | 이벤트 이미지 sidecar의 실제 계약·저장 선언과 pin·dry-run·개인정보 fixture를 검사합니다. 별도 관리 녹화의 상시/이벤트 녹화·재생 지원을 금지하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (7) | `./server.sh verify-v400-local-ops-stabilization` | 이벤트 workspace 화면 소유·기존 bundle 검사 연결과 로컬 운영 명령 dispatch를 확인합니다. 과거 파일 개수·제목·수정 금지 상태를 고정하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
 | v4.0.0 (8) | `./server.sh verify-v400-release-readiness` | 현행 로컬 문서 검사로 연결하는 호환 명령입니다. 당시 30분/UI PASS를 현재 출력·기대값으로 사용하지 않으며, 실제 테스트 증거와 출시 가능 판정은 별도입니다. |
 | v4.0.0 roadmap contract | `./server.sh verify-v400-roadmap-contract` | 현행 release context의 roadmap 문서 연결을 검사하는 호환 명령입니다. 종료된 v4.0 스텝·옛 v4.1 후보 목록을 현재 계획에 강제하지 않으며 실제 구현·사용자 승인·릴리즈 PASS가 아닙니다. |
 | v3.9.0 (1) | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬. v3.9 기능 discovery/dev, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
