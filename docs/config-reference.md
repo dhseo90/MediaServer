@@ -357,7 +357,7 @@ Source reliability handoff bundle 기준:
 
 - `./server.sh ops-bundle --http-base ...`는 source registry snapshot, onboarding quality, reliability timeline, incident correlation, recovery queue, client-safe digest 확인에 필요한 runtime/config/log 단서를 redacted bundle로 모읍니다.
 - source registry snapshot, onboarding quality, reliability timeline, incident correlation, recovery queue, client-safe digest는 운영자 handoff checklist의 입력입니다.
-- config reference는 env와 bundle 수집 기준만 설명하고 runbook 판단 기준은 live-source-health.md에 둡니다.
+- 이 문서는 환경변수와 bundle 수집 기준을 설명합니다. 진단·인계 판단은 [라이브 입력 운영 안내](live-source-health.md#operator-runbook-and-reliability-handoff)를 따릅니다.
 
 ## RTSP/WebRTC env
 

@@ -175022,7 +175022,7 @@
     },
     {
       "id": "SAFE-120",
-      "featureContractSha256": "4dd1d49866997cdc9c47fbc4a97547793f72d2a1f518eae28a3d67a7d3c303c7",
+      "featureContractSha256": "fec5f88fe0f775298d5f6cd1b42577324ed66456b627bbfa95720f64cd5da130",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -175045,38 +175045,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-          "symbol": "canonical-safe-120-boundary",
+          "symbol": "check:SAFE-120 canonical operator runbook boundary",
           "anchor": "check(\"SAFE-120 canonical operator runbook boundary\", () => {",
-          "line": 181,
-          "contextSha256": "56747e7641a924edcb06e585138422c30ee93fbc854aa770b400e7812c7bc0c0"
+          "line": 47,
+          "contextSha256": "238e2d82d9a329681ee1d6c6c0006014f91162699e73e1d5820ed509165fe002"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-          "symbol": "canonical-safe-120-boundary",
-          "anchor": "const runbookCommandDocumented = files.serverSh.includes(\"verify-v330-operator-runbook-reliability-handoff)\");",
-          "line": 183,
-          "contextSha256": "8255840c01f6578035e3a3481287a73d4e2dd218d2c9d78d2837a35e6ffeb8f3"
+          "symbol": "check:SAFE-120 canonical operator runbook boundary",
+          "anchor": "const guide = readText(\"docs/live-source-health.md\");",
+          "line": 48,
+          "contextSha256": "e6c39c840711669d4d05e2f604e2cb03a13f77f3ddb8f0bb698fb62e44fbb826"
         },
         "action": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-          "symbol": "canonical-safe-120-boundary",
-          "anchor": "const handoffDocumented = files.liveSourceHealth.includes(\"Operator Runbook\") && files.backupRecovery.includes(\"source\") && files.featureInventory.includes(\"SAFE-120\");",
-          "line": 184,
-          "contextSha256": "ef68fb006f5b7bd37c4e9d08f4613a93322c8b2cd413d6f3a58f67f1ec112dbf"
+          "symbol": "check:SAFE-120 canonical operator runbook boundary",
+          "anchor": "const policyErrors = validateRunbookPolicyConnections(guide);",
+          "line": 49,
+          "contextSha256": "fae903b814aaa82471de25be027f15b6bab245214298c16453969a2fc1322972"
         },
         "state": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-          "symbol": "canonical-safe-120-boundary",
-          "anchor": "const safe120BoundaryObserved = runbookCommandDocumented && handoffDocumented && productMutationClaimed === false && sourceRegistryWriteClaimed === false;",
-          "line": 188,
-          "contextSha256": "c881c4a6763bcde4bcfacec6ac2d35e54fe04282dc9872c66c02141f5cec8fbe"
+          "symbol": "check:SAFE-120 canonical operator runbook boundary",
+          "anchor": "const safe120BoundaryObserved = policyErrors.length === 0;",
+          "line": 50,
+          "contextSha256": "9fa7ee5997eb36134e9ecb0a03cbce6f56ad8d6c8b9c1238c63e8623e20c2e55"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-          "symbol": "canonical-safe-120-boundary",
-          "anchor": "assert(safe120BoundaryObserved && (runbookCommandDocumented && handoffDocumented && productMutationClaimed === false && sourceRegistryWriteClaimed === false) && productMutationClaimed === false && sourceRegistryWriteClaimed === false,",
-          "line": 189,
-          "contextSha256": "745c1348e179c7ecb2472130faa4863cc2049580ac86aa2b8f7a22758253aa2a"
+          "symbol": "check:SAFE-120 canonical operator runbook boundary",
+          "anchor": "assert(safe120BoundaryObserved, \"SAFE-120: \" + policyErrors.join(\"; \"));",
+          "line": 51,
+          "contextSha256": "1608f8bc2af3f180f3b70535e6fd264cab32f0e6391b2cdd716b3d306b839570"
         },
         "verifier": {
           "file": "server.sh",
@@ -175092,46 +175092,46 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-120 owner-dispatch",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:181",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:183"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:47",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:48"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "SAFE-120 dispatch-action",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:183",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:184"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:48",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:49"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-120 action-state",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:184",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:188"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:49",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:50"
         },
         {
           "from": "state",
           "to": "readback",
-          "kind": "runtime-readback",
+          "kind": "structural-producer-assertion",
           "witness": "SAFE-120 state-readback",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:188",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:189"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:50",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:51"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v330-operator-runbook-reliability-handoff",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:189",
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:51",
           "target": "server.sh:2202"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "4dd1d49866997cdc9c47fbc4a97547793f72d2a1f518eae28a3d67a7d3c303c7",
+        "featureContractSha256": "fec5f88fe0f775298d5f6cd1b42577324ed66456b627bbfa95720f64cd5da130",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -175147,16 +175147,7 @@
           "RTSP"
         ],
         "outcomeTokens": [],
-        "negativeBoundaries": [
-          {
-            "kind": "no-write",
-            "tokens": [
-              "write",
-              "WritePerformed",
-              "registryWrite"
-            ]
-          }
-        ],
+        "negativeBoundaries": [],
         "clauses": [
           {
             "kind": "route",
@@ -175185,57 +175176,57 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v330-operator-runbook-reliability-handoff`가 operator runbook과 reliability handoff 문서 연결만 확인하고 제품 API/UI schema, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, SourceRegistry/PublishedView write, automatic recovery, real backup/restore, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음을 확인함",
-          "sha256": "543bab42071503066df97003e3458fb8483d2bb27250a97be0b0d269e60b1054"
+          "normalized": "`verify-v330-operator-runbook-reliability-handoff`가 runbook의 dry-run·SourceRegistry/PublishedView 경계 안내와 독립 검증 정책 연결을 검사함. 문서 정적 검사 결과와 제품 API/UI·EventRecord/Event POST/WebRTC/SSE/WS·RTSP 미디어, automatic recovery, real backup/restore, search/metrics, UI 풀테스트, 30분/120분, published 실행 결과를 구분함. 자체검사는 src/include/test/fixtures의 해시 불변, 대상 코드가 사용하는 동기 파일 변경 함수·자식 프로세스·fetch 차단과 실패 전파를 확인하며 범용 I/O 격리 보장은 아님",
+          "sha256": "8c1de10476a23d5a17b6de40f9ed0441b72678fee2a93e0902c017a347821684"
         }
       },
-      "sourceFlowDigest": "d212f42bbbb3efe486bc7dae2b68199a1b32a249d5ca5257c6d2bfbaefab08e9",
+      "sourceFlowDigest": "980f1a551b96a49912bfe8e3b904b2400e373185c846363fe172547a8eb95400",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-            "symbol": "canonical-safe-120-boundary",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "50657401ff21ef4fc6c01e4b427281696d887bc1ccd31125a19771ac01bbf7c1",
-            "enclosingBodyStartLine": 181,
-            "enclosingBodyEndLine": 191,
+            "symbol": "check:SAFE-120 canonical operator runbook boundary",
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "11ff76907243bd7e1dc72dc67541c3dc0b6d8a07aced096077558a68f4f500cc",
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 52,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-            "symbol": "canonical-safe-120-boundary",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "50657401ff21ef4fc6c01e4b427281696d887bc1ccd31125a19771ac01bbf7c1",
-            "enclosingBodyStartLine": 181,
-            "enclosingBodyEndLine": 191,
+            "symbol": "check:SAFE-120 canonical operator runbook boundary",
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "11ff76907243bd7e1dc72dc67541c3dc0b6d8a07aced096077558a68f4f500cc",
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 52,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-            "symbol": "canonical-safe-120-boundary",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "50657401ff21ef4fc6c01e4b427281696d887bc1ccd31125a19771ac01bbf7c1",
-            "enclosingBodyStartLine": 181,
-            "enclosingBodyEndLine": 191,
+            "symbol": "check:SAFE-120 canonical operator runbook boundary",
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "11ff76907243bd7e1dc72dc67541c3dc0b6d8a07aced096077558a68f4f500cc",
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 52,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-            "symbol": "canonical-safe-120-boundary",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "50657401ff21ef4fc6c01e4b427281696d887bc1ccd31125a19771ac01bbf7c1",
-            "enclosingBodyStartLine": 181,
-            "enclosingBodyEndLine": 191,
+            "symbol": "check:SAFE-120 canonical operator runbook boundary",
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "11ff76907243bd7e1dc72dc67541c3dc0b6d8a07aced096077558a68f4f500cc",
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 52,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
-            "symbol": "canonical-safe-120-boundary",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "50657401ff21ef4fc6c01e4b427281696d887bc1ccd31125a19771ac01bbf7c1",
-            "enclosingBodyStartLine": 181,
-            "enclosingBodyEndLine": 191,
+            "symbol": "check:SAFE-120 canonical operator runbook boundary",
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "11ff76907243bd7e1dc72dc67541c3dc0b6d8a07aced096077558a68f4f500cc",
+            "enclosingBodyStartLine": 47,
+            "enclosingBodyEndLine": 52,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -175247,7 +175238,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
+        "verifierFileSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
         "dispatch": {
           "command": "verify-v330-operator-runbook-reliability-handoff",
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
@@ -212060,7 +212051,7 @@
     },
     {
       "id": "OPS-087",
-      "featureContractSha256": "9cfcc658abb9debd0c781e821c5fc59a696d373ee2f5650a51886a4fcf124949",
+      "featureContractSha256": "4506e6a9ab4144cf10e9ac545ef1f0a72d5bd720a6e2044fb13ad42edf0cb54a",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -212085,36 +212076,36 @@
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
           "symbol": "check:OPS-087 canonical runbook handoff gate",
           "anchor": "check(\"OPS-087 canonical runbook handoff gate\", () => {",
-          "line": 193,
-          "contextSha256": "d4c45d934d74963e98dddbd74569cbaf1540a7523e409a26d3ad0b62b9bcfb09"
+          "line": 40,
+          "contextSha256": "0b8fd7871e7c083ccf4a6d58ff018a555c9d98327fe5ec657f94dffcdc7b744b"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
           "symbol": "check:OPS-087 canonical runbook handoff gate",
-          "anchor": "const runbookSourcesBound = files.liveSourceHealth.includes(\"Operator Runbook\") &&",
-          "line": 195,
-          "contextSha256": "d4866a40459ecb128451b749baad3d1709d1e01c75e2b2ce093c6261f44f7c24"
+          "anchor": "const guide = readText(\"docs/live-source-health.md\");",
+          "line": 41,
+          "contextSha256": "1bfc0ce928bcd6aeda61d3109ecb22afa874aeac06909b18567b9bf9df02ad2b"
         },
         "action": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
           "symbol": "check:OPS-087 canonical runbook handoff gate",
-          "anchor": "const excludedExecutionsRemainExplicit = [",
-          "line": 198,
-          "contextSha256": "bc669a6c553387a81ee07c7e8d9822a0989a0b9a22f9e5ce975f151858c6b5be"
+          "anchor": "const documentErrors = validateRunbookConnections(guide);",
+          "line": 42,
+          "contextSha256": "b234a39558006d2ab981d2922504b49bb4f6e8fd3c9eb9bd5e91cc008bbadd39"
         },
         "state": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
           "symbol": "check:OPS-087 canonical runbook handoff gate",
-          "anchor": "const ops087GateObserved = runbookSourcesBound && excludedExecutionsRemainExplicit &&",
-          "line": 204,
-          "contextSha256": "844789282c2c2db3ef72ca6970b69bf1ae6a54fcc83bd035c65a379f742ca5ee"
+          "anchor": "const ops087GateObserved = documentErrors.length === 0;",
+          "line": 43,
+          "contextSha256": "e81d387912418516a2148aa29e679201ade8a8401862035eb2f4a9b07eedac80"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
           "symbol": "check:OPS-087 canonical runbook handoff gate",
-          "anchor": "assert(ops087GateObserved && runbookSourcesBound && excludedExecutionsRemainExplicit,",
-          "line": 206,
-          "contextSha256": "e099aaf4779e2f4f41be9a6e37cd476fd8e0d757b8c2b04fc5a61fe56f0b21da"
+          "anchor": "assert(ops087GateObserved, \"OPS-087: \" + documentErrors.join(\"; \"));",
+          "line": 44,
+          "contextSha256": "3c9d2746954d13de8edac77ff5ff03bddb591074a7113c73273c3ad17c413aad"
         },
         "verifier": {
           "file": "server.sh",
@@ -212130,46 +212121,46 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-087 owner-dispatch",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:193",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:195"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:40",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:41"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-087 dispatch-action",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:195",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:198"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:41",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:42"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-087 action-state",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:198",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:204"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:42",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:43"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-087 state-readback",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:204",
-          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:206"
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:43",
+          "target": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:44"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v330-operator-runbook-reliability-handoff",
-          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:206",
+          "source": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs:44",
           "target": "server.sh:2202"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "9cfcc658abb9debd0c781e821c5fc59a696d373ee2f5650a51886a4fcf124949",
+        "featureContractSha256": "4506e6a9ab4144cf10e9ac545ef1f0a72d5bd720a6e2044fb13ad42edf0cb54a",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -212180,7 +212171,8 @@
         "schemaTokens": [],
         "fieldTokens": [
           "verify-v330-operator-runbook-reliability-handoff",
-          "docs/live-source-health.md"
+          "docs/live-source-health.md",
+          "verify-docs-links"
         ],
         "outcomeTokens": [],
         "negativeBoundaries": [],
@@ -212199,7 +212191,8 @@
             "kind": "field",
             "tokens": [
               "verify-v330-operator-runbook-reliability-handoff",
-              "docs/live-source-health.md"
+              "docs/live-source-health.md",
+              "verify-docs-links"
             ],
             "minimumExactMatches": 1
           },
@@ -212210,57 +212203,57 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v330-operator-runbook-reliability-handoff`가 `docs/live-source-health.md` runbook source-of-truth, docs index/UI guide/config/backup handoff, backlog/stream verification/release records/feature inventory/server dispatch 연결을 확인하되 Source Reliability Search and Metrics, Ops Backup and Recovery Source Handoff, real backup/restore, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음",
-          "sha256": "6d2fe13be807f59c48c6265756af0d72c6d53b01922d408d6b9cbfbdca5f1a59"
+          "normalized": "`verify-v330-operator-runbook-reliability-handoff`가 `docs/live-source-health.md`의 현행 계약·UI/config/backup 인계·검증 정책·기능 정의·실제 명령 연결을 확인하며, 색인 도달성은 `verify-docs-links`로 별도 확인함. 종료된 backlog/실행 원장을 요구하지 않고 search/metrics, real backup/restore, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음",
+          "sha256": "26de0a40e870938d87143befe1002e6d17ff3a2bbff79f39ed49ed10d39d2b9e"
         }
       },
-      "sourceFlowDigest": "d08daa1aa2854873fc5e7b50aad0fa49bd8dd7babb184d73bc026cb9f9588dc4",
+      "sourceFlowDigest": "45d942d81bc1329e500f332b0dcfeb9afa85175e00b3da8cc28524b9fc47e34b",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
             "symbol": "check:OPS-087 canonical runbook handoff gate",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "b3810dd442e5f3fc50c7ec8b3ba2c8eb7524dfd54c4b22e9e3102fc4d0055295",
-            "enclosingBodyStartLine": 193,
-            "enclosingBodyEndLine": 208,
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "75a5babb3f264ed45872268270d60540c3a50b63bc94f917934d71574437f861",
+            "enclosingBodyStartLine": 40,
+            "enclosingBodyEndLine": 45,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
             "symbol": "check:OPS-087 canonical runbook handoff gate",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "b3810dd442e5f3fc50c7ec8b3ba2c8eb7524dfd54c4b22e9e3102fc4d0055295",
-            "enclosingBodyStartLine": 193,
-            "enclosingBodyEndLine": 208,
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "75a5babb3f264ed45872268270d60540c3a50b63bc94f917934d71574437f861",
+            "enclosingBodyStartLine": 40,
+            "enclosingBodyEndLine": 45,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
             "symbol": "check:OPS-087 canonical runbook handoff gate",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "b3810dd442e5f3fc50c7ec8b3ba2c8eb7524dfd54c4b22e9e3102fc4d0055295",
-            "enclosingBodyStartLine": 193,
-            "enclosingBodyEndLine": 208,
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "75a5babb3f264ed45872268270d60540c3a50b63bc94f917934d71574437f861",
+            "enclosingBodyStartLine": 40,
+            "enclosingBodyEndLine": 45,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
             "symbol": "check:OPS-087 canonical runbook handoff gate",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "b3810dd442e5f3fc50c7ec8b3ba2c8eb7524dfd54c4b22e9e3102fc4d0055295",
-            "enclosingBodyStartLine": 193,
-            "enclosingBodyEndLine": 208,
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "75a5babb3f264ed45872268270d60540c3a50b63bc94f917934d71574437f861",
+            "enclosingBodyStartLine": 40,
+            "enclosingBodyEndLine": 45,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
             "symbol": "check:OPS-087 canonical runbook handoff gate",
-            "trackedBlobSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
-            "enclosingBodySha256": "b3810dd442e5f3fc50c7ec8b3ba2c8eb7524dfd54c4b22e9e3102fc4d0055295",
-            "enclosingBodyStartLine": 193,
-            "enclosingBodyEndLine": 208,
+            "trackedBlobSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
+            "enclosingBodySha256": "75a5babb3f264ed45872268270d60540c3a50b63bc94f917934d71574437f861",
+            "enclosingBodyStartLine": 40,
+            "enclosingBodyEndLine": 45,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -212272,7 +212265,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "b86ea0625b6f8c14f4af5ba01ddb4dbf00b0ba9cb2727e4424e665b9dc2b51e0",
+        "verifierFileSha256": "8ca417103cceb697260a40c234f45b5239b4ab2a11affa76b867c0063732e5f8",
         "dispatch": {
           "command": "verify-v330-operator-runbook-reliability-handoff",
           "file": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
@@ -235282,5 +235275,5 @@
       }
     }
   ],
-  "candidateDigest": "3232c55e6f9494019aa976605e7946525d6564f2fef461b44d8fc322767b4e85"
+  "candidateDigest": "2475b3c1d1b981e077ba6c5ff61b5914e5f114cc54ffff4ec91934a849694fb9"
 }

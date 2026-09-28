@@ -1,0 +1,46 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "2475b3c1d1b981e077ba6c5ff61b5914e5f114cc54ffff4ec91934a849694fb9",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "SAFE-120",
+      "OPS-087"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "4100f767fb167694ae508242278a27d37fc4a3fc",
+    "trackedWorktreeDiffSha256": "153fa2386cba5190ce6df4025487380750497a1651041b701b4ff844657227db",
+    "changedFiles": [
+      "docs/config-reference.md",
+      "docs/live-source-health.md",
+      "docs/project-feature-test-inventory.md",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "SAFE-120",
+      "featureContractSha256": "fec5f88fe0f775298d5f6cd1b42577324ed66456b627bbfa95720f64cd5da130",
+      "sourceFlowDigest": "980f1a551b96a49912bfe8e3b904b2400e373185c846363fe172547a8eb95400",
+      "currentTrustBindingsSha256": "1b0d7154746fd634969dd17c297bd411406a055620309ab154f92ca0d38035c2"
+    },
+    {
+      "id": "OPS-087",
+      "featureContractSha256": "4506e6a9ab4144cf10e9ac545ef1f0a72d5bd720a6e2044fb13ad42edf0cb54a",
+      "sourceFlowDigest": "45d942d81bc1329e500f332b0dcfeb9afa85175e00b3da8cc28524b9fc47e34b",
+      "currentTrustBindingsSha256": "c9c2e159a82490bd52fd3ed4f583e54185d2463a936d72e13a8bbcd08b2a50b6"
+    }
+  ],
+  "reviewNotes": [
+    "메인 작성 검증기·49개 자체검사·SAFE-120/OPS-087 정의·proof만 독립 검토. 담당자가 작성한 live-source-health 문서는 메인이 전문·제품 경로 대조했으며 이 독립 승인 범위에서 제외.",
+    "과거 제목/중앙 기록을 현행 gate에서 분리. 정적 문서 연결 검사를 실제 제품·UI·장시간·복구 실행 PASS로 승격하지 않음.",
+    "최초 독립 검토 2건 보완: companion 6개 expected script 대조 및 잘못된 require/exec 대상 반례, SAFE-120 자체검사 보장 범위를 실제 snapshot/API 차단 범위로 한정.",
+    "기능 ID·영역·실행 경계 유지. 다른 984개는 엄격 동등성 승계 후보이며 독립 판단을 자동 생성하지 않음."
+  ]
+}

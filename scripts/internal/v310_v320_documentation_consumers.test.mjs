@@ -8,6 +8,48 @@ import {fileURLToPath} from 'node:url';
 import {buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4CanonicalFlowKey, validateReview4SharedFlows} from './feature_semantic_review4_trust_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+test('RUNBOOK-DOC 종료 기록 없이 현행 문서 연결 검사', () => {
+  const before = snapshot();
+  try {
+    const result = invoke('v330_operator_runbook_reliability_handoff', {readinessOnly: true, publicDocs: true, renameLabels: true});
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    for (const key of ['uiFulltest', 'longrun30Or120', 'publishedMetadata', 'backupRestore', 'fieldSmoke'])
+      assert(result.stdout.includes(key + ': not-run-by-this-command'));
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
+test('RUNBOOK-DOC 현행 계약·정책·정의·명령 누락의 실패 전파', async t => {
+  const before = snapshot();
+  const run = mutation => invoke('v330_operator_runbook_reliability_handoff', {readinessOnly: true, publicDocs: true, renameLabels: true, ...mutation});
+  try {
+    for (const id of ['SAFE-120', 'OPS-087']) {
+      await t.test('기능 정의 누락 ' + id, () => rejected(run({removeId: id}), id));
+      await t.test('독립 명령 연결 불일치 ' + id, () => rejected(run({mapping: id}), id));
+    }
+    for (const identifier of ['media-server.ops.source-health.v1', 'media-server.ops.source-health.bulk.v1', 'retryBody',
+      '/ops/api/source-registry/snapshot', '/ops/api/source-registry/onboarding-quality',
+      '/ops/api/source-registry/reliability-timeline', '/ops/api/events/reviews', '/client/live', '/client/dashboard',
+      'dry-run', 'SourceRegistry', 'PublishedView']) {
+      await t.test('계약 식별자 누락 ' + identifier, () => rejected(run({runbookMutation: ['docs/live-source-health.md', identifier]}), identifier));
+    }
+    for (const file of ['ui-guide.md', 'config-reference.md', 'ops-backup-recovery.md',
+      'stream-verification.md', 'manual-ui-fulltest.md', 'release-policy.md']) {
+      await t.test('담당 문서 링크 누락 ' + file, () => rejected(run({runbookMutation: ['docs/live-source-health.md', file]}), file));
+    }
+    for (const file of ['ui-guide.md', 'config-reference.md', 'ops-backup-recovery.md']) {
+      await t.test('운영 안내 역방향 링크 누락 ' + file, () => rejected(run({runbookMutation: ['docs/' + file, 'live-source-health.md']}), file));
+    }
+    await t.test('빈 운영 문서 거부', () => rejected(run({publicBlank: 'docs/live-source-health.md'}), '식별자 누락'));
+    await t.test('UI 실제 판정 완화 거부', () => rejected(run({uiPolicy: true}), 'suite zero count'));
+    await t.test('UI 정책 기준 누락 거부', () => rejected(run({currentDocIdentifier: 'reviewRequired'}), 'reviewRequired'));
+    await t.test('격리 인증 검증 기준 누락 거부', () => rejected(run({currentDocIdentifier: 'MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD'}), 'MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD'));
+    for (const command of ['verify-v330-operator-runbook-reliability-handoff', 'verify-docs-links',
+      'verify-ops-source-health-bulk', 'verify-ops-audit-trail', 'verify-ops-source-lifecycle', 'verify-ops-backup-restore-dry-run']) {
+      await t.test('실제 dispatch 누락 ' + command, () => rejected(run({dispatch: command}), command));
+      await t.test('독립 실행 안내 누락 ' + command, () => rejected(run({runbookCommand: command}), command));
+      await t.test('require와 exec의 일치하는 잘못된 대상 ' + command, () => rejected(run({runbookTarget: command}), command));
+    }
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
 test('DOC-TRUTH 현행 문서와 과거 기록의 판정 분리', async t => {
   const before = snapshot();
   const run = mutation => invoke('v391_documentation_truth', {readinessOnly: true, publicDocs: true, truthOnly: true, ...mutation});
@@ -527,6 +569,8 @@ function invoke(name, mutation = {}) {
       }
       if (mutation.publicDocs && (relative.endsWith('.md'))) value = value.replaceAll('v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation', '과거 제목 제거').replaceAll('v3.9.0 source baseline alignment', '과거 제목 제거').replaceAll('2026-05-23', '과거 날짜 제거').replaceAll('이번 Task 7에서는 이미지 파일을 새로 교체하지 않았습니다.', '과거 작업 일지 제거');
       if (mutation.publicBlank === relative) value = '';
+      if (mutation.runbookMutation?.[0] === relative) value = value.replaceAll(mutation.runbookMutation[1], 'removed-runbook-contract');
+      if (mutation.runbookCommand && ['docs/stream-verification.md','docs/live-source-health.md','docs/ops-backup-recovery.md'].includes(relative)) value = value.replaceAll(mutation.runbookCommand, 'removed-runbook-command');
       if (mutation.publicSource && relative === 'README.md') value = value.replaceAll(original.call(this, path.join(root, 'VERSION'), 'utf8').trim(), '999.0.0');
       if (mutation.publicAsset === 'unmanaged' && relative === 'README.md') value = value.replaceAll('docs/assets/ui/ops-home.png', 'docs/assets/ui/unmanaged.png');
       if (mutation.publicAsset === 'language' && relative === 'README.en.md') value = value.replaceAll('docs/assets/ui/en/ops-home.png', 'docs/assets/ui/ops-home.png');
@@ -547,6 +591,15 @@ function invoke(name, mutation = {}) {
         const parsed = JSON.parse(value); parsed.suiteClosure.requiredZeroCounts = []; value = JSON.stringify(parsed);
       }
       if (mutation.dispatch && relative === 'server.sh') value = value.replaceAll(mutation.dispatch + ')', 'removed-dispatch)');
+      if (mutation.runbookTarget && relative === 'server.sh') {
+        const start = value.indexOf('  ' + mutation.runbookTarget + ')\n');
+        const end = value.indexOf('    ;;', start);
+        if (start < 0 || end < 0) throw new Error('dispatch 반례 준비 실패');
+        const body = value.slice(start, end);
+        const target = body.match(/require_internal\s+([a-z0-9_]+\.mjs)/)?.[1];
+        if (!target) throw new Error('dispatch 대상 반례 준비 실패');
+        value = value.slice(0, start) + body.replaceAll(target, 'verify_other.mjs') + value.slice(end);
+      }
       if (mutation.catalogCommand && relative === 'docs/stream-verification.md') value = value.replaceAll(mutation.catalogCommand, 'missing-companion-command');
       if (mutation.releaseLauncher && relative === 'test_release.sh') value = value.replaceAll('media_server_run_user_test "release"', 'media_server_run_user_test "other"');
       if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');

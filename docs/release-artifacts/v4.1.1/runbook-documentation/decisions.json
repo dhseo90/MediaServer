@@ -1,0 +1,72 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-scoped-decisions.v1",
+  "reviewerIsCandidateGenerator": false,
+  "verdict": "approved",
+  "reviewer": "codex-v411-doc-navigation-independent-source-review",
+  "reviewedAt": "2026-09-28T22:48:17.667Z",
+  "reviewPackage": {
+    "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-runbook-docs-ObGQMX/review-package.json",
+    "sha256": "682dbd11a2b8078430979a34820fb4cf8d52e2d5cab2bf9032483370cb2c30ff"
+  },
+  "candidate": {
+    "candidateDigest": "2475b3c1d1b981e077ba6c5ff61b5914e5f114cc54ffff4ec91934a849694fb9",
+    "stagedEquivalentTreeOid": "4100f767fb167694ae508242278a27d37fc4a3fc",
+    "trackedWorktreeDiffSha256": "153fa2386cba5190ce6df4025487380750497a1651041b701b4ff844657227db",
+    "changedFiles": [
+      "docs/config-reference.md",
+      "docs/live-source-health.md",
+      "docs/project-feature-test-inventory.md",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "reviewScope": {
+    "ids": [
+      "SAFE-120",
+      "OPS-087"
+    ],
+    "reviewedChanges": [
+      "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs:RUNBOOK-DOC and shared mutation harness",
+      "docs/project-feature-test-inventory.md:SAFE-120,OPS-087",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json:SAFE-120,OPS-087"
+    ]
+  },
+  "reviewLimitations": [
+    "docs/live-source-health.md는 이 담당자가 작성했으므로 독립 승인 범위에서 제외한다. 해당 문서와 docs/config-reference.md의 내용 판정은 메인의 별도 직접 검토에 속하며, 여기서는 고정 snapshot 바이트 결속과 소비자 연결만 확인했다.",
+    "나머지 984개 기능은 migration의 carry-forward 범위이며 이번 독립 의미 승인 대상이 아니다.",
+    "result.json의 메인 실행 49/49 자체검사 및 runbook 5개·health bulk 정적 6개·diff check 통과 기록을 읽었으나 담당자가 테스트·제품·서버·브라우저·장시간 검사를 재실행하지 않았다.",
+    "문장 의미는 전문 검토 대상이며 정적 식별자·링크 검사를 실제 제품 동작이나 미실행 증명으로 확장하지 않는다. 범용 I/O 격리와 운영 데이터 무변경의 동적 증명은 이 승인 범위가 아니다."
+  ],
+  "decisions": [
+    {
+      "id": "SAFE-120",
+      "decision": "approved",
+      "featureContractSha256": "fec5f88fe0f775298d5f6cd1b42577324ed66456b627bbfa95720f64cd5da130",
+      "sourceFlowDigest": "980f1a551b96a49912bfe8e3b904b2400e373185c846363fe172547a8eb95400",
+      "verifierCommand": "verify-v330-operator-runbook-reliability-handoff",
+      "verifierFile": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
+      "dispatchArmSha256": "2763e02463948c4986cbc9d65ae8b3c7e5116b05e2e61e403024d76b451d21ad",
+      "evidenceToken": "safe120BoundaryObserved",
+      "actionSymbol": "check:SAFE-120 canonical operator runbook boundary",
+      "stateSymbol": "check:SAFE-120 canonical operator runbook boundary",
+      "justification": "SAFE-120: 후보 생성자가 아닌 /root/v411_doc_navigation 담당자가 변경된 기능 정의, verifier, RUNBOOK-DOC 자체검사와 proof를 직접 대조했다. guide 읽기→validateRunbookPolicyConnections 오류 집계→safe120BoundaryObserved→assert의 실제 정적 흐름에 structural-producer-assertion을 결속하며, 과거 문구 존재를 runtime-readback으로 취급하지 않는다. dry-run·SourceRegistry/PublishedView 식별자, 독립 정책 링크, 실제 UI 증거 정책과 격리 인증 안내 누락은 실패로 전파된다. 자체검사의 src/include/test/fixtures 해시 불변, writeFileSync/appendFileSync/unlinkSync/rmSync/renameSync/mkdirSync 및 child_process/fetch 차단을 직접 확인했고, 수정된 정의가 범용 I/O 격리를 보장하지 않음을 명시하므로 이전 과장 지적은 해소됐다. 이는 문서·정책 gate의 소스 승인이지 제품 API·미디어·자동복구·실제 백업/복원·UI·장시간 실행 승인이 아니다.",
+      "justificationSha256": "7e3febf326a2da45467def813ed3b4aa346a109b37871e258bb49a9134fff83d"
+    },
+    {
+      "id": "OPS-087",
+      "decision": "approved",
+      "featureContractSha256": "4506e6a9ab4144cf10e9ac545ef1f0a72d5bd720a6e2044fb13ad42edf0cb54a",
+      "sourceFlowDigest": "45d942d81bc1329e500f332b0dcfeb9afa85175e00b3da8cc28524b9fc47e34b",
+      "verifierCommand": "verify-v330-operator-runbook-reliability-handoff",
+      "verifierFile": "scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs",
+      "dispatchArmSha256": "2763e02463948c4986cbc9d65ae8b3c7e5116b05e2e61e403024d76b451d21ad",
+      "evidenceToken": "ops087GateObserved",
+      "actionSymbol": "check:OPS-087 canonical runbook handoff gate",
+      "stateSymbol": "check:OPS-087 canonical runbook handoff gate",
+      "justification": "OPS-087: 후보 생성자가 아닌 /root/v411_doc_navigation 담당자가 변경된 기능 정의, verifier, RUNBOOK-DOC 자체검사와 proof를 직접 대조했다. 현행 계약 식별자, UI/config/backup 양방향 연결, SAFE-120/OPS-087 고유 정의·manifest 명령 결속, 검증 정책 및 여섯 companion 명령의 정확한 expected script와 유일한 dispatch 검사가 유지된다. 각 명령의 require/exec를 함께 다른 .mjs로 바꾸는 여섯 반례가 의미를 보존한 채 대상 불일치를 거부하도록 추가되어 이전 오연결 지적은 해소됐다. guide 읽기→validateRunbookConnections 오류 집계→ops087GateObserved→assert를 실제 structural-producer-assertion으로 결속했다. 종료 backlog·원장 문구 요구 제거는 현행 실행 증거 완화가 아니며, 색인 도달성·앵커는 verify-docs-links의 별도 책임이다. 제품·UI·복구·장시간 PASS를 승인하지 않는다.",
+      "justificationSha256": "de4ef88194a6f5edac3096bf91f007b6b8cc581311180103b7e434b02cb29011"
+    }
+  ]
+}
