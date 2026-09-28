@@ -2,6 +2,8 @@
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.1.0 S04 Client-safe Event Digest 구현, 문서, inventory, verifier 연결을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -24,7 +26,7 @@ Checks:
   - /client/api/views/{id}/events emits a PublishedView-scoped eventDigest with only viewer-safe fields
   - client live/dashboard/events render the digest without source URL, raw evidence, debug material, provider material, feature provenance, encoded clip paths, rule editor, or action controls
   - ops/client static smoke tracks the client route markers
-  - roadmap, stream verification, release records, feature inventory, manual UI checklist, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to V310-S04 local/static evidence and does not imply UI 풀테스트, 30분/120분, scoped API, cleanup execution, or release publication
 `);
 }
@@ -33,17 +35,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-client-safe-event-digest";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -154,51 +155,27 @@ check("client digest styling and ops/client smoke track V310 event digest marker
   }
 });
 
-check("docs and roadmap expose V310-S04 scope without overclaim", () => {
-  for (const snippet of [
-    "V310-S04` Client-safe Event Digest 완료",
-    "| 4 | V310-S04 | P1 | 완료 | Client-safe Event Digest |",
-    "media-server.client.event-digest.v1",
-    "viewer-safe summaryText/eventType/status/severity/timelineHint/time",
-    "UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution, published metadata evidence가 아님",
-    "## v3.1.0 S04 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V310-S04");
-  }
-  for (const snippet of [
-    "| V310-S04 | `./server.sh verify-v310-client-safe-event-digest` |",
-    "viewer-safe client event digest",
-    "source/raw/debug/provider/feature provenance/encoded clip path",
-    "UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V310-S04");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["CLIENT-025","SAFE-096"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.client.event-digest.v1","summaryText","timelineHint"],
+    command, script: "verify_v310_client_safe_event_digest.mjs", featureIds: ["CLIENT-025","SAFE-096"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory, manual UI checklist, and release records map V310-S04", () => {
-  for (const snippet of [
-    "V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `verify-v310-client-safe-event-digest`, `verify-ops-client-ui`",
-    "CLIENT-025 | V310-S04 Client-safe event digest API/UI",
-    "SAFE-096 | V310-S04 client-safe event digest boundary",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V310-S04");
-  }
+
+
+check("manual UI 현재 조작 정의 연결", () => {
   for (const snippet of [
     "| V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `/client/live`, `/client/dashboard`, `/client/events` |",
     "Client-safe Event Digest card",
     "media-server.client.event-digest.v1",
   ]) {
     assertIncludes(files.manualUi, snippet, "manual UI V310-S04");
-  }
-  for (const snippet of [
-    "V310 Client-safe Event Digest",
-    "`./server.sh verify-v310-client-safe-event-digest`",
-    "v310 S04 RED client-safe event digest gate",
-    "v310 S04 client-safe event digest final",
-    "v310 S04 UI 풀테스트",
-    "v310 S04 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V310-S04");
   }
 });
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // 파일 용도: v3.1.0 S07 Optional Vector Search 구현, fixture, 문서, inventory 연결을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -23,7 +25,7 @@ Checks:
   - V310-S07 fixture covers default-off, explicit enablement, quality gates, privacy rejection, and rebuild stale-result guard
   - EventFeatureSearchIndex exposes optional vector index/search APIs without changing the v3.0 text/filter search contract
   - analysis-state smoke verifies default-off behavior, quality gates, non-identifying embedding policy, and stale vector cleanup
-  - roadmap, stream verification, release records, feature inventory, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to V310-S07 local optional vector evidence and does not imply UI 풀테스트, 30분/120분, provider embedding calls, client exposure, or release publication
 `);
 }
@@ -37,14 +39,12 @@ const files = {
   source: readText("src/analysis/event_feature_search_index.cpp"),
   smoke: readText("scripts/internal/analysis_state_smoke.cpp"),
   smokeBuild: readText("scripts/internal/verify_analysis_state_smoke.sh"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
 };
 const fixture = JSON.parse(readText(fixturePath));
@@ -129,46 +129,18 @@ check("analysis-state smoke verifies S07 default-off, quality gate, and stale ve
   assertIncludes(files.smokeBuild, "src/analysis/event_feature_search_index.cpp", "analysis smoke build");
 });
 
-check("docs and roadmap expose V310-S07 scope without overclaim", () => {
-  for (const snippet of [
-    "| 7 | V310-S07 | P2 | 완료 | Optional Vector Search |",
-    "default-off embedding index",
-    "quality gates",
-    "`./server.sh verify-v310-optional-vector-search`",
-    "provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, published metadata evidence가 아님",
-    "## v3.1.0 S07 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V310-S07");
-  }
-  for (const snippet of [
-    "| V310-S07 | `./server.sh verify-v310-optional-vector-search` |",
-    "default-off optional embedding index",
-    "quality gate",
-    "provider embedding calls",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V310-S07");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["LAB-089","SAFE-100","OPS-067"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["default-off","quality","identity"],
+    command, script: "verify_v310_optional_vector_search.mjs", featureIds: ["LAB-089","SAFE-100","OPS-067"],
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V310-S07", () => {
-  for (const snippet of [
-    "V310-S07 Optional Vector Search | `LAB-089`, `SAFE-100`, `OPS-067` | `verify-v310-optional-vector-search`, `verify-analysis-state`",
-    "LAB-089 | V310-S07 optional vector search fixture",
-    "SAFE-100 | V310-S07 optional vector search boundary",
-    "OPS-067 | V310-S07 Optional Vector Search 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V310-S07");
-  }
-  for (const snippet of [
-    "V310 Optional Vector Search",
-    "`./server.sh verify-v310-optional-vector-search`",
-    "v310 S07 RED optional vector search gate",
-    "v310 S07 optional vector search final",
-    "v310 S07 UI/provider/longrun/published",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V310-S07");
-  }
-});
 
 check("server entrypoint and inventory verifiers include V310-S07 command", () => {
   assertIncludes(files.server, command, "server.sh command");

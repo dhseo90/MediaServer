@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +28,7 @@ Checks:
   - Ops review API returns an Ops-only replayTimeline view model with FrameRef/PTS mapping and encoded clip status
   - product UI script renders the timeline without source URL/raw JSON/debug/client exposure
   - CSS provides responsive event frame, frame bundle, and encoded clip timeline layouts
-  - backlog, stream verification, release records, feature inventory, ops smoke, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to V310-S03 local/static UI evidence and does not imply UI 풀테스트, 30분/120분, client digest, scoped API, cleanup execution, or release publication
 `);
 }
@@ -39,14 +41,12 @@ const files = {
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -151,45 +151,19 @@ check("ops static smoke tracks V310 replay timeline markers", () => {
   }
 });
 
-check("docs and roadmap expose V310-S03 scope without overclaim", () => {
-  for (const snippet of [
-    "| 3 | V310-S03 | P0 | 완료 | Replay Timeline UI |",
-    "`/ops/events` event frame, representative image, frame bundle, encoded clip timeline",
-    "`./server.sh verify-v310-replay-timeline-ui`",
-    "UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아님",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V310-S03");
-  }
-  for (const snippet of [
-    "| V310-S03 | `./server.sh verify-v310-replay-timeline-ui` |",
-    "Ops-only /ops/events replay timeline UI",
-    "event frame, representative image, frame bundle, encoded clip timeline",
-    "UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup execution",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V310-S03");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-060","OPS-063","SAFE-095"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["FrameRef/PTS","event frame","source URL"],
+    command, script: "verify_v310_replay_timeline_ui.mjs", featureIds: ["UI-060","OPS-063","SAFE-095"],
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  assert(files.implementationManifest.items?.filter(item => item.id === "SAFE-095").length === 1 && files.implementationManifest.items.find(item => item.id === "SAFE-095")?.verifierEvidence?.command === "verify-auth-routes", "SAFE-095 독립 검사 연결 불일치");
 });
 
-check("feature inventory and release records map V310-S03 to UI-060, OPS-063, and SAFE-095", () => {
-  for (const snippet of [
-    "V310-S03 Replay Timeline UI | `UI-060`, `OPS-063`, `SAFE-095` | `verify-v310-replay-timeline-ui`, `verify-ops-client-ui`",
-    "UI-060 | `/ops/events` V310 Replay Timeline UI",
-    "OPS-063 | V310-S03 Replay Timeline UI 게이트",
-    "SAFE-095 | V310-S03 replay timeline UI boundary",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V310-S03");
-  }
-  for (const snippet of [
-    "V310 Replay Timeline UI",
-    "`./server.sh verify-v310-replay-timeline-ui`",
-    "v310 S03 RED replay timeline UI gate",
-    "v310 S03 replay timeline UI final",
-    "v310 S03 UI 풀테스트",
-    "v310 S03 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V310-S03");
-  }
-});
 
 check("server entrypoint and inventory verifiers include V310-S03 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

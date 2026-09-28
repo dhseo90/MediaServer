@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +28,7 @@ Checks:
   - the view model exposes active resolution filters, saved view presets, and operations metric summary
   - /ops/events renders filter summary, saved views, metric cards, and boundary flags
   - the context does not write saved views, expose client/viewer material, or change EventRecord/Event POST/media schemas
-  - backlog, stream verification, release records, feature inventory, ops smoke, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
 `);
 }
 
@@ -38,13 +40,11 @@ const files = {
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -169,50 +169,18 @@ check("ops static smoke tracks Step 10 resolution search metrics markers", () =>
   }
 });
 
-check("docs and roadmap expose v3.2 Step 10 scope without overclaim", () => {
-  for (const snippet of [
-    "| 10 | v3.2.0 (10) Resolution Search & Metrics | P2 | 완료 |",
-    "resolution filters, saved views, 운영 metric summary",
-    "`./server.sh verify-v320-resolution-search-metrics`",
-    "Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
-    "## v3.2.0 Step 10 개발 기록",
-    "media-server.ops.v320-resolution-search-metrics.v1",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.2 Step 10");
-  }
-  for (const snippet of [
-    "| v3.2.0 (10) | `./server.sh verify-v320-resolution-search-metrics` |",
-    "Resolution Search & Metrics",
-    "active resolution filters",
-    "saved view presets",
-    "operations metric summary",
-    "UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.2 Step 10");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-069","EVT-070","SAFE-111","OPS-078"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v320-resolution-search-metrics.v1","resolutionSearchMetrics"],
+    command, script: "verify_v320_resolution_search_metrics.mjs", featureIds: ["UI-069","EVT-070","SAFE-111","OPS-078"],
+    inventory: files.featureInventory, implementation: files.implementationEvidence,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map v3.2 Step 10", () => {
-  for (const snippet of [
-    "v3.2.0 (10) Resolution Search & Metrics | `UI-069`, `EVT-070`, `SAFE-111`, `OPS-078` | `verify-v320-resolution-search-metrics`, `verify-ops-client-ui`",
-    "UI-069 | V320 Step 10 Resolution Search & Metrics UI",
-    "EVT-070 | V320 Step 10 resolution search metrics view model",
-    "SAFE-111 | V320 Step 10 resolution search metrics boundary",
-    "OPS-078 | V320 Step 10 Resolution Search & Metrics 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 10");
-  }
-  for (const snippet of [
-    "V320 Resolution Search & Metrics",
-    "`./server.sh verify-v320-resolution-search-metrics`",
-    "v320 Step 10 RED resolution search metrics gate",
-    "v320 Step 10 resolution search metrics final",
-    "v320 Step 10 UI 풀테스트",
-    "v320 Step 10 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.2 Step 10");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.2 Step 10 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
@@ -222,6 +190,7 @@ check("server entrypoint and inventory verifiers include v3.2 Step 10 command", 
     "UI-069",
     command,
     "scripts/internal/verify_v320_resolution_search_metrics.mjs",
+    'assertIncludes(searchMetricsBlock, "media-server.ops.v320-resolution-search-metrics.v1", "UI-069 block-scoped canonical product state");',
   );
   for (const id of ["UI-069", "EVT-070", "SAFE-111", "OPS-078"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
@@ -298,12 +267,14 @@ function readJson(relativePath) {
   return JSON.parse(readText(relativePath));
 }
 
-function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile, expectedAnchor) {
   const item = manifest.items?.find(entry => entry.id === featureId);
   assert(item?.verifierEvidence?.command === expectedCommand,
     `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
   assert(item?.verifierEvidence?.file === expectedFile,
     `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
-  assert(item?.verifierEvidence?.anchor === featureId,
+  assert(item?.verifierEvidence?.anchorKind === "review4-independent-readback" && item?.verifierEvidence?.anchor === expectedAnchor,
     `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
+  assert(readText(expectedFile).split(/\r?\n/).filter(line => line.trim() === expectedAnchor).length === 1,
+    `${featureId} exact verifier assertion must exist at one location`);
 }

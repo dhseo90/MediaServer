@@ -2923,7 +2923,7 @@
     {
       "id": "OPS-062",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "f7909c15344b36a5bc2726db87c3f0e76a076ada253e4480e2fd20f242ec4513",
+      "featureContractSha256": "f67d6833183fc65860d46793e836dc2f250c691251c683bcc477c2cbebe316e0",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "evt059ManifestBlock",
       "verifier": {
@@ -3022,7 +3022,7 @@
     {
       "id": "OPS-063",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "1fd5efc834587659a28ab797b8aee8bc32cc070043cef0bc07c0c25c95cd05ab",
+      "featureContractSha256": "6251ae61132939f3c32ec5ff2f40411bc1ceaea69af38019bb751641ea7e69d9",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "safe095BoundaryObserved",
       "verifier": {
@@ -3121,7 +3121,7 @@
     {
       "id": "OPS-064",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "b93a9a55faa0e98464e035de89c4beaed2fd18cacd8302dda56f25e44c3cfa43",
+      "featureContractSha256": "733001629d480224c38cbe62e9bf3c41cff5235bb7f09c0819d6e658559be3c7",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "scopedSearchBoundaryObserved",
       "verifier": {
@@ -3220,7 +3220,7 @@
     {
       "id": "OPS-065",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "7f5486e15130b5a8198a75b19314ee666ede0a29acaae991282c519cee837636",
+      "featureContractSha256": "c496bafc212eaa4c990d0c3d30cf194b1ea67e566323334766b0421226beadf7",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "requestJson",
       "sharedContract": {
@@ -3323,7 +3323,7 @@
     {
       "id": "OPS-066",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "03678ea2f3af1e94ad9bb19d67774c6dc5d4f297fd4f8f1f4aba8c5f199a0657",
+      "featureContractSha256": "62e213a45b534bfee93c029bcb4439c85bcf5383c92fac20dfed02ef84ab25e8",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "rawMaterialIncluded",
       "verifier": {
@@ -3422,7 +3422,7 @@
     {
       "id": "OPS-067",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "bd7818c20068c4cb2e7615d8688790c031450a34016a9dfc989de360d3500a81",
+      "featureContractSha256": "5ca136e77e8415ef64f193b95ac50843358e34929b97517d167a47abb4a7c101",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "viewerClientExposureAdded",
       "verifier": {
@@ -3721,7 +3721,7 @@
     {
       "id": "OPS-070",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "25c32e5b89c32d133e6f1e70c5440375871cf5951adab7ddaa65e0d9e3cb3f25",
+      "featureContractSha256": "d1baa18cd28f0cd56a356a16a2bd16873afad13e314ec66dbc367ff3b39240d3",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "evt063ResolutionStateBlock",
       "verifier": {
@@ -3821,7 +3821,7 @@
     {
       "id": "OPS-071",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "5dd2a6f9a83c4ede34914192e22c162fb5dda1ba469ff548327ba3cef2122249",
+      "featureContractSha256": "9ec69533be4e596f1eada614f2df84467342c5f871074215997d384a8dcbf30f",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "media-server.ops.v320-unified-events-workspace.v1",
       "verifier": {
@@ -3920,7 +3920,7 @@
     {
       "id": "OPS-072",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "8cd74821a6850d8411a169b0ea26b67bd92d810c094046ff7acfd2927e0355e2",
+      "featureContractSha256": "5d7e583d18616491e071e5d91187557836ab39fe25c792563f7b923614bf353b",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "evt065EvidenceQualityBlock",
       "verifier": {
@@ -4020,7 +4020,7 @@
     {
       "id": "OPS-073",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "bc980ed7dad1035b2797fb79a5f02761700606f114e453bd053a221356fbf6f4",
+      "featureContractSha256": "34b9cb895234d8de06dff48d01e1f48a9d7a27b68f5198603a8334f1dc791800",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "sourceReliabilitySummaryObserved",
       "verifier": {
@@ -4119,7 +4119,7 @@
     {
       "id": "OPS-074",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "7cf85d20440112e6ac1e902b17b1647c360edf06ca9cd4482bc8ce6a6067be18",
+      "featureContractSha256": "d0999cd2c4ce52f66c626cd4f62b9ef11157ae6ff74bf18cc5ebf1ab9a032d54",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "media-server.ops.v320-ai-review-quality-context.v1",
       "verifier": {
@@ -4218,7 +4218,7 @@
     {
       "id": "OPS-075",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "bf4246672d8b6c9b8e466fcba91c6ac0dcca2e27a5061ef5d06e34da5a7b3e5e",
+      "featureContractSha256": "d2dd584c8d74e66a50829ad9bb75b5fc022cc0b6e509dcc90d802ab111757a6f",
       "evidenceMode": "operator-resolution-close-action-source-readback",
       "evidenceToken": "close_action_available",
       "verifier": {
@@ -4318,7 +4318,7 @@
     {
       "id": "OPS-076",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "aa24fa68e29fc2beaa6a42dca67b1743341d9d8bd18700c8a46f0028fcf0e235",
+      "featureContractSha256": "36139ede3394f10f6b74e7c116b061deb6aee94a4ecb18fc548253e5cde82ede",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "media-server.ops.v320-action-readiness-checklist.v1",
       "verifier": {
@@ -4417,7 +4417,7 @@
     {
       "id": "OPS-077",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "e5774e4f10a3d8b7d58eb0a911014a17edf9393352e043975173dd59257c1101",
+      "featureContractSha256": "62c0c8870d93c6884c7cc5dadb4d7d12ec044897947f5662ea9003707af09079",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "clientDigestRendererObserved",
       "verifier": {
@@ -4517,7 +4517,7 @@
     {
       "id": "OPS-078",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "ec19a32012f1bd76753bd5e323836d89f800b075a541aa68eb2c82789b6e5c8b",
+      "featureContractSha256": "f6d19c629721057e06cca687675e261a2b48bf3da08c3c5d87bf0a42daa2f525",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "media-server.ops.v320-resolution-search-metrics.v1",
       "verifier": {

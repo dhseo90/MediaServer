@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +28,7 @@ Checks:
   - unifiedResolutionWorkspace items expose an Ops-only operatorResolutionFlow context
   - /ops/events renders assignment, note, close/reopen affordance, and audit trail hints without client/viewer exposure
   - operator flow does not claim action checklist, client digest, search/metrics, UI fulltest, longrun, or published metadata evidence
-  - backlog, stream verification, release records, feature inventory, ops smoke, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
 `);
 }
 
@@ -34,17 +36,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-operator-resolution-flow";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -171,48 +172,18 @@ check("ops static smoke tracks Step 7 operator resolution flow markers", () => {
   }
 });
 
-check("docs and roadmap expose v3.2 Step 7 scope without overclaim", () => {
-  for (const snippet of [
-    "| 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 완료 |",
-    "assign, note, close, reopen, audit trail",
-    "`./server.sh verify-v320-operator-resolution-flow`",
-    "Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
-    "## v3.2.0 Step 7 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.2 Step 7");
-  }
-  for (const snippet of [
-    "| v3.2.0 (7) | `./server.sh verify-v320-operator-resolution-flow` |",
-    "Operator Resolution Flow",
-    "assign, note, close, reopen, audit trail",
-    "write path",
-    "action checklist, client digest, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.2 Step 7");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-066","EVT-068","SAFE-108","OPS-075"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v320-operator-resolution-flow.v1","operatorResolutionFlow"],
+    command, script: "verify_v320_operator_resolution_flow.mjs", featureIds: ["UI-066","EVT-068","SAFE-108","OPS-075"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map v3.2 Step 7", () => {
-  for (const snippet of [
-    "v3.2.0 (7) Operator Resolution Flow | `UI-066`, `EVT-068`, `SAFE-108`, `OPS-075` | `verify-v320-operator-resolution-flow`, `verify-ops-client-ui`",
-    "UI-066 | V320 Step 7 Operator Resolution Flow UI",
-    "EVT-068 | V320 Step 7 operator resolution flow view model",
-    "SAFE-108 | V320 Step 7 operator resolution boundary",
-    "OPS-075 | V320 Step 7 Operator Resolution Flow 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 7");
-  }
-  for (const snippet of [
-    "V320 Operator Resolution Flow",
-    "`./server.sh verify-v320-operator-resolution-flow`",
-    "v320 Step 7 RED operator resolution flow gate",
-    "v320 Step 7 operator resolution flow final",
-    "v320 Step 7 UI 풀테스트",
-    "v320 Step 7 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.2 Step 7");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.2 Step 7 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

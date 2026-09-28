@@ -6,6 +6,19 @@
 
 ## 역할과 경계
 
+문서 소비자 자체검사 `node --test scripts/internal/v310_v320_documentation_consumers.test.mjs`는
+다음 사전 정의를 사용한다. 서버·브라우저를 실행하지 않으며 제품 기능 PASS를 대신하지 않는다.
+
+| ID | 확인 대상 | 독립 예상 결과 |
+| --- | --- | --- |
+| V31-V32-DOC-01 | v310·v320 기능 검증기 16개에서 종료 원장·backlog·직접 색인 접근 차단 및 제목 변경 | 현재 정의·계약·실행 연결이 있으면 정상 종료 |
+| V31-V32-DOC-02 | 각 기능의 현재 inventory 행 제거 | 누락 ID를 명시하고 실패 |
+| V31-V32-DOC-03 | 메모리에서만 해당 제품 schema 식별자 제거 | 기존 제품 소스 검사 실패 및 exit 1 유지 |
+| V31-V32-DOC-04 | UI 체크리스트 제거 | 기존 세 UI 정의 연결 검사 실패 |
+| V31-V32-DOC-05 | SAFE-095/098 인증, EVT-066 런타임 명령 결속 훼손 | 독립 검사 연결 불일치 실패; 정적 검사로 대체 금지 |
+| V31-V32-DOC-06 | pin 보호·신원 embedding 반례와 전체 입력 hash | 기존 안전 검사가 실패하고 실제 제품·fixture 파일은 불변 |
+| V31-V32-DOC-07 | 분리된 UI 소스의 control 삭제·구형 ID anchor·assertion 중복 | 실제 파일을 읽는 검증기가 누락·오래된 연결·중복 위치를 거부 |
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.
@@ -935,8 +948,10 @@ PASS 근거로 사용합니다.
 
 ## 직전 published baseline v3.2.0 verifier
 
-아래 명령은 v3.2.0 published baseline 구현 단계에서 추가된 verifier입니다. v3.3.0
-완료 evidence로 재사용하지 않습니다.
+아래 명령은 v3.2.0에서 추가된 기능의 현행 소스·정의 검사입니다. 명령 이름의 버전은
+도입 시점이며 이번 실행이나 실제 UI·장시간 통과를 뜻하지 않습니다. 기능 검증기는 현재
+계약 식별자·기능 정의·검증 안내·실제 실행 연결을 확인하고 종료된 실행 원장을 읽지 않습니다.
+별도 runtime sample과 release-readiness 검사는 해당 명령의 실행·증거 경계를 따릅니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
@@ -954,9 +969,9 @@ PASS 근거로 사용합니다.
 
 ## 직전 published baseline v3.1.0 verifier
 
-아래 명령은 v3.1.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은
-항목은 문서 gate 또는 후보로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때
-`server.sh` wiring과 script inventory로 확인합니다.
+아래 명령은 v3.1.0에서 추가된 기능의 현행 소스·정의 검사입니다. 기능 검증기는 과거
+완료 문구가 아니라 현행 계약·기능 ID·실행 연결을 확인합니다. 정적 검사 PASS는 실제
+인증·분석·UI·장시간 실행을 대신하지 않으며 release-readiness의 별도 범위도 확대하지 않습니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
