@@ -12,7 +12,7 @@ RSS 첫94,240,768B→마지막237,453,312B, FD31→31, thread29→25; warmup5분
 
 #### observer-shared-self
 
-명령: `bash scripts/internal/verify_recording_current_observer.sh --self-test`, exit0. 원출력 [lp26-observer-shared-self.log](lp26-observer-shared-self.log), PASS 60·FAIL0.
+명령: `bash scripts/internal/verify_recording_current_observer.sh --self-test`, exit0. 원출력 [lp26-observer-shared-self.log](public-evidence-3b9a4c9fc26674a5.txt), PASS 60·FAIL0.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ RSS 첫94,240,768B→마지막237,453,312B, FD31→31, thread29→25; warmup5분
 
 #### observer-shared-app-final
 
-명령: `bash scripts/internal/verify_recording_current_observer.sh --app-observe`, exit0. 원출력 [lp26-observer-shared-app-final.log](lp26-observer-shared-app-final.log), PASS 71·FAIL0.
+명령: `bash scripts/internal/verify_recording_current_observer.sh --app-observe`, exit0. 원출력 [lp26-observer-shared-app-final.log](public-evidence-6d1273262d4ad8d8.txt), PASS 71·FAIL0.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -159,24 +159,24 @@ RSS 첫94,240,768B→마지막237,453,312B, FD31→31, thread29→25; warmup5분
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-FTcocG | 소유 실행/복제 root | 7724126B | 도구 삭제 | absent=true | self 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-4s2VCX | 소유 실행/복제 root | 293560500B | 도구 삭제 | absent=true | short-partial 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-5NR9sp | 소유 실행/복제 root | 131463175B | 도구 삭제 | absent=true | short-final 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-Y2RyxI | 소유 실행/복제 root | 131463175B | 도구 삭제 | absent=true | short-final 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-PiFyKs | 소유 실행/복제 root | 158252429B | 도구 삭제 | absent=true | short-final 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-hIX9M5 | 소유 실행/복제 root | 291996645B | 도구 삭제 | absent=true | short-final 로그 |
+| <owned-temp>/media-server-current-observer-FTcocG | 소유 실행/복제 root | 7724126B | 도구 삭제 | absent=true | self 로그 |
+| <owned-temp>/media-server-current-observer-4s2VCX | 소유 실행/복제 root | 293560500B | 도구 삭제 | absent=true | short-partial 로그 |
+| <owned-temp>/media-server-current-observer-copy-5NR9sp | 소유 실행/복제 root | 131463175B | 도구 삭제 | absent=true | short-final 로그 |
+| <owned-temp>/media-server-current-observer-copy-Y2RyxI | 소유 실행/복제 root | 131463175B | 도구 삭제 | absent=true | short-final 로그 |
+| <owned-temp>/media-server-current-observer-copy-PiFyKs | 소유 실행/복제 root | 158252429B | 도구 삭제 | absent=true | short-final 로그 |
+| <owned-temp>/media-server-current-observer-hIX9M5 | 소유 실행/복제 root | 291996645B | 도구 삭제 | absent=true | short-final 로그 |
 
 
 ### 마감 정합 확인
 
-제품 src/include/CMake/VERSION 변경 없음. 현재 소스·기존 build/archive SHA는 [지문 기록](lp26-source-fingerprint.log)을 따른다.
+제품 src/include/CMake/VERSION 변경 없음. 현재 소스·기존 build/archive SHA는 [지문 기록](public-evidence-602b63d022137548.txt)을 따른다.
 관련 build는 재실행하지 않았고 새 C++ 검증 helper만 기존 runtime archive에 대해 -Werror로 컴파일했다.
 전체 S11 준비 완료가 아니라 요청한 관측/seed 현행화와 실행 연결 대조의 마감이다. 초기 고정ID/복합 요구·ENV12/HW 영향·구형 정리·S10 고정은 남는다.
 실제 browser/30분/120분·PR/merge/tag/Release·외부 실기기 실행 없음. 운영 데이터·패키지 삭제 없음.
 
 #### script-inventory-final
 
-명령 `./server.sh verify-script-inventory`, exit0. [원출력](lp26-script-inventory-final.log). 스크립트 검사는 신규 소스를 stage한 뒤 정식 사전등록에 따라 재실행했다.
+명령 `./server.sh verify-script-inventory`, exit0. [원출력](public-evidence-ed42831cd3709ce7.txt). 스크립트 검사는 신규 소스를 stage한 뒤 정식 사전등록에 따라 재실행했다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -195,7 +195,7 @@ RSS 첫94,240,768B→마지막237,453,312B, FD31→31, thread29→25; warmup5분
 
 #### docs-assets-final
 
-명령 `./server.sh verify-docs-ui-assets`, exit0. [원출력](lp26-docs-assets-final.log). 스크립트 검사는 신규 소스를 stage한 뒤 정식 사전등록에 따라 재실행했다.
+명령 `./server.sh verify-docs-ui-assets`, exit0. [원출력](public-evidence-fa37d7cc71aca1ca.txt). 스크립트 검사는 신규 소스를 stage한 뒤 정식 사전등록에 따라 재실행했다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -210,7 +210,7 @@ RSS 첫94,240,768B→마지막237,453,312B, FD31→31, thread29→25; warmup5분
 | 9 docs UI asset directory contains managed PNG files | 위 명령의 개별 정합 assertion | PASS | 실제 UI/제품 전수 판정 아님 |
 | 10 VA documentation images keep full video frame bounds | 위 명령의 개별 정합 assertion | PASS | 실제 UI/제품 전수 판정 아님 |
 
-문서 링크 최신 결과는 [원출력](lp26-docs-links-final.log)에 보존한다. 모든 마감 기록 연결 뒤 exit0, md287/링크9325/이미지22/anchor132/index76/제외201/실패0을 확인했다.
+문서 링크 최신 결과는 [원출력](public-evidence-8144fa68624b5f9f.txt)에 보존한다. 모든 마감 기록 연결 뒤 exit0, md287/링크9325/이미지22/anchor132/index76/제외201/실패0을 확인했다.
 `git diff --check` exit0, 소스14개와 기존 binary/archive2개 지문 일치(16개), 최신 실행root6개 부재를 확인했다.
 지문 파일 설명3행은 shasum의 형식 경고이며16개 모두 OK였다. 제품/빌드 경고로 바꾸지 않는다. staged diffcheck는 커밋 직전에 다시 확인한다.
 
@@ -392,113 +392,113 @@ token start/end/consumed는 전용 집계가 없어 미집계; elapsed source는
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U01-A current managed UI seed oracle | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U02-A current managed UI seed oracle | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U03-A current managed UI seed oracle | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U04-A current managed UI seed oracle | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U05-A current managed UI seed oracle | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U01-A owned initialized root and manifest refuse overwrite | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U01-A invalid owned target rejected without new artifacts | [최종 원출력](lp26-ui-seed-catalog-final.log); 실제 UI 제외 | pass |
-| SF01 optional seek fixture is accepted only with explicit UI anchor | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA01 anchor bounds and unknown options are rejected | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA05 inherited anchor and auth values are removed from seed environment | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA02 random temporary passwords are distinct with sufficient length | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA03 actual bootstrap function orders setup five logins and four users | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA04 one-time handoff is mode0600 and refuses overwrite | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA07 live source payload distinguishes active quota from blocked reservation | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA01 new auth direct mode rejects missing anchor before preparation | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-anchored / LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-anchored / LP26-U01-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-anchored / LP26-U02-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-anchored / LP26-U03-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-anchored / LP26-U04-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-anchored / LP26-U05-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA08-anchored current seed compile root cleanup | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA06 LP26-U02~06 actual managed catalog anchored scenarios and reopen | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-unknown / LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-unknown / LP26-U01-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-unknown / LP26-U02-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-unknown / LP26-U03-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-unknown / LP26-U04-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-unknown / LP26-U05-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA08-unknown current seed compile root cleanup | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA05 LP26-U02 no anchor remains unknown rather than fake 1970 UTC | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U01~05 invalid anchor duplicate row hash and completeness rejected | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| SF02 bounded owned seek fixture generation completes | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| SF03 actual H264 silent 1280x720 ten-second first-keyframe fixture | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| SF06 malformed media metadata and symlink input directory are rejected | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-seek / LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-seek / LP26-U01-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-seek / LP26-U02-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-seek / LP26-U03-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-seek / LP26-U04-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| seed-seek / LP26-U05-A current managed UI seed oracle | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA08-seek current seed compile root cleanup | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| SF04 LP26-U08 managed original seek file actual size SHA and duration | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| SF05 LP26-U08 other originals remain short and actual derived outputs remain TS | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| UA08 test root cleanup | [최종 원출력](lp26-ui-auth-catalog-final.log); 실제 UI 제외 | pass |
-| LP26-U01 current managed UI seed entry contract | [최종 원출력](lp26-ui-contract-green.log); 실제 UI 제외 | pass |
-| normal selected metadata updates visible support | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| I31-R01 failed timeline clears previous support | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| I31-R01 empty timeline clears previous support | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| I31-R01 unplayable selection clears previous support | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| I31-R02 late metadata cannot contaminate unselected state | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| unselected error preserves selection prompt | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| selected media error shows failure notice | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-01 UTC zero is a date, not unknown | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-02 null times stay in separate unplaced list | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-03 number is not guessed as a date | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-03 empty is not guessed as a date | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-03 fraction is not guessed as a date | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-03 date-range is not guessed as a date | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-03 unsafe is not guessed as a date | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-04 same file rows have independent selected item IDs | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-05 partial overlap preserves original | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-06 off-page event still hides fully covered original | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-07 original view restores hidden rows | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-08 next page uses independent unknown total | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-09 request media axis is shown without date conversion | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-10 estimated UTC preserves uncertainty label | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-11 selection never seeks by UTC and ended never auto-advances | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-12 unsupported type is only a warning | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-13 job completion and partial deleted output remain separate | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-14 late response cannot replace newer selection | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-15 unknown-only page remains selectable | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-16 invalid total -1 cannot enable paging | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-16 invalid total 9007199254740992 cannot enable paging | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| D3C-17 unknown debug fields are not rendered | [최종 원출력](lp26-ui-playback.log); 실제 UI 제외 | pass |
-| RP01 fixed loopback upstream and origin-form target only | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP01 same-origin POST preserves proxy Host and external Origin rejection | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP02 streaming preserves 206 bytes and Range headers | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP03 cookie forwarded but absent from observation | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP04 nonmedia and invalid metadata never expose payload | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP05 upstream failure records incomplete safely | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP06 client disconnect closes upstream and records incomplete | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP07 close drains or destroys sockets and releases port | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP08 private log mode0600 bounded failure is latched | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
-| RP09 harness proxy cleanup failure still runs owned server cleanup | [최종 원출력](lp26-ui-range-proxy-permitted.log); 실제 UI 제외 | pass |
+| LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U01-A current managed UI seed oracle | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U02-A current managed UI seed oracle | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U03-A current managed UI seed oracle | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U04-A current managed UI seed oracle | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U05-A current managed UI seed oracle | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U01-A owned initialized root and manifest refuse overwrite | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| LP26-U01-A invalid owned target rejected without new artifacts | [최종 원출력](public-evidence-e1731b21e8b864c7.txt); 실제 UI 제외 | pass |
+| SF01 optional seek fixture is accepted only with explicit UI anchor | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA01 anchor bounds and unknown options are rejected | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA05 inherited anchor and auth values are removed from seed environment | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA02 random temporary passwords are distinct with sufficient length | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA03 actual bootstrap function orders setup five logins and four users | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA04 one-time handoff is mode0600 and refuses overwrite | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA07 live source payload distinguishes active quota from blocked reservation | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA01 new auth direct mode rejects missing anchor before preparation | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-anchored / LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-anchored / LP26-U01-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-anchored / LP26-U02-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-anchored / LP26-U03-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-anchored / LP26-U04-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-anchored / LP26-U05-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA08-anchored current seed compile root cleanup | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA06 LP26-U02~06 actual managed catalog anchored scenarios and reopen | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-unknown / LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-unknown / LP26-U01-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-unknown / LP26-U02-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-unknown / LP26-U03-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-unknown / LP26-U04-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-unknown / LP26-U05-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA08-unknown current seed compile root cleanup | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA05 LP26-U02 no anchor remains unknown rather than fake 1970 UTC | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| LP26-U01~05 invalid anchor duplicate row hash and completeness rejected | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| SF02 bounded owned seek fixture generation completes | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| SF03 actual H264 silent 1280x720 ten-second first-keyframe fixture | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| SF06 malformed media metadata and symlink input directory are rejected | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-seek / LP26-U06-A managed Catalog reopen public timeline and journal unchanged | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-seek / LP26-U01-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-seek / LP26-U02-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-seek / LP26-U03-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-seek / LP26-U04-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| seed-seek / LP26-U05-A current managed UI seed oracle | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA08-seek current seed compile root cleanup | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| SF04 LP26-U08 managed original seek file actual size SHA and duration | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| SF05 LP26-U08 other originals remain short and actual derived outputs remain TS | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| UA08 test root cleanup | [최종 원출력](public-evidence-0e978f44a6bcdb70.txt); 실제 UI 제외 | pass |
+| LP26-U01 current managed UI seed entry contract | [최종 원출력](public-evidence-03274a703e9ed912.txt); 실제 UI 제외 | pass |
+| normal selected metadata updates visible support | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| I31-R01 failed timeline clears previous support | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| I31-R01 empty timeline clears previous support | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| I31-R01 unplayable selection clears previous support | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| I31-R02 late metadata cannot contaminate unselected state | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| unselected error preserves selection prompt | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| selected media error shows failure notice | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-01 UTC zero is a date, not unknown | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-02 null times stay in separate unplaced list | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-03 number is not guessed as a date | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-03 empty is not guessed as a date | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-03 fraction is not guessed as a date | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-03 date-range is not guessed as a date | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-03 unsafe is not guessed as a date | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-04 same file rows have independent selected item IDs | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-05 partial overlap preserves original | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-06 off-page event still hides fully covered original | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-07 original view restores hidden rows | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-08 next page uses independent unknown total | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-09 request media axis is shown without date conversion | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-10 estimated UTC preserves uncertainty label | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-11 selection never seeks by UTC and ended never auto-advances | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-12 unsupported type is only a warning | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-13 job completion and partial deleted output remain separate | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-14 late response cannot replace newer selection | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-15 unknown-only page remains selectable | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-16 invalid total -1 cannot enable paging | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-16 invalid total 9007199254740992 cannot enable paging | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| D3C-17 unknown debug fields are not rendered | [최종 원출력](public-evidence-a8b17f7d04aa455b.txt); 실제 UI 제외 | pass |
+| RP01 fixed loopback upstream and origin-form target only | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP01 same-origin POST preserves proxy Host and external Origin rejection | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP02 streaming preserves 206 bytes and Range headers | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP03 cookie forwarded but absent from observation | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP04 nonmedia and invalid metadata never expose payload | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP05 upstream failure records incomplete safely | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP06 client disconnect closes upstream and records incomplete | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP07 close drains or destroys sockets and releases port | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP08 private log mode0600 bounded failure is latched | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
+| RP09 harness proxy cleanup failure still runs owned server cleanup | [최종 원출력](public-evidence-3c063505a96f4e41.txt); 실제 UI 제외 | pass |
 
 | 실행 원출력 | 실제 상태·exit | 보존 이유 |
 | --- | --- | --- |
-| [lp26-ui-auth-accepted.log](lp26-ui-auth-accepted.log) | pass / 0; 6009B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-auth-catalog-final.log](lp26-ui-auth-catalog-final.log) | pass / 0; 6009B | 최종 해당 범위 증거 |
-| [lp26-ui-auth-final.log](lp26-ui-auth-final.log) | pass / 0; 5946B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-auth-first.log](lp26-ui-auth-first.log) | pass / 0; 2405B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-auth-fixed-final.log](lp26-ui-auth-fixed-final.log) | pass / 0; 6009B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-contract-green.log](lp26-ui-contract-green.log) | pass / 0; 54B | 최종 해당 범위 증거 |
-| [lp26-ui-playback.log](lp26-ui-playback.log) | pass / 0; 1622B | 최종 해당 범위 증거 |
-| [lp26-ui-range-proxy-permitted.log](lp26-ui-range-proxy-permitted.log) | pass / 0; 803B | 최종 해당 범위 증거 |
-| [lp26-ui-range-proxy.log](lp26-ui-range-proxy.log) | fail / 1; 910B | 환경 EPERM; 후속 동일 명령 권한 허용 재검증 |
-| [lp26-ui-red.log](lp26-ui-red.log) | fail / 1; 54B | 예상 assertion 1개, 미구현 RED |
-| [lp26-ui-seed-accepted.log](lp26-ui-seed-accepted.log) | pass / 0; 1118B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-seed-catalog-final.log](lp26-ui-seed-catalog-final.log) | pass / 0; 1118B | 최종 해당 범위 증거 |
-| [lp26-ui-self-test-after-completeness-fix.log](lp26-ui-self-test-after-completeness-fix.log) | pass / 0; 1049B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-self-test-after-location-fix.log](lp26-ui-self-test-after-location-fix.log) | fail / 1; 680B | 삭제 위치 수정 후 completeness 잘못된 기대 발견 |
-| [lp26-ui-self-test-diagnostic.log](lp26-ui-self-test-diagnostic.log) | fail / 1; 614B | 고정 코드 manifest-location 원인 확인 |
-| [lp26-ui-self-test-final.log](lp26-ui-self-test-final.log) | pass / 0; 1118B | 중간 통과; 이후 강화된 최종 결과와 구분 |
-| [lp26-ui-self-test-first.log](lp26-ui-self-test-first.log) | fail / 1; 641B | 최초 준비 실패; RED 아님 |
-| [lp26-ui-self-test-fixed-final.log](lp26-ui-self-test-fixed-final.log) | pass / 0; 1118B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-auth-accepted.log](public-evidence-5613fb7195e6e299.txt) | pass / 0; 6009B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-auth-catalog-final.log](public-evidence-0e978f44a6bcdb70.txt) | pass / 0; 6009B | 최종 해당 범위 증거 |
+| [lp26-ui-auth-final.log](public-evidence-6b389e4f5cd2138c.txt) | pass / 0; 5946B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-auth-first.log](public-evidence-d47056bb2a1d430b.txt) | pass / 0; 2405B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-auth-fixed-final.log](public-evidence-f0fe63252e54e18b.txt) | pass / 0; 6009B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-contract-green.log](public-evidence-03274a703e9ed912.txt) | pass / 0; 54B | 최종 해당 범위 증거 |
+| [lp26-ui-playback.log](public-evidence-a8b17f7d04aa455b.txt) | pass / 0; 1622B | 최종 해당 범위 증거 |
+| [lp26-ui-range-proxy-permitted.log](public-evidence-3c063505a96f4e41.txt) | pass / 0; 803B | 최종 해당 범위 증거 |
+| [lp26-ui-range-proxy.log](public-evidence-a1fe9ea444184739.txt) | fail / 1; 910B | 환경 EPERM; 후속 동일 명령 권한 허용 재검증 |
+| [lp26-ui-red.log](public-evidence-db45148bdcc8a37d.txt) | fail / 1; 54B | 예상 assertion 1개, 미구현 RED |
+| [lp26-ui-seed-accepted.log](public-evidence-b53c8faa1b1e0941.txt) | pass / 0; 1118B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-seed-catalog-final.log](public-evidence-e1731b21e8b864c7.txt) | pass / 0; 1118B | 최종 해당 범위 증거 |
+| [lp26-ui-self-test-after-completeness-fix.log](public-evidence-15f0fe5b759ea94e.txt) | pass / 0; 1049B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-self-test-after-location-fix.log](public-evidence-1c4196cec1f2e1d3.txt) | fail / 1; 680B | 삭제 위치 수정 후 completeness 잘못된 기대 발견 |
+| [lp26-ui-self-test-diagnostic.log](public-evidence-ab3efddd84073b0c.txt) | fail / 1; 614B | 고정 코드 manifest-location 원인 확인 |
+| [lp26-ui-self-test-final.log](public-evidence-d2ea992699882556.txt) | pass / 0; 1118B | 중간 통과; 이후 강화된 최종 결과와 구분 |
+| [lp26-ui-self-test-first.log](public-evidence-7df788ea5ee31297.txt) | fail / 1; 641B | 최초 준비 실패; RED 아님 |
+| [lp26-ui-self-test-fixed-final.log](public-evidence-07fccd037a51c1ed.txt) | pass / 0; 1118B | 중간 통과; 이후 강화된 최종 결과와 구분 |
 
 | 최초 실패 개별 항목 | 최초 결과 | 수정·후속 결과 |
 | --- | --- | --- |
@@ -517,42 +517,42 @@ token start/end/consumed는 전용 집계가 없어 미집계; elapsed source는
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.u98529` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-accepted.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.tEHrwr` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-accepted.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.QlmskL` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-accepted.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.cNcjXZ` | 검증 소유 임시 root | 25829094B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-accepted.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.LxG4Jg` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-catalog-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.6H76Vi` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-catalog-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.0aMenJ` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-catalog-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.QBaJfc` | 검증 소유 임시 root | 25830370B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-catalog-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.vv2ofO` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.qB7pX9` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.NqMfSV` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.mzHLo3` | 검증 소유 임시 root | 25828245B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.Hj6Xnz` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-first.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.G9xiSl` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-first.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.CZEDcy` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-first.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.oBy2Kn` | 검증 소유 임시 root | 25828245B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-first.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.26FM0X` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-fixed-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.s5N5fQ` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-fixed-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.ogwoKj` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-fixed-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.iAnvk0` | 검증 소유 임시 root | 25828245B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-auth-fixed-final.log) |
-| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-8zyDkx` | 검증 소유 임시 root | 1720B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-range-proxy-permitted.log) |
-| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-xhuqE1` | 검증 소유 임시 root | 0B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-range-proxy.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.sY4ybn` | 검증 소유 임시 root | 9477546B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-seed-accepted.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.BwXpO8` | 검증 소유 임시 root | 9477978B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-seed-catalog-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.ohTVjW` | 검증 소유 임시 root | 9477024B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-self-test-after-completeness-fix.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.Va1TU9` | 검증 소유 임시 root | 9477024B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-self-test-after-location-fix.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.NrNl1X` | 검증 소유 임시 root | 9319103B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-self-test-diagnostic.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.RytJPI` | 검증 소유 임시 root | 9477024B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-self-test-final.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.q2bcba` | 검증 소유 임시 root | 9319103B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-self-test-first.log) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.bk8P3W` | 검증 소유 임시 root | 9477127B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](lp26-ui-self-test-fixed-final.log) |
+| `<owned-temp>/media-server-current-ui-seed.u98529` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-5613fb7195e6e299.txt) |
+| `<owned-temp>/media-server-current-ui-seed.tEHrwr` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-5613fb7195e6e299.txt) |
+| `<owned-temp>/media-server-current-ui-seed.QlmskL` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-5613fb7195e6e299.txt) |
+| `<owned-temp>/media-server-current-ui-seed.cNcjXZ` | 검증 소유 임시 root | 25829094B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-5613fb7195e6e299.txt) |
+| `<owned-temp>/media-server-current-ui-seed.LxG4Jg` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-0e978f44a6bcdb70.txt) |
+| `<owned-temp>/media-server-current-ui-seed.6H76Vi` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-0e978f44a6bcdb70.txt) |
+| `<owned-temp>/media-server-current-ui-seed.0aMenJ` | 검증 소유 임시 root | 6810328B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-0e978f44a6bcdb70.txt) |
+| `<owned-temp>/media-server-current-ui-seed.QBaJfc` | 검증 소유 임시 root | 25830370B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-0e978f44a6bcdb70.txt) |
+| `<owned-temp>/media-server-current-ui-seed.vv2ofO` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-6b389e4f5cd2138c.txt) |
+| `<owned-temp>/media-server-current-ui-seed.qB7pX9` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-6b389e4f5cd2138c.txt) |
+| `<owned-temp>/media-server-current-ui-seed.NqMfSV` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-6b389e4f5cd2138c.txt) |
+| `<owned-temp>/media-server-current-ui-seed.mzHLo3` | 검증 소유 임시 root | 25828245B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-6b389e4f5cd2138c.txt) |
+| `<owned-temp>/media-server-current-ui-seed.Hj6Xnz` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-d47056bb2a1d430b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.G9xiSl` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-d47056bb2a1d430b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.CZEDcy` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-d47056bb2a1d430b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.oBy2Kn` | 검증 소유 임시 root | 25828245B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-d47056bb2a1d430b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.26FM0X` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-f0fe63252e54e18b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.s5N5fQ` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-f0fe63252e54e18b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.ogwoKj` | 검증 소유 임시 root | 6810184B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-f0fe63252e54e18b.txt) |
+| `<owned-temp>/media-server-current-ui-seed.iAnvk0` | 검증 소유 임시 root | 25828245B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-f0fe63252e54e18b.txt) |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-8zyDkx` | 검증 소유 임시 root | 1720B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-3c063505a96f4e41.txt) |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-xhuqE1` | 검증 소유 임시 root | 0B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-a1fe9ea444184739.txt) |
+| `<owned-temp>/media-server-current-ui-seed.sY4ybn` | 검증 소유 임시 root | 9477546B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-b53c8faa1b1e0941.txt) |
+| `<owned-temp>/media-server-current-ui-seed.BwXpO8` | 검증 소유 임시 root | 9477978B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-e1731b21e8b864c7.txt) |
+| `<owned-temp>/media-server-current-ui-seed.ohTVjW` | 검증 소유 임시 root | 9477024B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-15f0fe5b759ea94e.txt) |
+| `<owned-temp>/media-server-current-ui-seed.Va1TU9` | 검증 소유 임시 root | 9477024B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-1c4196cec1f2e1d3.txt) |
+| `<owned-temp>/media-server-current-ui-seed.NrNl1X` | 검증 소유 임시 root | 9319103B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-ab3efddd84073b0c.txt) |
+| `<owned-temp>/media-server-current-ui-seed.RytJPI` | 검증 소유 임시 root | 9477024B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-d2ea992699882556.txt) |
+| `<owned-temp>/media-server-current-ui-seed.q2bcba` | 검증 소유 임시 root | 9319103B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-7df788ea5ee31297.txt) |
+| `<owned-temp>/media-server-current-ui-seed.bk8P3W` | 검증 소유 임시 root | 9477127B | 재귀 삭제, symlink 비추적 | 부재 확인 | [원출력](public-evidence-07fccd037a51c1ed.txt) |
 
 미실행: 실제 브라우저/action·시각 증거, 실제 auth 서버 UI 전체, 30분/120분, 커밋/푸시.
 HTTP seed·제품·공개 API·저장/권한 정책은 변경하지 않았다. 기존 I30 native seek 정의는 그대로이며,
 구형 SF04 http-event 단일 MP4 결박은 이번 managed 원본 seek 정의로만 대체한다. 과거 결과는 소급 변경하지 않는다.
 
-환경·소유 코드 SHA는 [lp26-ui-environment.log](lp26-ui-environment.log)에 보존했다:
+환경·소유 코드 SHA는 [lp26-ui-environment.log](public-evidence-ae9712ccb217ad2f.txt)에 보존했다:
 HEAD ee1b7c4d15054da95d884c406dce020e875f5541, Node v24.13.0, Darwin27/arm64, GStreamer1.28.1.
 소유 추적 파일 `git diff --check -- ...` exit0. 신규 파일의 `git diff --no-index --check /dev/null ...`는
 신규 차이 존재로 exit1/진단 출력 없음이며 제품/테스트 실패로 분류하지 않는다.
@@ -576,7 +576,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### observer-self-final
 
-명령: `bash scripts/internal/verify_recording_current_observer.sh --self-test`, exit0. 원출력: [lp26-observer-self-final.log](lp26-observer-self-final.log).
+명령: `bash scripts/internal/verify_recording_current_observer.sh --self-test`, exit0. 원출력: [lp26-observer-self-final.log](public-evidence-c60b6b5e3db5b4f8.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -640,7 +640,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### observer-app-final
 
-명령: `bash scripts/internal/verify_recording_current_observer.sh --app-observe`, exit0. 원출력: [lp26-observer-app-final.log](lp26-observer-app-final.log).
+명령: `bash scripts/internal/verify_recording_current_observer.sh --app-observe`, exit0. 원출력: [lp26-observer-app-final.log](public-evidence-83de32a12e030408.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -718,7 +718,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### journal
 
-명령: `node scripts/internal/recording_journal_reader.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](lp26-observer-regressions.log).
+명령: `node scripts/internal/recording_journal_reader.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](public-evidence-75ba48b463e94ed6.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -765,7 +765,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### observer-regression
 
-명령: `node scripts/internal/recording_foundation_observer.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](lp26-observer-regressions.log).
+명령: `node scripts/internal/recording_foundation_observer.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](public-evidence-75ba48b463e94ed6.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -805,7 +805,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### progress-regression
 
-명령: `node scripts/internal/recording_longrun_progress.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](lp26-observer-regressions.log).
+명령: `node scripts/internal/recording_longrun_progress.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](public-evidence-75ba48b463e94ed6.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -857,7 +857,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### summary-regression
 
-명령: `node scripts/internal/recording_longrun_summary.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](lp26-observer-regressions.log).
+명령: `node scripts/internal/recording_longrun_summary.test.mjs`, exit0. 원출력: [lp26-observer-regressions.log](public-evidence-75ba48b463e94ed6.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -915,7 +915,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### current-integration-unit
 
-명령: `node scripts/internal/recording_current_integration.test.mjs`, exit0. 원출력: [lp26-current-integration-unit.log](lp26-current-integration-unit.log).
+명령: `node scripts/internal/recording_current_integration.test.mjs`, exit0. 원출력: [lp26-current-integration-unit.log](public-evidence-020be43420033cb2.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -972,7 +972,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### ui-isolated-seed
 
-명령: `bash scripts/internal/verify_recording_current_ui_seed.sh --self-test`, exit0. 원출력: [lp26-ui-isolated-seed.log](lp26-ui-isolated-seed.log).
+명령: `bash scripts/internal/verify_recording_current_ui_seed.sh --self-test`, exit0. 원출력: [lp26-ui-isolated-seed.log](public-evidence-056c07315daca50f.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -987,7 +987,7 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 #### ui-isolated-auth
 
-명령: `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs`, exit0. 원출력: [lp26-ui-isolated-auth.log](lp26-ui-isolated-auth.log).
+명령: `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs`, exit0. 원출력: [lp26-ui-isolated-auth.log](public-evidence-3a7fc8dc346ae6a5.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1036,18 +1036,18 @@ HTTP4초/관측stall30초/루트448MiB 상한을 늘리지 않았다. 이전 std
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-GEpaTT | 실행/복구 전용 임시root | 7723692 B | 삭제 | 부재 | observer-self-final 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-n72U3v | 실행/복구 전용 임시root | 129908999 B | 삭제 | 부재 | observer-app-final 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-FjoSzq | 실행/복구 전용 임시root | 129908999 B | 삭제 | 부재 | observer-app-final 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-7L0Iib | 실행/복구 전용 임시root | 154600157 B | 삭제 | 부재 | observer-app-final 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-buJsHR | 실행/복구 전용 임시root | 288348469 B | 삭제 | 부재 | observer-app-final 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-TpUZ3k | 단기 전용root | 4545807 B | 삭제 | 부재 | journal 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-h9qsX3 | 단기 전용root | 1932 B | 삭제 | 부재 | observer-regression 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.2tUgXJ | 실행/복구 전용 임시root | 11082126 B | 삭제 | 부재 | ui-isolated-seed 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.n8EeJ1 | 실행/복구 전용 임시root | 8414476 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.ri52D0 | 실행/복구 전용 임시root | 8414476 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.En3Gob | 실행/복구 전용 임시root | 8414476 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.SpZshk | 단기 전용root | 25830370 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
+| <owned-temp>/media-server-current-observer-GEpaTT | 실행/복구 전용 임시root | 7723692 B | 삭제 | 부재 | observer-self-final 원출력 |
+| <owned-temp>/media-server-current-observer-copy-n72U3v | 실행/복구 전용 임시root | 129908999 B | 삭제 | 부재 | observer-app-final 원출력 |
+| <owned-temp>/media-server-current-observer-copy-FjoSzq | 실행/복구 전용 임시root | 129908999 B | 삭제 | 부재 | observer-app-final 원출력 |
+| <owned-temp>/media-server-current-observer-copy-7L0Iib | 실행/복구 전용 임시root | 154600157 B | 삭제 | 부재 | observer-app-final 원출력 |
+| <owned-temp>/media-server-current-observer-buJsHR | 실행/복구 전용 임시root | 288348469 B | 삭제 | 부재 | observer-app-final 원출력 |
+| <owned-temp>/s09-journal-reader-TpUZ3k | 단기 전용root | 4545807 B | 삭제 | 부재 | journal 원출력 |
+| <owned-temp>/s09-observer-h9qsX3 | 단기 전용root | 1932 B | 삭제 | 부재 | observer-regression 원출력 |
+| <owned-temp>/media-server-current-ui-seed.2tUgXJ | 실행/복구 전용 임시root | 11082126 B | 삭제 | 부재 | ui-isolated-seed 원출력 |
+| <owned-temp>/media-server-current-ui-seed.n8EeJ1 | 실행/복구 전용 임시root | 8414476 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
+| <owned-temp>/media-server-current-ui-seed.ri52D0 | 실행/복구 전용 임시root | 8414476 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
+| <owned-temp>/media-server-current-ui-seed.En3Gob | 실행/복구 전용 임시root | 8414476 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
+| <owned-temp>/media-server-current-ui-seed.SpZshk | 단기 전용root | 25830370 B | 삭제 | 부재 | ui-isolated-auth 원출력 |
 
 실패 실행의 정리표·UI 담당의30root 기록은 앞 이력과 각 로그를 함께 따른다. 서버 원문0600 파일도 소유root와 삭제했고
 비민감 byte/hash/고정 오류 분류만 최종 로그에 보존한다. token start/end/consumed는 전용집계 미제공으로 미집계,

@@ -26,7 +26,7 @@
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-vc1uXF | 실행 소유 root | 32845008B | PID36582 exit0·HTTP50480/RTSP50481/UDP 반환 후 삭제 | rootAbsent=true | 원출력 cleanup |
+| <owned-temp>/media-server-current-integration-vc1uXF | 실행 소유 root | 32845008B | PID36582 exit0·HTTP50480/RTSP50481/UDP 반환 후 삭제 | rootAbsent=true | 원출력 cleanup |
 
 ## 개별 결과
 

@@ -20,7 +20,7 @@
 | preflight | validate actual bundle inputs; exit0 | pass |
 | build | ./server.sh build; exit0 | pass |
 | ui-environment-bootstrap | bootstrap acceptance-owned throwaway server/auth roles/Playwright storage-state; exit0 | pass |
-| ui-exact-424 | ./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921204759-41958/ui-exact-424 --http-base http://127.0.0.1:59853 --role-state-map /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/role-state-map.json --server-log /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/media-server.log --runtime-descriptor /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/runtime-descriptor.json --build-path build-gst-onnx/media_server; exit1 | fail |
+| ui-exact-424 | ./server.sh run-v390-ui-native-exact-cases --output-dir <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921204759-41958/ui-exact-424 --http-base http://127.0.0.1:59853 --role-state-map /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/role-state-map.json --server-log /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/media-server.log --runtime-descriptor /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/runtime-descriptor.json --build-path build-gst-onnx/media_server; exit1 | fail |
 | ui-server-cleanup | stop exact UI throwaway server and verify ports; exit0 | pass |
 | cleanup | validate child cleanup and preserved evidence; exit0 | pass |
 | ui-final-integrity | validate canonical UI parent/424 children/Policy/current run/source/cleanup; exit0 | pass |
@@ -477,7 +477,7 @@ ui-final-integrity PASS는 실패1건을 숨기지 않은 구조·전수 정합 
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current` | 소유 원본/임시, 파일1852·링크0 | 180,909,290B | archive 검증 후 정확 root 삭제 | 부재 true; 링크 대상 불변 비대상 | 구조화 결과 cleanup |
+| `<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current` | 소유 원본/임시, 파일1852·링크0 | 180,909,290B | archive 검증 후 정확 root 삭제 | 부재 true; 링크 대상 불변 비대상 | 구조화 결과 cleanup |
 | `/private/tmp/media-server-lp29-ui.Ti6USB` | 소유 원본/임시, 파일1863·링크277 | 201,592,125B | archive 검증 후 정확 root 삭제 | 부재 true; 링크 대상 불변 true | 구조화 결과 cleanup |
 | UI 역할/runtime 임시root | 실행 서버·격리 계정 저장소 | 1,668,883B | runner가 서버·브라우저 종료 후 삭제 | 부재 확인 | runtimeCleanup 원문 |
 | lp29-ui-full-evidence.tar.gz | 전체 UI 비민감 증거 | 19,045,901B | 사용자 승인 보존 | 전체 복원 동일 | manifest1852/hash |

@@ -1,5 +1,5 @@
 {"kind":"preflight","mode":"query-selftest","id":"lp21-01","head":"38b32a3a691f9a70a1a0ad70cceb8bd60acf79e1","sourceManifest":"ebc4a68bfd965c5e1ee7b5761ca69b0ce02e0bfc17d88e058e6928a66c494ae6","physicalBytes":25769803776,"reclaimableEstimateBytes":10864345088,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
-{"kind":"command","label":"query-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_query.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+{"kind":"command","label":"query-selftest","command":"<home>/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_query.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
 TAP version 13
 # Subtest: LP21-H01 query thread totals and maxima retain separate ownership
 ok 1 - LP21-H01 query thread totals and maxima retain separate ownership

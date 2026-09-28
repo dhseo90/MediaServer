@@ -8,19 +8,19 @@
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| preflight | command=preflight; exit=1; durationMs=0; log=/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/preflight.log; current final actual acceptance requires a clean worktree; commit approved changes before running | fail | 원본 stage |
+| preflight | command=preflight; exit=1; durationMs=0; log=<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/preflight.log; current final actual acceptance requires a clean worktree; commit approved changes before running | fail | 원본 stage |
 | build | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
 | feature-gates | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
 | server-longrun-30 | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
 | ui-environment-bootstrap | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
 | ui-exact-424 | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
-| ui-server-cleanup | command=stop exact UI throwaway server and verify ports; exit=0; durationMs=0; log=/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-server-cleanup.log;  | pass | 원본 stage |
+| ui-server-cleanup | command=stop exact UI throwaway server and verify ports; exit=0; durationMs=0; log=<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-server-cleanup.log;  | pass | 원본 stage |
 | ui-fulltest-qualification | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
 | longrun-120-decision | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
 | server-longrun-120 | command=; exit=null; durationMs=0; log=; not run after preflight failure | 미실행 | PASS 근거 아님 |
-| cleanup | command=validate child cleanup and preserved evidence; exit=0; durationMs=0; log=/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/cleanup.log;  | pass | 원본 stage |
-| ui-final-integrity | command=validate canonical UI parent/424 children/Policy/current run/source/cleanup; exit=1; durationMs=0; log=/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.log; final-parent-schema-mismatch; final-parent-eligibility-state-mismatch; final-parent-summary-path-mismatch; final-source-commit-mismatch; final-source-branch-mismatch; final-source-end-drift; final-current-source-drift; final-runtime-ownership-drift; final-policy-schema-mismatch; final-policy-not-qualified; final-policy-independent-evaluation-mismatch; final-policy-raw-schema-mismatch; final-policy-raw-source-binding-mismatch; final-policy-qualified-rows-not-canonical-424; final-policy-summary-missing; final-success-first-failure-not-null; ui-final-runtime-cleanup-not-measured | fail | preflight 뒤 2차 증거 부재 |
-| report | command=write acceptance summary/report; exit=0; durationMs=0; log=/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/report.log;  | pass | 원본 stage |
+| cleanup | command=validate child cleanup and preserved evidence; exit=0; durationMs=0; log=<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/cleanup.log;  | pass | 원본 stage |
+| ui-final-integrity | command=validate canonical UI parent/424 children/Policy/current run/source/cleanup; exit=1; durationMs=0; log=<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.log; final-parent-schema-mismatch; final-parent-eligibility-state-mismatch; final-parent-summary-path-mismatch; final-source-commit-mismatch; final-source-branch-mismatch; final-source-end-drift; final-current-source-drift; final-runtime-ownership-drift; final-policy-schema-mismatch; final-policy-not-qualified; final-policy-independent-evaluation-mismatch; final-policy-raw-schema-mismatch; final-policy-raw-source-binding-mismatch; final-policy-qualified-rows-not-canonical-424; final-policy-summary-missing; final-success-first-failure-not-null; ui-final-runtime-cleanup-not-measured | fail | preflight 뒤 2차 증거 부재 |
+| report | command=write acceptance summary/report; exit=0; durationMs=0; log=<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/report.log;  | pass | 원본 stage |
 | final-integrity | command=; exit=null; durationMs=0; log=; not selected by ui suite | 미실행 | PASS 근거 아님 |
 
 compact summary: {"total":14,"pass":3,"fail":2,"notRun":9}; stage 수14 = pass3/fail2/notRun9. 이 수는 UI case 수가 아니다.
@@ -189,7 +189,7 @@ compact summary: {"total":14,"pass":3,"fail":2,"notRun":9}; stage 수14 = pass3/
       "final-success-first-failure-not-null",
       "ui-final-runtime-cleanup-not-measured"
     ],
-    "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.json",
+    "path": "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.json",
     "bytes": 1140,
     "sha256": "fe633c74233841afba843dc71b43ef3dedc74f2e0f370ee05a994b21cbc4931d"
   },
@@ -201,8 +201,8 @@ compact summary: {"total":14,"pass":3,"fail":2,"notRun":9}; stage 수14 = pass3/
     "placeholderVideoFilesAbsent": true,
     "duplicateScreenshotFilesAbsent": true,
     "preservedArtifacts": [
-      "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json",
-      "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md"
+      "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json",
+      "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md"
     ],
     "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
     "checks": [
@@ -273,19 +273,19 @@ ui-server-cleanup은 no-environment-acquired-no-cleanup-required이며 실제 �
 | /private/tmp/s09-ui-baseline-gGUka4/before-temp-names.json | 189 | eece7c89a29416cd24a5dcf82617bf00d54b6125da86e0cf30e1b4585435220b | 실행 capture root; 삭제 예정 |
 | /private/tmp/s09-ui-baseline-gGUka4/execution.log | 11393 | 310ffa9fc1929e69dd66d8e9d83d7108c5073be63ca28887c93b3a0d3d7ee2b1 | 실행 capture root; 삭제 예정 |
 | /private/tmp/s09-ui-baseline-gGUka4/exit.json | 90 | 1a0aa155ff2cf5872a5bbb10d98819334b0308b7025d7d67cd3e41cfaaec8ea8 | 실행 capture root; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/failure-handoff.json | 2491 | d79887746f65ef0d70d6001329f388e0f5555e9cb19e1ad73ff97aa55bfaf4f7 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/failure-handoff.md | 1348 | 91febf672e0b54f05bf8270657a47b4c7c6608ec5fd0c03770577053819040f7 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/first-failure.json | 14673 | 51988b578e35fe845345d79fbfc65631063c0bb21c365a18a63d20b4fc09a183 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/first-failure.md | 1176 | 33886f7869f5e83cc772fd9882eced0e2f12534070bf1c4aba426b132cd5f472 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md | 4392 | ca05ef9345119087dd554ece6f77a14e7d6e1d5c8fbaa48f4549d4c616fc3ac4 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/cleanup.log | 827 | ddd749b92f9877ea3b3a52b1b5ca5066def738e83fdf8fc68945288df5188f7c | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/preflight.log | 98 | 2850b406fc5621e54113a6194b61e56fa7bbf646f87c3e79f277cb380723da5e | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/report.log | 222 | 9219614f1fa3c2936de771f109cc5496e2d094d07f9289bd4c08387d7bbc84d9 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.json | 1140 | fe633c74233841afba843dc71b43ef3dedc74f2e0f370ee05a994b21cbc4931d | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.log | 567 | 233be89ec5dc18ddda867947fa329b4cb7a7e8ef3d10c1991c38b995f635fded | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-server-cleanup.log | 315 | 95693ff94c15a468e0165402d193f566bc102721d01e19ad0c1eb4b36f45850f | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json | 46490 | 51f5341548a7ca723a57ec42fa17c72a1c8bda04864c5d216bda508f8a590b19 | summary.outputDir/runDir 산출물; 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/test-run-summary.json | 5134 | f461648d70e5965a62d0fe3bbc97a5d8341bced29d5380ce3a51fb133683d7ab | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/failure-handoff.json | 2491 | d79887746f65ef0d70d6001329f388e0f5555e9cb19e1ad73ff97aa55bfaf4f7 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/failure-handoff.md | 1348 | 91febf672e0b54f05bf8270657a47b4c7c6608ec5fd0c03770577053819040f7 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/first-failure.json | 14673 | 51988b578e35fe845345d79fbfc65631063c0bb21c365a18a63d20b4fc09a183 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/first-failure.md | 1176 | 33886f7869f5e83cc772fd9882eced0e2f12534070bf1c4aba426b132cd5f472 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md | 4392 | ca05ef9345119087dd554ece6f77a14e7d6e1d5c8fbaa48f4549d4c616fc3ac4 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/cleanup.log | 827 | ddd749b92f9877ea3b3a52b1b5ca5066def738e83fdf8fc68945288df5188f7c | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/preflight.log | 98 | 2850b406fc5621e54113a6194b61e56fa7bbf646f87c3e79f277cb380723da5e | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/report.log | 222 | 9219614f1fa3c2936de771f109cc5496e2d094d07f9289bd4c08387d7bbc84d9 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.json | 1140 | fe633c74233841afba843dc71b43ef3dedc74f2e0f370ee05a994b21cbc4931d | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-final-integrity.log | 567 | 233be89ec5dc18ddda867947fa329b4cb7a7e8ef3d10c1991c38b995f635fded | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260911044741-82626/ui-server-cleanup.log | 315 | 95693ff94c15a468e0165402d193f566bc102721d01e19ad0c1eb4b36f45850f | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json | 46490 | 51f5341548a7ca723a57ec42fa17c72a1c8bda04864c5d216bda508f8a590b19 | summary.outputDir/runDir 산출물; 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/test-run-summary.json | 5134 | f461648d70e5965a62d0fe3bbc97a5d8341bced29d5380ce3a51fb133683d7ab | summary.outputDir/runDir 산출물; 삭제 예정 |
 
 ### before-temp 신규 경로 대조
 

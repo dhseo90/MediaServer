@@ -75,5 +75,5 @@
 time: sysctl kern.clockrate: Operation not permitted
 [fail] LP15-C04 peakRSS bytes=null cap=536870912
 [bounded] {"code":1,"signal":null,"limit":false,"outputBytes":4562,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":null}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.moXQmy","bytes":16982833,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.moXQmy","bytes":16982833,"removed":true}
 [exit] code=2 elapsed_seconds=15 source=bash-SECONDS

@@ -247,17 +247,17 @@
   },
   "rawFiles": [
     {
-      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha/server.log",
+      "path": "<owned-temp>/media-server-hw-media-qD95Ha/server.log",
       "bytes": 14198,
       "sha256": "9c83e2c2fe956043ed117801322c7be3814b247d5fb65472dcbb8e10b24ec051"
     },
     {
-      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha/verify-codecs.log",
+      "path": "<owned-temp>/media-server-hw-media-qD95Ha/verify-codecs.log",
       "bytes": 3713,
       "sha256": "2d2614fa1f028bb6bb1c444cb1a7466628db285c0dbdff7114981f5fa96b3f7d"
     },
     {
-      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha/codec-sources.json",
+      "path": "<owned-temp>/media-server-hw-media-qD95Ha/codec-sources.json",
       "bytes": 6493,
       "sha256": "3d8d047e4df5c60d4752fa2a70249d9cc0205b86f590508343185b3eb5a511a6"
     },

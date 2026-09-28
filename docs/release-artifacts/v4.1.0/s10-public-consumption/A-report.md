@@ -24,17 +24,17 @@ Event 검증은 엄격 `SerializeDerivedJobRecord`를 재사용하여 source_ind
 
 | 명령 | exit / 결과 | 원출력·이력 |
 | --- | --- | --- |
-| `bash scripts/internal/verify_recording_public_media.sh` 최초 | 1 / 컴파일 준비 오류 | [A-Red.log](A-Red.log). fixture progress callback 이름/시그니처 오류3개. 실제 선언에 맞춰 수정, 예상 RED 아님 |
-| 같은 focused, 예상 RED | 1 / 18pass12fail | [A-ExpectedRed.log](A-ExpectedRed.log). 현재 Continuous-only gate에 정상/partial Event 및 application 제공 거부, 종속 hold assertion 실패 |
-| 같은 focused, 첫 GREEN | 0 / 30pass | [A-FirstGreen.log](A-FirstGreen.log) |
-| 같은 focused, 오류/삭제 확장 | 0 / 44pass | [A-Extended.log](A-Extended.log) |
-| 같은 focused, 최종 | 0 / 46pass | [A-FinalFocused.log](A-FinalFocused.log). 같은 크기 내용 변조2개 추가, 실제 TS sync byte·size/type·원본 삭제·hold 확인 |
-| `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24pass | [A-RetentionRegression.log](A-RetentionRegression.log) |
-| `bash scripts/internal/verify_recording_derived_job_service.sh` | 0 / 43pass | [A-ServiceRegression.log](A-ServiceRegression.log). 실제 파일/원장/복구/replay/삭제 직접 영향 |
-| `./server.sh build` | 0 | [A-PreparationBuild.log](A-PreparationBuild.log), [A-Build.log](A-Build.log), [A-FinalBuild.log](A-FinalBuild.log), 마지막 [A-FrozenBuild.log](A-FrozenBuild.log) |
-| `git diff --check` | 0 | [A-DiffCheck.log](A-DiffCheck.log) |
-| 신규 원출력 줄끝 공백 검사 | 0 / 11개 로그 trailing whitespace 0 | [A-LogWhitespace.log](A-LogWhitespace.log), Node로 각 줄 `/[ \t]+$/` 전수 검사. 원출력 수정 없음 |
-| `shasum -a 256 -c .../A-fingerprints.log` | 0 / 6개 OK | [fingerprints](A-fingerprints.log), [대조](A-FingerprintCheck.log) |
+| `bash scripts/internal/verify_recording_public_media.sh` 최초 | 1 / 컴파일 준비 오류 | [A-Red.log](public-evidence-c91a0fb8ede8cfce.txt). fixture progress callback 이름/시그니처 오류3개. 실제 선언에 맞춰 수정, 예상 RED 아님 |
+| 같은 focused, 예상 RED | 1 / 18pass12fail | [A-ExpectedRed.log](public-evidence-9cf5dd6ec5e5cca3.txt). 현재 Continuous-only gate에 정상/partial Event 및 application 제공 거부, 종속 hold assertion 실패 |
+| 같은 focused, 첫 GREEN | 0 / 30pass | [A-FirstGreen.log](public-evidence-067ee7928804bec9.txt) |
+| 같은 focused, 오류/삭제 확장 | 0 / 44pass | [A-Extended.log](public-evidence-1161939df32ec793.txt) |
+| 같은 focused, 최종 | 0 / 46pass | [A-FinalFocused.log](public-evidence-9d3f9de8b4b3fc9b.txt). 같은 크기 내용 변조2개 추가, 실제 TS sync byte·size/type·원본 삭제·hold 확인 |
+| `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24pass | [A-RetentionRegression.log](public-evidence-9212cb20b2e4e8c6.txt) |
+| `bash scripts/internal/verify_recording_derived_job_service.sh` | 0 / 43pass | [A-ServiceRegression.log](public-evidence-6b1c381ad3a9bfc2.txt). 실제 파일/원장/복구/replay/삭제 직접 영향 |
+| `./server.sh build` | 0 | [A-PreparationBuild.log](public-evidence-09263df77716882f.txt), [A-Build.log](public-evidence-a666c516c9504cab.txt), [A-FinalBuild.log](public-evidence-b6559edb46c237cf.txt), 마지막 [A-FrozenBuild.log](public-evidence-1e657a9091d5ea59.txt) |
+| `git diff --check` | 0 | [A-DiffCheck.log](public-evidence-1a7f2386f79d55cb.txt) |
+| 신규 원출력 줄끝 공백 검사 | 0 / 11개 로그 trailing whitespace 0 | [A-LogWhitespace.log](public-evidence-daf3a5fe4fa606ec.txt), Node로 각 줄 `/[ \t]+$/` 전수 검사. 원출력 수정 없음 |
+| `shasum -a 256 -c .../A-fingerprints.log` | 0 / 6개 OK | [fingerprints](public-evidence-4231fc8144905751.txt), [대조](public-evidence-bdb0093119fa86ab.txt) |
 
 retention/service 회귀 이후 수정은 read 응답 MIME을 이미 검사한 current snapshot으로 통일한 부분이며, 해당 read focused46과 build를 다시 실행했다. catalog/service 코드는 그대로라 두 회귀의 유효 증거를 유지했다. 기존 전체5.3b429개·D02 전체를 반복하지 않았다.
 

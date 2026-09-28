@@ -55,7 +55,7 @@ PHASE expected RED EXIT 1
 [fail] LP09-Q01 expired queued first evaluation consumes current evidence without deadline extension
 [pass] LP09-Q03 queued reference remains durably owned
 [summary] pass=15 fail=10
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.3YsfaD bytes=10666976 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.3YsfaD bytes=10666976 removed=true
 [elapsed] seconds=5 source=bash-SECONDS
 
 COMMAND bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-only
@@ -89,7 +89,7 @@ PHASE GREEN EXIT 0
 [pass] LP09-Q01 expired queued first evaluation consumes current evidence without deadline extension
 [pass] LP09-Q03 queued reference remains durably owned
 [summary] pass=25 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.0VqTgC bytes=10208784 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.0VqTgC bytes=10208784 removed=true
 [elapsed] seconds=4 source=bash-SECONDS
 
 COMMAND bash scripts/internal/verify_recording_derived_event_integration.sh
@@ -184,5 +184,5 @@ PHASE impact regression EXIT 0 (56 PASS; ReadyDurable child23 expected)
 [pass] E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown
 [pass] E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음
 [summary] pass=2 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.7txmAg bytes=15288968 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.7txmAg bytes=15288968 removed=true
 [elapsed] seconds=11 source=bash-SECONDS

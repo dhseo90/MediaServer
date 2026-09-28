@@ -112,5 +112,5 @@ token start/end/consumed: 미집계(집계 미제공)
 [recording] file evidence unavailable: file evidence profile/bound 오류
 [pass] WR01 actual appsink observation flows through managed writer and decode
 [summary] pass=44 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.NOM7KO bytes=16649067 removed=true
+[cleanup] path=<owned-temp>/media-server-managed-writer.NOM7KO bytes=16649067 removed=true
 [elapsed] seconds=10 source=bash-SECONDS

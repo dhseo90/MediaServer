@@ -96,5 +96,5 @@ token start/end/consumed: 미집계(집계 미제공)
            146703104  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=173670400 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5247,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":173670400}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.rRENn7","bytes":16832133,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.rRENn7","bytes":16832133,"removed":true}
 [exit] code=0 elapsed_seconds=33 source=bash-SECONDS

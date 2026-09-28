@@ -205,7 +205,7 @@ EXIT 0
 [pass] F12 SQLite rebuild·checkpoint 재개방 job/output 일치
 [pass] F13 Complete output tombstone 뒤 재생성 없음
 [summary] pass=43 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.fzhkQO bytes=17704497 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-job-service.fzhkQO bytes=17704497 removed=true
 [elapsed] seconds=28 source=bash-SECONDS
 
 COMMAND bash scripts/internal/verify_recording_derived_remux.sh
@@ -389,7 +389,7 @@ EXIT 0
 [detail] multi_error= inputs=3 outputs=3
 [pass] R05 실제 epoch 변경 원본→독립 출력 목록
 [summary] pass=30 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.lXRoDR bytes=12751931 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-remux.lXRoDR bytes=12751931 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 
 COMMAND bash scripts/internal/verify_recording_derived_event_integration.sh
@@ -484,7 +484,7 @@ EXIT 0
 [pass] E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown
 [pass] E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음
 [summary] pass=2 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.LDbLfS bytes=15652142 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.LDbLfS bytes=15652142 removed=true
 [elapsed] seconds=12 source=bash-SECONDS
 
 COMMAND bash scripts/internal/verify_recording_derived_jobs.sh
@@ -527,7 +527,7 @@ EXIT 0
 [detail] injected=managed journal 미완결 tail 거부
 [detail] admission=created
 [summary] pass=23 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.hskGKk bytes=9425919 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-jobs.hskGKk bytes=9425919 removed=true
 [elapsed] seconds=8 source=bash-SECONDS
 
 POST-RUN source/build/environment fingerprints

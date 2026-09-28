@@ -435,7 +435,7 @@ token start/end/consumed 미집계: 실행 도구가 제공하지 않음. source
 | 3-code-comments.log | `./server.sh verify-code-comments` |
 | 4-docs-links.log | `./server.sh verify-docs-links` |
 | 5-config-json.log | `python3 -m json.tool config/codec_test_sources.json >/dev/null` |
-| 6-report-summary.log | `./server.sh summarize-reports /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-093000/test-summary.json --output /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-093000/verification_report.md --html-output /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-093000/verification_report.html ` |
+| 6-report-summary.log | `./server.sh summarize-reports <home>/Workspace/mediaServer/.media_server.test/20260911-093000/test-summary.json --output <home>/Workspace/mediaServer/.media_server.test/20260911-093000/verification_report.md --html-output <home>/Workspace/mediaServer/.media_server.test/20260911-093000/verification_report.html ` |
 | 7-status.log | `./server.sh status` |
 | 8-diagnose.log | `./server.sh diagnose` |
 | 9-codec-file_local_h264_aac.log | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='file_local_h264_aac' ./server.sh verify-codecs` |
@@ -5666,7 +5666,7 @@ process ledger binary PID45889/48429는 aliveBefore=true/aliveAfter=false, ports
 | --- | --- | ---: | --- |
 | /private/tmp/s09-predev120-rQnWAb | 실행 root | 54918497 bytes/373files | 메인 측정, 삭제 대기 |
 | /private/tmp/media_server_predev-1789086596-45840 | runner | 2128447 bytes/1059files | 메인 측정, 삭제 대기 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-093000 | child | 37940 bytes/24files | 메인 측정, 삭제 대기 |
+| <home>/Workspace/mediaServer/.media_server.test/20260911-093000 | child | 37940 bytes/24files | 메인 측정, 삭제 대기 |
 
 아래는 원 runner/child log에 등장한 exact timestamp-PID prefix323개다. 각 경로는 `/private/tmp/` + stem + suffix로 정확히 결합된다. suffix 목록에는 파일/디렉터리별 bytes를 붙였다. 현재2263개 entry가 연결되며 디렉터리 bytes는 recursive 합계다. before차이2304개와의 차이41개는 이 읽기에서 소유 확정하지 않아 자동 삭제 대상으로 포함하지 않는다. baseline 차이만으로 소유를 추정하지 않았다. 모든 항목 삭제 대기이며 child는 삭제하지 않았다.
 

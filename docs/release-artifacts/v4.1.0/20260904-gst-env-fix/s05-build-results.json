@@ -15,7 +15,7 @@
       "exitCode": 0,
       "signal": null,
       "elapsedMs": 603,
-      "stdout": "[env] local override skipped\n[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx\n[2/2] build\n[ 98%] Built target media_server_runtime\n[100%] Built target media_server\n[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server\n",
+      "stdout": "[env] local override skipped\n[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx\n[2/2] build\n[ 98%] Built target media_server_runtime\n[100%] Built target media_server\n[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server\n",
       "stderr": ""
     }
   ],

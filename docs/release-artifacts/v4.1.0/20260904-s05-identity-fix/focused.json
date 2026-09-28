@@ -197,7 +197,7 @@
       "cause": "격리 PATH에 현재 nvm Node 설치 bin 누락",
       "dispatch": "server.sh와 internal S05 wrapper에는 진입했으나 wrapper 12행 Node 등록검증에서 실패하여 제품 C++/runtime 본문은 미착수",
       "home": "기존 부모 HOME 값 그대로 전달, 값 비공개",
-      "actualNodePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+      "actualNodePath": "<home>/.nvm/versions/node/v24.13.0/bin/node",
       "productSmokeExecuted": false,
       "cleanup": {
         "path": "/private/tmp/media-server-idmap-s05.CjMBxq",

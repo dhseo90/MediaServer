@@ -175,4 +175,4 @@
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | /private/tmp/media-server-lp30.lgFabk | 실행 소유 자료·임시 cache | 3292411B | 필요한 증거 보존 후 삭제 | 부재 확인 | 소유 PID 종료·포트 재바인딩·277링크 대상 유지 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a | 실행 소유 자료·임시 cache | 14915500B | 필요한 증거 보존 후 삭제 | 부재 확인 | 소유 PID 종료·포트 재바인딩·0링크 대상 유지 |
+| <home>/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a | 실행 소유 자료·임시 cache | 14915500B | 필요한 증거 보존 후 삭제 | 부재 확인 | 소유 PID 종료·포트 재바인딩·0링크 대상 유지 |

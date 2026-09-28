@@ -17,7 +17,7 @@ test('LP26-O09-A02 identity·clock·pid 불일치',()=>{
     assert.throws(()=>progress.assertSampleStep(sample(),value,0,42),/sample-/);
 });
 test('LP26-O09-A03 보존 attempt3의 초과5건 중 첫 간격에서 실패',()=>{
-  const text=fs.readFileSync(new URL('../../docs/release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt3.log',import.meta.url),'utf8');
+  const text=fs.readFileSync(new URL('../../docs/release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-35a1ef0bead95f67.txt',import.meta.url),'utf8');
   const rows=text.split('\n').filter(l=>l.startsWith('[current-observation] ')).map(l=>JSON.parse(l.slice('[current-observation] '.length)));
   const failures=rows.slice(1).map((r,i)=>r.phaseAt-rows[i].phaseAt>15000?i+1:-1).filter(i=>i>=0);
   assert.equal(failures.length,5);let visited=0;

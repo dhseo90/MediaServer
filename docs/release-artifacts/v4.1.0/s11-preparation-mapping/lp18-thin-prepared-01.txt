@@ -23,7 +23,7 @@ fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944  include/record
 [pass] LP14-C02 binding=prior rejected without apply
 [pass] LP14-C02 duplicate envelope no-apply/conflict rejection
 [pass] LP14-C02 one-shot apply/reuse rejection
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.dp1b9r","bytes":9267543,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.dp1b9r","bytes":9267543,"removed":true}
 [exit] code=0 elapsed_seconds=5 source=bash-SECONDS
 real 4.71
 user 4.02

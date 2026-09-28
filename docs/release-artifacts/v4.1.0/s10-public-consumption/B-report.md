@@ -66,29 +66,29 @@ unknown 파일이 제공 가능하더라도 조회 시간 귀속이나 영상의
 
 | 실제 명령 | exit | 개별 결과 | 원출력 |
 | --- | --- | --- | --- |
-| `./server.sh build` | 0 | 제품 build, assertion 수와 별도 | [B-BoundedBuild](B-BoundedBuild.log); 앞선 First/Mapping/Extended/OutputPreparation build도 각각 exit0 |
-| `bash scripts/internal/verify_recording_public_timeline.sh` | 0 | 38 PASS/0 FAIL,34.608s | [최종 focused](B-Regression-FinalFocused.log) |
-| `bash scripts/internal/verify_v410_recording_timeline.sh --read-model` | 0 | 166 PASS,cleanup1별도 | [LegacyTimeline](B-Regression-LegacyTimeline.log) |
-| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 14 PASS | [Location](B-Regression-Location.log) |
-| `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS | [SourceBinding](B-Regression-SourceBinding.log) |
-| `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 | 19 PASS | [Reference](B-Regression-Reference.log) |
-| `bash scripts/internal/verify_recording_retention_v2.sh` | 0 | 24 PASS | [Retention](B-Regression-Retention.log) |
-| `bash scripts/internal/verify_v410_recording_finalize_recovery.sh --integration` | 0 | 140 PASS | [Finalize](B-Regression-Finalize.log) |
-| `bash scripts/internal/verify_recording_range_resolution.sh` | 0 | 16 PASS | [Range](B-Regression-Range.log) |
-| `bash scripts/internal/verify_recording_consumer_connection.sh` | 0 | 22 PASS | [Connection](B-Regression-Connection.log) |
-| `bash scripts/internal/verify_v410_event_recording.sh` | 0 | C++158+application7+runtime23+음성2 PASS, 등록기35/정식ID27별도 | [EventClosed](B-Regression-EventClosed.log) |
-| `bash scripts/internal/verify_recording_identity.sh` | 0 | 23 PASS | [Identity](B-Regression-Identity.log) |
-| `bash scripts/internal/verify_recording_derived_jobs.sh` | 0 | 23 PASS | [Jobs](B-Regression-Jobs.log) |
-| `node scripts/internal/verify_v390_event_storage_application_boundary.mjs --composition-self-test` | 0 | exact22 PASS | [구성 자체 검사](B-CompositionSelfTestFinal.log) |
-| `git diff --check` | 0 | assertion 합계와 별도 | [B-DiffCheck](B-DiffCheck.log) |
-| `shasum -a 256 -c docs/release-artifacts/v4.1.0/s10-public-consumption/B-fingerprints.log` | 0 | 24파일 OK | [FingerprintCheck](B-FingerprintCheck.log) |
+| `./server.sh build` | 0 | 제품 build, assertion 수와 별도 | [B-BoundedBuild](public-evidence-cbec23188b1369ab.txt); 앞선 First/Mapping/Extended/OutputPreparation build도 각각 exit0 |
+| `bash scripts/internal/verify_recording_public_timeline.sh` | 0 | 38 PASS/0 FAIL,34.608s | [최종 focused](public-evidence-490b96ffa8edede2.txt) |
+| `bash scripts/internal/verify_v410_recording_timeline.sh --read-model` | 0 | 166 PASS,cleanup1별도 | [LegacyTimeline](public-evidence-7944ad8889d0ef8f.txt) |
+| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 14 PASS | [Location](public-evidence-484c3a3a5d417c7b.txt) |
+| `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS | [SourceBinding](public-evidence-c23d094ed91b38c9.txt) |
+| `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 | 19 PASS | [Reference](public-evidence-a366e5a9a077aa83.txt) |
+| `bash scripts/internal/verify_recording_retention_v2.sh` | 0 | 24 PASS | [Retention](public-evidence-a98f669794045755.txt) |
+| `bash scripts/internal/verify_v410_recording_finalize_recovery.sh --integration` | 0 | 140 PASS | [Finalize](public-evidence-09d9fe3b0cebd693.txt) |
+| `bash scripts/internal/verify_recording_range_resolution.sh` | 0 | 16 PASS | [Range](public-evidence-ad3171f83e4c96ee.txt) |
+| `bash scripts/internal/verify_recording_consumer_connection.sh` | 0 | 22 PASS | [Connection](public-evidence-42aa5c0b9cc73209.txt) |
+| `bash scripts/internal/verify_v410_event_recording.sh` | 0 | C++158+application7+runtime23+음성2 PASS, 등록기35/정식ID27별도 | [EventClosed](public-evidence-4d83d9dbf0dd69b7.txt) |
+| `bash scripts/internal/verify_recording_identity.sh` | 0 | 23 PASS | [Identity](public-evidence-89cbae76b70e98a8.txt) |
+| `bash scripts/internal/verify_recording_derived_jobs.sh` | 0 | 23 PASS | [Jobs](public-evidence-2ce3dfcbb8a0de8c.txt) |
+| `node scripts/internal/verify_v390_event_storage_application_boundary.mjs --composition-self-test` | 0 | exact22 PASS | [구성 자체 검사](public-evidence-bebdd09cff0ce5c0.txt) |
+| `git diff --check` | 0 | assertion 합계와 별도 | [B-DiffCheck](public-evidence-8d52efc6ea9a0c36.txt) |
+| `shasum -a 256 -c docs/release-artifacts/v4.1.0/s10-public-consumption/B-fingerprints.log` | 0 | 24파일 OK | [FingerprintCheck](public-evidence-ff1800cc8c3c6ed3.txt) |
 
 최종 focused38+구성 self22+직접 회귀657+등록기35+정식ID27=**779개 판정행**을
 [B-results](B-results.md)에 원출력과 일대일 연결했다. 정식 ID/등록기를 제품 assertion으로 중복 승격하지 않는다.
 역사적 실행607행은 같은 파일의 별도 절이다. 표 생성 중 escape 오류로 첫 추출이 실패한 이력은
-[B-ResultsGenerationError](B-ResultsGenerationError.log)에 보존하고 재생성 후779/607행을 실제 대조했다.
+[B-ResultsGenerationError](public-evidence-ef2e221f6b9898e1.txt)에 보존하고 재생성 후779/607행을 실제 대조했다.
 이는 문서 생성 오류이며 제품 검증 실패나 재실행 사유가 아니다. 신규 원출력40파일의 trailing whitespace0은
-[B-LogWhitespaceFinal](B-LogWhitespaceFinal.log)에 보존했다. C의 메인 실행29개는 별도 C 보고서이며 B 합계에 넣지 않는다.
+[B-LogWhitespaceFinal](public-evidence-26278a4a80739899.txt)에 보존했다. C의 메인 실행29개는 별도 C 보고서이며 B 합계에 넣지 않는다.
 
 ## 미실행·정리·계측
 
@@ -97,7 +97,7 @@ unknown 파일이 제공 가능하더라도 조회 시간 귀속이나 영상의
 [B-cleanup](B-cleanup.md)의 원출력에 기록된 소유 임시경로27개는 모두 실제 부재를 재확인했다.
 application boundary 내부 header/app 두 prefix는 개별 경로·삭제 전 크기 원출력 미기록이며,
 기존 finally 삭제와 메인의 현재 prefix 잔여0 확인으로 별도 기록했다. 경로/크기를 추정 복원하지 않았다.
-[B-fingerprints](B-fingerprints.log)는 변경 제품/신규 fixture/직접 runner/정정한 S05 manifest24개다.
+[B-fingerprints](public-evidence-7636f70301712840.txt)는 변경 제품/신규 fixture/직접 runner/정정한 S05 manifest24개다.
 문서 gate는 메인 최신 사용법·계획을 포함해 D 최종 묶음에서 실행한다. A 안전 helper 자체는 B에서 변경하지 않아
 인계만을 이유로 A46을 반복하지 않았고, 공유 read/catalog의 직접 링크 경계는 위11개 runner로 확인했다.
 token start/end/consumed는 실행별 토큰 계측 도구 부재로 미집계다. elapsed는 runner 또는 Node spawn 측정,

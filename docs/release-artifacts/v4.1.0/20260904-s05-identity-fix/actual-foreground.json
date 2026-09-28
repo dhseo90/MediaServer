@@ -568,7 +568,7 @@
       "result": "pass",
       "detail": {
         "binary": {
-          "path": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "path": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
           "before": {
             "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
             "mtimeMs": 1788531780868.6682
@@ -645,7 +645,7 @@
   ],
   "childEnvDigest": "ce37b5573fdf762bdad93617f02176bc4d09e0ebd9964d925dc1934d3e08fe62",
   "binary": {
-    "path": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+    "path": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
     "before": {
       "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
       "mtimeMs": 1788531780868.6682

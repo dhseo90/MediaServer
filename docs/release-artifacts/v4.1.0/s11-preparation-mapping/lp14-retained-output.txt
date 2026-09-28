@@ -30,9 +30,9 @@ R03 | 최초4조회 전후 원본hash/inode불변 | pass
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import {captureStateEvidence,runDiagnosticProbe} from '/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.mjs';
-const root='/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-Gv9R6R';
-const repo='/Users/dhseo/Workspace/mediaServer',original=path.join(root,'recordings'),copy=path.join(root,'projection-copy-1/recordings');
+import {captureStateEvidence,runDiagnosticProbe} from '<home>/Workspace/mediaServer/scripts/internal/recording_failure_capture.mjs';
+const root='<owned-temp>/media-server-current-integration-Gv9R6R';
+const repo='<home>/Workspace/mediaServer',original=path.join(root,'recordings'),copy=path.join(root,'projection-copy-1/recordings');
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 const st=fs.lstatSync(root);if(st.isSymbolicLink()||!st.isDirectory()||st.uid!==process.getuid()||(st.mode&0o777)!==0o700||fs.realpathSync(root)!==root)throw Error('root-ownership');
 function scan(base){const rows=[];let bytes=0;function visit(p){for(const name of fs.readdirSync(p).sort()){const file=path.join(p,name),s=fs.lstatSync(file);if(s.isSymbolicLink())throw Error('symlink');if(s.isDirectory()){visit(file);continue;}if(!s.isFile()||s.nlink!==1)throw Error('file-type');bytes+=s.size;if(bytes>512*1024*1024||rows.length>=4096)throw Error('scan-cap');rows.push({path:path.relative(base,file),bytes:s.size,sha:sha(fs.readFileSync(file)),inode:s.ino});}}visit(base);return {rows,bytes};}
@@ -55,9 +55,9 @@ console.log(JSON.stringify({originalUnchanged:true,remuxPerformed:false,normalSh
 
 --- retained-failure.mjs ---
 import fs from 'node:fs';import crypto from 'node:crypto';
-import {runDiagnosticProbe} from '/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.mjs';
-const root='/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-Gv9R6R';
-const expected=JSON.parse(fs.readFileSync('/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-2.json')).diagnostic;
+import {runDiagnosticProbe} from '<home>/Workspace/mediaServer/scripts/internal/recording_failure_capture.mjs';
+const root='<owned-temp>/media-server-current-integration-Gv9R6R';
+const expected=JSON.parse(fs.readFileSync('<home>/Workspace/mediaServer/docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-2.json')).diagnostic;
 const reference=fs.readFileSync(root+'/events/events.jsonl','utf8').trim().split('\n').map(JSON.parse).find(r=>crypto.createHash('sha256').update(r.recordingLinkId).digest('hex')===expected.referenceSha256)?.recordingLinkId;if(!reference)throw Error('reference-missing');
 const x=runDiagnosticProbe({binary:root+'/archive-probe',root,index:1,reference,mode:'--diagnose-basic',env:{PATH:process.env.PATH,HOME:root,TMPDIR:root+'/tmp'},deadline:performance.now()+15000});
 const keys=['state','failureReason','sourceCount','outputCount','plannedOutputCount','fileReceiptCount','copyCatalogOpened','capturedIntentSha256'];

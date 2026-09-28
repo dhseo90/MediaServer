@@ -6,9 +6,9 @@
       "file": "cmake",
       "args": [
         "-S",
-        "/Users/dhseo/Workspace/mediaServer",
+        "<home>/Workspace/mediaServer",
         "-B",
-        "/Users/dhseo/Workspace/mediaServer/build-gst-onnx",
+        "<home>/Workspace/mediaServer/build-gst-onnx",
         "-DMEDIA_SERVER_USE_GSTREAMER=ON",
         "-DMEDIA_SERVER_USE_ONNXRUNTIME=ON",
         "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",

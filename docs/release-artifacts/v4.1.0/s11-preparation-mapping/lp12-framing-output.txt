@@ -35,7 +35,7 @@ node=v24.13.0 platform=darwin arch=arm64
      553   35178 total
 
 === F01 expected RED exit1 elapsed8s ===
-[environment] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.jfht69 headless=true optimized=false
+[environment] owned_root=<owned-temp>/media-server-file-avc.jfht69 headless=true optimized=false
 [pass]  F01 actual encoded AVC caps and codec_data
 [pass] avc FE02 writer start
 [recording] file evidence unavailable: capture-accept-vcl-vcl-missing
@@ -43,11 +43,11 @@ node=v24.13.0 platform=darwin arch=arm64
 [measure] writer_push_finalize_us=10522 input_aus=90 segments=1
 [pass] avc F01 AVC existing recording finalizes one segment
 [fail] avc F01 AVC actual writer issues file evidence
-{"cleanupRoot":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.jfht69","bytes":6987898,"absent":true}
+{"cleanupRoot":"<owned-temp>/media-server-file-avc.jfht69","bytes":6987898,"absent":true}
 [elapsed] seconds=8 exit=1
 
 === F01 interim GREEN exit0 elapsed8s 6PASS ===
-[environment] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.wFSfFI headless=true optimized=false
+[environment] owned_root=<owned-temp>/media-server-file-avc.wFSfFI headless=true optimized=false
 [pass]  F01 actual encoded AVC caps and codec_data
 [pass] avc FE02 writer start
 [pass] avc FE04 bound finalized mutation segment0
@@ -56,11 +56,11 @@ node=v24.13.0 platform=darwin arch=arm64
 [pass] avc F01 AVC actual writer issues file evidence
 [pass] avc F01 AVC final native file and hash verified
 [summary] checks_pass=6 checks_fail=0 scope=actual-avc-file-evidence
-{"cleanupRoot":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.wFSfFI","bytes":7029556,"absent":true}
+{"cleanupRoot":"<owned-temp>/media-server-file-avc.wFSfFI","bytes":7029556,"absent":true}
 [elapsed] seconds=8 exit=0
 
 === F01 final GREEN exit0 elapsed8s 7PASS ===
-[environment] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.6fBe88 headless=true optimized=false
+[environment] owned_root=<owned-temp>/media-server-file-avc.6fBe88 headless=true optimized=false
 [pass]  F01 actual encoded AVC caps and codec_data
 [pass] avc FE02 writer start
 [pass] avc FE04 bound finalized mutation segment0
@@ -70,7 +70,7 @@ node=v24.13.0 platform=darwin arch=arm64
 [pass] avc F01 AVC final native file and hash verified
 [pass] avc F01 AVC original ordinal PTS DTS duration unchanged
 [summary] checks_pass=7 checks_fail=0 scope=actual-avc-file-evidence
-{"cleanupRoot":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.6fBe88","bytes":7029556,"absent":true}
+{"cleanupRoot":"<owned-temp>/media-server-file-avc.6fBe88","bytes":7029556,"absent":true}
 [elapsed] seconds=8 exit=0
 
 === C/F interim GREEN exit0 elapsed3s 47PASS ===
@@ -182,10 +182,10 @@ node=v24.13.0 platform=darwin arch=arm64
 
 === headless skip-local-env build exit0 elapsed not separately measured ===
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_file_evidence.cpp.o
@@ -195,11 +195,11 @@ node=v24.13.0 platform=darwin arch=arm64
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 === D Node3 regression exit0 110PASS elapsed31992.703708ms ===
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-jZtorQ bytes=41654990 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-jZtorQ bytes=41654990 removed=true
 ✔ LP12-D02-D03 proof-legacy actual catalog proof와 intent 구분 (2534.011125ms)
 ✔ LP12-D02-D03 proof-native actual catalog proof와 intent 구분 (1157.283667ms)
 ✔ LP12-D02-D03 proof-candidate actual catalog proof와 intent 구분 (825.564ms)
@@ -242,46 +242,46 @@ node=v24.13.0 platform=darwin arch=arm64
 ✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (630.720125ms)
 ✔ LP05-03 rejects symlink copy without original mutation (278.680208ms)
 ✔ LP05-03 rejects hardlink copy without original mutation (277.50075ms)
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-smU9Wg","bytes":819,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-T6mLkG","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xdA4ci","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZxdWGc","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AkopBc","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-DQWo4R","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KxbHSk","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UNZU2D","bytes":96,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RYvg0C","bytes":3006,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-G8s6Tu","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-zQvMes","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Y8FutB","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QuAXSP","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EmGtXS","bytes":2654,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AK6k9j","bytes":2654,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TflDTD","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-72rxRB","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gfEPzL","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3II8E0","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-39Wc1d","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6zIb3V","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-9gzGIj","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-p0Fp1L","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-zuzRkm","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-d0TtNe","bytes":2732,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QMdWQK","bytes":2732,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0pTnNL","bytes":2733,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fVWKd7","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gHoBqu","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qDmE3N","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-udDdoy","bytes":2714,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-etAsds","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-e9d9d6","bytes":98,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7zcK0j","bytes":3067,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-sYf7O2","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-y2qxr4","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XWnZ8t","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XLBUn3","bytes":274,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3OnIaF","bytes":97,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-X7Nyj8","bytes":163,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-smU9Wg","bytes":819,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-T6mLkG","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-xdA4ci","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-ZxdWGc","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-AkopBc","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-DQWo4R","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-KxbHSk","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-UNZU2D","bytes":96,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-RYvg0C","bytes":3006,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-G8s6Tu","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-zQvMes","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Y8FutB","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-QuAXSP","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-EmGtXS","bytes":2654,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-AK6k9j","bytes":2654,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-TflDTD","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-72rxRB","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gfEPzL","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-3II8E0","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-39Wc1d","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-6zIb3V","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-9gzGIj","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-p0Fp1L","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-zuzRkm","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-d0TtNe","bytes":2732,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-QMdWQK","bytes":2732,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-0pTnNL","bytes":2733,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-fVWKd7","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gHoBqu","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-qDmE3N","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-udDdoy","bytes":2714,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-etAsds","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-e9d9d6","bytes":98,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-7zcK0j","bytes":3067,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-sYf7O2","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-y2qxr4","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XWnZ8t","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XLBUn3","bytes":274,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-3OnIaF","bytes":97,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-X7Nyj8","bytes":163,"removed":true}
 ✔ LP12-F04 input framing 고정 오류만 안전 집계 (0.674959ms)
 ✔ LP12-C07 exact phase/code와 unknown 고정 조합만 수집 (0.097125ms)
 ✔ LP12-D06 writer fixed 사유만 집계하고 원문을 보존하지 않음 (0.322209ms)
@@ -788,53 +788,53 @@ node=v24.13.0 platform=darwin arch=arm64
 
 | 경로 | 종류 | 삭제 전 크기 B | 조치 | 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.jfht69 | fixture/media/cache | 6987898 | 삭제 | 부재 확인 | lp12-framing-output.txt:46 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.wFSfFI | fixture/media/cache | 7029556 | 삭제 | 부재 확인 | lp12-framing-output.txt:59 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-avc.6fBe88 | fixture/media/cache | 7029556 | 삭제 | 부재 확인 | lp12-framing-output.txt:73 |
+| <owned-temp>/media-server-file-avc.jfht69 | fixture/media/cache | 6987898 | 삭제 | 부재 확인 | lp12-framing-output.txt:46 |
+| <owned-temp>/media-server-file-avc.wFSfFI | fixture/media/cache | 7029556 | 삭제 | 부재 확인 | lp12-framing-output.txt:59 |
+| <owned-temp>/media-server-file-avc.6fBe88 | fixture/media/cache | 7029556 | 삭제 | 부재 확인 | lp12-framing-output.txt:73 |
 | /private/tmp/media-server-capture-diagnostic.NEA1hi | fixture/media/cache | 2499972 | 삭제 | 부재 확인 | lp12-framing-output.txt:125 |
 | /private/tmp/media-server-capture-diagnostic.wSDXyV | fixture/media/cache | 2499972 | 삭제 | 부재 확인 | lp12-framing-output.txt:180 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-jZtorQ | fixture/media/cache | 41654990 | 삭제 | 부재 확인 | lp12-framing-output.txt:202 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-smU9Wg | fixture/media/cache | 819 | 삭제 | 부재 확인 | lp12-framing-output.txt:245 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-T6mLkG | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:246 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xdA4ci | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:247 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZxdWGc | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:248 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AkopBc | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:249 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-DQWo4R | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:250 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KxbHSk | fixture/media/cache | 8 | 삭제 | 부재 확인 | lp12-framing-output.txt:251 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UNZU2D | fixture/media/cache | 96 | 삭제 | 부재 확인 | lp12-framing-output.txt:252 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RYvg0C | fixture/media/cache | 3006 | 삭제 | 부재 확인 | lp12-framing-output.txt:253 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-G8s6Tu | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:254 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-zQvMes | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:255 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Y8FutB | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:256 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QuAXSP | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:257 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EmGtXS | fixture/media/cache | 2654 | 삭제 | 부재 확인 | lp12-framing-output.txt:258 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AK6k9j | fixture/media/cache | 2654 | 삭제 | 부재 확인 | lp12-framing-output.txt:259 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TflDTD | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:260 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-72rxRB | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:261 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gfEPzL | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:262 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3II8E0 | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:263 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-39Wc1d | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:264 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6zIb3V | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:265 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-9gzGIj | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:266 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-p0Fp1L | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:267 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-zuzRkm | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:268 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-d0TtNe | fixture/media/cache | 2732 | 삭제 | 부재 확인 | lp12-framing-output.txt:269 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QMdWQK | fixture/media/cache | 2732 | 삭제 | 부재 확인 | lp12-framing-output.txt:270 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0pTnNL | fixture/media/cache | 2733 | 삭제 | 부재 확인 | lp12-framing-output.txt:271 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fVWKd7 | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:272 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gHoBqu | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:273 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qDmE3N | fixture/media/cache | 8 | 삭제 | 부재 확인 | lp12-framing-output.txt:274 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-udDdoy | fixture/media/cache | 2714 | 삭제 | 부재 확인 | lp12-framing-output.txt:275 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-etAsds | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:276 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-e9d9d6 | fixture/media/cache | 98 | 삭제 | 부재 확인 | lp12-framing-output.txt:277 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7zcK0j | fixture/media/cache | 3067 | 삭제 | 부재 확인 | lp12-framing-output.txt:278 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-sYf7O2 | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:279 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-y2qxr4 | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:280 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XWnZ8t | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:281 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XLBUn3 | fixture/media/cache | 274 | 삭제 | 부재 확인 | lp12-framing-output.txt:282 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3OnIaF | fixture/media/cache | 97 | 삭제 | 부재 확인 | lp12-framing-output.txt:283 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-X7Nyj8 | fixture/media/cache | 163 | 삭제 | 부재 확인 | lp12-framing-output.txt:284 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Q3Iggf | fixture/media/cache | 103355092 | 삭제 | 부재 확인 | file-evidence-output-lp12-framing.txt:241 |
+| <owned-temp>/media-server-archive-probe-tests-jZtorQ | fixture/media/cache | 41654990 | 삭제 | 부재 확인 | lp12-framing-output.txt:202 |
+| <owned-temp>/recording-capture-smU9Wg | fixture/media/cache | 819 | 삭제 | 부재 확인 | lp12-framing-output.txt:245 |
+| <owned-temp>/recording-capture-T6mLkG | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:246 |
+| <owned-temp>/recording-capture-xdA4ci | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:247 |
+| <owned-temp>/recording-capture-ZxdWGc | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:248 |
+| <owned-temp>/recording-capture-AkopBc | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:249 |
+| <owned-temp>/recording-capture-DQWo4R | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:250 |
+| <owned-temp>/recording-capture-KxbHSk | fixture/media/cache | 8 | 삭제 | 부재 확인 | lp12-framing-output.txt:251 |
+| <owned-temp>/recording-capture-UNZU2D | fixture/media/cache | 96 | 삭제 | 부재 확인 | lp12-framing-output.txt:252 |
+| <owned-temp>/recording-capture-RYvg0C | fixture/media/cache | 3006 | 삭제 | 부재 확인 | lp12-framing-output.txt:253 |
+| <owned-temp>/recording-capture-G8s6Tu | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:254 |
+| <owned-temp>/recording-capture-zQvMes | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:255 |
+| <owned-temp>/recording-capture-Y8FutB | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:256 |
+| <owned-temp>/recording-capture-QuAXSP | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:257 |
+| <owned-temp>/recording-capture-EmGtXS | fixture/media/cache | 2654 | 삭제 | 부재 확인 | lp12-framing-output.txt:258 |
+| <owned-temp>/recording-capture-AK6k9j | fixture/media/cache | 2654 | 삭제 | 부재 확인 | lp12-framing-output.txt:259 |
+| <owned-temp>/recording-capture-TflDTD | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:260 |
+| <owned-temp>/recording-capture-72rxRB | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:261 |
+| <owned-temp>/recording-capture-gfEPzL | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:262 |
+| <owned-temp>/recording-capture-3II8E0 | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:263 |
+| <owned-temp>/recording-capture-39Wc1d | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:264 |
+| <owned-temp>/recording-capture-6zIb3V | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:265 |
+| <owned-temp>/recording-capture-9gzGIj | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:266 |
+| <owned-temp>/recording-capture-p0Fp1L | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:267 |
+| <owned-temp>/recording-capture-zuzRkm | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:268 |
+| <owned-temp>/recording-capture-d0TtNe | fixture/media/cache | 2732 | 삭제 | 부재 확인 | lp12-framing-output.txt:269 |
+| <owned-temp>/recording-capture-QMdWQK | fixture/media/cache | 2732 | 삭제 | 부재 확인 | lp12-framing-output.txt:270 |
+| <owned-temp>/recording-capture-0pTnNL | fixture/media/cache | 2733 | 삭제 | 부재 확인 | lp12-framing-output.txt:271 |
+| <owned-temp>/recording-capture-fVWKd7 | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:272 |
+| <owned-temp>/recording-capture-gHoBqu | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:273 |
+| <owned-temp>/recording-capture-qDmE3N | fixture/media/cache | 8 | 삭제 | 부재 확인 | lp12-framing-output.txt:274 |
+| <owned-temp>/recording-capture-udDdoy | fixture/media/cache | 2714 | 삭제 | 부재 확인 | lp12-framing-output.txt:275 |
+| <owned-temp>/recording-capture-etAsds | fixture/media/cache | 0 | 삭제 | 부재 확인 | lp12-framing-output.txt:276 |
+| <owned-temp>/recording-capture-e9d9d6 | fixture/media/cache | 98 | 삭제 | 부재 확인 | lp12-framing-output.txt:277 |
+| <owned-temp>/recording-capture-7zcK0j | fixture/media/cache | 3067 | 삭제 | 부재 확인 | lp12-framing-output.txt:278 |
+| <owned-temp>/recording-capture-sYf7O2 | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:279 |
+| <owned-temp>/recording-capture-y2qxr4 | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:280 |
+| <owned-temp>/recording-capture-XWnZ8t | fixture/media/cache | 266 | 삭제 | 부재 확인 | lp12-framing-output.txt:281 |
+| <owned-temp>/recording-capture-XLBUn3 | fixture/media/cache | 274 | 삭제 | 부재 확인 | lp12-framing-output.txt:282 |
+| <owned-temp>/recording-capture-3OnIaF | fixture/media/cache | 97 | 삭제 | 부재 확인 | lp12-framing-output.txt:283 |
+| <owned-temp>/recording-capture-X7Nyj8 | fixture/media/cache | 163 | 삭제 | 부재 확인 | lp12-framing-output.txt:284 |
+| <owned-temp>/media-server-file-evidence.Q3Iggf | fixture/media/cache | 103355092 | 삭제 | 부재 확인 | file-evidence-output-lp12-framing.txt:241 |
 
 전수 결과행=418, cleanup행=47. build exit0는 위 raw 별도. 원출력 행번호는 표 삽입 전 기준.
 
@@ -1364,7 +1364,7 @@ node=v24.13.0 platform=darwin arch=arm64
 [selection-attempt] {"reference_sha256":"5e3537e8d0a8cc32678ccad2ebec7d24cec38e53ebfe70ff7679e529fc9a2d00","attempt":17,"attempt_limit":9,"elapsed_ms":"8400","wait_ms":"3750","deadline_exhausted":true,"attempt_exhausted":true,"selection_complete":true,"expanded_start_ns":"8016000000","expanded_end_ns":"9516000000","source_count":2,"unknown_count":0,"sources_truncated":false,"unknown_truncated":false,"sources":[{"segment_id_sha256":"93bc15d52e07152a4e864ac65636c7ab3198faf0aa6de4ab83c6ada22f7d9b9c","media_epoch_id_sha256":"09b6b0b68fa655844c02e8b6fe8f0d739c009fee5a337ba45b0d2198653dd49c","source_generation_sha256":"5084c668713f3633f6ef32a509d67bc3c93ec7c6992c00cbb10a1831760fb8c5","track_id_sha256":"0a03733d6af74cfb929340a38d5d6e57134c180f965f1ddb6243d3fca74ec1c3","generation_order":"1","start_pts":"0","end_pts":"8333333333","time_base_num":1,"time_base_den":1000000000,"lifecycle":1,"deleted":false,"binding_present":true,"binding_valid":true,"available_for_selection":true},{"segment_id_sha256":"85dc4e2e6132ec6438d9d30c1fafeac0429f45b8b5ba2e01a853fba432bda15e","media_epoch_id_sha256":"09b6b0b68fa655844c02e8b6fe8f0d739c009fee5a337ba45b0d2198653dd49c","source_generation_sha256":"5084c668713f3633f6ef32a509d67bc3c93ec7c6992c00cbb10a1831760fb8c5","track_id_sha256":"0a03733d6af74cfb929340a38d5d6e57134c180f965f1ddb6243d3fca74ec1c3","generation_order":"1","start_pts":"8333333333","end_pts":"16666666666","time_base_num":1,"time_base_den":1000000000,"lifecycle":1,"deleted":false,"binding_present":true,"binding_valid":true,"available_for_selection":true}],"decoded":{"namespace_valid":true,"range_comparable":true,"incomplete":false,"frames_truncated":false,"frame_count":512,"relevant_count":46,"identity_matched":46,"identity_rejected":0,"generation_mismatch":0,"pts_mismatch":0,"duration_invalid":0,"minimum_pts_ns":"8000000000","maximum_pts_ns":"9500000000","maximum_valid_end_ns":"9533333333"},"slice_state_counts":[47,0,0,0,0,0],"reason_counts":[0,0,0,0,47,0,0,0,0,0],"unknown_ranges":[]}
 [selection-attempt] {"reference_sha256":"9d21fd39bfabc189b46c5b1925e13b256b18d4edd5efffbbe303bc0dc35eeae8","attempt":17,"attempt_limit":9,"elapsed_ms":"8883","wait_ms":"3750","deadline_exhausted":true,"attempt_exhausted":true,"selection_complete":true,"expanded_start_ns":"8016000000","expanded_end_ns":"9516000000","source_count":2,"unknown_count":0,"sources_truncated":false,"unknown_truncated":false,"sources":[{"segment_id_sha256":"93bc15d52e07152a4e864ac65636c7ab3198faf0aa6de4ab83c6ada22f7d9b9c","media_epoch_id_sha256":"09b6b0b68fa655844c02e8b6fe8f0d739c009fee5a337ba45b0d2198653dd49c","source_generation_sha256":"5084c668713f3633f6ef32a509d67bc3c93ec7c6992c00cbb10a1831760fb8c5","track_id_sha256":"0a03733d6af74cfb929340a38d5d6e57134c180f965f1ddb6243d3fca74ec1c3","generation_order":"1","start_pts":"0","end_pts":"8333333333","time_base_num":1,"time_base_den":1000000000,"lifecycle":1,"deleted":false,"binding_present":true,"binding_valid":true,"available_for_selection":true},{"segment_id_sha256":"85dc4e2e6132ec6438d9d30c1fafeac0429f45b8b5ba2e01a853fba432bda15e","media_epoch_id_sha256":"09b6b0b68fa655844c02e8b6fe8f0d739c009fee5a337ba45b0d2198653dd49c","source_generation_sha256":"5084c668713f3633f6ef32a509d67bc3c93ec7c6992c00cbb10a1831760fb8c5","track_id_sha256":"0a03733d6af74cfb929340a38d5d6e57134c180f965f1ddb6243d3fca74ec1c3","generation_order":"1","start_pts":"8333333333","end_pts":"16666666666","time_base_num":1,"time_base_den":1000000000,"lifecycle":1,"deleted":false,"binding_present":true,"binding_valid":true,"available_for_selection":true}],"decoded":{"namespace_valid":true,"range_comparable":true,"incomplete":false,"frames_truncated":false,"frame_count":528,"relevant_count":46,"identity_matched":46,"identity_rejected":0,"generation_mismatch":0,"pts_mismatch":0,"duration_invalid":0,"minimum_pts_ns":"8000000000","maximum_pts_ns":"9500000000","maximum_valid_end_ns":"9533333333"},"slice_state_counts":[47,0,0,0,0,0],"reason_counts":[0,0,0,0,47,0,0,0,0,0],"unknown_ranges":[]}
 [selection-attempt] {"reference_sha256":"17b7056b8d62f60d82192f6c17613d2291ffa4be689c23583d9e51c69ec526f3","attempt":17,"attempt_limit":9,"elapsed_ms":"11672","wait_ms":"3750","deadline_exhausted":true,"attempt_exhausted":true,"selection_complete":true,"expanded_start_ns":"8016000000","expanded_end_ns":"9516000000","source_count":2,"unknown_count":0,"sources_truncated":false,"unknown_truncated":false,"sources":[{"segment_id_sha256":"93bc15d52e07152a4e864ac65636c7ab3198faf0aa6de4ab83c6ada22f7d9b9c","media_epoch_id_sha256":"09b6b0b68fa655844c02e8b6fe8f0d739c009fee5a337ba45b0d2198653dd49c","source_generation_sha256":"5084c668713f3633f6ef32a509d67bc3c93ec7c6992c00cbb10a1831760fb8c5","track_id_sha256":"0a03733d6af74cfb929340a38d5d6e57134c180f965f1ddb6243d3fca74ec1c3","generation_order":"1","start_pts":"0","end_pts":"8333333333","time_base_num":1,"time_base_den":1000000000,"lifecycle":1,"deleted":false,"binding_present":true,"binding_valid":true,"available_for_selection":true},{"segment_id_sha256":"85dc4e2e6132ec6438d9d30c1fafeac0429f45b8b5ba2e01a853fba432bda15e","media_epoch_id_sha256":"09b6b0b68fa655844c02e8b6fe8f0d739c009fee5a337ba45b0d2198653dd49c","source_generation_sha256":"5084c668713f3633f6ef32a509d67bc3c93ec7c6992c00cbb10a1831760fb8c5","track_id_sha256":"0a03733d6af74cfb929340a38d5d6e57134c180f965f1ddb6243d3fca74ec1c3","generation_order":"1","start_pts":"8333333333","end_pts":"16666666666","time_base_num":1,"time_base_den":1000000000,"lifecycle":1,"deleted":false,"binding_present":true,"binding_valid":true,"available_for_selection":true}],"decoded":{"namespace_valid":true,"range_comparable":true,"incomplete":false,"frames_truncated":false,"frame_count":612,"relevant_count":46,"identity_matched":46,"identity_rejected":0,"generation_mismatch":0,"pts_mismatch":0,"duration_invalid":0,"minimum_pts_ns":"8000000000","maximum_pts_ns":"9500000000","maximum_valid_end_ns":"9533333333"},"slice_state_counts":[47,0,0,0,0,0],"reason_counts":[0,0,0,0,47,0,0,0,0,0],"unknown_ranges":[]}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-PVGPZA","bytes":52650282,"rootAbsent":true,"failureCount":0,"processes":[{"pid":24121,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":62222,"closed":true},{"kind":"rtsp","port":62223,"closed":true}]}],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+[cleanup] {"root":"<owned-temp>/media-server-current-integration-PVGPZA","bytes":52650282,"rootAbsent":true,"failureCount":0,"processes":[{"pid":24121,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":62222,"closed":true},{"kind":"rtsp","port":62223,"closed":true}]}],"evidencePreservedOrNotRequired":true,"udpClosed":true}
 {"mode":"current-http-latency","passed":3,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":24121,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":62222,"closed":true},{"kind":"rtsp","port":62223,"closed":true}]}],"evidencePreservedOrNotRequired":true},"elapsedMs":39222}
 
 ### F05 개별 실행 결과

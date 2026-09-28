@@ -37,7 +37,7 @@ RAW OUTPUT:
 [recording] file evidence unavailable: file evidence profile/bound 오류
 [fail] LP09 diagnostic fixture preparation exception
 [summary] pass=0 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.fTDFmc bytes=9562873 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.fTDFmc bytes=9562873 removed=true
 [elapsed] seconds=3 source=bash-SECONDS
 
 
@@ -61,7 +61,7 @@ RAW OUTPUT:
 [fail] LP09-W08 formatter hashes identifiers and fixes reason enums
 [fail] LP09-W08 formatter refuses oversized source vector
 [summary] pass=4 fail=8
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.bdZYfw bytes=9758687 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.bdZYfw bytes=9758687 removed=true
 [elapsed] seconds=3 source=bash-SECONDS
 
 
@@ -70,7 +70,7 @@ EXIT: 1
 NOTE: 무동작 formatter stub이 feature-off에서 throw하지 않아 예상 RED.
 RAW OUTPUT:
 [fail] LP09-W08 no-OpenSSL formatter fails closed
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.jWW198 bytes=9333572 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.jWW198 bytes=9333572 removed=true
 [elapsed] seconds=3 source=bash-SECONDS
 
 
@@ -96,7 +96,7 @@ RAW OUTPUT:
 [pass] LP09-W08 formatter refuses absent reference identity
 [pass] LP09-W08 reference hash agrees with independent digest provider
 [summary] pass=14 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.QzcgJa bytes=9792383 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.QzcgJa bytes=9792383 removed=true
 [elapsed] seconds=4 source=bash-SECONDS
 
 
@@ -105,7 +105,7 @@ EXIT: 0
 NOTE: formatter-only feature-off 1/1; 전체 제품 no-crypto runtime PASS 아님.
 RAW OUTPUT:
 [pass] LP09-W08 no-OpenSSL formatter fails closed
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.ZDuItI bytes=9361636 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.ZDuItI bytes=9361636 removed=true
 [elapsed] seconds=4 source=bash-SECONDS
 
 
@@ -203,7 +203,7 @@ RAW OUTPUT:
 [pass] E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown
 [pass] E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음
 [summary] pass=2 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.i0L7fT bytes=15213198 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.i0L7fT bytes=15213198 removed=true
 [elapsed] seconds=11 source=bash-SECONDS
 
 
@@ -229,7 +229,7 @@ RAW OUTPUT:
 [pass] LP09-W08 formatter refuses absent reference identity
 [pass] LP09-W08 reference hash agrees with independent digest provider
 [summary] pass=14 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.ZQIgwP bytes=9792383 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.ZQIgwP bytes=9792383 removed=true
 [elapsed] seconds=3 source=bash-SECONDS
 
 

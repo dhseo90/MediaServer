@@ -5,7 +5,7 @@
     "schema": "media-server.v390-ui-build-source-binding.v1",
     "sourceCommitSha": "8fa98a9988bcbc55a072736e1d60a01fcb1ad23e",
     "sourceWorktreeStatusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "buildPath": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+    "buildPath": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
     "buildSha256": "2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7",
     "buildBytes": 25472080,
     "bindingKind": "built-media-server-binary"
@@ -20,7 +20,7 @@
     "source": "8fa98a9988bcbc55a072736e1d60a01fcb1ad23e",
     "startedUtc": "2026-09-21T23:37:14.645Z",
     "udpPort": 64511,
-    "output": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current",
+    "output": "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current",
     "tokenStart": null,
     "tokenEnd": null,
     "tokenConsumed": null,
@@ -105,7 +105,7 @@
     {
       "id": "ui-exact-424",
       "status": "PASS",
-      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921233735-22074/ui-exact-424 --http-base http://127.0.0.1:60422 --role-state-map /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-QvAo6u/role-state-map.json --server-log /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-QvAo6u/media-server.log --runtime-descriptor /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-QvAo6u/runtime-descriptor.json --build-path build-gst-onnx/media_server",
+      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921233735-22074/ui-exact-424 --http-base http://127.0.0.1:60422 --role-state-map /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-QvAo6u/role-state-map.json --server-log /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-QvAo6u/media-server.log --runtime-descriptor /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-QvAo6u/runtime-descriptor.json --build-path build-gst-onnx/media_server",
       "exit": 0,
       "durationMs": 1490889,
       "reason": ""
@@ -121,7 +121,7 @@
     {
       "id": "ui-fulltest-qualification",
       "status": "PASS",
-      "command": "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921233735-22074/ui-exact-424/policy-v4-summary.json --output-dir /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921233735-22074/ui-fulltest-qualification --require-eligible",
+      "command": "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921233735-22074/ui-exact-424/policy-v4-summary.json --output-dir <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921233735-22074/ui-fulltest-qualification --require-eligible",
       "exit": 0,
       "durationMs": 5724,
       "reason": ""
@@ -30534,8 +30534,8 @@
     "placeholderVideoFilesAbsent": true,
     "duplicateScreenshotFilesAbsent": true,
     "preservedArtifacts": [
-      "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json",
-      "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md"
+      "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json",
+      "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md"
     ],
     "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
     "checks": [

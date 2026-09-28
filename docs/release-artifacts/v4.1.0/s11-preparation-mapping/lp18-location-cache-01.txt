@@ -92,7 +92,7 @@
            136479488  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=162611200 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5233,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":162611200}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.b7PCKq","bytes":16973629,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.b7PCKq","bytes":16973629,"removed":true}
 [exit] code=0 elapsed_seconds=16 source=bash-SECONDS
 
 [tool-exit] 0

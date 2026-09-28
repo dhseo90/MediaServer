@@ -8,14 +8,14 @@
 
 | 실행 | 실제 명령 | exit / 전수 결과 | 원출력 |
 | --- | --- | --- | --- |
-| 실제 정상·중단·소유권·projection | `bash scripts/internal/verify_recording_derived_job_service.sh` | 0 / 43 pass, 0 fail; 25초 | [ProjectionFirst](ProjectionFirst.log) |
-| 누락 경계·committed 보호 | `MEDIA_SERVER_DERIVED_JOB_GROUP=closing bash scripts/internal/verify_recording_derived_job_service.sh` | 0 / 6 pass, 0 fail; 6초 | [ClosingFinalFixed](ClosingFinalFixed.log) |
-| 5.3a 직접 영향 | `bash scripts/internal/verify_recording_derived_jobs.sh` | 0 / 23 pass | [JobsRegression](JobsRegression.log) |
-| catalog / SQLite / crypto-off / static | `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 / 246 pass | [CatalogRegression](CatalogRegression.log) |
-| retention | `bash scripts/internal/verify_v410_recording_retention.sh` | 0 / 56 pass | [RetentionRegression](RetentionRegression.log) |
-| V2 retention / GStreamer-off | `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24 pass (22+2) | [RetentionV2Regression](RetentionV2Regression.log) |
-| 실제 remux / 단발 취소 | `bash scripts/internal/verify_recording_derived_remux.sh` | 0 / 31 pass (1+30) | [RemuxRegression](RemuxRegression.log) |
-| 최종 제품 build | `./server.sh build` | 0, runtime archive와 실행 파일 일치 | [BoundedSnapshotBuild](BoundedSnapshotBuild.log) |
+| 실제 정상·중단·소유권·projection | `bash scripts/internal/verify_recording_derived_job_service.sh` | 0 / 43 pass, 0 fail; 25초 | [ProjectionFirst](public-evidence-a265f9091351b7d8.txt) |
+| 누락 경계·committed 보호 | `MEDIA_SERVER_DERIVED_JOB_GROUP=closing bash scripts/internal/verify_recording_derived_job_service.sh` | 0 / 6 pass, 0 fail; 6초 | [ClosingFinalFixed](public-evidence-c282db07148f6c6e.txt) |
+| 5.3a 직접 영향 | `bash scripts/internal/verify_recording_derived_jobs.sh` | 0 / 23 pass | [JobsRegression](public-evidence-30bdb909fc1100d8.txt) |
+| catalog / SQLite / crypto-off / static | `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 / 246 pass | [CatalogRegression](public-evidence-50a2e6524416b66f.txt) |
+| retention | `bash scripts/internal/verify_v410_recording_retention.sh` | 0 / 56 pass | [RetentionRegression](public-evidence-4ab6608c0eaacb62.txt) |
+| V2 retention / GStreamer-off | `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24 pass (22+2) | [RetentionV2Regression](public-evidence-500bc516299a1fa9.txt) |
+| 실제 remux / 단발 취소 | `bash scripts/internal/verify_recording_derived_remux.sh` | 0 / 31 pass (1+30) | [RemuxRegression](public-evidence-83ab2de6dcb3c809.txt) |
+| 최종 제품 build | `./server.sh build` | 0, runtime archive와 실행 파일 일치 | [BoundedSnapshotBuild](public-evidence-edff00d66d9b3a36.txt) |
 | whitespace | `git diff --check` | 0 | 원출력 없음, 제품 assertion 수와 별도 |
 | 문서 링크(메인 실행) | `./server.sh verify-docs-links` | 0 / markdown246, local3141, images22, anchors110, indexed76, exclusions160, failures0 | results 추가 후 메인 직접 확인; 제품 429개와 별도 |
 
@@ -61,23 +61,23 @@
 
 | 실행 | exit / 실제 결과 | 분류·후속 |
 | --- | --- | --- |
-| [InitialRed](InitialRed.log) | 1 / F01 0 pass, 1 fail | 사전등록된 service stub 예상 RED |
-| [RequestBindingRed](RequestBindingRed.log) | 134 / assertion 전 abort | 새 공유형과 오래된 runtime archive의 혼합 ABI 검증 준비 실패. 예상 RED 아님. 전체 build 후 동일 negative 재실행. 소유 root 정리, 확인한 `/cores/core.96658` 부재; 시스템 공유 crash 자료 삭제 없음 |
-| [ContractJournalBuild](ContractJournalBuild.log) | 0 | ABI 일치 full build |
-| [RequestBindingExpectedRed](RequestBindingExpectedRed.log) | 1 / 0 pass, 4 fail | F12 세 결박 누락과 F01 stub의 예상 RED |
-| [ServiceBuild](ServiceBuild.log) | 2 / compile 오류 | 새 코드의 order 필드명 오류, `sequence`로 수정. [ServiceBuildFixed](ServiceBuildFixed.log) exit 0 |
-| [NormalFirst](NormalFirst.log) | 0 / 4 pass | 최초 F12/F01 GREEN, fault 전체 증거 아님 |
-| [FaultFirst](FaultFirst.log) | 0 / 20 pass | 첫 프로세스 fault 묶음 |
-| [OwnershipFirst](OwnershipFirst.log) | 0 / 32 pass | 당시 상태/예약 oracle 범위. 최종 강한 파일·보호 oracle로 확대 |
-| [BeforeCreateCancelRed](BeforeCreateCancelRed.log) | 1 / 3 pass, 1 fail | BeforeCreate 취소 뒤 불필요 생성 경로 blocker 예상 RED |
-| [BeforeCreateCancelGreen](BeforeCreateCancelGreen.log) | 0 / 4 pass | callback 직후 budget 검사와 live 생성 inode 정리 보완 |
-| [IndependentOracle](IndependentOracle.log) | 0 / 37 pass | 파일/commit/decode 독립 oracle. blocked 삭제 이유가 허용 값이 아니었던 한계를 발견해 최종 ProjectionFirst에서 `continuous-capacity`와 positive control로 보완 |
-| [ClosingFirst](ClosingFirst.log) | 2 / root 교체 후 setup 중단 | fail-closed 된 같은 catalog를 재조회한 fixture 오류. 경로 복원 뒤 새 catalog로 무변경 대조 |
-| [ClosingFixed](ClosingFixed.log) | 0 / 5 pass | 누락 경계 GREEN |
-| [ClosingFinal](ClosingFinal.log) | 1 / compile 오류 | 추가 fixture의 C++20 structured-binding capture, C++17 pair 참조로 수정 |
-| [ClosingFinalFixed](ClosingFinalFixed.log) | 0 / 6 pass | committed output 보호 oracle까지 최종 GREEN |
+| [InitialRed](public-evidence-4b3623b52f69c784.txt) | 1 / F01 0 pass, 1 fail | 사전등록된 service stub 예상 RED |
+| [RequestBindingRed](public-evidence-2c90528c1e2be1d7.txt) | 134 / assertion 전 abort | 새 공유형과 오래된 runtime archive의 혼합 ABI 검증 준비 실패. 예상 RED 아님. 전체 build 후 동일 negative 재실행. 소유 root 정리, 확인한 `/cores/core.96658` 부재; 시스템 공유 crash 자료 삭제 없음 |
+| [ContractJournalBuild](public-evidence-544f46683f96bb75.txt) | 0 | ABI 일치 full build |
+| [RequestBindingExpectedRed](public-evidence-949481f1f0082fc6.txt) | 1 / 0 pass, 4 fail | F12 세 결박 누락과 F01 stub의 예상 RED |
+| [ServiceBuild](public-evidence-adcaf1ca3ec8cb1d.txt) | 2 / compile 오류 | 새 코드의 order 필드명 오류, `sequence`로 수정. [ServiceBuildFixed](public-evidence-b7a388a6f38468f4.txt) exit 0 |
+| [NormalFirst](public-evidence-0bbf19773281bc8a.txt) | 0 / 4 pass | 최초 F12/F01 GREEN, fault 전체 증거 아님 |
+| [FaultFirst](public-evidence-f8219477df541092.txt) | 0 / 20 pass | 첫 프로세스 fault 묶음 |
+| [OwnershipFirst](public-evidence-6e114feedd7b448c.txt) | 0 / 32 pass | 당시 상태/예약 oracle 범위. 최종 강한 파일·보호 oracle로 확대 |
+| [BeforeCreateCancelRed](public-evidence-a22013def14766a0.txt) | 1 / 3 pass, 1 fail | BeforeCreate 취소 뒤 불필요 생성 경로 blocker 예상 RED |
+| [BeforeCreateCancelGreen](public-evidence-6926efd2b948637c.txt) | 0 / 4 pass | callback 직후 budget 검사와 live 생성 inode 정리 보완 |
+| [IndependentOracle](public-evidence-308aeeff6e7df89b.txt) | 0 / 37 pass | 파일/commit/decode 독립 oracle. blocked 삭제 이유가 허용 값이 아니었던 한계를 발견해 최종 ProjectionFirst에서 `continuous-capacity`와 positive control로 보완 |
+| [ClosingFirst](public-evidence-4c67a8da8e666448.txt) | 2 / root 교체 후 setup 중단 | fail-closed 된 같은 catalog를 재조회한 fixture 오류. 경로 복원 뒤 새 catalog로 무변경 대조 |
+| [ClosingFixed](public-evidence-aea3f9625c140933.txt) | 0 / 5 pass | 누락 경계 GREEN |
+| [ClosingFinal](public-evidence-ecf42ada9f73d560.txt) | 1 / compile 오류 | 추가 fixture의 C++20 structured-binding capture, C++17 pair 참조로 수정 |
+| [ClosingFinalFixed](public-evidence-c282db07148f6c6e.txt) | 0 / 6 pass | committed output 보호 oracle까지 최종 GREEN |
 
-계약/원장 syntax compile의 [ContractCompile](ContractCompile.log), [JournalCompile](JournalCompile.log)는 exit 0·원출력 없음이다. [RequestBindingBuild](RequestBindingBuild.log), [FaultBoundaryBuild](FaultBoundaryBuild.log), [CancelBuild](CancelBuild.log), [BoundedSnapshotBuild](BoundedSnapshotBuild.log)는 각 수정 후 exit 0이며 실패를 소급 제거하지 않는다.
+계약/원장 syntax compile의 [ContractCompile](public-evidence-ba7d8086e345536e.txt), [JournalCompile](public-evidence-5d88818eae8d8810.txt)는 exit 0·원출력 없음이다. [RequestBindingBuild](public-evidence-383dffe789276437.txt), [FaultBoundaryBuild](public-evidence-45afc08acaae830f.txt), [CancelBuild](public-evidence-87a40fbea1ec9237.txt), [BoundedSnapshotBuild](public-evidence-edff00d66d9b3a36.txt)는 각 수정 후 exit 0이며 실패를 소급 제거하지 않는다.
 
 ## 한계와 인계
 
@@ -90,7 +90,7 @@
 
 ## 증거·정리·사용량
 
-[환경](Environment.log), [최종 source fingerprint](fingerprints.log), [전수 결과와 cleanup](results.md)를 보존한다. raw 미디어/원장/fault FIFO·symlink/실행 파일은 소유 root 19개에서 정리됐고 부재를 재확인했다. 텍스트 로그는 당시 개별 측정/실패 보존 목적이며 실제 source URL·자격증명은 없다.
+[환경](public-evidence-d8f5f8fa24b13d57.txt), [최종 source fingerprint](public-evidence-6659ea6c9fd8b96f.txt), [전수 결과와 cleanup](results.md)를 보존한다. raw 미디어/원장/fault FIFO·symlink/실행 파일은 소유 root 19개에서 정리됐고 부재를 재확인했다. 텍스트 로그는 당시 개별 측정/실패 보존 목적이며 실제 source URL·자격증명은 없다.
 
 token start/end/consumed: 미집계. source: 이 하위 작업에 token 사용량 API가 제공되지 않아 추정하지 않음. elapsed: 각 runner `[elapsed]`가 직접 제공한 값; catalog/retention 기존 runner에 없는 값은 미집계이며 임의 복원하지 않음. 실행 환경은 Environment.log에 보존했다.
 

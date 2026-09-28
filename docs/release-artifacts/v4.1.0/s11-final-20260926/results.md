@@ -12,7 +12,7 @@
 ## B11-O02 실제 보존 자료·마감 판정
 
 `bash scripts/internal/verify_recording_current_observer.sh --metadata-self-test`는 exit0,
-5/5·22,354ms였다. [전수5행·실측·정리](b11-o02-actual-metadata.log)를 보존한다.
+5/5·22,354ms였다. [전수5행·실측·정리](public-evidence-7bac1575c71cd4f5.txt)를 보존한다.
 88파일 원문 해시를 대조한 소유 복제본에서만 제품 checkpoint를 수행했다. 원본 archive는
 불변이며 이 입력은 실패 순간이 아닌 종료 후 metadata다. 미디어가 없어 실제 영상/HTTP
 확인 또는 장시간 완료로 사용하지 않는다.
@@ -49,7 +49,7 @@ token start/end/consumed는 전용 집계 부재로 미집계, elapsed는 실제
 heading과 같은 anchor로 수정하며 이 문서 결함을 제품/관측 실패나 예상 RED로 바꾸지 않는다.
 수정·최종 링크 추가 후 동일 링크 검사 exit0(markdown361/links14570/anchors207), 공백 검사 exit0,
 주석 정책 검사 exit0(1258파일/누락0/영문전용0), 새 test의 node 구문과 wrapper의 bash 구문
-각 exit0이다. 이전 제품 문서 검사 원출력187B도 [보존](b11-runtime-docs-links.log)한 뒤
+각 exit0이다. 이전 제품 문서 검사 원출력187B도 [보존](public-evidence-4fae8c1f4fa878e1.txt)한 뒤
 동일 byte 확인 후 임시 사본을 삭제했다. transport 임시 디렉터리와 계획했던 별도 임시 root도 부재다.
 O02 추가는 검증 전용 mode/분기이며 O01의 normal/transport 경로는 불변이다. 위33개를
 다시 전체 실행하지 않았고 새 mode의5개를 별도로 실행했다. 제품 소스·archive는 O01 build와 같다.
@@ -65,13 +65,13 @@ UTF-8 엄격 수신·종료 대기를 추가했다. longrun drain/정리가 이�
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B11-O01 실제 native/session | `bash scripts/internal/verify_recording_current_observer.sh --generation-self-test`, exit0,33/33,10,794ms | pass | [전수33행](b11-o01-native-green.log), 실제 writer·삭제/회전·상태/prefix·해석 재사용·root/inode/내용 변조·부분행·출력/종료 반례 |
-| B11-O01 기존 관측기 | 동일 wrapper `--self-test`, exit0,67/67,30,934ms | pass | [전수67행](b11-o01-legacy-green.log). 의도된 기존 단일 대용량 normalize 진단의3초 timeout은 이력이며 bounded 정상 경로67 PASS와 구별 |
-| B11-O01 진행 판정 | `node scripts/internal/recording_longrun_progress.test.mjs`, exit0,45/45,53ms | pass | [전수45행](b11-observer-progress.log), 실제120분 아님 |
-| B11-O01 진단·정리 계약 | `node scripts/internal/recording_current_longrun_diagnostics.test.mjs`, exit0,10/10,5.93ms | pass | [전수10행](b11-observer-diagnostics.log) |
+| B11-O01 실제 native/session | `bash scripts/internal/verify_recording_current_observer.sh --generation-self-test`, exit0,33/33,10,794ms | pass | [전수33행](public-evidence-30da0db816f88daa.txt), 실제 writer·삭제/회전·상태/prefix·해석 재사용·root/inode/내용 변조·부분행·출력/종료 반례 |
+| B11-O01 기존 관측기 | 동일 wrapper `--self-test`, exit0,67/67,30,934ms | pass | [전수67행](public-evidence-eb605e5b0de38ab1.txt). 의도된 기존 단일 대용량 normalize 진단의3초 timeout은 이력이며 bounded 정상 경로67 PASS와 구별 |
+| B11-O01 진행 판정 | `node scripts/internal/recording_longrun_progress.test.mjs`, exit0,45/45,53ms | pass | [전수45행](public-evidence-a1a5a04f36f27142.txt), 실제120분 아님 |
+| B11-O01 진단·정리 계약 | `node scripts/internal/recording_current_longrun_diagnostics.test.mjs`, exit0,10/10,5.93ms | pass | [전수10행](public-evidence-e3d0f7e8c1d54e39.txt) |
 | B11-O01 reader 영향 검사 | `node scripts/internal/recording_journal_reader.test.mjs`, exit0,40/40,94ms | pass | 도구 출력에서40개 확인. 이 검사의 원출력 파일 미보존으로 최종 증거 승계에는 사용하지 않음; reader 로직은 변경하지 않음 |
-| B11-O01 초기 인수 실패 | async test의 `assert.rejects(session.request(...))`에 즉시 throw 표현식 전달, exit1 | fail | native 파일 거부를 검사 자체 실패로 처리했다. [인수 원출력](b11-o01-generation-selftest-handoff.log); async 함수로 감싸 기대 오류 수신 후33 GREEN |
-| B11-O01 메인 반례 준비 오류 | 새 malformed 입력 검사에서 다른 block의 root 변수 사용, exit1,21 PASS/1 FAIL | fail | [원출력](b11-o01-main-scope-failure.log); 소유 generation 경로로 고친 뒤 동일33 GREEN. 제품 오류·예상 RED 아님 |
+| B11-O01 초기 인수 실패 | async test의 `assert.rejects(session.request(...))`에 즉시 throw 표현식 전달, exit1 | fail | native 파일 거부를 검사 자체 실패로 처리했다. [인수 원출력](public-evidence-0734b4160484ca36.txt); async 함수로 감싸 기대 오류 수신 후33 GREEN |
+| B11-O01 메인 반례 준비 오류 | 새 malformed 입력 검사에서 다른 block의 root 변수 사용, exit1,21 PASS/1 FAIL | fail | [원출력](public-evidence-5d84d0a99c6ed86d.txt); 소유 generation 경로로 고친 뒤 동일33 GREEN. 제품 오류·예상 RED 아님 |
 
 이전 담당자의 중간 실행5개와 transport6개 로그도 같은 디렉터리에 `b11-o01-generation-selftest*`,
 `b11-o01-transport*`로 보존한다. 동일 검사 결함의 반복 실행은 필요한 제품 재검증으로
@@ -92,8 +92,8 @@ chain의 descriptor hash·store/generation·순서·ID 충돌·호출자 admissi
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B11-O01 parser·chain 회귀 | `bash scripts/internal/verify_recording_identity_shards.sh`, exit0; crypto-on14·off8 새 개별 검사 및 기존6 scenario | pass | [전수 원출력](b11-observer-cache.log). 동일 값/새 값·canonical/손상·0/작은 예산·ID/순서 반례 |
-| B11-O01 제품 build | `./server.sh build`, exit0; media_server100% | pass | [build 출력](b11-observer-build.log), 최초 configure/첫 compile은 도구 반환에서 확인했으며 파일에는 이후 출력 보존 |
+| B11-O01 parser·chain 회귀 | `bash scripts/internal/verify_recording_identity_shards.sh`, exit0; crypto-on14·off8 새 개별 검사 및 기존6 scenario | pass | [전수 원출력](public-evidence-e624ad078ad12d68.txt). 동일 값/새 값·canonical/손상·0/작은 예산·ID/순서 반례 |
+| B11-O01 제품 build | `./server.sh build`, exit0; media_server100% | pass | [build 출력](public-evidence-d19188e1a379ff8a.txt), 최초 configure/첫 compile은 도구 반환에서 확인했으며 파일에는 이후 출력 보존 |
 | B11-O01 TDD 절차 | 독립 RED보다 구현을 먼저 작성 | fail | 절차 누락을 기록하며 GREEN을 RED→GREEN으로 소급하지 않음. 위 실측 PASS 자체와 구분 |
 
 캐시 논리 상한은16MiB이며 RSS 상한이 아니다. 공유 대여 값은 eviction 뒤에도 해당 호출
@@ -246,16 +246,16 @@ S11 마감·푸시는 보류한다. 앞의30분·UI432 ID 증거를 이 실패 �
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B11 lifecycle 최초 RED | generation consumers, exit1 | fail | 삭제 뒤 상세 제거는 됐지만 lifecycle 확인 실패. [마지막 tool 출력](b11-runtime-red-partial.log)만 보존되어 초기 hash header는 미보존 |
-| B11 consumer 1차 | 같은 runner, exit0 | pass | [로그](b11-runtime-green-attempt.log). 이후 완료 job·타임라인 경계를 추가했으므로 전체 마감 증거 아님 |
-| B11 완료 job | 같은 runner, exit0 | pass | [로그](b11-runtime-consumers-final.log). 파일명의 final은 전체 마감 의미가 아님 |
-| B11 타임라인 누락 | 같은 runner, exit1 | fail | [로그](b11-runtime-timeline-red.log). 삭제 full을 내린 뒤 과거 행이 누락됨. exact B11-P03-T 등록이 실행 시작 뒤여서 이 실행은 진단 이력이며 완료 증거로 사용하지 않음 |
-| B11 타임라인 등록 후 재검증 | 같은 runner, exit0 | pass | [로그](b11-runtime-timeline-green.log). 4개 compile 구성, 삭제 mapping/ID/UTC·재생 불가·완료 job·손상 거부 |
-| B11 중간 전체 빌드 | `./server.sh build`, exit0 | pass | [로그](b11-runtime-build.log). 이후 경계 변경은 최종 빌드 필요. 앞서 담당자의 exit 미확인 빌드는 PASS로 사용하지 않음 |
-| B11 실제 자료 최초 | `bash scripts/internal/verify_recording_generation_scale.sh receipt-compat`, exit1 | fail | [로그](b11-runtime-actual-metadata.log). 검증기가 잘못 지정한 SQLite 파일명 때문에 catalog attachment 거부 |
-| B11 실패 코드 확인 | 같은 명령, exit1 | fail | [로그](b11-runtime-actual-open-diagnostic.log). 고정 오류 코드의 SHA만 출력하고 코드 상수와 대조. `B 읽기 catalog 소유권/경로 거부` 확인. 제품 복구 결함이라는 초기 표현 정정 |
-| B11 경로 수정 후 | 같은 명령, exit1 | fail | [로그](b11-runtime-actual-path-fixed.log). 제품 Open/조회는 성공, 검증기의 채널별 기대 개수를 전체 개수와 비교한 오류 |
-| B11 기대값 수정 후 | 같은 명령, exit0 | pass | [로그](b11-runtime-actual-oracle-fixed.log). 실제 자료 1,116개/삭제1,110개, 채널9101/9201 각각558개. 구형 full→checkpoint→receipt SQLite/fallback Open 및 cold 원문 SHA 불변 |
+| B11 lifecycle 최초 RED | generation consumers, exit1 | fail | 삭제 뒤 상세 제거는 됐지만 lifecycle 확인 실패. [마지막 tool 출력](public-evidence-61bfa04c2460a5ab.txt)만 보존되어 초기 hash header는 미보존 |
+| B11 consumer 1차 | 같은 runner, exit0 | pass | [로그](public-evidence-3ef281df06757ddc.txt). 이후 완료 job·타임라인 경계를 추가했으므로 전체 마감 증거 아님 |
+| B11 완료 job | 같은 runner, exit0 | pass | [로그](public-evidence-34b0af0aee99d7f4.txt). 파일명의 final은 전체 마감 의미가 아님 |
+| B11 타임라인 누락 | 같은 runner, exit1 | fail | [로그](public-evidence-cc12c4fa9af401c2.txt). 삭제 full을 내린 뒤 과거 행이 누락됨. exact B11-P03-T 등록이 실행 시작 뒤여서 이 실행은 진단 이력이며 완료 증거로 사용하지 않음 |
+| B11 타임라인 등록 후 재검증 | 같은 runner, exit0 | pass | [로그](public-evidence-f81c1b8c4176487f.txt). 4개 compile 구성, 삭제 mapping/ID/UTC·재생 불가·완료 job·손상 거부 |
+| B11 중간 전체 빌드 | `./server.sh build`, exit0 | pass | [로그](public-evidence-f6017c0ab733575b.txt). 이후 경계 변경은 최종 빌드 필요. 앞서 담당자의 exit 미확인 빌드는 PASS로 사용하지 않음 |
+| B11 실제 자료 최초 | `bash scripts/internal/verify_recording_generation_scale.sh receipt-compat`, exit1 | fail | [로그](public-evidence-15356e3cc9385571.txt). 검증기가 잘못 지정한 SQLite 파일명 때문에 catalog attachment 거부 |
+| B11 실패 코드 확인 | 같은 명령, exit1 | fail | [로그](public-evidence-46b61aa7262e7672.txt). 고정 오류 코드의 SHA만 출력하고 코드 상수와 대조. `B 읽기 catalog 소유권/경로 거부` 확인. 제품 복구 결함이라는 초기 표현 정정 |
+| B11 경로 수정 후 | 같은 명령, exit1 | fail | [로그](public-evidence-a7b48cda59b104cb.txt). 제품 Open/조회는 성공, 검증기의 채널별 기대 개수를 전체 개수와 비교한 오류 |
+| B11 기대값 수정 후 | 같은 명령, exit0 | pass | [로그](public-evidence-80b8a3e20c60867b.txt). 실제 자료 1,116개/삭제1,110개, 채널9101/9201 각각558개. 구형 full→checkpoint→receipt SQLite/fallback Open 및 cold 원문 SHA 불변 |
 
 실제 자료의 snapshot은27,212,677→2,095,644B, 영수증1,110개·잔존 full6개·full tombstone0개다.
 구형 full의 최초 Open9.27초, receipt SQLite/fallback Open1.60/1.56초, checkpoint0.235초였다.
@@ -281,19 +281,19 @@ token start/end/consumed는 집계 기능 부재로 미집계. elapsed/source는
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B11 output ID RED | consumers runner, exit1 | fail | [로그](b11-output-id-red.log). retired source ID를 파생 출력 ID로 재사용하는 guard 누락, 지정 반례만 실패 |
-| B11 output ID GREEN | 같은 runner, exit0 | pass | [로그](b11-output-id-green.log).268 PASS, 4구성. export의 order/store/channel/sequence 결박도 추가 |
-| B11 event-output fixture 첫 실행 | 같은 runner, exit1 | fail | [로그](b11-event-output-consumers.log). 새 완료 출력까지 삭제했는데 기대 deleted 목록에 source만 둔 검증기 오류 |
-| B11 event-output 기대값 수정 | 같은 runner, exit0 | pass | [로그](b11-event-output-consumers-fixed.log).268 PASS |
-| B11 event-output 최종 | 같은 runner, exit0 | pass | [로그](b11-event-output-consumers-final.log).268 PASS. snapshot으로 완료 current를 준비하고 실제 삭제·checkpoint·Open을 실행했으며 실제 committed 전이 실행으로 주장하지 않음 |
-| B11 공통 codec | snapshot runner, exit0 | pass | [로그](b11-runtime-codec-regression.log).33 PASS, crypto off 포함 |
-| B11 typed projection | generation projection runner, exit0 | pass | [로그](b11-runtime-projection-regression.log).36 PASS |
-| B11 scratch 최초 | generation scratch runner, exit1 | fail | [로그](b11-runtime-scratch-regression.log).56 PASS/1 FAIL. V2 삭제 뒤 구형 V1 tombstone이 이어지는 early/late cut 표현 불일치 |
-| B11 scratch 수정 후 | 같은 runner, exit0 | pass | [로그](b11-runtime-scratch-fixed.log).59 PASS. 이 구형 공존 경계만 검증된 cold full로 복원하여 기존 호환 결과 유지, 기존 assertion 유지 |
-| B11 저장 전 검사 | generation preappend runner, exit0 | pass | [로그](b11-runtime-preappend-regression.log).510 PASS. 손상·권위·보호·상태 불변 및 unsupported 경계 |
+| B11 output ID RED | consumers runner, exit1 | fail | [로그](public-evidence-0ee9b5e0c2edbc9d.txt). retired source ID를 파생 출력 ID로 재사용하는 guard 누락, 지정 반례만 실패 |
+| B11 output ID GREEN | 같은 runner, exit0 | pass | [로그](public-evidence-25c95a4bf0b228e5.txt).268 PASS, 4구성. export의 order/store/channel/sequence 결박도 추가 |
+| B11 event-output fixture 첫 실행 | 같은 runner, exit1 | fail | [로그](public-evidence-5011a193c1eda2f8.txt). 새 완료 출력까지 삭제했는데 기대 deleted 목록에 source만 둔 검증기 오류 |
+| B11 event-output 기대값 수정 | 같은 runner, exit0 | pass | [로그](public-evidence-a0ebf4bade205b71.txt).268 PASS |
+| B11 event-output 최종 | 같은 runner, exit0 | pass | [로그](public-evidence-bd0f1e79bf4afa9f.txt).268 PASS. snapshot으로 완료 current를 준비하고 실제 삭제·checkpoint·Open을 실행했으며 실제 committed 전이 실행으로 주장하지 않음 |
+| B11 공통 codec | snapshot runner, exit0 | pass | [로그](public-evidence-153705433ba61229.txt).33 PASS, crypto off 포함 |
+| B11 typed projection | generation projection runner, exit0 | pass | [로그](public-evidence-5e66fd969cb9deb6.txt).36 PASS |
+| B11 scratch 최초 | generation scratch runner, exit1 | fail | [로그](public-evidence-b1e5eee8a1208167.txt).56 PASS/1 FAIL. V2 삭제 뒤 구형 V1 tombstone이 이어지는 early/late cut 표현 불일치 |
+| B11 scratch 수정 후 | 같은 runner, exit0 | pass | [로그](public-evidence-0afa9f5d40c3f14b.txt).59 PASS. 이 구형 공존 경계만 검증된 cold full로 복원하여 기존 호환 결과 유지, 기존 assertion 유지 |
+| B11 저장 전 검사 | generation preappend runner, exit0 | pass | [로그](public-evidence-67bf57bc97df9765.txt).510 PASS. 손상·권위·보호·상태 불변 및 unsupported 경계 |
 | B11 append 최초 | generation append runner, exit2 | fail | [압축 원출력](b11-runtime-append-regression.log.gz).56 PASS 뒤 기존 SQL oracle이 제거된 full tombstone 행을 요구하여 fixture 종료. PASS assertion 수로 suite 성공 처리하지 않음 |
-| B11 append 보완 | 같은 runner, exit0 | pass | [로그](b11-runtime-append-fixed.log).220 PASS. 고정 입력의 독립23필드 영수증과 기존 detail key 부재로 current oracle만 변경, 원장·내구·복구 기준 유지 |
-| B11 최종 제품 빌드 | `./server.sh build`, exit0 | pass | [로그](b11-runtime-final-build.log).100% 완료. 이후 제품 수정 없음, 검사 기대값만 보완 |
+| B11 append 보완 | 같은 runner, exit0 | pass | [로그](public-evidence-c89facb58cc8c9ff.txt).220 PASS. 고정 입력의 독립23필드 영수증과 기존 detail key 부재로 current oracle만 변경, 원장·내구·복구 기준 유지 |
+| B11 최종 제품 빌드 | `./server.sh build`, exit0 | pass | [로그](public-evidence-bf0217c074ab99eb.txt).100% 완료. 이후 제품 수정 없음, 검사 기대값만 보완 |
 
 `snapshot/projection/scratch/preappend/append runner`의 정확한 명령은 각각
 `./scripts/internal/verify_recording_catalog_snapshot.sh`,
@@ -366,7 +366,7 @@ canonical serializer/parser만 추가했고 snapshot kind/import/runtime은 아�
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B11-C01 음수 PTS RED | `./scripts/internal/verify_recording_catalog_snapshot.sh`, exit1 | fail | 기존 유효 음수 PTS의 exact roundtrip 및 unknown UTC assertion 실패. [원출력](b11-c01-negative-pts-red.log). cleanup removed=true |
+| B11-C01 음수 PTS RED | `./scripts/internal/verify_recording_catalog_snapshot.sh`, exit1 | fail | 기존 유효 음수 PTS의 exact roundtrip 및 unknown UTC assertion 실패. [원출력](public-evidence-11cb7cb9603a6acb.txt). cleanup removed=true |
 | B11-C01 canonical | 같은 명령, exit0 | pass |23필드 literal 왕복, 음수PTS 포함 |
 | B11-C01 segment hash | 동일 focused | pass | lowercase hex 외 거부, output 불변 |
 | B11-C01 tombstone hash | 동일 focused | pass | lowercase hex 외 거부 |
@@ -401,7 +401,7 @@ canonical serializer/parser만 추가했고 snapshot kind/import/runtime은 아�
 | B02-T03 | crypto-off summary·새 receipt 왕복/불변 반례 | pass | 같은 실행 |
 | B11-C01 정리·공백 | owned build root 제거 및 `git diff --check`, exit0 | pass | 원출력 cleanup removed=true |
 
-GREEN 원출력은 [보존 로그](b11-c01-codec-green.log)에 있다(B11 24 assertion, 전체9 scenario).
+GREEN 원출력은 [보존 로그](public-evidence-5b1f9a71adf14678.txt)에 있다(B11 24 assertion, 전체9 scenario).
 source HEAD `2dc9a329`+변경, header SHA `5cac76b4486d50d6579da9b4c6fffd5a1b000053ef96ec822d1071afc4938b88`,
 implementation `dcc507a4c00241de6a7fd19bc763e785b55a19c07d113b8dd8a682f7753a66b0`,
 test `92c0d0c7fc9ce3bd7e4f2358d709cd0a62176aac21a873d9cd873b7891e0c25c`.
@@ -418,10 +418,10 @@ cutover는 full projection을 그대로 사용한다. 새 receipt를 제품이 �
 같은 tombstone ID의 다른 segment를 새로 거부하지 않는다.
 
 실행 명령은 `./scripts/internal/verify_recording_catalog_generation_projection.sh`다.
-최초 RED(exit1)는 기존 full resident map assertion 실패이며 [로그](b11-p01-projection-red.log)에
-보존했다. 최초 GREEN(exit0)은 [로그](b11-p01-projection-green.log), 메인 리뷰 후 추가 반례
+최초 RED(exit1)는 기존 full resident map assertion 실패이며 [로그](public-evidence-52f825c42df8f3ae.txt)에
+보존했다. 최초 GREEN(exit0)은 [로그](public-evidence-de1eec477be899e7.txt), 메인 리뷰 후 추가 반례
 GREEN(exit0, 2026-09-26 05:45:45~05:45:57 UTC, 12초)은
-[전수 원출력](b11-p01-projection-counterexamples.log)이다. 아래 36개 assertion을 대조했다.
+[전수 원출력](public-evidence-ae942475f9c54265.txt)이다. 아래 36개 assertion을 대조했다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -650,7 +650,7 @@ exit0·포트/UDP·로그 진단은 정상이다. 종료 저장소5,300행의 �
 
 전체 root 재측정 보완 뒤 단위 반례 10/10과 실제 앱 단기 73/73이 통과했다. 실제 앱의
 두 채널 녹화·삭제·재기동·복구와 종료·포트·UDP·임시 root 정리도 통과했다. 실패 root와
-wrapper 임시는 최소 증거 이관 뒤 삭제하고 부재를 확인했다. [focused 결과](b11-root-stable-focused.log)는
+wrapper 임시는 최소 증거 이관 뒤 삭제하고 부재를 확인했다. [focused 결과](public-evidence-3a739c1c18a6096e.txt)는
 재개 조건만 충족하며 녹화 전용 120분 PASS를 대신하지 않는다.
 
 ### B11-G03 120분 4차 live SQLite reader 간섭 실패

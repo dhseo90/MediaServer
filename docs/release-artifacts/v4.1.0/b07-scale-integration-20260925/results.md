@@ -55,7 +55,7 @@
 | `media-server-generation-scale.lNiuYn` | compile 준비 fixture | 62,691B | 소유 경로 검사 후 삭제 | 부재 | 최초 runner 원출력 |
 | `media-server-generation-scale.7ph09n` | 실제 작은 누적 fixture | 177,737,423B | 소유 경로 검사 후 삭제 | 부재 | 최종 runner 원출력 |
 
-위 basename의 실제 부모는 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T`다.
+위 basename의 실제 부모는 `<owned-temp>`다.
 검증 전용 임시 영상·저장소만 삭제했고 운영 자료·계정·포트는 사용하지 않았다.
 작은 실행 원문은 [최초 compile 실패](small-compile.log.gz)·[최종 통과](small-pass.log.gz),
 [개별17행](small-results.json.gz)·[소유/source/hash 명세](small-manifest.json)에 보존했다.

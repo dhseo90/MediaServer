@@ -14,7 +14,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.jQBaJJ",
+        "path": "<owned-temp>/media-server-cutover-transaction.jQBaJJ",
         "bytes": 21977646,
         "absent": true
       }
@@ -51,7 +51,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.BY94Dg",
+        "path": "<owned-temp>/media-server-cutover-candidate.BY94Dg",
         "bytes": 49280160,
         "absent": true
       }
@@ -72,7 +72,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.CapaLk",
+        "path": "<owned-temp>/media-server-cutover-session-readonly.CapaLk",
         "bytes": 12307270,
         "absent": true
       }
@@ -93,7 +93,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.t7ujtp",
+        "path": "<owned-temp>/media-server-generation-readonly.t7ujtp",
         "bytes": 32884009,
         "absent": true
       }
@@ -114,7 +114,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.La22Qs",
+        "path": "<owned-temp>/media-server-generation-append.La22Qs",
         "bytes": 35437542,
         "absent": true
       }
@@ -135,7 +135,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.QUdJY9",
+        "path": "<owned-temp>/media-server-generation-preappend.QUdJY9",
         "bytes": 35009200,
         "absent": true
       }
@@ -156,7 +156,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.gGGCAo",
+        "path": "<owned-temp>/media-server-journal-generation-readonly.gGGCAo",
         "bytes": 12443500,
         "absent": true
       }

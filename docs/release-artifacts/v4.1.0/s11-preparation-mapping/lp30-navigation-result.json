@@ -66,7 +66,7 @@
       "file": "nav-adapter-syntax.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "--check",
           "scripts/internal/v390_ui_native_adapter.mjs"
         ],
@@ -79,7 +79,7 @@
       "file": "nav-contract-syntax.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "--check",
           "scripts/internal/verify_v390_ui_native_adapter_contract.mjs"
         ],
@@ -105,7 +105,7 @@
       "file": "nav-green.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "scripts/internal/verify_v390_ui_native_adapter_contract.mjs"
         ],
         "exit": 0,
@@ -125,7 +125,7 @@
       "file": "nav-registered-adapter-syntax.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "--check",
           "scripts/internal/v390_ui_native_adapter.mjs"
         ],
@@ -140,7 +140,7 @@
       "file": "nav-registered-contract-syntax.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "--check",
           "scripts/internal/verify_v390_ui_native_adapter_contract.mjs"
         ],
@@ -170,7 +170,7 @@
       "file": "nav-registered-green.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "scripts/internal/verify_v390_ui_native_adapter_contract.mjs"
         ],
         "startedUtc": "2026-09-21T22:28:31.712Z",
@@ -195,7 +195,7 @@
       "file": "navigation-probe-body-read-exit.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "/private/tmp/media-server-lp30.lgFabk/navigation-probe.mjs"
         ],
         "pid": 77107,
@@ -209,7 +209,7 @@
       "file": "navigation-probe-exit.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "/private/tmp/media-server-lp30.lgFabk/navigation-probe.mjs"
         ],
         "pid": 77045,
@@ -223,23 +223,23 @@
       "file": "start.json",
       "result": {
         "command": [
-          "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+          "<home>/.nvm/versions/node/v24.13.0/bin/node",
           "scripts/internal/run_v390_ui_native_diagnostic_sweep.mjs",
           "--case-id",
           "EVT-058",
           "--output-dir",
-          "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a",
+          "<home>/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a",
           "--run-id",
           "lp30-evt058-a",
           "--playwright-module-path",
-          "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+          "<home>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
           "--chrome-path",
           "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         ],
         "source": "a0a95a04f31b72f66aa3440f0e3f406ca7e5c9d7",
         "startedUtc": "2026-09-21T22:15:06.691Z",
         "udpPort": 51896,
-        "output": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a",
+        "output": "<home>/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a",
         "tokenStart": null,
         "tokenEnd": null,
         "tokenConsumed": null,
@@ -931,7 +931,7 @@
         "count": 47
       },
       {
-        "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a",
+        "path": "<home>/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/lp30-evt058-a",
         "size": 14915500,
         "links": 0,
         "count": 9

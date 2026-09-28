@@ -1,5 +1,5 @@
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-9O6kDj bytes=26189606 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-9O6kDj bytes=26189606 removed=true
 ✖ LP06-A01-A02 stored safe evidence and validated file hashes without remux (2437.918625ms)
 ✖ LP06-A03 missing copy media preserves failed diagnosis (184.477458ms)
 ✖ LP06-A04 corrupt copy media preserves failed diagnosis (186.715125ms)
@@ -40,8 +40,8 @@
 test at scripts/internal/recording_current_archive_probe.test.mjs:38:1
 ✖ LP06-A01-A02 stored safe evidence and validated file hashes without remux (2437.918625ms)
   AssertionError [ERR_ASSERTION]: The "string" argument must be of type string. Received type undefined (undefined)
-      at safeEvidence (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:37:33)
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:289)
+      at safeEvidence (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:37:33)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:289)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
@@ -59,7 +59,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:39:43
   
   3 !== 2
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:39:252)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:39:252)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -77,7 +77,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:39:43
   
   3 !== 2
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:39:252)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:39:252)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -97,7 +97,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
   + 'unknown'
   - 'job-cancelled-or-deadline'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -117,7 +117,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
   + 'unknown'
   - 'job-attempt-create'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -137,7 +137,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
   + 'unknown'
   - 'job-output-create'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -157,7 +157,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
   + 'unknown'
   - 'job-remux: media-budget-exceeded'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -177,7 +177,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
   + 'unknown'
   - 'job-remux: work-cancelled'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -197,7 +197,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
   + 'unknown'
   - 'job-remux: output-byte-budget-exceeded'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {

@@ -6,7 +6,7 @@
 
 ### FinalCompleteFocused.log
 
-명령 exit 0, 56 pass / 0 fail. [원출력](FinalCompleteFocused.log).
+명령 exit 0, 56 pass / 0 fail. [원출력](public-evidence-5b2603c2d72fe6c6.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -69,7 +69,7 @@
 
 ### SelectionRegression.log
 
-명령 exit 0, 27 pass / 0 fail. [원출력](SelectionRegression.log).
+명령 exit 0, 27 pass / 0 fail. [원출력](public-evidence-9fe5f4b710e184e1.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -103,7 +103,7 @@
 
 ### FinalConnectionRegression.log
 
-명령 exit 0, 22 pass / 0 fail. [원출력](FinalConnectionRegression.log).
+명령 exit 0, 22 pass / 0 fail. [원출력](public-evidence-6b49eda24dbd6eb8.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -132,7 +132,7 @@
 
 ### ReferenceRegression.log
 
-명령 exit 0, 19 pass / 0 fail. [원출력](ReferenceRegression.log).
+명령 exit 0, 19 pass / 0 fail. [원출력](public-evidence-b0da9ed5cb38c885.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -158,7 +158,7 @@
 
 ### RangeRegression.log
 
-명령 exit 0, 16 pass / 0 fail. [원출력](RangeRegression.log).
+명령 exit 0, 16 pass / 0 fail. [원출력](public-evidence-f05578001c488561.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -181,7 +181,7 @@
 
 ### LegacyBridgeRegression.log
 
-명령 exit 0, 144 pass / 0 fail. [원출력](LegacyBridgeRegression.log).
+명령 exit 0, 144 pass / 0 fail. [원출력](public-evidence-1943642dcea97104.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -332,7 +332,7 @@
 
 ### IdentityRegression.log
 
-명령 exit 0, 23 pass / 0 fail. [원출력](IdentityRegression.log).
+명령 exit 0, 23 pass / 0 fail. [원출력](public-evidence-32c305a04bbf1b54.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -362,7 +362,7 @@
 
 ### FinalizeIntegrationRegression.log
 
-명령 exit 0, 140 pass / 0 fail. [원출력](FinalizeIntegrationRegression.log).
+명령 exit 0, 140 pass / 0 fail. [원출력](public-evidence-56926247d198f149.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -509,7 +509,7 @@
 
 ### CatalogRegression.log
 
-명령 exit 0, 246 pass / 0 fail. [원출력](CatalogRegression.log).
+명령 exit 0, 246 pass / 0 fail. [원출력](public-evidence-0e2e268f883014b1.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -762,7 +762,7 @@
 
 ### RetentionRegression.log
 
-명령 exit 0, 24 pass / 0 fail. [원출력](RetentionRegression.log).
+명령 exit 0, 24 pass / 0 fail. [원출력](public-evidence-135678e98004b7eb.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -797,7 +797,7 @@
 
 ### AdapterHookBehavior.log
 
-실제 exit 0, 개별 assertion 19개. [원출력](AdapterHookBehavior.log).
+실제 exit 0, 개별 assertion 19개. [원출력](public-evidence-af2257663309a873.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -823,7 +823,7 @@
 
 ### ClosingBehavior.log
 
-실제 exit 2, 개별 assertion 30개. [원출력](ClosingBehavior.log).
+실제 exit 2, 개별 assertion 30개. [원출력](public-evidence-83d26e14c69a9db3.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -862,7 +862,7 @@
 
 ### ClosingBehaviorRetry.log
 
-실제 exit 1, 개별 assertion 40개. [원출력](ClosingBehaviorRetry.log).
+실제 exit 1, 개별 assertion 40개. [원출력](public-evidence-bfd22cdf6d2dead0.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -909,7 +909,7 @@
 
 ### ConnectionRegression.log
 
-실제 exit 1, 개별 assertion 22개. [원출력](ConnectionRegression.log).
+실제 exit 1, 개별 assertion 22개. [원출력](public-evidence-4c7e505cb150a920.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -938,7 +938,7 @@
 
 ### ConnectionRegressionRetry.log
 
-실제 exit 0, 개별 assertion 22개. [원출력](ConnectionRegressionRetry.log).
+실제 exit 0, 개별 assertion 22개. [원출력](public-evidence-00cb664c237c34da.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -967,13 +967,13 @@
 
 ### EventBehaviorFirst.log
 
-실제 exit 1, 개별 assertion 0개. [원출력](EventBehaviorFirst.log).
+실제 exit 1, 개별 assertion 0개. [원출력](public-evidence-8cfff114081c91ee.txt).
 
 제품 assertion 미실행: archive freshness 선수조건이 실행을 차단했다. 예상 RED가 아니다.
 
 ### EventBehaviorRetry.log
 
-실제 exit 0, 개별 assertion 12개. [원출력](EventBehaviorRetry.log).
+실제 exit 0, 개별 assertion 12개. [원출력](public-evidence-643a636f90e516d4.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -992,7 +992,7 @@
 
 ### FinalFocused.log
 
-실제 exit 0, 개별 assertion 53개. [원출력](FinalFocused.log).
+실제 exit 0, 개별 assertion 53개. [원출력](public-evidence-2b9eeb53189eca9a.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1052,7 +1052,7 @@
 
 ### FirstGreenAttempt.log
 
-실제 exit 0, 개별 assertion 1개. [원출력](FirstGreenAttempt.log).
+실제 exit 0, 개별 assertion 1개. [원출력](public-evidence-1b48a73b1831900a.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1060,7 +1060,7 @@
 
 ### HookBehavior.log
 
-실제 exit 1, 개별 assertion 13개. [원출력](HookBehavior.log).
+실제 exit 1, 개별 assertion 13개. [원출력](public-evidence-36712dedd9e0ced0.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1080,7 +1080,7 @@
 
 ### InitialRed.log
 
-실제 exit 1, 개별 assertion 1개. [원출력](InitialRed.log).
+실제 exit 1, 개별 assertion 1개. [원출력](public-evidence-f307d402fd5c33d9.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1088,7 +1088,7 @@
 
 ### LifecycleGreen.log
 
-실제 exit 0, 개별 assertion 49개. [원출력](LifecycleGreen.log).
+실제 exit 0, 개별 assertion 49개. [원출력](public-evidence-df05f1e6a9045097.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1144,7 +1144,7 @@
 
 ### OwnershipGreen.log
 
-실제 exit 0, 개별 assertion 3개. [원출력](OwnershipGreen.log).
+실제 exit 0, 개별 assertion 3개. [원출력](public-evidence-53ae3d99c50fbf43.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1154,7 +1154,7 @@
 
 ### OwnershipRed.log
 
-실제 exit 1, 개별 assertion 3개. [원출력](OwnershipRed.log).
+실제 exit 1, 개별 assertion 3개. [원출력](public-evidence-f60379f74887107f.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1164,7 +1164,7 @@
 
 ### RecoveryBehavior.log
 
-실제 exit 0, 개별 assertion 40개. [원출력](RecoveryBehavior.log).
+실제 exit 0, 개별 assertion 40개. [원출력](public-evidence-0b31a8f8aef355be.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1211,7 +1211,7 @@
 
 ### RemainingBehavior.log
 
-실제 exit 0, 개별 assertion 26개. [원출력](RemainingBehavior.log).
+실제 exit 0, 개별 assertion 26개. [원출력](public-evidence-97c48ad5024579b5.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1244,7 +1244,7 @@
 
 ### ResolverOwnershipRed.log
 
-실제 exit 1, 개별 assertion 44개. [원출력](ResolverOwnershipRed.log).
+실제 exit 1, 개별 assertion 44개. [원출력](public-evidence-577097487d78aeb4.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1295,7 +1295,7 @@
 
 ### UncertainOwnershipRed.log
 
-실제 exit 1, 개별 assertion 4개. [원출력](UncertainOwnershipRed.log).
+실제 exit 1, 개별 assertion 4개. [원출력](public-evidence-fa404e234207cda4.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1310,32 +1310,32 @@
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.kB4Ktq` | 격리 fixture/미디어/원장/빌드 | 10317462 bytes | runner 삭제 | 현재 부재 확인 | [AdapterHookBehavior.log](AdapterHookBehavior.log):30 |
-| `/private/tmp/media-server-s10-event-catalog.aGwhuy` | 격리 fixture/미디어/원장/빌드 | 26431806 bytes | runner 삭제 | 현재 부재 확인 | [CatalogRegression.log](CatalogRegression.log):248 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.cBEl1i` | 격리 fixture/미디어/원장/빌드 | 11663333 bytes | runner 삭제 | 현재 부재 확인 | [ClosingBehavior.log](ClosingBehavior.log):37 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.t18UJy` | 격리 fixture/미디어/원장/빌드 | 11794801 bytes | runner 삭제 | 현재 부재 확인 | [ClosingBehaviorRetry.log](ClosingBehaviorRetry.log):49 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.mYtPiK` | 격리 fixture/미디어/원장/빌드 | 6170927 bytes | runner 삭제 | 현재 부재 확인 | [ConnectionRegression.log](ConnectionRegression.log):24 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.GG6Fs6` | 격리 fixture/미디어/원장/빌드 | 6169508 bytes | runner 삭제 | 현재 부재 확인 | [ConnectionRegressionRetry.log](ConnectionRegressionRetry.log):24 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.EokczT` | 격리 fixture/미디어/원장/빌드 | 7542945 bytes | runner 삭제 | 현재 부재 확인 | [EventBehaviorRetry.log](EventBehaviorRetry.log):19 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.gTCQ3D` | 격리 fixture/미디어/원장/빌드 | 12919970 bytes | runner 삭제 | 현재 부재 확인 | [FinalCompleteFocused.log](FinalCompleteFocused.log):76 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.TmJmVy` | 격리 fixture/미디어/원장/빌드 | 6170927 bytes | runner 삭제 | 현재 부재 확인 | [FinalConnectionRegression.log](FinalConnectionRegression.log):24 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.ApzrWj` | 격리 fixture/미디어/원장/빌드 | 12908534 bytes | runner 삭제 | 현재 부재 확인 | [FinalFocused.log](FinalFocused.log):73 |
-| `/private/tmp/media-server-finalize-YWLqkm` | 격리 fixture/미디어/원장/빌드 | 7754930 bytes | runner 삭제 | 현재 부재 확인 | [FinalizeIntegrationRegression.log](FinalizeIntegrationRegression.log):144 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.oVQuiN` | 격리 fixture/미디어/원장/빌드 | 7070959 bytes | runner 삭제 | 현재 부재 확인 | [FirstGreenAttempt.log](FirstGreenAttempt.log):4 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.L2qTtL` | 격리 fixture/미디어/원장/빌드 | 7572137 bytes | runner 삭제 | 현재 부재 확인 | [HookBehavior.log](HookBehavior.log):22 |
-| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-identity-unit.ycXqAa` | 격리 fixture/미디어/원장/빌드 | 7024481 bytes | runner 삭제 | 현재 부재 확인 | [IdentityRegression.log](IdentityRegression.log):25 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.G35sw6` | 격리 fixture/미디어/원장/빌드 | 6573142 bytes | runner 삭제 | 현재 부재 확인 | [InitialRed.log](InitialRed.log):4 |
-| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.Ft02FK` | 격리 fixture/미디어/원장/빌드 | 6592101 bytes | runner 삭제 | 현재 부재 확인 | [LegacyBridgeRegression.log](LegacyBridgeRegression.log):148 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.6UuXe1` | 격리 fixture/미디어/원장/빌드 | 12902518 bytes | runner 삭제 | 현재 부재 확인 | [LifecycleGreen.log](LifecycleGreen.log):69 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.RGB5yL` | 격리 fixture/미디어/원장/빌드 | 7073615 bytes | runner 삭제 | 현재 부재 확인 | [OwnershipGreen.log](OwnershipGreen.log):9 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.pbrhPe` | 격리 fixture/미디어/원장/빌드 | 7072044 bytes | runner 삭제 | 현재 부재 확인 | [OwnershipRed.log](OwnershipRed.log):6 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.yGNzFP` | 격리 fixture/미디어/원장/빌드 | 4907754 bytes | runner 삭제 | 현재 부재 확인 | [RangeRegression.log](RangeRegression.log):18 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.Tx6Qlp` | 격리 fixture/미디어/원장/빌드 | 12050332 bytes | runner 삭제 | 현재 부재 확인 | [RecoveryBehavior.log](RecoveryBehavior.log):58 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.6aUzQG` | 격리 fixture/미디어/원장/빌드 | 4676333 bytes | runner 삭제 | 현재 부재 확인 | [ReferenceRegression.log](ReferenceRegression.log):31 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.xp1VaK` | 격리 fixture/미디어/원장/빌드 | 11047579 bytes | runner 삭제 | 현재 부재 확인 | [RemainingBehavior.log](RemainingBehavior.log):38 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.Q77pYj` | 격리 fixture/미디어/원장/빌드 | 11802343 bytes | runner 삭제 | 현재 부재 확인 | [ResolverOwnershipRed.log](ResolverOwnershipRed.log):53 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.ciMC14` | 격리 fixture/미디어/원장/빌드 | 9958042 bytes | runner 삭제 | 현재 부재 확인 | [RetentionRegression.log](RetentionRegression.log):27 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.eM4Kps` | 격리 fixture/미디어/원장/빌드 | 1015416 bytes | runner 삭제 | 현재 부재 확인 | [SelectionRegression.log](SelectionRegression.log):29 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.UIaXE9` | 격리 fixture/미디어/원장/빌드 | 7074945 bytes | runner 삭제 | 현재 부재 확인 | [UncertainOwnershipRed.log](UncertainOwnershipRed.log):10 |
+| `<owned-temp>/media-server-derived-event-integration.kB4Ktq` | 격리 fixture/미디어/원장/빌드 | 10317462 bytes | runner 삭제 | 현재 부재 확인 | [AdapterHookBehavior.log](public-evidence-af2257663309a873.txt):30 |
+| `/private/tmp/media-server-s10-event-catalog.aGwhuy` | 격리 fixture/미디어/원장/빌드 | 26431806 bytes | runner 삭제 | 현재 부재 확인 | [CatalogRegression.log](public-evidence-0e2e268f883014b1.txt):248 |
+| `<owned-temp>/media-server-derived-event-integration.cBEl1i` | 격리 fixture/미디어/원장/빌드 | 11663333 bytes | runner 삭제 | 현재 부재 확인 | [ClosingBehavior.log](public-evidence-83d26e14c69a9db3.txt):37 |
+| `<owned-temp>/media-server-derived-event-integration.t18UJy` | 격리 fixture/미디어/원장/빌드 | 11794801 bytes | runner 삭제 | 현재 부재 확인 | [ClosingBehaviorRetry.log](public-evidence-bfd22cdf6d2dead0.txt):49 |
+| `<owned-temp>/media-server-consumer-connection.mYtPiK` | 격리 fixture/미디어/원장/빌드 | 6170927 bytes | runner 삭제 | 현재 부재 확인 | [ConnectionRegression.log](public-evidence-4c7e505cb150a920.txt):24 |
+| `<owned-temp>/media-server-consumer-connection.GG6Fs6` | 격리 fixture/미디어/원장/빌드 | 6169508 bytes | runner 삭제 | 현재 부재 확인 | [ConnectionRegressionRetry.log](public-evidence-00cb664c237c34da.txt):24 |
+| `<owned-temp>/media-server-derived-event-integration.EokczT` | 격리 fixture/미디어/원장/빌드 | 7542945 bytes | runner 삭제 | 현재 부재 확인 | [EventBehaviorRetry.log](public-evidence-643a636f90e516d4.txt):19 |
+| `<owned-temp>/media-server-derived-event-integration.gTCQ3D` | 격리 fixture/미디어/원장/빌드 | 12919970 bytes | runner 삭제 | 현재 부재 확인 | [FinalCompleteFocused.log](public-evidence-5b2603c2d72fe6c6.txt):76 |
+| `<owned-temp>/media-server-consumer-connection.TmJmVy` | 격리 fixture/미디어/원장/빌드 | 6170927 bytes | runner 삭제 | 현재 부재 확인 | [FinalConnectionRegression.log](public-evidence-6b49eda24dbd6eb8.txt):24 |
+| `<owned-temp>/media-server-derived-event-integration.ApzrWj` | 격리 fixture/미디어/원장/빌드 | 12908534 bytes | runner 삭제 | 현재 부재 확인 | [FinalFocused.log](public-evidence-2b9eeb53189eca9a.txt):73 |
+| `/private/tmp/media-server-finalize-YWLqkm` | 격리 fixture/미디어/원장/빌드 | 7754930 bytes | runner 삭제 | 현재 부재 확인 | [FinalizeIntegrationRegression.log](public-evidence-56926247d198f149.txt):144 |
+| `<owned-temp>/media-server-derived-event-integration.oVQuiN` | 격리 fixture/미디어/원장/빌드 | 7070959 bytes | runner 삭제 | 현재 부재 확인 | [FirstGreenAttempt.log](public-evidence-1b48a73b1831900a.txt):4 |
+| `<owned-temp>/media-server-derived-event-integration.L2qTtL` | 격리 fixture/미디어/원장/빌드 | 7572137 bytes | runner 삭제 | 현재 부재 확인 | [HookBehavior.log](public-evidence-36712dedd9e0ced0.txt):22 |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-identity-unit.ycXqAa` | 격리 fixture/미디어/원장/빌드 | 7024481 bytes | runner 삭제 | 현재 부재 확인 | [IdentityRegression.log](public-evidence-32c305a04bbf1b54.txt):25 |
+| `<owned-temp>/media-server-derived-event-integration.G35sw6` | 격리 fixture/미디어/원장/빌드 | 6573142 bytes | runner 삭제 | 현재 부재 확인 | [InitialRed.log](public-evidence-f307d402fd5c33d9.txt):4 |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.Ft02FK` | 격리 fixture/미디어/원장/빌드 | 6592101 bytes | runner 삭제 | 현재 부재 확인 | [LegacyBridgeRegression.log](public-evidence-1943642dcea97104.txt):148 |
+| `<owned-temp>/media-server-derived-event-integration.6UuXe1` | 격리 fixture/미디어/원장/빌드 | 12902518 bytes | runner 삭제 | 현재 부재 확인 | [LifecycleGreen.log](public-evidence-df05f1e6a9045097.txt):69 |
+| `<owned-temp>/media-server-derived-event-integration.RGB5yL` | 격리 fixture/미디어/원장/빌드 | 7073615 bytes | runner 삭제 | 현재 부재 확인 | [OwnershipGreen.log](public-evidence-53ae3d99c50fbf43.txt):9 |
+| `<owned-temp>/media-server-derived-event-integration.pbrhPe` | 격리 fixture/미디어/원장/빌드 | 7072044 bytes | runner 삭제 | 현재 부재 확인 | [OwnershipRed.log](public-evidence-f60379f74887107f.txt):6 |
+| `<owned-temp>/media-server-range.yGNzFP` | 격리 fixture/미디어/원장/빌드 | 4907754 bytes | runner 삭제 | 현재 부재 확인 | [RangeRegression.log](public-evidence-f05578001c488561.txt):18 |
+| `<owned-temp>/media-server-derived-event-integration.Tx6Qlp` | 격리 fixture/미디어/원장/빌드 | 12050332 bytes | runner 삭제 | 현재 부재 확인 | [RecoveryBehavior.log](public-evidence-0b31a8f8aef355be.txt):58 |
+| `<owned-temp>/media-server-consumer-reference.6aUzQG` | 격리 fixture/미디어/원장/빌드 | 4676333 bytes | runner 삭제 | 현재 부재 확인 | [ReferenceRegression.log](public-evidence-b0da9ed5cb38c885.txt):31 |
+| `<owned-temp>/media-server-derived-event-integration.xp1VaK` | 격리 fixture/미디어/원장/빌드 | 11047579 bytes | runner 삭제 | 현재 부재 확인 | [RemainingBehavior.log](public-evidence-97c48ad5024579b5.txt):38 |
+| `<owned-temp>/media-server-derived-event-integration.Q77pYj` | 격리 fixture/미디어/원장/빌드 | 11802343 bytes | runner 삭제 | 현재 부재 확인 | [ResolverOwnershipRed.log](public-evidence-577097487d78aeb4.txt):53 |
+| `<owned-temp>/media-server-retention-v2.ciMC14` | 격리 fixture/미디어/원장/빌드 | 9958042 bytes | runner 삭제 | 현재 부재 확인 | [RetentionRegression.log](public-evidence-135678e98004b7eb.txt):27 |
+| `<owned-temp>/media-server-derived-selection.eM4Kps` | 격리 fixture/미디어/원장/빌드 | 1015416 bytes | runner 삭제 | 현재 부재 확인 | [SelectionRegression.log](public-evidence-9fe5f4b710e184e1.txt):29 |
+| `<owned-temp>/media-server-derived-event-integration.UIaXE9` | 격리 fixture/미디어/원장/빌드 | 7074945 bytes | runner 삭제 | 현재 부재 확인 | [UncertainOwnershipRed.log](public-evidence-fa404e234207cda4.txt):10 |
 
 최종 assertion 717개, historical assertion 382개, cleanup 경로 27개를 기계 대조했다. archive 선수조건 거부는 임시 경로 생성 전이다. build는 기존 build-gst-onnx 산출물을 보존하며 임시 운영 데이터/서버/port를 생성하지 않았다.

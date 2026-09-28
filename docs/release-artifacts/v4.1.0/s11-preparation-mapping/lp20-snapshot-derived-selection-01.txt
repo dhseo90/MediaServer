@@ -77,5 +77,5 @@ a782b967aba4e088530e411168d33d48a3823d22fcd100fb35a0b96a3e65ecfd  scripts/intern
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=63 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.aSFsZr bytes=1371736 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.aSFsZr bytes=1371736 removed=true
 [elapsed] seconds=2 source=bash-SECONDS

@@ -46,7 +46,7 @@ token start/end/consumed: 실제 usage 계수 미제공으로 미집계. elapsed
        30.49 real        29.70 user         0.36 sys
 time: sysctl kern.clockrate: Operation not permitted
 [bounded] {"code":1,"signal":null,"limit":false,"outputBytes":2012,"runtimeCapSeconds":60,"diskCapBytes":536870912}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.BFWcIL","bytes":13494715,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.BFWcIL","bytes":13494715,"removed":true}
 [exit] code=1 elapsed_seconds=32 source=bash-SECONDS
 
 === 개별 전수표 ===
@@ -69,10 +69,10 @@ peakRSS 측정은 이번 macOS /usr/bin/time -l만 검증한다. Linux 지원/�
 
 command: ./server.sh build
 exit: 0
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
@@ -103,7 +103,7 @@ exit: 0
 [ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 command: bash scripts/internal/verify_recording_checkpoint_cache.sh (승격 실행)
@@ -187,7 +187,7 @@ exit: 0
            151257856  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=177225728 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":4299,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":177225728}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.ILYBb3","bytes":13527777,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.ILYBb3","bytes":13527777,"removed":true}
 [exit] code=0 elapsed_seconds=27 source=bash-SECONDS
 
 
@@ -322,7 +322,7 @@ exit: 0
            141001448  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=167116800 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5184,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":167116800}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.mNxrKC","bytes":16727923,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.mNxrKC","bytes":16727923,"removed":true}
 [exit] code=0 elapsed_seconds=34 source=bash-SECONDS
 
 확장 GREEN 전수 결과
@@ -651,7 +651,7 @@ exit: 0
 [pass] LP14-C02 binding=prior rejected without apply
 [pass] LP14-C02 duplicate envelope no-apply/conflict rejection
 [pass] LP14-C02 one-shot apply/reuse rejection
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.4bzAZX","bytes":8875925,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.4bzAZX","bytes":8875925,"removed":true}
 [exit] code=0 elapsed_seconds=5 source=bash-SECONDS
 
 command: bash scripts/internal/verify_recording_derived_jobs.sh
@@ -694,7 +694,7 @@ exit: 0
 [detail] injected=managed journal 미완결 tail 거부
 [detail] admission=created
 [summary] pass=23 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.iF3VFn bytes=9566655 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-jobs.iF3VFn bytes=9566655 removed=true
 [elapsed] seconds=8 source=bash-SECONDS
 
 command: MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh
@@ -896,7 +896,7 @@ exit: 0
 [pass] F12 SQLite rebuild·checkpoint 재개방 job/output 일치
 [pass] F13 Complete output tombstone 뒤 재생성 없음
 [summary] pass=43 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.3RZwAf bytes=17829361 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-job-service.3RZwAf bytes=17829361 removed=true
 [elapsed] seconds=26 source=bash-SECONDS
 
 command: bash scripts/internal/verify_recording_derived_job_validation.sh
@@ -927,7 +927,7 @@ exit: 0
 [pass] LP09-S03a native profile cannot drop file evidence
 [pass] LP09-S03a overlapping substitute AU cannot replace selected identity
 [summary] pass=11 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.mEpwyY bytes=5289704 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.mEpwyY bytes=5289704 removed=true
 
 === 관련 회귀 개별 전수 ===
 명령 | 제목/내용 | 결과

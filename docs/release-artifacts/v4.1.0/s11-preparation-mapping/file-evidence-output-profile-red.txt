@@ -1,4 +1,4 @@
-[run] label=profile-red root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Rphuei
+[run] label=profile-red root=<owned-temp>/media-server-file-evidence.Rphuei
 [pass] actual-1 FE02 writer start
 [pass] actual-1 FE04 bound finalized mutation segment0
 [pass] actual-1 FE04 bound finalized mutation segment1
@@ -61,5 +61,5 @@
 [pass] TP01/malformed FE03 reject edit version with recomputed file hash
 [pass] TP01/malformed FE03 reject truncated with recomputed file hash
 [fail] TP01/malformed FE03 reject data reference index with recomputed file hash
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Rphuei bytes=8450128 removed=true
+[cleanup] path=<owned-temp>/media-server-file-evidence.Rphuei bytes=8450128 removed=true
 [elapsed] seconds=7 source=bash-SECONDS

@@ -19,7 +19,7 @@
 
 실행 전에 중앙 기록과 기능 인벤토리에 LP26-O06-D를 등록했다. 등록 전에 실행한
 초안 자체검사 결과는 최종 증거로 사용하지 않는다. 등록 후 원출력은
-[LP26-O06 자체검사 로그](lp26-o06-storage-self-20260923.log)에 보존한다.
+[LP26-O06 자체검사 로그](public-evidence-c2b5668c474f46ce.txt)에 보존한다.
 `node scripts/internal/recording_current_root_storage.test.mjs`는 exit 0,
 6 pass·0 fail, 소유 임시 root 삭제·부재 확인이었다. 아래 여섯 행은 로그의
 여섯 `[pass]`와 일대일 대응한다. 새 계측으로 실제 120분은 아직 실행하지 않았다.

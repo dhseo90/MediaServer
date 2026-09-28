@@ -21,7 +21,7 @@ lp09-js-red exit=1
 test at scripts/internal/recording_selection_trace.test.mjs:5:1
 ✖ LP09-J01 분할 로그에서 안전한 행만 수집 (0.273084ms)
   TypeError: trace.createSelectionTraceCollector is not a function
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:5:54)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:5:54)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.start (node:internal/test_runner/test:1003:17)
@@ -33,7 +33,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
 
   'TypeError: trace.validateSelectionTrace is not a function'
 
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -43,10 +43,10 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: TypeError: trace.validateSelectionTrace is not a function
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
         at getActual (node:assert:611:5)
         at strict.throws (node:assert:759:24)
-        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
         at Test.runInAsyncScope (node:async_hooks:214:14)
         at Test.run (node:internal/test_runner/test:1106:25)
         at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -64,7 +64,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
 
   'TypeError: trace.validateSelectionTrace is not a function'
 
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -74,10 +74,10 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: TypeError: trace.validateSelectionTrace is not a function
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
         at getActual (node:assert:611:5)
         at strict.throws (node:assert:759:24)
-        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
         at Test.runInAsyncScope (node:async_hooks:214:14)
         at Test.run (node:internal/test_runner/test:1106:25)
         at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -95,7 +95,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
 
   'TypeError: trace.validateSelectionTrace is not a function'
 
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -105,10 +105,10 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: TypeError: trace.validateSelectionTrace is not a function
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
         at getActual (node:assert:611:5)
         at strict.throws (node:assert:759:24)
-        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
         at Test.runInAsyncScope (node:async_hooks:214:14)
         at Test.run (node:internal/test_runner/test:1106:25)
         at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -126,7 +126,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
 
   'TypeError: trace.validateSelectionTrace is not a function'
 
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -136,10 +136,10 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: TypeError: trace.validateSelectionTrace is not a function
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
         at getActual (node:assert:611:5)
         at strict.throws (node:assert:759:24)
-        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
         at Test.runInAsyncScope (node:async_hooks:214:14)
         at Test.run (node:internal/test_runner/test:1106:25)
         at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -157,7 +157,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
 
   'TypeError: trace.validateSelectionTrace is not a function'
 
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -167,10 +167,10 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: TypeError: trace.validateSelectionTrace is not a function
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
         at getActual (node:assert:611:5)
         at strict.throws (node:assert:759:24)
-        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
         at Test.runInAsyncScope (node:async_hooks:214:14)
         at Test.run (node:internal/test_runner/test:1106:25)
         at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -185,7 +185,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:6:59
 test at scripts/internal/recording_selection_trace.test.mjs:7:1
 ✖ LP09-J01 로그 상한과 미완성 행 거부 (0.039166ms)
   TypeError: trace.createSelectionTraceCollector is not a function
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:7:52)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:7:52)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -196,7 +196,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:7:1
 test at scripts/internal/recording_selection_trace.test.mjs:8:1
 ✖ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.048083ms)
   TypeError: trace.matchSelectionTrace is not a function
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:8:65)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:8:65)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -225,30 +225,30 @@ lp09-js-green exit=0
 
 
 lp09-js-all exit=0
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WjCADY","bytes":819,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VgKWrn","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-rVLsXB","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UnSpNp","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dp1L8q","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-IlRpN5","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-en9HDl","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-e1vxLs","bytes":96,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AGR03x","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KKl7RX","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XEe3li","bytes":1620,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7UefDj","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-o2VQX2","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kMKXpg","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-d18iSe","bytes":1601,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-lN9s3m","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FI2X15","bytes":98,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wxFw0R","bytes":1954,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-9SqWAs","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RNm5q9","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gPlpLc","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bNQ0du","bytes":274,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Qbnnvd","bytes":97,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yPz8Tm","bytes":163,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-WjCADY","bytes":819,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-VgKWrn","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-rVLsXB","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-UnSpNp","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-dp1L8q","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-IlRpN5","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-en9HDl","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-e1vxLs","bytes":96,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-AGR03x","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-KKl7RX","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XEe3li","bytes":1620,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-7UefDj","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-o2VQX2","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-kMKXpg","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-d18iSe","bytes":1601,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-lN9s3m","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-FI2X15","bytes":98,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-wxFw0R","bytes":1954,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-9SqWAs","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-RNm5q9","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gPlpLc","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-bNQ0du","bytes":274,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Qbnnvd","bytes":97,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-yPz8Tm","bytes":163,"removed":true}
 ✔ LP08-B01 완료 작업 안전 증거 선보존 (10.294958ms)
 ✔ LP08-B02 field 증거 실패 시 정리 차단 (0.415917ms)
 ✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.258791ms)
@@ -324,30 +324,30 @@ lp09-js-final exit=0
 ✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.233292ms)
 ✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.68975ms)
 ✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.058708ms)
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FiVlIB","bytes":819,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bJzjUN","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Q7Qugf","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6UJpc1","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-t6NkmL","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OVTEWh","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KYNUEP","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0mdqYg","bytes":96,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-u3srrh","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5dlaf6","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6wXlH5","bytes":1620,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-sWuACY","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OdRlrS","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-se2eHP","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FPdNb7","bytes":1601,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XNBlNT","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Qrbdhm","bytes":98,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EX83dY","bytes":1954,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-BXeNGp","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FVink7","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nsb372","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UyN5fP","bytes":274,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xHLpfC","bytes":97,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-e8GV7F","bytes":163,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-FiVlIB","bytes":819,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-bJzjUN","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Q7Qugf","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-6UJpc1","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-t6NkmL","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-OVTEWh","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-KYNUEP","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-0mdqYg","bytes":96,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-u3srrh","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-5dlaf6","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-6wXlH5","bytes":1620,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-sWuACY","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-OdRlrS","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-se2eHP","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-FPdNb7","bytes":1601,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XNBlNT","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Qrbdhm","bytes":98,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-EX83dY","bytes":1954,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-BXeNGp","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-FVink7","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-nsb372","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-UyN5fP","bytes":274,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-xHLpfC","bytes":97,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-e8GV7F","bytes":163,"removed":true}
 ✔ LP08-B01 완료 작업 안전 증거 선보존 (10.571708ms)
 ✔ LP08-B02 field 증거 실패 시 정리 차단 (0.421708ms)
 ✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.249542ms)

@@ -1,0 +1,4 @@
+[pass] D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답
+[summary] pass=1 fail=0
+[cleanup] path=<owned-temp>/media-server-public-timeline.gdq73g bytes=5000414 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

@@ -25,7 +25,7 @@ LP03-B C++ 진단은 실제 실행 전 컴파일됐으나 failed가 없어 분�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-aI1syd | 이번 실행 소유 fixture/DB/영상/adapter | 51695201B | 프로세스·포트 반환 후 삭제 | rootAbsent=true | 원출력 cleanup |
+| <owned-temp>/media-server-current-integration-aI1syd | 이번 실행 소유 fixture/DB/영상/adapter | 51695201B | 프로세스·포트 반환 후 삭제 | rootAbsent=true | 원출력 cleanup |
 
 ## HTTP 개별 결과
 

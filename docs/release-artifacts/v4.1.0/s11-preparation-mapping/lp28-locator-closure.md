@@ -67,10 +67,10 @@ R4L01 baseline 자체가 불완전하면 fixture 준비 오류를 먼저 바로�
 전체를 예상 RED로 간주하지 않고 fixture 수정 후 동일 R4L02에서 위치 오류만 재현했다.
 첫 GREEN의 R4L06은 body-only 변조가 인접 context도 바꾼 fixture 오류였다. 독립행 변조로
 분리한 뒤12PASS, 동일 프로세스 body/decoy/corpus와 정리 증거 보완 뒤 최종13PASS다.
-실패 이력: [첫 RED](lp28-locator-red.log), [분리 RED](lp28-locator-red-02.log),
-[첫 GREEN 시도](lp28-locator-green-01.log), [중간 GREEN](lp28-locator-green-02.log).
-최종 [focused 원출력](lp28-locator-green-final.log), [migration](lp28-locator-migration.log),
-[approval 자체검사](lp28-locator-approval.log). RED exit1, GREEN/영향 회귀 exit0.
+실패 이력: [첫 RED](public-evidence-56b7c4a65bae8fa8.txt), [분리 RED](public-evidence-7638ab7aa1574bbc.txt),
+[첫 GREEN 시도](public-evidence-af97564cd4064d66.txt), [중간 GREEN](public-evidence-942a32331903bce7.txt).
+최종 [focused 원출력](public-evidence-a145453972871e50.txt), [migration](public-evidence-d5bb2eeed5c019db.txt),
+[approval 자체검사](public-evidence-04c896df3cbaee54.txt). RED exit1, GREEN/영향 회귀 exit0.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -216,9 +216,9 @@ RED: `node --test --test-name-pattern='R4L15|R4L16' scripts/internal/verify_revi
 | R4L-M 보완 회귀 | 기존30계약·0FAIL, exit0·0.179초 | PASS |
 | R4L-A 보완 회귀 | 기존11반례·0FAIL, exit0·0.051초·gate not-run | PASS |
 
-[RED](lp28-locator-followup-red.log) 2FAIL·52.494ms,
-[GREEN](lp28-locator-followup-green.log)17PASS·90.318ms,
-[migration](lp28-locator-followup-migration.log), [approval](lp28-locator-followup-approval.log).
+[RED](public-evidence-fb0d35eb3118af7f.txt) 2FAIL·52.494ms,
+[GREEN](public-evidence-1e795e4f5c094e46.txt)17PASS·90.318ms,
+[migration](public-evidence-7c87830e9bb8c8de.txt), [approval](public-evidence-17d3d6e8c23a3e5e.txt).
 RED 로그의 Node 빈 줄 끝 공백만 보존 형식에 맞춰 제거하며 오류/수치/판정을 변경하지 않는다.
 운영 데이터·제품 실행·port 없음. 새 source 후보/원장 자동 갱신 없음.
 
@@ -342,10 +342,10 @@ shared flow 오류0을 확인했다([전수 결과](lp28-candidate-check.json),1
 | P02 strict |986행 및 전체 shared flow 오류0·exit0 | PASS |
 | P02 delta |679 strict동등/307 독립검토 필요·986순서/총계·exit0 | PASS |
 
-원출력: [shell RED](lp28-shell-branch-red.log), [최초 GREEN 실패](lp28-shell-branch-green.log),
-[중간 GREEN](lp28-shell-branch-green-02.log), [상한 보완](lp28-shell-branch-green-final.log),
-[Python RED](lp28-python-branch-red.log), [최종22PASS](lp28-python-branch-green.log),
-[최종 migration](lp28-shell-final-migration.log), [최종 approval](lp28-shell-final-approval.log).
+원출력: [shell RED](public-evidence-ffff983267158719.txt), [최초 GREEN 실패](public-evidence-7f0cf5ec144f674e.txt),
+[중간 GREEN](public-evidence-a290a560ae5985f5.txt), [상한 보완](public-evidence-4cf8466fc3110d24.txt),
+[Python RED](public-evidence-6d30bf4dad413d39.txt), [최종22PASS](public-evidence-218fe24a7827de8f.txt),
+[최종 migration](public-evidence-2720ef8782c5ec00.txt), [최종 approval](public-evidence-2750cefa6a31e244.txt).
 최종 focused165.848ms. 새 증거는 소형 비민감 로그/고정 오류/ID만 보존한다.
 Node assertion 출력의 끝 공백만 정리하며 최초 FAIL은 그대로다.
 각 focused fixture는 finally에서 삭제·부재를 확인했다. 후보/이관 입력은 소유 임시 root에
@@ -468,8 +468,8 @@ S10 제품 코드 고정은 S11 PASS나 PREP 전체 완료가 아니다. 독립 
 | CLOSE metadata UI guide pins current release wording | 해당 원출력·명령exit0 | PASS |
 | CLOSE metadata UI asset policy pins current source and published baseline wording | 해당 원출력·명령exit0 | PASS |
 
-원출력: [notice](lp28-close-notice.log), [링크](lp28-close-docs.log),
-[자산](lp28-close-assets.log), [entry](lp28-close-entry.log), [metadata](lp28-close-metadata.log).
+원출력: [notice](public-evidence-8719c0a09f93be1e.txt), [링크](public-evidence-d4932b95aa6a12c6.txt),
+[자산](public-evidence-0ffe196fae90c85e.txt), [entry](public-evidence-80fb8b4b9bcd5820.txt), [metadata](public-evidence-4289c5616093c9c7.txt).
 이 단계 제품 실행/port/임시 runtime 산출물 없음. 실제 테스트 토큰 집계는 도구 부재로 미집계다.
 
 ## 4·5번 실행 정의
@@ -601,10 +601,10 @@ local04(12/12,exit0,3371ms/runner3324ms)를 재확인했다. 조건·HTTP4초·n
 | WLR11 | 서버exit0/signal없음/forcedfalse·TCP2/UDP닫힘 local04 exit0 | PASS |
 | WLR12 | 입력/binary불변·root부재 local04 exit0 | PASS |
 
-원출력: [self01](lp28-whep-self-01.log), [02](lp28-whep-self-02.log), [03](lp28-whep-self-03.log),
-[04](lp28-whep-self-04.log), [최종05](lp28-whep-self-05.log),
-[local01](lp28-whep-local-01.log), [02](lp28-whep-local-02.log), [03](lp28-whep-local-03.log),
-[최종04](lp28-whep-local-04.log), [구문/검토](lp28-whep-final-review.log).
+원출력: [self01](public-evidence-6a3a95520daa0410.txt), [02](public-evidence-eef9ab707679a6b6.txt), [03](public-evidence-ce3a029c250a676b.txt),
+[04](public-evidence-19fde5af12044724.txt), [최종05](public-evidence-e89b061fe7e3d4d6.txt),
+[local01](public-evidence-05f37948eabfd1aa.txt), [02](public-evidence-ffb8523fa7a6ad14.txt), [03](public-evidence-820ec1c0fb2eda9d.txt),
+[최종04](public-evidence-773b33b2adfb9f07.txt), [구문/검토](public-evidence-97938841c456f7ee.txt).
 SDP/session/capability 원문은 로그/저장소에 보존하지 않았다. source/binary SHA와 소형 결과만 보존했다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
@@ -629,8 +629,8 @@ token start/end/consumed=null(전용집계없음), elapsed/source는 각 실행 
 
 - [재검토 전수](lp28-independent-review-02.md), [기계 판정307개](lp28-independent-decisions-02.json),
   [고정 패키지](lp28-review-package-02.json), [679개 엄격 동등 승계](lp28-migration-evidence-02.json).
-- [최종 후보986개 검사](lp28-final-candidate-check.json), [승인 producer 원출력](lp28-prep-producer.log),
-  [원장 독립 재검증](lp28-prep-approvals.log).
+- [최종 후보986개 검사](lp28-final-candidate-check.json), [승인 producer 원출력](public-evidence-d83ddb4037fb8dbb.txt),
+  [원장 독립 재검증](public-evidence-bd0348d106ee97b6.txt).
 - producer는 현재 tree/diff·후보·검토 SHA를 직접 대조한 뒤 audit/approval/implementation/native 네 파일을
   원자적으로 반영했다(exit0,80.567초). 승인 검사986개도 exit0/18.732초, 오류0이다.
 - 이전 audit/approval 원본은 `5e5f45d7`의 동일 fixture에서 복원 가능하며 해시는 새 승인 원장에 있다.
@@ -647,14 +647,14 @@ PASS가 아니다. 소스 승인 원장과 실행 결과는 별개이며 기능 
 정합 검사 첫 실행은 exit1/633.266초였다. 오류는 `MEDIA-003 verifierEvidence file is not tracked` 1개,
 global 오류0, 오류 반례15/15 PASS다. 신규 검증 소스를 Git 추적 등록하기 전에 검사한 메인 준비 누락이다.
 제품/검증 assertion 변경 없이 승인 범위 신규 검증 파일7개만 stage하여 추적 선수조건을 보완한다.
-커밋은 아직 하지 않으며 같은 정합 검사를 재실행한다. 첫 결과를 [원출력](lp28-prep-feature-01.log)과
+커밋은 아직 하지 않으며 같은 정합 검사를 재실행한다. 첫 결과를 [원출력](public-evidence-9f5a1379ba719009.txt)과
 [정합 보고](lp28-prep-feature-01.json)에 보존했다. 이전 즉석 parser 인자 오류는
 [별도 진단](lp28-candidate-invocation-error.json)이며 실제 제품/정합 검사 실패와 구분한다.
 
 동일4번 수정 범위에서 신규파일 등록 뒤 project inventory 전수 검사는 exit0/42.678초로 통과했다
-([잘리지 않은 전체 원출력](lp28-prep-inventory.log)). native exact 계약 검사는 import 경계에서
+([잘리지 않은 전체 원출력](public-evidence-629a0da14fae3ac2.txt)). native exact 계약 검사는 import 경계에서
 `core canonical/source semantic binding drift`로 exit1/138ms, 개별 계약검사 미진입이었다
-([원출력](lp28-prep-native-01.log)). runtime UI 실패나 PASS가 아니다.
+([원출력](public-evidence-f1003b0ab40b8bf2.txt)). runtime UI 실패나 PASS가 아니다.
 producer가 변경한 승인 증적과 독립 runtime oracle의 보호 projection을 직접 대조한 뒤에만
 재결속 여부를 판단한다. hash를 자동 갱신하거나 보호 assertion을 제거하지 않는다.
 스크립트 인벤토리 후속 명령은 fail-stop으로 미실행이며 S11 단기도 아직 시작하지 않았다.
@@ -680,11 +680,11 @@ native manifest에 실행 결과 기준(method/route/status/selector/expectedBeh
 [독립 읽기 검토](lp28-core-binding-review.md)와 [14행/소비자15파일 전수](lp28-core-binding-review.json)를 보존했다.
 수정은 core library·core 자체검사의 고정 기대값2개뿐이며 guard/assertion을 유지했다.
 
-- [구현 증적 재검증](lp28-prep-feature-02.log): exit0/627.113초,986행·오류0·반례15/15.
+- [구현 증적 재검증](public-evidence-d427d9d96b0bb9a2.txt): exit0/627.113초,986행·오류0·반례15/15.
   [구조화 결과](lp28-prep-feature-02.json). 최초 미추적 실패는 위에 보존한다.
-- [core 계약](lp28-prep-core.log): exit0/2.061초,288case의 계약17개 PASS.
-- [통합 oracle 계약](lp28-prep-combined.log): exit0/356ms,424case의 계약3개 PASS.
-- [native 실행 목록 계약](lp28-prep-native-02.log): exit0/16.294초,424case(positive423/negative1)의 계약60개 PASS.
+- [core 계약](public-evidence-04b4ab2d034d490d.txt): exit0/2.061초,288case의 계약17개 PASS.
+- [통합 oracle 계약](public-evidence-46c04320419eb835.txt): exit0/356ms,424case의 계약3개 PASS.
+- [native 실행 목록 계약](public-evidence-343be72f8f044fcc.txt): exit0/16.294초,424case(positive423/negative1)의 계약60개 PASS.
   실제 브라우저 실행은 아니다. producer 이후 추가 fixture 자동 재생성은 없었다.
 - 제품 소스/시간·ID·저장·보존·API/권한 계약은 이번 보완으로 변경하지 않았다.
   core 소비자 상수2개는986개 source proof의 직접 역할/dispatch에 포함되지 않으므로 해당 정합 결과를 유지하고,
@@ -704,8 +704,8 @@ stage는 신규 소스 추적 준비일 뿐 실패 단계 커밋이 아니었으
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| docs links | [원출력](lp28-prep-docs.log),293문서·9620링크·오류0·exit0 | PASS |
-| 대표 제품 이미지 | [자산 원출력](lp28-prep-assets.log),README 대표 UI | PASS |
+| docs links | [원출력](public-evidence-67d81cae1d8dcb56.txt),293문서·9620링크·오류0·exit0 | PASS |
+| 대표 제품 이미지 | [자산 원출력](public-evidence-39afd6dfce6c9d11.txt),README 대표 UI | PASS |
 | 영문 이미지 | 같은 명령·영문 README UI | PASS |
 | 공유 이미지 집합 | 같은 명령·UI guide | PASS |
 | 캡처 정책 | 같은 명령·capture rules | PASS |
@@ -715,7 +715,7 @@ stage는 신규 소스 추적 준비일 뿐 실패 단계 커밋이 아니었으
 | 오래된 baseline 참조 거부 | 같은 명령·대표 이미지 링크 | PASS |
 | PNG 존재 | 같은 명령·관리 asset directory | PASS |
 | VA frame bounds | 같은 명령·full video frame bounds | PASS |
-| 공백 검사 | [원출력](lp28-prep-diff.log),exit0 | PASS |
+| 공백 검사 | [원출력](public-evidence-97778dcc5336f85b.txt),exit0 | PASS |
 
 자산 정책/존재 검사이며 실제 시각·모바일 품질 검토 PASS를 의미하지 않는다.
 

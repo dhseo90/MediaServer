@@ -4,7 +4,7 @@
 
 ## D01-FinalFocused.log
 
-명령 exit 0, 11 pass / 0 fail. [원출력](D01-FinalFocused.log).
+명령 exit 0, 11 pass / 0 fail. [원출력](public-evidence-a23b186c6fa03ede.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -22,7 +22,7 @@
 
 ## D01-Identity.log
 
-명령 exit 0, 23 pass / 0 fail. [원출력](D01-Identity.log).
+명령 exit 0, 23 pass / 0 fail. [원출력](public-evidence-9238d17d90d3ded4.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -52,7 +52,7 @@
 
 ## D01-Reference.log
 
-명령 exit 0, 19 pass / 0 fail. [원출력](D01-Reference.log).
+명령 exit 0, 19 pass / 0 fail. [원출력](public-evidence-a383f50fe6cf46d3.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -78,7 +78,7 @@
 
 ## D01-Connection.log
 
-명령 exit 0, 22 pass / 0 fail. [원출력](D01-Connection.log).
+명령 exit 0, 22 pass / 0 fail. [원출력](public-evidence-e72c1fd9c2658b54.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -107,7 +107,7 @@
 
 ## D01-Range.log
 
-명령 exit 0, 16 pass / 0 fail. [원출력](D01-Range.log).
+명령 exit 0, 16 pass / 0 fail. [원출력](public-evidence-d83b1658a5213116.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -130,7 +130,7 @@
 
 ## D01-Catalog.log
 
-명령 exit 0, 246 pass / 0 fail. [원출력](D01-Catalog.log).
+명령 exit 0, 246 pass / 0 fail. [원출력](public-evidence-bd63142f1bc2d2e7.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -383,7 +383,7 @@
 
 ## D01-Retention.log
 
-명령 exit 0, 24 pass / 0 fail. [원출력](D01-Retention.log).
+명령 exit 0, 24 pass / 0 fail. [원출력](public-evidence-de981799c49c6886.txt).
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -443,15 +443,15 @@
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | `/private/tmp/media-server-d01-catalog.cJzQRn` | 소유 fixture/미디어/원장/빌드 | 26433702 bytes | runner 삭제 | 현재 부재 확인 | D01-Catalog.log:248 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.s7nofg` | 소유 fixture/미디어/원장/빌드 | 6171300 bytes | runner 삭제 | 현재 부재 확인 | D01-Connection.log:24 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.fdfUgp` | 소유 fixture/미디어/원장/빌드 | 4515848 bytes | runner 삭제 | 현재 부재 확인 | D01-ExpectedRed.log:6 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.LPnvcW` | 소유 fixture/미디어/원장/빌드 | 4704430 bytes | runner 삭제 | 현재 부재 확인 | D01-ExpectedRedFixed.log:12 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.lJF3AJ` | 소유 fixture/미디어/원장/빌드 | 4726561 bytes | runner 삭제 | 현재 부재 확인 | D01-FinalFocused.log:13 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.kbUKZE` | 소유 fixture/미디어/원장/빌드 | 4726481 bytes | runner 삭제 | 현재 부재 확인 | D01-Green.log:11 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.OU1JU1` | 소유 fixture/미디어/원장/빌드 | 4909530 bytes | runner 삭제 | 현재 부재 확인 | D01-Range.log:18 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.MRgwuh` | 소유 fixture/미디어/원장/빌드 | 0 bytes | runner 삭제 | 현재 부재 확인 | D01-Red.log:6 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.ubVZXm` | 소유 fixture/미디어/원장/빌드 | 4678141 bytes | runner 삭제 | 현재 부재 확인 | D01-Reference.log:31 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.0VdxWT` | 소유 fixture/미디어/원장/빌드 | 9978170 bytes | runner 삭제 | 현재 부재 확인 | D01-Retention.log:27 |
+| `<owned-temp>/media-server-consumer-connection.s7nofg` | 소유 fixture/미디어/원장/빌드 | 6171300 bytes | runner 삭제 | 현재 부재 확인 | D01-Connection.log:24 |
+| `<owned-temp>/media-server-numeric-reference.fdfUgp` | 소유 fixture/미디어/원장/빌드 | 4515848 bytes | runner 삭제 | 현재 부재 확인 | D01-ExpectedRed.log:6 |
+| `<owned-temp>/media-server-numeric-reference.LPnvcW` | 소유 fixture/미디어/원장/빌드 | 4704430 bytes | runner 삭제 | 현재 부재 확인 | D01-ExpectedRedFixed.log:12 |
+| `<owned-temp>/media-server-numeric-reference.lJF3AJ` | 소유 fixture/미디어/원장/빌드 | 4726561 bytes | runner 삭제 | 현재 부재 확인 | D01-FinalFocused.log:13 |
+| `<owned-temp>/media-server-numeric-reference.kbUKZE` | 소유 fixture/미디어/원장/빌드 | 4726481 bytes | runner 삭제 | 현재 부재 확인 | D01-Green.log:11 |
+| `<owned-temp>/media-server-range.OU1JU1` | 소유 fixture/미디어/원장/빌드 | 4909530 bytes | runner 삭제 | 현재 부재 확인 | D01-Range.log:18 |
+| `<owned-temp>/media-server-numeric-reference.MRgwuh` | 소유 fixture/미디어/원장/빌드 | 0 bytes | runner 삭제 | 현재 부재 확인 | D01-Red.log:6 |
+| `<owned-temp>/media-server-consumer-reference.ubVZXm` | 소유 fixture/미디어/원장/빌드 | 4678141 bytes | runner 삭제 | 현재 부재 확인 | D01-Reference.log:31 |
+| `<owned-temp>/media-server-retention-v2.0VdxWT` | 소유 fixture/미디어/원장/빌드 | 9978170 bytes | runner 삭제 | 현재 부재 확인 | D01-Retention.log:27 |
 
 | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-identity-unit.tURvzL` | 소유 fixture/미디어/원장/빌드 | 7026289 bytes | runner 삭제 | 현재 부재 확인 | D01-Identity.log:25 |
 

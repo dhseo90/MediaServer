@@ -13,7 +13,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.h1qiS1",
+        "path": "<owned-temp>/media-server-generation-receipt.h1qiS1",
         "bytes": 266712,
         "absent": true
       }
@@ -34,7 +34,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.oE8s46",
+        "path": "<owned-temp>/media-server-generation-receipt.oE8s46",
         "bytes": 862480,
         "absent": true
       }
@@ -55,7 +55,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-receipt.CsQ0VK",
+        "path": "<owned-temp>/media-server-generation-receipt.CsQ0VK",
         "bytes": 875344,
         "absent": true
       }

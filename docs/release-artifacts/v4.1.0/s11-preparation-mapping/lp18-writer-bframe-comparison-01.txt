@@ -644,5 +644,5 @@
 [writer-diag-row] case=comparison_wr05 index=29 pad=24 kind=buffer elapsed_us=8032 valid=5 pts=3100000000 dts=0 duration=100000000 bytes=86400 format=0 start=0 stop=0 time=0 base=0 offset=0 rate=0 applied_rate=0
 [decoder-comparison-software] case=comparison_wr05 status=observed matched=1 count=30 first_pts_available=1 first_pts=200000000 file_unchanged=1
 [decoder-comparison-summary] outcome=auto-failure original_failure_preserved=1 auto_attempts=7
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.jjKddk bytes=7235459 removed=true
+[cleanup] path=<owned-temp>/media-server-managed-writer.jjKddk bytes=7235459 removed=true
 [elapsed] seconds=8 source=bash-SECONDS

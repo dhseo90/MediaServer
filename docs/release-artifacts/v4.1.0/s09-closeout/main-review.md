@@ -14,44 +14,44 @@
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| LC01 registry stops and joins worker-held streams before returning | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](Lifecycle.log) | pass | 이번 실제 단기 실행 |
-| LC02 registry retains every stream until all workers stop | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](Lifecycle.log) | pass | 이번 실제 단기 실행 |
-| LC03 manager drains an executing idle callback before returning | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](Lifecycle.log) | pass | 이번 실제 단기 실행 |
-| LC04 manager cancels pending idle cleanup at destruction | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](Lifecycle.log) | pass | 이번 실제 단기 실행 |
-| LC05 normal idle grace removes stream and releases admission | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](Lifecycle.log) | pass | 이번 실제 단기 실행 |
-| LC06 reacquired lease preserves stream across idle grace | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](Lifecycle.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I01 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I02 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I03 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I04 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I05 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I06 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I07 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-start | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-input | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-range | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-accepted-gap-null | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-ambiguous-channel | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-finalize-success-observer-exception-isolated | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-restart | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-restart-null | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-finalize-failure-no-observer-stop-null | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I08 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I09 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I10 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I11 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I12 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| V410-IDMAP-I13 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| S07-time-session-blocked-writer-null-nonblocking | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](Identity.log) | pass | 이번 실제 단기 실행 |
-| normal selected metadata updates visible support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
-| I31-R01 failed timeline clears previous support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
-| I31-R01 empty timeline clears previous support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
-| I31-R01 unplayable selection clears previous support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
-| I31-R02 late metadata cannot contaminate unselected state | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
-| unselected error preserves selection prompt | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
-| selected media error shows failure notice | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](Playback.log) | pass | 이번 실제 단기 실행 |
+| LC01 registry stops and joins worker-held streams before returning | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](public-evidence-fcfabe8a12ecc052.txt) | pass | 이번 실제 단기 실행 |
+| LC02 registry retains every stream until all workers stop | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](public-evidence-fcfabe8a12ecc052.txt) | pass | 이번 실제 단기 실행 |
+| LC03 manager drains an executing idle callback before returning | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](public-evidence-fcfabe8a12ecc052.txt) | pass | 이번 실제 단기 실행 |
+| LC04 manager cancels pending idle cleanup at destruction | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](public-evidence-fcfabe8a12ecc052.txt) | pass | 이번 실제 단기 실행 |
+| LC05 normal idle grace removes stream and releases admission | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](public-evidence-fcfabe8a12ecc052.txt) | pass | 이번 실제 단기 실행 |
+| LC06 reacquired lease preserves stream across idle grace | bash scripts/internal/verify_stream_shutdown_lifecycle.sh; exit0; [Lifecycle.log](public-evidence-fcfabe8a12ecc052.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I01 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I02 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I03 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I04 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I05 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I06 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I07 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-start | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-input | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-range | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-accepted-gap-null | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-ambiguous-channel | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-finalize-success-observer-exception-isolated | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-restart | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-restart-null | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-finalize-failure-no-observer-stop-null | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I08 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I09 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I10 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I11 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I12 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| V410-IDMAP-I13 | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| S07-time-session-blocked-writer-null-nonblocking | bash scripts/internal/verify_recording_identity.sh; exit0; [Identity.log](public-evidence-6c5c0d99fc4dea35.txt) | pass | 이번 실제 단기 실행 |
+| normal selected metadata updates visible support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
+| I31-R01 failed timeline clears previous support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
+| I31-R01 empty timeline clears previous support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
+| I31-R01 unplayable selection clears previous support | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
+| I31-R02 late metadata cannot contaminate unselected state | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
+| unselected error preserves selection prompt | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
+| selected media error shows failure notice | node scripts/internal/recording_playback_status.test.mjs; exit0; [Playback.log](public-evidence-5304e0daa7c8d09d.txt) | pass | 이번 실제 단기 실행 |
 
-Build exit0은 [Build.log](Build.log). 제품 경로는 수정하지 않아 이전 core/media 회귀를 현재 전체 릴리즈 PASS로 다시 선언하지 않는다. 30분/120분/UI는 S11 코드 고정 후 영향 범위를 판정한다.
+Build exit0은 [Build.log](public-evidence-9e6aa8e13ae7f3af.txt). 제품 경로는 수정하지 않아 이전 core/media 회귀를 현재 전체 릴리즈 PASS로 다시 선언하지 않는다. 30분/120분/UI는 S11 코드 고정 후 영향 범위를 판정한다.
 
 ## 과거 임시 로그 정리 전 최소 증거 대조
 

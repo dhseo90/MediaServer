@@ -5,7 +5,7 @@ LP13 stage2 준비: 최초 실행부터 tool 원출력 확보. 실제앱 미실�
 command: node --test scripts/internal/recording_current_archive_probe.test.mjs scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_selection_trace.test.mjs scripts/internal/recording_current_latency.test.mjs
 exit: 0
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Hw6Ju5 bytes=46626497 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-Hw6Ju5 bytes=46626497 removed=true
 ✔ LP13-P02 typed generic intent 원본 불변 (2194.482209ms)
 ✔ LP13-P02 typed generic ready 원본 불변 (670.948958ms)
 ✔ LP13-P02 typed generic committed 원본 불변 (865.958916ms)
@@ -62,63 +62,63 @@ exit: 0
 ✔ P0-HTTP01 partial은 지연 관측만 가능 (0.042875ms)
 ✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.062958ms)
 ✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.09725ms)
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4evdpK","bytes":819,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZIIJjA","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-T9Trlr","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5Ac47D","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Z8wZaZ","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-By9K5V","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8EGf4m","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gw8qiV","bytes":96,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kQd28t","bytes":3006,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wfcG68","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Me2bH8","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KmxIBJ","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HlKZdJ","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-L9uCZ3","bytes":2654,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gk7iG1","bytes":2654,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AAn7w0","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jwoAE0","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UtcHWW","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OdCKQP","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JrRIgF","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TuvTds","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ecWCH2","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3C5aXi","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2z3cYY","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fPHfoO","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZSSvWF","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-YOOWdw","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2FQdal","bytes":370,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4NjOir","bytes":431,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yOZwN1","bytes":430,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WjpEql","bytes":434,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bCCP0i","bytes":433,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-x5fyOV","bytes":431,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qj0fTc","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FljtkY","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mww6Xw","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-amai6s","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THsxNY","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QLetPT","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6V4gZ1","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-me5paR","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jW1Zta","bytes":2732,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-BNQL9T","bytes":2732,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tL03wG","bytes":2733,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-h5Hzka","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xNY8jq","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XKhWFl","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Lomv9w","bytes":2714,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B6dmPX","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-D50KDi","bytes":98,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7gBghM","bytes":3067,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nE8tSt","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fkb823","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Ti2kga","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fopmLk","bytes":274,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XsOD2e","bytes":97,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qB3EHV","bytes":163,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-4evdpK","bytes":819,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-ZIIJjA","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-T9Trlr","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-5Ac47D","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Z8wZaZ","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-By9K5V","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-8EGf4m","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gw8qiV","bytes":96,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-kQd28t","bytes":3006,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-wfcG68","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Me2bH8","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-KmxIBJ","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-HlKZdJ","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-L9uCZ3","bytes":2654,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gk7iG1","bytes":2654,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-AAn7w0","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-jwoAE0","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-UtcHWW","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-OdCKQP","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-JrRIgF","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-TuvTds","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-ecWCH2","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-3C5aXi","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-2z3cYY","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-fPHfoO","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-ZSSvWF","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-YOOWdw","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-2FQdal","bytes":370,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-4NjOir","bytes":431,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-yOZwN1","bytes":430,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-WjpEql","bytes":434,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-bCCP0i","bytes":433,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-x5fyOV","bytes":431,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-qj0fTc","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-FljtkY","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-mww6Xw","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-amai6s","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-THsxNY","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-QLetPT","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-6V4gZ1","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-me5paR","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-jW1Zta","bytes":2732,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-BNQL9T","bytes":2732,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-tL03wG","bytes":2733,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-h5Hzka","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-xNY8jq","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XKhWFl","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Lomv9w","bytes":2714,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-B6dmPX","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-D50KDi","bytes":98,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-7gBghM","bytes":3067,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-nE8tSt","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-fkb823","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Ti2kga","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-fopmLk","bytes":274,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XsOD2e","bytes":97,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-qB3EHV","bytes":163,"removed":true}
 ✔ LP12-F04 input framing 고정 오류만 안전 집계 (0.648458ms)
 ✔ LP12-C07 exact phase/code와 unknown 고정 조합만 수집 (0.101666ms)
 ✔ LP12-D06 writer fixed 사유만 집계하고 원문을 보존하지 않음 (0.299625ms)
@@ -382,67 +382,67 @@ exit: 0
 cleanup 원출력 대조
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-t68X2l | 격리 fixture/증거/cache | 423409 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-JJyGIl | 격리 fixture/증거/cache | 423863 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Hw6Ju5 | archive probe fixture/cache/binary | 46626497 | 삭제 | 부재 확인 | after hook |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4evdpK | 격리 fixture/증거/cache | 819 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZIIJjA | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-T9Trlr | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5Ac47D | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Z8wZaZ | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-By9K5V | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8EGf4m | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gw8qiV | 격리 fixture/증거/cache | 96 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kQd28t | 격리 fixture/증거/cache | 3006 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wfcG68 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Me2bH8 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KmxIBJ | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HlKZdJ | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-L9uCZ3 | 격리 fixture/증거/cache | 2654 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gk7iG1 | 격리 fixture/증거/cache | 2654 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AAn7w0 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jwoAE0 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UtcHWW | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OdCKQP | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JrRIgF | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TuvTds | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ecWCH2 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3C5aXi | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2z3cYY | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fPHfoO | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZSSvWF | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-YOOWdw | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2FQdal | 격리 fixture/증거/cache | 370 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4NjOir | 격리 fixture/증거/cache | 431 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yOZwN1 | 격리 fixture/증거/cache | 430 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WjpEql | 격리 fixture/증거/cache | 434 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bCCP0i | 격리 fixture/증거/cache | 433 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-x5fyOV | 격리 fixture/증거/cache | 431 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qj0fTc | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FljtkY | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mww6Xw | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-amai6s | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THsxNY | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QLetPT | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6V4gZ1 | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-me5paR | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jW1Zta | 격리 fixture/증거/cache | 2732 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-BNQL9T | 격리 fixture/증거/cache | 2732 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tL03wG | 격리 fixture/증거/cache | 2733 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-h5Hzka | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xNY8jq | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XKhWFl | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Lomv9w | 격리 fixture/증거/cache | 2714 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B6dmPX | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-D50KDi | 격리 fixture/증거/cache | 98 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7gBghM | 격리 fixture/증거/cache | 3067 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nE8tSt | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fkb823 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Ti2kga | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fopmLk | 격리 fixture/증거/cache | 274 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XsOD2e | 격리 fixture/증거/cache | 97 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qB3EHV | 격리 fixture/증거/cache | 163 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
-중간 GREEN19 root /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-i6kvpB 423462 bytes removed=true는 도구 원출력 확인(위 원문보존 누락 경계 유지).
+| <owned-temp>/media-server-latency-t68X2l | 격리 fixture/증거/cache | 423409 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/media-server-latency-JJyGIl | 격리 fixture/증거/cache | 423863 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/media-server-archive-probe-tests-Hw6Ju5 | archive probe fixture/cache/binary | 46626497 | 삭제 | 부재 확인 | after hook |
+| <owned-temp>/recording-capture-4evdpK | 격리 fixture/증거/cache | 819 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-ZIIJjA | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-T9Trlr | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-5Ac47D | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-Z8wZaZ | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-By9K5V | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-8EGf4m | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-gw8qiV | 격리 fixture/증거/cache | 96 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-kQd28t | 격리 fixture/증거/cache | 3006 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-wfcG68 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-Me2bH8 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-KmxIBJ | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-HlKZdJ | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-L9uCZ3 | 격리 fixture/증거/cache | 2654 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-gk7iG1 | 격리 fixture/증거/cache | 2654 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-AAn7w0 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-jwoAE0 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-UtcHWW | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-OdCKQP | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-JrRIgF | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-TuvTds | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-ecWCH2 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-3C5aXi | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-2z3cYY | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-fPHfoO | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-ZSSvWF | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-YOOWdw | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-2FQdal | 격리 fixture/증거/cache | 370 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-4NjOir | 격리 fixture/증거/cache | 431 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-yOZwN1 | 격리 fixture/증거/cache | 430 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-WjpEql | 격리 fixture/증거/cache | 434 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-bCCP0i | 격리 fixture/증거/cache | 433 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-x5fyOV | 격리 fixture/증거/cache | 431 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-qj0fTc | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-FljtkY | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-mww6Xw | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-amai6s | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-THsxNY | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-QLetPT | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-6V4gZ1 | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-me5paR | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-jW1Zta | 격리 fixture/증거/cache | 2732 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-BNQL9T | 격리 fixture/증거/cache | 2732 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-tL03wG | 격리 fixture/증거/cache | 2733 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-h5Hzka | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-xNY8jq | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-XKhWFl | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-Lomv9w | 격리 fixture/증거/cache | 2714 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-B6dmPX | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-D50KDi | 격리 fixture/증거/cache | 98 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-7gBghM | 격리 fixture/증거/cache | 3067 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-nE8tSt | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-fkb823 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-Ti2kga | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-fopmLk | 격리 fixture/증거/cache | 274 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-XsOD2e | 격리 fixture/증거/cache | 97 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| <owned-temp>/recording-capture-qB3EHV | 격리 fixture/증거/cache | 163 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+중간 GREEN19 root <owned-temp>/media-server-latency-i6kvpB 423462 bytes removed=true는 도구 원출력 확인(위 원문보존 누락 경계 유지).
 검증: git diff --check exit0; node --check scripts/internal/verify_recording_current_app.mjs exit0.
 Source/build SHA256:
 da89d6b98f473f4c985b05f0d6c3f3a1045e43890d8a228ced8c83d20de05739  include/recording/recording_latency_trace.h
@@ -468,7 +468,7 @@ command: node --test scripts/internal/recording_latency_trace.test.mjs
 exit: 0
 [load] {"requests":600,"locks":15000,"rows":3622,"bytes":497269,"sha256":"32aa2db78fce00dfd92cfda4c185397b58b9d87df31b789ba6af42239a8068ee"}
 [load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487284,"sha256":"df5b24f585bb21b5e23f741945ebadd8bfead6a0722a9508acfb11b2be2cf8de"}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-JJyGIl","bytes":423863,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-latency-JJyGIl","bytes":423863,"removed":true}
 ✔ LP13-T01 collector 존재 (0.586625ms)
 ✔ LP13-T01 disabled/invalid null 무출력 (343.130667ms)
 ✔ LP13-T01 disabled/invalid "" 무출력 (45.727208ms)
@@ -502,10 +502,10 @@ exit: 0
 
 build command: ./server.sh build
 exit: 0
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.1s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_read_service.cpp.o
@@ -515,7 +515,7 @@ exit: 0
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 RED command: node --test scripts/internal/recording_latency_trace.test.mjs
 exit: 1
@@ -539,7 +539,7 @@ RAW_JSON_LINE: "  "
   + 'undefined'
   - 'function'
 RAW_JSON_LINE: "  "
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_latency_trace.test.mjs:4:41)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_latency_trace.test.mjs:4:41)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.start (node:internal/test_runner/test:1003:17)
@@ -556,7 +556,7 @@ RAW_JSON_LINE: "  "
 exit:0
 [load] {"requests":600,"locks":15000,"rows":3622,"bytes":497327,"sha256":"8f8e5c2584a77d4a69104d1fb2e02ff0e5b34d81f79cb43a886cc580cd9f9a06"}
 [load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1500214,"sha256":"1ad2901380d1438673794d4e7513bf99fb09101635839f30eecb0b7ac5a61062"}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-t68X2l","bytes":423409,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-latency-t68X2l","bytes":423409,"removed":true}
 ✔ LP13-T01 collector 존재 (0.603542ms)
 ✔ LP13-T01 disabled/invalid "" 무출력 (353.850125ms)
 ✔ LP13-T01 disabled/invalid "0" 무출력 (37.25ms)

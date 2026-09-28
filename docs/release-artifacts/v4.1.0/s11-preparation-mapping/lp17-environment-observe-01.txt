@@ -1,5 +1,5 @@
 {"kind":"preflight","mode":"environment","id":"observe-01","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"70e47b1eee86a101b1b4b1baa068606d6112c927d870b18db364a02324ebccdd","physicalBytes":25769803776,"reclaimableEstimateBytes":10466869248,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
-{"kind":"command","label":"environment-observation","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["-e","setTimeout(()=>{},1000)"],"seconds":5,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+{"kind":"command","label":"environment-observation","command":"<home>/.nvm/versions/node/v24.13.0/bin/node","args":["-e","setTimeout(()=>{},1000)"],"seconds":5,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
 
         1.13 real         0.02 user         0.00 sys
             52592640  maximum resident set size

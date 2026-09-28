@@ -641,16 +641,16 @@ full3의 admission 음성은 policy 선수조건 누락으로 무효다. full5/c
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.gsTFfg | red 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | red 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.G2Bfib | red2 소유 빌드/store·media | 4377050B | 원출력 보존 후 삭제 | removed=true | red2 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.ZTRwmu | green1 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | green1 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.iUlQTo | green2 소유 빌드/store·media | 4646986B | 원출력 보존 후 삭제 | removed=true | green2 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.em26Tr | full1 소유 빌드/store·media | 18860347B | 원출력 보존 후 삭제 | removed=true | full1 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.q5KYrR | full2 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | full2 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.saIuvT | full3 소유 빌드/store·media | 14308493B | 원출력 보존 후 삭제 | removed=true | full3 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.6Hxet2 | full4 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | full4 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.FQqPQZ | full5 소유 빌드/store·media | 68586029B | 원출력 보존 후 삭제 | removed=true | full5 로그 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.nGjTWP | cost-baseline 소유 빌드/store·media | 100986707B | 원출력 보존 후 삭제 | removed=true | cost-baseline 로그 |
+| <owned-temp>/media-server-file-evidence.gsTFfg | red 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | red 로그 |
+| <owned-temp>/media-server-file-evidence.G2Bfib | red2 소유 빌드/store·media | 4377050B | 원출력 보존 후 삭제 | removed=true | red2 로그 |
+| <owned-temp>/media-server-file-evidence.ZTRwmu | green1 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | green1 로그 |
+| <owned-temp>/media-server-file-evidence.iUlQTo | green2 소유 빌드/store·media | 4646986B | 원출력 보존 후 삭제 | removed=true | green2 로그 |
+| <owned-temp>/media-server-file-evidence.em26Tr | full1 소유 빌드/store·media | 18860347B | 원출력 보존 후 삭제 | removed=true | full1 로그 |
+| <owned-temp>/media-server-file-evidence.q5KYrR | full2 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | full2 로그 |
+| <owned-temp>/media-server-file-evidence.saIuvT | full3 소유 빌드/store·media | 14308493B | 원출력 보존 후 삭제 | removed=true | full3 로그 |
+| <owned-temp>/media-server-file-evidence.6Hxet2 | full4 소유 빌드/store·media | 0B | 원출력 보존 후 삭제 | removed=true | full4 로그 |
+| <owned-temp>/media-server-file-evidence.FQqPQZ | full5 소유 빌드/store·media | 68586029B | 원출력 보존 후 삭제 | removed=true | full5 로그 |
+| <owned-temp>/media-server-file-evidence.nGjTWP | cost-baseline 소유 빌드/store·media | 100986707B | 원출력 보존 후 삭제 | removed=true | cost-baseline 로그 |
 
 최종 runner elapsed34초, token start/end/consumed는 실제 집계 소스 부재로 미집계.
 새 서버·port·계정·브라우저·외부 영상 사용 없음. 생성 영상·소유 root는 삭제하고 숫자/실패 로그만 보존했다.

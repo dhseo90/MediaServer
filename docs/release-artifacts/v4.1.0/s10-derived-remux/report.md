@@ -69,109 +69,109 @@ FD 전용 `DeriveRecordingH264Remux`를 구현했다. 최종 focused **31개(내
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| R14 단발 true→false 취소의 단조 고정 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| D22 실제 분수frame 요청 선택 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R01 실제 source-AU→TS-AU payload·decode 일치 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R11 confirmed source 누락은 생성전 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R03 분수 duration 미충족과 검증성공 분리 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R08 양수 byte 상한 필수 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R08 byte 상한 초과 전 중단·partial cleanup | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R09 미지원 codec 명시 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R09 ambiguous 자동 선택 금지 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R11 중복 segment 입력 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R11 reference source 결박 불일치 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R11 reference channel 결박 불일치 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R06 원본·출력 별칭 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R06 O_APPEND 출력 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R07 원본 hash 불일치 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R13 시작 전 취소·쓰기 없음 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R13 유효 전체시간 상한 필수 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R10 unknown 요청 보존·partial 출력 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R06 borrowed FD offset 보존 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R13 출력 후 취소·partial 소유권 보존 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R13 1ms 전체 deadline 초과는 검증성공 아님 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R07 출력 중 원본 변경 재확인 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R02 B-frame 실제 seek·nonzero 원본축 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R12 162×94 visible plane 픽셀 대응 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R05 인접 same-epoch 실제 source별 독립 출력 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R06 output끼리 전체 inode 교차 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R06 다른 source의 원본FD를 출력으로 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R06 다른 segment의 중복 원본FD 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| R08 모든 출력 합계 byte 상한·부분 실패 목록 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](epoch-verified.log) | pass | 원출력 개별 행 대조 |
-| D01 callback 누적·불변 snapshot | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D02 유효0·fallback·duration/원본부재 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D04 exact union 정상 선택·파일식별 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D03 pre/post·음수요청 보존 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D03 ns 변환 overflow 거부 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D05 한점 외삽 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D06 namespace 격리 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D06 generation 합성 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D06 track 합성 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D07 중복 PTS 모호성 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D07 복수 원본 후보 보존 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D08 cap 초과범위 미확인 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D09 삭제 원본 구분 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D09 불완전 mapping을 영상공백으로 승격 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D09 epoch identity 유지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D11 비표현 유리수 잔차 거부 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D12 watermark 없는 postroll 미확인 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D13 source/channel 결박 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D13 checksum 없는 원본 거부 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D10 UTC 품질·불확실성 유지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D10 UTC 역행 복수후보 보존 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D10 UTC unplaced 차단 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D14 정상후보가 손상후보를 숨기지 않음 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D15 queued sequence 미래제외 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D16 namespace reset 과거eviction 격리 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D17 decoder exact duration·fallback 격리 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| D21 namespace reset 이후 재eviction 최근작은구간 선택 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](selection-regression.log) | pass | 원출력 개별 행 대조 |
-| C501 H264 실제 파일 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C502 비영점 원본 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C503 정상 segment 분할 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C504 B-frame decode preroll 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C505 비영점 B-frame 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C506 분수 frame rate 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C507 시계 역행과 미디어 시각 분리 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
-| C508 PTS 초기화 epoch 분리 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](probe-complete.log) | pass | 원출력 개별 행 대조 |
+| R14 단발 true→false 취소의 단조 고정 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| D22 실제 분수frame 요청 선택 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R01 실제 source-AU→TS-AU payload·decode 일치 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R11 confirmed source 누락은 생성전 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R03 분수 duration 미충족과 검증성공 분리 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R08 양수 byte 상한 필수 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R08 byte 상한 초과 전 중단·partial cleanup | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R09 미지원 codec 명시 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R09 ambiguous 자동 선택 금지 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R11 중복 segment 입력 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R11 reference source 결박 불일치 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R11 reference channel 결박 불일치 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R06 원본·출력 별칭 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R06 O_APPEND 출력 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R07 원본 hash 불일치 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R13 시작 전 취소·쓰기 없음 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R13 유효 전체시간 상한 필수 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R10 unknown 요청 보존·partial 출력 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R06 borrowed FD offset 보존 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R13 출력 후 취소·partial 소유권 보존 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R13 1ms 전체 deadline 초과는 검증성공 아님 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R07 출력 중 원본 변경 재확인 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R02 B-frame 실제 seek·nonzero 원본축 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R12 162×94 visible plane 픽셀 대응 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R05 인접 same-epoch 실제 source별 독립 출력 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R06 output끼리 전체 inode 교차 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R06 다른 source의 원본FD를 출력으로 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R06 다른 segment의 중복 원본FD 거부 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| R08 모든 출력 합계 byte 상한·부분 실패 목록 | remux 실제 assertion; 위 명령 exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 원출력 개별 행 대조 |
+| D01 callback 누적·불변 snapshot | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D02 유효0·fallback·duration/원본부재 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D04 exact union 정상 선택·파일식별 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D03 pre/post·음수요청 보존 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D03 ns 변환 overflow 거부 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D05 한점 외삽 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D06 namespace 격리 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D06 generation 합성 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D06 track 합성 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D07 중복 PTS 모호성 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D07 복수 원본 후보 보존 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D08 cap 초과범위 미확인 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D09 삭제 원본 구분 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D09 불완전 mapping을 영상공백으로 승격 금지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D09 epoch identity 유지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D11 비표현 유리수 잔차 거부 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D12 watermark 없는 postroll 미확인 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D13 source/channel 결박 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D13 checksum 없는 원본 거부 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D10 UTC 품질·불확실성 유지 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D10 UTC 역행 복수후보 보존 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D10 UTC unplaced 차단 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D14 정상후보가 손상후보를 숨기지 않음 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D15 queued sequence 미래제외 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D16 namespace reset 과거eviction 격리 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D17 decoder exact duration·fallback 격리 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| D21 namespace reset 이후 재eviction 최근작은구간 선택 | selection 실제 assertion; 위 명령 exit0; [selection-regression.log](public-evidence-1e82db7c7ca93d20.txt) | pass | 원출력 개별 행 대조 |
+| C501 H264 실제 파일 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C502 비영점 원본 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C503 정상 segment 분할 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C504 B-frame decode preroll 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C505 비영점 B-frame 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C506 분수 frame rate 시각 측정 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C507 시계 역행과 미디어 시각 분리 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
+| C508 PTS 초기화 epoch 분리 | probe 실제 assertion; 위 명령 exit0; [probe-complete.log](public-evidence-f6ec754686de2cbd.txt) | pass | 원출력 개별 행 대조 |
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| R05 실제 epoch 변경 원본→독립 출력 목록 | remux 실제 writer 재시작 및 출력 epoch 전수 대조; exit0; [epoch-verified.log](epoch-verified.log) | pass | 기존 R05 사전등록 보완 |
+| R05 실제 epoch 변경 원본→독립 출력 목록 | remux 실제 writer 재시작 및 출력 epoch 전수 대조; exit0; [epoch-verified.log](public-evidence-a108edda77fbcd63.txt) | pass | 기존 R05 사전등록 보완 |
 | 문서 local links | 메인 실행 verify-docs-links exit0; markdown242/local links2289/images22/anchors110/indexed76/exclusions157/failures0 | pass | 제품 assertion66개와 별도, 서버/temp 없음 |
 
 ## 정리 전수
 
-원출력·해시·숫자·실패 이력만 보존하고 원본/출력 media·SQLite·실행파일은 각 runner trap에서 삭제했다. 아래 값은 실제 cleanup 원출력에서 옮겼으며 최종 부재 확인은 [cleanup-verified.log](cleanup-verified.log)다.
+원출력·해시·숫자·실패 이력만 보존하고 원본/출력 media·SQLite·실행파일은 각 runner trap에서 삭제했다. 아래 값은 실제 cleanup 원출력에서 옮겼으며 최종 부재 확인은 [cleanup-verified.log](public-evidence-377e2617c77c4e25.txt)다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.A2PqJL | 소유 fixture root | 0 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractional-prep-failure |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.Eul9cP | 소유 fixture root | 3595809 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractional-count-initial |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.RYzFVH | 소유 fixture root | 3595809 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractional-count-probe |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.e3tAd0 | 소유 fixture root | 3627972 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractionalred |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.4Nl5RX | 소유 fixture root | 3705892 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | remuxred |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.wZBPzd | 소유 fixture root | 3982536 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | remuxgreen-attempt |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.ws01js | 소유 fixture root | 4004552 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | closure-red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.5GWZ1A | 소유 fixture root | 3992980 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | closure-green |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.bCRL2z | 소유 fixture root | 4254636 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | expanded-green |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.Lw60Hz | 소유 fixture root | 4554078 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | multi-green |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.HTYQEn | 소유 fixture root | 4624430 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | final-focused |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.M9Uj0f | 소유 fixture root | 4628318 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | reference-red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.Ps1PtW | 소유 fixture root | 4628278 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | final-remux |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-time.NljU4O | 소유 fixture root | 4799554 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | probe-regression |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-time.Z2lDzg | 소유 fixture root | 4799554 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | probe-complete |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.FePhuB | 소유 fixture root | 1015416 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | selection-regression |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.LZhTXB | 소유 fixture root | 3190544 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | cancel-red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.5nGbIx | 소유 fixture root | 7818982 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | verified-final |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.5xWz8x | 소유 fixture root | 7819086 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | final-evidence |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.RnEBsT | 소유 fixture root | 0 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | budget-api-compile-preparation |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.tikVWX | 소유 fixture root | 3190544 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | epoch-final |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.TvOX40 | 소유 fixture root | 8104849 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | epoch-verified |
+| <owned-temp>/media-server-derived-remux.A2PqJL | 소유 fixture root | 0 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractional-prep-failure |
+| <owned-temp>/media-server-derived-remux.Eul9cP | 소유 fixture root | 3595809 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractional-count-initial |
+| <owned-temp>/media-server-derived-remux.RYzFVH | 소유 fixture root | 3595809 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractional-count-probe |
+| <owned-temp>/media-server-derived-remux.e3tAd0 | 소유 fixture root | 3627972 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | fractionalred |
+| <owned-temp>/media-server-derived-remux.4Nl5RX | 소유 fixture root | 3705892 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | remuxred |
+| <owned-temp>/media-server-derived-remux.wZBPzd | 소유 fixture root | 3982536 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | remuxgreen-attempt |
+| <owned-temp>/media-server-derived-remux.ws01js | 소유 fixture root | 4004552 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | closure-red |
+| <owned-temp>/media-server-derived-remux.5GWZ1A | 소유 fixture root | 3992980 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | closure-green |
+| <owned-temp>/media-server-derived-remux.bCRL2z | 소유 fixture root | 4254636 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | expanded-green |
+| <owned-temp>/media-server-derived-remux.Lw60Hz | 소유 fixture root | 4554078 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | multi-green |
+| <owned-temp>/media-server-derived-remux.HTYQEn | 소유 fixture root | 4624430 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | final-focused |
+| <owned-temp>/media-server-derived-remux.M9Uj0f | 소유 fixture root | 4628318 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | reference-red |
+| <owned-temp>/media-server-derived-remux.Ps1PtW | 소유 fixture root | 4628278 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | final-remux |
+| <owned-temp>/media-server-derived-time.NljU4O | 소유 fixture root | 4799554 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | probe-regression |
+| <owned-temp>/media-server-derived-time.Z2lDzg | 소유 fixture root | 4799554 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | probe-complete |
+| <owned-temp>/media-server-derived-selection.FePhuB | 소유 fixture root | 1015416 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | selection-regression |
+| <owned-temp>/media-server-derived-remux.LZhTXB | 소유 fixture root | 3190544 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | cancel-red |
+| <owned-temp>/media-server-derived-remux.5nGbIx | 소유 fixture root | 7818982 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | verified-final |
+| <owned-temp>/media-server-derived-remux.5xWz8x | 소유 fixture root | 7819086 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | final-evidence |
+| <owned-temp>/media-server-derived-remux.RnEBsT | 소유 fixture root | 0 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | budget-api-compile-preparation |
+| <owned-temp>/media-server-derived-remux.tikVWX | 소유 fixture root | 3190544 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | epoch-final |
+| <owned-temp>/media-server-derived-remux.TvOX40 | 소유 fixture root | 8104849 bytes | containment 확인 후 재귀 삭제 | 삭제 후 부재 | epoch-verified |
 
 ## 환경·측정·미실행
 
-macOS26.6.2(25G83), GStreamer/video1.28.1, HEAD317d5d9796888d7bdc7c14f5f5a557412b166c0f. 최종 원출력 생성일 2026-09-13 KST. 소스별 SHA256은 [epoch-fingerprints.log](epoch-fingerprints.log). 생성 fixture의 sourcefile/output AU hash는 final-evidence.log에 보존하며 비밀/운영영상이 아니다.
+macOS26.6.2(25G83), GStreamer/video1.28.1, HEAD317d5d9796888d7bdc7c14f5f5a557412b166c0f. 최종 원출력 생성일 2026-09-13 KST. 소스별 SHA256은 [epoch-fingerprints.log](public-evidence-5a07a960f2b189b6.txt). 생성 fixture의 sourcefile/output AU hash는 final-evidence.log에 보존하며 비밀/운영영상이 아니다.
 
 | 영역 | 판정 | 실행 상태·증거 경계 |
 | --- | --- | --- |

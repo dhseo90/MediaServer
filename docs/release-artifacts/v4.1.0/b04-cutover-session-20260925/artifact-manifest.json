@@ -13,7 +13,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.Ctaih9",
+        "path": "<owned-temp>/media-server-cutover-session-readonly.Ctaih9",
         "bytes": 4398376,
         "absent": true
       }
@@ -34,7 +34,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.PWJtt1",
+        "path": "<owned-temp>/media-server-cutover-session-readonly.PWJtt1",
         "bytes": 11832721,
         "absent": true
       }
@@ -55,7 +55,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.ECQakr",
+        "path": "<owned-temp>/media-server-cutover-session-readonly.ECQakr",
         "bytes": 11841382,
         "absent": true
       }
@@ -76,7 +76,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-session-readonly.ZM9q8v",
+        "path": "<owned-temp>/media-server-cutover-session-readonly.ZM9q8v",
         "bytes": 11881942,
         "absent": true
       }
@@ -97,7 +97,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.JQcR5H",
+        "path": "<owned-temp>/media-server-generation-checkpoint.JQcR5H",
         "bytes": 48161760,
         "absent": true
       }
@@ -118,7 +118,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.MkdZh3",
+        "path": "<owned-temp>/media-server-journal-generation-readonly.MkdZh3",
         "bytes": 12018332,
         "absent": true
       }
@@ -160,7 +160,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.5sjPzp",
+        "path": "<owned-temp>/media-server-generation-append.5sjPzp",
         "bytes": 34833142,
         "absent": true
       }
@@ -181,7 +181,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.u0h0Hk",
+        "path": "<owned-temp>/media-server-generation-readonly.u0h0Hk",
         "bytes": 32279625,
         "absent": true
       }

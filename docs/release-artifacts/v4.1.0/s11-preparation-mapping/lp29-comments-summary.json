@@ -26924,7 +26924,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_archive_diagnostic_profile.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_archive_diagnostic_profile.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_archive_diagnostic_profile.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -26934,7 +26934,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_archive_diagnostic_profile.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_archive_diagnostic_profile.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_archive_diagnostic_profile.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -26949,7 +26949,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_auth_preparation.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_auth_preparation.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_auth_preparation.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -26969,7 +26969,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_auth_preparation.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_auth_preparation.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_auth_preparation.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -26999,7 +26999,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_catalog_comparison_guard.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_comparison_guard.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_comparison_guard.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27024,7 +27024,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_catalog_comparison_run.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_comparison_run.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_comparison_run.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27034,7 +27034,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_catalog_comparison.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_comparison.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_comparison.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27074,7 +27074,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_catalog_query_guard.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_query_guard.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_query_guard.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27089,7 +27089,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_catalog_query.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_query.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_catalog_query.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27144,7 +27144,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_completion_trace.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_completion_trace.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_completion_trace.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27154,7 +27154,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_completion_trace.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_completion_trace.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_completion_trace.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27164,7 +27164,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_app_helpers.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_app_helpers.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_app_helpers.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27184,7 +27184,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_archive_probe.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_archive_probe.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_archive_probe.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27194,7 +27194,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_http_diagnostics.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_http_diagnostics.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_http_diagnostics.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27204,7 +27204,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_integration_suite.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_integration_suite.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_integration_suite.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27214,7 +27214,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_integration.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_integration.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_integration.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27224,7 +27224,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_latency.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_latency.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_latency.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27234,7 +27234,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_observation.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_observation.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_observation.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27249,7 +27249,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_observer.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_observer.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_observer.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27259,7 +27259,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_observer.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_observer.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_observer.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27269,7 +27269,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_current_state_diagnostics.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_state_diagnostics.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_current_state_diagnostics.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27289,7 +27289,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_endpoint_contract.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_endpoint_contract.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_endpoint_contract.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27299,7 +27299,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_event_correlation.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_event_correlation.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_event_correlation.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27309,7 +27309,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_failure_capture.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_failure_capture.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_failure_capture.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27319,7 +27319,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_failure_capture.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_failure_capture.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_failure_capture.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27409,7 +27409,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_job_read_context.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_job_read_context.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_job_read_context.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27454,7 +27454,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_latency_trace.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_latency_trace.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_latency_trace.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27464,7 +27464,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_latency_trace.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_latency_trace.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_latency_trace.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27474,7 +27474,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_mapping_ambiguity.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_mapping_ambiguity.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_mapping_ambiguity.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27484,7 +27484,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_memory_phase.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_memory_phase.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_memory_phase.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27509,7 +27509,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_process_cleanup.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_process_cleanup.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_process_cleanup.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27519,7 +27519,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_process_cleanup.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_process_cleanup.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_process_cleanup.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27539,7 +27539,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_process_memory_probe.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_process_memory_probe.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_process_memory_probe.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27559,7 +27559,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_recovery_content.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_recovery_content.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_recovery_content.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27569,7 +27569,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_selection_trace.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_selection_trace.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_selection_trace.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27579,7 +27579,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_selection_trace.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_selection_trace.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_selection_trace.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27614,7 +27614,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_timing_probe.js",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_timing_probe.js, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_timing_probe.js, exit=0",
       "result": "PASS"
     },
     {
@@ -27624,7 +27624,7 @@
     },
     {
       "title": "구문 · scripts/internal/recording_timing_profile_analyze.js",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_timing_profile_analyze.js, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/recording_timing_profile_analyze.js, exit=0",
       "result": "PASS"
     },
     {
@@ -27679,7 +27679,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_local_ice_guard.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_local_ice_guard.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_local_ice_guard.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27689,7 +27689,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_local_ice_guard.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_local_ice_guard.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_local_ice_guard.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27719,7 +27719,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_recording_current_app.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_current_app.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_current_app.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27729,7 +27729,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_recording_current_longrun.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_current_longrun.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_current_longrun.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27809,7 +27809,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_recording_immutable_ownership.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_immutable_ownership.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_immutable_ownership.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27819,7 +27819,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_recording_job_read_context.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_job_read_context.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_job_read_context.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27829,7 +27829,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_recording_media_impact.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_media_impact.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_media_impact.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27859,7 +27859,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_recording_recovery_content.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_recovery_content.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_recording_recovery_content.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27889,7 +27889,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_review4_locator_resolution.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_review4_locator_resolution.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_review4_locator_resolution.test.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27899,7 +27899,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_whep_local_signaling.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_whep_local_signaling.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_whep_local_signaling.mjs, exit=0",
       "result": "PASS"
     },
     {
@@ -27909,7 +27909,7 @@
     },
     {
       "title": "구문 · scripts/internal/verify_whep_local_signaling.test.mjs",
-      "detail": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_whep_local_signaling.test.mjs, exit=0",
+      "detail": "<home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_whep_local_signaling.test.mjs, exit=0",
       "result": "PASS"
     },
     {

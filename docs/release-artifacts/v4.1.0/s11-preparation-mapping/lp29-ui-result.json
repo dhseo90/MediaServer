@@ -62,7 +62,7 @@
       "status": "FAIL",
       "exitCode": 1,
       "reason": "",
-      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921204759-41958/ui-exact-424 --http-base http://127.0.0.1:59853 --role-state-map /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/role-state-map.json --server-log /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/media-server.log --runtime-descriptor /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/runtime-descriptor.json --build-path build-gst-onnx/media_server"
+      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921204759-41958/ui-exact-424 --http-base http://127.0.0.1:59853 --role-state-map /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/role-state-map.json --server-log /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/media-server.log --runtime-descriptor /private/tmp/media-server-lp29-ui.Ti6USB/tmp/media_server_v390_ui-ZtqOLQ/runtime-descriptor.json --build-path build-gst-onnx/media_server"
     },
     {
       "id": "ui-server-cleanup",
@@ -36389,7 +36389,7 @@
     "schema": "media-server.v390-ui-build-source-binding.v1",
     "sourceCommitSha": "9c5b4316b741dbd2cda2d2d4f7b246b51549826f",
     "sourceWorktreeStatusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "buildPath": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+    "buildPath": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
     "buildSha256": "2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7",
     "buildBytes": 25472080,
     "bindingKind": "built-media-server-binary"
@@ -36398,7 +36398,7 @@
     "status": "dependency-bootstrap-attestation",
     "engine": "playwright-native",
     "fixtureMode": false,
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+    "modulePath": "<home>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
     "moduleVersion": "1.62.1",
     "modulePackageSha256": "ca170ec143a88ed3043ac953eb3b2377b2b97304104f4e1e23316684ce2c35af",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -36407,7 +36407,7 @@
     "fallbackUsed": false,
     "resolutionAttempts": [
       {
-        "candidate": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+        "candidate": "<home>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
         "status": "selected",
         "version": "1.62.1",
         "reason": ""
@@ -45711,7 +45711,7 @@
       "processes": [
         {
           "pid": 42523,
-          "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "commandIdentity": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
           "aliveBefore": true,
           "aliveAfter": false,
           "ownedPorts": [
@@ -45755,7 +45755,7 @@
         "check": "throwaway-process-identity",
         "status": "PASS",
         "pid": 42523,
-        "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+        "commandIdentity": "<home>/Workspace/mediaServer/build-gst-onnx/media_server"
       },
       {
         "check": "throwaway-process-alive-before",
@@ -45855,7 +45855,7 @@
   ],
   "cleanup": [
     {
-      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current",
+      "path": "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current",
       "files": 1852,
       "bytesBefore": 180909290,
       "existsAfter": false

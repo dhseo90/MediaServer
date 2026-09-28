@@ -496,22 +496,22 @@ Scratch 최종 실행 뒤 projection smoke의 main에 독립 음성 1개를 추�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.urzSQo` | 격리 검사 fixture/실행 파일 | 7521178 | runner 정리 | removed=true | b02-cut-acceptance-candidates-fixed.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.B0Y6qK` | 격리 검사 fixture/실행 파일 | 0 | runner 정리 | removed=true | b02-cut-acceptance-candidates.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.MCfHAq` | 격리 검사 fixture/실행 파일 | 7487616 | runner 정리 | removed=true | b02-cut-acceptance-first.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.O1WUWj` | 격리 검사 fixture/실행 파일 | 20481528 | runner 정리 | removed=true | b02-cut-acceptance-green.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.21pKmD` | 격리 검사 fixture/실행 파일 | 7608984 | runner 정리 | removed=true | b02-cut-acceptance-named-red-v2.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.rLHM4I` | 격리 검사 fixture/실행 파일 | 7608984 | runner 정리 | removed=true | b02-cut-acceptance-named-red.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.DxbeKy` | 격리 검사 fixture/실행 파일 | 7497877 | runner 정리 | removed=true | b02-cut-acceptance-path-fixed.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.FBfxrF` | 격리 검사 fixture/실행 파일 | 7763907 | runner 정리 | removed=true | b02-cut-direct-request-red.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.qAO3Y7` | 격리 검사 fixture/실행 파일 | 20643263 | runner 정리 | removed=true | b02-cut-final-green.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-projection.I3X2c6` | 격리 검사 fixture/실행 파일 | 7399322 | runner 정리 | removed=true | b02-cut-final-projection-negative.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-projection.6pA8eC` | 격리 검사 fixture/실행 파일 | 7398970 | runner 정리 | removed=true | b02-cut-final-projection.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-projection.0BEpfX` | 격리 검사 fixture/실행 파일 | 7399146 | runner 정리 | removed=true | b02-cut-projection-regression-command-fixed.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.laW2oD` | 격리 검사 fixture/실행 파일 | 7635226 | runner 정리 | removed=true | b02-cut-source-protection.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.OmONn8` | 격리 검사 fixture/실행 파일 | 7753839 | runner 정리 | removed=true | b02-cut-terminal-red.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.urzSQo` | 격리 검사 fixture/실행 파일 | 7521178 | runner 정리 | removed=true | b02-cut-acceptance-candidates-fixed.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.B0Y6qK` | 격리 검사 fixture/실행 파일 | 0 | runner 정리 | removed=true | b02-cut-acceptance-candidates.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.MCfHAq` | 격리 검사 fixture/실행 파일 | 7487616 | runner 정리 | removed=true | b02-cut-acceptance-first.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.O1WUWj` | 격리 검사 fixture/실행 파일 | 20481528 | runner 정리 | removed=true | b02-cut-acceptance-green.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.21pKmD` | 격리 검사 fixture/실행 파일 | 7608984 | runner 정리 | removed=true | b02-cut-acceptance-named-red-v2.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.rLHM4I` | 격리 검사 fixture/실행 파일 | 7608984 | runner 정리 | removed=true | b02-cut-acceptance-named-red.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.DxbeKy` | 격리 검사 fixture/실행 파일 | 7497877 | runner 정리 | removed=true | b02-cut-acceptance-path-fixed.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.FBfxrF` | 격리 검사 fixture/실행 파일 | 7763907 | runner 정리 | removed=true | b02-cut-direct-request-red.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.qAO3Y7` | 격리 검사 fixture/실행 파일 | 20643263 | runner 정리 | removed=true | b02-cut-final-green.log |
+| `<owned-temp>/media-server-catalog-generation-projection.I3X2c6` | 격리 검사 fixture/실행 파일 | 7399322 | runner 정리 | removed=true | b02-cut-final-projection-negative.log |
+| `<owned-temp>/media-server-catalog-generation-projection.6pA8eC` | 격리 검사 fixture/실행 파일 | 7398970 | runner 정리 | removed=true | b02-cut-final-projection.log |
+| `<owned-temp>/media-server-catalog-generation-projection.0BEpfX` | 격리 검사 fixture/실행 파일 | 7399146 | runner 정리 | removed=true | b02-cut-projection-regression-command-fixed.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.laW2oD` | 격리 검사 fixture/실행 파일 | 7635226 | runner 정리 | removed=true | b02-cut-source-protection.log |
+| `<owned-temp>/media-server-catalog-generation-scratch.OmONn8` | 격리 검사 fixture/실행 파일 | 7753839 | runner 정리 | removed=true | b02-cut-terminal-red.log |
 | `/tmp/media_server_v410_recording_catalog-88700` | 격리 검사 fixture/실행 파일 | 28680274 | runner 정리 | removed=true | catalog.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.HPkvb4` | 격리 검사 fixture/실행 파일 | 11632140 | runner 정리 | removed=true | journal.log |
+| `<owned-temp>/media-server-journal-generation-readonly.HPkvb4` | 격리 검사 fixture/실행 파일 | 11632140 | runner 정리 | removed=true | journal.log |
 
 | `/private/tmp/b02-cut-acceptance-candidates-fixed.log` | 원출력 로그 | 7124 | SHA·원문 일치 확인 뒤 제거 | 저장소 gzip 보존·원위치 부재 | `1dbb830bb0ac82519d8a84eab387d642c2bc4ab069063281e5b96813d108d309` |
 | `/private/tmp/b02-cut-acceptance-candidates.log` | 원출력 로그 | 5096 | SHA·원문 일치 확인 뒤 제거 | 저장소 gzip 보존·원위치 부재 | `3852891b8e888d8356b1477045ab1f7aa6c3222721861a07268982259288a5a1` |

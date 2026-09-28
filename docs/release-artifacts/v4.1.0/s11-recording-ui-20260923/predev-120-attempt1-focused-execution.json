@@ -1,6 +1,6 @@
 {
   "mode": "--http",
-  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-ejKt3c",
+  "root": "<owned-temp>/media-server-hw-media-ejKt3c",
   "owned": [
     "/private/tmp/media-server-hw-media-ejKt3c-http_local_h264_aac.http.log",
     "/private/tmp/media-server-hw-media-ejKt3c-http_local_h264_video_only.http.log"

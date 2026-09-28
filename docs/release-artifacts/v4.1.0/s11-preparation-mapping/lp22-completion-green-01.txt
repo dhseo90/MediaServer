@@ -1,6 +1,6 @@
 command: node --test scripts/internal/recording_completion_trace.test.mjs scripts/internal/recording_current_observation.test.mjs
 exit: 0
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-QvF4Tm","bytes":62584,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-completion-QvF4Tm","bytes":62584,"removed":true}
 ✔ LP22-T01 trace off and invalid environment emit nothing (469.805041ms)
 ✔ LP22-T02 trace hashes canary identity and rejects unknown raw fields (15.547417ms)
 ✔ LP22-T02 trace count and byte caps emit one explicit loss (19.918875ms)

@@ -58,7 +58,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | --- | --- | --- | --- |
 | FC01 준비 | 삽입점 정의가 아닌 호출부까지 감지하여 실행 전 중단 | fail | 예상 RED 아님. 함수 정의 앵커로 보완 후 baseline2 통과 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.mJTVm0 bytes=170722 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.mJTVm0 bytes=170722 removed=true`
 - `[exit] code=1 elapsed_seconds=0 token_usage=unavailable source=bash-SECONDS`
 
 ### catalog-cost-output-baseline2.txt
@@ -186,7 +186,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-output-baseline2-117 | FC01/evidence/sources8 exact recovered segment+binding sql0 cost-6 | pass | 원출력 동일 행 |
 | catalog-cost-output-baseline2-118 | FC01/evidence/sources8 exact recovered segment+binding sql0 cost-7 | pass | 원출력 동일 행 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.HpBsiT bytes=101181988 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.HpBsiT bytes=101181988 removed=true`
 - `[exit] code=0 elapsed_seconds=38 token_usage=unavailable source=bash-SECONDS`
 
 ## 후속 원출력·개별 결과
@@ -316,7 +316,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-output-candidate:117 | FC01/evidence/sources8 exact recovered segment+binding sql0 cost-6 | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-output-candidate:118 | FC01/evidence/sources8 exact recovered segment+binding sql0 cost-7 | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kOV3ct bytes=101183432 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.kOV3ct bytes=101183432 removed=true`
 - `[exit] code=0 elapsed_seconds=29 token_usage=unavailable source=bash-SECONDS`
 
 ### catalog-cost-output-compaction.txt
@@ -368,7 +368,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-output-compaction:41 | FC03/different-candidate reopen catalog sql0 | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-output-compaction:42 | FC03/different-candidate exact source and latest event recovery sql0 | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.QaGiZR bytes=5506986 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.QaGiZR bytes=5506986 removed=true`
 - `[exit] code=0 elapsed_seconds=8 token_usage=unavailable source=bash-SECONDS`
 
 ### catalog-cost-output-parse-green.txt
@@ -523,7 +523,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-output-parse-green:144 | FC02/bound/sql/unknown-extra-existing-boundary acceptance expected1 | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-output-parse-green:145 | FC02/bound/sql/unknown-extra-existing-boundary positive SQL rows | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.6xzyL2 bytes=11990526 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.6xzyL2 bytes=11990526 removed=true`
 - `[exit] code=0 elapsed_seconds=7 token_usage=unavailable source=bash-SECONDS`
 
 ### catalog-cost-output-parse-red.txt
@@ -536,7 +536,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-output-parse-red:2 | FC02 temporary access/parser exact insertions=2 strict_original_sha256=be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b header_original_sha256=e923f9ae493d59c9516163f1909c8973ded4b5f2d18676907ad6932cf3539df2 | pass | 해당 실행 source/범위에 한정 |
 | FC02 준비 | 비공개 예약 serializer명을 사용한 fixture 컴파일 오류 | fail | 예상 RED 아님. 실제 예약/replay 선수조건으로 보완 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.iNX8E1 bytes=352990 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.iNX8E1 bytes=352990 removed=true`
 - `[exit] code=1 elapsed_seconds=7 token_usage=unavailable source=bash-SECONDS`
 
 ### catalog-cost-output-parse-red2.txt
@@ -691,7 +691,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-output-parse-red2:144 | FC02/bound/sql/unknown-extra-existing-boundary acceptance expected1 | pass | 예상 RED 횟수 assertion만 실패, GREEN에서 해소 |
 | catalog-cost-output-parse-red2:145 | FC02/bound/sql/unknown-extra-existing-boundary positive SQL rows | pass | 예상 RED 횟수 assertion만 실패, GREEN에서 해소 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.nhKzPY bytes=11990266 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-catalog-cost.nhKzPY bytes=11990266 removed=true`
 - `[exit] code=1 elapsed_seconds=8 token_usage=unavailable source=bash-SECONDS`
 
 ### catalog-cost-regression-boundaries.txt
@@ -709,7 +709,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-regression-boundaries:7 | C334-D commit 실패 보존 | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-regression-boundaries:8 | C334-E clear 실패 | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-write-boundaries.sEPJAR bytes=124725 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-write-boundaries.sEPJAR bytes=124725 removed=true`
 - `[elapsed] seconds=1`
 - `[run-result] command=bash scripts/internal/verify_recording_write_boundaries.sh exit=0 signal=null elapsed_ms=557 token_usage=unavailable`
 
@@ -750,7 +750,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-regression-checkpoint:9 | CP03 bounded partial missing source then same evidence complete | pass | 해당 실행 source/범위에 한정 |
 
 - `[bounded] {"pid":27307,"code":0,"signal":null,"limit":false,"outputBytes":8464,"diagnostic":false,"automaticCheckpoints":null}`
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.qarnGX bytes=15034093 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-checkpoint-reproduction.qarnGX bytes=15034093 removed=true`
 - `[elapsed] seconds=27 source=bash-SECONDS`
 - `[run-result] command=bash scripts/internal/verify_recording_checkpoint_reproduction.sh exit=0 signal=null elapsed_ms=26900 token_usage=unavailable`
 
@@ -939,7 +939,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-regression-evidence:177 | missing-dts FE04 bound finalized mutation segment0 | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-regression-evidence:178 | missing-dts FE08 unsupported original DTS keeps recording | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Oddk0d bytes=101003571 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-file-evidence.Oddk0d bytes=101003571 removed=true`
 - `[elapsed] seconds=28 source=bash-SECONDS`
 - `[run-result] command=bash scripts/internal/verify_recording_file_evidence.sh cost-final exit=0 signal=null elapsed_ms=28650 token_usage=unavailable`
 
@@ -1460,7 +1460,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-regression-source:19 | S10-C319 기존 segment·조회 불변 | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-regression-source:20 | S10-C320 실제 finalize 수락 경계 | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.EMRudd bytes=6220896 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-binding.EMRudd bytes=6220896 removed=true`
 - `[elapsed] seconds=7 source=bash-SECONDS`
 - `[run-result] command=bash scripts/internal/verify_recording_source_binding.sh exit=0 signal=null elapsed_ms=7663 token_usage=unavailable`
 
@@ -1515,7 +1515,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | catalog-cost-regression-writer:43 | WR08 media observation quality fast-step | pass | 해당 실행 source/범위에 한정 |
 | catalog-cost-regression-writer:44 | WR01 actual appsink observation flows through managed writer and decode | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.z94mde bytes=14687375 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-managed-writer.z94mde bytes=14687375 removed=true`
 - `[elapsed] seconds=9 source=bash-SECONDS`
 - `[run-result] command=bash scripts/internal/verify_recording_managed_writer.sh exit=0 signal=null elapsed_ms=8746 token_usage=unavailable`
 
@@ -1579,7 +1579,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | file-evidence-output-profile-red:52 | TP01/malformed FE03 reject truncated with recomputed file hash | pass | data reference index 예상 RED, 후속 수정으로 해소 |
 | file-evidence-output-profile-red:53 | TP01/malformed FE03 reject data reference index with recomputed file hash | fail | data reference index 예상 RED, 후속 수정으로 해소 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Rphuei bytes=8450128 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-file-evidence.Rphuei bytes=8450128 removed=true`
 - `[elapsed] seconds=7 source=bash-SECONDS`
 
 ### file-evidence-output-ready-oracle-fixed.txt
@@ -1658,7 +1658,7 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | file-evidence-output-ready-oracle-fixed:68 | actual-1/ready FE06-R reservation mode0 | pass | 해당 실행 source/범위에 한정 |
 | file-evidence-output-ready-oracle-fixed:69 | actual-1/ready FE06-R persisted Ready mode0 | fail | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.GlDtyR bytes=9320213 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-file-evidence.GlDtyR bytes=9320213 removed=true`
 - `[elapsed] seconds=7 source=bash-SECONDS`
 
 ### file-evidence-output-ready-oracle-fixed2.txt
@@ -1861,31 +1861,31 @@ FC01~05의 승인된 계측·중복 처리 보완·비교·관련 회귀·전체
 | file-evidence-output-ready-oracle-fixed2:192 | missing-dts FE04 bound finalized mutation segment0 | pass | 해당 실행 source/범위에 한정 |
 | file-evidence-output-ready-oracle-fixed2:193 | missing-dts FE08 unsupported original DTS keeps recording | pass | 해당 실행 source/범위에 한정 |
 
-- `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.dB28uQ bytes=103142164 removed=true`
+- `[cleanup] path=<owned-temp>/media-server-file-evidence.dB28uQ bytes=103142164 removed=true`
 - `[elapsed] seconds=28 source=bash-SECONDS`
 
 ## 정리 직접 확인
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kOV3ct` | 소유 임시 source/binary/media/catalog | 101183432B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-candidate.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.QaGiZR` | 소유 임시 source/binary/media/catalog | 5506986B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-compaction.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.6xzyL2` | 소유 임시 source/binary/media/catalog | 11990526B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-parse-green.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.iNX8E1` | 소유 임시 source/binary/media/catalog | 352990B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-parse-red.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.nhKzPY` | 소유 임시 source/binary/media/catalog | 11990266B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-parse-red2.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-write-boundaries.sEPJAR` | 소유 임시 source/binary/media/catalog | 124725B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-boundaries.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.qarnGX` | 소유 임시 source/binary/media/catalog | 15034093B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-checkpoint.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Oddk0d` | 소유 임시 source/binary/media/catalog | 101003571B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-evidence.txt |
+| `<owned-temp>/media-server-catalog-cost.kOV3ct` | 소유 임시 source/binary/media/catalog | 101183432B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-candidate.txt |
+| `<owned-temp>/media-server-catalog-cost.QaGiZR` | 소유 임시 source/binary/media/catalog | 5506986B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-compaction.txt |
+| `<owned-temp>/media-server-catalog-cost.6xzyL2` | 소유 임시 source/binary/media/catalog | 11990526B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-parse-green.txt |
+| `<owned-temp>/media-server-catalog-cost.iNX8E1` | 소유 임시 source/binary/media/catalog | 352990B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-parse-red.txt |
+| `<owned-temp>/media-server-catalog-cost.nhKzPY` | 소유 임시 source/binary/media/catalog | 11990266B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-parse-red2.txt |
+| `<owned-temp>/media-server-write-boundaries.sEPJAR` | 소유 임시 source/binary/media/catalog | 124725B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-boundaries.txt |
+| `<owned-temp>/media-server-checkpoint-reproduction.qarnGX` | 소유 임시 source/binary/media/catalog | 15034093B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-checkpoint.txt |
+| `<owned-temp>/media-server-file-evidence.Oddk0d` | 소유 임시 source/binary/media/catalog | 101003571B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-evidence.txt |
 | `/private/tmp/media-server-finalize-og4t9I` | 소유 임시 source/binary/media/catalog | 8234290B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-finalize-integration.txt |
 | `/private/tmp/media-server-finalize-VAxKhG` | 소유 임시 source/binary/media/catalog | 11911266B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-finalize.txt |
 | `/tmp/media_server_v410_recording_catalog-27380` | 소유 임시 source/binary/media/catalog | 26528854B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-journal.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.EMRudd` | 소유 임시 source/binary/media/catalog | 6220896B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-source.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.z94mde` | 소유 임시 source/binary/media/catalog | 14687375B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-writer.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Rphuei` | 소유 임시 source/binary/media/catalog | 8450128B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | file-evidence-output-profile-red.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.GlDtyR` | 소유 임시 source/binary/media/catalog | 9320213B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | file-evidence-output-ready-oracle-fixed.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.dB28uQ` | 소유 임시 source/binary/media/catalog | 103142164B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | file-evidence-output-ready-oracle-fixed2.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.mJTVm0` | 소유 임시 source/binary/media/catalog | 170722B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-baseline.txt |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.HpBsiT` | 소유 임시 source/binary/media/catalog | 101181988B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-baseline2.txt |
+| `<owned-temp>/media-server-binding.EMRudd` | 소유 임시 source/binary/media/catalog | 6220896B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-source.txt |
+| `<owned-temp>/media-server-managed-writer.z94mde` | 소유 임시 source/binary/media/catalog | 14687375B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-regression-writer.txt |
+| `<owned-temp>/media-server-file-evidence.Rphuei` | 소유 임시 source/binary/media/catalog | 8450128B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | file-evidence-output-profile-red.txt |
+| `<owned-temp>/media-server-file-evidence.GlDtyR` | 소유 임시 source/binary/media/catalog | 9320213B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | file-evidence-output-ready-oracle-fixed.txt |
+| `<owned-temp>/media-server-file-evidence.dB28uQ` | 소유 임시 source/binary/media/catalog | 103142164B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | file-evidence-output-ready-oracle-fixed2.txt |
+| `<owned-temp>/media-server-catalog-cost.mJTVm0` | 소유 임시 source/binary/media/catalog | 170722B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-baseline.txt |
+| `<owned-temp>/media-server-catalog-cost.HpBsiT` | 소유 임시 source/binary/media/catalog | 101181988B | runner 삭제 후 메인 부재 확인 | 삭제 완료 | catalog-cost-output-baseline2.txt |
 
 원출력은 오류·개별 결과·구간별 비용 재현에 필요한 소형 텍스트이며 이 디렉터리에 보존한다. raw media/임시 DB는 보존하지 않았다. 서버/외부 서비스/운영 계정은 기동·접근하지 않았다.
 

@@ -1,5 +1,5 @@
 {"kind":"preflight","mode":"selftest","id":"guard-05","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"15e08d27471941abc49db41257c9194ada106ad383d557741ece70e1342dc12e","physicalBytes":25769803776,"reclaimableEstimateBytes":10812473344,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
-{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+{"kind":"command","label":"runner-selftest","command":"<home>/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
 TAP version 13
 # Subtest: LP17-H01 기존 RSS 실패와 유효 진단 분리
 ok 1 - LP17-H01 기존 RSS 실패와 유효 진단 분리

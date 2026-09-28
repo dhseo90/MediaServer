@@ -93,7 +93,7 @@
 [pass] CP03 bounded partial missing source then same evidence complete
 [summary] pass=3 fail=0
 [bounded] {"pid":27307,"code":0,"signal":null,"limit":false,"outputBytes":8464,"diagnostic":false,"automaticCheckpoints":null}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.qarnGX bytes=15034093 removed=true
+[cleanup] path=<owned-temp>/media-server-checkpoint-reproduction.qarnGX bytes=15034093 removed=true
 [elapsed] seconds=27 source=bash-SECONDS
 
 [run-result] command=bash scripts/internal/verify_recording_checkpoint_reproduction.sh exit=0 signal=null elapsed_ms=26900 token_usage=unavailable

@@ -107,7 +107,7 @@
 [recording] file evidence unavailable: file evidence profile/bound 오류
 [pass] WR01 actual appsink observation flows through managed writer and decode
 [summary] pass=44 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.z94mde bytes=14687375 removed=true
+[cleanup] path=<owned-temp>/media-server-managed-writer.z94mde bytes=14687375 removed=true
 [elapsed] seconds=9 source=bash-SECONDS
 
 [run-result] command=bash scripts/internal/verify_recording_managed_writer.sh exit=0 signal=null elapsed_ms=8746 token_usage=unavailable

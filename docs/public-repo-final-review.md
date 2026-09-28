@@ -39,6 +39,12 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 또는 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-final-screenshots/`
 아래의 최종 evidence 경로만 허용합니다. v3.9.0에서 이미 보존 계약에 결속된 audit-only
 historical root 7개와 bounded failure root 1개의 PNG는 해당 정확한 경로만 추가 허용합니다.
+v4.1.0 S09의 JPEG20개는 직접 시각·metadata 검토를 마친 과거 부분 증거로 유지합니다.
+`reviewedHistoricalAssets`가 지정한 검토 manifest의 SHA와 개별 path/bytes/SHA가 모두
+일치할 때만 허용하며, 동일 폴더의 새 이미지나 변경된 바이트는 허용하지 않습니다.
+기존 실패·잘못 촬영한 화면·`wholeSuitePass=false`는 그대로이며 현재 UI PASS나 공개
+대표 이미지로 승격하지 않습니다. 정제 transcript는 원본/정제본 해시·치환 영수증과
+함께 평문으로 보존해 내용 검사가 가능해야 합니다. 원본 로그의 단순 압축은 정제가 아닙니다.
 그 밖의 raw auth/registry/log/ports/seed 산출물과 운영 snapshot/clip bundle은 공개 대상이
 아닙니다.
 

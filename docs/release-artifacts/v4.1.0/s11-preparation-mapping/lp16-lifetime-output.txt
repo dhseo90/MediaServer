@@ -6,17 +6,17 @@ LP16 최소 수명 보완 검증
 command: MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build
 exit: 0
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
 [  2%] Linking CXX static library libmedia_server_runtime.a
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 command: bash scripts/internal/verify_recording_checkpoint_cache.sh (승격 time-l)
 exit: 0
@@ -112,7 +112,7 @@ exit: 0
            139051800  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=165134336 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5184,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":165134336}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.e3AZT2","bytes":16728254,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.e3AZT2","bytes":16728254,"removed":true}
 [exit] code=0 elapsed_seconds=35 source=bash-SECONDS
 
 [LP16 수명 보완 catalog 회귀 원출력]
@@ -663,7 +663,7 @@ catalog-246 | composition root 시작/종료 순서 | PASS | 최초 실행 exit 
 
 [정리 전수표]
 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거
-/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.e3AZT2 | 소유 cache fixture | 16728254 B | runner 정리 | 삭제·부재 확인 | 원출력 removed=true
+<owned-temp>/media-server-checkpoint-cache.e3AZT2 | 소유 cache fixture | 16728254 B | runner 정리 | 삭제·부재 확인 | 원출력 removed=true
 /tmp/media_server_v410_recording_catalog-39378 | 소유 catalog fixture | 26753462 B | runner 정리 | 삭제·부재 확인 | 원출력 removed=true
 
 [고정 source SHA-256]

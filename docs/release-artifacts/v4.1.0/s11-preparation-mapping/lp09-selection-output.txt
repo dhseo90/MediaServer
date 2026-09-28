@@ -43,7 +43,7 @@ PHASE red EXIT 1
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=30 fail=2
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Xm3Ouf bytes=1089112 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.Xm3Ouf bytes=1089112 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 PHASE red-cases EXIT 1
@@ -97,7 +97,7 @@ PHASE red-cases EXIT 1
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=46 fail=3
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Q7A74J bytes=1089560 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.Q7A74J bytes=1089560 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 PHASE green EXIT 0
@@ -151,7 +151,7 @@ PHASE green EXIT 0
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=49 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.5MrBYQ bytes=1342328 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.5MrBYQ bytes=1342328 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 PHASE boundaries EXIT 0
@@ -208,7 +208,7 @@ PHASE boundaries EXIT 0
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=52 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.AQose3 bytes=1350792 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.AQose3 bytes=1350792 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 PHASE final EXIT 0
@@ -269,7 +269,7 @@ PHASE final EXIT 0
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=56 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.KsnJ0f bytes=1368888 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.KsnJ0f bytes=1368888 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 FINAL SOURCE / diffcheck exit0
@@ -347,7 +347,7 @@ red EXIT 1
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=57 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.VRTaWS bytes=1370984 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.VRTaWS bytes=1370984 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 green EXIT 0
@@ -410,7 +410,7 @@ green EXIT 0
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=58 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.sLlEcb bytes=1370984 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.sLlEcb bytes=1370984 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 Final diffcheck exit0/source/cleanup:
@@ -489,7 +489,7 @@ red EXIT 1
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=59 fail=4
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.DNAzD2 bytes=1371496 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.DNAzD2 bytes=1371496 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 green EXIT 0
@@ -557,7 +557,7 @@ green EXIT 0
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=63 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.oS8UXv bytes=1371736 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.oS8UXv bytes=1371736 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 Final diffcheck exit0/source/cleanup:

@@ -57,6 +57,36 @@ diff-check exit0으로 통과했다. [전수 원출력](release-artifacts/v4.1.0
 구현·테스트·정리·커밋 결과는 아래에 순차 추가한다. token start/end/consumed는 개별 사용량
 제공이 없어 미집계이며 실행 elapsed·원출력·개별 결과는 실제 기록한다.
 
+### B14-02 정제·소비자 보완 완료
+
+정제 자체검증30개(경로14·이미지9·이행7), 기존 관측 진단11개, 공개 정책 계약5개,
+인벤토리18/18·986행, 문서 링크·자산10개를 통과했다. 현재 파일 공개 검사7개도
+통과했으며 `--no-history`의 skipped 한 행은 이력 PASS로 세지 않는다. 기본 history500과
+배포·Actions는 다음3번에서 실행한다. 제품·시간제한·원래 assertion은 변경하지 않았다.
+
+- 원본960개를 검사 가능한 평문으로 이전하고 개인 경로·현재 참조361개 파일을 보완했다.
+  실제 자료를 적용하기 전 slash 없는 temp root4건을 발견해 쓰기 없이 중단했다. 이행 뒤
+  공개 현재 검사에서 중첩 JSON의 slash 없는 home1파일을 확인했고, 뒤 필드/수치를
+  보존하는 반례를 추가해 수정했다. 최종 치환은 home2,697회·temp3,458회다.
+- 처음 정제 helper는 basename 축약을 시도했으나 메인 검토에서 뒤 문구 손실 위험을
+  발견해 고정 root만 치환하도록 보완했다. 정책 밖 임의 비밀 heuristic은 제거하고
+  기존 공개 정책의 고신뢰 패턴 거부를 유지했다. RED·최초 실패·재검증 원출력을 남겼다.
+- 검사 명령 `verify-project-feature-inventory` 오입력 exit1은 실제 검사 실패가 아닌
+  미실행으로 남기고 확인된 `verify-project-inventory`를 실행해 통과했다.
+- [이행 영수증](release-artifacts/v4.1.0/s11-final-20260926/b14-migration-receipt.json.gz)은
+  1,321개 원본/정제본의 해시·크기·치환·현재 참조 변경을 담는다. `published`는 이행 직후
+  snapshot이며 이후 중앙 기록의 결과 추가와 구분한다. 기존 manifest의 raw/source
+  경로·해시는 과거 원본 식별자다. 현재 파일은 영수증의 published 경로로 찾으며 raw SHA를
+  현재 정제 파일의 SHA로 오인하지 않는다. 원본960개는 검증된 대체본·영수증 생성 후
+  개별 삭제·부재를 확인했다. Git 이력은 그대로여서 원본 commit에서 복구 가능하다.
+- 이미지20개는 바이트 불변이고 정확한 manifest SHA·개별 path/bytes/SHA만 허용한다.
+  녹화 진단 A03은 동일 관측행이 있는 새 경로를 읽으며 초과5건·최초 실패 판정을 유지한다.
+
+[전수 개별 결과](release-artifacts/v4.1.0/s11-final-20260926/b14-step2-items.md.gz)와
+[원출력·실제 명령/exit/elapsed·실패 이력](release-artifacts/v4.1.0/s11-final-20260926/b14-step2-results.json.gz)을
+보존했다. 단위검사 소유 root는 각 finally에서 삭제·부재를 확인했다. 실행 로그 root는
+3번까지 공통으로 사용한 뒤 최종 정리한다. 새 서버·브라우저·포트 실행은 없다.
+
 ## v4.1.0 S11 B13 재감사 후 마감 (2026-09-28)
 
 독자: 현재 릴리즈 검토자. 수명: v4.1.0 실행 기록. 정책은 AGENTS.md이며 상세 결과는
@@ -136,14 +166,14 @@ writer만 수정한 첫 GREEN 시도에서는 재기동 active reader가 wrapper
 | B11-G03-P observer | 실제 C++ 형식·증분/회전/부분행·native session, 33개 | pass |
 | B11-G03-P 계약·빌드 | 녹화 계약 135개, runtime98%·server100% | pass |
 
-[append](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-append-green.log),
-[active](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-active-green.log),
-[cold](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-cold-green.log),
-[checkpoint](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-checkpoint-green.log),
-[consumer](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-consumers-green.log),
-[observer](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-observer-selftest.log),
-[계약](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-recording-contracts.log),
-[빌드](release-artifacts/v4.1.0/s11-final-20260926/b11-g03-build.log)의 원출력을 보존한다.
+[append](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-098a9b1f11369ea4.txt),
+[active](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-47ea180bdfdf42f9.txt),
+[cold](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-8537584cd0ac9ceb.txt),
+[checkpoint](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-6a4b85d55bf1d9fa.txt),
+[consumer](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-7e2c6fb9a0adf2a0.txt),
+[observer](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-2cb5797285ebe725.txt),
+[계약](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-aea17d472fce2db5.txt),
+[빌드](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-2900b82f70c7f65e.txt)의 원출력을 보존한다.
 총 809개 관련 assertion이 PASS했고 각 임시 root는 제거됐다. token start/end/consumed는
 전용 집계가 없어 미집계다.
 
@@ -1053,7 +1083,7 @@ Files/Ready/Committed/Complete별 ID, 영속 B snapshot export/import, archive l
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-immutable-ownership.LPsb1z` | 첫 실패 전용 root | 439,029바이트 | uid 501·0700·inode 159427504 및 열린 파일 부재 확인 후 삭제 | 부재 확인 | 해당 실패 원출력과 소유 검사·삭제 명령 exit0 |
+| `<owned-temp>/media-server-immutable-ownership.LPsb1z` | 첫 실패 전용 root | 439,029바이트 | uid 501·0700·inode 159427504 및 열린 파일 부재 확인 후 삭제 | 부재 확인 | 해당 실패 원출력과 소유 검사·삭제 명령 exit0 |
 | B02-P01 재검증 runner root 3개 | 빌드·fixture | 최종 28,553,632바이트; 다른 실행은 원출력 참조 | runner 정리 | 세 번 모두 `removed=true` | 위 원출력 |
 
 ### B-02 현재 상태 snapshot 내보내기 실행 결과
@@ -1160,7 +1190,7 @@ active 적용·세대 게시·v1 전환은 뒤 단계로 남긴다.
 
 ### B-02 snapshot domain 임시 복원 실제 결과
 
-2026-09-25 최종 공개 dispatch `./server.sh verify-v410-recording-generation-projection`는 exit 0으로 아래 29개 독립 assertion을 모두 통과했다. [전체 원출력](release-artifacts/v4.1.0/b02-projection-20260925/public-final.log)에는 source hash·시각·개별 판정·7,391,722바이트 임시 자료 삭제가 있다. 임시 투영을 구성한 focused 결과이지 실제 B Open, active 적용, SQLite 또는 전환 PASS가 아니다.
+2026-09-25 최종 공개 dispatch `./server.sh verify-v410-recording-generation-projection`는 exit 0으로 아래 29개 독립 assertion을 모두 통과했다. [전체 원출력](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-6c133438e01ab3fd.txt)에는 source hash·시각·개별 판정·7,391,722바이트 임시 자료 삭제가 있다. 임시 투영을 구성한 focused 결과이지 실제 B Open, active 적용, SQLite 또는 전환 PASS가 아니다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -1196,7 +1226,7 @@ active 적용·세대 게시·v1 전환은 뒤 단계로 남긴다.
 
 X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server.sh verify-v410-recording-catalog` 237/237 및 crypto-off 3/3·정리 완료, `./server.sh verify-script-inventory` 12/12, `./server.sh verify-project-inventory` 18/18·기능 986개 정합, 문서 링크 328개 문서/12,805개 로컬 링크/오류 0, 문서 자산 10/10, `git diff --check` exit 0. 토큰 start/end/consumed는 계측 source가 없어 미집계이며 elapsed는 공개 focused 약 11초다.
 
-첫 세 번의 실패는 각각 runner 소스 경로 오타(제품 미실행), 미존재 함수 호출로 인한 신규 코드 컴파일 실패(제품 assertion 미실행), V2 locator fixture의 기존 domain 조건 위반(X01 FAIL)이다. 네 번째 그룹 출력과 보강 뒤 내부 집중 결과도 보존했다. 이력을 예상 RED나 제품 회귀로 바꾸지 않았다. [첫 실패](release-artifacts/v4.1.0/b02-projection-20260925/first.log) · [두 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/second.log) · [세 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/third.log) · [네 번째 결과](release-artifacts/v4.1.0/b02-projection-20260925/fourth.log) · [보강 결과](release-artifacts/v4.1.0/b02-projection-20260925/complete.log). 공개 dispatch를 처음 연결한 정적 inventory는 실행 권한 누락으로 11 PASS/1 FAIL이었고 실행 bit 보정 뒤 같은 검사 12/12로 통과했다. 해당 실패도 완료 이력에서 삭제하지 않는다.
+첫 세 번의 실패는 각각 runner 소스 경로 오타(제품 미실행), 미존재 함수 호출로 인한 신규 코드 컴파일 실패(제품 assertion 미실행), V2 locator fixture의 기존 domain 조건 위반(X01 FAIL)이다. 네 번째 그룹 출력과 보강 뒤 내부 집중 결과도 보존했다. 이력을 예상 RED나 제품 회귀로 바꾸지 않았다. [첫 실패](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-f6667115a57458f2.txt) · [두 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-43d5044bb5c6711e.txt) · [세 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-639833075d229dbc.txt) · [네 번째 결과](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-e6555bc93bb6cd75.txt) · [보강 결과](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-d05107a83b85f683.txt). 공개 dispatch를 처음 연결한 정적 inventory는 실행 권한 누락으로 11 PASS/1 FAIL이었고 실행 bit 보정 뒤 같은 검사 12/12로 통과했다. 해당 실패도 완료 이력에서 삭제하지 않는다.
 
 ### B-02 Journal B read-only 권위 연결 실행 전 정의
 
@@ -1304,7 +1334,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 
 ### B-02 Journal B 읽기 권위 집중 검증 결과
 
-2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-last.log)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
+2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-d56f2b95a6a7116c.txt)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1349,7 +1379,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 | B02-J06 v1 checkpoint remains available | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 checkpoint remains available` |
 | B02-J06 v1 reopen unchanged | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 reopen unchanged` |
 
-첫 실행은 crypto-on B·v1 일부 검사 뒤 crypto-off 컴파일의 미사용 함수 `-Werror`로 exit 1이었다. 예상 RED나 B 기능 PASS로 보지 않는다. [첫 실패 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/first.log)을 보존했고 소유 root 4,157,460바이트를 삭제했다. 미사용 경계를 보정한 두 번째 집중 실행은 36/36 exit 0이며 [원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/second.log), 소유 root 11,348,777바이트 정리 기록을 보존했다. 메인 검토에서 B `path()`의 레거시 경로 오인과 누락 marker/manifest·cut 반례를 보완한 뒤 [첫 공개 40/40](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-final.log)을 확인했다. 검증 스크립트의 부정확한 주석만 바로잡은 후 같은 40/40을 최종 소스에서 한 번 더 확인했다.
+첫 실행은 crypto-on B·v1 일부 검사 뒤 crypto-off 컴파일의 미사용 함수 `-Werror`로 exit 1이었다. 예상 RED나 B 기능 PASS로 보지 않는다. [첫 실패 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-e6943c3aa9c06665.txt)을 보존했고 소유 root 4,157,460바이트를 삭제했다. 미사용 경계를 보정한 두 번째 집중 실행은 36/36 exit 0이며 [원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-5dca9e2ce7c526a9.txt), 소유 root 11,348,777바이트 정리 기록을 보존했다. 메인 검토에서 B `path()`의 레거시 경로 오인과 누락 marker/manifest·cut 반례를 보완한 뒤 [첫 공개 40/40](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-568fccd002bb317c.txt)을 확인했다. 검증 스크립트의 부정확한 주석만 바로잡은 후 같은 40/40을 최종 소스에서 한 번 더 확인했다.
 
 영향 확인: `./server.sh build` exit 0; `./server.sh verify-v410-recording-catalog` exit 0·기존 `[pass]` 249행·임시 root 28,671,794바이트 삭제([압축 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/v1-catalog-regression.log.gz), 압축 해제 SHA-256 `3864537d90d9d1e31e51444bce2c071d18ee25b0ff151ccc76ddb7714d561e3e`); `./server.sh verify-script-inventory` 12/12; `./server.sh verify-project-inventory` 18/18·기능 986행([압축 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/project-inventory.log.gz), 압축 해제 SHA-256 `24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00`); `./server.sh verify-docs-links` 문서 328/로컬 링크 12,809/오류 0, `./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit 0. 이는 기존 v1 영향 및 B 읽기 경계에 대한 결과이지 Catalog B Open·active 적용·Append·SQLite·세대 게시 또는 RAM 비용 판정이 아니다.
 
@@ -1361,7 +1391,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 
 ### B-02 Journal 활성 ID·예약 인덱스 집중 검증 결과
 
-2026-09-25 최종 소스에서 `./server.sh verify-v410-recording-journal-generation-readonly` exit 0. J04 9건·J05 18건·J06 13건·J08 7건·J09 15건, 총 62/62개 개별 판정이다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off 실행을 포함한다. [공개 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public.log) SHA-256 `54cba47098ac88b3a1cf741dfb80f820e1ca726e5b3719ab35103f3480dd643a`; UTC 03:19:56~03:20:14, 약 18초. 이전 J04~J06 40개 개별 행은 위 표에 있고, 이번에 새로 등록한 J08~J09 22개는 아래와 같다.
+2026-09-25 최종 소스에서 `./server.sh verify-v410-recording-journal-generation-readonly` exit 0. J04 9건·J05 18건·J06 13건·J08 7건·J09 15건, 총 62/62개 개별 판정이다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off 실행을 포함한다. [공개 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-9d647e33f18e936d.txt) SHA-256 `54cba47098ac88b3a1cf741dfb80f820e1ca726e5b3719ab35103f3480dd643a`; UTC 03:19:56~03:20:14, 약 18초. 이전 J04~J06 40개 개별 행은 위 표에 있고, 이번에 새로 등록한 J08~J09 22개는 아래와 같다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1388,7 +1418,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 | B02-J08 last uint64 ordinal accepted read-only | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `last uint64 ordinal accepted read-only`; 최초 RED는 아래 이력 참조 |
 | B02-J09 ordinal overflow rejected | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `ordinal overflow rejected`; 최초 RED는 아래 이력 참조 |
 
-구현 전 예상 RED는 J09 충돌 반례 14개가 기존 B Open에서 허용돼 실패한 것으로, [RED 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/red.log)에 보존했다. 이것을 최종 FAIL이나 임의 제품 회귀로 바꾸지 않는다. 구현 후 [GREEN](release-artifacts/v4.1.0/b02-journal-active-index-20260925/green.log) 60/60, event↔receipt 과거 호환 반례를 추가한 [담당자 최종](release-artifacts/v4.1.0/b02-journal-active-index-20260925/final.log) 62/62, 메인 공개 재실행 62/62 순으로 확인했다. 기존 v1 Catalog [회귀 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/v1-catalog-regression.log.gz)은 exit 0·[pass] 249행·압축 해제 SHA-256 `81c25bb8404021787261d24d54e43547def5f0333707e4080f0bade6fd97be80`이다. `./server.sh build`도 exit 0. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-journal-active-index-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-journal-active-index-20260925/script-final.log), `./server.sh verify-docs-links` [문서 328·링크 12,820·오류 0](release-artifacts/v4.1.0/b02-journal-active-index-20260925/docs-links-final.log), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-journal-active-index-20260925/docs-assets-final.log), `git diff --check` exit 0이다. 이 판정은 Journal B Open의 읽기·ID/예약 검증 경계이며 Catalog B Open, active domain 적용, SQLite, Append/예약, 세대 게시, RAM 비용의 완료 증거가 아니다. token start/end/consumed는 집계 source가 없어 미집계다.
+구현 전 예상 RED는 J09 충돌 반례 14개가 기존 B Open에서 허용돼 실패한 것으로, [RED 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-7702fea5065e54d1.txt)에 보존했다. 이것을 최종 FAIL이나 임의 제품 회귀로 바꾸지 않는다. 구현 후 [GREEN](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-0cd29e83850ae9e3.txt) 60/60, event↔receipt 과거 호환 반례를 추가한 [담당자 최종](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-bfdd147f3004023e.txt) 62/62, 메인 공개 재실행 62/62 순으로 확인했다. 기존 v1 Catalog [회귀 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/v1-catalog-regression.log.gz)은 exit 0·[pass] 249행·압축 해제 SHA-256 `81c25bb8404021787261d24d54e43547def5f0333707e4080f0bade6fd97be80`이다. `./server.sh build`도 exit 0. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-journal-active-index-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-f10beaa4a9d1969e.txt), `./server.sh verify-docs-links` [문서 328·링크 12,820·오류 0](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-a334d54124f2e3d7.txt), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-f31de1a161c46ac7.txt), `git diff --check` exit 0이다. 이 판정은 Journal B Open의 읽기·ID/예약 검증 경계이며 Catalog B Open, active domain 적용, SQLite, Append/예약, 세대 게시, RAM 비용의 완료 증거가 아니다. token start/end/consumed는 집계 source가 없어 미집계다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
@@ -1400,7 +1430,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 
 ### B-02 Journal 복원 링크 집중 검증 결과
 
-2026-09-25 최종 소스의 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 실행은 exit 0, 기존 62개와 J10 6개·J11 10개를 합쳐 78/78개 개별 PASS였다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 모두 실행했다. [공개 원출력](release-artifacts/v4.1.0/b02-generation-links-20260925/public.log) SHA-256 `d908e1019e33439f2bef182eeca84c0472bd10509d734c05d11934d48a847b1f`에 시작·종료·source hash·cleanup을 보존했다. 기존 J04~J09 62개 결과 행은 위 두 표에 있고 이번 신규 16개는 다음과 같다.
+2026-09-25 최종 소스의 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 실행은 exit 0, 기존 62개와 J10 6개·J11 10개를 합쳐 78/78개 개별 PASS였다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 모두 실행했다. [공개 원출력](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-9219f99f0567053d.txt) SHA-256 `d908e1019e33439f2bef182eeca84c0472bd10509d734c05d11934d48a847b1f`에 시작·종료·source hash·cleanup을 보존했다. 기존 J04~J09 62개 결과 행은 위 두 표에 있고 이번 신규 16개는 다음과 같다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1421,7 +1451,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 | B02-J11 historical archive corruption preserves output | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `historical archive corruption preserves output`; 구현 전/fixture 실패 이력은 아래 참조 |
 | B02-J11 destroyed owner link rejected after reopen | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `destroyed owner link rejected after reopen`; 구현 전/fixture 실패 이력은 아래 참조 |
 
-구현 전 [예상 RED](release-artifacts/v4.1.0/b02-generation-links-20260925/red.log)는 신규 J10/J11 두 assertion 실패·exit 1이고 기존 검사 경로는 통과했다. 첫 [GREEN](release-artifacts/v4.1.0/b02-generation-links-20260925/green.log)은 exit 0이다. 추가 반례 fixture의 Receipt 필수 필드 누락은 [준비 실패](release-artifacts/v4.1.0/b02-generation-links-20260925/final.log) exit 2로 별도 보존하고 제품 RED/PASS로 계산하지 않는다. 기존 canonical Receipt 형식으로 fixture만 수정한 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/final-fixed.log), cold root를 Journal 소유 root로 바로잡은 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/managed-root.log), 메인 공개 실행 78/78 순으로 확인했다. 제품 [빌드](release-artifacts/v4.1.0/b02-generation-links-20260925/build.log) exit 0, [v1 Catalog 회귀](release-artifacts/v4.1.0/b02-generation-links-20260925/v1-catalog.log.gz) exit 0·[pass] 249행·압축 해제 SHA-256 `60f5d9c739ad26a810f4e7f01e471a3f33448072f0ebe870c80088c63d31c577`, [cold mutation 단위](release-artifacts/v4.1.0/b02-generation-links-20260925/cold.log) exit 0·C01~C04 PASS다. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-generation-links-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-generation-links-20260925/scripts-final.log), `./server.sh verify-docs-links` [문서 328·링크 12,833·오류 0](release-artifacts/v4.1.0/b02-generation-links-20260925/docs-links-final.log), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-generation-links-20260925/docs-assets-final.log), `git diff --check` exit 0이다. 이 링크는 Catalog B Open/Attach·active domain 적용·SQLite·쓰기와 아직 연결되지 않았고, 과거 archive 사용 시 전체 SHA 확인 비용과 RAM 상한 판정은 남는다. token start/end/consumed는 계측 source가 없어 미집계다.
+구현 전 [예상 RED](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-624f4b530a4f8a91.txt)는 신규 J10/J11 두 assertion 실패·exit 1이고 기존 검사 경로는 통과했다. 첫 [GREEN](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-62e95db40abb030f.txt)은 exit 0이다. 추가 반례 fixture의 Receipt 필수 필드 누락은 [준비 실패](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-a7e63604f674f5d3.txt) exit 2로 별도 보존하고 제품 RED/PASS로 계산하지 않는다. 기존 canonical Receipt 형식으로 fixture만 수정한 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-4d69aba55098c4cd.txt), cold root를 Journal 소유 root로 바로잡은 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-0e8e77d8acea7733.txt), 메인 공개 실행 78/78 순으로 확인했다. 제품 [빌드](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-7f2eb5b0de6fcf19.txt) exit 0, [v1 Catalog 회귀](release-artifacts/v4.1.0/b02-generation-links-20260925/v1-catalog.log.gz) exit 0·[pass] 249행·압축 해제 SHA-256 `60f5d9c739ad26a810f4e7f01e471a3f33448072f0ebe870c80088c63d31c577`, [cold mutation 단위](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-4a3732e9e8a3f4a9.txt) exit 0·C01~C04 PASS다. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-generation-links-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-d202ac6bdce93382.txt), `./server.sh verify-docs-links` [문서 328·링크 12,833·오류 0](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-2353b8a9657e3380.txt), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-e62cff1a307e1536.txt), `git diff --check` exit 0이다. 이 링크는 Catalog B Open/Attach·active domain 적용·SQLite·쓰기와 아직 연결되지 않았고, 과거 archive 사용 시 전체 SHA 확인 비용과 RAM 상한 판정은 남는다. token start/end/consumed는 계측 source가 없어 미집계다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
@@ -1479,7 +1509,7 @@ O_EXCL 실패는 새 파일을 만들지 않았고 도구 응답만 남았다.
 
 2026-09-25 담당자 직접 `bash scripts/internal/verify_recording_generation_cold_mutation.sh`
 exit 0, C01~C04 전부 PASS, `01:57:30Z`~`01:57:35Z`.
-[원출력](release-artifacts/v4.1.0/b02-cold-20260925/focused.log)은 1,541바이트,
+[원출력](release-artifacts/v4.1.0/b02-cold-20260925/public-evidence-fc82537089b7d300.txt)은 1,541바이트,
 SHA-256 `77d9e1d77256289f6b5bb46f5d7971e5434f9033213eda8eaf2371b70fdda784`다.
 저장소 사본과 담당자 `/private/tmp/b02-cold-focused-first.log`의 byte 일치를 확인한 뒤
 담당자 소유 원본을 삭제하고 부재를 확인했다. 첫 공개 dispatch는 runner 실행권한
@@ -1514,7 +1544,7 @@ snapshot domain 복원은 미실행이다. token start/end/consumed는 집계 so
 
 2026-09-25 active reader 최초 독립 실행은 `bash scripts/internal/verify_recording_generation_active.sh`
 exit 0, A01~A04 모두 PASS, 시작 `01:40:07Z`·종료 `01:40:12Z`였다.
-[원출력](release-artifacts/v4.1.0/b02-active-20260925/focused.log)은
+[원출력](release-artifacts/v4.1.0/b02-active-20260925/public-evidence-1db8bd1f98beb9e3.txt)은
 `6da101865346ef31da2e69e9213ac6a4918df3702d082ed2620ef3bd8f38b5e4`
 (1,485바이트)이며 저장소 사본과 담당자 임시 원본의 byte 일치를 확인했다.
 임시 원본 `/private/tmp/b02-active-focused-first.log`는 소유권·크기 확인 후 삭제해 부재를 확인했다.
@@ -1563,7 +1593,7 @@ crypto-on 10/10, crypto-off 4/4 시나리오로 통과했고 `[cleanup] removed=
 
 실행 전 T01~T03을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`
 exit0, crypto-on S01~S04·T01~T02 6/6, crypto-off S05·T03 2/2,
-cleanup `removed=true`였다. [원출력](release-artifacts/v4.1.0/b02-thin-summary-20260925/focused.log)은
+cleanup `removed=true`였다. [원출력](release-artifacts/v4.1.0/b02-thin-summary-20260925/public-evidence-f882e3166083d54d.txt)은
 임시 로그와 byte 일치하며 SHA-256은
 `ef169ed4d36d9d91cb0ed7ba051eb3610696fe5787f505573e26cdfba2ec97d3`이다.
 요약 parser의 성공은 `latestMutationId`가 실제 검증된 archive 원문을 가리킨다는
@@ -1652,7 +1682,7 @@ token start/end/consumed는 집계 source가 없어 미집계다.
 첫 실행 뒤 I02 사전등록의 “현재 manifest와 다른 세대” 표현이 descriptor 단독 API의 입력보다
 넓은 것을 메인이 발견했다. 현재 manifest와의 대조는 후속 제품 Open의 책임으로 명확히
 정정하고 같은 focused 명령을 재실행했다. 최종 원출력은
-[focused.log](release-artifacts/v4.1.0/b02-immutable-read-20260925/focused.log),
+[focused.log](release-artifacts/v4.1.0/b02-immutable-read-20260925/public-evidence-b6385d60a0438e61.txt),
 SHA-256 `849e1c6f3ecbb010018a32b6ab3c7c888a9258d5d44a4b9af7202d985d47ddab`이다.
 `./server.sh verify-v410-recording-generation` exit0, crypto-on M01~M05+I01~I03
 8/8, crypto-off M06+I04 2/2, cleanup `removed=true`였다. byte admission·digest·
@@ -1682,7 +1712,7 @@ nofollow/inode/size/time/root 재결박과 실패 output 불변을 검사한 독
 ### B-02 불변 세대 파일 cold 구간 읽기 단위 결과
 
 I05/I06을 실행 전에 등록했다. `./server.sh verify-v410-recording-generation`은
-crypto-on 9/9, crypto-off 3/3, 실패 0, exit0이었다. [원출력](release-artifacts/v4.1.0/b02-immutable-range-20260925/focused.log)은
+crypto-on 9/9, crypto-off 3/3, 실패 0, exit0이었다. [원출력](release-artifacts/v4.1.0/b02-immutable-range-20260925/public-evidence-4decb90a3b62ce71.txt)은
 임시 로그와 `cmp`로 일치하며 SHA-256은
 `39ee6b9dddadc58d696a2191383c85afec141e1683d988d08a0a748ef339d900`이다.
 전체 파일 SHA 확인을 유지하면서 지정 구간만 반환한다. 그러므로 메모리 상한은
@@ -1730,8 +1760,8 @@ exit0으로 통과했다. 두 준비 실패는 제품의 예상 RED 또는 B-02 
 | B02-D02 | `./server.sh verify-docs-ui-assets`, 개별 10/10·실패0, exit0 | pass |
 | B02-D03 | `git diff --check`, exit0·출력 없음 | pass |
 
-[검증 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/b02-manifest.log)와
-[빌드 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/b02-build.log)를 보존한다.
+[검증 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/public-evidence-71febc4d2f1d2eee.txt)와
+[빌드 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/public-evidence-1cbc098546070db2.txt)를 보존한다.
 두 파일은 도구 응답을 전사한 것으로 직접 캡처한 raw stream이 아니다. 최초 두 실패의 raw
 stream도 저장소에 보존하지 못했다. 현재 제품의 journal·catalog는 신규 helper를 호출하지
 않으며 이 결과는 B-02 전체나 B-03~B-08 완료 증거가 아니다.
@@ -1894,7 +1924,7 @@ B01-D01의 최초 exit1 원출력은 도구 응답에서 확인했으나 별도 
 O29-C01~05의 6 assertion·0 실패, exit0, 임시 root `removed=true`였다. 최초 준비 실패를 예상 RED나
 제품 회귀로 기록하지 않는다. 최초 컴파일 원출력은 별도 파일로 보존되지 않아 해당 결과의
 완전한 재생 근거로 쓸 수 없다. 메인은 원출력 보존과 파이프라인 실패 전달을 확인하기 위해 같은
-focused 명령을 `bash -o pipefail`로 한 번 수집했고, [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-checkpoint-io.log)은
+focused 명령을 `bash -o pipefail`로 한 번 수집했고, [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-98bd85ecda5ca78c.txt)은
 6 PASS·0 FAIL·정리 완료를 보인다. 두 번의 GREEN은 제품 변경 전 동일 분기 계약 검사이며
 실제 앱·누적 규모·장시간 합격으로 확대하지 않는다.
 
@@ -1932,9 +1962,9 @@ focused 명령을 `bash -o pipefail`로 한 번 수집했고, [원출력](releas
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| O29-D01 최초 실행 | `./server.sh verify-docs-links`, exit1. 새 계약 제목의 anchor 1개 불일치. 뒤 검사 미진행 후 제목/링크를 단순한 일치 anchor로 보완. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-links.log) | fail |
-| O29-D01 수정 후 | 같은 명령 exit0, 328문서·12768링크·193anchor·오류0. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-links-rerun.log) | pass |
-| O29-D02 공개 대표 이미지 | README uses only representative product UI screenshots. 자산 명령 전체 exit0. [전수 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o29-docs-assets.log) | pass |
+| O29-D01 최초 실행 | `./server.sh verify-docs-links`, exit1. 새 계약 제목의 anchor 1개 불일치. 뒤 검사 미진행 후 제목/링크를 단순한 일치 anchor로 보완. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-4d8409b9d1c163f5.txt) | fail |
+| O29-D01 수정 후 | 같은 명령 exit0, 328문서·12768링크·193anchor·오류0. [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-a2cd69756fa707b1.txt) | pass |
+| O29-D02 공개 대표 이미지 | README uses only representative product UI screenshots. 자산 명령 전체 exit0. [전수 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-0d10310ef378944d.txt) | pass |
 | O29-D02 영문 이미지 | English README uses English UI screenshots | pass |
 | O29-D02 공유 자산 | UI guide keeps product screenshots in the shared asset set | pass |
 | O29-D02 캡처 지침 | docs UI asset policy documents capture rules | pass |
@@ -1989,11 +2019,11 @@ focused 명령을 `bash -o pipefail`로 한 번 수집했고, [원출력](releas
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| LP26-O14-A 수동 전체 처리·동시 조회 | [공개 경로 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-public-diagnostic.log): 2,049개 삭제 원본에서 수동 체크포인트 8.410초·동시 타임라인 호출 8.418초. 실제 HTTP나 자동 경로로 전용하지 않음 | pass |
+| LP26-O14-A 수동 전체 처리·동시 조회 | [공개 경로 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-a66757d2b8f93105.txt): 2,049개 삭제 원본에서 수동 체크포인트 8.410초·동시 타임라인 호출 8.418초. 실제 HTTP나 자동 경로로 전용하지 않음 | pass |
 | LP26-O14-A 공개 자동 no-op·복구 | 같은 원출력: 공개 관측 1,526건, 자동 no-op 1회·전체 재작성 0회, 최대 단일 공개 호출 18.508ms, 재개방 뒤 ID 전수·손상/투영/정리 오류 0 | pass |
 | LP26-O14-B 타임라인 정확성 | 같은 원출력: 삭제 원본 2,049개 ID·총계·중복 없음·비재생 상태 확인 | pass |
 | LP26-O14-C 출처·정리 | 같은 원출력: instrumented 소스 hash와 현재 `media_server_runtime` archive hash 기록, subprocess 정상 종료·격리 root 부재 확인 | pass |
-| LP26-O14-D 공개 자동 전체 처리 | [보존 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-public-full-diagnostic.log): 신규 96개 공개 예약→확정→삭제 요청→실제 파일 제거→삭제 완료에서 자동 full fallback 1회. 단일 checkpoint 최대 9,185,538µs(읽기 4,209,922µs, 원본 의미 재적용 4,757,683µs). 전체 lifecycle 잠금 합계 9,852,445µs는 단일 잠금 측정이 아니며 HTTP 요청 결과도 아님. 명령 exit 0, root 부재 | pass |
+| LP26-O14-D 공개 자동 전체 처리 | [보존 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-434d6f4fb3c58e5f.txt): 신규 96개 공개 예약→확정→삭제 요청→실제 파일 제거→삭제 완료에서 자동 full fallback 1회. 단일 checkpoint 최대 9,185,538µs(읽기 4,209,922µs, 원본 의미 재적용 4,757,683µs). 전체 lifecycle 잠금 합계 9,852,445µs는 단일 잠금 측정이 아니며 HTTP 요청 결과도 아님. 명령 exit 0, root 부재 | pass |
 | LP26-O14-E 자동 처리 후 재개방 | 같은 원출력: 동일 root의 기존 2,049개+신규 96개 삭제 ID와 관측 1,526개 ID를 전수·중복 없이 대조, 손상·투영·writer cleanup 오류 0. 복구 프로세스 exit 0 | pass |
 | LP26-O15 최초 실제 앱 누적 진단 | [실패 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o15-status-diagnostic.log.gz): 영상 fixture 생성이 30초 상한에 걸려 서버 기동·HTTP 요청 전 중단(exit 1). stderr 491바이트의 원문은 비민감 분류에 없고 정리 때 폐기됐으므로 원인을 확정하지 않는다. 소유 root 부재 확인. 누적 status 및 120분 결과로 사용할 수 없음 | fail |
 | LP26-O15 현재 진단 도구 단기 자체검사 | `node --test scripts/internal/recording_current_fixture_generation.test.mjs scripts/internal/recording_current_longrun_diagnostics.test.mjs` exit0, fixture 8/8·longrun 진단 7/7. `node --check scripts/internal/verify_recording_current_longrun.mjs`, `bash -n scripts/internal/verify_recording_current_observer.sh` exit0. 원출력은 이번 호출에서 별도 파일로 보존되지 않았으므로 최종 S11 gate 증거로 사용하지 않는다. 실제 원본 1,020개·HTTP·120분 실행은 아님 | pass |
@@ -2026,8 +2056,8 @@ focused 명령을 `bash -o pipefail`로 한 번 수집했고, [원출력](releas
 | LP26-O23-A/B 집중 재검증 | [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp26-o23-c.txt): 22/22·exit0. 두 번째 조회 본문 재파싱 0회, 동일 응답/미디어 바이트, 원장 동일 길이 변조·detach·상태/원본/경로 변경 거부, 8건·8MiB 상한과 hold 해제·소유 root 정리 확인 | pass |
 | LP26-O23 실제 앱·재기동 집중 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz): 첫/두 번째 기동 선택 출력 완료 20.214/22.548초(<30초), 타임라인 HTTP 각각 114/20건 최대 1.089/2.329초(<4초). 출력 각 2개·HTTP200/파일 해시·새 작업·기존 데이터 보존, 독립 terminal+전체 페이지, 27/27·exit0, 서버 exit0·포트/root 정리. 장시간·UI·누적 2,049개 checkpoint PASS로 확대하지 않음 | pass |
 | LP26-O23 catalog·SQLite/JSONL 영향 회귀 | `./server.sh verify-v410-recording-catalog`: 호출 출력에서 234/234 및 crypto-off 3/3·exit0, 소유 임시 root 정리 확인. 이번 호출의 별도 원출력 파일은 보존되지 않아 S11 최종 gate의 전수 증거로 승격하지 않고 최종 소스 고정 뒤 재실행한다 | pass |
-| LP26-O14 실제 HTTP 집중 | 최초 격리 실행은 localhost bind EPERM으로 요청 전 중단·root 정리. [허용 재실행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-latency-focused-authorized.log)은 타임라인 HTTP 114개·최대 967ms, 프로세스 exit0·포트/root 정리 | pass |
-| LP26-O14 현행 5단계 통합의 30초 판정 정정 | [당시 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration.log)·[당시 개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): 실행기는 HTTP API35·인증40·lifecycle10·default46·실제 앱27개와 `currentIntegrationExecutionPass=true`를 출력했으나, 두 번째 기동의 선택 출력 대기는 `elapsedMs=30596.638583`, `returnedAfterBudget=true`였다. `boundedUntil`의 비동기 반환 직후 30초 초과 거부가 없어 과거 PASS가 발생했다. 실제 출력/해시/정리는 보존하되 **30초 합격 및 전체 통합 PASS 증거로 사용할 수 없다**. 당시 실행 결과를 지우지 않고 판정만 정정한다 | fail |
+| LP26-O14 실제 HTTP 집중 | 최초 격리 실행은 localhost bind EPERM으로 요청 전 중단·root 정리. [허용 재실행](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-39b0764a7212b438.txt)은 타임라인 HTTP 114개·최대 967ms, 프로세스 exit0·포트/root 정리 | pass |
+| LP26-O14 현행 5단계 통합의 30초 판정 정정 | [당시 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-dd3a50d3199eccbb.txt)·[당시 개별 행 173개](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-full-integration-items.md): 실행기는 HTTP API35·인증40·lifecycle10·default46·실제 앱27개와 `currentIntegrationExecutionPass=true`를 출력했으나, 두 번째 기동의 선택 출력 대기는 `elapsedMs=30596.638583`, `returnedAfterBudget=true`였다. `boundedUntil`의 비동기 반환 직후 30초 초과 거부가 없어 과거 PASS가 발생했다. 실제 출력/해시/정리는 보존하되 **30초 합격 및 전체 통합 PASS 증거로 사용할 수 없다**. 당시 실행 결과를 지우지 않고 판정만 정정한다 | fail |
 
 자동 전체 재작성은 공개 Catalog 삭제 수명으로 도달했지만, 그 구간과 실제 상태 HTTP 요청의 동시 겹침은 **미확인**이다. 이전 내부 합성 입력은 별도 [실패·보완 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-contention.md)으로 보존한다.
 위 pass는 표시한 검사 범위에만 적용한다. 실제 HTTP 4초 집중 검사만 해당 범위에서 통과했다. 당시 5단계 통합 실행기의 PASS는 위 30초 초과 반례 때문에 무효이며 장시간·UI·버전 전체 PASS가 아니다.
@@ -2066,15 +2096,15 @@ S11-CI11 추가 실행 전 정의: 동일 분석 프레임의 실제 dispatch �
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| LP26-O12-01 GST 보존 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-retention-v2.log): 22/22, 소유 root 삭제 | pass |
+| LP26-O12-01 GST 보존 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-fb6e018e5a44b4f1.txt): 22/22, 소유 root 삭제 | pass |
 | LP26-O12-01 GST 미지원 보존 | 같은 원출력: 2/2, 소유 root 삭제 | pass |
-| LP26-O12-02 손상·SQLite fallback | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-corruption.log): 92/92, 소유 root 삭제 | pass |
-| LP26-O12-02 복구 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-recovery.log): 40/40, 소유 root 삭제 | pass |
-| LP26-O12-03 첫 실제 앱 통합 | [최초 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-current-integration.log): 선택 참조의 출력 관측 제한 초과, 앞 4단계 PASS | fail |
-| LP26-O12-03 두 번째 실제 앱 통합 | [재검증 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-current-integration-r2.log): 첫 기동 출력2개·HTTP·해시 PASS, 두 번째 기동 원본 경계 포착 FAIL; 최초 cleanup FAIL 뒤 소유 root 사후 삭제 | fail |
-| LP26-O12-03 세 번째 실제 앱 통합 | [재검증 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o12-current-integration-r3.log): 첫 기동 출력2개·HTTP·해시 PASS, 두 번째 기동 동일 경계 포착 FAIL; 모든 프로세스·포트·root 정리 PASS | fail |
-| LP26-O13 단독 실제 앱 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o13-current-integration-r7.log): 두 기동 실제 EventRecord·완전 출력2개·HTTP/해시·복구·정리, 개별 27/27 | pass |
-| LP26-O13 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o13-full-integration.log): 앞 네 단계 통과 후 실제 앱 두 번째 기동 타임라인 GET 4,001ms로 HTTP 4초 제한 초과, 전체 통합 미완료 | fail |
+| LP26-O12-02 손상·SQLite fallback | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-d29e5fda95387f0c.txt): 92/92, 소유 root 삭제 | pass |
+| LP26-O12-02 복구 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-4e0146068139d82c.txt): 40/40, 소유 root 삭제 | pass |
+| LP26-O12-03 첫 실제 앱 통합 | [최초 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-e44cf9a8ba7a1cd5.txt): 선택 참조의 출력 관측 제한 초과, 앞 4단계 PASS | fail |
+| LP26-O12-03 두 번째 실제 앱 통합 | [재검증 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-eecdec33de9269ac.txt): 첫 기동 출력2개·HTTP·해시 PASS, 두 번째 기동 원본 경계 포착 FAIL; 최초 cleanup FAIL 뒤 소유 root 사후 삭제 | fail |
+| LP26-O12-03 세 번째 실제 앱 통합 | [재검증 원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-9111cc5b893ff9f1.txt): 첫 기동 출력2개·HTTP·해시 PASS, 두 번째 기동 동일 경계 포착 FAIL; 모든 프로세스·포트·root 정리 PASS | fail |
+| LP26-O13 단독 실제 앱 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-06590d4daed0120c.txt): 두 기동 실제 EventRecord·완전 출력2개·HTTP/해시·복구·정리, 개별 27/27 | pass |
+| LP26-O13 현행 5단계 통합 | [원출력](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-b117e09967a2e425.txt): 앞 네 단계 통과 후 실제 앱 두 번째 기동 타임라인 GET 4,001ms로 HTTP 4초 제한 초과, 전체 통합 미완료 | fail |
 
 결과와 개별 실패 경과는 [O12 기록](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md)을 참조한다.
 실제 1,020개 동시 HTTP, 최종 30분·120분·UI 풀테스트는 이 실행에서 **미실행**이며
@@ -2298,9 +2328,9 @@ checkpoint 전 압축 active 행 반례를 추가했다. generation34/34, observ
 
 [실패·보완·cleanup 전수](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt2.md),
 [120분 실패 원출력](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt2.log.gz),
-[generation 34행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-generation.log),
-[observer 67행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-observer.log),
-[실제 앱 73행](release-artifacts/v4.1.0/s11-final-20260926/b11-active-wrapper-app.log)을 보존한다.
+[generation 34행](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-22a253ce2d410578.txt),
+[observer 67행](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-0bfe5a29d73992bc.txt),
+[실제 앱 73행](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-fa393f00e175f031.txt)을 보존한다.
 이 결과는 focused/단기 PASS이며 녹화 전용 120분 PASS가 아니다.
 
 ## v4.1.0 S11 B11-G03 120분 3차 live root 측정 실패 (2026-09-27)
@@ -2322,14 +2352,14 @@ focused PASS 뒤에도 녹화 전용120분은 처음부터 다시 실행해야 �
 보완 뒤 root 저장 반례는 10/10, 실제 앱 단기는 73/73으로 통과했다. ENOENT 한 번은
 전체 측정을 다시 시작해 정확 집계하고, 지속 ENOENT는 3회 뒤 고정 오류, EACCES는 즉시
 FAIL하는 기준을 확인했다. 실제 앱은 두 채널 녹화·삭제·재기동·복구와 정상 종료·정리를
-확인했다. [focused 결과](release-artifacts/v4.1.0/s11-final-20260926/b11-root-stable-focused.log)를
+확인했다. [focused 결과](release-artifacts/v4.1.0/s11-final-20260926/public-evidence-3a739c1c18a6096e.txt)를
 따르며 장시간 결과는 계속 미완료다. 실패 root·wrapper·진단 임시는 증거 이관 뒤 삭제하고
 부재를 확인했다.
 
 ## v4.1.0 S11 LP26-O08 native 관측 실패 구분 — 실행 전 정의
 
 녹화 전용 120분 2차는 약 394초에 `observer-native-rejected`로 실패했다.
-[원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt2.log)에
+[원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-3d54b45cab5266c1.txt)에
 515 pass·1 fail, root 약 272MiB/448MiB, 제품 서버 정상 종료·포트/임시 root 정리를 보존한다.
 이 코드는 native 파서 거부·3초 실행 시간초과·실행 오류를 같은 문자열로 묶으므로
 제품 손상이라고 단정할 수 없다. 아래 진단은 원문 영상·URL·payload를 출력하지 않는다.
@@ -2345,8 +2375,8 @@ FAIL은 각각 유지하며, 완료 근거로 사용하지 않는다.
 
 ### LP26-O08 진단·단기 결과
 
-물리 압축 행을 포함한 자기검사 [63/63](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-selftest.log)과
-격리 실제 앱 [71/71](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-short-app.log)이
+물리 압축 행을 포함한 자기검사 [63/63](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-d9290e3c3a5fcf73.txt)과
+격리 실제 앱 [71/71](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-dab9a4d4dd51b703.txt)이
 통과했다. [개별 결과 134행](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-results.md)을
 원출력에 연결했다. 단일 native 호출은 누적 물리 입력 약 20MiB에서 3초 `ETIMEDOUT`가
 재현됐고, 입력을 제한된 묶음으로 처리하면 동일 행 수·순서와 후반 손상 거부를 유지한다.
@@ -2362,7 +2392,7 @@ O08 변경 뒤 120분과 UI 영향 판정은 아직 완료하지 않았다.
 
 ### LP26-O08 녹화 120분 재실행 실패
 
-O08 수정 뒤 동일 120분 조건의 [3차 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt3.log)은
+O08 수정 뒤 동일 120분 조건의 [3차 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-35a1ef0bead95f67.txt)은
 1,338 pass·1 fail, 약 1,055초에서 `The operation was aborted due to timeout`으로 끝났다.
 [2·3차 개별 결과 1,855행](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-long-results.md)을
 보존했다. 마지막 완료 표본 뒤 `GET /ops/api/recordings/status` 요청의 기존 4초
@@ -2403,8 +2433,8 @@ catalog/정적 연결 246/246, 보존 56/56, 복구 40/40, 원본 결박 20/20,
 HTTP/RTSP 포트·임시 root 정리를 확인했다. build도 exit 0이다.
 
 복구 첫 시도는 SQLite 비활성 분기의 미사용 함수 경고로 빌드 실패했다.
-[실패 로그](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r03-recovery.log)를
-보존하고 SQLite 조건부 컴파일로 범위를 고친 뒤 [40/40 재검사](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r03-recovery-rerun.log)를
+[실패 로그](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-c3dd1d4a05a3acde.txt)를
+보존하고 SQLite 조건부 컴파일로 범위를 고친 뒤 [40/40 재검사](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-3d4e7d4f22f6e0dd.txt)를
 수행했다. 단기 실제 앱의 최종 표본은 journal 646,191B, SQLite 본파일 364,544B,
 WAL 0B, root 294,815,327B였다. 직전 R02 단기 실행과 media 파일 크기·시점이 달라
 이 두 실행값만으로 120분 증가 추세나 정량 개선율을 단정하지 않는다.
@@ -2452,11 +2482,11 @@ FAIL과 LP26-R01의 별도 PASS 이력을 유지한다.
 | LP26-R02-A/B | 삭제 bound 물리 압축·논리 원문 복원·행 수/순서·손상 거부, 85/85 | pass |
 | LP26-R02-C/checkpoint | 자동 checkpoint 24/24, snapshot 28/28, crypto-off 3/3 | pass |
 | LP26-R02-C/영향 | catalog 234/234, 복구 40/40, 보존 56/56, 직결 shell 구문 검사, build | pass |
-| LP26-R02-D/단기 | [실제 앱 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-short-app.log)의 71/71, 두 채널·삭제·재기동·포트/임시 root 정리 | pass |
+| LP26-R02-D/단기 | [실제 앱 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-7c684e0e32971060.txt)의 71/71, 두 채널·삭제·재기동·포트/임시 root 정리 | pass |
 
-원출력은 [catalog](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-catalog.log),
-[복구](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-recovery.log),
-[보존](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-retention.log) 및
+원출력은 [catalog](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-ed065057153e8892.txt),
+[복구](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-8e92d019821e726f.txt),
+[보존](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-7e5d02c62c216248.txt) 및
 위 개별 결과표에서 연결한다. `token start/end/consumed`는 명령별 집계가 없어 미집계,
 `source=미제공`이다. 원출력의 행 순서는 유지했고 Git 공백 검사를 위해 `.log`의 행 끝 공백만 정규화했다.
 이 단기 결과는 녹화 120분 및 UI 전체 PASS가 아니며 최초
@@ -2505,10 +2535,10 @@ SQLite는 JSONL 원장에서 재구축하는 투영이다. `SegmentV2Deleted`가
 | LP26-R01-C/docs | `./server.sh verify-docs-links` 실패 0, `verify-docs-ui-assets` 10/10, `git diff --check` exit 0 | pass |
 
 개별 실행 항목 441행은 [전수 결과표](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-results.md)와
-[source 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-source-binding.log),
-[복구 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-recovery.log),
-[보존 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-retention.log),
-[catalog 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-catalog.log)에 보존한다.
+[source 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-5a4ad55dd41bffb8.txt),
+[복구 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-def9bd499adfb5ac.txt),
+[보존 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-ee6654b60cb47fa8.txt),
+[catalog 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-bb8777603b3a1429.txt)에 보존한다.
 네 `.log`는 테스트가 출력한 각 행과 순서를 보존하되 Git 공백 검사를 위해 행 끝 공백만 정규화했다.
 동일 제품 소스·환경의 이전 통과를 새 결과로 소급하지 않고, 위 명령의 재실행을 별도로 기록했다.
 `token start/end/consumed`는 명령별 자동 집계가 없어 미집계, `source=미제공`이다.
@@ -3910,14 +3940,14 @@ token start/end/consumed 미집계(전용 집계 없음), elapsed는 각 원출�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.l0Dn6T | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-M9Au7b | HTTP root |2181571B |삭제 |rootAbsent=true |exit0·포트해제 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.a87hPu | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-IU7FcP | HTTP root |2453757B |삭제 |rootAbsent=true |exit0·포트해제 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.l6syHt | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-BilvS2 | HTTP root |69292320B |삭제 |rootAbsent=true |exit0·포트해제 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.C6SyNn | seed/기본구성 fixture |15224825B |삭제 |removed=true |trap 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-FPkTMB | 실제앱 root |171388521B |삭제 |rootAbsent=true |기동2개·UDP 종료 |
+| <owned-temp>/media-server-http-seed.l0Dn6T | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
+| <owned-temp>/media-server-v410-s06-M9Au7b | HTTP root |2181571B |삭제 |rootAbsent=true |exit0·포트해제 |
+| <owned-temp>/media-server-http-seed.a87hPu | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
+| <owned-temp>/media-server-v410-s06-IU7FcP | HTTP root |2453757B |삭제 |rootAbsent=true |exit0·포트해제 |
+| <owned-temp>/media-server-http-seed.l6syHt | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
+| <owned-temp>/media-server-v410-s06-BilvS2 | HTTP root |69292320B |삭제 |rootAbsent=true |exit0·포트해제 |
+| <owned-temp>/media-server-default-composition.C6SyNn | seed/기본구성 fixture |15224825B |삭제 |removed=true |trap 원출력 |
+| <owned-temp>/media-server-current-integration-FPkTMB | 실제앱 root |171388521B |삭제 |rootAbsent=true |기동2개·UDP 종료 |
 | /private/tmp/media-server-lp25-integration.u9QLPj | 임시 로그2개 |627010B |저장소 byte/hash 일치 후 삭제 |removed=true |원문 이관 |
 
 ### 1번 직접 검증 결과
@@ -6660,7 +6690,7 @@ token start/end/consumed는 미집계(개별 집계 도구 없음), source는 �
 | docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-owned-01.txt | 비민감 실행 텍스트 | 6860B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
 | docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-location-01.txt | 비민감 실행 텍스트 | 5438B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
 
-TMPDIR은 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T`이다. read-only process 확인은 처음 sandbox에서 거부됐고,
+TMPDIR은 `<owned-temp>`이다. read-only process 확인은 처음 sandbox에서 거부됐고,
 권한 경유 후 인자 없이 comm/PID만 확인했다. 작업 소유 writer/check/probe 및 제품서버 실행 파일 일치0개다.
 서버/listen 포트·운영 데이터·사용자 계정은 이 단위에서 생성/접근하지 않았다. 기존 build 산출물은 정상 개발 산출물로 유지한다.
 
@@ -9220,23 +9250,23 @@ W12 영향 회귀에 `bash scripts/internal/verify_recording_derived_event_integ
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.8XpTN3 | 격리 실행·미디어·저장소·캐시 | 11507482B | 삭제 | 부재 확인 | red.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.ETVnB2 | 격리 실행·미디어·저장소·캐시 | 11790041B | 삭제 | 부재 확인 | green-core.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.VDWxuU | 격리 실행·미디어·저장소·캐시 | 15668215B | 삭제 | 부재 확인 | green-extended.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.exLiI9 | 격리 실행·미디어·저장소·캐시 | 15470654B | 삭제 | 부재 확인 | green-extended-fixed.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.o5zyeu | 격리 실행·미디어·저장소·캐시 | 15723098B | 삭제 | 부재 확인 | fractional-red.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.inTH07 | 격리 실행·미디어·저장소·캐시 | 15775972B | 삭제 | 부재 확인 | fractional-red-fixed.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.xAzShN | 격리 실행·미디어·저장소·캐시 | 15776100B | 삭제 | 부재 확인 | fractional-red-proven.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.MgQ2Hf | 격리 실행·미디어·저장소·캐시 | 16912609B | 삭제 | 부재 확인 | green-boundaries.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.Q2ApAj | 격리 실행·미디어·저장소·캐시 | 17186352B | 삭제 | 부재 확인 | green-stop-handoff.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.J4QxAS | 격리 실행·미디어·저장소·캐시 | 17761856B | 삭제 | 부재 확인 | green-final.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.zWPxfb | 격리 실행·미디어·저장소·캐시 | 15845022B | 삭제 | 부재 확인 | integration.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.Ow7TYH | 격리 실행·미디어·저장소·캐시 | 10769312B | 삭제 | 부재 확인 | diagnostics.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.b7x0iJ | 격리 실행·미디어·저장소·캐시 | 18782460B | 삭제 | 부재 확인 | green-mapping-final.txt (최종 focused) 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2Ck6oD | 격리 실행·미디어·저장소·캐시 | 14608714B | 삭제 | 부재 확인 | native.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.xBTDlD | 격리 실행·미디어·저장소·캐시 | 14404850B | 삭제 | 부재 확인 | default.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.k5O1bj | 격리 실행·미디어·저장소·캐시 | 9503087B | 삭제 | 부재 확인 | jobs.txt 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.zttTMV | 격리 실행·미디어·저장소·캐시 | 9994068B | 삭제 | 부재 확인 | no-crypto.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.8XpTN3 | 격리 실행·미디어·저장소·캐시 | 11507482B | 삭제 | 부재 확인 | red.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.ETVnB2 | 격리 실행·미디어·저장소·캐시 | 11790041B | 삭제 | 부재 확인 | green-core.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.VDWxuU | 격리 실행·미디어·저장소·캐시 | 15668215B | 삭제 | 부재 확인 | green-extended.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.exLiI9 | 격리 실행·미디어·저장소·캐시 | 15470654B | 삭제 | 부재 확인 | green-extended-fixed.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.o5zyeu | 격리 실행·미디어·저장소·캐시 | 15723098B | 삭제 | 부재 확인 | fractional-red.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.inTH07 | 격리 실행·미디어·저장소·캐시 | 15775972B | 삭제 | 부재 확인 | fractional-red-fixed.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.xAzShN | 격리 실행·미디어·저장소·캐시 | 15776100B | 삭제 | 부재 확인 | fractional-red-proven.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.MgQ2Hf | 격리 실행·미디어·저장소·캐시 | 16912609B | 삭제 | 부재 확인 | green-boundaries.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.Q2ApAj | 격리 실행·미디어·저장소·캐시 | 17186352B | 삭제 | 부재 확인 | green-stop-handoff.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.J4QxAS | 격리 실행·미디어·저장소·캐시 | 17761856B | 삭제 | 부재 확인 | green-final.txt 원출력 |
+| <owned-temp>/media-server-derived-event-integration.zWPxfb | 격리 실행·미디어·저장소·캐시 | 15845022B | 삭제 | 부재 확인 | integration.txt 원출력 |
+| <owned-temp>/media-server-derived-event-integration.Ow7TYH | 격리 실행·미디어·저장소·캐시 | 10769312B | 삭제 | 부재 확인 | diagnostics.txt 원출력 |
+| <owned-temp>/media-server-bounded-wait.b7x0iJ | 격리 실행·미디어·저장소·캐시 | 18782460B | 삭제 | 부재 확인 | green-mapping-final.txt (최종 focused) 원출력 |
+| <owned-temp>/media-server-native-derived.2Ck6oD | 격리 실행·미디어·저장소·캐시 | 14608714B | 삭제 | 부재 확인 | native.txt 원출력 |
+| <owned-temp>/media-server-default-composition.xBTDlD | 격리 실행·미디어·저장소·캐시 | 14404850B | 삭제 | 부재 확인 | default.txt 원출력 |
+| <owned-temp>/media-server-derived-jobs.k5O1bj | 격리 실행·미디어·저장소·캐시 | 9503087B | 삭제 | 부재 확인 | jobs.txt 원출력 |
+| <owned-temp>/media-server-derived-event-integration.zttTMV | 격리 실행·미디어·저장소·캐시 | 9994068B | 삭제 | 부재 확인 | no-crypto.txt 원출력 |
 | /private/tmp/lp10-bounded-wait-logs.5rrRcB | 실행 로그·공용 검증 GST 캐시 | 1680583B | 원출력 보존 후 삭제 | 부재 및 모든 wrapper root 부재 확인 | artifact cleanup-final |
 | docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt | 비민감 원출력·환경·해시 | 99767B | 보존 | 21회 결과/실패/정리 근거 | 영상·원시 저장소·credential 미보존 |
 
@@ -9318,16 +9348,16 @@ W12 영향 회귀에 `bash scripts/internal/verify_recording_derived_event_integ
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Xm3Ouf | 실행/로그 | 1089112B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Q7A74J | 실행/로그 | 1089560B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.5MrBYQ | 실행/로그 | 1342328B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.AQose3 | 실행/로그 | 1350792B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.KsnJ0f | 실행/로그 | 1368888B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.VRTaWS | 실행/로그 | 1370984B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.sLlEcb | 실행/로그 | 1370984B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.Xm3Ouf | 실행/로그 | 1089112B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.Q7A74J | 실행/로그 | 1089560B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.5MrBYQ | 실행/로그 | 1342328B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.AQose3 | 실행/로그 | 1350792B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.KsnJ0f | 실행/로그 | 1368888B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.VRTaWS | 실행/로그 | 1370984B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.sLlEcb | 실행/로그 | 1370984B | 삭제 | 부재 확인 | 선택 원출력 |
 | /private/tmp/lp09-selection-cap.0MyNyE | 실행/로그 | 6114B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.DNAzD2 | 실행/로그 | 1371496B | 삭제 | 부재 확인 | 선택 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.oS8UXv | 실행/로그 | 1371736B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.DNAzD2 | 실행/로그 | 1371496B | 삭제 | 부재 확인 | 선택 원출력 |
+| <owned-temp>/media-server-derived-selection.oS8UXv | 실행/로그 | 1371736B | 삭제 | 부재 확인 | 선택 원출력 |
 | /private/tmp/lp09-selection-prefix.XzwR14 | 실행/로그 | 6918B | 삭제 | 부재 확인 | 선택 원출력 |
 
 ### 잔여2 소비 구현·검증 결과 (2026-09-17)
@@ -9415,18 +9445,18 @@ W12 영향 회귀에 `bash scripts/internal/verify_recording_derived_event_integ
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.NMf50r | 소유 fixture·registry·영상 | 5031896B | 삭제 | 부재 확인 | 소비 원출력 lp10-job-green |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.RR4Xft | 소유 fixture·registry·영상 | 10139087B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.roxl7a | 소유 fixture·registry·영상 | 11735066B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-green-initial |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.3rHy6t | 소유 fixture·registry·영상 | 5147016B | 삭제 | 부재 확인 | 소비 원출력 lp10-identity-red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.I9mC14 | 소유 fixture·registry·영상 | 5147784B | 삭제 | 부재 확인 | 소비 원출력 lp10-identity-green |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.68gS8W | 소유 fixture·registry·영상 | 11927099B | 삭제 | 부재 확인 | 소비 원출력 lp10-dup-red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.9KjXSM | 소유 fixture·registry·영상 | 11738394B | 삭제 | 부재 확인 | 소비 원출력 lp10-timeline-diagnostic |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.0p0nPu | 소유 fixture·registry·영상 | 11738778B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-fixed |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2hChzI | 소유 fixture·registry·영상 | 0B | 삭제 | 부재 확인 | 소비 원출력 lp10-worker-red-start |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.ZMwukr | 소유 fixture·registry·영상 | 8613353B | 삭제 | 부재 확인 | 소비 원출력 lp10-worker-red2 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.HLENhF | 소유 fixture·registry·영상 | 14417434B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-final |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.z3whSD | 소유 fixture·registry·영상 | 5148168B | 삭제 | 부재 확인 | 소비 원출력 lp10-codec-final |
+| <owned-temp>/media-server-job-validation.NMf50r | 소유 fixture·registry·영상 | 5031896B | 삭제 | 부재 확인 | 소비 원출력 lp10-job-green |
+| <owned-temp>/media-server-native-derived.RR4Xft | 소유 fixture·registry·영상 | 10139087B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-red |
+| <owned-temp>/media-server-native-derived.roxl7a | 소유 fixture·registry·영상 | 11735066B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-green-initial |
+| <owned-temp>/media-server-job-validation.3rHy6t | 소유 fixture·registry·영상 | 5147016B | 삭제 | 부재 확인 | 소비 원출력 lp10-identity-red |
+| <owned-temp>/media-server-job-validation.I9mC14 | 소유 fixture·registry·영상 | 5147784B | 삭제 | 부재 확인 | 소비 원출력 lp10-identity-green |
+| <owned-temp>/media-server-native-derived.68gS8W | 소유 fixture·registry·영상 | 11927099B | 삭제 | 부재 확인 | 소비 원출력 lp10-dup-red |
+| <owned-temp>/media-server-native-derived.9KjXSM | 소유 fixture·registry·영상 | 11738394B | 삭제 | 부재 확인 | 소비 원출력 lp10-timeline-diagnostic |
+| <owned-temp>/media-server-native-derived.0p0nPu | 소유 fixture·registry·영상 | 11738778B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-fixed |
+| <owned-temp>/media-server-native-derived.2hChzI | 소유 fixture·registry·영상 | 0B | 삭제 | 부재 확인 | 소비 원출력 lp10-worker-red-start |
+| <owned-temp>/media-server-native-derived.ZMwukr | 소유 fixture·registry·영상 | 8613353B | 삭제 | 부재 확인 | 소비 원출력 lp10-worker-red2 |
+| <owned-temp>/media-server-native-derived.HLENhF | 소유 fixture·registry·영상 | 14417434B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-final |
+| <owned-temp>/media-server-job-validation.z3whSD | 소유 fixture·registry·영상 | 5148168B | 삭제 | 부재 확인 | 소비 원출력 lp10-codec-final |
 
 미실행: 실제 앱 decoder→이벤트/HTTP 전체 통합, 누적catalog16/32, 30분/UI/120분, 릴리즈 작업. native fixture는 실제 파일 writer/remux/decoded hash를 쓰지만 관측 identity 입력은 fixture adapter이므로 실제 앱 분석 경로 PASS로 확대하지 않는다. 관련 기존 소비 회귀는 별도 원출력과 아래 결과에 기록한다.
 
@@ -9593,10 +9623,10 @@ service43·remux31·event integration56·jobs23 총153PASS/0FAIL, 네 wrapper ex
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.fzhkQO | 소유 fixture·영상 | 17704497B | 삭제 | 부재 확인 | 회귀 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.lXRoDR | 소유 fixture·영상 | 12751931B | 삭제 | 부재 확인 | 회귀 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.LDbLfS | 소유 fixture·영상 | 15652142B | 삭제 | 부재 확인 | 회귀 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.hskGKk | 소유 fixture·영상 | 9425919B | 삭제 | 부재 확인 | 회귀 원출력 |
+| <owned-temp>/media-server-derived-job-service.fzhkQO | 소유 fixture·영상 | 17704497B | 삭제 | 부재 확인 | 회귀 원출력 |
+| <owned-temp>/media-server-derived-remux.lXRoDR | 소유 fixture·영상 | 12751931B | 삭제 | 부재 확인 | 회귀 원출력 |
+| <owned-temp>/media-server-derived-event-integration.LDbLfS | 소유 fixture·영상 | 15652142B | 삭제 | 부재 확인 | 회귀 원출력 |
+| <owned-temp>/media-server-derived-jobs.hskGKk | 소유 fixture·영상 | 9425919B | 삭제 | 부재 확인 | 회귀 원출력 |
 
 회귀 보존용 `/private/tmp/lp09-consumption-logs.68LloL`은 124354B였고, 초기 정리 검사가 plugin mirror symlink를 거부(exit1, 삭제 전)했다. 소유 helper/대상을 확인한 뒤 원본 plugin을 따라가지 않고 symlink277개만 unlink하여 root 부재를 확인했다. 제품 실패가 아닌 정리 준비 결함이며 이력을 회귀 artifact에 보존했다.
 
@@ -10991,7 +11021,7 @@ event-rule boundary에도 같은 역사 graph 두 항목이 붙어 있어 기본
 | --- | --- | --- |
 | D 실제 HTTP/API/auth/전송 | API35/auth40/lifecycle10·harness5시나리오(내부40checks) 및 seed준비8행 전부 최종 exit0. [D-results](release-artifacts/v4.1.0/s10-public-consumption/D-results.md) 최종98/과거3행, 상세명령·실패·실제입력한계는 [D-report](release-artifacts/v4.1.0/s10-public-consumption/D-report.md) | PASS |
 | D build/정리/fingerprint | 제품 build exit0, 실제서버3/port6 종료, 기록된소유 temp12경로 부재, source/fixture/binary/archive8개 hash일치. [정리전수](release-artifacts/v4.1.0/s10-public-consumption/D-cleanup.md) | PASS |
-| D 최종 문서 gate | `./server.sh verify-docs-links` exit0/failures0 및 `./server.sh verify-docs-ui-assets` exit0/10 PASS. [링크 원출력](release-artifacts/v4.1.0/s10-public-consumption/D-DocsLinks.log), [자산 원출력](release-artifacts/v4.1.0/s10-public-consumption/D-DocsAssets.log). 제품 assertion98행과 분리하며 실제 UI 검증이 아님 | PASS |
+| D 최종 문서 gate | `./server.sh verify-docs-links` exit0/failures0 및 `./server.sh verify-docs-ui-assets` exit0/10 PASS. [링크 원출력](release-artifacts/v4.1.0/s10-public-consumption/public-evidence-400b9ef6c114e3aa.txt), [자산 원출력](release-artifacts/v4.1.0/s10-public-consumption/public-evidence-5519fba3c5d4848a.txt). 제품 assertion98행과 분리하며 실제 UI 검증이 아님 | PASS |
 | D 최종 증거 대조 | `git diff --check` exit0; D 원출력14개 trailing0·결과101행(최종98/과거3)·temp12경로 현재부재 확인. 링크264md/5861local/22images/110anchors/76indexed/168exclusions/fail0. D-FinalEvidenceCheck.log에 대조 보존 | PASS |
 
 실제브라우저는 사용자 제외, 서버 두번째 기동은 미실행이다. seed 종료→제품 첫 기동의 내구 시작복구를 재시작/실제 재생으로 확대하지 않는다.
@@ -11253,7 +11283,7 @@ E19 실행 묶음(실행 전 고정): `verify_recording_derived_selection.sh`, `
 | source fingerprint | 변경 제품/CMake/runner/fixture 22개 SHA-256 검증 전부 OK | pass |
 | 문서/diff 검사 | `./server.sh verify-docs-links`, exit 0: markdown 248/local links 3321/images 22/anchors 110/indexed 76/exclusions 162/failures 0. `git diff --check`, exit 0. 메인 최신 plan/spec 포함, 제품 717개와 별도 | pass |
 
-최종 **717개 pass / 0 fail**, historical **382행**은 [전수 결과](release-artifacts/v4.1.0/s10-derived-event-integration/results.md), 명령·exit·최초 실패/예상 RED·범위와 한계는 [보고서](release-artifacts/v4.1.0/s10-derived-event-integration/report.md), 실제 변경 파일은 [fingerprint](release-artifacts/v4.1.0/s10-derived-event-integration/source-fingerprints.log)에 보존했다. token start/end/consumed는 하위 작업별 계측 도구가 없어 미집계이며 elapsed는 지원 runner의 SECONDS 원출력, 미지원 runner는 미집계다. 30분/UI 미실행, 120분 조건부 진행(S11 최종 cut 영향 대조, 이번 실행 미승인), 공개 route/default 구성·3D/S11 미구현은 이번 단기 PASS에 포함하지 않는다.
+최종 **717개 pass / 0 fail**, historical **382행**은 [전수 결과](release-artifacts/v4.1.0/s10-derived-event-integration/results.md), 명령·exit·최초 실패/예상 RED·범위와 한계는 [보고서](release-artifacts/v4.1.0/s10-derived-event-integration/report.md), 실제 변경 파일은 [fingerprint](release-artifacts/v4.1.0/s10-derived-event-integration/public-evidence-9911ac94c9f99312.txt)에 보존했다. token start/end/consumed는 하위 작업별 계측 도구가 없어 미집계이며 elapsed는 지원 runner의 SECONDS 원출력, 미지원 runner는 미집계다. 30분/UI 미실행, 120분 조건부 진행(S11 최종 cut 영향 대조, 이번 실행 미승인), 공개 route/default 구성·3D/S11 미구현은 이번 단기 PASS에 포함하지 않는다.
 
 ## S10 3C-5.3b 사전등록 — 2026-09-13
 
@@ -11294,55 +11324,55 @@ F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance re
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| F12 실제 remux의 다른 selection 결박 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 66행 | pass |
-| F12 실제 remux provenance의 요청 범위 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 67행 | pass |
-| F12 실제 remux의 foreign unfulfilled 범위 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 68행 | pass |
-| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 69행 | pass |
-| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 73행 | pass |
-| F15 단일 service·동시 Run·외부 terminal release 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 74행 | pass |
-| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 75행 | pass |
-| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 76행 | pass |
-| F12 Complete 출처 전수 canonical roundtrip | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 77행 | pass |
-| F12 Ready 포함 Intent 잘못된 상태 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 78행 | pass |
-| F12 미지원 필드 엄격 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 79행 | pass |
-| F14 Ready JSON 4MiB 명시 상한 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 80행 | pass |
-| F12 출력 receipt inode 별칭 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 81행 | pass |
-| F03 Intent 생성 전 프로세스 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 83행 | pass |
-| F04 receipt 전 실물의 소유권 미확인 보호 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 84행 | pass |
-| F05 receipt 이후 Intent 중단 소유물 정리 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 85행 | pass |
-| F06 Ready 중단 뒤 재렌더 없이 완료 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 86행 | pass |
-| F07 첫 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 87행 | pass |
-| F07 두 번째 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 88행 | pass |
-| F08 전체 publish 후 commit 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 89행 | pass |
-| F09 원자 commit 후 cleanup 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 90행 | pass |
-| F10 첫 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 91행 | pass |
-| F10 두 번째 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 92행 | pass |
-| F10 attempt 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 93행 | pass |
-| F10 job 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 94행 | pass |
-| F10 Complete mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 95행 | pass |
-| F10 Failed cleanup attempt 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 96행 | pass |
-| F10 Failed cleanup job 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 97행 | pass |
-| F10 Failed mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 98행 | pass |
-| F11 hash 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 99행 | pass |
-| F11 missing 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 100행 | pass |
-| F11 foreign 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 101행 | pass |
-| F11 symlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 102행 | pass |
-| F11 fifo 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 103행 | pass |
-| F11 hardlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 104행 | pass |
-| F11 parent 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 105행 | pass |
-| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 106행 | pass |
-| F14 cancel 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 107행 | pass |
-| F14 small 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 108행 | pass |
-| F14 deadline 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 109행 | pass |
-| F12 SQLite projection·journal fallback job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 110행 | pass |
-| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 111행 | pass |
-| F13 Complete output tombstone 뒤 재생성 없음 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 112행 | pass |
-| F11 anchored root 교체 거부·새 catalog에서 파일/원장 무변경 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 9행 | pass |
-| F16 다른 journal/root/catalog의 Run·Reconcile 무변경 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 10행 | pass |
-| F12 실제 committed 중첩 output의 미예약 order 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 11행 | pass |
-| F15 active snapshot 8개 상한·초과 명시·다음 호출 수렴 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 12행 | pass |
-| F12 journal Ready→Complete 불법 전이 replay 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 13행 | pass |
-| F09 재개 전 source/output holds·정상 삭제사유 거부와 cleanup 후 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 14행 | pass |
+| F12 실제 remux의 다른 selection 결박 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 66행 | pass |
+| F12 실제 remux provenance의 요청 범위 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 67행 | pass |
+| F12 실제 remux의 foreign unfulfilled 범위 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 68행 | pass |
+| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 69행 | pass |
+| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 73행 | pass |
+| F15 단일 service·동시 Run·외부 terminal release 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 74행 | pass |
+| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 75행 | pass |
+| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 76행 | pass |
+| F12 Complete 출처 전수 canonical roundtrip | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 77행 | pass |
+| F12 Ready 포함 Intent 잘못된 상태 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 78행 | pass |
+| F12 미지원 필드 엄격 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 79행 | pass |
+| F14 Ready JSON 4MiB 명시 상한 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 80행 | pass |
+| F12 출력 receipt inode 별칭 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 81행 | pass |
+| F03 Intent 생성 전 프로세스 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 83행 | pass |
+| F04 receipt 전 실물의 소유권 미확인 보호 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 84행 | pass |
+| F05 receipt 이후 Intent 중단 소유물 정리 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 85행 | pass |
+| F06 Ready 중단 뒤 재렌더 없이 완료 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 86행 | pass |
+| F07 첫 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 87행 | pass |
+| F07 두 번째 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 88행 | pass |
+| F08 전체 publish 후 commit 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 89행 | pass |
+| F09 원자 commit 후 cleanup 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 90행 | pass |
+| F10 첫 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 91행 | pass |
+| F10 두 번째 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 92행 | pass |
+| F10 attempt 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 93행 | pass |
+| F10 job 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 94행 | pass |
+| F10 Complete mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 95행 | pass |
+| F10 Failed cleanup attempt 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 96행 | pass |
+| F10 Failed cleanup job 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 97행 | pass |
+| F10 Failed mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 98행 | pass |
+| F11 hash 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 99행 | pass |
+| F11 missing 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 100행 | pass |
+| F11 foreign 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 101행 | pass |
+| F11 symlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 102행 | pass |
+| F11 fifo 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 103행 | pass |
+| F11 hardlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 104행 | pass |
+| F11 parent 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 105행 | pass |
+| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 106행 | pass |
+| F14 cancel 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 107행 | pass |
+| F14 small 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 108행 | pass |
+| F14 deadline 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 109행 | pass |
+| F12 SQLite projection·journal fallback job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 110행 | pass |
+| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 111행 | pass |
+| F13 Complete output tombstone 뒤 재생성 없음 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 112행 | pass |
+| F11 anchored root 교체 거부·새 catalog에서 파일/원장 무변경 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 9행 | pass |
+| F16 다른 journal/root/catalog의 Run·Reconcile 무변경 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 10행 | pass |
+| F12 실제 committed 중첩 output의 미예약 order 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 11행 | pass |
+| F15 active snapshot 8개 상한·초과 명시·다음 호출 수렴 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 12행 | pass |
+| F12 journal Ready→Complete 불법 전이 replay 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 13행 | pass |
+| F09 재개 전 source/output holds·정상 삭제사유 거부와 cleanup 후 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 14행 | pass |
 
 최초 F01/F12/BeforeCreate 취소 예상 RED, 혼합 ABI abort134, 제품 order 필드 compile 오류, root 재조회 fixture 오류, C++17 fixture compile 오류를 보고서에 보존했으며 PASS로 소급 덮지 않았다. cleanup은 원출력에 기록된 소유 root19개를 정리하고 현재 부재를 다시 대조했다.
 
@@ -11352,29 +11382,29 @@ F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance re
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| J01 실제 선택→compact 내구 job 계약 왕복 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 1행 | pass |
-| J17 무관source8개 추가에도 동일선택 jobID 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 3행 | pass |
-| J18 cleanup wall시계 역행 허용·순서는상태로검사 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 4행 | pass |
-| J04 단일 Intent 원장·보호·예약 원자 가시성 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 5행 | pass |
-| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 6행 | pass |
-| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 7행 | pass |
-| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 8행 | pass |
-| J16 소유 경로·attempt·order 계획 조작 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 9행 | pass |
-| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 10행 | pass |
-| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 11행 | pass |
-| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 12행 | pass |
-| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 13행 | pass |
-| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 19행 | pass |
-| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 20행 | pass |
-| J10 checkpoint 전후 job·보호·예약 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 21행 | pass |
-| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 22행 | pass |
-| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 29행 | pass |
-| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 30행 | pass |
-| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 31행 | pass |
-| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 32행 | pass |
-| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 33행 | pass |
-| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 34행 | pass |
-| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 35행 | pass |
+| J01 실제 선택→compact 내구 job 계약 왕복 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 1행 | pass |
+| J17 무관source8개 추가에도 동일선택 jobID 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 3행 | pass |
+| J18 cleanup wall시계 역행 허용·순서는상태로검사 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 4행 | pass |
+| J04 단일 Intent 원장·보호·예약 원자 가시성 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 5행 | pass |
+| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 6행 | pass |
+| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 7행 | pass |
+| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 8행 | pass |
+| J16 소유 경로·attempt·order 계획 조작 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 9행 | pass |
+| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 10행 | pass |
+| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 11행 | pass |
+| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 12행 | pass |
+| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 13행 | pass |
+| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 19행 | pass |
+| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 20행 | pass |
+| J10 checkpoint 전후 job·보호·예약 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 21행 | pass |
+| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 22행 | pass |
+| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 29행 | pass |
+| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 30행 | pass |
+| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 31행 | pass |
+| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 32행 | pass |
+| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 33행 | pass |
+| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 34행 | pass |
+| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 35행 | pass |
 | catalog 영향 회귀 | 기존 catalog 234 + crypto-off3 + 정적 연결9 =246개, exit0; 전수는 위349행 표에 보존 | pass |
 | retention 영향 회귀 | 기존 56개, exit0; 전수는 위349행 표에 보존 | pass |
 | V2 retention 영향 회귀 | 실제 media22 + GStreamer-off2 =24개, exit0. 최초 B14 FAIL 및 scope 변경 compile 실패 뒤 보정 PASS; 전수/실패 이력은 보고서 | pass |
@@ -11423,7 +11453,7 @@ F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance re
 
 ## S10 3C-5.2 실행 결과 — 2026-09-13
 
-최종 R05 epoch 보완: 실제 writer 재시작의 서로 다른 두 epoch 원본3개→독립TS3개·전체요청 충족을 추가 검증했다. 최종은 [epoch-verified.log](release-artifacts/v4.1.0/s10-derived-remux/epoch-verified.log)의 focused31(취소1+media30), 아래 선택27/probe8과 합계66개다. 이전 final-evidence의30개 이력은 보존한다. 제품 코드는 검증된 latch build 이후 무변경이며 fixture만 보완했다. 추가 <set> include 누락 컴파일 오류(exit1)는 epoch-final.log에 비RED로 보존했다. 최종22개 root 부재는 cleanup-verified.log다.
+최종 R05 epoch 보완: 실제 writer 재시작의 서로 다른 두 epoch 원본3개→독립TS3개·전체요청 충족을 추가 검증했다. 최종은 [epoch-verified.log](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-a108edda77fbcd63.txt)의 focused31(취소1+media30), 아래 선택27/probe8과 합계66개다. 이전 final-evidence의30개 이력은 보존한다. 제품 코드는 검증된 latch build 이후 무변경이며 fixture만 보완했다. 추가 <set> include 누락 컴파일 오류(exit1)는 epoch-final.log에 비RED로 보존했다. 최종22개 root 부재는 cleanup-verified.log다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -11434,71 +11464,71 @@ F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance re
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| S10 3C-5.2 R14 단발 true→false 취소의 단조 고정 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 D22 실제 분수frame 요청 선택 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R01 실제 source-AU→TS-AU payload·decode 일치 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R11 confirmed source 누락은 생성전 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R03 분수 duration 미충족과 검증성공 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R08 양수 byte 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R08 byte 상한 초과 전 중단·partial cleanup | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R09 미지원 codec 명시 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R09 ambiguous 자동 선택 금지 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R11 중복 segment 입력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R11 reference source 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R11 reference channel 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R06 원본·출력 별칭 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R06 O_APPEND 출력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R07 원본 hash 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R13 시작 전 취소·쓰기 없음 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R13 유효 전체시간 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R10 unknown 요청 보존·partial 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R06 borrowed FD offset 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R13 출력 후 취소·partial 소유권 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R13 1ms 전체 deadline 초과는 검증성공 아님 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R07 출력 중 원본 변경 재확인 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R02 B-frame 실제 seek·nonzero 원본축 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R12 162×94 visible plane 픽셀 대응 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R05 인접 same-epoch 실제 source별 독립 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R06 output끼리 전체 inode 교차 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R06 다른 source의 원본FD를 출력으로 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R06 다른 segment의 중복 원본FD 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 R08 모든 출력 합계 byte 상한·부분 실패 목록 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
-| S10 3C-5.2 D01 callback 누적·불변 snapshot | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D02 유효0·fallback·duration/원본부재 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D04 exact union 정상 선택·파일식별 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D03 pre/post·음수요청 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D03 ns 변환 overflow 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D05 한점 외삽 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D06 namespace 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D06 generation 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D06 track 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D07 중복 PTS 모호성 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D07 복수 원본 후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D08 cap 초과범위 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D09 삭제 원본 구분 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D09 불완전 mapping을 영상공백으로 승격 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D09 epoch identity 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D11 비표현 유리수 잔차 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D12 watermark 없는 postroll 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D13 source/channel 결박 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D13 checksum 없는 원본 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D10 UTC 품질·불확실성 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D10 UTC 역행 복수후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D10 UTC unplaced 차단 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D14 정상후보가 손상후보를 숨기지 않음 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D15 queued sequence 미래제외 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D16 namespace reset 과거eviction 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D17 decoder exact duration·fallback 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 D21 namespace reset 이후 재eviction 최근작은구간 선택 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
-| S10 3C-5.2 C501 H264 실제 파일 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C502 비영점 원본 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C503 정상 segment 분할 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C504 B-frame decode preroll 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C505 비영점 B-frame 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C506 분수 frame rate 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C507 시계 역행과 미디어 시각 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
-| S10 3C-5.2 C508 PTS 초기화 epoch 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 R14 단발 true→false 취소의 단조 고정 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 D22 실제 분수frame 요청 선택 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R01 실제 source-AU→TS-AU payload·decode 일치 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 confirmed source 누락은 생성전 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R03 분수 duration 미충족과 검증성공 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R08 양수 byte 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R08 byte 상한 초과 전 중단·partial cleanup | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R09 미지원 codec 명시 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R09 ambiguous 자동 선택 금지 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 중복 segment 입력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 reference source 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 reference channel 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 원본·출력 별칭 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 O_APPEND 출력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R07 원본 hash 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 시작 전 취소·쓰기 없음 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 유효 전체시간 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R10 unknown 요청 보존·partial 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 borrowed FD offset 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 출력 후 취소·partial 소유권 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 1ms 전체 deadline 초과는 검증성공 아님 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R07 출력 중 원본 변경 재확인 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R02 B-frame 실제 seek·nonzero 원본축 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R12 162×94 visible plane 픽셀 대응 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R05 인접 same-epoch 실제 source별 독립 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 output끼리 전체 inode 교차 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 다른 source의 원본FD를 출력으로 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 다른 segment의 중복 원본FD 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R08 모든 출력 합계 byte 상한·부분 실패 목록 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 D01 callback 누적·불변 snapshot | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D02 유효0·fallback·duration/원본부재 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D04 exact union 정상 선택·파일식별 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D03 pre/post·음수요청 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D03 ns 변환 overflow 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D05 한점 외삽 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D06 namespace 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D06 generation 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D06 track 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D07 중복 PTS 모호성 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D07 복수 원본 후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D08 cap 초과범위 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D09 삭제 원본 구분 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D09 불완전 mapping을 영상공백으로 승격 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D09 epoch identity 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D11 비표현 유리수 잔차 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D12 watermark 없는 postroll 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D13 source/channel 결박 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D13 checksum 없는 원본 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D10 UTC 품질·불확실성 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D10 UTC 역행 복수후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D10 UTC unplaced 차단 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D14 정상후보가 손상후보를 숨기지 않음 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D15 queued sequence 미래제외 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D16 namespace reset 과거eviction 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D17 decoder exact duration·fallback 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D21 namespace reset 이후 재eviction 최근작은구간 선택 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 C501 H264 실제 파일 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C502 비영점 원본 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C503 정상 segment 분할 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C504 B-frame decode preroll 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C505 비영점 B-frame 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C506 분수 frame rate 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C507 시계 역행과 미디어 시각 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C508 PTS 초기화 epoch 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
 | S10 remux 최초 예상 RED | 실제 생성 미구현 not-implemented, R01 assertion 실패; remuxred.log exit1, 1PASS/1FAIL | fail |
 | S10 source 누락 예상 RED | R11 입력 없는 confirmed source의 잘못된 성공, closure-red.log exit1, 2PASS/1FAIL; 이후 검사 보완 | fail |
 | S10 reference source 예상 RED | source 불일치 거부 assertion 실패, reference-red.log exit1; 이후 보완 | fail |
@@ -11702,7 +11732,7 @@ C507 `two_estimated_reverse_ranges=true`, C508 `reset_distinct=true`; exit0, ela
 B-frame의 file PTS와 stream-time 차이200ms, 분수 framerate 패킷20개의 duration 차이-1ns는 실제 관측값이다.
 시간 동일성/seek/파생 coverage/ready/hold 복구 PASS로 확대하지 않는다.
 [8개 개별 결과·12파일 요약·한계·정리](release-artifacts/v4.1.0/s10-derived-time-probe/report.md),
-[최종 패킷 전수 원출력](release-artifacts/v4.1.0/s10-derived-time-probe/Final.log)에 보존했다.
+[최종 패킷 전수 원출력](release-artifacts/v4.1.0/s10-derived-time-probe/public-evidence-f25316764d73bce7.txt)에 보존했다.
 
 3C-4 커밋 a05c15dd 이후 파생 구현을 위한 격리된 실제 파일 측정이다. 제품 코드·기존 writer 변경 없음.
 `bash scripts/internal/verify_recording_derived_time_probe.sh` 실행 승인 범위. 각 항목의 PASS는 생성/관찰 성공이지 시간 대응·파생/복구 계약의 완료가 아니다.
@@ -11736,8 +11766,8 @@ UTC 잔차 급변이면 현재 PTS에서 매핑을 닫고 새 estimated anchor�
 기존 event 회귀는 최초 컴파일 실패 뒤 같은 명령으로 등록기35/C++158/application7/runtime23·negative2 및 기능집계27 PASS다.
 기능집계는 기존 assertion을 묶은 것이므로 개별 검사 합계에 중복 가산하지 않는다.
 제품 최종 build session44940 exit0. [범위·개별 전수표·실패·정리·SHA](release-artifacts/v4.1.0/s10-consumer-connection/report.md),
-[최종 focused](release-artifacts/v4.1.0/s10-consumer-connection/Final.log), [이벤트 재검증](release-artifacts/v4.1.0/s10-consumer-connection/EventGreen.log),
-[제품 재빌드](release-artifacts/v4.1.0/s10-consumer-connection/BuildFinal.log).
+[최종 focused](release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-ab365d6a0c8bd8dd.txt), [이벤트 재검증](release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-dae02456243ae8d9.txt),
+[제품 재빌드](release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-31a7583968d47309.txt).
 신규 내부 구간 판정은 실제 event clip/UI 우선 표시 완료가 아니다. 3C-5 파생·복구와 3D 기본 전환·S11은 미완료다.
 소유 임시 경로 정리는 각 원출력과 보고서에서 확인했으며 기존 S09 미커밋 파일은 보존했다.
 
@@ -11794,277 +11824,277 @@ token start/end/consumed는 실측 없으면 미집계, elapsed/명령/exit/전�
 계약·catalog·journal 6파일, 신규 focused/runner 2파일을 구현했다. 메인이 실제 diff에서 immutable Put·opt-in preflight·SQL projection·checkpoint 서명을 대조했다.
 최종 focused16 + source-binding20 + catalog234/crypto-off3/정적9 = **282 PASS/0 FAIL**, 모든 명령 exit0. 제품 `./server.sh build` exit0.
 전체 소비자 연결/파생 완료가 아니며 3C-4와 3C-5는 이어서 진행할 대상이다.
-[세부 oracle·실행/정리·해시](release-artifacts/v4.1.0/s10-consumer-reference/report.md), [최종 focused](release-artifacts/v4.1.0/s10-consumer-reference/Final.log), [제품 빌드](release-artifacts/v4.1.0/s10-consumer-reference/Build.log).
+[세부 oracle·실행/정리·해시](release-artifacts/v4.1.0/s10-consumer-reference/report.md), [최종 focused](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-3bbcbd374277acd3.txt), [제품 빌드](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-c5bbccb65be65392.txt).
 최초 RED와 등록 보완 전 결과를 보존했으며 최종 기준은 등록 보완 후 session30139다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| Binding.log: S10-C301 결박 schema 왕복 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C302 식별·ordinal 검증 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C303 PTS 재정렬 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C304 미디어 범위·timebase | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C305 색인 상한·미색인 꼬리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C306 단일 bound mutation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C307 source·저장 identity 결박 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C308 불변·멱등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C309 소급·다운그레이드 금지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C310 정확한 원본 tuple 조회 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C311 미색인·실제 부재 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C312 복수 segment 후보 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C313 삭제·corrupt·pending 차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C314 채널·조회 오류 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C315 SQL·JSONL 재시작 동등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C316 checkpoint 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C317 손상 원장 선차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C318 예약·옵트인 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C319 기존 segment·조회 불변 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Binding.log: S10-C320 실제 finalize 수락 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
-| Catalog.log: journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: fallback catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: SQLite off mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: segment finalize journal+projection:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: fallback range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: event link FK 위반 거부 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: FK 위반 transaction/journal 전체 rollback | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 최초 durable mutation 1개 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 동일 mutation 중복 append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 손상 사이 정상 durable mutation 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 중간 corrupt line count | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 마지막 truncated line skip | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: fallback replay open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 같은 mutation idempotent replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 중복 replay row/합계 불증가 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: SQLite catalog open/rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: SQLite primary mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: SQLite on/off range query ID·순서 parity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: journal 없는 손상 media orphan 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: projection failover journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: projection failover catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 실제 SQLite INSERT 실패 trigger 설치 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: SQLite 투영 실패 뒤 journal+memory finalize 유지:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: SQLite 투영 실패 즉시 JSONL fallback 전환 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 재시작 rebuild 전 실패 trigger 제거 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 투영 실패 직후 in-memory query 정합성 유지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: projection failover 재시작 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 재시작 후 journal에서 누락 SQLite projection 복구 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 재시작 후 SQLite primary 복귀 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 재시작 journal rebuild가 실제 SQLite row 복원 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: tombstone journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: tombstone catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: tombstone 대상 segment finalize:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: tombstone 대상 deletion request:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: tombstone 완료 기록:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 손상 SQLite 격리 후 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 손상 SQLite 원본 격리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 격리 SQLite 파일 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 격리 후 journal rebuild 결과 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A empty-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A future-type writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A malformed journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-3A malformed JSON missing fields and wrong types remain corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O01 reservation journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O01 first reservation returns four IDs and sequence one | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O01 versioned reservation payload replays | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O01 new reservation records actual occurred time | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O02 identical retry preserves sequence and bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O03 reopened instance allocates next sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O03 new process resumes durable sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 different store rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 reused request with different segment rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 reused request with different channel rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 reused segment with different request rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 conflicts preserve original bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve unsupported-schema | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve unsupported-type | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-zero | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-negative | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-fraction | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-overflow | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve duplicate-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve decreasing-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve duplicate-request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve duplicate-segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve store-conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve ordinary-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve ordinary-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve line-cap | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05 reservation entity envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05 reservation request envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O01 strict reservation parser accepts versioned literal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O06 INT64_MAX identical retry remains valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O06 sequence overflow rejected without write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O02 identical durable reservation duplicates remain idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O06 sequence gaps remain valid and allocate above maximum | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O07 four simultaneous processes finish reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O07 concurrent sequences are unique and complete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O07 next sequence follows concurrent reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O08 ordinary Append cannot reserve orders | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O08 unopened journal rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O08 null result rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O08 invalid opaque ID rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O08 failed reservation does not expose tentative result | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved inode | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved parent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O10 reservation and normal segment coexist in catalog | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 reserve then finalize permits identical retry | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O10 reservation survives catalog rebuild without changing segment query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-O04 legacy segment cannot acquire retroactive reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M06 opened catalog accepts fresh exact reservation V2 finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M07 V2 find preserves complete metadata | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M07 identical V2 recovery is idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M07 V2 is absent from V1 range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M07 V2 registered path is not orphan | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M07 SQLite exact V2 JSON and path match | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M07 JSONL restart preserves V2 exact payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected store | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected channel | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 immutable V2 mapping mismatch rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state missing-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state conflicting-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state unsafe-path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 default off rejects V2 before SQLite changes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion duplicate | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion deleted | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion v1-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion v1-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion deleted-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion resurrection | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion mutation-collision | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 finalize rejects missing media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 V2 finalize rejects directory media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 fresh candidate rejects mapping | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 fresh candidate rejects path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-M09 fresh candidate rejects tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW01 managed empty root opens with lifetime lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW02 same process second managed owner denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW03 different process owner and inherited use denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW12 managed duplicate descriptors are close-on-exec | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW05 managed reserve append replay use owned descriptor | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW06 raw managed access and legacy default path denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW01 managed Reserve rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW10 catalog connection can inspect managed lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW04 owner destruction releases lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW01 managed reopen rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW11 managed incomplete tail rejects append without changing bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW07 legacy nonempty root preserved without conversion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state init | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state incomplete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state unknown | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected marker | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected root-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB01 second managed catalog is denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB02 failed catalog cannot mutate journal or holds | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB03 attached catalog blocks unowned append but permits reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB04 catalog destruction releases attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options outside | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options dotdot | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options media-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options disabled | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB06 failed open releases catalog attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC01 managed repeated event fixture is valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC02 managed reservations avoid history reads | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC03 managed V2 finalize avoids full replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC04 checkpoint reduces superseded event payload bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC05 checkpoint preserves latest event and all record identities | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC06 checkpoint is idempotent and preserves V2 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC08 receipt preserves retry identity and rejects direct append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC09 managed checkpoint SQL V2 payload and path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC10 checkpoint prefix recovers before writes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC11 checkpoint mismatch preserves bytes and poisons owner | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC12 first accepted mutation controls latest event | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC16 automatic checkpoint uses accumulated growth | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC07 raw checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint SQL hold observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint SQL restart observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC19 invalid managed history remains unchanged malformed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC19 invalid managed history remains unchanged unsupported | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC19 invalid managed history remains unchanged conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC20 raw catalog rejects receipt before side effects | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC13 crypto off raw remains usable | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC14 crypto off checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: S10-SC15 crypto off receipt reopen is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: source 저장 callback reconcile 연결 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: policy revision idempotency | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 5초 safety reconcile | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: composition root journal 선행 open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: composition root catalog rebuild/open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: 서버 전 supervisor 시작 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: ingress 전 event bridge 등록 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: ingress 종료 뒤 recorder finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
-| Catalog.log: composition root 시작/종료 순서 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Binding.log: S10-C301 결박 schema 왕복 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C302 식별·ordinal 검증 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C303 PTS 재정렬 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C304 미디어 범위·timebase | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C305 색인 상한·미색인 꼬리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C306 단일 bound mutation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C307 source·저장 identity 결박 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C308 불변·멱등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C309 소급·다운그레이드 금지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C310 정확한 원본 tuple 조회 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C311 미색인·실제 부재 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C312 복수 segment 후보 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C313 삭제·corrupt·pending 차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C314 채널·조회 오류 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C315 SQL·JSONL 재시작 동등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C316 checkpoint 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C317 손상 원장 선차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C318 예약·옵트인 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C319 기존 segment·조회 불변 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C320 실제 finalize 수락 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Catalog.log: journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: fallback catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite off mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: segment finalize journal+projection:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: fallback range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: event link FK 위반 거부 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: FK 위반 transaction/journal 전체 rollback | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 최초 durable mutation 1개 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 동일 mutation 중복 append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 손상 사이 정상 durable mutation 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 중간 corrupt line count | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 마지막 truncated line skip | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: fallback replay open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 같은 mutation idempotent replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 중복 replay row/합계 불증가 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite catalog open/rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite primary mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite on/off range query ID·순서 parity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: journal 없는 손상 media orphan 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: projection failover journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: projection failover catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 실제 SQLite INSERT 실패 trigger 설치 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite 투영 실패 뒤 journal+memory finalize 유지:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite 투영 실패 즉시 JSONL fallback 전환 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 rebuild 전 실패 trigger 제거 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 투영 실패 직후 in-memory query 정합성 유지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: projection failover 재시작 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 후 journal에서 누락 SQLite projection 복구 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 후 SQLite primary 복귀 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 journal rebuild가 실제 SQLite row 복원 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone 대상 segment finalize:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone 대상 deletion request:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone 완료 기록:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 손상 SQLite 격리 후 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 손상 SQLite 원본 격리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 격리 SQLite 파일 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 격리 후 journal rebuild 결과 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A malformed journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A malformed JSON missing fields and wrong types remain corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 reservation journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 first reservation returns four IDs and sequence one | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 versioned reservation payload replays | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 new reservation records actual occurred time | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O02 identical retry preserves sequence and bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O03 reopened instance allocates next sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O03 new process resumes durable sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 different store rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reused request with different segment rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reused request with different channel rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reused segment with different request rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 conflicts preserve original bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve unsupported-schema | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve unsupported-type | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-zero | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-negative | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-fraction | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-overflow | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve decreasing-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve store-conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve ordinary-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve ordinary-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve line-cap | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 reservation entity envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 reservation request envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 strict reservation parser accepts versioned literal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O06 INT64_MAX identical retry remains valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O06 sequence overflow rejected without write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O02 identical durable reservation duplicates remain idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O06 sequence gaps remain valid and allocate above maximum | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O07 four simultaneous processes finish reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O07 concurrent sequences are unique and complete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O07 next sequence follows concurrent reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 ordinary Append cannot reserve orders | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 unopened journal rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 null result rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 invalid opaque ID rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 failed reservation does not expose tentative result | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved inode | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved parent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O10 reservation and normal segment coexist in catalog | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reserve then finalize permits identical retry | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O10 reservation survives catalog rebuild without changing segment query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 legacy segment cannot acquire retroactive reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 opened catalog accepts fresh exact reservation V2 finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 V2 find preserves complete metadata | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 identical V2 recovery is idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 V2 is absent from V1 range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 V2 registered path is not orphan | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 SQLite exact V2 JSON and path match | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 JSONL restart preserves V2 exact payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected store | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected channel | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 immutable V2 mapping mismatch rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state missing-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state conflicting-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state unsafe-path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 default off rejects V2 before SQLite changes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion duplicate | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion deleted | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion v1-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion v1-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion deleted-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion resurrection | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion mutation-collision | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 finalize rejects missing media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 finalize rejects directory media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects mapping | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW01 managed empty root opens with lifetime lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW02 same process second managed owner denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW03 different process owner and inherited use denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW12 managed duplicate descriptors are close-on-exec | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW05 managed reserve append replay use owned descriptor | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW06 raw managed access and legacy default path denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW01 managed Reserve rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW10 catalog connection can inspect managed lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW04 owner destruction releases lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW01 managed reopen rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW11 managed incomplete tail rejects append without changing bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW07 legacy nonempty root preserved without conversion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state init | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state incomplete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state unknown | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected marker | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected root-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB01 second managed catalog is denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB02 failed catalog cannot mutate journal or holds | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB03 attached catalog blocks unowned append but permits reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB04 catalog destruction releases attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options outside | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options dotdot | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options media-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options disabled | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB06 failed open releases catalog attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC01 managed repeated event fixture is valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC02 managed reservations avoid history reads | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC03 managed V2 finalize avoids full replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC04 checkpoint reduces superseded event payload bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC05 checkpoint preserves latest event and all record identities | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC06 checkpoint is idempotent and preserves V2 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC08 receipt preserves retry identity and rejects direct append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC09 managed checkpoint SQL V2 payload and path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC10 checkpoint prefix recovers before writes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC11 checkpoint mismatch preserves bytes and poisons owner | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC12 first accepted mutation controls latest event | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC16 automatic checkpoint uses accumulated growth | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC07 raw checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint SQL hold observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint SQL restart observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged malformed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged unsupported | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC20 raw catalog rejects receipt before side effects | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC13 crypto off raw remains usable | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC14 crypto off checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC15 crypto off receipt reopen is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: source 저장 callback reconcile 연결 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: policy revision idempotency | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 5초 safety reconcile | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: composition root journal 선행 open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: composition root catalog rebuild/open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 서버 전 supervisor 시작 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: ingress 전 event bridge 등록 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: ingress 종료 뒤 recorder finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: composition root 시작/종료 순서 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
 
 focused16개와 10개 손상/충돌 세부 경우는 연결된 report의 전수표와 Final.log에 보존한다.
 스크립트 원출력 없는 전체 elapsed와 token start/end/consumed는 미집계다. 30분/120분/UI 전체/3D/S11/푸시 미실행.
@@ -12123,14 +12153,14 @@ C329의 구조상 생성 불가능한 2MiB 초과 유효 writer 객체를 테스
 
 | 실행 | 명령 | exit | 집계·경계 | 원출력 |
 | --- | --- | --- | --- | --- |
-| boundaryRed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryRed.log) |
-| boundaryRedConfirmed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryRedConfirmed.log) |
-| boundaryGreen | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryGreen.log) |
-| boundaryFinal | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryFinal.log) |
-| boundaryWriter | `bash scripts/internal/verify_recording_managed_writer.sh` | 0 | 44 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryWriter.log) |
-| boundaryReady | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | 0 | 74 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryReady.log) |
-| boundaryBinding | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryBinding.log) |
-| boundaryBuild | `./server.sh build` | 0 | 제품 빌드 완료 | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryBuild.log) |
+| boundaryRed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a944a9b2fa64b2b9.txt) |
+| boundaryRedConfirmed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-db8e5b6c9855a67b.txt) |
+| boundaryGreen | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a15ad2dd0367ebc7.txt) |
+| boundaryFinal | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-8db7609712ff1ac0.txt) |
+| boundaryWriter | `bash scripts/internal/verify_recording_managed_writer.sh` | 0 | 44 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-e2c676987d8d7f9a.txt) |
+| boundaryReady | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | 0 | 74 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-36e85d65db217356.txt) |
+| boundaryBinding | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-63d842da78994986.txt) |
+| boundaryBuild | `./server.sh build` | 0 | 제품 빌드 완료 | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-61966c44dc701445.txt) |
 
 첫 RED의 예상 집계 착오와 정정 재실행은 아래 이력에 보존하며 검사 삭제나 기준 완화는 없다.
 
@@ -12312,10 +12342,10 @@ C329의 구조상 생성 불가능한 2MiB 초과 유효 writer 객체를 테스
 | `/private/tmp/media-server-write-boundaries.KDVNlF` | 소유 격리 fixture·바이너리 | 117167B | runner 정리 | 삭제 확인 | boundaryRed.log |
 | `/private/tmp/media-server-write-boundaries.POdoax` | 소유 격리 fixture·바이너리 | 117167B | runner 정리 | 삭제 확인 | boundaryRedConfirmed.log |
 | `/private/tmp/media-server-write-boundaries.0HOnFo` | 소유 격리 fixture·바이너리 | 119845B | runner 정리 | 삭제 확인 | boundaryGreen.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-write-boundaries.hn3Kzs` | 소유 격리 fixture·바이너리 | 119845B | runner 정리 | 삭제 확인 | boundaryFinal.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.Be8XlS` | 소유 격리 fixture·바이너리 | 11938798B | runner 정리 | 삭제 확인 | boundaryWriter.log |
+| `<owned-temp>/media-server-write-boundaries.hn3Kzs` | 소유 격리 fixture·바이너리 | 119845B | runner 정리 | 삭제 확인 | boundaryFinal.log |
+| `<owned-temp>/media-server-managed-writer.Be8XlS` | 소유 격리 fixture·바이너리 | 11938798B | runner 정리 | 삭제 확인 | boundaryWriter.log |
 | `/private/tmp/media-server-finalize-lrsUKz` | 소유 격리 fixture·바이너리 | 10234290B | runner 정리 | 삭제 확인 | boundaryReady.log |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.rQUjEU` | 소유 격리 fixture·바이너리 | 4451280B | runner 정리 | 삭제 확인 | boundaryBinding.log |
+| `<owned-temp>/media-server-binding.rQUjEU` | 소유 격리 fixture·바이너리 | 4451280B | runner 정리 | 삭제 확인 | boundaryBinding.log |
 | `docs/release-artifacts/v4.1.0/s10-writer-source-binding/` | 전수 로그·소스 hash | 43375B/20파일 | 보존 | 비밀·실제 영상 없이 최소 증거 보존 | 이번/직전 실행 이력 |
 
 새 서버·포트는 사용하지 않았다. 공용 build-gst-onnx는 제품 빌드로 유지한다.
@@ -12444,16 +12474,16 @@ C329는 유효 ready3가1MiB 초과해도 쓰기/읽기되고 버전별 read 상
 
 | 실행 | 명령 | 실제 exit·요약 | evidence |
 | --- | --- | --- | --- |
-| Red | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 37/FAIL 2 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/Red.log) |
-| ReadyRed | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit1; PASS 55/FAIL 4 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyRed.log) |
-| WriterGreen | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 39/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/WriterGreen.log) |
-| ReadyGreen | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 59/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyGreen.log) |
-| WriterFinal | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 0/FAIL 0 (컴파일 오류, assertion 미실행) | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/WriterFinal.log) |
-| ReadyFinal | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 69/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyFinal.log) |
-| WriterFinal2 | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 44/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/WriterFinal2.log) |
-| ReadyFinal2 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 73/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyFinal2.log) |
-| Build | `./server.sh build` | exit0; PASS 0/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/Build.log) |
-| Binding | `bash scripts/internal/verify_recording_source_binding.sh` | exit0; PASS 20/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/Binding.log) |
+| Red | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 37/FAIL 2 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-15c82ca2f03b5a55.txt) |
+| ReadyRed | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit1; PASS 55/FAIL 4 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-64874baff4447b77.txt) |
+| WriterGreen | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 39/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a8222922a0a42506.txt) |
+| ReadyGreen | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 59/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-6932403f6aa7d90a.txt) |
+| WriterFinal | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 0/FAIL 0 (컴파일 오류, assertion 미실행) | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-ca8f63dc006093c5.txt) |
+| ReadyFinal | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 69/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-38f3c515b3dd97cd.txt) |
+| WriterFinal2 | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 44/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-89eb9a16d37ae324.txt) |
+| ReadyFinal2 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 73/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-b6ca09efaf7576c5.txt) |
+| Build | `./server.sh build` | exit0; PASS 0/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-80ccf2590a112ac4.txt) |
+| Binding | `bash scripts/internal/verify_recording_source_binding.sh` | exit0; PASS 20/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-d37f57005eea5435.txt) |
 
 첫 writer RED37/2는 C321 H264/VP8 부재와 일치했다. ready RED55/4도 C330~333 부재와 일치했다.
 GREEN 후 oracle 확대에서 기존 변수ls와 신규ls의 이름 중복 컴파일 오류1건이 발생했다(WriterFinal exit1).
@@ -12870,15 +12900,15 @@ token start/end/consumed는 실측 도구값 미제공으로 미집계다. elaps
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.42FWa3 | 실행 소유 media/build fixture | 9698303B | runner 삭제 | 부재 확인 | Red.log |
+| <owned-temp>/media-server-managed-writer.42FWa3 | 실행 소유 media/build fixture | 9698303B | runner 삭제 | 부재 확인 | Red.log |
 | /private/tmp/media-server-finalize-BW738o | 실행 소유 media/build fixture | 4733371B | runner 삭제 | 부재 확인 | ReadyRed.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.LUymmw | 실행 소유 media/build fixture | 9824631B | runner 삭제 | 부재 확인 | WriterGreen.log |
+| <owned-temp>/media-server-managed-writer.LUymmw | 실행 소유 media/build fixture | 9824631B | runner 삭제 | 부재 확인 | WriterGreen.log |
 | /private/tmp/media-server-finalize-35Cj7g | 실행 소유 media/build fixture | 4692853B | runner 삭제 | 부재 확인 | ReadyGreen.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.GE3ZUM | 실행 소유 media/build fixture | 0B | runner 삭제 | 부재 확인 | WriterFinal.log |
+| <owned-temp>/media-server-managed-writer.GE3ZUM | 실행 소유 media/build fixture | 0B | runner 삭제 | 부재 확인 | WriterFinal.log |
 | /private/tmp/media-server-finalize-ctbM2S | 실행 소유 media/build fixture | 9959912B | runner 삭제 | 부재 확인 | ReadyFinal.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.HKV7Il | 실행 소유 media/build fixture | 11938207B | runner 삭제 | 부재 확인 | WriterFinal2.log |
+| <owned-temp>/media-server-managed-writer.HKV7Il | 실행 소유 media/build fixture | 11938207B | runner 삭제 | 부재 확인 | WriterFinal2.log |
 | /private/tmp/media-server-finalize-eN0NX0 | 실행 소유 media/build fixture | 10230437B | runner 삭제 | 부재 확인 | ReadyFinal2.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.735LrT | 실행 소유 media/build fixture | 4448752B | runner 삭제 | 부재 확인 | Binding.log |
+| <owned-temp>/media-server-binding.735LrT | 실행 소유 media/build fixture | 4448752B | runner 삭제 | 부재 확인 | Binding.log |
 | 저장소 .media_server.test/s10-3c3b | 임시 수집 로그 | 없음 | 생성하지 않음 | 도구 원출력에서 직접 보존 | 이번 재개 |
 
 ### 3C-3B 이전 착수 중단 이력
@@ -12985,12 +13015,12 @@ C313 첫 GREEN은 replay Open만 검사해 부족했으므로 상태/조회 부�
 제품 변경 없이 최종38070의20/0으로 확인했다. 기존 C319의 점 조회 회귀는 location14개에서 따로 확인한다.
 실제 영상 writer/ready 생산은 **미실행·미구현(3C-3B)**이고 파생 소비도 미완료다. 전체3C PASS가 아니다.
 
-증거: [focused 전 이력](release-artifacts/v4.1.0/s10-source-binding/focused.log),
-[제품 build](release-artifacts/v4.1.0/s10-source-binding/build.log),
-[catalog](release-artifacts/v4.1.0/s10-source-binding/catalog.log),
-[점 조회](release-artifacts/v4.1.0/s10-source-binding/location.log),
-[구간 조회](release-artifacts/v4.1.0/s10-source-binding/range.log),
-[보존·재생](release-artifacts/v4.1.0/s10-source-binding/retention.log),
+증거: [focused 전 이력](release-artifacts/v4.1.0/s10-source-binding/public-evidence-829099072111e1ca.txt),
+[제품 build](release-artifacts/v4.1.0/s10-source-binding/public-evidence-193f0ba72bef73e6.txt),
+[catalog](release-artifacts/v4.1.0/s10-source-binding/public-evidence-855e362d7eda82a2.txt),
+[점 조회](release-artifacts/v4.1.0/s10-source-binding/public-evidence-c4357ab4efcfe2c8.txt),
+[구간 조회](release-artifacts/v4.1.0/s10-source-binding/public-evidence-5ac9366c14618a84.txt),
+[보존·재생](release-artifacts/v4.1.0/s10-source-binding/public-evidence-7d51045a2e04251c.txt),
 [변경 source SHA256](release-artifacts/v4.1.0/s10-source-binding/source.sha256).
 원출력은 민감정보/원본영상 없이 소유 fixture 경로·판정·실패 compiler 출력을 보존한다.
 실행 환경은 macOS, 기존 C++17/sqlite3/openssl/GStreamer 설치를 사용했다. 새 의존성 설치/외부 입력/포트 사용 없음.
@@ -13331,16 +13361,16 @@ location14, range16, retention GST-on22/GST-off2다. 기능 판정 합계는320�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.mrMNYy | focused 소유 fixture/build | 2928459B | runner 삭제 | 부재 확인 | focused.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.Bg4kch | focused 소유 fixture/build | 0B | runner 삭제 | 부재 확인 | focused.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.612OGp | focused 소유 fixture/build | 3339046B | runner 삭제 | 부재 확인 | focused.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.cxMwA0 | focused 소유 fixture/build | 0B | runner 삭제 | 부재 확인 | focused.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.G9jkJz | focused 소유 fixture/build | 4445808B | runner 삭제 | 부재 확인 | focused.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.uWOhk1 | focused 소유 fixture/build | 4445808B | runner 삭제 | 부재 확인 | focused.log |
+| <owned-temp>/media-server-binding.mrMNYy | focused 소유 fixture/build | 2928459B | runner 삭제 | 부재 확인 | focused.log |
+| <owned-temp>/media-server-binding.Bg4kch | focused 소유 fixture/build | 0B | runner 삭제 | 부재 확인 | focused.log |
+| <owned-temp>/media-server-binding.612OGp | focused 소유 fixture/build | 3339046B | runner 삭제 | 부재 확인 | focused.log |
+| <owned-temp>/media-server-binding.cxMwA0 | focused 소유 fixture/build | 0B | runner 삭제 | 부재 확인 | focused.log |
+| <owned-temp>/media-server-binding.G9jkJz | focused 소유 fixture/build | 4445808B | runner 삭제 | 부재 확인 | focused.log |
+| <owned-temp>/media-server-binding.uWOhk1 | focused 소유 fixture/build | 4445808B | runner 삭제 | 부재 확인 | focused.log |
 | /private/tmp/media-server-c3a-catalog.5YrCC4 | 영향 회귀 소유 fixture/build | 24398606B | runner 삭제 | 부재 확인 | catalog.log |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.fpw6yc | 영향 회귀 소유 fixture/build | 3064431B | runner 삭제 | 부재 확인 | location.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.bOiOqV | 영향 회귀 소유 fixture/build | 3466298B | runner 삭제 | 부재 확인 | range.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.wyxGHt | 영향 회귀 소유 fixture/build | 6990922B | runner 삭제 | 부재 확인 | retention.log |
+| <owned-temp>/media-server-range.bOiOqV | 영향 회귀 소유 fixture/build | 3466298B | runner 삭제 | 부재 확인 | range.log |
+| <owned-temp>/media-server-retention-v2.wyxGHt | 영향 회귀 소유 fixture/build | 6990922B | runner 삭제 | 부재 확인 | retention.log |
 
 | build-gst-onnx | 기존 제품 빌드 출력 | 기존 공유 build | 보존 | 제품 build용, 임시 fixture 아님 | build.log |
 
@@ -13420,7 +13450,7 @@ C209는 exact/nonintegral 후보가 같은 slice에 모두 남는지 확인했�
 
 | 명령/실행 | exit | 결과 | 증거 |
 | --- | --- | --- | --- |
-| range focused / 25658 | 2 | V1식 삭제 사유를 사용한 fixture 준비 실패; 기능 미실행 | [실패·수정 이력](release-artifacts/v4.1.0/s10-range-resolution/focused.log) |
+| range focused / 25658 | 2 | V1식 삭제 사유를 사용한 fixture 준비 실패; 기능 미실행 | [실패·수정 이력](release-artifacts/v4.1.0/s10-range-resolution/public-evidence-c8778ed0f20a5b34.txt) |
 | range focused / 25940 | 2 | /var 심볼릭 경로의 strict opener 거부; 소유 temp canonical 경로 정정; 기능 미실행 | 위 focused |
 | range focused / 33754 | 1 | 예상 RED: C201~211/C213~216 15 FAIL, C212 PASS | 위 focused |
 | range focused / 62307 | 1 | 기존 익명 namespace 여는 줄 누락에 따른 18개 컴파일 진단; 해당 줄 복구; 기능 미실행 | 위 focused의 최소 첫/끝 발췌 |
@@ -13428,8 +13458,8 @@ C209는 exact/nonintegral 후보가 같은 slice에 모두 남는지 확인했�
 | range focused / 56782 | 0 | sweep·128 인접 검사 16/0 | 위 focused |
 | range focused / 9205 | 0 | exact/nonintegral 혼재 검사 16/0 | 위 focused |
 | range focused / 92295 | 0 | C207 정상 연속 mediaPTS fixture 포함 최종 16/0 | 위 focused |
-| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 기존 LOC01~14 전수 PASS·cleanup 확인 | [점 조회](release-artifacts/v4.1.0/s10-range-resolution/location.log) |
-| `./server.sh build` | 0 | runtime archive/제품 실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-range-resolution/build.log) |
+| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 기존 LOC01~14 전수 PASS·cleanup 확인 | [점 조회](release-artifacts/v4.1.0/s10-range-resolution/public-evidence-5c0ae7d8b32daaba.txt) |
+| `./server.sh build` | 0 | runtime archive/제품 실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-range-resolution/public-evidence-13d4e4d85688bd19.txt) |
 
 range focused 명령은 모두 `bash scripts/internal/verify_recording_range_resolution.sh`다.
 62307 전체 18개 컴파일 원출력은 저장소에 보존하지 못했고 첫/끝 실제 오류·개수·원인·cleanup만 보존했다.
@@ -13475,12 +13505,12 @@ token start/end/consumed: 미집계 — 실측 집계 도구값 없음.
 | --- | --- | --- | --- | --- | --- |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-range.X1UmAS | 임시 binary/catalog | 2734942B | runner 정리 | 삭제 확인 | focused.log / setup-25658.log |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-range.aWTedh | 임시 binary/catalog | 2735251B | runner 정리 | 삭제 확인 | focused.log / setup-25940.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.HMbS0Y | 임시 binary/catalog | 2738389B | runner 정리 | 삭제 확인 | focused.log / red-33754.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.uMCKZP | 임시 binary/catalog | 0B | runner 정리 | 삭제 확인 | focused.log / build-62307.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.hVBoWX | 임시 binary/catalog | 2826069B | runner 정리 | 삭제 확인 | focused.log / green-7292.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.UAm1NS | 임시 binary/catalog | 3286508B | runner 정리 | 삭제 확인 | focused.log / green-56782.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.I7VP3Y | 임시 binary/catalog | 3289390B | runner 정리 | 삭제 확인 | focused.log / green-9205.log |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.RAelEF | 임시 binary/catalog | 3290234B | runner 정리 | 삭제 확인 | focused.log / green-92295.log |
+| <owned-temp>/media-server-range.HMbS0Y | 임시 binary/catalog | 2738389B | runner 정리 | 삭제 확인 | focused.log / red-33754.log |
+| <owned-temp>/media-server-range.uMCKZP | 임시 binary/catalog | 0B | runner 정리 | 삭제 확인 | focused.log / build-62307.log |
+| <owned-temp>/media-server-range.hVBoWX | 임시 binary/catalog | 2826069B | runner 정리 | 삭제 확인 | focused.log / green-7292.log |
+| <owned-temp>/media-server-range.UAm1NS | 임시 binary/catalog | 3286508B | runner 정리 | 삭제 확인 | focused.log / green-56782.log |
+| <owned-temp>/media-server-range.I7VP3Y | 임시 binary/catalog | 3289390B | runner 정리 | 삭제 확인 | focused.log / green-9205.log |
+| <owned-temp>/media-server-range.RAelEF | 임시 binary/catalog | 3290234B | runner 정리 | 삭제 확인 | focused.log / green-92295.log |
 | TMPDIR/media-server-location.v5RVIG | 점 조회 binary·catalog | 2888351B | runner 정리 | 삭제 확인 | location.log |
 | docs/release-artifacts/v4.1.0/s10-range-resolution/ | 비민감 최소 로그·hash | 4개 텍스트 | 이력 보존 | 보존 | 위 링크 |
 
@@ -13545,10 +13575,10 @@ analysis-state는 이번 첫 단위가 Rule/Scenario/판단 로직을 변경하�
 
 | 명령 | exit | 직접 결과 | 증거 |
 | --- | --- | --- | --- |
-| `bash scripts/internal/verify_recording_frame_correlation.sh` | 1 → 0 → 1 → 0 | C101 stub 0/1 → 10/0 → C108 추가 검사 9/1 → 최종 10/0 | [전 실행 원출력](release-artifacts/v4.1.0/s10-frame-source-association/focused.log) |
-| `./server.sh build` | 0 | 제품 archive·실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-frame-source-association/build.log) |
-| `bash scripts/internal/verify_v410_recording_observation_runtime.sh` | 0 | 기능15개+정리1개 PASS, C111/112 포함 | [실제 runtime](release-artifacts/v4.1.0/s10-frame-source-association/runtime.log) |
-| `./server.sh verify-v410-recording-observations` | 0 | 기능81개+정리1개 PASS | [기존 observation](release-artifacts/v4.1.0/s10-frame-source-association/obs.log) |
+| `bash scripts/internal/verify_recording_frame_correlation.sh` | 1 → 0 → 1 → 0 | C101 stub 0/1 → 10/0 → C108 추가 검사 9/1 → 최종 10/0 | [전 실행 원출력](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-25662f82314d37f3.txt) |
+| `./server.sh build` | 0 | 제품 archive·실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-ee2d0790e1ef5b6a.txt) |
+| `bash scripts/internal/verify_v410_recording_observation_runtime.sh` | 0 | 기능15개+정리1개 PASS, C111/112 포함 | [실제 runtime](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-0af9fd651b15d9b3.txt) |
+| `./server.sh verify-v410-recording-observations` | 0 | 기능81개+정리1개 PASS | [기존 observation](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-070ebe49cd75a92a.txt) |
 
 [source/build SHA-256·OS](release-artifacts/v4.1.0/s10-frame-source-association/source.sha256).
 focused elapsed는 실행당 1초(bash SECONDS). 나머지 로그 elapsed는 호출부터 수집까지의 관측 구간이며 process 정밀 duration으로 주장하지 않는다.
@@ -13782,14 +13812,14 @@ Superpowers의 예상 RED→구현→검증 절차를 적용하고 기존 단일
 terminal tombstone 뒤 늦은 pending 거부, 멱등 성공 시 stale error 제거도 최종 검증에 포함했다.
 timeout 증가·검사 삭제·판정 완화는 없었다. 최종 코드 고정 후 영향 회귀는 모두 첫 실행 PASS였다.
 
-원출력은 [focused](release-artifacts/v4.1.0/s10-retention-playback/focused.log),
-[catalog](release-artifacts/v4.1.0/s10-retention-playback/catalog.log),
-[retention](release-artifacts/v4.1.0/s10-retention-playback/retention.log),
-[read-model](release-artifacts/v4.1.0/s10-retention-playback/read.log),
-[location](release-artifacts/v4.1.0/s10-retention-playback/location.log),
-[writer](release-artifacts/v4.1.0/s10-retention-playback/writer.log),
-[finalize](release-artifacts/v4.1.0/s10-retention-playback/finalize.log),
-[build](release-artifacts/v4.1.0/s10-retention-playback/build.log)에 보존했다.
+원출력은 [focused](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-62d981f26ad77250.txt),
+[catalog](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-c2320d2587d4c5f1.txt),
+[retention](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-5d8e9d96d0e35bc5.txt),
+[read-model](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-0ad392721180e3c9.txt),
+[location](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-50e017e3a4a29811.txt),
+[writer](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-6eb48046729810a3.txt),
+[finalize](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-7851bce8769c2a44.txt),
+[build](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-7f848457e89097bf.txt)에 보존했다.
 [SHA-256](release-artifacts/v4.1.0/s10-retention-playback/source.sha256)은 변경 코드/테스트14개·회귀 fixture6개·빌드 실행파일을 고정한다.
 원출력의 줄 끝 공백만 정규화했다. 자체 생성 fixture·정상화된 테스트 경로만 포함하고 비밀번호/외부 URL/세션 원문은 없다.
 환경: macOS26.6.2(25G83), arm64, Apple clang21.0.0, GStreamer1.28.1, SQLite3.51.0, OpenSSL3.6.2.
@@ -14314,7 +14344,7 @@ B23은 GST-on/off 각각 별도 실행한다. 첫 세 실행의 GST-off는 미�
 | read-164 I08 Corrupt 실제 catalog 전이 | 등록된 read 회귀 명령 exit0; read.log 원출력 164번 결과 | PASS |
 | read-165 I08 Corrupt 실제 파일 존재해도 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 165번 결과 | PASS |
 | read-166 I08 Corrupt timeline 불가 상태 | 등록된 read 회귀 명령 exit0; read.log 원출력 166번 결과 | PASS |
-| read-167 read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.QROjiz | 등록된 read 회귀 명령 exit0; read.log 원출력 167번 결과 | PASS |
+| read-167 read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.QROjiz | 등록된 read 회귀 명령 exit0; read.log 원출력 167번 결과 | PASS |
 | location-1 LOC01 exact media location preserves identity and mapping | 등록된 location 회귀 명령 exit0; location.log 원출력 1번 결과 | PASS |
 | location-2 LOC02 unknown UTC does not discard exact media location | 등록된 location 회귀 명령 exit0; location.log 원출력 2번 결과 | PASS |
 | location-3 LOC03 UTC point returns both overlapping files | 등록된 location 회귀 명령 exit0; location.log 원출력 3번 결과 | PASS |
@@ -14432,16 +14462,16 @@ B23은 GST-on/off 각각 별도 실행한다. 첫 세 실행의 GST-off는 미�
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | `/private/tmp/media-server-retention-v2.WoQqlp` | 격리 fixture·바이너리 | 2982522B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.00cqXn` | 격리 fixture·바이너리 | 3106152B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.F0IuaP` | 격리 fixture·바이너리 | 3106152B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.WLx7rS` | 격리 fixture·바이너리 | 6198827B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.XM7aL9` | 격리 fixture·바이너리 | 6236250B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `<owned-temp>/media-server-retention-v2.00cqXn` | 격리 fixture·바이너리 | 3106152B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `<owned-temp>/media-server-retention-v2.F0IuaP` | 격리 fixture·바이너리 | 3106152B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `<owned-temp>/media-server-retention-v2.WLx7rS` | 격리 fixture·바이너리 | 6198827B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `<owned-temp>/media-server-retention-v2.XM7aL9` | 격리 fixture·바이너리 | 6236250B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
 | `/tmp/media_server_v410_recording_catalog-56614` | 격리 fixture·바이너리 | 24074238B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
 | `/tmp/media_server_v410_recording_retention-56736` | 격리 fixture·바이너리 | 2802380B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
 | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.9DXxFv` | 격리 fixture·바이너리 | 2687071B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.lucUEt` | 격리 fixture·바이너리 | 9274383B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `<owned-temp>/media-server-managed-writer.lucUEt` | 격리 fixture·바이너리 | 9274383B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
 | `/private/tmp/media-server-finalize-5gZkeh` | 격리 fixture·바이너리 | 4313777B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.QROjiz` | 격리 fixture·바이너리 | 3052KiB(du -sk) | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `<owned-temp>/media-server-s06-read.QROjiz` | 격리 fixture·바이너리 | 3052KiB(du -sk) | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
 | `.media_server.test/s10-3b/`의 원출력5개 | 임시 로그 | 9,588B | focused.log로 이관 후 삭제 | 삭제 확인 | 원출력 전수·실패/cleanup 보존 |
 | `docs/release-artifacts/v4.1.0/s10-retention-playback/` | 로그8개·hash1개 | 46,948B | 보존 | 재현·최초 실패·회귀 근거 | 원출력 정규화/비민감 확인 |
 | `build-gst-onnx/` | 기존 빌드 캐시·실행 파일 | 전체 재집계 안 함 | 보존 | 사용자 기존 개발 빌드 경로; 신규 임시root 아님 | build.log·실행파일 hash |
@@ -14514,9 +14544,9 @@ HTTP/Auth/실제 UI/전체 빌드·장시간 PASS로 확대하지 않는다.
 | 49201 | `./server.sh verify-v410-recording-catalog` | 0 | C++234 + crypto-off3 + shell9 = 246/0 |
 | diffcheck | `git diff --check` | 0 | 변경 공백 검사 |
 
-원출력: [focused](release-artifacts/v4.1.0/s10-location-resolution/focused.log),
-[읽기 회귀](release-artifacts/v4.1.0/s10-location-resolution/read-model.log),
-[catalog 회귀](release-artifacts/v4.1.0/s10-location-resolution/catalog.log).
+원출력: [focused](release-artifacts/v4.1.0/s10-location-resolution/public-evidence-e270a7a7116a9905.txt),
+[읽기 회귀](release-artifacts/v4.1.0/s10-location-resolution/public-evidence-8c4311e4ea47f796.txt),
+[catalog 회귀](release-artifacts/v4.1.0/s10-location-resolution/public-evidence-c6653590a478680f.txt).
 [검증 소스 SHA-256](release-artifacts/v4.1.0/s10-location-resolution/source.sha256)에 제품·테스트 8개를 고정했다.
 최종 `git diff --check` exit0, `./server.sh verify-docs-links` exit0(234문서/1139링크/실패0).
 원출력 catalog의 줄 끝 공백만 정규화했다. 시간: focused 네 회 각각4초(bash SECONDS),
@@ -14763,7 +14793,7 @@ HTTP/Auth/실제 UI/전체 빌드·장시간 PASS로 확대하지 않는다.
 | read-model 74195 exit0 #164 | I08 Corrupt 실제 catalog 전이 | pass | 원출력 순서 |
 | read-model 74195 exit0 #165 | I08 Corrupt 실제 파일 존재해도 media 거부 | pass | 원출력 순서 |
 | read-model 74195 exit0 #166 | I08 Corrupt timeline 불가 상태 | pass | 원출력 순서 |
-| read-model 74195 exit0 #167 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.nHGBvH | pass | 원출력 순서 |
+| read-model 74195 exit0 #167 | read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.nHGBvH | pass | 원출력 순서 |
 | catalog 49201 exit0 #1 | journal open: | pass | 원출력 순서 |
 | catalog 49201 exit0 #2 | fallback catalog open: | pass | 원출력 순서 |
 | catalog 49201 exit0 #3 | SQLite off mode 표시 | pass | 원출력 순서 |
@@ -15074,7 +15104,7 @@ inventory 행이 누락됐다. 해당 실행은 완료 evidence로 무효이며,
 기본 STUN, 녹화 코드·바이너리는 변경하지 않았다. 이 가드는 이번 harness의 실행 전 경계이며
 기존 개별 verifier의 기본 정책 전체를 변경한 것은 아니다. 재현 시 [검증 harness](release-artifacts/v4.1.0/s10-writer-activation/local-media-harness.txt)의 가드를 포함해야 한다.
 
-등록 후 단위 명령 exit0, 7/0, 30.599209ms: [원출력](release-artifacts/v4.1.0/s10-writer-activation/ice-guard-unit.log).
+등록 후 단위 명령 exit0, 7/0, 30.599209ms: [원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-375efcc4f17afb26.txt).
 제품 소스/바이너리16개는 이전 [동결 fingerprint](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json)와 모두 일치했다.
 단기 미디어 session38532 exit0: codec67/0(332.394초), ICE8/0(17.726초), metadata 실제 assertion10/0(2.823초).
 metadata 도구의 summary8/0과 실제 출력10개 차이는 이전부터 있던 출력 범위 차이로 명시하며 전수10행을 대조했다.
@@ -15188,10 +15218,10 @@ TURN 없음, candidate host15/unknown1(종료 표기 포함), srflx/relay0이다
 | ISO10 Chrome 정리 | debug65210 listener 부재 | PASS | lsof exit1/출력없음 |
 | ISO10 root 정리 | jqRqlh root1756750 B 삭제 | PASS | rootAbsent=true |
 
-[codec 로그](release-artifacts/v4.1.0/s10-writer-activation/local-verify-codecs.log),
-[ICE 로그](release-artifacts/v4.1.0/s10-writer-activation/local-verify-webrtc-ice.log),
-[metadata 로그](release-artifacts/v4.1.0/s10-writer-activation/local-verify-webrtc-va-metadata.log),
-[실행/정리 로그](release-artifacts/v4.1.0/s10-writer-activation/local-media-execution.log).
+[codec 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-2b4672669c6dad75.txt),
+[ICE 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-235743ca171b768f.txt),
+[metadata 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-85804ed6ece68695.txt),
+[실행/정리 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-df0e5a05e0dfe9c8.txt).
 source URL/session/candidate 주소는 가렸고 원본 세션·디버그·임시 미디어는 삭제했다.
 이번 실행의 외부 영상 source3개(YouTube2/Wowza)는 기존 disabled 제외이며 PASS가 아니다.
 UI 전체/30분/120분/S11, 후속3, 커밋/푸시는 미실행이다.
@@ -15211,15 +15241,15 @@ UI 전체/30분/120분/S11, 후속3, 커밋/푸시는 미실행이다.
 | `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
 | `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
 | `/private/tmp/s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/metadata-summary.json` | 검증 소유 임시 산출물 | 2367 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/server.log` | 검증 소유 임시 산출물 | 66460 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1609 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 540 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2.mjs` | 검증 소유 임시 산출물 | 6727 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2-driver.log` | 검증 소유 임시 산출물 | 1848 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/metadata-summary.json` | 검증 소유 임시 산출물 | 2367 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/server.log` | 검증 소유 임시 산출물 | 66460 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1609 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 540 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2.mjs` | 검증 소유 임시 산출물 | 6727 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2-driver.log` | 검증 소유 임시 산출물 | 1848 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
 
 ## S10 후속 2번 입력·writer 연결 (2026-09-12)
 
@@ -15242,15 +15272,15 @@ writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코
 
 ### 메인 빌드·미디어 영향 회귀 — 범위 이탈로 완료 보류
 
-- 전체 빌드: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, session41885, exit0, 43초. [빌드 로그](release-artifacts/v4.1.0/s10-writer-activation/build.log), [동결 소스/바이너리 SHA256](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json). 이번 빌드 로그에는 compiler warning/error가 없다.
-- 최초 미디어 준비: sandbox의 loopback listen EPERM, exit1. 제품 기동 전 실패이며 [원출력](release-artifacts/v4.1.0/s10-writer-activation/media-sandbox-failure.log)을 보존한다. 생성된 빈 소유 root `media-server-s10-media-5b3JIF`(0 B)를 삭제·부재 확인하고 포트 예약을 root 생성보다 먼저 하도록 임시 harness만 보완했다.
+- 전체 빌드: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, session41885, exit0, 43초. [빌드 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-7c107ec2d8a1305e.txt), [동결 소스/바이너리 SHA256](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json). 이번 빌드 로그에는 compiler warning/error가 없다.
+- 최초 미디어 준비: sandbox의 loopback listen EPERM, exit1. 제품 기동 전 실패이며 [원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-d5d288f0401c0bee.txt)을 보존한다. 생성된 빈 소유 root `media-server-s10-media-5b3JIF`(0 B)를 삭제·부재 확인하고 포트 예약을 root 생성보다 먼저 하도록 임시 harness만 보완했다.
 - 권한 검토를 거친 실행 session6438은 명령 exit0이지만 **로컬 한정 검증은 FAIL**이다. 빈 `MEDIA_SERVER_WEBRTC_STUN_SERVER`를 비활성으로 오판했다. `src/app_config.cpp::ReadEnv`는 빈 값을 미설정으로 취급하며 `include/app_config.h` 기본값과 `verify_webrtc_ice_config.sh:276`의 기본값은 Google STUN이다. 실제 ICE 로그에는 해당 서버와 srflx 후보3개가 확인됐다. 외부 통신 범위 이탈이며 사용자에게 즉시 정정·보고했다.
 - 이탈은 순차 명령 종료 후 원출력 검토에서 발견했다. 해당 미디어 묶음을 로컬 한정 PASS로 사용하지 않고 추가 실행/커밋/후속 단계는 중단했다. 제품 기본 STUN 정책은 수정하지 않았다.
 - 재개 조건: 사용자 판단 후 **검증 소유 설정에서 외부 STUN을 실제로 차단하고 기동 전/후 유효 설정을 확인하는 준비 보완**, 영향 미디어 회귀 재실행. 이미 유효한 입력14/writer37/ready55/recorder118 및 빌드를 인계 때문에 반복하지 않는다.
 - `verify-codecs`: 67/0, 제외3, 335.132초. `verify-webrtc-ice`: 8/0, 17.508초. `verify-webrtc-va-metadata`: stdout assertion10개 PASS, summary는 기존 도구의 8/0, 5.871초. 이 차이를 숨기거나 UI 전체 PASS로 바꾸지 않는다. 전체 harness 361.582초; token start/end/consumed는 집계 API 부재로 미집계, source=Node Date.now/셸 exit/원출력.
 - 운영 계정·녹화 저장소는 사용하지 않았다. auth off/loopback/검증 전용 root, 녹화·event hook 비활성. 외부 영상 source3개는 config disabled였지만 STUN 통신까지 막지는 못했다.
-- [실행·정리 로그](release-artifacts/v4.1.0/s10-writer-activation/media-execution.log), [과거 실패 harness](release-artifacts/v4.1.0/s10-writer-activation/failed-media-harness.txt)는 재현·원인 보존용이다. 그대로 재실행하면 안 된다.
-- [codec 원출력](release-artifacts/v4.1.0/s10-writer-activation/verify-codecs.log), [ICE 원출력](release-artifacts/v4.1.0/s10-writer-activation/verify-webrtc-ice.log), [metadata 원출력](release-artifacts/v4.1.0/s10-writer-activation/verify-webrtc-va-metadata.log)은 source URL/session 식별자/candidate 주소를 가렸다. 원본 debug/session/미디어는 아래대로 삭제했다.
+- [실행·정리 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-6fac3267bcf890ff.txt), [과거 실패 harness](release-artifacts/v4.1.0/s10-writer-activation/failed-media-harness.txt)는 재현·원인 보존용이다. 그대로 재실행하면 안 된다.
+- [codec 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-6f3c3d55d1d28d54.txt), [ICE 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-32c2278698634cd4.txt), [metadata 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-9e5400e4b3241bf1.txt)은 source URL/session 식별자/candidate 주소를 가렸다. 원본 debug/session/미디어는 아래대로 삭제했다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -15371,14 +15401,14 @@ writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코
 | `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
 | `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
 | `/private/tmp/s10-media-server-s10-media-DYmFpM-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/metadata-summary.json` | 검증 소유 임시 산출물 | 2361 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/server.log` | 검증 소유 임시 산출물 | 63705 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1640 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 537 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression.mjs` | 검증 소유 임시 산출물 | 5671 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/metadata-summary.json` | 검증 소유 임시 산출물 | 2361 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/server.log` | 검증 소유 임시 산출물 | 63705 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1640 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 537 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression.mjs` | 검증 소유 임시 산출물 | 5671 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
 
 검토용 로그 추가 정리: `/private/tmp/media-server-s10-build-sjHx5E/build.log` 12,651 B,
 `media-regression-authorized.log` 1,531 B, `media-regression.log` 481 B는 저장소 보존본과
@@ -15395,7 +15425,7 @@ writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코
 메인 직접 구현: `CommitFinalizeReadyV2`가 정확한 영속 ticket과 요청을 대조하고 catalog 예약/소유권을 검증한 뒤 publish→commit→cleanup한다.
 기존 V1 API의 V2 무검증 publish/clear 거부는 유지한다. 전체 root scan을 하지 않는다.
 명령 `bash scripts/internal/verify_v410_recording_finalize_recovery.sh`: RED exit1(54 PASS/1 예상 FAIL), GREEN exit0(55 PASS/0 FAIL).
-원출력: [RED](release-artifacts/v4.1.0/s10-writer-activation/active-ready-red.log), [GREEN](release-artifacts/v4.1.0/s10-writer-activation/active-ready-green.log).
+원출력: [RED](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-1266f2248c462402.txt), [GREEN](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-00f25f2be8735e71.txt).
 기존52개와 신규3개 전수 대조다. 이 단독 검증 당시 active writer는 미실행이었으며 이후 실제 writer 결과는 아래 WR 기록으로 구분한다. token start/end/consumed=미집계(API 없음), elapsed=미집계(실행 시작·종료 시각 별도 수집 누락), source=로컬 셸 원출력.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
@@ -15592,21 +15622,21 @@ WR09 active ready 추가 정의(실행 전): `active ready validates publishes c
 | --- | --- | ---: | --- |
 | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-managed-writer.wxhxyd` | 18362 소유 compile/media/store fixture | 0 | runner 삭제, removed=true |
 | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-managed-writer.Y5bv7t` | 78929 소유 compile/media/store fixture | 3851628 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.fTSWfA` | 20489 소유 compile/media/store fixture | 4671145 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.5iRqw0` | 18485 소유 compile/media/store fixture | 6901300 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.6gfNZy` | 30659 소유 compile/media/store fixture | 7522596 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.nvDsX1` | 79006 소유 compile/media/store fixture | 7522772 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.UOj02o` | 67234 소유 compile/media/store fixture | 8367058 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.PfydOD` | 48278 소유 compile/media/store fixture | 8604895 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.eUInna` | 93757 소유 compile/media/store fixture | 8842867 | runner 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.PG15nu` | 2978 소유 compile/media/store fixture | 8840527 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.fTSWfA` | 20489 소유 compile/media/store fixture | 4671145 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.5iRqw0` | 18485 소유 compile/media/store fixture | 6901300 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.6gfNZy` | 30659 소유 compile/media/store fixture | 7522596 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.nvDsX1` | 79006 소유 compile/media/store fixture | 7522772 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.UOj02o` | 67234 소유 compile/media/store fixture | 8367058 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.PfydOD` | 48278 소유 compile/media/store fixture | 8604895 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.eUInna` | 93757 소유 compile/media/store fixture | 8842867 | runner 삭제, removed=true |
+| `<owned-temp>/media-server-managed-writer.PG15nu` | 2978 소유 compile/media/store fixture | 8840527 | runner 삭제, removed=true |
 
-12회(writer10/input2) 도구 원출력은 [writer/input 실행 로그](release-artifacts/v4.1.0/s10-writer-activation/writer-input-runs.log)에 보존한다. 인증정보·원본 source URL 없이 fixture 판정/안전 reason/소유 경로만 존재한다. 메인이 실제 diff와 원출력을 직접 대조했다. 같은 writer 객체의 Stop→Start 재사용은 입력 highwater/failure latch를 유지하므로 지원 검증으로 주장하지 않는다. 새로운 writer 객체/저장소 재open은 검증했다. 커밋·푸시·실서버·전체 build·UI·30/120분은 이 담당자 미실행이며 메인 영향 회귀는 별도 기록한다.
+12회(writer10/input2) 도구 원출력은 [writer/input 실행 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-55bce9c38281d54f.txt)에 보존한다. 인증정보·원본 source URL 없이 fixture 판정/안전 reason/소유 경로만 존재한다. 메인이 실제 diff와 원출력을 직접 대조했다. 같은 writer 객체의 Stop→Start 재사용은 입력 highwater/failure latch를 유지하므로 지원 검증으로 주장하지 않는다. 새로운 writer 객체/저장소 재open은 검증했다. 커밋·푸시·실서버·전체 build·UI·30/120분은 이 담당자 미실행이며 메인 영향 회귀는 별도 기록한다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | `.media_server.test/s10-managed-writer-18362/results.log` | 검토용 원출력 | 24,904 B | 저장소 보존본과 끝 공백 제외 동일성 확인 후 삭제 | 파일/부모 디렉터리 부재 | 위 영구 로그 |
-| `.media_server.test/s10-managed-writer-18362/recorder.log` | 기존 recorder 원출력 | 11,150 B | 동일 대조 후 삭제 | 파일/부모 디렉터리 부재 | [원출력](release-artifacts/v4.1.0/s10-writer-activation/legacy-recorder.log) |
+| `.media_server.test/s10-managed-writer-18362/recorder.log` | 기존 recorder 원출력 | 11,150 B | 동일 대조 후 삭제 | 파일/부모 디렉터리 부재 | [원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-bbb9f84fc03674fc.txt) |
 
 #### WR 기존 V1 recorder 영향 회귀
 
@@ -15787,7 +15817,7 @@ writer 마지막 경계 실행 전 추가: `WR09 failed active commit preserves 
 | GREEN session49194 | exit0, pass10/fail0 | 최초 구현 후 동일10개 전수 통과 |
 | 최종 session51876 | exit0, pass13/fail0 | 기존10개와 사전등록 하위3개 전수 통과; 새3개는 예상 RED로 주장하지 않음 |
 
-token start/end/consumed: 미집계(사용량 집계값 없음). 세 실행의 실제 총 elapsed: 미계측. 도구의 개별 호출 wait 시간은 명령 전체 실행시간이 아니므로 대체하지 않는다. source: exec/write_stdin 원출력. 메인이 실제 diff/13개 assertion과 이력을 대조하고 [입력 원출력](release-artifacts/v4.1.0/s10-writer-activation/input-observation.log)에 이관했다. 비밀번호/source URL/header/body는 출력하지 않았다.
+token start/end/consumed: 미집계(사용량 집계값 없음). 세 실행의 실제 총 elapsed: 미계측. 도구의 개별 호출 wait 시간은 명령 전체 실행시간이 아니므로 대체하지 않는다. source: exec/write_stdin 원출력. 메인이 실제 diff/13개 assertion과 이력을 대조하고 [입력 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-4ef36bf17cee7a17.txt)에 이관했다. 비밀번호/source URL/header/body는 출력하지 않았다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -17446,8 +17476,8 @@ exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측�
 | 반개구간 겹침 | 최종 실제 assertion 5; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | 맞닿은 반개구간 비겹침 | 최종 실제 assertion 6; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | 빈 반개구간 거부 | 최종 실제 assertion 7; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 8; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 9; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 8; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 9; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | V1 segment golden row count | 최종 실제 assertion 10; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | unknown optional field를 포함한 segment parse: | 최종 실제 assertion 11; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | segment provenance semantic | 최종 실제 assertion 12; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
@@ -17462,8 +17492,8 @@ exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측�
 | unknown lifecycle를 호환 parse | 최종 실제 assertion 21; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | unknown lifecycle를 Unknown으로 보존 | 최종 실제 assertion 22; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | unknown lifecycle 비재생 | 최종 실제 assertion 23; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 24; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 25; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 24; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 25; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | segments.jsonl parse[0]: | 최종 실제 assertion 26; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | segments.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 27; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | V1 schema probe anchor | 최종 실제 assertion 28; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
@@ -17480,8 +17510,8 @@ exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측�
 | segments.jsonl missing required ID rejected | 최종 실제 assertion 39; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | segments.jsonl canonical parse[1]: | 최종 실제 assertion 40; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | segments.jsonl canonical parity[1] | 최종 실제 assertion 41; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 42; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 43; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 42; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 43; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | event-links.jsonl parse[0]: | 최종 실제 assertion 44; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | event-links.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 45; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | V1 schema probe anchor | 최종 실제 assertion 46; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
@@ -17490,8 +17520,8 @@ exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측�
 | event-links.jsonl missing required ID rejected | 최종 실제 assertion 49; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | event-links.jsonl canonical parse[0]: | 최종 실제 assertion 50; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | event-links.jsonl canonical parity[0] | 최종 실제 assertion 51; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 52; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 53; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 52; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 53; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observations.jsonl parse[0]: | 최종 실제 assertion 54; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observations.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 55; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | V1 schema probe anchor | 최종 실제 assertion 56; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
@@ -17500,8 +17530,8 @@ exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측�
 | observations.jsonl missing required ID rejected | 최종 실제 assertion 59; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observations.jsonl canonical parse[0]: | 최종 실제 assertion 60; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observations.jsonl canonical parity[0] | 최종 실제 assertion 61; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 62; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 63; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 62; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 63; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstones.jsonl parse[0]: | 최종 실제 assertion 64; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstones.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 65; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | V1 schema probe anchor | 최종 실제 assertion 66; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
@@ -17510,20 +17540,20 @@ exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측�
 | tombstones.jsonl missing required ID rejected | 최종 실제 assertion 69; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstones.jsonl canonical parse[0]: | 최종 실제 assertion 70; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstones.jsonl canonical parity[0] | 최종 실제 assertion 71; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 72; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 73; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 72; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 73; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | link ID/provenance semantic | 최종 실제 assertion 74; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | link requested range/status semantic | 최종 실제 assertion 75; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | link overlap/missing semantic | 최종 실제 assertion 76; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | link fallback/time semantic | 최종 실제 assertion 77; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 78; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 79; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 78; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 79; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observation ID/provenance semantic | 최종 실제 assertion 80; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observation exact locator semantic | 최종 실제 assertion 81; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observation detection semantic | 최종 실제 assertion 82; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | observation association/time semantic | 최종 실제 assertion 83; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 84; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
-| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 85; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 84; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 85; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstone ID/provenance semantic | 최종 실제 assertion 86; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstone range/checksum/legacy retention semantic | 최종 실제 assertion 87; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
 | tombstone segment ID 재사용 거부 | 최종 실제 assertion 88; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
@@ -18659,7 +18689,7 @@ LC04 placement 재현 76239는 exit 1, LC01~04 assertion fail/LC05~06 pass이며
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
 | --- | --- | --- | --- |
 | 78768-1 | [pass] AP12 distinct loopback ports | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
-| 78768-2 | [pass] AP12 actual foreground healthy &#124; pid=60138 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-InpAKV | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-2 | [pass] AP12 actual foreground healthy &#124; pid=60138 cwd=<owned-temp>/media-server-s09-foundation-InpAKV | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-3 | [pass] POST /ops/api/sources &#124; status=201 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-4 | [pass] AP01 V1 identity seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-5 | [pass] AP01 positive UTC/PTS seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
@@ -18800,7 +18830,7 @@ LC04 placement 재현 76239는 exit 1, LC01~04 assertion fail/LC05~06 pass이며
 | 78768-140 | [pass] AP01 positive UTC/PTS seg-9101-1789133850018-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-141 | [pass] AP01 actual bytes SHA seg-9101-1789133850018-5 &#124; bytes=3196910 sha256=9da561cb4a8441c466c6af06992c21491f229bd9f88764b45763a26078d94d50 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-142 | [pass] AP12 distinct loopback ports | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
-| 78768-143 | [pass] AP12 actual foreground healthy &#124; pid=60179 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-InpAKV | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-143 | [pass] AP12 actual foreground healthy &#124; pid=60179 cwd=<owned-temp>/media-server-s09-foundation-InpAKV | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-144 | [pass] AP09 restart actual new PID | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-145 | [pass] AP09 immutable segment seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-146 | [pass] AP09 immutable segment seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
@@ -18952,7 +18982,7 @@ LC04 placement 재현 76239는 exit 1, LC01~04 assertion fail/LC05~06 pass이며
 | 78768-292 | [pass] AP12 port absent 62135 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-293 | [pass] AP12 port absent 62200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-294 | [pass] AP12 port absent 62201 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
-| 78768-295 | [pass] AP12 root cleanup &#124; path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-InpAKV bytes=329183285 absent=true | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-295 | [pass] AP12 root cleanup &#124; path=<owned-temp>/media-server-s09-foundation-InpAKV bytes=329183285 absent=true | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 | 78768-296 | [pass] AP wrapper completed and cleanup absent | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
@@ -19001,7 +19031,7 @@ PID 58827의 아래 8개 표본은 33,461ms 구간이며 300,000ms warmup 미달
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
 | --- | --- | --- | --- |
 | 8336-1 | AP12 distinct loopback ports | pass | 최초 실행 |
-| 8336-2 | AP12 actual foreground healthy &#124; pid=58827 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-GKSMqV | pass | 최초 실행 |
+| 8336-2 | AP12 actual foreground healthy &#124; pid=58827 cwd=<owned-temp>/media-server-s09-foundation-GKSMqV | pass | 최초 실행 |
 | 8336-3 | POST /ops/api/sources &#124; status=201 | pass | 최초 실행 |
 | 8336-4 | AP01 V1 identity seg-9101-1789132801121-1 | pass | 최초 실행 |
 | 8336-5 | AP01 positive UTC/PTS seg-9101-1789132801121-1 | pass | 최초 실행 |
@@ -19095,7 +19125,7 @@ PID 58827의 아래 8개 표본은 33,461ms 구간이며 300,000ms warmup 미달
 | 8336-93 | AP12 app0 exit0 &#124; exit=null signal=SIGABRT | fail | 최초 실행 |
 | 8336-94 | AP12 port absent 61733 | pass | 최초 실행 |
 | 8336-95 | AP12 port absent 61734 | pass | 최초 실행 |
-| 8336-96 | AP12 root cleanup &#124; path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-GKSMqV bytes=185263857 absent=true | pass | 최초 실행 |
+| 8336-96 | AP12 root cleanup &#124; path=<owned-temp>/media-server-s09-foundation-GKSMqV bytes=185263857 absent=true | pass | 최초 실행 |
 
 ## S09 녹화 직접120분 — 실행 준비
 
@@ -20071,11 +20101,11 @@ token start8449645/end8515937/consumed66292; source=공유 goal(설계·구현·
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/site-request-diagnostic-pZV5Ay | fixture | bytes=26 | verifier 삭제 | absent=true 기록 | red |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/site-request-diagnostic-ssE2OS | fixture | bytes=1738557 | verifier 삭제 | absent=true 기록 | red-escalated |
+| <owned-temp>/site-request-diagnostic-pZV5Ay | fixture | bytes=26 | verifier 삭제 | absent=true 기록 | red |
+| <owned-temp>/site-request-diagnostic-ssE2OS | fixture | bytes=1738557 | verifier 삭제 | absent=true 기록 | red-escalated |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//site-request-diagnostic-unit.qgP5hF | fixture | kib=92 | verifier 삭제 | absent=true 기록 | unit |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//site-request-diagnostic-unit.AaATrq | fixture | kib=92 | verifier 삭제 | absent=true 기록 | unit-final |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/site-request-diagnostic-zYC6w5 | fixture | bytes=3477410 | verifier 삭제 | absent=true 기록 | green |
+| <owned-temp>/site-request-diagnostic-zYC6w5 | fixture | bytes=3477410 | verifier 삭제 | absent=true 기록 | green |
 | .media_server.test/s09-sd-red.log | 결과 로그 | 252B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | 25a250efd47ae4228ff2cd06ac41da84eafeda418b7d2f3f8746076243a0c3c1 |
 | .media_server.test/s09-sd-red-escalated.log | 결과 로그 | 646B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | a30210ec55b84088a3e457a5f041380b264fe6eee85e0cf5026442bb222c7ea2 |
 | .media_server.test/s09-sd-unit.log | 결과 로그 | 449B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | 2928306cb4760b6a1c4c59da079c522ecc24f83322b0c639d183476c3ba68767 |
@@ -20271,18 +20301,18 @@ C=`node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs`, E=`n
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-uGq8L9 | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-xTfXpJ | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-lScpiT | finalizer fixture | 1814B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-duUCpk | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-ov9JhA | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-WuamLs | finalizer fixture | 1705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-vZ60zj | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-kH1qwc | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-pZIGhH | finalizer fixture | 1814B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-6DI2CT | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-Ta7mGW | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-SzFCtc | finalizer fixture | 1705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-uGq8L9 | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-xTfXpJ | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-lScpiT | finalizer fixture | 1814B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-duUCpk | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-ov9JhA | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-WuamLs | finalizer fixture | 1705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-vZ60zj | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-kH1qwc | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-pZIGhH | finalizer fixture | 1814B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-6DI2CT | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-Ta7mGW | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-SzFCtc | finalizer fixture | 1705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
 | .media_server.test/s09-pflc-red.log | 임시 결과 로그 | 3999B | 전수 행 이관 후 삭제 | 메인 SHA·크기 대조 후 삭제, absent=true | SHA256 565753d9e65405aa00ddc5c7c0ce7f3804e8b0c8ecd0f598e7d0157055bb5475 |
 | .media_server.test/s09-pflc-green.log | 임시 결과 로그 | 3937B | 전수 행 이관 후 삭제 | 메인 SHA·크기 대조 후 삭제, absent=true | SHA256 5e027a9a534ae82ce1dc46b93cae9a5141874a1a211c94d4d8181eebe97dd8cb |
 | .media_server.test/s09-pflc-exact.log | 임시 결과 로그 | 5370B | 전수 행 이관 후 삭제 | 메인 SHA·크기 대조 후 삭제, absent=true | SHA256 3c9afb69bc53a0724046490ae435e491a99f4a40a73553d7a3fcba2eaaf2fa58 |
@@ -20483,12 +20513,12 @@ token end=7843934, token consumed=98008, elapsed=579초(공유 goal 계량 구�
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-HXmF6S | fixture | 139bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-external-0WJPzo | fixture | 68bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-54bv4b | fixture | 68bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-9zm6gI | fixture | 3705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-bmnv30 | fixture | 3705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-QkU3vW | fixture | 1814bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-pcXo5G | fixture | 1620bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-AuATCS | fixture | 1620bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
-| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-G8Fx6P | fixture | 1705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-9zm6gI | fixture | 3705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-bmnv30 | fixture | 3705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-QkU3vW | fixture | 1814bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-pcXo5G | fixture | 1620bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-AuATCS | fixture | 1620bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| <home>/Workspace/mediaServer/.v390-suite-finalizer-contract-G8Fx6P | fixture | 1705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
 | s09-fd-child-final.log | 검증 원출력 | 3718bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 8defbdb89daafb2ed631e16889c18edeee79be8ef01f270460be092f73f8d22a | 메인 원본 및 삭제 후 부재 대조 |
 | s09-fd-child-green.log | 검증 원출력 | 3718bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 5fb59765df74bded36850dc8087082d4164fe0b4807b36c97bba11e776fb7f36 | 메인 원본 및 삭제 후 부재 대조 |
 | s09-fd-exact.log | 검증 원출력 | 5370bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 3c9afb69bc53a0724046490ae435e491a99f4a40a73553d7a3fcba2eaaf2fa58 | 메인 원본 및 삭제 후 부재 대조 |
@@ -22354,7 +22384,7 @@ PE01 실제 predev run_step의 integrated·initial report 및 refresh에서 PATH
 | --- | --- | ---: | --- | --- |
 | /private/tmp/s09-predev120-9moPak | 실행산출물 | 1732282 bytes | 메인 삭제 대기 | child 원본 유지 |
 | /private/tmp/media_server_predev-1789085881-39615 | 실행산출물 | 28143 bytes | 메인 삭제 대기 | child 원본 유지 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-091814 | 실행산출물 | 12478 bytes | 메인 삭제 대기 | child 원본 유지 |
+| <home>/Workspace/mediaServer/.media_server.test/20260911-091814 | 실행산출물 | 12478 bytes | 메인 삭제 대기 | child 원본 유지 |
 | /private/tmp/media_server_ffprobe.txt | 신규 고정 probe log | 2194 bytes | 메인 삭제 대기 | 원문debug 미이관 |
 | /private/tmp/media_server_probe_h264.rc | 신규 probe exit | 2 bytes | 메인 삭제 대기 | 원값0 |
 | /private/tmp/media_server_probe_h264.txt | 신규 probe log | 2202 bytes | 메인 삭제 대기 | 원문debug 미이관 |
@@ -22407,7 +22437,7 @@ RED 원출력 전수:
 [pass] PH13 noncanonical path rejected exit=1
 [pass] PH14 nonarray rejected exit=1
 [fail] PH15 current code exception rejected exit=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-z7Z9d9 bytes=1278237 absent=true
+[cleanup] path=<owned-temp>/s09-preserved-header-z7Z9d9 bytes=1278237 absent=true
 {"passed":14,"failed":1,"elapsedMs":473}
 ```
 
@@ -22429,7 +22459,7 @@ GREEN 및 주석 검사 원출력 전수:
 [pass] PH13 noncanonical path rejected exit=1
 [pass] PH14 nonarray rejected exit=1
 [pass] PH15 current code exception rejected exit=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-7sZ3Vk bytes=1281102 absent=true
+[cleanup] path=<owned-temp>/s09-preserved-header-7sZ3Vk bytes=1281102 absent=true
 {"passed":15,"failed":0,"elapsedMs":473}
 
 == Code comment policy summary ==
@@ -22440,8 +22470,8 @@ GREEN 및 주석 검사 원출력 전수:
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-z7Z9d9 | PH15 RED 최소repo | 1278237 bytes | fixture 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-7sZ3Vk | PH15 GREEN 최소repo | 1281102 bytes | fixture 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-preserved-header-z7Z9d9 | PH15 RED 최소repo | 1278237 bytes | fixture 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-preserved-header-7sZ3Vk | PH15 GREEN 최소repo | 1281102 bytes | fixture 삭제 | absent=true | lstat ENOENT |
 
 원출력은 중앙에 전수 이관했고 별도 임시 로그 없음. 전체 PD120/서버/장시간/빌드 재실행 없음, 커밋·푸시 없음. 최종 파일 동결.
 
@@ -22469,7 +22499,7 @@ TDD 스킬에 따라 실제 verifier를 임시 최소 repo로 복사해 실행�
 
 ```text
 [fail] PH01 exact six accepted exit=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-AcopWZ bytes=83564 absent=true
+[cleanup] path=<owned-temp>/s09-preserved-header-AcopWZ bytes=83564 absent=true
 {"passed":0,"failed":1,"elapsedMs":31}
 ```
 
@@ -22490,7 +22520,7 @@ TDD 스킬에 따라 실제 verifier를 임시 최소 repo로 복사해 실행�
 [pass] PH12 missing Korean reason rejected exit=1
 [pass] PH13 noncanonical path rejected exit=1
 [pass] PH14 nonarray rejected exit=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-GeNmcd bytes=1183812 absent=true
+[cleanup] path=<owned-temp>/s09-preserved-header-GeNmcd bytes=1183812 absent=true
 {"passed":14,"failed":0,"elapsedMs":450}
 ```
 
@@ -22511,7 +22541,7 @@ TDD 스킬에 따라 실제 verifier를 임시 최소 repo로 복사해 실행�
 [pass] PH12 missing Korean reason rejected exit=1
 [pass] PH13 noncanonical path rejected exit=1
 [pass] PH14 nonarray rejected exit=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-9ZRFLP bytes=1184484 absent=true
+[cleanup] path=<owned-temp>/s09-preserved-header-9ZRFLP bytes=1184484 absent=true
 {"passed":14,"failed":0,"elapsedMs":455}
 
 == Code comment policy summary ==
@@ -22543,9 +22573,9 @@ script inventory 원출력 전수:
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-AcopWZ | RED 최소 repo | 83564 | fixture 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-GeNmcd | 첫 GREEN 최소 repo | 1183812 | fixture 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-9ZRFLP | 최종 GREEN 최소 repo | 1184484 | fixture 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-preserved-header-AcopWZ | RED 최소 repo | 83564 | fixture 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-preserved-header-GeNmcd | 첫 GREEN 최소 repo | 1183812 | fixture 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-preserved-header-9ZRFLP | 최종 GREEN 최소 repo | 1184484 | fixture 삭제 | absent=true | lstat ENOENT |
 
 신규 로그 파일 없음(도구 출력 전수 이관). 기존 PD120 실패 기록은 유지하며 이번 정적 gate 해소는 실제 predev120 재실행/soak/서버/30분/UI/자원추세 PASS가 아니다. 제품 실행코드 변경·커밋·푸시 없음.
 
@@ -22680,7 +22710,7 @@ script inventory 원출력 전수:
 | --- | --- | ---: | --- | --- | --- |
 | /private/tmp/s09-predev120-j832NR | 격리 실행 root | 1731334 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
 | /tmp/media_server_predev-1789084830-37793 | runner log | 21708 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-090034 | child log/summary | 5776 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
+| <home>/Workspace/mediaServer/.media_server.test/20260911-090034 | child log/summary | 5776 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
 
 이 cleanup 후속 기록이 앞 artifact의 삭제 대기 상태를 갱신한다. 보존 artifact는 역사 원문이므로 덮어쓰지 않는다.
 
@@ -24206,9 +24236,9 @@ fullFoundationPass=false/resourceTrendPass=false. remaining resource-trend/30min
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 결과·근거 |
 | --- | --- | ---: | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.gpP2vs | runtime fixture |57326931bytes|wrapper정리|원출력 absent=true |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-7yLNdP | 앱·미디어·인증해시fixture |322688966bytes|wrapper정리|원출력 absent=true |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.hIonO6 | GST registry |62691bytes|wrapper정리|원출력 absent=true |
+| <owned-temp>/media-server-s09-runtime.gpP2vs | runtime fixture |57326931bytes|wrapper정리|원출력 absent=true |
+| <owned-temp>/media-server-s09-foundation-7yLNdP | 앱·미디어·인증해시fixture |322688966bytes|wrapper정리|원출력 absent=true |
+| <owned-temp>/media-server-s09-foundation-gst.hIonO6 | GST registry |62691bytes|wrapper정리|원출력 absent=true |
 | /private/tmp/s09-foundation-all.wSpunQ | 전체원로그 |164097bytes|필수 1059행 메인 전수 대조 후 삭제|unlink 후 부재 확인 완료 |
 
 메인은 보존표 1059행을 원로그와 순서·문자열까지 직접 대조했고 위 artifact 크기와 SHA256을 확인했다. runtime/app/GST 임시 경로 3개도 별도 lstat에서 ENOENT를 확인했다. artifact 안의 ‘메인 확인 후 삭제 대기’는 이관 당시 기록이며, 최종 정리 결과는 이 중앙 기록을 따른다.
@@ -24578,7 +24608,7 @@ LR02 물리삭제 보완 사전등록: phase내 관측한 mediaRelpath를 경로
 | recording_journal_reader.test.mjs-39 | [pass] JR05 read path error latch | pass |
 | recording_journal_reader.test.mjs-40 | [pass] JR05 closed poll rejected | pass |
 
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-eS3OHn bytes=4545807 absent=true
+[cleanup] path=<owned-temp>/s09-journal-reader-eS3OHn bytes=4545807 absent=true
 
 ### recording_foundation_observer.test.mjs
 
@@ -24620,15 +24650,15 @@ LR02 물리삭제 보완 사전등록: phase내 관측한 mediaRelpath를 경로
 | recording_foundation_observer.test.mjs-32 | [pass] OBS04 error completion rejected | pass |
 | recording_foundation_observer.test.mjs-33 | [pass] OBS04 disabled completion rejected | pass |
 
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-BGnFTj bytes=1932 absent=true
+[cleanup] path=<owned-temp>/s09-observer-BGnFTj bytes=1932 absent=true
 
 
 추가 검증: node --check progress.mjs/progress.test.mjs/foundation.mjs 각각exit0; bash -n foundation.sh/longrun.sh/server.sh 각각exit0. 실제 `./server.sh verify-v410-recording-longrun` 무인자 dispatch는 예상exit2/usage로 temp·서버전 거부. git diff --check exit0. 짧은구문명령 순수elapsed 별도미계측(도구wall 약0.000001초), token start/end/consumed 미집계: 하위작업별 자동집계없음. 순수검사109개(36+40+33) 전수행 보존; 추가 CLI dispatch음성은 서버검사가 아니다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-eS3OHn | 실제임시 JSONL 단위fixture |4545807bytes| 테스트finally정리 | absent=true |원출력 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-BGnFTj | 관측기 임시fixture |1932bytes| 테스트finally정리 | absent=true |원출력 cleanup |
+| <owned-temp>/s09-journal-reader-eS3OHn | 실제임시 JSONL 단위fixture |4545807bytes| 테스트finally정리 | absent=true |원출력 cleanup |
+| <owned-temp>/s09-observer-BGnFTj | 관측기 임시fixture |1932bytes| 테스트finally정리 | absent=true |원출력 cleanup |
 
 LR 순수/CLI는 임시산출물없음. 실제서버·GST미디어·auth·빌드·30분·120분·UI는 이번에 미실행. 커밋/푸시없음. 코드/단위 준비와 실제longrun실행·자원안정성 최종판정을 구분하며 메인리뷰 대기한다.
 
@@ -24658,7 +24688,7 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AUTH90713-001 | [pass] AP12 distinct loopback ports | pass |
-| AUTH90713-002 | [pass] AP12 actual foreground healthy \| pid=21912 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C | pass |
+| AUTH90713-002 | [pass] AP12 actual foreground healthy \| pid=21912 cwd=<owned-temp>/media-server-s09-foundation-HdDn0C | pass |
 | AUTH90713-003 | [pass] AP10-B production setup \| status=302 | pass |
 | AUTH90713-004 | [pass] AP10-B production login \| status=302 | pass |
 | AUTH90713-005 | [pass] POST /ops/api/users \| status=201 | pass |
@@ -24926,7 +24956,7 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 | AUTH90713-267 | [pass] AP01 positive UTC/PTS seg-9101-1789080368706-5 | pass |
 | AUTH90713-268 | [pass] AP01 actual bytes SHA seg-9101-1789080368706-5 \| bytes=3109810 sha256=2d4329513cc6036404ba86ef94e20c68e6ef272c273d1da70681fc94d7ff754b | pass |
 | AUTH90713-269 | [pass] AP12 distinct loopback ports | pass |
-| AUTH90713-270 | [pass] AP12 actual foreground healthy \| pid=21932 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C | pass |
+| AUTH90713-270 | [pass] AP12 actual foreground healthy \| pid=21932 cwd=<owned-temp>/media-server-s09-foundation-HdDn0C | pass |
 | AUTH90713-271 | [pass] AP10-B production login \| status=302 | pass |
 | AUTH90713-272 | [pass] AP10-B production login \| status=302 | pass |
 | AUTH90713-273 | [pass] AP10-B production login \| status=302 | pass |
@@ -25190,13 +25220,13 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 | AUTH90713-531 | [pass] AP12 port absent 49621 | pass |
 | AUTH90713-532 | [pass] AP12 port absent 49756 | pass |
 | AUTH90713-533 | [pass] AP12 port absent 49757 | pass |
-| AUTH90713-534 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C bytes=328175375 absent=true | pass |
+| AUTH90713-534 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-HdDn0C bytes=328175375 absent=true | pass |
 | AUTH90713-535 | [pass] AP wrapper completed and cleanup absent | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C | 격리 앱·인증 해시계정·미디어 | 328175375bytes | 실행 wrapper 정리 | absent=true | 원출력 AP12 root cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.VGtFrI | GST registry | 62691bytes | 실행 wrapper 정리 | absent=true | 원출력 cleanup |
+| <owned-temp>/media-server-s09-foundation-HdDn0C | 격리 앱·인증 해시계정·미디어 | 328175375bytes | 실행 wrapper 정리 | absent=true | 원출력 AP12 root cleanup |
+| <owned-temp>/media-server-s09-foundation-gst.VGtFrI | GST registry | 62691bytes | 실행 wrapper 정리 | absent=true | 원출력 cleanup |
 | /private/tmp/s09-auth-output.YcGtpu | 인증 실행 원로그 | 62453bytes | 535결과와 보존 행을 메인이 전수 문자열 대조 후 unlink | 삭제 완료, absent=true | exactRowsMatched=535, logDeleted=true |
 
 4포트49620/49621/49756/49757 부재는 위 개별 원출력에 보존했다. 이관 담당자는 새 서버/검증을 실행하지 않았으며 제품·스크립트·장시간 코드는 동결했다.
@@ -25259,8 +25289,8 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
 | /private/tmp/s09-auth-output.1l6lqJ | 메인 auth 원로그 | 13931bytes | 전수 이관 후 unlink | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7 | 격리 앱/해시계정/미디어 | 23821642bytes | 원래 wrapper 정리 | absent=true 재확인 | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.0720Qg | GST registry | 62691bytes | 원래 wrapper 정리 | absent=true 재확인 | lstat ENOENT |
+| <owned-temp>/media-server-s09-foundation-FyHrY7 | 격리 앱/해시계정/미디어 | 23821642bytes | 원래 wrapper 정리 | absent=true 재확인 | lstat ENOENT |
+| <owned-temp>/media-server-s09-foundation-gst.0720Qg | GST registry | 62691bytes | 원래 wrapper 정리 | absent=true 재확인 | lstat ENOENT |
 
 순수 helper 검사는 추가 임시 산출물 없음. 제품/인증 정책 변경·커밋·푸시 없음.
 
@@ -25277,7 +25307,7 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AUTH40595-1 | [pass] AP12 distinct loopback ports | pass |
-| AUTH40595-2 | [pass] AP12 actual foreground healthy \| pid=20898 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7 | pass |
+| AUTH40595-2 | [pass] AP12 actual foreground healthy \| pid=20898 cwd=<owned-temp>/media-server-s09-foundation-FyHrY7 | pass |
 | AUTH40595-3 | [pass] AP10-B production setup \| status=302 | pass |
 | AUTH40595-4 | [pass] AP10-B production login \| status=302 | pass |
 | AUTH40595-5 | [pass] POST /ops/api/users \| status=201 | pass |
@@ -25322,7 +25352,7 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 | AUTH40595-44 | [fail] AP10-E continuous exact scope channels principal0 | fail |
 | AUTH40595-45 | [pass] AP12 port absent 49271 | pass |
 | AUTH40595-46 | [pass] AP12 port absent 49272 | pass |
-| AUTH40595-47 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7 bytes=23821642 absent=true | pass |
+| AUTH40595-47 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-FyHrY7 bytes=23821642 absent=true | pass |
 
 미완료 필수 목록(원 summary194개; 실패한 exact-scope 1개 포함, 나머지 미실행이며 PASS 근거 아님):
 
@@ -25521,7 +25551,7 @@ TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bo
 - AP10-E restart-derived status principal4
 - AP10-E restart-derived status redaction principal4
 
-cleanup 원출력: 앱 root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7` 23821642bytes absent=true; GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.0720Qg` 62691bytes absent=true. 로그는 필수 전수 이관 뒤 별도 삭제 확인한다.
+cleanup 원출력: 앱 root `<owned-temp>/media-server-s09-foundation-FyHrY7` 23821642bytes absent=true; GST root `<owned-temp>/media-server-s09-foundation-gst.0720Qg` 62691bytes absent=true. 로그는 필수 전수 이관 뒤 별도 삭제 확인한다.
 
 
 ## S09 임시 인증값 실제 AP10 실행 사전등록
@@ -25651,7 +25681,7 @@ LS02/03 사전보완: 반환숫자/PID/identity화이트리스트(rawsource/payl
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | EQ-OBS-001 | AP12 distinct loopback ports | pass |
-| EQ-OBS-002 | AP12 actual foreground healthy \| pid=17832 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq | pass |
+| EQ-OBS-002 | AP12 actual foreground healthy \| pid=17832 cwd=<owned-temp>/media-server-s09-foundation-2hd7oq | pass |
 | EQ-OBS-003 | POST /ops/api/sources \| status=201 | pass |
 | EQ-OBS-004 | AP01 V1 identity seg-9101-1789078604920-1 | pass |
 | EQ-OBS-005 | AP01 positive UTC/PTS seg-9101-1789078604920-1 | pass |
@@ -25790,7 +25820,7 @@ LS02/03 사전보완: 반환숫자/PID/identity화이트리스트(rawsource/payl
 | EQ-OBS-138 | AP01 positive UTC/PTS seg-9101-1789078634936-5 | pass |
 | EQ-OBS-139 | AP01 actual bytes SHA seg-9101-1789078634936-5 \| bytes=3181336 sha256=374b127ebbef855e85fde8eac63faa71a3b5a4297b78d9592425b8a9dfea21c9 | pass |
 | EQ-OBS-140 | AP12 distinct loopback ports | pass |
-| EQ-OBS-141 | AP12 actual foreground healthy \| pid=17947 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq | pass |
+| EQ-OBS-141 | AP12 actual foreground healthy \| pid=17947 cwd=<owned-temp>/media-server-s09-foundation-2hd7oq | pass |
 | EQ-OBS-142 | AP09 restart actual new PID | pass |
 | EQ-OBS-143 | AP09 immutable segment seg-9101-1789078604920-1 | pass |
 | EQ-OBS-144 | AP09 immutable segment seg-9101-1789078613281-2 | pass |
@@ -25938,13 +25968,13 @@ LS02/03 사전보완: 반환숫자/PID/identity화이트리스트(rawsource/payl
 | EQ-OBS-286 | AP12 port absent 65226 | pass |
 | EQ-OBS-287 | AP12 port absent 65292 | pass |
 | EQ-OBS-288 | AP12 port absent 65293 | pass |
-| EQ-OBS-289 | AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq bytes=322986806 absent=true | pass |
+| EQ-OBS-289 | AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-2hd7oq bytes=322986806 absent=true | pass |
 | EQ-OBS-290 | AP wrapper completed and cleanup absent | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq | app/media/event/archive | 322986806 | 메인 실행wrapper삭제 | absent=true | AP12원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.9DIIyo | collector/GSTregistry | 143595 | 메인 실행trap삭제 | absent=true | cleanup원출력 |
+| <owned-temp>/media-server-s09-foundation-2hd7oq | app/media/event/archive | 322986806 | 메인 실행wrapper삭제 | absent=true | AP12원출력 |
+| <owned-temp>/media-server-s09-foundation-gst.9DIIyo | collector/GSTregistry | 143595 | 메인 실행trap삭제 | absent=true | cleanup원출력 |
 | /private/tmp/s09-eq-observe.VaIJi4 | 전체stdout/stderr | 64891 | 전수이관뒤담당자unlink | 최종아래부재대조기록 | 임시로그는보존evidence아님 |
 
 미실행/한계: 담당자 추가검증·서버·빌드·제품수정없음. auth/30/120/UI/외부·운영데이터/커밋/푸시는이번범위아님. 전체S09/장시간자원추세/누수해결PASS가 아니다. 원장관측은 strictduplicate/catalog수용/fsync검증의대체가 아니다. 코드·다른문서는수정하지않았다.
@@ -26226,7 +26256,7 @@ wrapper 좁은선택은 인수검증을temp/테스트root변경 전에 수행하
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | OBS-app-001 | AP12 distinct loopback ports | pass |
-| OBS-app-002 | AP12 actual foreground healthy \| pid=15226 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG | pass |
+| OBS-app-002 | AP12 actual foreground healthy \| pid=15226 cwd=<owned-temp>/media-server-s09-foundation-v1NWnG | pass |
 | OBS-app-003 | POST /ops/api/sources \| status=201 | pass |
 | OBS-app-004 | AP01 V1 identity seg-9101-1789075031344-1 | pass |
 | OBS-app-005 | AP01 positive UTC/PTS seg-9101-1789075031344-1 | pass |
@@ -26370,7 +26400,7 @@ wrapper 좁은선택은 인수검증을temp/테스트root변경 전에 수행하
 | OBS-app-143 | AP01 positive UTC/PTS seg-9101-1789075061360-5 | pass |
 | OBS-app-144 | AP01 actual bytes SHA seg-9101-1789075061360-5 \| bytes=3094851 sha256=bfdcd92e26407847d320e0d2c025cdf28e14a63305dc2d21be6390390bd5005a | pass |
 | OBS-app-145 | AP12 distinct loopback ports | pass |
-| OBS-app-146 | AP12 actual foreground healthy \| pid=15249 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG | pass |
+| OBS-app-146 | AP12 actual foreground healthy \| pid=15249 cwd=<owned-temp>/media-server-s09-foundation-v1NWnG | pass |
 | OBS-app-147 | AP09 restart actual new PID | pass |
 | OBS-app-148 | AP09 immutable segment seg-9101-1789075031344-1 | pass |
 | OBS-app-149 | AP09 immutable segment seg-9101-1789075039700-2 | pass |
@@ -26516,13 +26546,13 @@ wrapper 좁은선택은 인수검증을temp/테스트root변경 전에 수행하
 | OBS-app-289 | AP12 port absent 64112 | pass |
 | OBS-app-290 | AP12 port absent 64161 | pass |
 | OBS-app-291 | AP12 port absent 64162 | pass |
-| OBS-app-292 | AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG bytes=386600567 absent=true | pass |
+| OBS-app-292 | AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-v1NWnG bytes=386600567 absent=true | pass |
 | OBS-app-293 | AP wrapper completed and cleanup absent | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG | app/media/events/journal root | 386600567 | 프로세스종료 후 삭제 | absent=true | AP12 root cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.RfUwzX | collector/registry | 143595 | trap 삭제 | absent=true | wrapper cleanup |
+| <owned-temp>/media-server-s09-foundation-v1NWnG | app/media/events/journal root | 386600567 | 프로세스종료 후 삭제 | absent=true | AP12 root cleanup |
+| <owned-temp>/media-server-s09-foundation-gst.RfUwzX | collector/registry | 143595 | trap 삭제 | absent=true | wrapper cleanup |
 | /private/tmp/s09-observe-output.tn1KFi | 전체stdout/stderr | 63071 | 전수행/11표본/숫자 이관 뒤 삭제 | absent=true | lstat ENOENT, URL/raw file::/credential 패턴 발견0 |
 
 범위: 고정nativecollector compile 및 실제 macOS 표본, 기존 실제app 통합 관측은 이실행범위에서 통과. 코드수정없음. 180초·50ms448MiB선제/512MiB상한 유지, cap실패없음. root 삭제전386600567bytes는 최종크기이며 원자적 peak 상한 측정으로 주장하지 않는다. auth/다른회귀/build/30/120/UI/외부/운영데이터는 미실행. Linux native, 장시간누수·자원추세, 전체S09/릴리즈 완료는 미확인이다. 커밋·푸시 미수행.
@@ -26539,8 +26569,8 @@ OBS-N01~04 실행 승인 갱신: 사용자가 직전 `상승`으로 격리 로�
 | --- | --- | --- |
 | OBS native 시작 실패 | listen EPERM: operation not permitted 127.0.0.1; 앱 시작 전 포트 예약 권한 오류 | fail |
 | OBS 최종 미측정 | observer: observer-final-unmeasured; 앞선 시작 실패로 PID/원장 표본 미도달, 별도 제품 손상 증거 아님 | fail |
-| AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-f5Mp6u bytes=17071044 absent=true | pass |
-| OBS GST cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.lhwQ4C bytes=143595 absent=true | pass |
+| AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-f5Mp6u bytes=17071044 absent=true | pass |
+| OBS GST cleanup | path=<owned-temp>/media-server-s09-foundation-gst.lhwQ4C bytes=143595 absent=true | pass |
 
 동일 명령을 require_escalated로 요청했으나 auto-review가 실제 앱/권한상승 사용자 명시승인 부재를 이유로 거부했다. 거부된 요청에는 exit code/실행 session이 없으며 새 서버·검증 프로세스를 시작하지 않았다. 우회나 추가 재실행 없이 중단했다. 실행권한 승인은 메인에게 전달한 blocker다.
 
@@ -26548,8 +26578,8 @@ OBS-N01~04 실행 승인 갱신: 사용자가 직전 `상승`으로 격리 로�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-f5Mp6u | app fixture root | 17071044 | wrapper 내부 삭제 | absent=true | 원출력 AP12 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.lhwQ4C | registry/collector | 143595 | trap 삭제 | absent=true | 원출력 cleanup |
+| <owned-temp>/media-server-s09-foundation-f5Mp6u | app fixture root | 17071044 | wrapper 내부 삭제 | absent=true | 원출력 AP12 |
+| <owned-temp>/media-server-s09-foundation-gst.lhwQ4C | registry/collector | 143595 | trap 삭제 | absent=true | 원출력 cleanup |
 | /private/tmp/s09-observe-output.GF1WVG | 전체 stdout/stderr | 11624 | 필수값/개별행 이관 후 삭제 | 최종 아래 cleanup 확인 기록 참조 | 테스트 로그, 최종 evidence 아님 |
 
 ## S09 OBS 실제 단기 관측 실행 사전등록
@@ -26611,10 +26641,10 @@ OBS-N01~04 실행 승인 갱신: 사용자가 직전 `상승`으로 격리 로�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-QkRuzW | RED temp journal | 146 | 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-GYlZyY | 첫 GREEN temp journal | 1767 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-M6NkOg | 중간 실패 temp journal | 1932 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-nOBdDd | 최종33 temp journal | 1932 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-observer-QkRuzW | RED temp journal | 146 | 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-observer-GYlZyY | 첫 GREEN temp journal | 1767 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-observer-M6NkOg | 중간 실패 temp journal | 1932 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-observer-nOBdDd | 최종33 temp journal | 1932 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
 
 미실행/한계: 실제 app-observe·native collector compile/실측·GST·auth·장시간·UI·기존 회귀·전체 build는 이번 승인 밖이라 미실행이다. fake sample 단위는 실제 녹화/OS 측정/자원 안정성 PASS가 아니다. 관측 원장은 catalog 수용·fsync·strict duplicate-key 검증을 대체하지 않고, 동시 비협력 prefix 변경 원자 검출도 보장하지 않는다. 기존 collector41/reader40 증거는 구현 재사용 근거일 뿐 이번 앱 연결 실행 evidence가 아니다. 커밋/푸시 미수행.
 
@@ -26637,8 +26667,8 @@ OBS-N01~04 실행 승인 갱신: 사용자가 직전 `상승`으로 격리 로�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-AAZnAn | 최종29 native fixture/marker | 186 | child close 뒤삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-redaction-UndtNL | 최종29 redaction fixture | 194 | child close 뒤삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-suite-native-AAZnAn | 최종29 native fixture/marker | 186 | child close 뒤삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-suite-redaction-UndtNL | 최종29 redaction fixture | 194 | child close 뒤삭제 | absent=true | lstat ENOENT |
 
 최초 `node scripts/internal/recording_foundation_suite.test.mjs` RED exit1/0pass1fail/0ms: stub이호출하지않아 ALL01 fixed runtime then app-auth order assertion실패. 첫GREEN24/0 exit0/2ms는DI경계만검사했으며 당시outer kill구현의실제안전성을검증한것이아니다. 메인리뷰가detached앱고아위험을발견하여outer timeout/kill을제거했다. overflow시추가출력저장을멈추고기존runner close까지기다린뒤FAIL/후속미실행. 이후25/0 exit0/1ms(DI close),26/0 exit0/153ms(native overflow),28/0 exit0/198ms(직접mjs진입거부),최종29/0 exit0/237ms(multiline redaction)로같은단위범위를보강했다. compile/OS hang 전체deadline보장은없다.
 
@@ -26703,10 +26733,10 @@ auth회귀 `node scripts/internal/recording_foundation_auth_helpers.test.mjs` �
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-33fG0l | 26 native fixture/marker | 186 | native close뒤삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-Y18aA5 | 28 native fixture/marker | 186 | native close뒤삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-ekZGvp | 29 native fixture/marker | 186 | exit0/signalnull/close뒤삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-redaction-UkXBKG | 29 redaction fixture | 194 | native exit0/close뒤삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-suite-native-33fG0l | 26 native fixture/marker | 186 | native close뒤삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-suite-native-Y18aA5 | 28 native fixture/marker | 186 | native close뒤삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-suite-native-ekZGvp | 29 native fixture/marker | 186 | exit0/signalnull/close뒤삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-suite-redaction-UkXBKG | 29 redaction fixture | 194 | native exit0/close뒤삭제 | absent=true | lstat ENOENT |
 
 구현: shell default/--all은임시root전에suite로분기하여credentials→고정runtimewrapper→고정app-authwrapper순서다. runtime환경에서5authsecret제거, app검증Node만계승. 내부foundation.mjs직접default/--all은root전에거부한다. nativestdout/stderr는8MiB bounded수집후secret전체치환하여출력, overflow는내용미출력/실패유지·강제kill없음. 각단계exit/summary/cleanup/완료marker가필수이며실패뒤단계미실행. integrationExecutionPass만연결완주표시이고fullFoundationPass/resourceTrendPass는false다.
 
@@ -26781,7 +26811,7 @@ ALL02 보완 사전등록: output overflow가 발생해도 outer kill 없이 chi
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-MN3srB | 최종40 임시JSONL/경로fixture | 4545807 | reader전수close후삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-journal-reader-MN3srB | 최종40 임시JSONL/경로fixture | 4545807 | reader전수close후삭제 | absent=true | lstat ENOENT |
 
 이번도신규단위만이며앱/장시간/UI/auth/build미실행. 코드/기록동결,커밋/푸시없음.
 
@@ -26836,9 +26866,9 @@ RED `node scripts/internal/recording_journal_reader.test.mjs --red` exit1,0pass1
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-0IUO1Q | RED 임시JSONL | 166 | reader.close 뒤 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-BADfMs | 첫34 임시JSONL/경로fixture | 6917 | reader 전수close 뒤 삭제 | absent=true | lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-J2qrAB | 최종39 임시JSONL/경로fixture | 4545807 | reader 전수close 뒤 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-journal-reader-0IUO1Q | RED 임시JSONL | 166 | reader.close 뒤 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-journal-reader-BADfMs | 첫34 임시JSONL/경로fixture | 6917 | reader 전수close 뒤 삭제 | absent=true | lstat ENOENT |
+| <owned-temp>/s09-journal-reader-J2qrAB | 최종39 임시JSONL/경로fixture | 4545807 | reader 전수close 뒤 삭제 | absent=true | lstat ENOENT |
 
 구현범위: root/file constructor→poll bounded batch/consumedOffset/consumedBytes/readBytes/lineCount/partialBytes/backlogBytes/backlog→idempotent close. 일반단일링크/nofollow/ancestor·leaf devino를전후검사하고 prefixtruncate·교체·read오류·행상한은latch한다. 미완결꼬리는저장하지않고다음poll에재읽는다. 기본64KiB chunk/4MiB poll/1MiB line. 실제26000행을4MiB경계두batch로소비했고EOF미완결과poll경계미완결을backlog로구분했다.
 
@@ -26909,7 +26939,7 @@ RED `node scripts/internal/recording_journal_reader.test.mjs --red` exit1,0pass1
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-mK2FEk | 최종41 임시binary/root | 226624 | child10299 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+| <owned-temp>/s09-process-metrics-mK2FEk | 최종41 임시binary/root | 226624 | child10299 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
 
 Linux native/실제권한거부/PID재활용/실제FD포화는미실행. 순수분류6개로 실제OS사례PASS를대체하지않는다. 제품/기존harness/장시간runner변경없음·실행없음.
 
@@ -26973,9 +27003,9 @@ PM04 추가 사전등록: 공통 OS 오류분류 EACCES/EPERM→permission-denie
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-aGPC1m | RED 임시binary/root | 89840 | child9929 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-HRetPZ | 첫 GREEN 임시binary/root | 209936 | child10118 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-0bkWHC | 최종 GREEN 임시binary/root | 226448 | child10182 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+| <owned-temp>/s09-process-metrics-aGPC1m | RED 임시binary/root | 89840 | child9929 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+| <owned-temp>/s09-process-metrics-HRetPZ | 첫 GREEN 임시binary/root | 209936 | child10118 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+| <owned-temp>/s09-process-metrics-0bkWHC | 최종 GREEN 임시binary/root | 226448 | child10182 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
 
 한계/미실행: Linux stat/statm 순수 parser만 macOS에서 실행했으며 Linux native compile/OS측정은 미실행. 실제 권한 거부·PID 재활용·FD 포화/경쟁을 강제로 만들지 않았다. FD 부분/포화 판별은 실제 공통함수의 합성 입력 검증이다. BSD 시작시각 전후 대조는 PID 재사용 방어이며 여러 카운터의 원자적 스냅샷을 보장하지 않는다. media_server/GST/실제녹화/auth/장시간/UI/기존회귀/전체build 미실행. 제품·기존 foundation/auth/buildscript 변경 없음, 커밋·푸시 없음.
 
@@ -27092,7 +27122,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | 66598-001 | [pass] AP12 distinct loopback ports | pass |
-| 66598-002 | [pass] AP12 actual foreground healthy \| pid=8523 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc | pass |
+| 66598-002 | [pass] AP12 actual foreground healthy \| pid=8523 cwd=<owned-temp>/media-server-s09-foundation-KcseZc | pass |
 | 66598-003 | [pass] POST /ops/api/sources \| status=201 | pass |
 | 66598-004 | [pass] AP01 V1 identity seg-9101-1789064109879-1 | pass |
 | 66598-005 | [pass] AP01 positive UTC/PTS seg-9101-1789064109879-1 | pass |
@@ -27233,7 +27263,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 | 66598-140 | [pass] AP01 positive UTC/PTS seg-9101-1789064139895-5 | pass |
 | 66598-141 | [pass] AP01 actual bytes SHA seg-9101-1789064139895-5 \| bytes=3474714 sha256=01d3b41d0c486facf42ff37e07682274c1df1f8ab37dd06289fda4cb2d91b098 | pass |
 | 66598-142 | [pass] AP12 distinct loopback ports | pass |
-| 66598-143 | [pass] AP12 actual foreground healthy \| pid=8558 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc | pass |
+| 66598-143 | [pass] AP12 actual foreground healthy \| pid=8558 cwd=<owned-temp>/media-server-s09-foundation-KcseZc | pass |
 | 66598-144 | [pass] AP09 restart actual new PID | pass |
 | 66598-145 | [pass] AP09 immutable segment seg-9101-1789064109879-1 | pass |
 | 66598-146 | [pass] AP09 immutable segment seg-9101-1789064118234-2 | pass |
@@ -27384,12 +27414,12 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 | 66598-291 | [pass] AP12 port absent 61498 | pass |
 | 66598-292 | [pass] AP12 port absent 61553 | pass |
 | 66598-293 | [pass] AP12 port absent 61554 | pass |
-| 66598-294 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc bytes=397162973 absent=true | pass |
+| 66598-294 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-KcseZc bytes=397162973 absent=true | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc | 실제앱archive/media/input | 397162973bytes | 소유process정상종료뒤삭제 | absent=true | 앱cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.JxoEQC | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| <owned-temp>/media-server-s09-foundation-KcseZc | 실제앱archive/media/input | 397162973bytes | 소유process정상종료뒤삭제 | absent=true | 앱cleanup |
+| <owned-temp>/media-server-s09-foundation-gst.JxoEQC | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
 | /private/tmp/media-server-s09-ap08green.q3EsMP | 전체stdout/stderr | 44408bytes | 중앙이관후삭제 | 아래후처리확인 | 311줄/294항목summary일치 |
 
 포트61497/61498/61553/61554 부재. 아래원출력은소스키hash/redaction·격리임시경로만보존, rawmedia최종보존없음. 이번추가unit/build/S05/S06/RT/auth/30/UI/120미실행, 제품/입력/selector동결. 커밋/푸시미수행. 전체S09/릴리즈완료판정아님.
@@ -27398,7 +27428,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 
 ```text
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=8523 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc
+[pass] AP12 actual foreground healthy | pid=8523 cwd=<owned-temp>/media-server-s09-foundation-KcseZc
 [pass] POST /ops/api/sources | status=201
 [pass] AP01 V1 identity seg-9101-1789064109879-1
 [pass] AP01 positive UTC/PTS seg-9101-1789064109879-1
@@ -27424,7 +27454,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [pass] AP05 fallback playable local URL
 [pass] AP05 fallback actual file prefix
 [pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100
-[evidence] fallback {"eventId":"evt_1789064118516_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73","event_id":"evt_1789064118516_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789064117712,"end_ms":1789064118734},"ordered_overlaps":[{"segment_id":"seg-9101-1789064109879-1","range":{"start_ms":1789064117712,"end_ms":1789064118187}},{"segment_id":"seg-9101-1789064118234-2","range":{"start_ms":1789064118234,"end_ms":1789064118734}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc/events/clips/evt_1789064118516_2.clip/manifest.json","missing_ranges":[{"start_ms":1789064118187,"end_ms":1789064118234}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789064109803","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789064118516,"updated_at_ms":1789064126589},"item":{"segmentId":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064117712,"endTimeMs":1789064118734,"eventId":"evt_1789064118516_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789064117712,"endTimeMs":1789064118734},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789064126815}
+[evidence] fallback {"eventId":"evt_1789064118516_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73","event_id":"evt_1789064118516_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789064117712,"end_ms":1789064118734},"ordered_overlaps":[{"segment_id":"seg-9101-1789064109879-1","range":{"start_ms":1789064117712,"end_ms":1789064118187}},{"segment_id":"seg-9101-1789064118234-2","range":{"start_ms":1789064118234,"end_ms":1789064118734}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-KcseZc/events/clips/evt_1789064118516_2.clip/manifest.json","missing_ranges":[{"start_ms":1789064118187,"end_ms":1789064118234}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789064109803","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789064118516,"updated_at_ms":1789064126589},"item":{"segmentId":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064117712,"endTimeMs":1789064118734,"eventId":"evt_1789064118516_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789064117712,"endTimeMs":1789064118734},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789064126815}
 [pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
 [pass] AP01 V1 identity seg-9101-1789064109879-1
 [pass] AP01 positive UTC/PTS seg-9101-1789064109879-1
@@ -27461,7 +27491,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [pass] AP05 derived playable local URL
 [pass] AP05 derived actual file prefix
 [pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600
-[evidence] derived {"eventId":"evt_1789064127573_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928","event_id":"evt_1789064127573_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789064126960,"end_ms":1789064127960},"ordered_overlaps":[{"segment_id":"seg-9101-1789064126560-3","range":{"start_ms":1789064126960,"end_ms":1789064127960}}],"derived_segment_id":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","fallback_evidence_id":"fallback-bound-v1-27fd298e9c57cd83af923453a3699fa03d3c0999fba6ede14fffae5af15e13c6","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc/events/clips/evt_1789064127573_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789064126560,"end_ms":1789064127960},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789064109803","completeness_reason":"complete","status":"complete","created_at_ms":1789064127576,"updated_at_ms":1789064134974},"item":{"segmentId":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064126560,"endTimeMs":1789064127960,"eventId":"evt_1789064127573_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789064126960,"endTimeMs":1789064127960},"actualRange":{"startTimeMs":1789064126560,"endTimeMs":1789064127960},"supersededByEventIds":[]},"capturedAtMs":1789064135292}
+[evidence] derived {"eventId":"evt_1789064127573_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928","event_id":"evt_1789064127573_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789064126960,"end_ms":1789064127960},"ordered_overlaps":[{"segment_id":"seg-9101-1789064126560-3","range":{"start_ms":1789064126960,"end_ms":1789064127960}}],"derived_segment_id":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","fallback_evidence_id":"fallback-bound-v1-27fd298e9c57cd83af923453a3699fa03d3c0999fba6ede14fffae5af15e13c6","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-KcseZc/events/clips/evt_1789064127573_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789064126560,"end_ms":1789064127960},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789064109803","completeness_reason":"complete","status":"complete","created_at_ms":1789064127576,"updated_at_ms":1789064134974},"item":{"segmentId":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064126560,"endTimeMs":1789064127960,"eventId":"evt_1789064127573_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789064126960,"endTimeMs":1789064127960},"actualRange":{"startTimeMs":1789064126560,"endTimeMs":1789064127960},"supersededByEventIds":[]},"capturedAtMs":1789064135292}
 [pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
 [pass] AP02/03 fallback and derived independent events
 [pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221621167 Setting pipeline to NULL ... Freeing pipeline ...
@@ -27554,7 +27584,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [pass] AP01 positive UTC/PTS seg-9101-1789064139895-5
 [pass] AP01 actual bytes SHA seg-9101-1789064139895-5 | bytes=3474714 sha256=01d3b41d0c486facf42ff37e07682274c1df1f8ab37dd06289fda4cb2d91b098
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=8558 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc
+[pass] AP12 actual foreground healthy | pid=8558 cwd=<owned-temp>/media-server-s09-foundation-KcseZc
 [pass] AP09 restart actual new PID
 [pass] AP09 immutable segment seg-9101-1789064109879-1
 [pass] AP09 immutable segment seg-9101-1789064118234-2
@@ -27705,9 +27735,9 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [pass] AP12 port absent 61498
 [pass] AP12 port absent 61553
 [pass] AP12 port absent 61554
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc bytes=397162973 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-KcseZc bytes=397162973 absent=true
 {"mode":"--app-nonauth","passed":294,"failed":0,"startedAtMs":1789064108655,"endedAtMs":1789064167457,"elapsedMs":58802,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.JxoEQC bytes=62691 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.JxoEQC bytes=62691 absent=true
 ```
 
 </details>
@@ -27741,8 +27771,8 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.8LREIq | RED GSTcache | 62691bytes | 삭제 | absent=true | wrapper exit1 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.arxLOp | GREEN GSTcache | 62691bytes | 삭제 | absent=true | wrapper exit0 |
+| <owned-temp>/media-server-s09-foundation-gst.8LREIq | RED GSTcache | 62691bytes | 삭제 | absent=true | wrapper exit1 |
+| <owned-temp>/media-server-s09-foundation-gst.arxLOp | GREEN GSTcache | 62691bytes | 삭제 | absent=true | wrapper exit0 |
 
 신규실제앱미실행. 새판정은AP07완료뒤cursor/knownIDs를고정하여구revision Stop-finalize를제외하며, 원장메타데이터와삭제순서/물리부재를확인한다. quota복원뒤새finalize및정상stop후살아있는snapshot의실파일size/SHA는다음앱검증대상이며아직PASS아님.
 
@@ -27760,8 +27790,8 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ | 앱media/archive/input | 201804215bytes | 소유process종료뒤삭제 | absent=true | 앱cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.aEipf4 | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| <owned-temp>/media-server-s09-foundation-opTWCQ | 앱media/archive/input | 201804215bytes | 소유process종료뒤삭제 | absent=true | 앱cleanup |
+| <owned-temp>/media-server-s09-foundation-gst.aEipf4 | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
 | /private/tmp/media-server-s09-ap08diag.pI6sE1 | 전체stdout/stderr | 35337bytes | 중앙이관후삭제 | lstat ENOENT | 후처리exit0 |
 
 `./server.sh verify-v410-recording-foundation --app-nonauth` session73110 exit1:88pass1fail, start1789063770181/end1789063814098/43917ms. stdout/stderr35337bytes106줄 전체수집, 개별88/1과summary정확일치(수집검사exit0). syntax `node --check scripts/internal/verify_v410_recording_foundation.mjs` 및 사전diffcheck exit0. token start/end/consumed null(하위작업 자동집계 없음).
@@ -27771,7 +27801,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | 73110-1 | [pass] AP12 distinct loopback ports | pass |
-| 73110-2 | [pass] AP12 actual foreground healthy \| pid=8040 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ | pass |
+| 73110-2 | [pass] AP12 actual foreground healthy \| pid=8040 cwd=<owned-temp>/media-server-s09-foundation-opTWCQ | pass |
 | 73110-3 | [pass] POST /ops/api/sources \| status=201 | pass |
 | 73110-4 | [pass] AP01 V1 identity seg-9101-1789063771389-1 | pass |
 | 73110-5 | [pass] AP01 positive UTC/PTS seg-9101-1789063771389-1 | pass |
@@ -27858,15 +27888,15 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 | 73110-86 | [fail] timeout: new finalized after retention | fail |
 | 73110-87 | [pass] AP12 port absent 61333 | pass |
 | 73110-88 | [pass] AP12 port absent 61334 | pass |
-| 73110-89 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true | pass |
+| 73110-89 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true | pass |
 
 ### 정리 원출력
 
 ```text
 [pass] AP12 port absent 61333
 [pass] AP12 port absent 61334
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.aEipf4 bytes=62691 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.aEipf4 bytes=62691 absent=true
 ```
 
 수집로그 /private/tmp/media-server-s09-ap08diag.pI6sE1 35337bytes는 위자료이관후삭제한다. 앱/GST경로는 위cleanup의정확경로/byte/absence대로이며 원본영상보존없음. auth/30/UI/120/build/unit/S05/S06/RT 미실행, commit/push없음.
@@ -27875,7 +27905,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 
 ```text
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=8040 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ
+[pass] AP12 actual foreground healthy | pid=8040 cwd=<owned-temp>/media-server-s09-foundation-opTWCQ
 [pass] POST /ops/api/sources | status=201
 [pass] AP01 V1 identity seg-9101-1789063771389-1
 [pass] AP01 positive UTC/PTS seg-9101-1789063771389-1
@@ -27900,7 +27930,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [pass] AP05 fallback playable local URL
 [pass] AP05 fallback actual file prefix
 [pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22910 bodyHex=dfa30100
-[evidence] fallback {"eventId":"evt_1789063780034_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963","event_id":"evt_1789063780034_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063779222,"end_ms":1789063780246},"ordered_overlaps":[{"segment_id":"seg-9101-1789063771389-1","range":{"start_ms":1789063779222,"end_ms":1789063779697}},{"segment_id":"seg-9101-1789063779746-2","range":{"start_ms":1789063779746,"end_ms":1789063780246}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ/events/clips/evt_1789063780034_2.clip/manifest.json","missing_ranges":[{"start_ms":1789063779697,"end_ms":1789063779746}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063771321","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789063780034,"updated_at_ms":1789063788105},"item":{"segmentId":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063779222,"endTimeMs":1789063780246,"eventId":"evt_1789063780034_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063779222,"endTimeMs":1789063780246},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789063788192}
+[evidence] fallback {"eventId":"evt_1789063780034_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963","event_id":"evt_1789063780034_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063779222,"end_ms":1789063780246},"ordered_overlaps":[{"segment_id":"seg-9101-1789063771389-1","range":{"start_ms":1789063779222,"end_ms":1789063779697}},{"segment_id":"seg-9101-1789063779746-2","range":{"start_ms":1789063779746,"end_ms":1789063780246}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-opTWCQ/events/clips/evt_1789063780034_2.clip/manifest.json","missing_ranges":[{"start_ms":1789063779697,"end_ms":1789063779746}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063771321","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789063780034,"updated_at_ms":1789063788105},"item":{"segmentId":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063779222,"endTimeMs":1789063780246,"eventId":"evt_1789063780034_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063779222,"endTimeMs":1789063780246},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789063788192}
 [pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
 [pass] AP01 V1 identity seg-9101-1789063771389-1
 [pass] AP01 positive UTC/PTS seg-9101-1789063771389-1
@@ -27938,7 +27968,7 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [pass] AP05 derived playable local URL
 [pass] AP05 derived actual file prefix
 [pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600
-[evidence] derived {"eventId":"evt_1789063789081_82","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526","event_id":"evt_1789063789081_82","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063788471,"end_ms":1789063789471},"ordered_overlaps":[{"segment_id":"seg-9101-1789063788071-3","range":{"start_ms":1789063788471,"end_ms":1789063789471}}],"derived_segment_id":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","fallback_evidence_id":"fallback-bound-v1-a7b3d631ecabb1efb3edb5b35e99453d0d213855f0de0eebe06aa51a58bdfbf0","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ/events/clips/evt_1789063789081_82.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063788071,"end_ms":1789063789471},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063771321","completeness_reason":"complete","status":"complete","created_at_ms":1789063789082,"updated_at_ms":1789063796494},"item":{"segmentId":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063788071,"endTimeMs":1789063789471,"eventId":"evt_1789063789081_82","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063788471,"endTimeMs":1789063789471},"actualRange":{"startTimeMs":1789063788071,"endTimeMs":1789063789471},"supersededByEventIds":[]},"capturedAtMs":1789063796767}
+[evidence] derived {"eventId":"evt_1789063789081_82","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526","event_id":"evt_1789063789081_82","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063788471,"end_ms":1789063789471},"ordered_overlaps":[{"segment_id":"seg-9101-1789063788071-3","range":{"start_ms":1789063788471,"end_ms":1789063789471}}],"derived_segment_id":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","fallback_evidence_id":"fallback-bound-v1-a7b3d631ecabb1efb3edb5b35e99453d0d213855f0de0eebe06aa51a58bdfbf0","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-opTWCQ/events/clips/evt_1789063789081_82.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063788071,"end_ms":1789063789471},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063771321","completeness_reason":"complete","status":"complete","created_at_ms":1789063789082,"updated_at_ms":1789063796494},"item":{"segmentId":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063788071,"endTimeMs":1789063789471,"eventId":"evt_1789063789081_82","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063788471,"endTimeMs":1789063789471},"actualRange":{"startTimeMs":1789063788071,"endTimeMs":1789063789471},"supersededByEventIds":[]},"capturedAtMs":1789063796767}
 [pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
 [pass] AP02/03 fallback and derived independent events
 [pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.222963917 Setting pipeline to NULL ... Freeing pipeline ...
@@ -27977,9 +28007,9 @@ AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 
 [diagnostic] retention-generator Setting pipeline to PAUSED ... | Pipeline is PREROLLING ... | Redistribute latency... | Redistribute latency... | Pipeline is PREROLLED ... | Setting pipeline to PLAYING ... | Redistribute latency... | New clock: GstSystemClock | Got EOS from element "pipeline0". | EOS received - stopping pipeline... | Execution ended after 0:00:00.222963917 | Setting pipeline to NULL ... | Freeing pipeline ... |
 [pass] AP12 port absent 61333
 [pass] AP12 port absent 61334
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true
 {"mode":"--app-nonauth","passed":88,"failed":1,"startedAtMs":1789063770181,"endedAtMs":1789063814098,"elapsedMs":43917,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.aEipf4 bytes=62691 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.aEipf4 bytes=62691 absent=true
 ```
 
 </details>
@@ -28006,7 +28036,7 @@ app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/0
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | 67556-1 | [pass] AP12 distinct loopback ports | pass |
-| 67556-2 | [pass] AP12 actual foreground healthy \| pid=7548 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z | pass |
+| 67556-2 | [pass] AP12 actual foreground healthy \| pid=7548 cwd=<owned-temp>/media-server-s09-foundation-naKv0z | pass |
 | 67556-3 | [pass] POST /ops/api/sources \| status=201 | pass |
 | 67556-4 | [pass] AP01 V1 identity seg-9101-1789063427415-1 | pass |
 | 67556-5 | [pass] AP01 positive UTC/PTS seg-9101-1789063427415-1 | pass |
@@ -28093,12 +28123,12 @@ app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/0
 | 67556-86 | [fail] timeout: new finalized after retention | fail |
 | 67556-87 | [pass] AP12 port absent 61168 | pass |
 | 67556-88 | [pass] AP12 port absent 61169 | pass |
-| 67556-89 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z bytes=201399756 absent=true | pass |
+| 67556-89 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-naKv0z bytes=201399756 absent=true | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z | 앱 media/archive/input | 201399756bytes | 소유process 종료 후 삭제 | absent=true | 앱출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.o9tRTn | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| <owned-temp>/media-server-s09-foundation-naKv0z | 앱 media/archive/input | 201399756bytes | 소유process 종료 후 삭제 | absent=true | 앱출력 |
+| <owned-temp>/media-server-s09-foundation-gst.o9tRTn | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
 | /private/tmp/media-server-s09-ap-640.vzkoH9 | stdout/stderr 수집 로그 | 25003bytes | 중앙기록 이관 후 삭제 예정 | 아래 후처리 결과 참조 | 수집103줄/89assertion·summary 일치 |
 
 포트61168/61169 부재. 원본 source는 SHA256/redaction만 남긴다. raw log의 역사적 임시경로는 최종파일 링크가 아니며 raw media 보존 없음. auth/30/UI/120/RT/S05/S06/build 미실행. 커밋/푸시 없음.
@@ -28107,7 +28137,7 @@ app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/0
 
 ```text
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=7548 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z
+[pass] AP12 actual foreground healthy | pid=7548 cwd=<owned-temp>/media-server-s09-foundation-naKv0z
 [pass] POST /ops/api/sources | status=201
 [pass] AP01 V1 identity seg-9101-1789063427415-1
 [pass] AP01 positive UTC/PTS seg-9101-1789063427415-1
@@ -28132,7 +28162,7 @@ app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/0
 [pass] AP05 fallback playable local URL
 [pass] AP05 fallback actual file prefix
 [pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100
-[evidence] fallback {"eventId":"evt_1789063436048_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df","event_id":"evt_1789063436048_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063435248,"end_ms":1789063436277},"ordered_overlaps":[{"segment_id":"seg-9101-1789063427415-1","range":{"start_ms":1789063435248,"end_ms":1789063435725}},{"segment_id":"seg-9101-1789063435777-2","range":{"start_ms":1789063435777,"end_ms":1789063436277}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z/events/clips/evt_1789063436048_2.clip/manifest.json","missing_ranges":[{"start_ms":1789063435725,"end_ms":1789063435777}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063427345","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789063436048,"updated_at_ms":1789063444122},"item":{"segmentId":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063435248,"endTimeMs":1789063436277,"eventId":"evt_1789063436048_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063435248,"endTimeMs":1789063436277},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789063444238}
+[evidence] fallback {"eventId":"evt_1789063436048_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df","event_id":"evt_1789063436048_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063435248,"end_ms":1789063436277},"ordered_overlaps":[{"segment_id":"seg-9101-1789063427415-1","range":{"start_ms":1789063435248,"end_ms":1789063435725}},{"segment_id":"seg-9101-1789063435777-2","range":{"start_ms":1789063435777,"end_ms":1789063436277}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-naKv0z/events/clips/evt_1789063436048_2.clip/manifest.json","missing_ranges":[{"start_ms":1789063435725,"end_ms":1789063435777}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063427345","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789063436048,"updated_at_ms":1789063444122},"item":{"segmentId":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063435248,"endTimeMs":1789063436277,"eventId":"evt_1789063436048_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063435248,"endTimeMs":1789063436277},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789063444238}
 [pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
 [pass] AP01 V1 identity seg-9101-1789063427415-1
 [pass] AP01 positive UTC/PTS seg-9101-1789063427415-1
@@ -28171,7 +28201,7 @@ app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/0
 [pass] AP05 derived playable local URL
 [pass] AP05 derived actual file prefix
 [pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1254148 bodyHex=0032a600
-[evidence] derived {"eventId":"evt_1789063445162_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165","event_id":"evt_1789063445162_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063444532,"end_ms":1789063445532},"ordered_overlaps":[{"segment_id":"seg-9101-1789063444098-3","range":{"start_ms":1789063444532,"end_ms":1789063445532}}],"derived_segment_id":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","fallback_evidence_id":"fallback-bound-v1-f61a0343f79f4abcdd92786d5d333f91d7861e1ebc7997c119e63fa576a99582","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z/events/clips/evt_1789063445162_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063444098,"end_ms":1789063445565},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063427345","completeness_reason":"complete","status":"complete","created_at_ms":1789063445162,"updated_at_ms":1789063452494},"item":{"segmentId":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063444098,"endTimeMs":1789063445565,"eventId":"evt_1789063445162_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063444532,"endTimeMs":1789063445532},"actualRange":{"startTimeMs":1789063444098,"endTimeMs":1789063445565},"supersededByEventIds":[]},"capturedAtMs":1789063452881}
+[evidence] derived {"eventId":"evt_1789063445162_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165","event_id":"evt_1789063445162_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063444532,"end_ms":1789063445532},"ordered_overlaps":[{"segment_id":"seg-9101-1789063444098-3","range":{"start_ms":1789063444532,"end_ms":1789063445532}}],"derived_segment_id":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","fallback_evidence_id":"fallback-bound-v1-f61a0343f79f4abcdd92786d5d333f91d7861e1ebc7997c119e63fa576a99582","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-naKv0z/events/clips/evt_1789063445162_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063444098,"end_ms":1789063445565},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063427345","completeness_reason":"complete","status":"complete","created_at_ms":1789063445162,"updated_at_ms":1789063452494},"item":{"segmentId":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063444098,"endTimeMs":1789063445565,"eventId":"evt_1789063445162_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063444532,"endTimeMs":1789063445532},"actualRange":{"startTimeMs":1789063444098,"endTimeMs":1789063445565},"supersededByEventIds":[]},"capturedAtMs":1789063452881}
 [pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
 [pass] AP02/03 fallback and derived independent events
 [pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221569500 Setting pipeline to NULL ... Freeing pipeline ...
@@ -28206,9 +28236,9 @@ app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/0
 [diagnostic] retention-generator Setting pipeline to PAUSED ... | Pipeline is PREROLLING ... | Redistribute latency... | Redistribute latency... | Pipeline is PREROLLED ... | Setting pipeline to PLAYING ... | Redistribute latency... | New clock: GstSystemClock | Got EOS from element "pipeline0". | EOS received - stopping pipeline... | Execution ended after 0:00:00.221569500 | Setting pipeline to NULL ... | Freeing pipeline ... |
 [pass] AP12 port absent 61168
 [pass] AP12 port absent 61169
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z bytes=201399756 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-naKv0z bytes=201399756 absent=true
 {"mode":"--app-nonauth","passed":88,"failed":1,"startedAtMs":1789063426195,"endedAtMs":1789063470899,"elapsedMs":44704,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.o9tRTn bytes=62691 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.o9tRTn bytes=62691 absent=true
 ```
 
 </details>
@@ -28237,7 +28267,7 @@ app-nonauth1회 승인. 입력~62MiB는 예측이며 실측전 PASS 아님. 새l
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | 76851 관측 1 | [pass] AP12 distinct loopback ports | pass |
-| 76851 관측 2 | [pass] AP12 actual foreground healthy \| pid=7326 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw | pass |
+| 76851 관측 2 | [pass] AP12 actual foreground healthy \| pid=7326 cwd=<owned-temp>/media-server-s09-foundation-FvZJBw | pass |
 | 76851 관측 3 | [pass] POST /ops/api/sources \| status=201 | pass |
 | 76851 관측 4 | [pass] AP01 V1 identity seg-9101-1789063196011-1 | pass |
 | 76851 관측 5 | [pass] AP01 positive UTC/PTS seg-9101-1789063196011-1 | pass |
@@ -28294,12 +28324,12 @@ app-nonauth1회 승인. 입력~62MiB는 예측이며 실측전 PASS 아님. 새l
 | 76851 관측 56 | [fail] AP12 safety stop bytes=474294449 elapsedMs=29791 | fail |
 | 76851 관측 57 | [pass] AP12 port absent 61073 | pass |
 | 76851 관측 58 | [pass] AP12 port absent 61074 | pass |
-| 76851 관측 59 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw bytes=474294449 absent=true | pass |
+| 76851 관측 59 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-FvZJBw bytes=474294449 absent=true | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw | 실제 앱/생성입력/media/archive | 474294449bytes | 모든 소유process 종료 후 삭제 | absent=true | 앱cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.u6a2Gd | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| <owned-temp>/media-server-s09-foundation-FvZJBw | 실제 앱/생성입력/media/archive | 474294449bytes | 모든 소유process 종료 후 삭제 | absent=true | 앱cleanup |
+| <owned-temp>/media-server-s09-foundation-gst.u6a2Gd | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
 
 포트61073/61074 부재. 제품4파일·harness 실행중 동결, 이번 실행담당은 제품/코드수정·build·S05/S06/RT/auth/30/UI/120·commit/push 미수행. 아래 부분 원출력에는 truncation표시가 그대로 남으며 원본소스키는hash/redaction이다.
 
@@ -28307,7 +28337,7 @@ app-nonauth1회 승인. 입력~62MiB는 예측이며 실측전 PASS 아님. 새l
 
 ```text
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=7326 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw
+[pass] AP12 actual foreground healthy | pid=7326 cwd=<owned-temp>/media-server-s09-foundation-FvZJBw
 [pass] POST /ops/api/sources | status=201
 [pass] AP01 V1 identity seg-9101-1789063196011-1
 [pass] AP01 positive UTC/PTS seg-9101-1789063196011-1
@@ -28366,7 +28396,7 @@ Total output lines: 34
 [pass] AP05 derived playable local URL
 [pass] AP05 derived actual file prefix
 [pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1254148 bodyHex=0032a600
-[evidence] derived {"eventId":"evt_1789063213752_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3","event_id":"evt_1789063213752_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063213132,"end_ms":1789063214132},"ordered_overlaps":[{"segment_id":"seg-9101-1789063212698-3","range":{"start_ms":1789063213132,"end_ms":1789063214132}}],"derived_segment_id":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","fallback_evidence_id":"fallback-bound-v1-2b97e2f49db7f2a1500f8e497f66f2634ae51c74fd6e640bde2388d4c4d27f17","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw/events/clips/evt_1789063213752_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063212698,"end_ms":1789063214165},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063195942","completeness_reason":"complete","status":"complete","created_at_ms":1789063213752,"updated_at_ms":1789063221085},"item":{"segmentId":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063212698,"endTimeMs":1789063214165,"eventId":"evt_1789063213752_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063213132,"endTimeMs":1789063214132},"actualRange":{"startTimeMs":1789063212698,"endTimeMs":1789063214165},"supersededByEventIds":[]},"capturedAtMs":1789063221484}
+[evidence] derived {"eventId":"evt_1789063213752_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3","event_id":"evt_1789063213752_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063213132,"end_ms":1789063214132},"ordered_overlaps":[{"segment_id":"seg-9101-1789063212698-3","range":{"start_ms":1789063213132,"end_ms":1789063214132}}],"derived_segment_id":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","fallback_evidence_id":"fallback-bound-v1-2b97e2f49db7f2a1500f8e497f66f2634ae51c74fd6e640bde2388d4c4d27f17","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-FvZJBw/events/clips/evt_1789063213752_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063212698,"end_ms":1789063214165},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063195942","completeness_reason":"complete","status":"complete","created_at_ms":1789063213752,"updated_at_ms":1789063221085},"item":{"segmentId":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063212698,"endTimeMs":1789063214165,"eventId":"evt_1789063213752_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063213132,"endTimeMs":1789063214132},"actualRange":{"startTimeMs":1789063212698,"endTimeMs":1789063214165},"supersededByEventIds":[]},"capturedAtMs":1789063221484}
 [pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
 [pass] AP02/03 fallback and derived independent events
 [pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.778928291 Setting pipeline to NULL ... Freeing pipeline ...
@@ -28378,9 +28408,9 @@ Total output lines: 34
 [fail] AP12 safety stop bytes=474294449 elapsedMs=29791
 [pass] AP12 port absent 61073
 [pass] AP12 port absent 61074
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw bytes=474294449 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-FvZJBw bytes=474294449 absent=true
 {"mode":"--app-nonauth","passed":64,"failed":2,"startedAtMs":1789063194794,"endedAtMs":1789063224626,"elapsedMs":29832,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.u6a2Gd bytes=62691 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.u6a2Gd bytes=62691 absent=true
 ```
 
 </details>
@@ -28435,8 +28465,8 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.Ejgaft | RED registry | 62691bytes | wrapper 삭제 | absent=true | 실제 명령 exit1의 cleanup 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.hI8NHi | GREEN registry | 62691bytes | wrapper 삭제 | absent=true | 실제 명령 exit0의 cleanup 출력 |
+| <owned-temp>/media-server-s09-foundation-gst.Ejgaft | RED registry | 62691bytes | wrapper 삭제 | absent=true | 실제 명령 exit1의 cleanup 출력 |
+| <owned-temp>/media-server-s09-foundation-gst.hI8NHi | GREEN registry | 62691bytes | wrapper 삭제 | absent=true | 실제 명령 exit0의 cleanup 출력 |
 
 ## AP03 선택 보강 실제 실패 — 78777
 
@@ -28457,7 +28487,7 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 | AP 선택 보강 9 | [pass] AP11 same ID repeated rows accepted | pass |
 | AP 선택 보강 10 | [pass] AP11 distinct matching IDs rejected | pass |
 | AP 선택 보강 11 | [pass] AP12 distinct loopback ports | pass |
-| AP 선택 보강 12 | [pass] AP12 actual foreground healthy \| pid=7016 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS | pass |
+| AP 선택 보강 12 | [pass] AP12 actual foreground healthy \| pid=7016 cwd=<owned-temp>/media-server-s09-foundation-asnZrS | pass |
 | AP 선택 보강 13 | [pass] POST /ops/api/sources \| status=201 | pass |
 | AP 선택 보강 14 | [pass] AP01 V1 identity seg-9101-1789062902110-1 | pass |
 | AP 선택 보강 15 | [pass] AP01 positive UTC/PTS seg-9101-1789062902110-1 | pass |
@@ -28472,13 +28502,13 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 | AP 선택 보강 24 | [fail] timeout: actual fallback durable correlated EventRecord | fail |
 | AP 선택 보강 25 | [pass] AP12 port absent 60969 | pass |
 | AP 선택 보강 26 | [pass] AP12 port absent 60970 | pass |
-| AP 선택 보강 27 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS bytes=71188149 absent=true | pass |
+| AP 선택 보강 27 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-asnZrS bytes=71188149 absent=true | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.w5bqn1 | 선택기 GST cache | 62691bytes | 삭제 | absent=true | wrapper |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS | 실제 앱 media/archive | 71188149bytes | 프로세스 종료 뒤 삭제 | absent=true | 앱 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.Gvp1Ph | 앱 GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| <owned-temp>/media-server-s09-foundation-gst.w5bqn1 | 선택기 GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| <owned-temp>/media-server-s09-foundation-asnZrS | 실제 앱 media/archive | 71188149bytes | 프로세스 종료 뒤 삭제 | absent=true | 앱 |
+| <owned-temp>/media-server-s09-foundation-gst.Gvp1Ph | 앱 GST cache | 62691bytes | 삭제 | absent=true | wrapper |
 
 포트60969/60970 부재. AP03/retention/restart 건너뜀. auth/30/UI/120/build/S05/S06/RT 미실행. 커밋/푸시 없음.
 
@@ -28486,7 +28516,7 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 
 ```text
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=7016 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS
+[pass] AP12 actual foreground healthy | pid=7016 cwd=<owned-temp>/media-server-s09-foundation-asnZrS
 [pass] POST /ops/api/sources | status=201
 [pass] AP01 V1 identity seg-9101-1789062902110-1
 [pass] AP01 positive UTC/PTS seg-9101-1789062902110-1
@@ -28503,9 +28533,9 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 [diagnostic] app0 =0 overlap=0.060957 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=direction-change-spike severity=warning association=0.830086 missed=0 overlap=0.437042 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=overlap-risk severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=overlap-risk severity=warning association=0.860097 missed=0 overlap=0.521551 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.886416 missed=0 overlap=0.0231881 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.571683 missed=0 overlap=0.764743 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=6 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.897639 missed=0 overlap=0.240294 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.80964 missed=0 overlap=0.642838 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=unstable-track severity=warning association=1 missed=0 overlap=0.388267 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.869955 missed=0 overlap=0.0989445 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=reacquired severity=info association=0.698022 missed=0 overlap=0.201921 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=lost severity=warning association=0 missed=15 overlap=0 directionChanges=8 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=12 |
 [pass] AP12 port absent 60969
 [pass] AP12 port absent 60970
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS bytes=71188149 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-asnZrS bytes=71188149 absent=true
 {"mode":"--app-nonauth","passed":16,"failed":1,"startedAtMs":1789062900776,"endedAtMs":1789062931343,"elapsedMs":30567,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.Gvp1Ph bytes=62691 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.Gvp1Ph bytes=62691 absent=true
 ```
 
 </details>
@@ -28545,7 +28575,7 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 | AP 음성 보강 | AP05 shared selector rejects encoded mediaPath | pass |
 | AP 음성 보강 | AP12 root cleanup | pass |
 | AP 재개41535-01 | [pass] AP12 distinct loopback ports | pass |
-| AP 재개41535-02 | [pass] AP12 actual foreground healthy \| pid=6371 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc | pass |
+| AP 재개41535-02 | [pass] AP12 actual foreground healthy \| pid=6371 cwd=<owned-temp>/media-server-s09-foundation-UCESIc | pass |
 | AP 재개41535-03 | [pass] POST /ops/api/sources \| status=201 | pass |
 | AP 재개41535-04 | [pass] AP01 V1 identity seg-9101-1789062270982-1 | pass |
 | AP 재개41535-05 | [pass] AP01 positive UTC/PTS seg-9101-1789062270982-1 | pass |
@@ -28588,16 +28618,16 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 | AP 재개41535-42 | [fail] timeout: derived exact link | fail |
 | AP 재개41535-43 | [pass] AP12 port absent 60632 | pass |
 | AP 재개41535-44 | [pass] AP12 port absent 60633 | pass |
-| AP 재개41535-45 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc bytes=108102901 absent=true | pass |
+| AP 재개41535-45 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-UCESIc bytes=108102901 absent=true | pass |
 
 ### 임시 산출물 전수
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-fallback-oracle-IcrLpc | 음성 parser fixture | 368bytes | 삭제 | absent=true | 음성 실행 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.icvbWp | 음성 GST cache | 62691bytes | 삭제 | absent=true | wrapper 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc | 실제 앱 archive/media | 108102901bytes | 종료 후 삭제 | absent=true | 앱 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.FLVdkn | 실제 앱 GST cache | 62691bytes | 삭제 | absent=true | wrapper 출력 |
+| <owned-temp>/media-server-s09-fallback-oracle-IcrLpc | 음성 parser fixture | 368bytes | 삭제 | absent=true | 음성 실행 출력 |
+| <owned-temp>/media-server-s09-foundation-gst.icvbWp | 음성 GST cache | 62691bytes | 삭제 | absent=true | wrapper 출력 |
+| <owned-temp>/media-server-s09-foundation-UCESIc | 실제 앱 archive/media | 108102901bytes | 종료 후 삭제 | absent=true | 앱 cleanup |
+| <owned-temp>/media-server-s09-foundation-gst.FLVdkn | 실제 앱 GST cache | 62691bytes | 삭제 | absent=true | wrapper 출력 |
 
 포트60632/60633 부재 확인. 아래 원출력은 저장소 문서에 이관한 최소 진단·개별 결과이며 raw source key는 SHA256 또는 redacted 표현이다. 임시 미디어를 보존하지 않았으며 아래 역사적 경로는 최종 파일 링크가 아니다. 원출력의 fallback locator는 격리 임시 경로 식별자다.
 
@@ -28605,7 +28635,7 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 
 ```text
 [pass] AP12 distinct loopback ports
-[pass] AP12 actual foreground healthy | pid=6371 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc
+[pass] AP12 actual foreground healthy | pid=6371 cwd=<owned-temp>/media-server-s09-foundation-UCESIc
 [pass] POST /ops/api/sources | status=201
 [pass] AP01 V1 identity seg-9101-1789062270982-1
 [pass] AP01 positive UTC/PTS seg-9101-1789062270982-1
@@ -28635,7 +28665,7 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 [pass] AP05 fallback playable local URL
 [pass] AP05 fallback actual file prefix
 [pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100
-[evidence] fallback {"eventId":"evt_1789062279615_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4","event_id":"evt_1789062279615_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789062278815,"end_ms":1789062279842},"ordered_overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc/events/clips/evt_1789062279615_2.clip/manifest.json","missing_ranges":[{"start_ms":1789062279292,"end_ms":1789062279342}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789062270902","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789062279615,"updated_at_ms":1789062287730},"item":{"segmentId":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789062287928}
+[evidence] fallback {"eventId":"evt_1789062279615_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4","event_id":"evt_1789062279615_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789062278815,"end_ms":1789062279842},"ordered_overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","fallback_media_locator":"<owned-temp>/media-server-s09-foundation-UCESIc/events/clips/evt_1789062279615_2.clip/manifest.json","missing_ranges":[{"start_ms":1789062279292,"end_ms":1789062279342}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789062270902","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789062279615,"updated_at_ms":1789062287730},"item":{"segmentId":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789062287928}
 [pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
 [pass] AP01 V1 identity seg-9101-1789062270982-1
 [pass] AP01 positive UTC/PTS seg-9101-1789062270982-1
@@ -28657,9 +28687,9 @@ timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_
 [diagnostic] app0 on=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=overlap-risk severity=warning association=0.860097 missed=0 overlap=0.521551 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.886416 missed=0 overlap=0.0231881 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.634909 missed=0 overlap=0.683322 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.841275 missed=0 overlap=0.241619 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.844641 missed=0 overlap=0.777335 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.498962 missed=0 overlap=0.777335 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=unstable-track severity=warning association=0 missed=1 overlap=0 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.765479 missed=0 overlap=0 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.86211 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.86211 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=18 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=reacquired severity=info association=0.405901 missed=0 overlap=0 directionChanges=19 |
 [pass] AP12 port absent 60632
 [pass] AP12 port absent 60633
-[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc bytes=108102901 absent=true
+[pass] AP12 root cleanup | path=<owned-temp>/media-server-s09-foundation-UCESIc bytes=108102901 absent=true
 {"mode":"--app-nonauth","passed":44,"failed":1,"startedAtMs":1789062269134,"endedAtMs":1789062309756,"elapsedMs":40622,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.FLVdkn bytes=62691 absent=true
+[cleanup] path=<owned-temp>/media-server-s09-foundation-gst.FLVdkn bytes=62691 absent=true
 ```
 
 </details>
@@ -28683,7 +28713,7 @@ AP02 입력은 source POST→실제 첫 continuous finalized→rule/tap 순서�
 
 ## S09 fallback binding TDD 사전정의
 
-최초 RED `./server.sh verify-v410-recording-fallback-binding --red` session61846 exit1: journal open/catalog open/actual bridge numeric link/actual fallback durable 4pass 뒤 사전명시 `BF01 mapped bridge catalog reader playable` 1fail. 예상 요구사항 RED이며 compile/env 실패 아님. 임시root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.S7jGQX` 2080256bytes 삭제·absent=true, elapsed4214ms. token start/end/consumed 자동개별집계 부재로 미집계.
+최초 RED `./server.sh verify-v410-recording-fallback-binding --red` session61846 exit1: journal open/catalog open/actual bridge numeric link/actual fallback durable 4pass 뒤 사전명시 `BF01 mapped bridge catalog reader playable` 1fail. 예상 요구사항 RED이며 compile/env 실패 아님. 임시root `<owned-temp>/media-server-binding.S7jGQX` 2080256bytes 삭제·absent=true, elapsed4214ms. token start/end/consumed 자동개별집계 부재로 미집계.
 
 독립 기대값은 메인 Node crypto 직접계산 exit0(테스트PASS 아님): domain/event/link/catalogSource/catalogChannel/rawStream/rawChannel을 UTF8 byte길이 십진수+':'로 연결. `evt-test,link-test,9101,9101,file::sample.mp4,file::sample.mp4`의 SHA256 `2aa12ad414db07ecd365fde2c23009bf177ab73787732e7581568d36df6d77ff`. 메인 임시산출물 없음. 제품/fixture/scripts 검색에서 기존 `fallback-bound-` namespace 사용 없음 확인.
 
@@ -28883,11 +28913,11 @@ RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fai
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.S7jGQX | BF RED61846 binary·fixture | 2080256bytes | wrapper 삭제 | absent=true | exit1, elapsed4214ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.WFxLG7 | BF 초기GREEN58310 binary·fixture | 2081908bytes | wrapper 삭제 | absent=true | exit0, elapsed4181ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.JyxyDo | BF 중간확장48612 binary·fixture | 2126661bytes | wrapper 삭제 | absent=true | exit0, elapsed4219ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.YE9MyY | BF noSSL확장15282 binary·fixture | 4280433bytes | wrapper 삭제 | absent=true | exit0, elapsed8291ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.8ux4kj | BF 최종47213 binary·fixture | 4282232bytes | wrapper 삭제 | absent=true | exit0, elapsed8278ms |
+| <owned-temp>/media-server-binding.S7jGQX | BF RED61846 binary·fixture | 2080256bytes | wrapper 삭제 | absent=true | exit1, elapsed4214ms |
+| <owned-temp>/media-server-binding.WFxLG7 | BF 초기GREEN58310 binary·fixture | 2081908bytes | wrapper 삭제 | absent=true | exit0, elapsed4181ms |
+| <owned-temp>/media-server-binding.JyxyDo | BF 중간확장48612 binary·fixture | 2126661bytes | wrapper 삭제 | absent=true | exit0, elapsed4219ms |
+| <owned-temp>/media-server-binding.YE9MyY | BF noSSL확장15282 binary·fixture | 4280433bytes | wrapper 삭제 | absent=true | exit0, elapsed8291ms |
+| <owned-temp>/media-server-binding.8ux4kj | BF 최종47213 binary·fixture | 4282232bytes | wrapper 삭제 | absent=true | exit0, elapsed8278ms |
 
 
 ### BF 관련 회귀·검증기 종료 결과
@@ -29351,7 +29381,7 @@ RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fai
 | BF S06 SQLite 150 | [pass] I26 경쟁 뒤 fd 반환 14 | pass |
 | BF S06 SQLite 151 | [pass] I25 동시 삭제 경쟁 15 | pass |
 | BF S06 SQLite 152 | [pass] I26 경쟁 뒤 fd 반환 15 | pass |
-| BF S06 cleanup 153 | [pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fgpzRN | pass |
+| BF S06 cleanup 153 | [pass] read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.fgpzRN | pass |
 | BF10 compile 오류 전파 | CXX=false 실제 exit1, 본문 미완료가 PASS로 변환되지 않고 cleanup 수행 | pass |
 | BF diff check | git diff --check exit0 | pass |
 
@@ -29359,8 +29389,8 @@ RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fai
 | --- | --- | ---: | --- | --- | --- |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_xg1qWs | S05 runtime fixture | 10950691bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.6m6JT4 | S05 wrapper fixture | 3380949bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fgpzRN | S06 binary·fixture | 2276KiB, 정확 bytes 미계측 | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.DcEwkR | BF10 의도 compile 실패 | 0bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
+| <owned-temp>/media-server-s06-read.fgpzRN | S06 binary·fixture | 2276KiB, 정확 bytes 미계측 | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
+| <owned-temp>/media-server-binding.DcEwkR | BF10 의도 compile 실패 | 0bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
 
 ## v4.1.0 S09 실제 앱 HTTP/event/retention/restart 사전 정의 (2026-09-11)
 
@@ -29455,7 +29485,7 @@ RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fai
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AP13 session92694 | [pass] AP12 distinct loopback ports | pass |
-| AP13 session92694 | [pass] AP12 actual foreground healthy \| pid=4507 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rSQlwi | pass |
+| AP13 session92694 | [pass] AP12 actual foreground healthy \| pid=4507 cwd=<owned-temp>/media-server-s09-foundation-rSQlwi | pass |
 | AP13 session92694 | [pass] POST /ops/api/sources \| status=201 | pass |
 | AP13 session92694 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
 | AP13 session92694 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
@@ -29474,12 +29504,12 @@ RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fai
 | AP13 session92694 | [pass] AP12 app0 exit0 \| exit=0 signal=null | pass |
 | AP13 session92694 | [pass] AP12 port absent 60213 | pass |
 | AP13 session92694 | [pass] AP12 port absent 60214 | pass |
-| AP13 session92694 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rSQlwi bytes=70877428 absent=true | pass |
+| AP13 session92694 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-rSQlwi bytes=70877428 absent=true | pass |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rSQlwi | 실제 앱 state/media/manifest | 70877428bytes | 종료 뒤 삭제 | absent=true | app exit0·60213/60214 ECONNREFUSED |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.UX2fvr | 전용 GStreamer plugin cache | 62691bytes | wrapper 삭제 | absent=true | wrapper exit0 |
+| <owned-temp>/media-server-s09-foundation-rSQlwi | 실제 앱 state/media/manifest | 70877428bytes | 종료 뒤 삭제 | absent=true | app exit0·60213/60214 ECONNREFUSED |
+| <owned-temp>/media-server-s09-foundation-gst.UX2fvr | 전용 GStreamer plugin cache | 62691bytes | wrapper 삭제 | absent=true | wrapper exit0 |
 
 입력 조사: recording_session_service63~84와 core/session_manager307~313은 recording subscriber 등록 뒤 StartSource를 호출하므로 tap-lazy 시작은 아니다. 다만 실제 packet 진행 증거 없이 임의 sleep을 성공 조건으로 쓰지 않는다. 같은 tap의 EventManager104는 first_seen을 startTime으로 유지하므로 뒤 updateTime만 양수인 이벤트를 고르면 음수 padded start 문제가 남을 수 있다. 이후 양성 입력은 실제 startTime>500 및 link range/epoch 관측으로 선택해야 한다. 기존 S06 timeline smoke255~264는 manifest와 link identity가 모두 source-one/channel-one인 양성 fixture라 이번 raw→numeric producer 경계는 검사하지 않았다. Range oracle은 completed encodedClip.mediaPath WebM으로 보완했으나 해당 실행은 아직 없다. malformed encodedClip/size/path 공유 predicate 음성 확장은 승인됐지만 이번 반환까지 미실행. token start/end/consumed는 개별 자동집계 부재로 미집계.
 
@@ -29487,12 +29517,12 @@ RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fai
 
 동일 `./server.sh verify-v410-recording-foundation --app-nonauth` 진단 session80819 exit1/20pass1fail/23638ms. 실제 event evt_1789060632844_2의 초기/최종 media_pts_range_ms는 {-500,500}, requested_range=null, status=pending이고 첫 reason=time-basis-awaiting-segment-map에서 fallback manifest가 결속된 pending-with-provisional-frame-buffer-fallback으로 바뀌었다. derived ID/ordered overlaps 없음. continuous 2개는 동일 epoch-9101-1-1789060632618에 PTS [0,8300000000), [8333333333,16633333333), 크기4096788/4813100bytes였다. bridge MapPtsBoundary는 음수 start=-500ms를 실제 segment에서 매핑하지 못하므로 UTC 미확정 보존이 정상이며 timeout 증가로 해결하지 않는다. 다음 최소입력 제안은 실제 양수PTS>=1000ms 뒤 tap 생성이다. 아직 승인/실행 전이다. 진단은 durable history의 사후 수집이며 상태 변경 시점별 HTTP/clip 존재는 미확인이다. fallback locator는 manifest이므로 실제 Range는 encodedClip.mediaPath의 WebM bytes와 비교하도록 수정 필요. manifest rawstream identity와 numeric catalog identity 정합은 추가 확인 필요이며 제품결함 확정 아님. 추가 실행은 메인 원인 판정 전 보류한다.
 
-GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.5xOfAN` 62691bytes 삭제·absent=true. 아래 app root와 별개다. token start/end/consumed 자동 집계 부재로 미집계. 실제 capture 로그의 반복 raw file stream 문자열은 중앙 새 진단에 옮기지 않고 event/epoch/PTS와 필요한 오류만 보존한다. 앱 측 tracking warning은 발생했으나 UI gate로 판단하지 않는다.
+GST root `<owned-temp>/media-server-s09-foundation-gst.5xOfAN` 62691bytes 삭제·absent=true. 아래 app root와 별개다. token start/end/consumed 자동 집계 부재로 미집계. 실제 capture 로그의 반복 raw file stream 문자열은 중앙 새 진단에 옮기지 않고 event/epoch/PTS와 필요한 오류만 보존한다. 앱 측 tracking warning은 발생했으나 UI gate로 판단하지 않는다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AP session80819 | [pass] AP12 distinct loopback ports | pass |
-| AP session80819 | [pass] AP12 actual foreground healthy \| pid=3981 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-29WSGq | pass |
+| AP session80819 | [pass] AP12 actual foreground healthy \| pid=3981 cwd=<owned-temp>/media-server-s09-foundation-29WSGq | pass |
 | AP session80819 | [pass] POST /ops/api/sources \| status=201 | pass |
 | AP session80819 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
 | AP session80819 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
@@ -29511,16 +29541,16 @@ GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-
 | AP session80819 | [fail] timeout: fallback exact link | fail |
 | AP session80819 | [pass] AP12 port absent 60054 | pass |
 | AP session80819 | [pass] AP12 port absent 60055 | pass |
-| AP session80819 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-29WSGq bytes=143858142 absent=true | pass |
+| AP session80819 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-29WSGq bytes=143858142 absent=true | pass |
 
 ### AP fallback 대기 실패 (session15607)
 
-동일 `./server.sh verify-v410-recording-foundation --app-nonauth` exit1, 19pass1fail/22607ms. null-safe 보완 후 초기 링크는 생성됐지만 20초 내 UTC requested_range + fallback-only 조건 미충족. 해당 출력만으로 derived 전환/미확정 여부 구분 불가; 진단 보강 후 1회 재현. timeout·제품 변경 없음, 뒤 시나리오 미실행. headless 환경 보완 후 GLib/GTK scanner 경고는 없고 tracking warning은 남았으며 UI 판정 대상 아님. GST wrapper root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.WDq6aP` 62691bytes 삭제·absent=true. 아래 app root cleanup와 별개다.
+동일 `./server.sh verify-v410-recording-foundation --app-nonauth` exit1, 19pass1fail/22607ms. null-safe 보완 후 초기 링크는 생성됐지만 20초 내 UTC requested_range + fallback-only 조건 미충족. 해당 출력만으로 derived 전환/미확정 여부 구분 불가; 진단 보강 후 1회 재현. timeout·제품 변경 없음, 뒤 시나리오 미실행. headless 환경 보완 후 GLib/GTK scanner 경고는 없고 tracking warning은 남았으며 UI 판정 대상 아님. GST wrapper root `<owned-temp>/media-server-s09-foundation-gst.WDq6aP` 62691bytes 삭제·absent=true. 아래 app root cleanup와 별개다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AP session15607 | [pass] AP12 distinct loopback ports | pass |
-| AP session15607 | [pass] AP12 actual foreground healthy \| pid=3911 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-djIDWw | pass |
+| AP session15607 | [pass] AP12 actual foreground healthy \| pid=3911 cwd=<owned-temp>/media-server-s09-foundation-djIDWw | pass |
 | AP session15607 | [pass] POST /ops/api/sources \| status=201 | pass |
 | AP session15607 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
 | AP session15607 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
@@ -29538,7 +29568,7 @@ GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-
 | AP session15607 | [fail] timeout: fallback exact link | fail |
 | AP session15607 | [pass] AP12 port absent 60009 | pass |
 | AP session15607 | [pass] AP12 port absent 60010 | pass |
-| AP session15607 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-djIDWw bytes=136767543 absent=true | pass |
+| AP session15607 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-djIDWw bytes=136767543 absent=true | pass |
 
 ### AP 최초 실행과 수정 이력
 
@@ -29547,9 +29577,9 @@ GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | AP 최초 sandbox 실행 | [fail] listen EPERM: operation not permitted 127.0.0.1 | fail |
-| AP 최초 sandbox 실행 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rbYHd2 bytes=17071044 absent=true | pass |
+| AP 최초 sandbox 실행 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-rbYHd2 bytes=17071044 absent=true | pass |
 | AP 실제 앱 첫 실행 시작 | [pass] AP12 distinct loopback ports | pass |
-| AP 실제 앱 첫 실행 종료 | [pass] AP12 actual foreground healthy \| pid=3839 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-r6hmHB | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP12 actual foreground healthy \| pid=3839 cwd=<owned-temp>/media-server-s09-foundation-r6hmHB | pass |
 | AP 실제 앱 첫 실행 종료 | [pass] POST /ops/api/sources \| status=201 | pass |
 | AP 실제 앱 첫 실행 종료 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
 | AP 실제 앱 첫 실행 종료 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
@@ -29569,7 +29599,7 @@ GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-
 | AP 실제 앱 첫 실행 종료 | [diagnostic] app0  \| (gst-plugin-scanner:3842): GLib-GIRepository-WARNING **: 02:14:41.842: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file) \|  \| (gst-plugin-scanner:3842): GLib-GIRepository-WARNING **: 02:14:41.842: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file) \|  \| ** (gst-plugin-scanner:3842): CRITICAL **: 02:14:41.843: can't find gi.repository.Gst \| objc[3842]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e29748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafab70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e29770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafab98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e297c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafac38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e297e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafac60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e29860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafacd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x118299258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafad28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| media-server skeleton (C++) \| default route: /dhseo \| recording startup recovery complete: deleted=0 recovered=0 inspected=0 corrupt=0 \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| gstreamer rtsp server started: yes \| webrtc http server started: yes \| listen: rtsp://127.0.0.1:59957/dhseo \| ops console: http://127.0.0.1:59958/ops/home \| client live: http://127.0.0.1:59958/client/live \| recording catalog: sqlite-primary (enabled=yes) \| file test url: rtsp://127.0.0.1:59957/dhseo?file=identity.mp4 \| running... (SIGINT/SIGTERM to stop) \|  | pass |
 | AP 실제 앱 첫 실행 종료 | [pass] AP12 port absent 59957 | pass |
 | AP 실제 앱 첫 실행 종료 | [pass] AP12 port absent 59958 | pass |
-| AP 실제 앱 첫 실행 종료 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-r6hmHB bytes=64783359 absent=true | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-r6hmHB bytes=64783359 absent=true | pass |
 
 ## v4.1.0 S09 runtime 통합 사전 정의 (2026-09-11)
 
@@ -29608,12 +29638,12 @@ auth/앱 HTTP/event/longrun은 이 묶음에서 실행하지 않는다. token st
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.quLLyn | 최초 compile 임시root | 0bytes | wrapper 삭제 | absent=true | exit1, elapsed595ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.ZgdwZo | 음성 oracle binary | 8437832bytes | wrapper 삭제 | absent=true | exit0, elapsed1275ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.GKrs0p | actual 최초 실패 binary/media/state | 10488620bytes | wrapper 삭제 | absent=true | exit134, elapsed2375ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.oep53u | actual 두번째 실패 binary/media/state | 20929674bytes | wrapper 삭제 | absent=true | exit1, elapsed22594ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.oc5zTp | actual 진단 binary/media/state | 20918835bytes | wrapper 삭제 | absent=true | exit1, elapsed32611ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.57jCS1 | 메인 승인 동일 sample 진단 | 20918840bytes | wrapper 삭제 | absent=true | exit1, elapsed32697ms |
+| <owned-temp>/media-server-s09-runtime.quLLyn | 최초 compile 임시root | 0bytes | wrapper 삭제 | absent=true | exit1, elapsed595ms |
+| <owned-temp>/media-server-s09-runtime.ZgdwZo | 음성 oracle binary | 8437832bytes | wrapper 삭제 | absent=true | exit0, elapsed1275ms |
+| <owned-temp>/media-server-s09-runtime.GKrs0p | actual 최초 실패 binary/media/state | 10488620bytes | wrapper 삭제 | absent=true | exit134, elapsed2375ms |
+| <owned-temp>/media-server-s09-runtime.oep53u | actual 두번째 실패 binary/media/state | 20929674bytes | wrapper 삭제 | absent=true | exit1, elapsed22594ms |
+| <owned-temp>/media-server-s09-runtime.oc5zTp | actual 진단 binary/media/state | 20918835bytes | wrapper 삭제 | absent=true | exit1, elapsed32611ms |
+| <owned-temp>/media-server-s09-runtime.57jCS1 | 메인 승인 동일 sample 진단 | 20918840bytes | wrapper 삭제 | absent=true | exit1, elapsed32697ms |
 
 ### S09 runtime 최종 실행 결과
 
@@ -30174,8 +30204,8 @@ auth/앱 HTTP/event/longrun은 이 묶음에서 실행하지 않는다. token st
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.BhiSes | 최종 warmup+3회 binary/media/catalog | 57297337bytes | wrapper 삭제 | absent=true | exit0, elapsed76858ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.AowRwM | 강제 compile 실패 | 0bytes | wrapper 삭제 | absent=true | expected exit1, elapsed100ms |
+| <owned-temp>/media-server-s09-runtime.BhiSes | 최종 warmup+3회 binary/media/catalog | 57297337bytes | wrapper 삭제 | absent=true | exit0, elapsed76858ms |
+| <owned-temp>/media-server-s09-runtime.AowRwM | 강제 compile 실패 | 0bytes | wrapper 삭제 | absent=true | expected exit1, elapsed100ms |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s07-runtime.NZVt8V | 기존 S07 runtime binary | 4588KiB | 기존 wrapper 삭제 | 부재 확인 | exit0, 기존 du -sk 단위; 정확 byte 미계측 |
 
 이 표는 runtime oracle1/5/7 일부 통합 검증일 뿐 전체 S09/event/retention/restart/auth/HTTP/Range/30분/120분/UI 완료가 아니다. 제품 빌드/장시간/UI/auth/앱HTTP는 이번 묶음에서 미실행. token start/end/consumed는 하위작업 집계 부재로 미집계.
@@ -30811,9 +30841,9 @@ auth/앱 HTTP/event/longrun은 이 묶음에서 실행하지 않는다. token st
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.G2Uwpg | 실제 source 조기실패 | 37649279bytes | wrapper 삭제 | absent=true | expected exit1, elapsed12482ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.64VG4B | 최신 음성 oracle | 18913640bytes | wrapper 삭제 | absent=true | exit0, elapsed1134ms |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.j0se8J | RAII 최신 정상 | 57262838bytes | wrapper 삭제 | absent=true | exit0, elapsed76682ms |
+| <owned-temp>/media-server-s09-runtime.G2Uwpg | 실제 source 조기실패 | 37649279bytes | wrapper 삭제 | absent=true | expected exit1, elapsed12482ms |
+| <owned-temp>/media-server-s09-runtime.64VG4B | 최신 음성 oracle | 18913640bytes | wrapper 삭제 | absent=true | exit0, elapsed1134ms |
+| <owned-temp>/media-server-s09-runtime.j0se8J | RAII 최신 정상 | 57262838bytes | wrapper 삭제 | absent=true | exit0, elapsed76682ms |
 
 ## v4.1.0 S08 startup 연결 최종 실행 기록 (2026-09-11)
 
@@ -31004,7 +31034,7 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | startup 실제 앱 최종 83 | ST09 실제 Pending output RTSP/HTTP bind 없음 | pass |
 | startup 실제 앱 최종 84 | ST09 실제 앱 Pending 보호 noappend | pass |
 | startup 실제 앱 최종 85 | ST09 실제 SQL source/output finalized 보존 | pass |
-| startup 실제 앱 최종 86 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.UHvwYz | pass |
+| startup 실제 앱 최종 86 | read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.UHvwYz | pass |
 | startup 실제 앱 최종 87 | ST13 HTTP fixture 실제 SHA256 | pass |
 | startup 실제 앱 최종 88 | ST13 실제 healthy archive HTTP200 | pass |
 | startup 실제 앱 최종 89 | ST13 실제 HTTP Range206 원본 bytes 2~5 | pass |
@@ -31063,7 +31093,7 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | startup 실제 앱 최종 142 | cleanup reserved port=58888 absent | pass |
 | startup 실제 앱 최종 143 | cleanup reserved port=58926 absent | pass |
 | startup 실제 앱 최종 144 | cleanup reserved port=58927 absent | pass |
-| startup 실제 앱 최종 145 | cleanup path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-MTCm1r bytes=17244274 removed=true | pass |
+| startup 실제 앱 최종 145 | cleanup path=<owned-temp>/media-server-startup-MTCm1r bytes=17244274 removed=true | pass |
 
 #### finalize 회귀
 
@@ -31328,8 +31358,8 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | V1 호환 회귀 5 | 반개구간 겹침 | pass |
 | V1 호환 회귀 6 | 맞닿은 반개구간 비겹침 | pass |
 | V1 호환 회귀 7 | 빈 반개구간 거부 | pass |
-| V1 호환 회귀 8 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
-| V1 호환 회귀 9 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 8 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 9 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
 | V1 호환 회귀 10 | V1 segment golden row count | pass |
 | V1 호환 회귀 11 | unknown optional field를 포함한 segment parse:  | pass |
 | V1 호환 회귀 12 | segment provenance semantic | pass |
@@ -31344,8 +31374,8 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | V1 호환 회귀 21 | unknown lifecycle를 호환 parse | pass |
 | V1 호환 회귀 22 | unknown lifecycle를 Unknown으로 보존 | pass |
 | V1 호환 회귀 23 | unknown lifecycle 비재생 | pass |
-| V1 호환 회귀 24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
-| V1 호환 회귀 25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 24 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 25 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
 | V1 호환 회귀 26 | segments.jsonl parse[0]:  | pass |
 | V1 호환 회귀 27 | segments.jsonl additive optional known semantic parity[0] | pass |
 | V1 호환 회귀 28 | V1 schema probe anchor | pass |
@@ -31362,8 +31392,8 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | V1 호환 회귀 39 | segments.jsonl missing required ID rejected | pass |
 | V1 호환 회귀 40 | segments.jsonl canonical parse[1]:  | pass |
 | V1 호환 회귀 41 | segments.jsonl canonical parity[1] | pass |
-| V1 호환 회귀 42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
-| V1 호환 회귀 43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 42 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 43 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
 | V1 호환 회귀 44 | event-links.jsonl parse[0]:  | pass |
 | V1 호환 회귀 45 | event-links.jsonl additive optional known semantic parity[0] | pass |
 | V1 호환 회귀 46 | V1 schema probe anchor | pass |
@@ -31372,8 +31402,8 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | V1 호환 회귀 49 | event-links.jsonl missing required ID rejected | pass |
 | V1 호환 회귀 50 | event-links.jsonl canonical parse[0]:  | pass |
 | V1 호환 회귀 51 | event-links.jsonl canonical parity[0] | pass |
-| V1 호환 회귀 52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
-| V1 호환 회귀 53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 52 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 53 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
 | V1 호환 회귀 54 | observations.jsonl parse[0]:  | pass |
 | V1 호환 회귀 55 | observations.jsonl additive optional known semantic parity[0] | pass |
 | V1 호환 회귀 56 | V1 schema probe anchor | pass |
@@ -31382,8 +31412,8 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | V1 호환 회귀 59 | observations.jsonl missing required ID rejected | pass |
 | V1 호환 회귀 60 | observations.jsonl canonical parse[0]:  | pass |
 | V1 호환 회귀 61 | observations.jsonl canonical parity[0] | pass |
-| V1 호환 회귀 62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
-| V1 호환 회귀 63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 62 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 63 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
 | V1 호환 회귀 64 | tombstones.jsonl parse[0]:  | pass |
 | V1 호환 회귀 65 | tombstones.jsonl additive optional known semantic parity[0] | pass |
 | V1 호환 회귀 66 | V1 schema probe anchor | pass |
@@ -31392,20 +31422,20 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | V1 호환 회귀 69 | tombstones.jsonl missing required ID rejected | pass |
 | V1 호환 회귀 70 | tombstones.jsonl canonical parse[0]:  | pass |
 | V1 호환 회귀 71 | tombstones.jsonl canonical parity[0] | pass |
-| V1 호환 회귀 72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
-| V1 호환 회귀 73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 72 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 73 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
 | V1 호환 회귀 74 | link ID/provenance semantic | pass |
 | V1 호환 회귀 75 | link requested range/status semantic | pass |
 | V1 호환 회귀 76 | link overlap/missing semantic | pass |
 | V1 호환 회귀 77 | link fallback/time semantic | pass |
-| V1 호환 회귀 78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
-| V1 호환 회귀 79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 78 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 79 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
 | V1 호환 회귀 80 | observation ID/provenance semantic | pass |
 | V1 호환 회귀 81 | observation exact locator semantic | pass |
 | V1 호환 회귀 82 | observation detection semantic | pass |
 | V1 호환 회귀 83 | observation association/time semantic | pass |
-| V1 호환 회귀 84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
-| V1 호환 회귀 85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 84 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 85 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
 | V1 호환 회귀 86 | tombstone ID/provenance semantic | pass |
 | V1 호환 회귀 87 | tombstone range/checksum/legacy retention semantic | pass |
 | V1 호환 회귀 88 | tombstone segment ID 재사용 거부 | pass |
@@ -31569,7 +31599,7 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | S06 read-model 최종 150 | I26 경쟁 뒤 fd 반환 14 | pass |
 | S06 read-model 최종 151 | I25 동시 삭제 경쟁 15 | pass |
 | S06 read-model 최종 152 | I26 경쟁 뒤 fd 반환 15 | pass |
-| S06 read-model 최종 153 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.0EkKde | pass |
+| S06 read-model 최종 153 | read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.0EkKde | pass |
 
 ## v4.1.0 S08 startup cleanup·사전 정의와 실패 이력 (2026-09-11)
 
@@ -31581,28 +31611,28 @@ anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--un
 | --- | --- | ---: | --- | --- | --- |
 | /private/tmp/media-server-startup-kq0lla | 환경실패 전용root | 922 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 | /private/tmp/media-server-startup-bZtc9D | 예상RED 전용root | 1725102 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-jTOG3R | 첫GREEN 전용root | 1737461 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.voLlvs | unit실패 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.NSPK6f | unit정정 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-As4IQ3 | 앱98 전용root | 10807389 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-TGJANH | 추가앱실패 전용root | 4222265 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.PeOpL6 | 실패앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-IGhAyc | 추가앱22 전용root | 4222265 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.GsdZAq | 추가앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.CgkqG9 | shell오류 전용root | 0 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.taWiE2 | readmodel정정 전용root | 2276 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-ljJJe7 | 활성앱14 전용root | 2214925 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.Wx4stK | CXX음성 전용root | 0 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-jTOG3R | 첫GREEN 전용root | 1737461 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-unit.voLlvs | unit실패 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-unit.NSPK6f | unit정정 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-As4IQ3 | 앱98 전용root | 10807389 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-TGJANH | 추가앱실패 전용root | 4222265 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.PeOpL6 | 실패앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-IGhAyc | 추가앱22 전용root | 4222265 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.GsdZAq | 추가앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.CgkqG9 | shell오류 전용root | 0 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.taWiE2 | readmodel정정 전용root | 2276 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-ljJJe7 | 활성앱14 전용root | 2214925 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.Wx4stK | CXX음성 전용root | 0 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 | /private/tmp/media-server-finalize-6tn4do | finalize 전용root | 2540881 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 | /tmp/media_server_v410_recording_retention-98278 | retention 전용root | 2086236 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 | /tmp/media_server_v410_recording_catalog-98317 | catalog 전용root | 1933937 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 | /private/tmp/media-server-s08-b2a-MgiRgA | corruption 전용root | 1978695 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.my8uVM | unit CXX음성 전용root | 0 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.wIgVCx | unit최종 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-MTCm1r | 앱최종144 전용root | 17244274 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.UHvwYz | 최종앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-unit.my8uVM | unit CXX음성 전용root | 0 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-unit.wIgVCx | unit최종 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-startup-MTCm1r | 앱최종144 전용root | 17244274 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.UHvwYz | 최종앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s08-a-reader-GGCGMP | V1 reader 전용root | 478064 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.0EkKde | readmodel최종 전용root | 2276 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| <owned-temp>/media-server-s06-read.0EkKde | readmodel최종 전용root | 2276 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
 
 ### 미실행·재사용 경계
 
@@ -31817,8 +31847,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | A 호환 005 | 반개구간 겹침 | pass | 실제 실행 |
 | A 호환 006 | 맞닿은 반개구간 비겹침 | pass | 실제 실행 |
 | A 호환 007 | 빈 반개구간 거부 | pass | 실제 실행 |
-| A 호환 008 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
-| A 호환 009 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 008 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 009 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
 | A 호환 010 | V1 segment golden row count | pass | 실제 실행 |
 | A 호환 011 | unknown optional field를 포함한 segment parse:  | pass | 실제 실행 |
 | A 호환 012 | segment provenance semantic | pass | 실제 실행 |
@@ -31833,8 +31863,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | A 호환 021 | unknown lifecycle를 호환 parse | pass | 실제 실행 |
 | A 호환 022 | unknown lifecycle를 Unknown으로 보존 | pass | 실제 실행 |
 | A 호환 023 | unknown lifecycle 비재생 | pass | 실제 실행 |
-| A 호환 024 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
-| A 호환 025 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 024 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 025 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
 | A 호환 026 | segments.jsonl parse[0]:  | pass | 실제 실행 |
 | A 호환 027 | segments.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | A 호환 028 | V1 schema probe anchor | pass | 실제 실행 |
@@ -31851,8 +31881,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | A 호환 039 | segments.jsonl missing required ID rejected | pass | 실제 실행 |
 | A 호환 040 | segments.jsonl canonical parse[1]:  | pass | 실제 실행 |
 | A 호환 041 | segments.jsonl canonical parity[1] | pass | 실제 실행 |
-| A 호환 042 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
-| A 호환 043 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 042 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 043 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
 | A 호환 044 | event-links.jsonl parse[0]:  | pass | 실제 실행 |
 | A 호환 045 | event-links.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | A 호환 046 | V1 schema probe anchor | pass | 실제 실행 |
@@ -31861,8 +31891,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | A 호환 049 | event-links.jsonl missing required ID rejected | pass | 실제 실행 |
 | A 호환 050 | event-links.jsonl canonical parse[0]:  | pass | 실제 실행 |
 | A 호환 051 | event-links.jsonl canonical parity[0] | pass | 실제 실행 |
-| A 호환 052 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
-| A 호환 053 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 052 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 053 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
 | A 호환 054 | observations.jsonl parse[0]:  | pass | 실제 실행 |
 | A 호환 055 | observations.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | A 호환 056 | V1 schema probe anchor | pass | 실제 실행 |
@@ -31871,8 +31901,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | A 호환 059 | observations.jsonl missing required ID rejected | pass | 실제 실행 |
 | A 호환 060 | observations.jsonl canonical parse[0]:  | pass | 실제 실행 |
 | A 호환 061 | observations.jsonl canonical parity[0] | pass | 실제 실행 |
-| A 호환 062 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
-| A 호환 063 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 062 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 063 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
 | A 호환 064 | tombstones.jsonl parse[0]:  | pass | 실제 실행 |
 | A 호환 065 | tombstones.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | A 호환 066 | V1 schema probe anchor | pass | 실제 실행 |
@@ -31881,20 +31911,20 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | A 호환 069 | tombstones.jsonl missing required ID rejected | pass | 실제 실행 |
 | A 호환 070 | tombstones.jsonl canonical parse[0]:  | pass | 실제 실행 |
 | A 호환 071 | tombstones.jsonl canonical parity[0] | pass | 실제 실행 |
-| A 호환 072 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
-| A 호환 073 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 072 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 073 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
 | A 호환 074 | link ID/provenance semantic | pass | 실제 실행 |
 | A 호환 075 | link requested range/status semantic | pass | 실제 실행 |
 | A 호환 076 | link overlap/missing semantic | pass | 실제 실행 |
 | A 호환 077 | link fallback/time semantic | pass | 실제 실행 |
-| A 호환 078 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
-| A 호환 079 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 078 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 079 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
 | A 호환 080 | observation ID/provenance semantic | pass | 실제 실행 |
 | A 호환 081 | observation exact locator semantic | pass | 실제 실행 |
 | A 호환 082 | observation detection semantic | pass | 실제 실행 |
 | A 호환 083 | observation association/time semantic | pass | 실제 실행 |
-| A 호환 084 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
-| A 호환 085 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 084 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 085 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
 | A 호환 086 | tombstone ID/provenance semantic | pass | 실제 실행 |
 | A 호환 087 | tombstone range/checksum/legacy retention semantic | pass | 실제 실행 |
 | A 호환 088 | tombstone segment ID 재사용 거부 | pass | 실제 실행 |
@@ -31991,7 +32021,7 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 
 ### S06 read model 회귀
 
-`./server.sh verify-v410-recording-timeline --read-model` exit0, 출력 pass153/fail0, elapsed22550ms. 부분 read-model 실행이며 HTTP/auth/UI 전체 실행이 아님. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: 2276	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fKoKIh; [pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fKoKIh. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+`./server.sh verify-v410-recording-timeline --read-model` exit0, 출력 pass153/fail0, elapsed22550ms. 부분 read-model 실행이며 HTTP/auth/UI 전체 실행이 아님. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: 2276	<owned-temp>/media-server-s06-read.fKoKIh; [pass] read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.fKoKIh. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -32147,7 +32177,7 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S06 read model 150 | I26 경쟁 뒤 fd 반환 14 | pass | 실제 실행 |
 | S06 read model 151 | I25 동시 삭제 경쟁 15 | pass | 실제 실행 |
 | S06 read model 152 | I26 경쟁 뒤 fd 반환 15 | pass | 실제 실행 |
-| S06 read model 153 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fKoKIh | pass | 실제 실행 |
+| S06 read model 153 | read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.fKoKIh | pass | 실제 실행 |
 
 ### S01 contracts 회귀
 
@@ -32162,8 +32192,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S01 contracts 005 | 반개구간 겹침 | pass | 실제 실행 |
 | S01 contracts 006 | 맞닿은 반개구간 비겹침 | pass | 실제 실행 |
 | S01 contracts 007 | 빈 반개구간 거부 | pass | 실제 실행 |
-| S01 contracts 008 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
-| S01 contracts 009 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 008 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 009 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
 | S01 contracts 010 | V1 segment golden row count | pass | 실제 실행 |
 | S01 contracts 011 | unknown optional field를 포함한 segment parse:  | pass | 실제 실행 |
 | S01 contracts 012 | segment provenance semantic | pass | 실제 실행 |
@@ -32178,8 +32208,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S01 contracts 021 | unknown lifecycle를 호환 parse | pass | 실제 실행 |
 | S01 contracts 022 | unknown lifecycle를 Unknown으로 보존 | pass | 실제 실행 |
 | S01 contracts 023 | unknown lifecycle 비재생 | pass | 실제 실행 |
-| S01 contracts 024 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
-| S01 contracts 025 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 024 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 025 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
 | S01 contracts 026 | segments.jsonl parse[0]:  | pass | 실제 실행 |
 | S01 contracts 027 | segments.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | S01 contracts 028 | V1 schema probe anchor | pass | 실제 실행 |
@@ -32196,8 +32226,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S01 contracts 039 | segments.jsonl missing required ID rejected | pass | 실제 실행 |
 | S01 contracts 040 | segments.jsonl canonical parse[1]:  | pass | 실제 실행 |
 | S01 contracts 041 | segments.jsonl canonical parity[1] | pass | 실제 실행 |
-| S01 contracts 042 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
-| S01 contracts 043 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 042 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 043 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
 | S01 contracts 044 | event-links.jsonl parse[0]:  | pass | 실제 실행 |
 | S01 contracts 045 | event-links.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | S01 contracts 046 | V1 schema probe anchor | pass | 실제 실행 |
@@ -32206,8 +32236,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S01 contracts 049 | event-links.jsonl missing required ID rejected | pass | 실제 실행 |
 | S01 contracts 050 | event-links.jsonl canonical parse[0]:  | pass | 실제 실행 |
 | S01 contracts 051 | event-links.jsonl canonical parity[0] | pass | 실제 실행 |
-| S01 contracts 052 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
-| S01 contracts 053 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 052 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 053 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
 | S01 contracts 054 | observations.jsonl parse[0]:  | pass | 실제 실행 |
 | S01 contracts 055 | observations.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | S01 contracts 056 | V1 schema probe anchor | pass | 실제 실행 |
@@ -32216,8 +32246,8 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S01 contracts 059 | observations.jsonl missing required ID rejected | pass | 실제 실행 |
 | S01 contracts 060 | observations.jsonl canonical parse[0]:  | pass | 실제 실행 |
 | S01 contracts 061 | observations.jsonl canonical parity[0] | pass | 실제 실행 |
-| S01 contracts 062 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
-| S01 contracts 063 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 062 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 063 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
 | S01 contracts 064 | tombstones.jsonl parse[0]:  | pass | 실제 실행 |
 | S01 contracts 065 | tombstones.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
 | S01 contracts 066 | V1 schema probe anchor | pass | 실제 실행 |
@@ -32226,20 +32256,20 @@ token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재�
 | S01 contracts 069 | tombstones.jsonl missing required ID rejected | pass | 실제 실행 |
 | S01 contracts 070 | tombstones.jsonl canonical parse[0]:  | pass | 실제 실행 |
 | S01 contracts 071 | tombstones.jsonl canonical parity[0] | pass | 실제 실행 |
-| S01 contracts 072 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
-| S01 contracts 073 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 072 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 073 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
 | S01 contracts 074 | link ID/provenance semantic | pass | 실제 실행 |
 | S01 contracts 075 | link requested range/status semantic | pass | 실제 실행 |
 | S01 contracts 076 | link overlap/missing semantic | pass | 실제 실행 |
 | S01 contracts 077 | link fallback/time semantic | pass | 실제 실행 |
-| S01 contracts 078 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
-| S01 contracts 079 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 078 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 079 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
 | S01 contracts 080 | observation ID/provenance semantic | pass | 실제 실행 |
 | S01 contracts 081 | observation exact locator semantic | pass | 실제 실행 |
 | S01 contracts 082 | observation detection semantic | pass | 실제 실행 |
 | S01 contracts 083 | observation association/time semantic | pass | 실제 실행 |
-| S01 contracts 084 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
-| S01 contracts 085 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 084 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 085 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
 | S01 contracts 086 | tombstone ID/provenance semantic | pass | 실제 실행 |
 | S01 contracts 087 | tombstone range/checksum/legacy retention semantic | pass | 실제 실행 |
 | S01 contracts 088 | tombstone segment ID 재사용 거부 | pass | 실제 실행 |
@@ -33619,8 +33649,8 @@ elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/en
 | A-05 | 반개구간 겹침 | pass | 실제 이번 stdout |
 | A-06 | 맞닿은 반개구간 비겹침 | pass | 실제 이번 stdout |
 | A-07 | 빈 반개구간 거부 | pass | 실제 이번 stdout |
-| A-08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
-| A-09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-08 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-09 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
 | A-10 | V1 segment golden row count | pass | 실제 이번 stdout |
 | A-11 | unknown optional field를 포함한 segment parse:  | pass | 실제 이번 stdout |
 | A-12 | segment provenance semantic | pass | 실제 이번 stdout |
@@ -33635,8 +33665,8 @@ elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/en
 | A-21 | unknown lifecycle를 호환 parse | pass | 실제 이번 stdout |
 | A-22 | unknown lifecycle를 Unknown으로 보존 | pass | 실제 이번 stdout |
 | A-23 | unknown lifecycle 비재생 | pass | 실제 이번 stdout |
-| A-24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
-| A-25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-24 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-25 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
 | A-26 | segments.jsonl parse[0]:  | pass | 실제 이번 stdout |
 | A-27 | segments.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
 | A-28 | V1 schema probe anchor | pass | 실제 이번 stdout |
@@ -33653,8 +33683,8 @@ elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/en
 | A-39 | segments.jsonl missing required ID rejected | pass | 실제 이번 stdout |
 | A-40 | segments.jsonl canonical parse[1]:  | pass | 실제 이번 stdout |
 | A-41 | segments.jsonl canonical parity[1] | pass | 실제 이번 stdout |
-| A-42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
-| A-43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-42 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-43 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
 | A-44 | event-links.jsonl parse[0]:  | pass | 실제 이번 stdout |
 | A-45 | event-links.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
 | A-46 | V1 schema probe anchor | pass | 실제 이번 stdout |
@@ -33663,8 +33693,8 @@ elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/en
 | A-49 | event-links.jsonl missing required ID rejected | pass | 실제 이번 stdout |
 | A-50 | event-links.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
 | A-51 | event-links.jsonl canonical parity[0] | pass | 실제 이번 stdout |
-| A-52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
-| A-53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-52 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-53 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
 | A-54 | observations.jsonl parse[0]:  | pass | 실제 이번 stdout |
 | A-55 | observations.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
 | A-56 | V1 schema probe anchor | pass | 실제 이번 stdout |
@@ -33673,8 +33703,8 @@ elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/en
 | A-59 | observations.jsonl missing required ID rejected | pass | 실제 이번 stdout |
 | A-60 | observations.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
 | A-61 | observations.jsonl canonical parity[0] | pass | 실제 이번 stdout |
-| A-62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
-| A-63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-62 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-63 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
 | A-64 | tombstones.jsonl parse[0]:  | pass | 실제 이번 stdout |
 | A-65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
 | A-66 | V1 schema probe anchor | pass | 실제 이번 stdout |
@@ -33683,20 +33713,20 @@ elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/en
 | A-69 | tombstones.jsonl missing required ID rejected | pass | 실제 이번 stdout |
 | A-70 | tombstones.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
 | A-71 | tombstones.jsonl canonical parity[0] | pass | 실제 이번 stdout |
-| A-72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
-| A-73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-72 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-73 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
 | A-74 | link ID/provenance semantic | pass | 실제 이번 stdout |
 | A-75 | link requested range/status semantic | pass | 실제 이번 stdout |
 | A-76 | link overlap/missing semantic | pass | 실제 이번 stdout |
 | A-77 | link fallback/time semantic | pass | 실제 이번 stdout |
-| A-78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
-| A-79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-78 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-79 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
 | A-80 | observation ID/provenance semantic | pass | 실제 이번 stdout |
 | A-81 | observation exact locator semantic | pass | 실제 이번 stdout |
 | A-82 | observation detection semantic | pass | 실제 이번 stdout |
 | A-83 | observation association/time semantic | pass | 실제 이번 stdout |
-| A-84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
-| A-85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-84 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-85 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
 | A-86 | tombstone ID/provenance semantic | pass | 실제 이번 stdout |
 | A-87 | tombstone range/checksum/legacy retention semantic | pass | 실제 이번 stdout |
 | A-88 | tombstone segment ID 재사용 거부 | pass | 실제 이번 stdout |
@@ -34126,8 +34156,8 @@ elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token star
 | A-regression-05 | 반개구간 겹침 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-06 | 맞닿은 반개구간 비겹침 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-07 | 빈 반개구간 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-08 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-09 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-10 | V1 segment golden row count | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-11 | unknown optional field를 포함한 segment parse: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-12 | segment provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
@@ -34142,8 +34172,8 @@ elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token star
 | A-regression-21 | unknown lifecycle를 호환 parse | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-22 | unknown lifecycle를 Unknown으로 보존 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-23 | unknown lifecycle 비재생 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-24 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-25 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-26 | segments.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-27 | segments.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-28 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
@@ -34160,8 +34190,8 @@ elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token star
 | A-regression-39 | segments.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-40 | segments.jsonl canonical parse[1]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-41 | segments.jsonl canonical parity[1] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-42 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-43 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-44 | event-links.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-45 | event-links.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-46 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
@@ -34170,8 +34200,8 @@ elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token star
 | A-regression-49 | event-links.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-50 | event-links.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-51 | event-links.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-52 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-53 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-54 | observations.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-55 | observations.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-56 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
@@ -34180,8 +34210,8 @@ elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token star
 | A-regression-59 | observations.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-60 | observations.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-61 | observations.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-62 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-63 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-64 | tombstones.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-66 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
@@ -34190,20 +34220,20 @@ elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token star
 | A-regression-69 | tombstones.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-70 | tombstones.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-71 | tombstones.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-72 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-73 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-74 | link ID/provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-75 | link requested range/status semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-76 | link overlap/missing semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-77 | link fallback/time semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-78 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-79 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-80 | observation ID/provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-81 | observation exact locator semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-82 | observation detection semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-83 | observation association/time semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
-| A-regression-85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-84 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-85 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-86 | tombstone ID/provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-87 | tombstone range/checksum/legacy retention semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
 | A-regression-88 | tombstone segment ID 재사용 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
@@ -34498,8 +34528,8 @@ elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함
 | S01-A-05 | 반개구간 겹침 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-06 | 맞닿은 반개구간 비겹침 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-07 | 빈 반개구간 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-08 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-09 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-10 | V1 segment golden row count | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-11 | unknown optional field를 포함한 segment parse: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-12 | segment provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
@@ -34514,8 +34544,8 @@ elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함
 | S01-A-21 | unknown lifecycle를 호환 parse | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-22 | unknown lifecycle를 Unknown으로 보존 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-23 | unknown lifecycle 비재생 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-24 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-25 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-26 | segments.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-27 | segments.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-28 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
@@ -34532,8 +34562,8 @@ elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함
 | S01-A-39 | segments.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-40 | segments.jsonl canonical parse[1]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-41 | segments.jsonl canonical parity[1] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-42 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-43 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-44 | event-links.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-45 | event-links.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-46 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
@@ -34542,8 +34572,8 @@ elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함
 | S01-A-49 | event-links.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-50 | event-links.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-51 | event-links.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-52 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-53 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-54 | observations.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-55 | observations.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-56 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
@@ -34552,8 +34582,8 @@ elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함
 | S01-A-59 | observations.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-60 | observations.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-61 | observations.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-62 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-63 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-64 | tombstones.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-66 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
@@ -34562,20 +34592,20 @@ elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함
 | S01-A-69 | tombstones.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-70 | tombstones.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-71 | tombstones.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-72 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-73 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-74 | link ID/provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-75 | link requested range/status semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-76 | link overlap/missing semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-77 | link fallback/time semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-78 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-79 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-80 | observation ID/provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-81 | observation exact locator semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-82 | observation detection semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-83 | observation association/time semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
-| S01-A-85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-84 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-85 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-86 | tombstone ID/provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-87 | tombstone range/checksum/legacy retention semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
 | S01-A-88 | tombstone segment ID 재사용 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
@@ -34641,8 +34671,8 @@ Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 �
 | C++ 05 | 반개구간 겹침 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 06 | 맞닿은 반개구간 비겹침 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 07 | 빈 반개구간 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 08 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 09 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 10 | V1 segment golden row count | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 11 | unknown optional field를 포함한 segment parse: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 12 | segment provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
@@ -34657,8 +34687,8 @@ Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 �
 | C++ 21 | unknown lifecycle를 호환 parse | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 22 | unknown lifecycle를 Unknown으로 보존 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 23 | unknown lifecycle 비재생 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 24 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 25 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 26 | segments.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 27 | segments.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 28 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
@@ -34675,8 +34705,8 @@ Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 �
 | C++ 39 | segments.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 40 | segments.jsonl canonical parse[1]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 41 | segments.jsonl canonical parity[1] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 42 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 43 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 44 | event-links.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 45 | event-links.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 46 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
@@ -34685,8 +34715,8 @@ Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 �
 | C++ 49 | event-links.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 50 | event-links.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 51 | event-links.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 52 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 53 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 54 | observations.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 55 | observations.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 56 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
@@ -34695,8 +34725,8 @@ Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 �
 | C++ 59 | observations.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 60 | observations.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 61 | observations.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 62 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 63 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 64 | tombstones.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 66 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
@@ -34705,20 +34735,20 @@ Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 �
 | C++ 69 | tombstones.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 70 | tombstones.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 71 | tombstones.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 72 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 73 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 74 | link ID/provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 75 | link requested range/status semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 76 | link overlap/missing semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 77 | link fallback/time semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 78 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 79 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 80 | observation ID/provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 81 | observation exact locator semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 82 | observation detection semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 83 | observation association/time semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
-| C++ 85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 84 | fixture를 끝까지 읽음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 85 | fixture가 비어 있지 않음: <home>/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 86 | tombstone ID/provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 87 | tombstone range/checksum/legacy retention semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
 | C++ 88 | tombstone segment ID 재사용 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
@@ -38712,7 +38742,7 @@ compile·binary exit 0으로 확인했다. 실제 GStreamer/ONNX 서비스 검�
 실패 명령의 자식 환경은 `env -i HOME="$HOME" PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin TMPDIR="$task_root/" MEDIA_SERVER_GST_CACHE_DIR="$task_root/cache" GST_REGISTRY_1_0="$task_root/registry.bin" ./server.sh verify-v410-event-recording`이다.
 `task_root`는 실행 직전 생성한 `/private/tmp/media-server-idmap-s05.CjMBxq`였다.
 기존 HOME 값을 그대로 전달했으며 실제 값·credential은 기록하지 않는다. read-only
-`command -v node`는 `/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node`를 반환했다.
+`command -v node`는 `<home>/.nvm/versions/node/v24.13.0/bin/node`를 반환했다.
 제한 PATH에 이 nvm bin이 없어 Node를 찾지 못했다. 앞선 HOME 누락 자체는 재발하지
 않았지만 **검증용 환경의 필수 실행 경로 누락이 다시 발생한 것**이며 준비 오류를 숨기지 않는다.
 원인은 제품 ID 매핑 회귀가 아니다. 사용자 선보고 후 보완·재실행하지 않았다.
@@ -39435,7 +39465,7 @@ GStreamer 1.28.1이며 다른 PC나 OS에서 실행한 것은 아니다.
 | --- | --- | --- | --- |
 | PKG-01 샌드박스 새 캐시 검색 | 최소 환경 + 새 GST_REGISTRY_1_0으로 gst-inspect-1.0 실행. 60,007ms 뒤 ETIMEDOUT/SIGTERM | fail | macOS hiservices-xpcservice 연결 오류. 제품 녹화 실패로 단정하지 않음 |
 | PKG-01 권한 조정 후 재실행 | 동일 명령을 승인된 비샌드박스 경로에서 실행. exit 0, 2,384ms, 281 plugins/1527 features/blacklist 2 | pass | 검색 명령 실행만 pass. GTK 클래스 중복 6건, GI 라이브러리 로딩 경고 2건, Gst Python 초기화 critical 1건이 재현돼 무경고 환경은 아님 |
-| PKG-02 공통 환경 수집 준비 | 임시 진단 스크립트가 /opt/homebrew/bin/node를 실행했으나 파일 없음, 내부 명령 exit 127, 전체 runner exit 1 | fail | 에이전트가 만든 진단 스크립트의 경로 가정 오류. 실제 Node는 /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node. 제품 env_common.sh의 오류로 바꾸어 해석하지 않음 |
+| PKG-02 공통 환경 수집 준비 | 임시 진단 스크립트가 /opt/homebrew/bin/node를 실행했으나 파일 없음, 내부 명령 exit 127, 전체 runner exit 1 | fail | 에이전트가 만든 진단 스크립트의 경로 가정 오류. 실제 Node는 <home>/.nvm/versions/node/v24.13.0/bin/node. 제품 env_common.sh의 오류로 바꾸어 해석하지 않음 |
 | PKG-11 변경 경계 | git diff --check exit 0, git status에서 테스트 기록과 개별 JSON만 변경/생성 | pass | 제품 src/include/scripts 변경 없음. S05나 제품 빌드 성공을 의미하지 않음 |
 | PKG-12 원본 보존과 cleanup | 원본 5개 SHA 일치, 임시 root 열린 파일 없음, rm 및 부재 검사 exit 0. 개별 JSON parse 및 결과 2회 보존 검사 exit 0 | pass | 8개/1,679,308바이트 삭제, 최종 JSON 10,573바이트만 증거로 보존 |
 
@@ -45722,8 +45752,8 @@ RSS는 녹화 중 623,722,496바이트, 비활성 직후 623,673,344, 유휴 20�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-gsJsPL` | 첫 자기검사 native/temp | 6,043,179바이트 | wrapper 정리 | 삭제·부재 | 최초 검사 cleanup 출력 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-9Oe1dn` | 재검증 native/격리 fixture | 7,852,186바이트 | wrapper 정리 | 삭제·부재 | 재검증 cleanup 출력 |
+| `<owned-temp>/media-server-current-observer-gsJsPL` | 첫 자기검사 native/temp | 6,043,179바이트 | wrapper 정리 | 삭제·부재 | 최초 검사 cleanup 출력 |
+| `<owned-temp>/media-server-current-observer-9Oe1dn` | 재검증 native/격리 fixture | 7,852,186바이트 | wrapper 정리 | 삭제·부재 | 재검증 cleanup 출력 |
 | O26 원출력·결과 | 기존 실패 증거 | 53,564 / 99,831바이트 | 유지 | 보존 | 앞 절 historical 링크 |
 | `o26-retired-runner.patch` | 제거한 미커밋 실행 코드 차이 | 11,486바이트 | historical로 격리 | 보존, 실행 연결 없음 | `009144c5` 기준, 코드 복구 가능·삭제된 입력 자료 복구 불가 |
 | `o27-cleanup-validation.md.gz` | 이번 정리 전수 증거 | 43,860바이트(압축 후) | 원출력/개별 결과 압축 | 보존 | 위 SHA256 |

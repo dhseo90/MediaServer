@@ -26,12 +26,12 @@ segment 존재/후보/UTC 외삽/playable은 저장하지 않는다. 공개 DTO/
 | catalog 60010 | ./server.sh verify-v410-recording-catalog, exit0, C++234 PASS, crypto-off3 PASS, 정적 연결9 PASS | 미집계: runner 시간 출력 없음, 시작/종료 총시각 수집하지 않음 |
 | diff | git diff --check, exit0, 출력 없음 | 미집계 |
 
-원출력은 [RED](Red.log), [첫 GREEN](Green.log), [최종 focused](Focused.log), [binding](Binding.log), [catalog](Catalog.log)에 전수 보존했다.
+원출력은 [RED](public-evidence-1356d9773da8724d.txt), [첫 GREEN](public-evidence-c612864bcdd4880f.txt), [최종 focused](public-evidence-92f7519a356ef424.txt), [binding](public-evidence-4d9c97e368763fa0.txt), [catalog](public-evidence-791480063362bac0.txt)에 전수 보존했다.
 초기 2 FAIL은 선언/거부 stub의 미구현 예상 RED이며 컴파일/setup 실패는 없었다.
 실행 중 apply_patch 한 번이 불완전 context로 거절돼 적용되지 않았으며 동일 파일의 정확한 문맥으로 재작성했다(테스트 실패 아님).
 token start/end/consumed는 도구가 제공하지 않아 모두 미집계다.
 메인이 UI checklist/template의 내부 기능 비대상 연결 누락을 보완한 뒤 동일 focused를 1회 재실행했다.
-inventory/중앙 정의는 첫 실행 전 존재했으나 최종 채택 증거는 [Final.log](Final.log)의30139이다.
+inventory/중앙 정의는 첫 실행 전 존재했으나 최종 채택 증거는 [Final.log](public-evidence-3bbcbd374277acd3.txt)의30139이다.
 이전 실행은 이력으로 보존하고 source-binding/catalog는 기존 등록이 유효하여 반복하지 않았다.
 
 ## 최종 개별 결과와 실제 세부 oracle
@@ -59,11 +59,11 @@ inventory/중앙 정의는 첫 실행 전 존재했으나 최종 채택 증거�
 
 | 실행 | 소유 경로 | 삭제 전 bytes | 결과 |
 | --- | --- | ---: | --- |
-| RED | /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.Pguq3h | 3012796 | removed=true |
-| 첫 GREEN | /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.2HD2xU | 3176608 | removed=true |
-| 최종 | /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.B2h4iQ | 3347581 | removed=true |
-| 등록 보완 최종 | /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.2A0Udl | 3347581 | removed=true |
-| binding | /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.x7l4TF | 4599072 | removed=true |
+| RED | <owned-temp>/media-server-consumer-reference.Pguq3h | 3012796 | removed=true |
+| 첫 GREEN | <owned-temp>/media-server-consumer-reference.2HD2xU | 3176608 | removed=true |
+| 최종 | <owned-temp>/media-server-consumer-reference.B2h4iQ | 3347581 | removed=true |
+| 등록 보완 최종 | <owned-temp>/media-server-consumer-reference.2A0Udl | 3347581 | removed=true |
+| binding | <owned-temp>/media-server-binding.x7l4TF | 4599072 | removed=true |
 | catalog | /tmp/media_server_v410_recording_catalog-71690 | 24692326 | removed=true |
 
 원문 로그에는 비밀/영상이 없으며 최소 실패·성공 증적 보존 목적이다. .media_server.test/s10-3c3c의 RED/첫GREEN 복제는 메인 정리 대상이며 이 문서 로그로 이관했다.

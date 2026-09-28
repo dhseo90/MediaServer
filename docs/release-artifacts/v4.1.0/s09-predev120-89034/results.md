@@ -266,6 +266,6 @@ wrapper 시작 출력 PID 37841, binary ledger PID 37842 (`build-gst-onnx/media_
 | --- | --- | ---: | --- | --- |
 | /private/tmp/s09-predev120-j832NR | 격리 root/실행·요약·report·상태 | 1731334 bytes | 메인 삭제 대기 | 메인 크기 확인, child 삭제 안 함 |
 | /tmp/media_server_predev-1789084830-37793 | runner 상세 log | 21708 bytes | 메인 삭제 대기 | 메인 크기 확인, child 삭제 안 함 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-090034 | child 3개 log/summary | 5776 bytes | 메인 삭제 대기 | 메인 크기 확인, child 삭제 안 함 |
+| <home>/Workspace/mediaServer/.media_server.test/20260911-090034 | child 3개 log/summary | 5776 bytes | 메인 삭제 대기 | 메인 크기 확인, child 삭제 안 함 |
 
 원 execution.log 2109 bytes, predev-summary.json 8777, exit.json 92, child static 49/inventory 919/comments 4469/summary 339 bytes를 읽었다. 원로그 전부를 공개하는 대신 결과 원문·실패 경로만 이관했으며, 서버 raw log/source URL/auth 값은 보존하지 않았다. 임시 경로는 재현 출처일 뿐 최종 evidence 링크가 아니다. cleanup 완료 판정은 메인 삭제 후 기록해야 한다.

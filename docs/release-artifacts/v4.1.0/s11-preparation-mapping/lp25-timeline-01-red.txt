@@ -83,5 +83,5 @@ source: HEAD5767ba54d + LP22 preserved + LP25 smoke only; product unchanged
 [fail] LP25-T07 tombstone output preserves group provenance and cannot play
 [pass] LP25-T07 reopen exact group IDs member provenance and deleted state
 [summary] pass=50 fail=14
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.35IstD bytes=36759992 removed=true
+[cleanup] path=<owned-temp>/media-server-public-timeline.35IstD bytes=36759992 removed=true
 [elapsed] seconds=37 source=bash-SECONDS

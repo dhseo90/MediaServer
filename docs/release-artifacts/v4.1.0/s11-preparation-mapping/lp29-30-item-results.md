@@ -216,7 +216,7 @@
 | 원출력 보존 | 23파일, RTSP URL4곳 제거; gzip 해제 일치 | PASS | 13927B; SHA256 307b04f6d774cec65b542ef3dd8b260851f665fd535e29673cbf46da3e78bdab |
 | 소유 자료 정리 | /private/tmp/media-server-lp29-resume.uXBuZl; 1782591B; file16/link277 | PASS | 부재 확인; symlink 대상 무수정 |
 | 소유 자료 정리 | /private/tmp/media_server_predev-1790009537-4075; 25249B; file11/link0 | PASS | 부재 확인; symlink 대상 무수정 |
-| 소유 자료 정리 | /Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-015219; 13511B; file4/link0 | PASS | 부재 확인; symlink 대상 무수정 |
+| 소유 자료 정리 | <home>/Workspace/mediaServer/.media_server.test/20260922-015219; 13511B; file4/link0 | PASS | 부재 확인; symlink 대상 무수정 |
 
 실행·진단·정리 결과 행: 208개. 중첩 요약을 포함하므로 고유 제품 테스트 총계로 합산하지 않는다. 최초 실패 후 수정·재실행은 없다.
 
@@ -241,6 +241,6 @@
 | --- | --- | --- | --- | --- | --- |
 | /private/tmp/media-server-lp29-resume.uXBuZl | 파일16/링크277 | 1782591B | 필요 원출력 보존 후 정확 소유 root만 삭제 | 부재 확인·링크 대상 보존 | 요약 cleanup |
 | /private/tmp/media_server_predev-1790009537-4075 | 파일11/링크0 | 25249B | 필요 원출력 보존 후 정확 소유 root만 삭제 | 부재 확인·링크 대상 보존 | 요약 cleanup |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-015219 | 파일4/링크0 | 13511B | 필요 원출력 보존 후 정확 소유 root만 삭제 | 부재 확인·링크 대상 보존 | 요약 cleanup |
+| <home>/Workspace/mediaServer/.media_server.test/20260922-015219 | 파일4/링크0 | 13511B | 필요 원출력 보존 후 정확 소유 root만 삭제 | 부재 확인·링크 대상 보존 | 요약 cleanup |
 
 토큰 start/end/consumed: 전용 집계 없어 미집계. elapsed는 process.hrtime.bigint, source는 2055ed9b5ebc42c3cde58e3dca50bc9364cfd7ae.

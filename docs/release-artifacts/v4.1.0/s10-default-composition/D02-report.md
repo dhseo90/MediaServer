@@ -44,18 +44,18 @@ source lifecycle, streaming pipeline, 공개 Event POST/SSE/WS/schema/route/DTO,
 
 | 명령 | exit / 개별 결과 | 원출력 |
 | --- | --- | --- |
-| `bash scripts/internal/verify_recording_default_composition.sh` | 0 / 신규42 | [ActualRuntimeIdleFixed](D02-ActualRuntimeIdleFixed.log) |
-| 같은 full runner의 closing 확장 | 1 / 독립 provider 1개 유효, 뒤 recovery 준비 exit134. 앞42개 중복 합산 안 함 | [ClosingActual](D02-ClosingActual.log) |
-| `bash scripts/internal/verify_recording_default_composition.sh --recovery-only` | 0 / 신규3, child exit23 각각 확인 | [RecoveryOnly](D02-RecoveryOnly.log) |
-| `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 / 246 | [CatalogRegression](D02-CatalogRegression.log) |
-| `bash scripts/internal/verify_v410_recording_startup.sh` | 0 / 44 | [StartupRegression](D02-StartupRegression.log) |
-| `bash scripts/internal/verify_recording_managed_writer.sh` | 0 / 44 | [ManagedWriterRegression](D02-ManagedWriterRegression.log) |
-| `bash scripts/internal/verify_recording_consumer_connection.sh` | 0 / 22 | [ConnectionRegression](D02-ConnectionRegression.log) |
-| `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 / 19 | [ReferenceRegression](D02-ReferenceRegression.log) |
-| `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24 | [RetentionRegression](D02-RetentionRegression.log) |
-| `bash scripts/internal/verify_recording_derived_event_integration.sh` | 0 / 56 | [EventIntegrationRegression](D02-EventIntegrationRegression.log) |
-| `bash scripts/internal/verify_recording_identity.sh` | 0 / 23 | [IdentityRegression](D02-IdentityRegression.log) |
-| `./server.sh build` | 0 / 제품 build, assertion 수와 별도 | [FinalBuild](D02-FinalBuild.log) |
+| `bash scripts/internal/verify_recording_default_composition.sh` | 0 / 신규42 | [ActualRuntimeIdleFixed](public-evidence-ed02866d5d930e89.txt) |
+| 같은 full runner의 closing 확장 | 1 / 독립 provider 1개 유효, 뒤 recovery 준비 exit134. 앞42개 중복 합산 안 함 | [ClosingActual](public-evidence-20b25ea7d2a88053.txt) |
+| `bash scripts/internal/verify_recording_default_composition.sh --recovery-only` | 0 / 신규3, child exit23 각각 확인 | [RecoveryOnly](public-evidence-fd1d0989f24ad055.txt) |
+| `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 / 246 | [CatalogRegression](public-evidence-ff3899599fd6620d.txt) |
+| `bash scripts/internal/verify_v410_recording_startup.sh` | 0 / 44 | [StartupRegression](public-evidence-b11c5c4aea5acc54.txt) |
+| `bash scripts/internal/verify_recording_managed_writer.sh` | 0 / 44 | [ManagedWriterRegression](public-evidence-90b43fad33a459b4.txt) |
+| `bash scripts/internal/verify_recording_consumer_connection.sh` | 0 / 22 | [ConnectionRegression](public-evidence-d33dc07a7a070099.txt) |
+| `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 / 19 | [ReferenceRegression](public-evidence-0fcaa4dbec63e819.txt) |
+| `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24 | [RetentionRegression](public-evidence-a24f044c4ef9ea15.txt) |
+| `bash scripts/internal/verify_recording_derived_event_integration.sh` | 0 / 56 | [EventIntegrationRegression](public-evidence-24b3cf6cd152f022.txt) |
+| `bash scripts/internal/verify_recording_identity.sh` | 0 / 23 | [IdentityRegression](public-evidence-2518b7eb58066c15.txt) |
+| `./server.sh build` | 0 / 제품 build, assertion 수와 별도 | [FinalBuild](public-evidence-da213c4027cf714c.txt) |
 
 D01의 숫자 focused11·range16 등 변경 없는 경계 증거는 [D01 보고서](D01-report.md)에 유지하며 D02 신규 실행 수에 더하지 않는다. identity/catalog/consumer/retention은 D02 원장·구성·잠금 변경의 직접 영향 때문에 재실행했다. 기존 5.3b429개 전체는 반복하지 않았다.
 

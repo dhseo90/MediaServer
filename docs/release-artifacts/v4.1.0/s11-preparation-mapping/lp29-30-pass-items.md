@@ -136,7 +136,7 @@ Source `b9454076`, 2026-09-21T20:01:20.619Z~20:41:23.380Z, exit0·2402.756초·�
 | --- | --- | --- | --- | --- | --- |
 | /private/tmp/media-server-lp29-soak.BceqcQ | 파일39/링크277 | 16066439B | 증거 이관 후 삭제 | 부재true·링크대상보존 | 요약 cleanup |
 | /private/tmp/media_server_predev-1790020880-12444 | 파일276/링크0 | 551663B | 증거 이관 후 삭제 | 부재true·링크대상보존 | 요약 cleanup |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-050122 | 파일24/링크0 | 37890B | 증거 이관 후 삭제 | 부재true·링크대상보존 | 요약 cleanup |
+| <home>/Workspace/mediaServer/.media_server.test/20260922-050122 | 파일24/링크0 | 37890B | 증거 이관 후 삭제 | 부재true·링크대상보존 | 요약 cleanup |
 
 PID12444/12460/12462/40447 부재, TCP52670/52671·UDP56978 재바인딩 확인. 서버 wait exit/signal은 기존 도구 미수집이다.
 토큰 start/end/consumed는 전용 집계 미제공으로 미집계이며 elapsed/source는 실측이다.

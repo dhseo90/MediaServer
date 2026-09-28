@@ -6,35 +6,35 @@
 
 메인 후속 읽기 판단: runtime event budget은 segment_ms+post+1000으로 현재3750ms지만, fixture 원본 GOP250frames/약8.33초라 target segment2초가 실제 finalize2초를 보장하지 않는다. 첫 end8.2초 뒤 다음 finalize가 예산을 넘으면 source1/partial는 기존 유한대기 정책의 정상 결과일 수 있다. 설정 target을 실제 구간 길이로 취급한 fixture 준비 문제를 재검토한다. 이 가설 때문에 제품 timeout을 올리거나 2출력 oracle를 낮추지 않는다. 실제 재실행·추가 코드 수정은 메인 회수 판단으로 중단했다. canonical 중복 제거의 독립 성능 향상만으로 전체 P0가 완료되지 않았다.
 
-[최초 import 준비실패](p0-state-red.log) exit1은 제품/assertion RED가 아니다. 빈 helper stub의 [behavior RED](p0-state-assertion-red.log) exit1/0pass3fail 후 구현, [GREEN](p0-state-green.log) exit0/3pass0fail. 기존 integration17와 HTTP3도 exit0, 아래23개 전수행이다. helper는 공개값에서 whitelist 상태·count와 최대8개 숫자request만 만든다. 실제 oracle·제품·호출순서는 바꾸지 않았다.
+[최초 import 준비실패](public-evidence-73286917257ea8ac.txt) exit1은 제품/assertion RED가 아니다. 빈 helper stub의 [behavior RED](public-evidence-7b0a5a3ab55af5de.txt) exit1/0pass3fail 후 구현, [GREEN](public-evidence-e44b7c7738d7a66d.txt) exit0/3pass0fail. 기존 integration17와 HTTP3도 exit0, 아래23개 전수행이다. helper는 공개값에서 whitelist 상태·count와 최대8개 숫자request만 만든다. 실제 oracle·제품·호출순서는 바꾸지 않았다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.523292ms) | [green](p0-state-green.log) exit0 | pass | 자체검사 |
-| P0-STATE02 pending partial complete2 변화와 8개 상한 (0.285875ms) | [green](p0-state-green.log) exit0 | pass | 자체검사 |
-| P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.052709ms) | [green](p0-state-green.log) exit0 | pass | 자체검사 |
-| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.867833ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.192166ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 nonzero 실패 후 나머지 미실행 (0.068708ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 signal 실패 후 나머지 미실행 (0.078709ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 output-limit 실패 후 나머지 미실행 (0.055625ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 summary-missing 실패 후 나머지 미실행 (0.03975ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.042625ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.038125ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI02 port-missing 실패 후 나머지 미실행 (0.045458ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.1875ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.279125ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.8725ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.216542ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.138041ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.171375ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.149375ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.069542ms) | [integration](p0-state-integration.log) exit0 | pass | 자체검사 |
-| P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.755875ms) | [http](p0-state-http.log) exit0 | pass | 자체검사 |
-| P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.306125ms) | [http](p0-state-http.log) exit0 | pass | 자체검사 |
-| P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.131458ms) | [http](p0-state-http.log) exit0 | pass | 자체검사 |
+| P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.523292ms) | [green](public-evidence-e44b7c7738d7a66d.txt) exit0 | pass | 자체검사 |
+| P0-STATE02 pending partial complete2 변화와 8개 상한 (0.285875ms) | [green](public-evidence-e44b7c7738d7a66d.txt) exit0 | pass | 자체검사 |
+| P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.052709ms) | [green](public-evidence-e44b7c7738d7a66d.txt) exit0 | pass | 자체검사 |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.867833ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.192166ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 nonzero 실패 후 나머지 미실행 (0.068708ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 signal 실패 후 나머지 미실행 (0.078709ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 output-limit 실패 후 나머지 미실행 (0.055625ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 (0.03975ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.042625ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.038125ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI02 port-missing 실패 후 나머지 미실행 (0.045458ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.1875ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.279125ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.8725ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.216542ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.138041ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.171375ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.149375ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.069542ms) | [integration](public-evidence-7a6141404eb875cc.txt) exit0 | pass | 자체검사 |
+| P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.755875ms) | [http](public-evidence-d1ab0eb4c2f82598.txt) exit0 | pass | 자체검사 |
+| P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.306125ms) | [http](public-evidence-d1ab0eb4c2f82598.txt) exit0 | pass | 자체검사 |
+| P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.131458ms) | [http](public-evidence-d1ab0eb4c2f82598.txt) exit0 | pass | 자체검사 |
 
-실제 명령은 위 P0-ACTUAL01과 동일 env-i+node runner이며 출력 대상만 p0-state-actual.log이다. exit1/31697ms. [원출력](p0-state-actual.log)의 새로운 관측은 **완전2출력 아닌 complete job/partial1출력**이다. 이후 HTTP header timeout도 재발했다. 따라서 최소 순수검증 최적화만으로 HTTP P0를 완전히 해결했다고 주장하지 않는다.
+실제 명령은 위 P0-ACTUAL01과 동일 env-i+node runner이며 출력 대상만 p0-state-actual.log이다. exit1/31697ms. [원출력](public-evidence-7cb6c5aa651c6365.txt)의 새로운 관측은 **완전2출력 아닌 complete job/partial1출력**이다. 이후 HTTP header timeout도 재발했다. 따라서 최소 순수검증 최적화만으로 HTTP P0를 완전히 해결했다고 주장하지 않는다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ HTTP 총287개/timeline184개, 성공 timeline header최대3153ms/timeout1. 마�
 
 ### 실행 결과 — 2출력 대기 실패, 후속 중지
 
-[p0-actual-fixed.log](p0-actual-fixed.log) 실제 exit1, elapsed43735ms. 아래3pass/1fail이며 actualEventPass=false/restartPass=false/observedOutputCounts=[]다. expectedOutputCount=2는 고정 기대이지 관측이 아니다. 기존 HTTP4초 abort는 이번 실행에서 발생하지 않았지만 timeline 최대 header3913ms로 상한에 가까워, 모든 부하에서 해결됐다고 단정하지 않는다.
+[p0-actual-fixed.log](public-evidence-d5845fc31c1e31f6.txt) 실제 exit1, elapsed43735ms. 아래3pass/1fail이며 actualEventPass=false/restartPass=false/observedOutputCounts=[]다. expectedOutputCount=2는 고정 기대이지 관측이 아니다. 기존 HTTP4초 abort는 이번 실행에서 발생하지 않았지만 timeline 최대 header3913ms로 상한에 가까워, 모든 부하에서 해결됐다고 단정하지 않는다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -82,195 +82,195 @@ HTTP 총287개/timeline184개, 성공 timeline header최대3153ms/timeout1. 마�
 
 ## P0 최소 수정 후 영향검증 결과
 
-[제품 빌드](p0-fix-build.log) exit0. 지정 순차 회귀 EV15/J23/F43/D3A46/D3B38와 HTTP3/integration17 자체검사 모두 exit0이다. 아래185행을 각 원출력과 대조했다. HTTP 자체검사30.688625ms, integration 자체검사38.500375ms. 별도 실제 current integration 실행이나 제품2차기동 PASS가 아니다. 임시 product 계측을 제거한 catalog/read/projection은 HEAD와 diff0, sample helper/test도 제거했으며 역사DIAG04 로그는 유지했다. 최종 diffcheck exit0.
+[제품 빌드](public-evidence-0a850a1de558cffa.txt) exit0. 지정 순차 회귀 EV15/J23/F43/D3A46/D3B38와 HTTP3/integration17 자체검사 모두 exit0이다. 아래185행을 각 원출력과 대조했다. HTTP 자체검사30.688625ms, integration 자체검사38.500375ms. 별도 실제 current integration 실행이나 제품2차기동 PASS가 아니다. 임시 product 계측을 제거한 catalog/read/projection은 HEAD와 diff0, sample helper/test도 제거했으며 역사DIAG04 로그는 유지했다. 최종 diffcheck exit0.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| EV01 canonical application 왕복 같은 녹화 증거 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV02 실제 rule 평가 왕복 증거 보존 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV02 평가 application annotated 결과 재복원 증거 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV03 canonical projection 실제 storage bridge 입력 증거 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV03 application projection 실제 storage bridge 입력 증거 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV04 dispatch frame 충돌 증거 복원 거부 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV04 source 충돌 거부 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV04 PTS 충돌 거부 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV04 frame 충돌 거부 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV04 증거 부재 발명 금지 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV05 history snapshot null 보존 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV05 마지막 carrier 해제 뒤 snapshot 해제 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| EV06 실제 공개 result serializer 내부 증거 비노출 불변 | [evidence](p0-fix-evidence.log) exit0 | pass | 원출력 개별 행 |
-| J01 실제 선택→compact 내구 job 계약 왕복 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J17 무관source8개 추가에도 동일선택 jobID 유지 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J18 cleanup wall시계 역행 허용·순서는상태로검사 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J04 단일 Intent 원장·보호·예약 원자 가시성 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J16 소유 경로·attempt·order 계획 조작 거부 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J10 checkpoint 전후 job·보호·예약 유지 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | [jobs](p0-fix-jobs.log) exit0 | pass | 원출력 개별 행 |
-| F12 실제 remux의 다른 selection 결박 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 실제 remux provenance의 요청 범위 위조 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 실제 remux의 foreign unfulfilled 범위 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F15 단일 service·동시 Run·외부 terminal release 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 Complete 출처 전수 canonical roundtrip | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 Ready 포함 Intent 잘못된 상태 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 미지원 필드 엄격 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F14 Ready JSON 4MiB 명시 상한 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 출력 receipt inode 별칭 거부 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F03 Intent 생성 전 프로세스 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F04 receipt 전 실물의 소유권 미확인 보호 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F05 receipt 이후 Intent 중단 소유물 정리 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F06 Ready 중단 뒤 재렌더 없이 완료 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F07 첫 출력 link 중단 쌍 복구 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F07 두 번째 출력 link 중단 쌍 복구 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F08 전체 publish 후 commit 전 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F09 원자 commit 후 cleanup 전 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 첫 temp 삭제 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 두 번째 temp 삭제 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 attempt 디렉터리 삭제 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 job 디렉터리 삭제 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 Complete mutation 직전 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 Failed cleanup attempt 삭제 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 Failed cleanup job 삭제 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F10 Failed mutation 직전 중단 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 hash 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 missing 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 foreign 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 symlink 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 fifo 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 hardlink 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F11 parent 오류 거부·보호/예약 유지 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F14 cancel 생성 중단·소유 cleanup·예약 해제 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F14 small 생성 중단·소유 cleanup·예약 해제 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F14 deadline 생성 중단·소유 cleanup·예약 해제 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 SQLite projection·journal fallback job/output 일치 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| F13 Complete output tombstone 뒤 재생성 없음 | [service](p0-fix-service.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-02 요청 충족 상태 구분 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-01 실제 검증된 Event 출력 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-03 권한/다른 채널 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-01 application V2 채널 권한 후 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 제공 중 삭제 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 fd 해제 후 hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-01 실제 검증된 Event 출력 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-03 권한/다른 채널 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-01 application V2 채널 권한 후 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 제공 중 삭제 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 fd 해제 후 hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-04 실제 파일 있는 manual Event 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-07 immutable metadata 다른 결박 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-08 원본 보존 삭제 완료 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-08 원본 보존 삭제 완료 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-08 원본 삭제 뒤 검증된 출력 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-07 실제 파일 크기 변조 거부·hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-05 미완료 출력 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-02 요청 충족 상태 구분 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-02 partial 출력 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-03 권한/다른 채널 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-01 application V2 채널 권한 후 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 제공 중 삭제 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 fd 해제 후 hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-02 partial 출력 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-03 권한/다른 채널 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-01 application V2 채널 권한 후 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 제공 중 삭제 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 fd 해제 후 hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-04 실제 파일 있는 manual Event 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-07 immutable metadata 다른 결박 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-08 원본 보존 삭제 완료 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-08 원본 보존 삭제 완료 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-08 원본 삭제 뒤 검증된 출력 제공 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-07 실제 파일 크기 변조 거부·hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | [media](p0-fix-media.log) exit0 | pass | 원출력 개별 행 |
-| D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-14 mismatch/nonintegral mapping은 unplaced | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-14 mismatch/nonintegral mapping은 unplaced | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 문법/범위 오류400 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 문법/범위 오류400 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 문법/범위 오류400 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 문법/범위 오류400 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 문법/범위 오류400 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 문법/범위 오류400 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02 권한 거부403 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-13 Intent placeholder no file/null time | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-13 accepted/no-job 상태 보존 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-05 Ready 출력 시간과 재생불가 분리 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-05 Committed 출력 시간과 재생불가 분리 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-05 실제 검증된 파생2출력 시간/파일 독립 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-13 출력 생성 뒤 job placeholder 없음 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-07 page 밖 이벤트도 원본 전체 충족 판정 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-06 일부 중첩 원본은 보존 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-04 재조회 stable itemId/order | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-12 요청축/문자열/공개 whitelist | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-08 동일 size 변조 출력은 비재생 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-08 파일 누락 Complete와 재생불가/숨김 분리 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-08 실제 tombstone 출력 deleted 보존 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-09 source tombstone 뒤 durable UTC 투영 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-05 partial 요청 실제 출력 jobComplete | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-13 Failed placeholder no file/null time | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-03 int64 최대 UTC ns 문자열 정밀도 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-11 관련 없는 known4352 누적은 짧은 질의 허용 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-11 실제 관련4352 상한 명시 실패 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-02/11 관련 상한503 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-10/11 unknown4354 count와 bounded 첫 페이지 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-10 known/unplaced 독립 동일 offset 페이지 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-11 offset+limit overflow 명시 실패 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패 | [timeline](p0-fix-timeline.log) exit0 | pass | 원출력 개별 행 |
-| P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.61625ms) | [http-unit](p0-fix-http-unit.log) exit0 | pass | 원출력 개별 행 |
-| P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.271708ms) | [http-unit](p0-fix-http-unit.log) exit0 | pass | 원출력 개별 행 |
-| P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.12375ms) | [http-unit](p0-fix-http-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.74025ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.193208ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 nonzero 실패 후 나머지 미실행 (0.068042ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 signal 실패 후 나머지 미실행 (0.068875ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 output-limit 실패 후 나머지 미실행 (0.053208ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 summary-missing 실패 후 나머지 미실행 (0.045958ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.042208ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.041708ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI02 port-missing 실패 후 나머지 미실행 (0.051625ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.476584ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.290875ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.681083ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.148958ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.147917ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.190667ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.163333ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
-| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.077625ms) | [integration-unit](p0-fix-integration-unit.log) exit0 | pass | 원출력 개별 행 |
+| EV01 canonical application 왕복 같은 녹화 증거 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV02 실제 rule 평가 왕복 증거 보존 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV02 평가 application annotated 결과 재복원 증거 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV03 canonical projection 실제 storage bridge 입력 증거 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV03 application projection 실제 storage bridge 입력 증거 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV04 dispatch frame 충돌 증거 복원 거부 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV04 source 충돌 거부 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV04 PTS 충돌 거부 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV04 frame 충돌 거부 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV04 증거 부재 발명 금지 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV05 history snapshot null 보존 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV05 마지막 carrier 해제 뒤 snapshot 해제 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| EV06 실제 공개 result serializer 내부 증거 비노출 불변 | [evidence](public-evidence-f101444e8085b026.txt) exit0 | pass | 원출력 개별 행 |
+| J01 실제 선택→compact 내구 job 계약 왕복 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J17 무관source8개 추가에도 동일선택 jobID 유지 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J18 cleanup wall시계 역행 허용·순서는상태로검사 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J04 단일 Intent 원장·보호·예약 원자 가시성 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J16 소유 경로·attempt·order 계획 조작 거부 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J10 checkpoint 전후 job·보호·예약 유지 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | [jobs](public-evidence-ccb09cb8f7bcbc7a.txt) exit0 | pass | 원출력 개별 행 |
+| F12 실제 remux의 다른 selection 결박 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 실제 remux provenance의 요청 범위 위조 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 실제 remux의 foreign unfulfilled 범위 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F15 단일 service·동시 Run·외부 terminal release 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 Complete 출처 전수 canonical roundtrip | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 Ready 포함 Intent 잘못된 상태 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 미지원 필드 엄격 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F14 Ready JSON 4MiB 명시 상한 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 출력 receipt inode 별칭 거부 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F03 Intent 생성 전 프로세스 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F04 receipt 전 실물의 소유권 미확인 보호 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F05 receipt 이후 Intent 중단 소유물 정리 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F06 Ready 중단 뒤 재렌더 없이 완료 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F07 첫 출력 link 중단 쌍 복구 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F07 두 번째 출력 link 중단 쌍 복구 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F08 전체 publish 후 commit 전 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F09 원자 commit 후 cleanup 전 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 첫 temp 삭제 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 두 번째 temp 삭제 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 attempt 디렉터리 삭제 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 job 디렉터리 삭제 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 Complete mutation 직전 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 Failed cleanup attempt 삭제 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 Failed cleanup job 삭제 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F10 Failed mutation 직전 중단 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 hash 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 missing 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 foreign 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 symlink 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 fifo 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 hardlink 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F11 parent 오류 거부·보호/예약 유지 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F14 cancel 생성 중단·소유 cleanup·예약 해제 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F14 small 생성 중단·소유 cleanup·예약 해제 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F14 deadline 생성 중단·소유 cleanup·예약 해제 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 SQLite projection·journal fallback job/output 일치 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| F13 Complete output tombstone 뒤 재생성 없음 | [service](public-evidence-2ec9ad821ed9bc65.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-02 요청 충족 상태 구분 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-01 실제 검증된 Event 출력 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-03 권한/다른 채널 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-01 application V2 채널 권한 후 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 제공 중 삭제 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 fd 해제 후 hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-01 실제 검증된 Event 출력 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-03 권한/다른 채널 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-01 application V2 채널 권한 후 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 제공 중 삭제 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 fd 해제 후 hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-04 실제 파일 있는 manual Event 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-07 immutable metadata 다른 결박 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-08 원본 보존 삭제 완료 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-08 원본 보존 삭제 완료 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-05 미완료 출력 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-02 요청 충족 상태 구분 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-02 partial 출력 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-03 권한/다른 채널 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-01 application V2 채널 권한 후 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 제공 중 삭제 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 fd 해제 후 hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-02 partial 출력 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-03 권한/다른 채널 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-01 application V2 채널 권한 후 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 제공 중 삭제 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 fd 해제 후 hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-04 실제 파일 있는 manual Event 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-07 immutable metadata 다른 결박 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-08 원본 보존 삭제 완료 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-08 원본 보존 삭제 완료 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | [media](public-evidence-1491988cc8804345.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 문법/범위 오류400 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 문법/범위 오류400 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 문법/범위 오류400 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 문법/범위 오류400 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 문법/범위 오류400 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 문법/범위 오류400 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02 권한 거부403 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-13 Intent placeholder no file/null time | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-13 accepted/no-job 상태 보존 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-05 Ready 출력 시간과 재생불가 분리 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-05 Committed 출력 시간과 재생불가 분리 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-05 실제 검증된 파생2출력 시간/파일 독립 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-13 출력 생성 뒤 job placeholder 없음 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-07 page 밖 이벤트도 원본 전체 충족 판정 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-06 일부 중첩 원본은 보존 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-04 재조회 stable itemId/order | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-12 요청축/문자열/공개 whitelist | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-08 동일 size 변조 출력은 비재생 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-08 파일 누락 Complete와 재생불가/숨김 분리 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-08 실제 tombstone 출력 deleted 보존 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-09 source tombstone 뒤 durable UTC 투영 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-05 partial 요청 실제 출력 jobComplete | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-13 Failed placeholder no file/null time | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-03 int64 최대 UTC ns 문자열 정밀도 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-11 관련 없는 known4352 누적은 짧은 질의 허용 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-11 실제 관련4352 상한 명시 실패 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-02/11 관련 상한503 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-10/11 unknown4354 count와 bounded 첫 페이지 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-10 known/unplaced 독립 동일 offset 페이지 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-11 offset+limit overflow 명시 실패 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패 | [timeline](public-evidence-3ad7635e0cb391f1.txt) exit0 | pass | 원출력 개별 행 |
+| P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.61625ms) | [http-unit](public-evidence-55bbaf5e16035244.txt) exit0 | pass | 원출력 개별 행 |
+| P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.271708ms) | [http-unit](public-evidence-55bbaf5e16035244.txt) exit0 | pass | 원출력 개별 행 |
+| P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.12375ms) | [http-unit](public-evidence-55bbaf5e16035244.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.74025ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.193208ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 nonzero 실패 후 나머지 미실행 (0.068042ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 signal 실패 후 나머지 미실행 (0.068875ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 output-limit 실패 후 나머지 미실행 (0.053208ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 (0.045958ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.042208ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.041708ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI02 port-missing 실패 후 나머지 미실행 (0.051625ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.476584ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.290875ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.681083ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.148958ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.147917ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.190667ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.163333ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.077625ms) | [integration-unit](public-evidence-c522e2f67aca9766.txt) exit0 | pass | 원출력 개별 행 |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
@@ -307,7 +307,7 @@ Node 두 자체검사는 temp/server/port를 만들지 않는다. build-gst-onnx
 
 ### P0-PERF02 RED→최소 수정→GREEN
 
-실제 두 명령은 `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_derived_job_validation.sh --performance-budget`이며 stdout/stderr를 각각 [expected-red](p0-perf-expected-red.log), [green](p0-perf-green.log)에 직접 저장했다. RED exit1/6pass1fail은 등록한 성능행만 실패했다. GREEN exit0/7pass0fail, `git diff --check` exit0. 제품 변경은 recording_derived_job.cpp의 위 두 곳뿐이며 임시 DIAG 계측은 아직 남아 있다. 실제 앱·HTTP·checkpoint 성능 해결 판정은 미실행이다.
+실제 두 명령은 `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_derived_job_validation.sh --performance-budget`이며 stdout/stderr를 각각 [expected-red](public-evidence-c58de07992ac9e52.txt), [green](public-evidence-5b9f8c73c2b3597e.txt)에 직접 저장했다. RED exit1/6pass1fail은 등록한 성능행만 실패했다. GREEN exit0/7pass0fail, `git diff --check` exit0. 제품 변경은 recording_derived_job.cpp의 위 두 곳뿐이며 임시 DIAG 계측은 아직 남아 있다. 실제 앱·HTTP·checkpoint 성능 해결 판정은 미실행이다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -342,7 +342,7 @@ Node 두 자체검사는 temp/server/port를 만들지 않는다. build-gst-onnx
 
 ### P0-PERF01 기준 측정 결과
 
-실제 명령: `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_derived_job_validation.sh > docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-perf-baseline.log 2>&1`, exit0. [원출력](p0-perf-baseline.log) 5 pass/0 fail. 이는 characterization이며 성능 RED/GREEN이나 HTTP 해결 PASS가 아니다. 영구 제품 변경은 아직 없다.
+실제 명령: `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_derived_job_validation.sh > docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-perf-baseline.log 2>&1`, exit0. [원출력](public-evidence-ca73dd7eb8eb5258.txt) 5 pass/0 fail. 이는 characterization이며 성능 RED/GREEN이나 HTTP 해결 PASS가 아니다. 영구 제품 변경은 아직 없다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -371,7 +371,7 @@ steady_clock으로 각 호출을 측정했다. DIAG07 actual은 Ready payload �
 
 ### P0-DIAG07 실행 전 data-only 비용 계측
 
-결과: [build](p0-data-build.log) exit0, [actual1회](p0-data-diagnostic-actual.log) exit1/26,781ms. 긴 UpdateDerivedJob은 held4459ms, 그 중 appendApply3846ms로 분해됐다. 단일new serializer만이4초를 소비한 것은 아니다. 각 구간은 중첩돼 있으므로 아래 값들을 단순합산하지 않는다.
+결과: [build](public-evidence-f0c26cc8fc93682b.txt) exit0, [actual1회](public-evidence-e9bff738c17ec25b.txt) exit1/26,781ms. 긴 UpdateDerivedJob은 held4459ms, 그 중 appendApply3846ms로 분해됐다. 단일new serializer만이4초를 소비한 것은 아니다. 각 구간은 중첩돼 있으므로 아래 값들을 단순합산하지 않는다.
 
 | stage | 최대 관측 ms | 입력 크기·의미 |
 | --- | --- | --- |
@@ -397,7 +397,7 @@ appendApply 중 이전record의 apply-parse가 약73ms씩 여러 번 관측된�
 
 ### P0-DIAG06 실행 전 catalog lock 계측
 
-결과: [계측 build](p0-lock-build.log) exit0, [실제1회](p0-lock-diagnostic-actual.log) exit1/26,930ms. 긴 mutex 소유 함수는 `UpdateDerivedJob`로 확인했다. 다음 값은 원출력의 같은 run/thread 상관이며 시간 상한을 늘리지 않았다.
+결과: [계측 build](public-evidence-88ac5c06b07523a7.txt) exit0, [실제1회](public-evidence-f8a1cafd9b5f1ee6.txt) exit1/26,930ms. 긴 mutex 소유 함수는 `UpdateDerivedJob`로 확인했다. 다음 값은 원출력의 같은 run/thread 상관이며 시간 상한을 늘리지 않았다.
 
 | 함수 | wait ms | held ms | 직접 의미 |
 | --- | --- | --- | --- |
@@ -422,7 +422,7 @@ appendApply 중 이전record의 apply-parse가 약73ms씩 여러 번 관측된�
 
 ### P0-DIAG05 실행 전 임시 내부 계측
 
-실제 결과: 계측빌드 두 번 모두 exit0. [최종 stage 진단](p0-stage-diagnostic-actual.log) 실제1회 exit1/27,628ms. HTTP sequence282는 header이전4003ms에 실패했고, 동시에 진행 중인 query trace178의 snapshot4642ms/finish261ms/query4904ms가 소유 서버 정상 drain 중 끝났다. 이번 자료는 지연 주요 경계를 SnapshotTimelineV2로 좁히며 physical inspector를 주원인으로 단정했던 추정을 지지하지 않는다. 다만 snapshot 함수 내 mutex 대기와 잠금 안 연산은 아직 분리되지 않았다.
+실제 결과: 계측빌드 두 번 모두 exit0. [최종 stage 진단](public-evidence-6a785dccb2a6d59b.txt) 실제1회 exit1/27,628ms. HTTP sequence282는 header이전4003ms에 실패했고, 동시에 진행 중인 query trace178의 snapshot4642ms/finish261ms/query4904ms가 소유 서버 정상 drain 중 끝났다. 이번 자료는 지연 주요 경계를 SnapshotTimelineV2로 좁히며 physical inspector를 주원인으로 단정했던 추정을 지지하지 않는다. 다만 snapshot 함수 내 mutex 대기와 잠금 안 연산은 아직 분리되지 않았다.
 
 | trace | stage | exit elapsed ms | 의미 |
 | --- | --- | --- | --- |
@@ -447,7 +447,7 @@ appendApply 중 이전record의 apply-parse가 약73ms씩 여러 번 관측된�
 
 ### P0-DIAG04 실행 전 추가 정의
 
-실행 결과: [RED](p0-stack-diagnostic-red.log) exit1 0/1 → [자체 GREEN](p0-stack-diagnostic-green.log) exit0 4/0. 실제 [stack 진단](p0-stack-diagnostic-actual.log)은 exit1/26,890ms이다. sample PID59143은 exit0/signalnull로 종료했고 원문1,612,340bytes를 임시 root에서 즉시 삭제했다. 주소·thread·경로 없는 추출10행만 원출력에 보존했다.
+실행 결과: [RED](public-evidence-ca721edd606ef160.txt) exit1 0/1 → [자체 GREEN](public-evidence-7d550456344c164a.txt) exit0 4/0. 실제 [stack 진단](public-evidence-cc5a52a2524a2d8f.txt)은 exit1/26,890ms이다. sample PID59143은 exit0/signalnull로 종료했고 원문1,612,340bytes를 임시 root에서 즉시 삭제했다. 주소·thread·경로 없는 추출10행만 원출력에 보존했다.
 
 | 관측 | 실측 | 판정 경계 |
 | --- | --- | --- |
@@ -471,7 +471,7 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 
 ### 진단1회 결과
 
-자체검사는 [예상 RED](p0-http-diagnostic-red.log) exit1 0/3 후 [GREEN](p0-http-diagnostic-green.log) exit0 3/0(28.829833ms)이다. 원문 sentinel은 테스트용 문자열이며 실제 자격증명은 사용하지 않았다. Node 자체검사는 임시 파일·서버를 생성하지 않았다.
+자체검사는 [예상 RED](public-evidence-b6d79db384590b52.txt) exit1 0/3 후 [GREEN](public-evidence-5e538955edfa3031.txt) exit0 3/0(28.829833ms)이다. 원문 sentinel은 테스트용 문자열이며 실제 자격증명은 사용하지 않았다. Node 자체검사는 임시 파일·서버를 생성하지 않았다.
 
 | 개별 검사 | 확인 내용 | 결과 |
 | --- | --- | --- |
@@ -479,7 +479,7 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 | P0-DIAG02 | header 이전 timeout4000ms/status·header/body null, 고정 오류코드와 원문 미전달 | PASS |
 | P0-DIAG03 | header15ms 뒤 body3985ms/3bytes 수신 후 timeout, 완료 거부 | PASS |
 
-실제 승인1회는 [p0-http-diagnostic-actual.log](p0-http-diagnostic-actual.log) exit1, 전체33,823ms이다. 모든259개 요청의 개별 timing은 원출력에 보존한다. health13회 초기 접속 실패는 기존 startup polling 범위이며 endpoint 성공이나 timeout으로 바꾸지 않았다.
+실제 승인1회는 [p0-http-diagnostic-actual.log](public-evidence-1c62c9a241b0c013.txt) exit1, 전체33,823ms이다. 모든259개 요청의 개별 timing은 원출력에 보존한다. health13회 초기 접속 실패는 기존 startup polling 범위이며 endpoint 성공이나 timeout으로 바꾸지 않았다.
 
 | route class | 요청 수 | 정상 응답 수 | 성공 header 최대ms | 성공 body 최대ms | 관측 |
 | --- | --- | --- | --- | --- | --- |
@@ -544,15 +544,15 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 
 | 로그 | 경로 | 삭제 전 bytes | 현재 확인 |
 | --- | --- | --- | --- |
-| [evidence-actual-placeholder.log](evidence-actual-placeholder.log) | /private/tmp/media-server-current-integration-285AtP | 42739351 | 부재 |
-| [evidence-actual-retry.log](evidence-actual-retry.log) | /private/tmp/media-server-current-integration-lwLFau | 28430719 | 부재 |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) | /private/tmp/media-server-consumer-connection.2KX3Km | 6416452 | 부재 |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) | /private/tmp/media-server-application-evidence.mag2ir | 21617803 | 부재 |
-| [evidence-expected-red.log](evidence-expected-red.log) | /private/tmp/media-server-application-evidence.eJg6iy | 7151179 | 부재 |
-| [evidence-first-green.log](evidence-first-green.log) | /private/tmp/media-server-application-evidence.1GPbsa | 7359291 | 부재 |
-| [evidence-focused-final.log](evidence-focused-final.log) | /private/tmp/media-server-application-evidence.9kTy4I | 21638379 | 부재 |
-| [evidence-focused-green.log](evidence-focused-green.log) | /private/tmp/media-server-application-evidence.RJOY4j | 21621291 | 부재 |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) | /private/tmp/media-server-application-evidence.nlZmi7 | 7376731 | 부재 |
+| [evidence-actual-placeholder.log](public-evidence-46e964a79e9e71f6.txt) | /private/tmp/media-server-current-integration-285AtP | 42739351 | 부재 |
+| [evidence-actual-retry.log](public-evidence-88f3f2765fbb314d.txt) | /private/tmp/media-server-current-integration-lwLFau | 28430719 | 부재 |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) | /private/tmp/media-server-consumer-connection.2KX3Km | 6416452 | 부재 |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) | /private/tmp/media-server-application-evidence.mag2ir | 21617803 | 부재 |
+| [evidence-expected-red.log](public-evidence-cd81d94fa106c48b.txt) | /private/tmp/media-server-application-evidence.eJg6iy | 7151179 | 부재 |
+| [evidence-first-green.log](public-evidence-dd92f1bfbdc9ce4a.txt) | /private/tmp/media-server-application-evidence.1GPbsa | 7359291 | 부재 |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) | /private/tmp/media-server-application-evidence.9kTy4I | 21638379 | 부재 |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) | /private/tmp/media-server-application-evidence.RJOY4j | 21621291 | 부재 |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) | /private/tmp/media-server-application-evidence.nlZmi7 | 7376731 | 부재 |
 
 
 ## 재개 원출력 개별 결과 전수
@@ -561,188 +561,188 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 
 | 로그·행 | 테스트 내용 | 결과 |
 | --- | --- | --- |
-| [evidence-actual-placeholder.log](evidence-actual-placeholder.log) · 1 | S11-CI09 product-1 healthy isolated ICE | PASS |
-| [evidence-actual-placeholder.log](evidence-actual-placeholder.log) · 2 | S11-CI07 run1 actual tuple EventRecord reference | PASS |
-| [evidence-actual-placeholder.log](evidence-actual-placeholder.log) · 4 | current actual app: The operation was aborted due to timeout | FAIL |
-| [evidence-actual-placeholder.log](evidence-actual-placeholder.log) · 5 | S11-CI08 product-1 exit0 ports returned | PASS |
-| [evidence-actual-retry.log](evidence-actual-retry.log) · 1 | S11-CI09 product-1 healthy isolated ICE | PASS |
-| [evidence-actual-retry.log](evidence-actual-retry.log) · 2 | S11-CI07 run1 actual tuple EventRecord reference | PASS |
-| [evidence-actual-retry.log](evidence-actual-retry.log) · 3 | current actual app: event-lineage | FAIL |
-| [evidence-actual-retry.log](evidence-actual-retry.log) · 4 | S11-CI08 product-1 exit0 ports returned | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 1 | C401 관측·참조 원자 저장 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 2 | C402 쌍 identity 불일치 거부 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 3 | C403 동일 원본 재전달·event 병합 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 4 | C405 SQL·JSONL·checkpoint 쌍 복구 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 5 | C404 다른 원본 동일PTS 구분 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 6 | C406 실제 OnResult 원본 참조 저장 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 7 | C407 OnEvent 강제 표본 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 8 | C408 종료track 과거참조 보존 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 9 | C409 종료track 참조부재 unknown | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 10 | C410 sampling·queue·StopAndDrain 회귀 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 11 | C411 exact·미색인 복수 후보 보존 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 12 | C412 nearest/ambiguous/unavailable 미승격 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 13 | C413 UTC unknown·삭제 상태 재판정 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 14 | C414 실제 TryResolve 요청참조 저장 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 15 | C415 event 재전달·확장·세대 구분 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 16 | C416 source/channel 충돌 거부 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 17 | C417 같은 원본 미디어 교집합 우선 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 18 | C418 공개 결과·구형 fallback 불변 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 19 | C422 실제 bridge 초기 pre-roll 수락·pending 유지 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 20 | C423 초기 요청 멱등·갱신·generation 분리 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 21 | C424 초기 요청 SQL·JSONL 복구 | PASS |
-| [evidence-consumer-connection.log](evidence-consumer-connection.log) · 22 | C425 초기 요청 checkpoint 복구 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 2 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 3 | EV03 canonical projection 실제 storage bridge 입력 증거 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 4 | EV03 application projection 실제 storage bridge 입력 증거 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 5 | EV04 dispatch frame 충돌 증거 복원 거부 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 6 | EV04 source 충돌 거부 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 7 | EV04 PTS 충돌 거부 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 8 | EV04 frame 충돌 거부 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 9 | EV04 증거 부재 발명 금지 | PASS |
-| [evidence-dispatch-green.log](evidence-dispatch-green.log) · 10 | EV05 history snapshot null 보존 | PASS |
-| [evidence-expected-red.log](evidence-expected-red.log) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | FAIL |
-| [evidence-first-green.log](evidence-first-green.log) · 2 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 2 | EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 3 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 4 | EV02 평가 application annotated 결과 재복원 증거 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 5 | EV03 canonical projection 실제 storage bridge 입력 증거 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 6 | EV03 application projection 실제 storage bridge 입력 증거 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 7 | EV04 dispatch frame 충돌 증거 복원 거부 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 8 | EV04 source 충돌 거부 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 9 | EV04 PTS 충돌 거부 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 10 | EV04 frame 충돌 거부 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 11 | EV04 증거 부재 발명 금지 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 12 | EV05 history snapshot null 보존 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 13 | EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 14 | EV05 마지막 carrier 해제 뒤 snapshot 해제 | PASS |
-| [evidence-focused-final.log](evidence-focused-final.log) · 15 | EV06 실제 공개 result serializer 내부 증거 비노출 불변 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 2 | EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 3 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 4 | EV02 평가 application annotated 결과 재복원 증거 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 5 | EV03 canonical projection 실제 storage bridge 입력 증거 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 6 | EV03 application projection 실제 storage bridge 입력 증거 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 7 | EV04 dispatch frame 충돌 증거 복원 거부 | FAIL |
-| [evidence-focused-green.log](evidence-focused-green.log) · 8 | EV04 source 충돌 거부 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 9 | EV04 PTS 충돌 거부 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 10 | EV04 frame 충돌 거부 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 11 | EV04 증거 부재 발명 금지 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 12 | EV05 history snapshot null 보존 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 13 | EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 14 | EV05 마지막 carrier 해제 뒤 snapshot 해제 | PASS |
-| [evidence-focused-green.log](evidence-focused-green.log) · 15 | EV06 실제 공개 result serializer 내부 증거 비노출 불변 | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 1 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.857959ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 2 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.198958ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 3 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.069167ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 4 | S11-CI02 signal 실패 후 나머지 미실행 (0.080208ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 5 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.056042ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 6 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.038916ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 7 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.03775ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 8 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.040542ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 9 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.044291ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 10 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.153708ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 11 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.637792ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 12 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.597041ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 13 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.105042ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 14 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.136ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 15 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.134708ms) | PASS |
-| [evidence-integration-unit.log](evidence-integration-unit.log) · 16 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.063417ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 1 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.874667ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 2 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.208959ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 3 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.067917ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 4 | S11-CI02 signal 실패 후 나머지 미실행 (0.068833ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 5 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.046417ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 6 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.039084ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 7 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.04925ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 8 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.042542ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 9 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.045833ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 10 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (2.641208ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 11 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.284ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 12 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.427167ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 13 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.146542ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 14 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.1355ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 15 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.173792ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 16 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.135084ms) | PASS |
-| [evidence-placeholder-green.log](evidence-placeholder-green.log) · 17 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.076917ms) | PASS |
-| [evidence-placeholder-red.log](evidence-placeholder-red.log) · 1 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.717542ms) | FAIL |
-| [evidence-placeholder-red.log](evidence-placeholder-red.log) · 11 | failing tests: | FAIL |
-| [evidence-placeholder-red.log](evidence-placeholder-red.log) · 14 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.717542ms) | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 1 | historical approval is separate from actual execution: current branch mismatch | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 2 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 3 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 4 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 5 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 6 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 7 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 8 | public read contract uses only standard headers plus the approved application frame leaf | PASS |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 9 | adapter owns every canonical field, optional, list order, timeout, and exception semantic — AnalysisSessionApplicationResult.recording_evidence canonical read count/order drift expected=2 | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 10 | compiled fake canonical provider rejects mapping, null, timeout, order, and lifecycle false PASS | PASS |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 11 | transport read and lifecycle calls use their injected application ports — composition canonical -> adapter -> HTTP injection/lifetime order drift | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 12 | CMake, server dispatch, and graph register the exact non-final Slice30A successor — graph successor is pending or drifted; register Slice30B current graph before completion | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 13 | current structure gate accepts the exact non-final Slice30A frontier — Command failed: /Users/dhseo/Workspace/mediaServer/server.sh verify-v390-review4-structure-stabilization-execution | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 14 | historical approval is separate from actual execution: current branch mismatch | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 15 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 16 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 17 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 18 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 19 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
-| [evidence-read-boundary.log](evidence-read-boundary.log) · 20 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-read-scoped.log](evidence-read-scoped.log) · 1 | public read contract uses only standard headers plus the approved application frame leaf | PASS |
-| [evidence-read-scoped.log](evidence-read-scoped.log) · 2 | adapter owns every canonical field, optional, list order, timeout, and exception semantic | PASS |
-| [evidence-read-scoped.log](evidence-read-scoped.log) · 3 | compiled fake canonical provider rejects mapping, null, timeout, order, and lifecycle false PASS | PASS |
-| [evidence-read-scoped.log](evidence-read-scoped.log) · 4 | transport read and lifecycle calls use their injected application ports | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 2 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 3 | EV04 source 충돌 거부 | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 4 | EV04 PTS 충돌 거부 | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 5 | EV04 frame 충돌 거부 | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 6 | EV04 증거 부재 발명 금지 | PASS |
-| [evidence-roundtrip-green.log](evidence-roundtrip-green.log) · 7 | EV05 history snapshot null 보존 | PASS |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 1 | historical approval is separate from actual execution: current branch mismatch | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 2 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 3 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 4 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 5 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 6 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 7 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 8 | application header is standard-only, standalone, and has no repository dependency closure | PASS |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 9 | application source owns canonical snapshot, opaque mapping, and keyed lifecycle | PASS |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 10 | compiled fake canonical harness binds full mapping, null/exception semantics, and runtime identity | PASS |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 11 | transport has zero canonical bypass and exact runtime/action lifecycle | PASS |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 12 | CMake, server dispatch, and current graph bind exact Slice 29 successor — exact Event Rule graph successor drift | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 13 | current structure gate accepts exact non-final Event Rule successor — Command failed: /Users/dhseo/Workspace/mediaServer/server.sh verify-v390-review4-structure-stabilization-execution | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 14 | historical approval is separate from actual execution: current branch mismatch | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 15 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 16 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 17 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 18 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 19 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
-| [evidence-rule-boundary.log](evidence-rule-boundary.log) · 20 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
-| [evidence-rule-scoped.log](evidence-rule-scoped.log) · 1 | application header is standard-only, standalone, and has no repository dependency closure | PASS |
-| [evidence-rule-scoped.log](evidence-rule-scoped.log) · 2 | application source owns canonical snapshot, opaque mapping, and keyed lifecycle | PASS |
-| [evidence-rule-scoped.log](evidence-rule-scoped.log) · 3 | compiled fake canonical harness binds full mapping, null/exception semantics, and runtime identity | PASS |
-| [evidence-rule-scoped.log](evidence-rule-scoped.log) · 4 | transport has zero canonical bypass and exact runtime/action lifecycle | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 1 | dispatch parser recognizes explicit bash and node interpreters | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 2 | server.sh dispatch targets exist and are executable | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 3 | documented server.sh commands resolve to dispatch table | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 4 | tracked scripts are classified and referenced | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 5 | project inventory delegates script file inventory to this verifier | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 6 | project inventory maps verifier families without duplicating dispatch details | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 7 | CMake does not define a separate untracked CTest registry | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 8 | test entry scripts are reachable from test_all | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 9 | auth verifier has no hardcoded test password defaults | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 10 | VA EventRecord dispatch verifier fails early and dispatches every poll by default | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 11 | critical verifier pass output avoids grouped feature-result wording | PASS |
-| [evidence-script-inventory.log](evidence-script-inventory.log) · 12 | user-facing JS option parsers reject unknown options | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 1 | application header is standard-only with exact DTO/default manifests | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 2 | application source owns exact canonical mapping and overwrite semantics | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 3 | transport has zero canonical bypass and exact projection/call ordering | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 4 | recording link is durably admitted before the bounded storage queue can drop an event | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 5 | event clip output remains fd-bound and measured before no-replace publication | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 6 | compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | PASS |
-| [evidence-storage-boundary.log](evidence-storage-boundary.log) · 7 | S05 구성은 생산자 전에 bridge를 등록하고 의존성 종료 전에 drain한다 | PASS |
+| [evidence-actual-placeholder.log](public-evidence-46e964a79e9e71f6.txt) · 1 | S11-CI09 product-1 healthy isolated ICE | PASS |
+| [evidence-actual-placeholder.log](public-evidence-46e964a79e9e71f6.txt) · 2 | S11-CI07 run1 actual tuple EventRecord reference | PASS |
+| [evidence-actual-placeholder.log](public-evidence-46e964a79e9e71f6.txt) · 4 | current actual app: The operation was aborted due to timeout | FAIL |
+| [evidence-actual-placeholder.log](public-evidence-46e964a79e9e71f6.txt) · 5 | S11-CI08 product-1 exit0 ports returned | PASS |
+| [evidence-actual-retry.log](public-evidence-88f3f2765fbb314d.txt) · 1 | S11-CI09 product-1 healthy isolated ICE | PASS |
+| [evidence-actual-retry.log](public-evidence-88f3f2765fbb314d.txt) · 2 | S11-CI07 run1 actual tuple EventRecord reference | PASS |
+| [evidence-actual-retry.log](public-evidence-88f3f2765fbb314d.txt) · 3 | current actual app: event-lineage | FAIL |
+| [evidence-actual-retry.log](public-evidence-88f3f2765fbb314d.txt) · 4 | S11-CI08 product-1 exit0 ports returned | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 1 | C401 관측·참조 원자 저장 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 2 | C402 쌍 identity 불일치 거부 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 3 | C403 동일 원본 재전달·event 병합 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 4 | C405 SQL·JSONL·checkpoint 쌍 복구 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 5 | C404 다른 원본 동일PTS 구분 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 6 | C406 실제 OnResult 원본 참조 저장 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 7 | C407 OnEvent 강제 표본 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 8 | C408 종료track 과거참조 보존 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 9 | C409 종료track 참조부재 unknown | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 10 | C410 sampling·queue·StopAndDrain 회귀 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 11 | C411 exact·미색인 복수 후보 보존 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 12 | C412 nearest/ambiguous/unavailable 미승격 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 13 | C413 UTC unknown·삭제 상태 재판정 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 14 | C414 실제 TryResolve 요청참조 저장 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 15 | C415 event 재전달·확장·세대 구분 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 16 | C416 source/channel 충돌 거부 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 17 | C417 같은 원본 미디어 교집합 우선 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 18 | C418 공개 결과·구형 fallback 불변 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 19 | C422 실제 bridge 초기 pre-roll 수락·pending 유지 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 20 | C423 초기 요청 멱등·갱신·generation 분리 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 21 | C424 초기 요청 SQL·JSONL 복구 | PASS |
+| [evidence-consumer-connection.log](public-evidence-3edefe11c6f80a3f.txt) · 22 | C425 초기 요청 checkpoint 복구 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 2 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 3 | EV03 canonical projection 실제 storage bridge 입력 증거 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 4 | EV03 application projection 실제 storage bridge 입력 증거 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 5 | EV04 dispatch frame 충돌 증거 복원 거부 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 6 | EV04 source 충돌 거부 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 7 | EV04 PTS 충돌 거부 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 8 | EV04 frame 충돌 거부 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 9 | EV04 증거 부재 발명 금지 | PASS |
+| [evidence-dispatch-green.log](public-evidence-62305290d1889466.txt) · 10 | EV05 history snapshot null 보존 | PASS |
+| [evidence-expected-red.log](public-evidence-cd81d94fa106c48b.txt) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | FAIL |
+| [evidence-first-green.log](public-evidence-dd92f1bfbdc9ce4a.txt) · 2 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 2 | EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 3 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 4 | EV02 평가 application annotated 결과 재복원 증거 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 5 | EV03 canonical projection 실제 storage bridge 입력 증거 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 6 | EV03 application projection 실제 storage bridge 입력 증거 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 7 | EV04 dispatch frame 충돌 증거 복원 거부 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 8 | EV04 source 충돌 거부 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 9 | EV04 PTS 충돌 거부 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 10 | EV04 frame 충돌 거부 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 11 | EV04 증거 부재 발명 금지 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 12 | EV05 history snapshot null 보존 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 13 | EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 14 | EV05 마지막 carrier 해제 뒤 snapshot 해제 | PASS |
+| [evidence-focused-final.log](public-evidence-51aa29636f5ca1ba.txt) · 15 | EV06 실제 공개 result serializer 내부 증거 비노출 불변 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 2 | EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 3 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 4 | EV02 평가 application annotated 결과 재복원 증거 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 5 | EV03 canonical projection 실제 storage bridge 입력 증거 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 6 | EV03 application projection 실제 storage bridge 입력 증거 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 7 | EV04 dispatch frame 충돌 증거 복원 거부 | FAIL |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 8 | EV04 source 충돌 거부 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 9 | EV04 PTS 충돌 거부 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 10 | EV04 frame 충돌 거부 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 11 | EV04 증거 부재 발명 금지 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 12 | EV05 history snapshot null 보존 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 13 | EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 14 | EV05 마지막 carrier 해제 뒤 snapshot 해제 | PASS |
+| [evidence-focused-green.log](public-evidence-47e2abd7cc6e6437.txt) · 15 | EV06 실제 공개 result serializer 내부 증거 비노출 불변 | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 1 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.857959ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 2 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.198958ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 3 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.069167ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 4 | S11-CI02 signal 실패 후 나머지 미실행 (0.080208ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 5 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.056042ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 6 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.038916ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 7 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.03775ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 8 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.040542ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 9 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.044291ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 10 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.153708ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 11 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.637792ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 12 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.597041ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 13 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.105042ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 14 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.136ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 15 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.134708ms) | PASS |
+| [evidence-integration-unit.log](public-evidence-acd480a76f7e3c50.txt) · 16 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.063417ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 1 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.874667ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 2 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.208959ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 3 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.067917ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 4 | S11-CI02 signal 실패 후 나머지 미실행 (0.068833ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 5 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.046417ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 6 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.039084ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 7 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.04925ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 8 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.042542ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 9 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.045833ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 10 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (2.641208ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 11 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.284ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 12 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.427167ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 13 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.146542ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 14 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.1355ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 15 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.173792ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 16 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.135084ms) | PASS |
+| [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) · 17 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.076917ms) | PASS |
+| [evidence-placeholder-red.log](public-evidence-d32bf6f7d400765e.txt) · 1 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.717542ms) | FAIL |
+| [evidence-placeholder-red.log](public-evidence-d32bf6f7d400765e.txt) · 11 | failing tests: | FAIL |
+| [evidence-placeholder-red.log](public-evidence-d32bf6f7d400765e.txt) · 14 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.717542ms) | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 1 | historical approval is separate from actual execution: current branch mismatch | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 2 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 3 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 4 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 5 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 6 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 7 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 8 | public read contract uses only standard headers plus the approved application frame leaf | PASS |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 9 | adapter owns every canonical field, optional, list order, timeout, and exception semantic — AnalysisSessionApplicationResult.recording_evidence canonical read count/order drift expected=2 | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 10 | compiled fake canonical provider rejects mapping, null, timeout, order, and lifecycle false PASS | PASS |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 11 | transport read and lifecycle calls use their injected application ports — composition canonical -> adapter -> HTTP injection/lifetime order drift | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 12 | CMake, server dispatch, and graph register the exact non-final Slice30A successor — graph successor is pending or drifted; register Slice30B current graph before completion | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 13 | current structure gate accepts the exact non-final Slice30A frontier — Command failed: <home>/Workspace/mediaServer/server.sh verify-v390-review4-structure-stabilization-execution | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 14 | historical approval is separate from actual execution: current branch mismatch | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 15 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 16 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 17 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 18 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 19 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
+| [evidence-read-boundary.log](public-evidence-870c936cdebe6d13.txt) · 20 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-read-scoped.log](public-evidence-ec01e893e871687f.txt) · 1 | public read contract uses only standard headers plus the approved application frame leaf | PASS |
+| [evidence-read-scoped.log](public-evidence-ec01e893e871687f.txt) · 2 | adapter owns every canonical field, optional, list order, timeout, and exception semantic | PASS |
+| [evidence-read-scoped.log](public-evidence-ec01e893e871687f.txt) · 3 | compiled fake canonical provider rejects mapping, null, timeout, order, and lifecycle false PASS | PASS |
+| [evidence-read-scoped.log](public-evidence-ec01e893e871687f.txt) · 4 | transport read and lifecycle calls use their injected application ports | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 1 | EV01 canonical application 왕복 같은 녹화 증거 | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 2 | EV02 실제 rule 평가 왕복 증거 보존 | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 3 | EV04 source 충돌 거부 | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 4 | EV04 PTS 충돌 거부 | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 5 | EV04 frame 충돌 거부 | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 6 | EV04 증거 부재 발명 금지 | PASS |
+| [evidence-roundtrip-green.log](public-evidence-c306e448cb9c6a8a.txt) · 7 | EV05 history snapshot null 보존 | PASS |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 1 | historical approval is separate from actual execution: current branch mismatch | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 2 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 3 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 4 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 5 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 6 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 7 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 8 | application header is standard-only, standalone, and has no repository dependency closure | PASS |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 9 | application source owns canonical snapshot, opaque mapping, and keyed lifecycle | PASS |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 10 | compiled fake canonical harness binds full mapping, null/exception semantics, and runtime identity | PASS |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 11 | transport has zero canonical bypass and exact runtime/action lifecycle | PASS |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 12 | CMake, server dispatch, and current graph bind exact Slice 29 successor — exact Event Rule graph successor drift | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 13 | current structure gate accepts exact non-final Event Rule successor — Command failed: <home>/Workspace/mediaServer/server.sh verify-v390-review4-structure-stabilization-execution | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 14 | historical approval is separate from actual execution: current branch mismatch | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 15 | slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 16 | current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 17 | current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 18 | Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 19 | composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager); | FAIL |
+| [evidence-rule-boundary.log](public-evidence-89883d39df4be855.txt) · 20 | negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h | FAIL |
+| [evidence-rule-scoped.log](public-evidence-5238efc4e8c09070.txt) · 1 | application header is standard-only, standalone, and has no repository dependency closure | PASS |
+| [evidence-rule-scoped.log](public-evidence-5238efc4e8c09070.txt) · 2 | application source owns canonical snapshot, opaque mapping, and keyed lifecycle | PASS |
+| [evidence-rule-scoped.log](public-evidence-5238efc4e8c09070.txt) · 3 | compiled fake canonical harness binds full mapping, null/exception semantics, and runtime identity | PASS |
+| [evidence-rule-scoped.log](public-evidence-5238efc4e8c09070.txt) · 4 | transport has zero canonical bypass and exact runtime/action lifecycle | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 1 | dispatch parser recognizes explicit bash and node interpreters | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 2 | server.sh dispatch targets exist and are executable | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 3 | documented server.sh commands resolve to dispatch table | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 4 | tracked scripts are classified and referenced | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 5 | project inventory delegates script file inventory to this verifier | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 6 | project inventory maps verifier families without duplicating dispatch details | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 7 | CMake does not define a separate untracked CTest registry | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 8 | test entry scripts are reachable from test_all | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 9 | auth verifier has no hardcoded test password defaults | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 10 | VA EventRecord dispatch verifier fails early and dispatches every poll by default | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 11 | critical verifier pass output avoids grouped feature-result wording | PASS |
+| [evidence-script-inventory.log](public-evidence-f744388577d238c8.txt) · 12 | user-facing JS option parsers reject unknown options | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 1 | application header is standard-only with exact DTO/default manifests | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 2 | application source owns exact canonical mapping and overwrite semantics | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 3 | transport has zero canonical bypass and exact projection/call ordering | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 4 | recording link is durably admitted before the bounded storage queue can drop an event | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 5 | event clip output remains fd-bound and measured before no-replace publication | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 6 | compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | PASS |
+| [evidence-storage-boundary.log](public-evidence-9c4863d0a3e9306a.txt) · 7 | S05 구성은 생산자 전에 bridge를 등록하고 의존성 종료 전에 drain한다 | PASS |
 
 
 이전 중단 시점 문서 검사 이력: 메인 `./server.sh verify-docs-links` exit0(Markdown270개·로컬 링크8,093개·실패0), `git diff --check` exit0. 이번 재개 후 최종 문서 검사가 아니며 제품 통합 검증을 대체하지 않는다. 당시 인증·링크 정리 커밋2개는 로컬에 있었고 통합 초안은 미커밋이었다. 이번 미해결 통합 단계는 커밋·푸시하지 않았다.
@@ -787,12 +787,12 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 
 | 실행 | 실제 결과 | 이력·범위 |
 | --- | --- | --- |
-| `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_application_evidence.sh` | 최초 exit1 0/1 → 최종 exit0 15/0 | [예상 RED](evidence-expected-red.log), [최종 focused](evidence-focused-final.log). 중간 rule callback 미구성 exit134는 fixture 준비 오류, spy의 비동기 덮어쓰기 14/1은 oracle race로 각각 보존 |
-| `node scripts/internal/verify_v390_analysis_session_read_application_boundary.mjs --application-only` | exit0 4/0 | [원출력](evidence-read-scoped.log). 기존 전체 모드 2/4 실패는 구형 graph/constructor 및 carrier field oracle 준비 불일치. default 모드는 유지하고 마지막 historical graph2개만 scoped 제외 |
-| `node scripts/internal/verify_v390_event_rule_application_boundary.mjs --application-only` | exit0 4/0 | [원출력](evidence-rule-scoped.log). 기존 전체 4/2는 historical graph만 실패, 동일하게 보존 |
-| `node scripts/internal/verify_v390_event_storage_application_boundary.mjs --application-only` | exit0 7/0 | [원출력](evidence-storage-boundary.log). 기존 계약/컴파일/수명 검사 유지 |
-| `bash scripts/internal/verify_recording_consumer_connection.sh` | exit0 22/0 | [원출력](evidence-consumer-connection.log). 실제 기존 bridge 참조 연결 회귀 |
-| `node --test scripts/internal/recording_current_integration.test.mjs` | exit0 16/0 | [원출력](evidence-integration-unit.log). 기대2만 있고 각 기동 관측 수가 없으면 실패 |
+| `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_application_evidence.sh` | 최초 exit1 0/1 → 최종 exit0 15/0 | [예상 RED](public-evidence-cd81d94fa106c48b.txt), [최종 focused](public-evidence-51aa29636f5ca1ba.txt). 중간 rule callback 미구성 exit134는 fixture 준비 오류, spy의 비동기 덮어쓰기 14/1은 oracle race로 각각 보존 |
+| `node scripts/internal/verify_v390_analysis_session_read_application_boundary.mjs --application-only` | exit0 4/0 | [원출력](public-evidence-ec01e893e871687f.txt). 기존 전체 모드 2/4 실패는 구형 graph/constructor 및 carrier field oracle 준비 불일치. default 모드는 유지하고 마지막 historical graph2개만 scoped 제외 |
+| `node scripts/internal/verify_v390_event_rule_application_boundary.mjs --application-only` | exit0 4/0 | [원출력](public-evidence-5238efc4e8c09070.txt). 기존 전체 4/2는 historical graph만 실패, 동일하게 보존 |
+| `node scripts/internal/verify_v390_event_storage_application_boundary.mjs --application-only` | exit0 7/0 | [원출력](public-evidence-9c4863d0a3e9306a.txt). 기존 계약/컴파일/수명 검사 유지 |
+| `bash scripts/internal/verify_recording_consumer_connection.sh` | exit0 22/0 | [원출력](public-evidence-3edefe11c6f80a3f.txt). 실제 기존 bridge 참조 연결 회귀 |
+| `node --test scripts/internal/recording_current_integration.test.mjs` | exit0 16/0 | [원출력](public-evidence-acd480a76f7e3c50.txt). 기대2만 있고 각 기동 관측 수가 없으면 실패 |
 
 표의 Node/bash 명령도 모두 동일 `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp`로 실행했다. focused의 15행은 실제 원출력에 전수 보존하며 bridge spy는 dispatch 호출 스레드의 정확한 1회 입력만 포착한다. worker 후속 callback과 섞어 이전 observed를 재사용하지 않는다. snapshot4096 수명 검사는 pointer 동일성과 마지막 carrier 해제 후 weak_ptr 소멸을 확인한다. 실제 브라우저인 `verify-webrtc-va-metadata`는 실행하지 않았다. 실제 앱 재시도는 이 checkpoint 뒤 진행 중이며 통합 suite 완료를 아직 주장하지 않는다.
 
@@ -802,9 +802,9 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 
 | 실행 | 실제 관측 | 결과·한계 |
 | --- | --- | --- |
-| [evidence-actual-retry.log](evidence-actual-retry.log) | 13,504ms, 실제 EventRecord reference 연결 PASS, event-lineage FAIL | accepted/no-job의 정확한 placeholder를 helper가 nonempty jobId 검사로 먼저 거부하는 준비 결함. 출력 관측 배열은 빈 값 |
-| [evidence-placeholder-red.log](evidence-placeholder-red.log) → [evidence-placeholder-green.log](evidence-placeholder-green.log) | exact accepted-only 분류 RED0/1 → 전체 자체검사17/0 | wrong ref/kind/complete/실제 segment 모순은 hard fail 유지. 정상 unknown 대기를 완료로 승격하지 않음 |
-| [evidence-actual-placeholder.log](evidence-actual-placeholder.log) | 26,531ms, actual reference PASS, 정확 accepted placeholder 실관측, HTTP timeout FAIL | kind=event/ref일치/job없음/not-created/segment없음/unknown/absent/not-playable. 기대2와 관측빈배열 분리. 두 번째 제품 기동 미실행 |
+| [evidence-actual-retry.log](public-evidence-88f3f2765fbb314d.txt) | 13,504ms, 실제 EventRecord reference 연결 PASS, event-lineage FAIL | accepted/no-job의 정확한 placeholder를 helper가 nonempty jobId 검사로 먼저 거부하는 준비 결함. 출력 관측 배열은 빈 값 |
+| [evidence-placeholder-red.log](public-evidence-d32bf6f7d400765e.txt) → [evidence-placeholder-green.log](public-evidence-6feefb7e43aa9985.txt) | exact accepted-only 분류 RED0/1 → 전체 자체검사17/0 | wrong ref/kind/complete/실제 segment 모순은 hard fail 유지. 정상 unknown 대기를 완료로 승격하지 않음 |
+| [evidence-actual-placeholder.log](public-evidence-46e964a79e9e71f6.txt) | 26,531ms, actual reference PASS, 정확 accepted placeholder 실관측, HTTP timeout FAIL | kind=event/ref일치/job없음/not-created/segment없음/unknown/absent/not-playable. 기대2와 관측빈배열 분리. 두 번째 제품 기동 미실행 |
 
 마지막 실패는 메인이 회수해 읽기 진단 중이다. 로그와 호출순서상 `complete-two-outputs` polling 내부 `GET /ops/api/recordings/timeline`의 하위 HTTP timeout이다. `response()`의 4초 signal은 fetch와 body 소비 양쪽에 걸려 있어 header 대기/본문 소비 중 어느 쪽인지는 미확인이다. until 자체 30초 소진은 별도 `complete-two-outputs-timeout` 문구이므로 이를 정상 polling timeout과 혼동하지 않는다. 제품 timeline은 `SnapshotTimelineV2` 뒤 `FinishTimelineV2`에서 각 대상 `ResolveMedia`를 수행하지만 현재 로그만으로 그 실행시간/잠금 원인을 단정하지 않는다. 상한 확대·제품 수정·추가 실제 재실행은 보류했다.
 
@@ -813,7 +813,7 @@ sample의 제품 함수 미추출은 심볼 부재인지 mangled symbol의 word-
 | `/private/tmp/media-server-current-integration-lwLFau` | actual 재시도 앱/미디어/상태 root | 28,430,719 | PID57548 exit0, HTTP51397/RTSP51398 반환, UDP 닫힘, root 부재 |
 | `/private/tmp/media-server-current-integration-285AtP` | placeholder 재시도 앱/미디어/상태 root | 42,739,351 | PID57768 exit0, HTTP51639/RTSP51640 반환, UDP 닫힘, root 부재 |
 
-script inventory는 `./server.sh verify-script-inventory` exit0 12/0([원출력](evidence-script-inventory.log))이다. tracked-file 검사이므로 아직 untracked 신규 파일까지 검사됐다고 확대하지 않는다. 신규 focused runner/fixture는 본문과 중앙 정의에서 참조되며 stage 후 메인의 최종 inventory 대조 대상이다.
+script inventory는 `./server.sh verify-script-inventory` exit0 12/0([원출력](public-evidence-f744388577d238c8.txt))이다. tracked-file 검사이므로 아직 untracked 신규 파일까지 검사됐다고 확대하지 않는다. 신규 focused runner/fixture는 본문과 중앙 정의에서 참조되며 stage 후 메인의 최종 inventory 대조 대상이다.
 
 다음 문단과 아래 최초 실행 기록은 내부 전달 보완 전 이력이다. 현행 전용 실행 entry와 공개 DTO 페이지/출력 상관 helper, 종료 archive 복제본 관측 adapter를 구현했다. 당시 자체검사16개는 통과했으나 실제 앱 첫 실행은 EventRecord의 recordingLinkId 부재로 실패했다. 이 최초 실패는 후속 reference 성공으로 삭제하지 않는다.
 
@@ -844,11 +844,11 @@ script inventory는 `./server.sh verify-script-inventory` exit0 12/0([원출력]
 | DTO 묶음 RED | 같은 명령; exit1,10/3,31.981875ms. page/output/restart not-implemented 정상 oracle3개 실패 | 예상 RED; 당시 throw 음성 검사는 독립 구현 증거 아님 |
 | DTO GREEN | 같은 명령; exit0,13/0,35.839708ms | PASS |
 | 상관 공유 후 | 같은 명령; exit0,14/0,36.526667ms | PASS |
-| adapter 최초 | `env -i PATH="$PATH" node --test scripts/internal/recording_current_archive_probe.test.mjs`; exit0,1/0,1421.071875ms | [원출력](integration-adapter.log) |
-| equal+padding RED | `env -i PATH="$PATH" node --test --test-name-pattern='점 이벤트' scripts/internal/recording_current_integration.test.mjs`; exit1,0/1,31.485042ms | [원출력](integration-point-red.log); 제품은 end==start+padding 허용 |
-| 최종 자체 묶음 | `env -i PATH="$PATH" node --test scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_archive_probe.test.mjs`; exit0,16/0,1254.102208ms | [원출력](integration-unit-green.log) |
+| adapter 최초 | `env -i PATH="$PATH" node --test scripts/internal/recording_current_archive_probe.test.mjs`; exit0,1/0,1421.071875ms | [원출력](public-evidence-8ed43b343632fcb2.txt) |
+| equal+padding RED | `env -i PATH="$PATH" node --test --test-name-pattern='점 이벤트' scripts/internal/recording_current_integration.test.mjs`; exit1,0/1,31.485042ms | [원출력](public-evidence-6db8c893d1ab19f8.txt); 제품은 end==start+padding 허용 |
+| 최종 자체 묶음 | `env -i PATH="$PATH" node --test scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_archive_probe.test.mjs`; exit0,16/0,1254.102208ms | [원출력](public-evidence-77d2043977b31b4d.txt) |
 | 기존 상관 영향 회귀 | `env -i PATH="$PATH" node scripts/internal/verify_v410_recording_foundation.mjs --event-selection-negative`; exit0,14/0 | 실제 서버 없음. 14행과 summary counts 확인; 도구 반환의 큰 legacy authRemainingCases 부분은 잘림 |
-| 실제 앱 최초 | `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp node scripts/internal/verify_recording_current_app.mjs`; exit1,2PASS/1FAIL,13576ms | [원출력](integration-actual-first.log), 예상 RED로 소급하지 않음 |
+| 실제 앱 최초 | `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp node scripts/internal/verify_recording_current_app.mjs`; exit1,2PASS/1FAIL,13576ms | [원출력](public-evidence-ca888e2d3f175760.txt), 예상 RED로 소급하지 않음 |
 
 초기 자체검사 원출력은 도구 반환으로 확인했으며 파일 직접 capture는 adapter 이후부터다. 파일 없는 과거 출력을 추정 복원하지 않는다. 기존 상관의 잘린 큰 미실행 목록으로 완료를 주장하지 않는다.
 

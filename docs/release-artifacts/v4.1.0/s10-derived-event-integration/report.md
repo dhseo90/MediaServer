@@ -18,21 +18,21 @@ exit 0이다. 첫 메인 개수 대조는 legacy의 `[s05-assert]` 형식을 빠
 
 | 제목 | 실제 명령 | exit / 개별 결과 | 근거 |
 | --- | --- | --- | --- |
-| 제품 build | `./server.sh build` | 0 | [FinalFixedBuild](FinalFixedBuild.log) |
-| 최종 실제 이벤트 통합 | `bash scripts/internal/verify_recording_derived_event_integration.sh` | 0 / 56 pass (48+1+1+2+2+2) | [FinalCompleteFocused](FinalCompleteFocused.log) |
-| 내부 선택 직접 영향 | `bash scripts/internal/verify_recording_derived_selection.sh` | 0 / 27 pass | [SelectionRegression](SelectionRegression.log) |
-| consumer 연결/관측 producer | `bash scripts/internal/verify_recording_consumer_connection.sh` | 0 / 22 pass | [FinalConnectionRegression](FinalConnectionRegression.log) |
-| consumer 참조 저장/조회 | `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 / 19 pass | [ReferenceRegression](ReferenceRegression.log) |
-| 기존 media/UTC range | `bash scripts/internal/verify_recording_range_resolution.sh` | 0 / 16 pass | [RangeRegression](RangeRegression.log) |
-| legacy event bridge | `bash scripts/internal/verify_v410_event_recording.sh --bridge-only` | 0 / 144 pass | [LegacyBridgeRegression](LegacyBridgeRegression.log) |
-| ID·session 직접 링크 | `bash scripts/internal/verify_recording_identity.sh` | 0 / 23 pass | [IdentityRegression](IdentityRegression.log) |
-| writer/finalize 직접 링크 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh --integration` | 0 / 140 pass | [FinalizeIntegrationRegression](FinalizeIntegrationRegression.log) |
-| catalog/SQLite/crypto-off/static | `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR=<새 mktemp 소유 경로> bash scripts/internal/verify_v410_recording_catalog.sh` | 0 / 246 pass | [CatalogRegression](CatalogRegression.log) |
-| retention/V2 playback-off | `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24 pass (22+2) | [RetentionRegression](RetentionRegression.log) |
+| 제품 build | `./server.sh build` | 0 | [FinalFixedBuild](public-evidence-c99a856e8f6be8b8.txt) |
+| 최종 실제 이벤트 통합 | `bash scripts/internal/verify_recording_derived_event_integration.sh` | 0 / 56 pass (48+1+1+2+2+2) | [FinalCompleteFocused](public-evidence-5b2603c2d72fe6c6.txt) |
+| 내부 선택 직접 영향 | `bash scripts/internal/verify_recording_derived_selection.sh` | 0 / 27 pass | [SelectionRegression](public-evidence-9fe5f4b710e184e1.txt) |
+| consumer 연결/관측 producer | `bash scripts/internal/verify_recording_consumer_connection.sh` | 0 / 22 pass | [FinalConnectionRegression](public-evidence-6b49eda24dbd6eb8.txt) |
+| consumer 참조 저장/조회 | `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 / 19 pass | [ReferenceRegression](public-evidence-b0da9ed5cb38c885.txt) |
+| 기존 media/UTC range | `bash scripts/internal/verify_recording_range_resolution.sh` | 0 / 16 pass | [RangeRegression](public-evidence-f05578001c488561.txt) |
+| legacy event bridge | `bash scripts/internal/verify_v410_event_recording.sh --bridge-only` | 0 / 144 pass | [LegacyBridgeRegression](public-evidence-1943642dcea97104.txt) |
+| ID·session 직접 링크 | `bash scripts/internal/verify_recording_identity.sh` | 0 / 23 pass | [IdentityRegression](public-evidence-32c305a04bbf1b54.txt) |
+| writer/finalize 직접 링크 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh --integration` | 0 / 140 pass | [FinalizeIntegrationRegression](public-evidence-56926247d198f149.txt) |
+| catalog/SQLite/crypto-off/static | `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR=<새 mktemp 소유 경로> bash scripts/internal/verify_v410_recording_catalog.sh` | 0 / 246 pass | [CatalogRegression](public-evidence-0e2e268f883014b1.txt) |
+| retention/V2 playback-off | `bash scripts/internal/verify_recording_retention_v2.sh` | 0 / 24 pass (22+2) | [RetentionRegression](public-evidence-135678e98004b7eb.txt) |
 
-환경·HEAD·컴파일러/의존 버전은 [Environment](Environment.log)에 보존했다. catalog 임시 경로는 `mktemp -d /private/tmp/media-server-s10-event-catalog.XXXXXX`로 새로 확보했고 runner가 전부 제거했다. 기존 5.3b 429개를 인계 때문에 재실행하지 않았다. catalog의 composition 관련 행은 정적 검사이며 서버 실행 증거가 아니다.
+환경·HEAD·컴파일러/의존 버전은 [Environment](public-evidence-819c6dacab5102e8.txt)에 보존했다. catalog 임시 경로는 `mktemp -d /private/tmp/media-server-s10-event-catalog.XXXXXX`로 새로 확보했고 runner가 전부 제거했다. 기존 5.3b 429개를 인계 때문에 재실행하지 않았다. catalog의 composition 관련 행은 정적 검사이며 서버 실행 증거가 아니다.
 
-제품·CMake·변경 runner·fixture 전체 22개의 현재 SHA-256은 [source fingerprints](source-fingerprints.log)에 보존했다. `shasum -a 256 -c docs/release-artifacts/v4.1.0/s10-derived-event-integration/source-fingerprints.log`는 exit 0, 전부 OK다. 실행 당시 raw 로그는 historical을 포함해 그대로 유지하며 현재 해시를 과거 코드 해시로 소급 주장하지 않는다.
+제품·CMake·변경 runner·fixture 전체 22개의 현재 SHA-256은 [source fingerprints](public-evidence-9911ac94c9f99312.txt)에 보존했다. `shasum -a 256 -c docs/release-artifacts/v4.1.0/s10-derived-event-integration/source-fingerprints.log`는 exit 0, 전부 OK다. 실행 당시 raw 로그는 historical을 포함해 그대로 유지하며 현재 해시를 과거 코드 해시로 소급 주장하지 않는다.
 
 문서 검증은 `./server.sh verify-docs-links`, exit 0: markdown 248 / local links 3321 / images 22 / anchors 110 / indexed 76 / exclusions 162 / failures 0 (`DocsLinks.log`). `git diff --check`도 exit 0이다. 두 검사는 제품 assertion 717개와 별도이며 메인 소유의 최신 plan/spec 변경을 포함한다.
 
@@ -40,22 +40,22 @@ exit 0이다. 첫 메인 개수 대조는 legacy의 `[s05-assert]` 형식을 빠
 
 | 제목 | 실제 결과 | 근거 |
 | --- | --- | --- |
-| 초기 인터페이스 build | exit 0 | [원출력](InterfaceBuild.log) |
-| E01 예상 RED | exit 1, 0/1. H264 decoded/evidence 30, reference 1, job 0으로 pending-only 미구현 재현 | [원출력](InitialRed.log) |
-| catalog 인터페이스 build | exit 0 | [원출력](CatalogInterfaceBuild.log) |
-| worker build | exit 0 | [원출력](WorkerBuild.log) |
-| 첫 연결 GREEN | exit 0, 1/0. job Complete와 2출력까지; 이 시점은 직접 decode/조회 oracle 확장 전 | [원출력](FirstGreenAttempt.log) |
-| E13/E17 예상 RED | exit 1, 1/2. Stop 후 신규 reference 저장 및 무주입 재생성의 소유권 상실 | [원출력](OwnershipRed.log) |
-| 소유권 build | exit 0 | [원출력](OwnershipBuild.log) |
-| 소유권 GREEN | exit 0, 3/0. 실제 출력 2개 각 10프레임 decode/EOS/오류 없음, verified/fullySatisfied true | [원출력](OwnershipGreen.log) |
-| E20 예상 RED | exit 1, 3/1. 비권위 원장 조회 실패 때 legacy 억제 누락 | [원출력](UncertainOwnershipRed.log) |
-| 비권위 보완 build | exit 0; 이후 추가 편집은 다음 build 필요 | [원출력](UncertainOwnershipBuild.log) |
-| 묶음 실행 준비 실패 | exit 1. 추가 source 편집 후 archive freshness guard가 실행을 차단; 제품 assertion 실행 아님/RED 아님 | [원출력](EventBehaviorFirst.log) |
-| snapshot hook oracle 준비 오류 | exit 1, 12 pass/1 fail. 프레임 부재는 기존 hook의 성공 marker 경로임을 직접 확인. 실제 marker와 의도적으로 생성한 소유 clip 경로 오류로 호출·실패 집계 대조 수정 | [실패](HookBehavior.log), [수정 후](AdapterHookBehavior.log) |
-| UTC fixture 위치 준비 오류 | exit 2, 선행 assertion 30 pass 후 중단. V1 전용 path getter의 부재를 확인해 V2 위치 getter와 optional/root guard로 변경. 복사 전 오류이며 소유 root 밖 파일 생성 없음 | [원출력](ClosingBehavior.log) |
-| UTC lifecycle 제품 결함 | exit 1, 39 pass/1 fail. Utc의 SourceValid가 binding reset만으로 corrupt를 판별하지 않는 교차 경계를 메인이 회수·확정. 내부 available_for_selection으로 보완 | [실패](ClosingBehaviorRetry.log), [수정 후](LifecycleGreen.log) |
-| consumer 회귀 기대값 누락 | exit 1, 20 pass/2 fail(C422/C423). 승인된 미주입 error/reference link/managed=false 예상값만 추가 갱신; pre-roll·멱등·저장 assertions 유지 | [실패](ConnectionRegression.log), [수정 후](ConnectionRegressionRetry.log), [코드 고정 후](FinalConnectionRegression.log) |
-| resolver 소유권 예상 RED | exit 1, 41 pass/3 fail. stable reference의 소유 조회 전 resolver nullopt/불일치/예외로 managed 상실. 소유 조회 뒤 신규 접수 검증으로 순서 보완 | [실패](ResolverOwnershipRed.log), [수정 후](FinalFocused.log), [최종](FinalCompleteFocused.log) |
+| 초기 인터페이스 build | exit 0 | [원출력](public-evidence-e4cb3402aa285bef.txt) |
+| E01 예상 RED | exit 1, 0/1. H264 decoded/evidence 30, reference 1, job 0으로 pending-only 미구현 재현 | [원출력](public-evidence-f307d402fd5c33d9.txt) |
+| catalog 인터페이스 build | exit 0 | [원출력](public-evidence-e4e3f5615f7625a0.txt) |
+| worker build | exit 0 | [원출력](public-evidence-2410f9dc42fd5019.txt) |
+| 첫 연결 GREEN | exit 0, 1/0. job Complete와 2출력까지; 이 시점은 직접 decode/조회 oracle 확장 전 | [원출력](public-evidence-1b48a73b1831900a.txt) |
+| E13/E17 예상 RED | exit 1, 1/2. Stop 후 신규 reference 저장 및 무주입 재생성의 소유권 상실 | [원출력](public-evidence-f60379f74887107f.txt) |
+| 소유권 build | exit 0 | [원출력](public-evidence-619b4721b4ca0c2a.txt) |
+| 소유권 GREEN | exit 0, 3/0. 실제 출력 2개 각 10프레임 decode/EOS/오류 없음, verified/fullySatisfied true | [원출력](public-evidence-53ae3d99c50fbf43.txt) |
+| E20 예상 RED | exit 1, 3/1. 비권위 원장 조회 실패 때 legacy 억제 누락 | [원출력](public-evidence-fa404e234207cda4.txt) |
+| 비권위 보완 build | exit 0; 이후 추가 편집은 다음 build 필요 | [원출력](public-evidence-0eca9ba6b9a4a54a.txt) |
+| 묶음 실행 준비 실패 | exit 1. 추가 source 편집 후 archive freshness guard가 실행을 차단; 제품 assertion 실행 아님/RED 아님 | [원출력](public-evidence-8cfff114081c91ee.txt) |
+| snapshot hook oracle 준비 오류 | exit 1, 12 pass/1 fail. 프레임 부재는 기존 hook의 성공 marker 경로임을 직접 확인. 실제 marker와 의도적으로 생성한 소유 clip 경로 오류로 호출·실패 집계 대조 수정 | [실패](public-evidence-36712dedd9e0ced0.txt), [수정 후](public-evidence-af2257663309a873.txt) |
+| UTC fixture 위치 준비 오류 | exit 2, 선행 assertion 30 pass 후 중단. V1 전용 path getter의 부재를 확인해 V2 위치 getter와 optional/root guard로 변경. 복사 전 오류이며 소유 root 밖 파일 생성 없음 | [원출력](public-evidence-83d26e14c69a9db3.txt) |
+| UTC lifecycle 제품 결함 | exit 1, 39 pass/1 fail. Utc의 SourceValid가 binding reset만으로 corrupt를 판별하지 않는 교차 경계를 메인이 회수·확정. 내부 available_for_selection으로 보완 | [실패](public-evidence-bfd22cdf6d2dead0.txt), [수정 후](public-evidence-df05f1e6a9045097.txt) |
+| consumer 회귀 기대값 누락 | exit 1, 20 pass/2 fail(C422/C423). 승인된 미주입 error/reference link/managed=false 예상값만 추가 갱신; pre-roll·멱등·저장 assertions 유지 | [실패](public-evidence-4c7e505cb150a920.txt), [수정 후](public-evidence-00cb664c237c34da.txt), [코드 고정 후](public-evidence-6b49eda24dbd6eb8.txt) |
+| resolver 소유권 예상 RED | exit 1, 41 pass/3 fail. stable reference의 소유 조회 전 resolver nullopt/불일치/예외로 managed 상실. 소유 조회 뒤 신규 접수 검증으로 순서 보완 | [실패](public-evidence-577097487d78aeb4.txt), [수정 후](public-evidence-2b9eeb53189eca9a.txt), [최종](public-evidence-5b2603c2d72fe6c6.txt) |
 
 실제 H264 RawVideoDecoder callback 증거를 AnalysisResult에 전달해 DispatchEventRecords에 진입했다. AnalysisManager 전체 경로 검증이나 VP8→H264 remux라고 보고하지 않는다. managed flag는 내구 소유 또는 소유권 불명확 시 legacy 억제이며 접수 성공 뜻이 아니다. 현재 출력 availability 조회는 catalog 상태만 대조하고 현재 파일 hash/read 건강도를 재검증하는 API가 아니다.
 

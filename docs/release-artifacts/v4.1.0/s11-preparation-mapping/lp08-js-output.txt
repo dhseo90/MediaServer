@@ -31,30 +31,30 @@
 ✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.346875ms)
 ✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.763208ms)
 ✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.066208ms)
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1lY4lg","bytes":819,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mPoPxJ","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B9qAup","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8ncG5P","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gc7uWW","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RFkGhP","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yath9n","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XvQdNC","bytes":96,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqjAIB","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HGXwts","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-agluh8","bytes":1620,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RAqVAI","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Bw8nfI","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-LNW4Yi","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8bQ6J5","bytes":1601,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UdzGaq","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EzHvAL","bytes":98,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MpCXtt","bytes":1954,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-suE12t","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QmoGW0","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tadrrN","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vkyRqv","bytes":274,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MvTryv","bytes":97,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fN58rr","bytes":163,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-1lY4lg","bytes":819,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-mPoPxJ","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-B9qAup","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-8ncG5P","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gc7uWW","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-RFkGhP","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-yath9n","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-XvQdNC","bytes":96,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-WqjAIB","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-HGXwts","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-agluh8","bytes":1620,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-RAqVAI","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-Bw8nfI","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-LNW4Yi","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-8bQ6J5","bytes":1601,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-UdzGaq","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-EzHvAL","bytes":98,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-MpCXtt","bytes":1954,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-suE12t","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-QmoGW0","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-tadrrN","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-vkyRqv","bytes":274,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-MvTryv","bytes":97,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-fN58rr","bytes":163,"removed":true}
 ✔ LP08-B01 완료 작업 안전 증거 선보존 (9.699916ms)
 ✔ LP08-B02 field 증거 실패 시 정리 차단 (0.413375ms)
 ✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.240959ms)

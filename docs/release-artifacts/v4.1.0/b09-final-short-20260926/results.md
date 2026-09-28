@@ -37,20 +37,20 @@ HTTP/파일 hash, 재기동 기존/새 데이터는 [B08 실제 앱 결과](../b
 
 | 제목 | 테스트내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
-| B09-F01 빌드 | `./server.sh build`, 현재 C++·설정 | pass | exit0, AI on·YouTube off. [원출력](build.log) |
-| B09-F01 인증 첫 실행 | `verify-auth-bootstrap` 격리 UDP 준비 | fail | exit1. 제품 인증 검사 전 UDP 제공기 실패와 기존 cleanup의 종료 미확인. [원출력](auth-bootstrap-first.log) |
-| B09-F01 인증 재실행 | 로컬 소켓 권한에서 `verify-auth-bootstrap` | pass | exit0, 19/19·격리 root 부재. [원출력](auth-bootstrap.log) |
-| B09-F01 계정·scope | `verify-auth-users` | pass | exit0, 72/72·격리 root 부재. [원출력](auth-users.log) |
+| B09-F01 빌드 | `./server.sh build`, 현재 C++·설정 | pass | exit0, AI on·YouTube off. [원출력](public-evidence-a78664ec4924a1dd.txt) |
+| B09-F01 인증 첫 실행 | `verify-auth-bootstrap` 격리 UDP 준비 | fail | exit1. 제품 인증 검사 전 UDP 제공기 실패와 기존 cleanup의 종료 미확인. [원출력](public-evidence-ac42c5119e4c9f46.txt) |
+| B09-F01 인증 재실행 | 로컬 소켓 권한에서 `verify-auth-bootstrap` | pass | exit0, 19/19·격리 root 부재. [원출력](public-evidence-9bf860a5f0642526.txt) |
+| B09-F01 계정·scope | `verify-auth-users` | pass | exit0, 72/72·격리 root 부재. [원출력](public-evidence-f111dba89f4e5b35.txt) |
 | B09-F01 route·scope | `verify-auth-routes` | pass | exit0, 146/146·격리 root 부재. [무손실 압축 원출력](auth-routes.log.gz) |
-| B09-F01 GStreamer 환경 | `verify-gst-environment` | pass | exit0, 20/20 fixture 및 각 소유 root 정리. [원출력](gst-environment.log) |
+| B09-F01 GStreamer 환경 | `verify-gst-environment` | pass | exit0, 20/20 fixture 및 각 소유 root 정리. [원출력](public-evidence-058049db2d4b8ec6.txt) |
 | B09-F01 기능 인벤토리 첫 실행 | `verify-project-inventory` | fail | exit1, 17/18. 기능986개 행은 유지됐으나 B08 결과표 변경으로 전체 문서 hash만 drift. [원출력 압축](project-inventory-first.log.gz) |
 | B09-F01 기능 인벤토리 재실행 | 구현 증적 manifest의 inventory hash 갱신 뒤 동일 명령 | pass | exit0, 18/18·기능986개. [원출력 압축](project-inventory-final.log.gz) |
-| B09-F01 기능 커버리지 | `verify-feature-inventory-coverage` | pass | exit0, 986/986·missing0·8/8. [원출력](feature-coverage.log) |
-| B09-F01 버전·공개 경계 | `verify-release-metadata` | pass | exit0, 18/18. published 원격 확인은 수행하지 않음. [원출력](release-metadata.log) |
-| B09-F01 릴리즈 절차 모의 | `verify-release-closeout-helper --dry-run` | pass | exit0, 6/6. push/tag 등 실제 동작 없음. [원출력](closeout-dryrun.log) |
-| B09-F01 문서 이미지 | `verify-docs-ui-assets` | pass | exit0, 10/10. 실제 UI 시각 검증은 아님. [원출력](docs-assets.log) |
-| B09-F01 문서 링크 | `verify-docs-links` | pass | exit0, Markdown 351·로컬 링크 14,414·오류0. [원출력](docs-links.log) |
-| B09-F01 스크립트 등록 | `verify-script-inventory` | pass | exit0, 12/12·신규 B08 Q 검증기 등록 대조. [원출력](script-inventory.log) |
+| B09-F01 기능 커버리지 | `verify-feature-inventory-coverage` | pass | exit0, 986/986·missing0·8/8. [원출력](public-evidence-c454e5b5f24ae38e.txt) |
+| B09-F01 버전·공개 경계 | `verify-release-metadata` | pass | exit0, 18/18. published 원격 확인은 수행하지 않음. [원출력](public-evidence-acdd8c3def9e15c7.txt) |
+| B09-F01 릴리즈 절차 모의 | `verify-release-closeout-helper --dry-run` | pass | exit0, 6/6. push/tag 등 실제 동작 없음. [원출력](public-evidence-00bff323465cac63.txt) |
+| B09-F01 문서 이미지 | `verify-docs-ui-assets` | pass | exit0, 10/10. 실제 UI 시각 검증은 아님. [원출력](public-evidence-7b7a91c1f791846f.txt) |
+| B09-F01 문서 링크 | `verify-docs-links` | pass | exit0, Markdown 351·로컬 링크 14,414·오류0. [원출력](public-evidence-440da1e17a0cda4a.txt) |
+| B09-F01 스크립트 등록 | `verify-script-inventory` | pass | exit0, 12/12·신규 B08 Q 검증기 등록 대조. [원출력](public-evidence-5386b5ecaf2a87a4.txt) |
 | B09-F01 공백 검사 | `git diff --check` | pass | exit0, 현재 문서·manifest diff; stage 후 검사 별도 |
 
 첫 인증 시도는 격리 환경의 UDP bind 단계에서 실패했다. 서버는 시작되지 않았고,
@@ -109,7 +109,7 @@ source는 각 로컬 명령 원출력이다. 문서 변경 뒤 링크14,414개·
 | `media-server-auth-bootstrap.l8DyLK` | 첫 UDP 준비 실패의 작업 소유 격리 root | du 300KiB | UID/device/inode·FD·PID·포트 확인 후 전용 cleanup | 부재 확인 | 첫 실패 원출력·직접 stat/lsof/ps |
 | 인증 재실행 3개 root | 격리 사용자·쿠키·서버 자료 | 각 로그의 1,932/1,968/13,660KiB | verifier 자체 정리 | 세 root 모두 absent=true | 인증3 로그 |
 | GStreamer fixture 20개 root | 환경 검사 임시 자료 | 각 로그에 bytes 기록 | verifier 자체 정리 | 20개 removed=true | 환경 로그 |
-| B08 실제 앱 두 기동 root | 소유 서버·녹화 자료 | 394,258,863B | 원출력 보존 후 verifier 자체 정리 | 서버2 exit0·포트4 closed·root absent | [B08 최종 원출력](../b08-actual-app-20260925/b08-current-integration-i02-fixed.log) |
+| B08 실제 앱 두 기동 root | 소유 서버·녹화 자료 | 394,258,863B | 원출력 보존 후 verifier 자체 정리 | 서버2 exit0·포트4 closed·root absent | [B08 최종 원출력](../b08-actual-app-20260925/public-evidence-e095881e5f53335a.txt) |
 | `/private/tmp/b08-*.log` 14개 | 이번 재검증 임시 원출력 | 개별 값 미계측 | 저장소 사본과 byte 비교 후 정확한 파일만 삭제 | 임시 14개 부재; 저장소 사본 보존 | B08 기록·직접 cmp |
 | `/private/tmp/b09-*.log` 17개 | 이번 최종 단기 임시 원출력 | 개별 값 미계측 | 필요한 출력은 저장소로 이관·cmp/gzip 해제 대조; 중단된 추가 진단의 빈 로그 포함 | 임시 17개 부재; 필요한 원출력 보존 | 이 문서 링크·직접 cmp |
 | 이번 실행이 만든 참조 없는 진단 JSON 16개 | snapshot·latency·process·state 중간 출력 | 합계 약 1.0MiB | 문서 참조 부재 확인 뒤 정확한 소유 파일만 삭제 | 16개 부재 | 실행 전후 Git 상태·참조 검색 |

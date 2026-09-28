@@ -2,7 +2,7 @@
   "command": "bash scripts/internal/verify_recording_current_observer.sh --generation-self-test",
   "exit": 1,
   "reason": "expected RED: native observe dispatch absent",
-  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-ObfDHj",
+  "root": "<owned-temp>/media-server-current-observer-ObfDHj",
   "uid": 501,
   "dev": 16777234,
   "ino": 159583735,

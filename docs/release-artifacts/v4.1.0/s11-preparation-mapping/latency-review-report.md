@@ -724,7 +724,7 @@ routeClass는 기존 redaction된원출력식별자이며 정확pattern은 recor
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-HDIZMk` | 소유앱환경/input/녹화/DB/registry | 48057398B | runner삭제 후 메인부재확인 | 삭제완료 | cleanup.rootAbsent=true |
+| `<owned-temp>/media-server-current-integration-HDIZMk` | 소유앱환경/input/녹화/DB/registry | 48057398B | runner삭제 후 메인부재확인 | 삭제완료 | cleanup.rootAbsent=true |
 
 - 서버PID 32493: exit0, signal=null, graceful=true; http 63633 closed=true, rtsp 63634 closed=true.
 - UDP closed=true, cleanup실패=0. 원출력텍스트만 저장소에보존하며 운영데이터·비밀번호·raw영상은 보존하지않았다.

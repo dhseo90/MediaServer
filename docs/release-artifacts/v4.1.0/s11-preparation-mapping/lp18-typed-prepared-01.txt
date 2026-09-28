@@ -19,6 +19,6 @@
 [pass] LP14-C02 binding=prior rejected without apply
 [pass] LP14-C02 duplicate envelope no-apply/conflict rejection
 [pass] LP14-C02 one-shot apply/reuse rejection
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.AS7QJp","bytes":9283482,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.AS7QJp","bytes":9283482,"removed":true}
 [exit] code=0 elapsed_seconds=5 source=bash-SECONDS
 [exit] code=0 elapsed_seconds=5 source=bash-SECONDS

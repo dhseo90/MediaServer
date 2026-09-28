@@ -67,13 +67,13 @@
   "excluded": {},
   "preservation": [
     {
-      "path": "/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4",
+      "path": "<home>/Workspace/mediaServer/video/sample_h264_video_only.mp4",
       "before": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
       "after": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
       "unchanged": true
     },
     {
-      "path": "/Users/dhseo/.cache/gstreamer-1.0/registry.aarch64.bin",
+      "path": "<home>/.cache/gstreamer-1.0/registry.aarch64.bin",
       "before": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
       "after": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
       "unchanged": true
@@ -105,7 +105,7 @@
   },
   "finished": "2026-09-04T11:12:09.871Z",
   "status": "중단: 임시 진단 스크립트 Node 경로 가정 오류, 사용자 승인 후 재개",
-  "nodeExecutable": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+  "nodeExecutable": "<home>/.nvm/versions/node/v24.13.0/bin/node",
   "commandPreparation": {
     "id": "PKG-02",
     "exitCode": 127,

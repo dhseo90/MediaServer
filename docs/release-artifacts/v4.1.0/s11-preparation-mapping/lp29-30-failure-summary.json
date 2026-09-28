@@ -58,7 +58,7 @@
       "processes": [
         {
           "pid": 4093,
-          "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "commandIdentity": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
           "aliveBefore": true,
           "aliveAfter": false,
           "ownedPorts": [
@@ -123,7 +123,7 @@
           "- 실패: 1",
           "- 건너뜀: 0",
           "- 소요 시간: 33s (0.6m)",
-          "- 상세 로그: /Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-015219",
+          "- 상세 로그: <home>/Workspace/mediaServer/.media_server.test/20260922-015219",
           "[결론] 실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요."
         ],
         "stderrTail": [],
@@ -679,7 +679,7 @@
       "symlinkTargetsUntouched": true
     },
     {
-      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-015219",
+      "path": "<home>/Workspace/mediaServer/.media_server.test/20260922-015219",
       "files": 4,
       "symlinks": 0,
       "bytesBefore": 13511,

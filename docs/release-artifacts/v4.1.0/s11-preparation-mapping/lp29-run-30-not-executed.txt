@@ -7,7 +7,7 @@ import net from 'node:net';
 import dgram from 'node:dgram';
 import path from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
-const root='/private/tmp/media-server-lp29.dXgaDi',repo='/Users/dhseo/Workspace/mediaServer';
+const root='/private/tmp/media-server-lp29.dXgaDi',repo='<home>/Workspace/mediaServer';
 process.umask(0o077);
 for(const d of ['output','state','events','recordings','cache','tmp'])fs.mkdirSync(path.join(root,d),{mode:0o700});
 const port=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',reject);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(e=>e?reject(e):resolve(p));});});

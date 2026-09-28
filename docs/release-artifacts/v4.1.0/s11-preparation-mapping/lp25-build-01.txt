@@ -1,10 +1,10 @@
 command: ./server.sh build
 exit: 0
 elapsed: 미계측(프로세스 전체 시간 별도 집계 없음)
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.1s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_manager.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_session_service.cpp.o
@@ -137,4 +137,4 @@ elapsed: 미계측(프로세스 전체 시간 별도 집계 없음)
 [ 99%] Building CXX object CMakeFiles/media_server.dir/src/main.cpp.o
 [100%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server

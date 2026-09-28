@@ -11,7 +11,7 @@
 | 서버·포트 정리 | 종료 시 PID 26665 정상 exit 0, HTTP 56147·RTSP 56148 포트 해제 | pass | 강제 종료 없음, process-cleanup `archiveSafe=true`, UDP 종료 |
 | 격리 root 정리 | `media-server-current-observer-d1Qq4n` | pass | 정리 직전 426,873,756 bytes, 스크립트 자체 삭제·`absent=true`; 비밀 원문 서버 로그는 root와 함께 삭제 |
 
-[원출력](recording-120-attempt1.log)은 3,567행·524,331바이트이며 SHA256 `5f7c627dd3a3c1fe5b54c476bda2588fff03b6f1e4e15ba00809fe4a2641add8`이다. 비밀번호·인증/세션·RTSP URL·HTTP URL 표식 검색 결과는 없었다. 복제본과 격리 원본의 SHA가 같고 원본 임시 디렉터리는 정리했다. 원출력의 `resourceTrendPass=false`, `reviewRequired=true`, `longrunObservationCompleted=false`를 그대로 따른다. token start/end/consumed는 전용 계측이 없어 미집계다.
+[원출력](public-evidence-7e34f22dcd0bf867.txt)은 3,567행·524,331바이트이며 SHA256 `5f7c627dd3a3c1fe5b54c476bda2588fff03b6f1e4e15ba00809fe4a2641add8`이다. 비밀번호·인증/세션·RTSP URL·HTTP URL 표식 검색 결과는 없었다. 복제본과 격리 원본의 SHA가 같고 원본 임시 디렉터리는 정리했다. 원출력의 `resourceTrendPass=false`, `reviewRequired=true`, `longrunObservationCompleted=false`를 그대로 따른다. token start/end/consumed는 전용 계측이 없어 미집계다.
 
 진단 중 읽기 전용 `du`로 확인한 중간값은 약 20분 root 374MiB·recordings 247MiB, 약 30분 root 408MiB·recordings 280MiB, 약 35분 root 407MiB였다. 35분의 recordings 분해는 두 채널 영상 디렉터리 약 79+80MiB, SQLite 본파일 약 57MiB, WAL 약 3MiB, V2 journal 약 80MiB였다. 원본 fixture 디렉터리는 약 119MiB다. 이 수치는 실패 순간의 원자적 snapshot이 아니며 저장·삭제에 따른 변동이 있다. 20분 RSS 약 309MiB → 36분 약 339MiB로 증가했으나, 이 실행만으로 allocator 캐시와 catalog resident의 비중은 확정하지 않는다.
 

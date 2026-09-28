@@ -1,5 +1,5 @@
 # 가역보존: RAW_JSON_LINE: 뒤 JSON 문자열을 원문행으로 복원하고 이 첫줄을 제외. 원출력 SHA256=cb6d70807eefcda47ce73ebd0fc99ce681afbe45d8437e0b7fc72afa1484f9b0
-[run] label=scale-32-lp16-lifetime owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.BOWDt2
+[run] label=scale-32-lp16-lifetime owned_root=<owned-temp>/media-server-catalog-cost.BOWDt2
 Apple clang version 21.0.0 (clang-2100.3.34.2)
 Target: arm64-apple-darwin27.0.0
 Thread model: posix
@@ -9,15 +9,15 @@ Darwin arm64
 3.51.0
 3.6.2
 e22a16032d86bcb81bfb01c4f91e67a92d5a703f
-d2d0032c689adaadcadd2e12fbfb0ceaaf6145fd766e8a5d40fa1c8e0a232e35  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe.cpp
-c6d53e35e97d457c01745c8e4e584d2a6ad1b822dc0f1bcb4e55d0f1a991e6fe  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_timer.h
-d937b9f794a33efc4eed9092092fca1b4667c80adac25780c90c345003845f69  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_instrument.cjs
-2561b2236c7af59e9645d51eb87a32a73595c5cecbdcc699cfd66fda2a2fe0c1  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
-85db9367ae66d997330cb8f9febe24febb2b5ff76b6363c6de3ccadc3fea0a71  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
-1ddab92dd877e87492f8c547ae9070d9e2033735dcb8c0943a81cb88efcd6883  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_scale_probe.cpp
-0013a6504ce0883bebc208bb1a0381a3433694f9eda9b2a4513c0c2f4626b629  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_run.sh
-8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_process_memory_probe.h
-2ef7bfe0d6f2506d7a5ec00c520195cf3977436dae0975749d76f7d4420e1c05  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_memory_phase.mjs
+d2d0032c689adaadcadd2e12fbfb0ceaaf6145fd766e8a5d40fa1c8e0a232e35  <home>/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe.cpp
+c6d53e35e97d457c01745c8e4e584d2a6ad1b822dc0f1bcb4e55d0f1a991e6fe  <home>/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_timer.h
+d937b9f794a33efc4eed9092092fca1b4667c80adac25780c90c345003845f69  <home>/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_instrument.cjs
+2561b2236c7af59e9645d51eb87a32a73595c5cecbdcc699cfd66fda2a2fe0c1  <home>/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+85db9367ae66d997330cb8f9febe24febb2b5ff76b6363c6de3ccadc3fea0a71  <home>/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+1ddab92dd877e87492f8c547ae9070d9e2033735dcb8c0943a81cb88efcd6883  <home>/Workspace/mediaServer/scripts/internal/recording_catalog_scale_probe.cpp
+0013a6504ce0883bebc208bb1a0381a3433694f9eda9b2a4513c0c2f4626b629  <home>/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_run.sh
+8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba  <home>/Workspace/mediaServer/scripts/internal/recording_process_memory_probe.h
+2ef7bfe0d6f2506d7a5ec00c520195cf3977436dae0975749d76f7d4420e1c05  <home>/Workspace/mediaServer/scripts/internal/recording_memory_phase.mjs
 [source] file=recording_catalog.cpp original_sha256=09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb instrumented_sha256=0cdbc97ffa3438b2d2ce36ea2cc98d8791646bcd5f8291686bd9ae35b2e69dfd
 [source] file=recording_journal.cpp original_sha256=66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e instrumented_sha256=6ce65683a70963aa8ce7d57225ae24994aff7ef07988a73f9cf64a730614a99b
 [source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
@@ -2305,5 +2305,5 @@ RAW_JSON_LINE: "[pass] LP02/commit32 commit "
            657835088  peak memory footprint
 [memory-phase] {"phase":"fixture","status":"failed","exitCode":0,"signal":null,"peakRssBytes":681492480,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"selfPeakRssBytes":681492480,"effectivePeakRssBytes":681492480,"outputOverflow":false,"spawnFailed":false}
 [bounded-exit] code=2 signal=none timeout=false
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.BOWDt2 bytes=199717723 removed=true
+[cleanup] path=<owned-temp>/media-server-catalog-cost.BOWDt2 bytes=199717723 removed=true
 [exit] code=2 elapsed_seconds=53 token_usage=unavailable source=bash-SECONDS

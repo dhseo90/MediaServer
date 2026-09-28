@@ -1,5 +1,5 @@
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-QUCEss bytes=13120279 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-QUCEss bytes=13120279 removed=true
 ✖ LP06-A08 basic failure survives missing media without file inspection (2050.081958ms)
 ℹ tests 1
 ℹ suites 0
@@ -18,7 +18,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:37:1
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:37:386)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:37:386)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {

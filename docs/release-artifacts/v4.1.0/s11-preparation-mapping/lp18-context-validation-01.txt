@@ -25,4 +25,4 @@
 [pass] LP09-S03a native profile cannot drop file evidence
 [pass] LP09-S03a overlapping substitute AU cannot replace selected identity
 [summary] pass=11 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.VOn8Yy bytes=5427528 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.VOn8Yy bytes=5427528 removed=true

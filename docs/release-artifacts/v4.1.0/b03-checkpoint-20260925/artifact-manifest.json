@@ -11,7 +11,7 @@
     "ino": 159509617,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.8QJcay",
+        "path": "<owned-temp>/media-server-generation-checkpoint.8QJcay",
         "bytes": 0,
         "reportedRemoved": true,
         "absent": true
@@ -32,7 +32,7 @@
     "ino": 159509668,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.2JO0or",
+        "path": "<owned-temp>/media-server-generation-checkpoint.2JO0or",
         "bytes": 8459851,
         "reportedRemoved": true,
         "absent": true
@@ -53,7 +53,7 @@
     "ino": 159512121,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.9hdwGw",
+        "path": "<owned-temp>/media-server-generation-checkpoint.9hdwGw",
         "bytes": 39201488,
         "reportedRemoved": true,
         "absent": true
@@ -74,7 +74,7 @@
     "ino": 159513059,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.5cwdA7",
+        "path": "<owned-temp>/media-server-generation-checkpoint.5cwdA7",
         "bytes": 42654214,
         "reportedRemoved": true,
         "absent": true
@@ -95,7 +95,7 @@
     "ino": 159514148,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.YjQQaa",
+        "path": "<owned-temp>/media-server-generation-checkpoint.YjQQaa",
         "bytes": 47960034,
         "reportedRemoved": true,
         "absent": true
@@ -116,7 +116,7 @@
     "ino": 159515592,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.H5JNa8",
+        "path": "<owned-temp>/media-server-generation-checkpoint.H5JNa8",
         "bytes": 48036436,
         "reportedRemoved": true,
         "absent": true
@@ -137,7 +137,7 @@
     "ino": 159521132,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.hErVWy",
+        "path": "<owned-temp>/media-server-generation-checkpoint.hErVWy",
         "bytes": 48036436,
         "reportedRemoved": true,
         "absent": true
@@ -214,7 +214,7 @@
     "ino": 159517161,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.xAmlp9",
+        "path": "<owned-temp>/media-server-generation-append.xAmlp9",
         "bytes": 34744710,
         "reportedRemoved": true,
         "absent": true
@@ -235,7 +235,7 @@
     "ino": 159518124,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.6AXqe6",
+        "path": "<owned-temp>/media-server-generation-preappend.6AXqe6",
         "bytes": 34316416,
         "reportedRemoved": true,
         "absent": true
@@ -256,7 +256,7 @@
     "ino": 159518764,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.eWZA7h",
+        "path": "<owned-temp>/media-server-generation-readonly.eWZA7h",
         "bytes": 32191209,
         "reportedRemoved": true,
         "absent": true
@@ -277,7 +277,7 @@
     "ino": 159519414,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.ibzPKO",
+        "path": "<owned-temp>/media-server-journal-generation-readonly.ibzPKO",
         "bytes": 11981260,
         "reportedRemoved": true,
         "absent": true
@@ -319,7 +319,7 @@
     "ino": 159520786,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.r0z5dq",
+        "path": "<owned-temp>/media-server-derived-jobs.r0z5dq",
         "bytes": 10436047,
         "reportedRemoved": true,
         "absent": true

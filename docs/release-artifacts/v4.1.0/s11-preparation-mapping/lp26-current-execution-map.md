@@ -33,7 +33,7 @@ ENV12 영속 경로는 `bash scripts/internal/verify_gst_environment_actual.sh`�
 | 범위 | 확인된 현재 상태 | 직접 근거·한계 |
 | --- | --- | --- |
 | 현행 5단계 통합 | 기존 LP25 실행에서 각 child exit0, currentIntegrationExecutionPass=true | [LP25 실제 로그](lp25-current-integration-02.txt): 35/40/10/46/25 checks. 이번 매핑에서 재실행하지 않음 |
-| 현행 observer 자체검사·실제 단기 준비 | LP26 최종 자체검사60, 실제 단기71 PASS 기록 존재 | [자체검사](lp26-observer-shared-self.log), [실제 단기](lp26-observer-shared-app-final.log). 실제 실행46.599초·관측30.155초이며 30분/120분이 아님 |
+| 현행 observer 자체검사·실제 단기 준비 | LP26 최종 자체검사60, 실제 단기71 PASS 기록 존재 | [자체검사](public-evidence-3b9a4c9fc26674a5.txt), [실제 단기](public-evidence-6d1273262d4ad8d8.txt). 실제 실행46.599초·관측30.155초이며 30분/120분이 아님 |
 | 현행 UI seed/auth 준비 | managed seed·20개 auth 준비·관련 helper 결과 기록 존재 | [LP26 준비 결과](lp26-verifier-preparation.md). wrapper 환경 격리 보완의 최종 유효성은 메인의 해당 재검증 기록 기준 |
 | 30분/120분 | LP26 실제 미실행 | 명령 연결과 `finish()` 단위시험은 실제 duration/자원 추세 증거가 아님 |
 | 실제 브라우저 | LP26 미실행 | seed, VM, HTTP API, native media 생성은 control/action·시각 증거가 아님 |

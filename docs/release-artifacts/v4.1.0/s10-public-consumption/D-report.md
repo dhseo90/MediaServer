@@ -37,17 +37,17 @@ seed 프로세스 종료 후 제품의 첫 기동이 내구 job/segment를 복�
 
 | 실제 명령 | exit/판정 | 원출력 | 경계 |
 | --- | --- | --- | --- |
-| `bash scripts/internal/verify_recording_http_seed.sh --self-test` 최초 | 1,준비 실패 | [D-SeedExpectedRed](D-SeedExpectedRed.log) | stub이 공유 Encode/Shift를 사용하지 않아 Werror 컴파일 실패; 예상RED 아님 |
-| 같은 명령 RED | 1,사전 특정1 FAIL | [D-SeedExpectedRedFixed](D-SeedExpectedRedFixed.log) | 실제 managed 원본/Complete2출력 fixture 부재 assertion |
-| 같은 명령 GREEN | 0,1 PASS | [D-SeedGreen](D-SeedGreen.log) | 실제 생성·physical 검증 및 compile temp 정리 |
-| `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-api` 첫 실행 | 1,준비 실패 | [D-HttpApi](D-HttpApi.log) | seed 검증 뒤 sandbox listen EPERM; 제품 서버 미시작·temp 정리 |
-| 같은 명령 loopback 실행 권한 승인 후 | 0,35 PASS | [D-HttpApiAuthorized](D-HttpApiAuthorized.log) | 실제 API,5075ms/cleanup612ms |
-| `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth` | 0,40 PASS | [D-HttpAuth](D-HttpAuth.log) | 실제 auth/scope,4517ms/cleanup346ms; 전체 Auth wrapper 미실행 |
-| `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-lifecycle` | 0,10 PASS | [D-HttpLifecycle](D-HttpLifecycle.log) | 유효64MiB·hold·종료,4998ms/cleanup28ms |
-| `bash scripts/internal/verify_v410_recording_timeline.sh --harness-self-test` | 0,5시나리오/40checks PASS | [D-Harness](D-Harness.log) | 기존 H01/H02/H03/H03-R01/H03-R02,31ms |
-| `./server.sh build` | 0 | [D-FinalBuild](D-FinalBuild.log) | 현재 제품 최종 build, assertion 수와 별도 |
-| `./server.sh verify-docs-links` | 0,failures0 | [D-DocsLinks](D-DocsLinks.log) | 메인 최종 spec/plan/roadmap·공개 사용법 포함; 실제 수치는 원출력 |
-| `./server.sh verify-docs-ui-assets` | 0,10 PASS | [D-DocsAssets](D-DocsAssets.log) | 자산 정책 정적 검사; 실제 브라우저/시각 검증 아님 |
+| `bash scripts/internal/verify_recording_http_seed.sh --self-test` 최초 | 1,준비 실패 | [D-SeedExpectedRed](public-evidence-d2d5f75e62c6c256.txt) | stub이 공유 Encode/Shift를 사용하지 않아 Werror 컴파일 실패; 예상RED 아님 |
+| 같은 명령 RED | 1,사전 특정1 FAIL | [D-SeedExpectedRedFixed](public-evidence-4cf2f3584aa92ce2.txt) | 실제 managed 원본/Complete2출력 fixture 부재 assertion |
+| 같은 명령 GREEN | 0,1 PASS | [D-SeedGreen](public-evidence-400285bc1e410a0f.txt) | 실제 생성·physical 검증 및 compile temp 정리 |
+| `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-api` 첫 실행 | 1,준비 실패 | [D-HttpApi](public-evidence-4ee9cd456907c7e6.txt) | seed 검증 뒤 sandbox listen EPERM; 제품 서버 미시작·temp 정리 |
+| 같은 명령 loopback 실행 권한 승인 후 | 0,35 PASS | [D-HttpApiAuthorized](public-evidence-041df22063f2bec4.txt) | 실제 API,5075ms/cleanup612ms |
+| `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth` | 0,40 PASS | [D-HttpAuth](public-evidence-23cec1b0617694a0.txt) | 실제 auth/scope,4517ms/cleanup346ms; 전체 Auth wrapper 미실행 |
+| `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-lifecycle` | 0,10 PASS | [D-HttpLifecycle](public-evidence-ee18a3fabee7ed8d.txt) | 유효64MiB·hold·종료,4998ms/cleanup28ms |
+| `bash scripts/internal/verify_v410_recording_timeline.sh --harness-self-test` | 0,5시나리오/40checks PASS | [D-Harness](public-evidence-c3f70a0f93d1b374.txt) | 기존 H01/H02/H03/H03-R01/H03-R02,31ms |
+| `./server.sh build` | 0 | [D-FinalBuild](public-evidence-893244eaf1753703.txt) | 현재 제품 최종 build, assertion 수와 별도 |
+| `./server.sh verify-docs-links` | 0,failures0 | [D-DocsLinks](public-evidence-400b9ef6c114e3aa.txt) | 메인 최종 spec/plan/roadmap·공개 사용법 포함; 실제 수치는 원출력 |
+| `./server.sh verify-docs-ui-assets` | 0,10 PASS | [D-DocsAssets](public-evidence-5519fba3c5d4848a.txt) | 자산 정책 정적 검사; 실제 브라우저/시각 검증 아님 |
 
 최초 실패→수정→동일 범위 재검증을 보존했다. loopback 실행 권한은 승인된 소유 서버에만 사용했다.
 비밀/외부 입력/운영 저장소/장시간/브라우저 작업은 수행하지 않았다.
@@ -73,6 +73,6 @@ token start/end/consumed는 실행별 계측 도구 부재로 미집계다. elap
 source는 최종 제품/fixture/runner fingerprint와 원출력이다. 실제 서버3개 모두 exit0/SIGKILL없음,
 RTSP/HTTP 동적 포트6개는 ECONNREFUSED, 소유 root는 모두 삭제됐다.
 [D-results](D-results.md)는 최종98행/과거3행, [D-cleanup](D-cleanup.md)은 기록된 소유 임시경로12개와
-프로세스/포트를 전수 보존한다. [D-fingerprints](D-fingerprints.log)는 변경 fixture/runner와 공통 helper,
-실행된 최종 binary/archive8개이며 [실제 확인](D-FingerprintCheck.log)은 모두 OK다.
+프로세스/포트를 전수 보존한다. [D-fingerprints](public-evidence-b14290c21edf8af0.txt)는 변경 fixture/runner와 공통 helper,
+실행된 최종 binary/archive8개이며 [실제 확인](public-evidence-ef6e27905764cf2a.txt)은 모두 OK다.
 커밋·푸시는 담당자가 수행하지 않았으며 메인이 최종 검토 후 수행한다.

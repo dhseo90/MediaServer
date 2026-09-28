@@ -81,6 +81,6 @@
 [pass] WR-OR03 missing EOS is rejected
 [pass] WR-OR03 frame limit exhaustion is rejected
 [summary] pass=14 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.wBln4y bytes=5322315 removed=true
+[cleanup] path=<owned-temp>/media-server-managed-writer.wBln4y bytes=5322315 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 [oracle-exit] wrapper=0 tee=0

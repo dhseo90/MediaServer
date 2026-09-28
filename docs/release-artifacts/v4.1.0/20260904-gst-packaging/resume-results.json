@@ -1,13 +1,13 @@
 {
   "cleanup": {"removed":true,"exitCode":0,"openHandlesBeforeRemoval":0,"root":"/private/tmp/media-server-gst-packaging-resume.9NfixH","files":682,"symlinks":559,"bytes":7714945,"retainedBuild":"build-gst-onnx는 승인된 제품 빌드 산출물로 유지; 임시 검사 root와 구분"},
   "started": "2026-09-04T11:19:21.138Z",
-  "node": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+  "node": "<home>/.nvm/versions/node/v24.13.0/bin/node",
   "platform": "darwin",
   "arch": "arm64",
   "cases": [
     {
       "id": "PKG-NODE",
-      "command": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+      "command": "<home>/.nvm/versions/node/v24.13.0/bin/node",
       "args": [
         "-p",
         "JSON.stringify({version:process.version,exe:process.execPath})"
@@ -16,7 +16,7 @@
       "signal": null,
       "error": null,
       "elapsedMs": 19,
-      "stdout": "{\"version\":\"v24.13.0\",\"exe\":\"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node\"}\n",
+      "stdout": "{\"version\":\"v24.13.0\",\"exe\":\"<home>/.nvm/versions/node/v24.13.0/bin/node\"}\n",
       "stderr": "",
       "gtkDuplicates": 0,
       "giMessages": 0,
@@ -31,15 +31,15 @@
         "-c",
         "source \"$1\"; media_server_apply_homebrew_gst_env; exec \"$2\" -e \"$3\"",
         "media-server-env-capture",
-        "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
-        "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+        "<home>/Workspace/mediaServer/scripts/internal/env_common.sh",
+        "<home>/.nvm/versions/node/v24.13.0/bin/node",
         "process.stdout.write(JSON.stringify(Object.fromEntries(Object.entries(process.env).filter(([k])=>/^(GST_|GI_|DYLD_|PKG_CONFIG_PATH$|HOMEBREW_PREFIX$|PATH$)/.test(k)))))"
       ],
       "exitCode": 0,
       "signal": null,
       "error": null,
       "elapsedMs": 53,
-      "stdout": "{\"GST_PLUGIN_SCANNER\":\"/opt/homebrew/Cellar/gstreamer/1.28.1/libexec/gstreamer-1.0/gst-plugin-scanner\",\"DYLD_FALLBACK_LIBRARY_PATH\":\"/opt/homebrew/lib:/usr/local/lib:/usr/lib\",\"PATH\":\"/opt/homebrew/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin\",\"HOMEBREW_PREFIX\":\"/opt/homebrew\",\"DYLD_LIBRARY_PATH\":\"/opt/homebrew/lib:/usr/local/lib:/usr/lib\",\"GST_PLUGIN_PATH\":\"/opt/homebrew/lib/gstreamer-1.0:/opt/homebrew/opt/libnice-gstreamer/libexec/gstreamer-1.0\",\"PKG_CONFIG_PATH\":\"/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig\",\"GI_TYPELIB_PATH\":\"/opt/homebrew/lib/girepository-1.0\"}",
+      "stdout": "{\"GST_PLUGIN_SCANNER\":\"/opt/homebrew/Cellar/gstreamer/1.28.1/libexec/gstreamer-1.0/gst-plugin-scanner\",\"DYLD_FALLBACK_LIBRARY_PATH\":\"/opt/homebrew/lib:/usr/local/lib:/usr/lib\",\"PATH\":\"/opt/homebrew/bin:<home>/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin\",\"HOMEBREW_PREFIX\":\"/opt/homebrew\",\"DYLD_LIBRARY_PATH\":\"/opt/homebrew/lib:/usr/local/lib:/usr/lib\",\"GST_PLUGIN_PATH\":\"/opt/homebrew/lib/gstreamer-1.0:/opt/homebrew/opt/libnice-gstreamer/libexec/gstreamer-1.0\",\"PKG_CONFIG_PATH\":\"/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig\",\"GI_TYPELIB_PATH\":\"/opt/homebrew/lib/girepository-1.0\"}",
       "stderr": "",
       "gtkDuplicates": 0,
       "giMessages": 0,
@@ -1293,7 +1293,7 @@
       "args": [
         "-q",
         "filesrc",
-        "location=/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4",
+        "location=<home>/Workspace/mediaServer/video/sample_h264_video_only.mp4",
         "!",
         "qtdemux",
         "!",
@@ -1356,12 +1356,12 @@
       "elapsedMs": 36819,
       "stdout": [
         "[env] local override skipped",
-        "[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)",
         "-- Configuring done (0.1s)",
         "-- Generating done (0.0s)",
         "[ 98%] Built target media_server_runtime",
         "[100%] Built target media_server",
-        "[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+        "[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server"
       ],
       "stderr": "",
       "gtkDuplicates": 0,
@@ -1385,7 +1385,7 @@
     ]
   },
   "environment": {
-    "PATH": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "PATH": "<home>/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
     "HOME": "/Users/dhseo",
     "LANG": "en_US.UTF-8",
     "TMPDIR": "/private/tmp/media-server-gst-packaging-resume.9NfixH",
@@ -1394,13 +1394,13 @@
   },
   "preservation": [
     {
-      "path": "/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4",
+      "path": "<home>/Workspace/mediaServer/video/sample_h264_video_only.mp4",
       "before": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
       "after": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
       "unchanged": true
     },
     {
-      "path": "/Users/dhseo/.cache/gstreamer-1.0/registry.aarch64.bin",
+      "path": "<home>/.cache/gstreamer-1.0/registry.aarch64.bin",
       "before": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
       "after": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
       "unchanged": true
@@ -1427,7 +1427,7 @@
   "commonEnvironment": {
     "GST_PLUGIN_SCANNER": "/opt/homebrew/Cellar/gstreamer/1.28.1/libexec/gstreamer-1.0/gst-plugin-scanner",
     "DYLD_FALLBACK_LIBRARY_PATH": "/opt/homebrew/lib:/usr/local/lib:/usr/lib",
-    "PATH": "/opt/homebrew/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "PATH": "/opt/homebrew/bin:<home>/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
     "HOMEBREW_PREFIX": "/opt/homebrew",
     "DYLD_LIBRARY_PATH": "/opt/homebrew/lib:/usr/local/lib:/usr/lib",
     "GST_PLUGIN_PATH": "/opt/homebrew/lib/gstreamer-1.0:/opt/homebrew/opt/libnice-gstreamer/libexec/gstreamer-1.0",
@@ -1435,7 +1435,7 @@
     "GI_TYPELIB_PATH": "/opt/homebrew/lib/girepository-1.0"
   },
   "candidateEnvironment": {
-    "PATH": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "PATH": "<home>/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
     "HOME": "/Users/dhseo",
     "LANG": "en_US.UTF-8",
     "TMPDIR": "/private/tmp/media-server-gst-packaging-resume.9NfixH",

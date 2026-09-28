@@ -67,7 +67,7 @@ identity chain 검증, 누적 prefix 직렬화·비교를 반복했다. 따라�
 [metadata5개](b11-observer-metadata-final.log.gz),
 [실제 앱 최초 실패](b11-observer-app-attempt1.log.gz),
 [실제 앱 최종 통과](b11-observer-app-attempt2.log.gz),
-[5차 저장소 비용](b11-observer-scale-final.log)에 보존한다. 실제 앱 최종 실행의 O28
+[5차 저장소 비용](public-evidence-ed394a4b90675f0c.txt)에 보존한다. 실제 앱 최종 실행의 O28
 snapshot receipt 3개도 중앙 O28 artifact 디렉터리에 보존한다.
 
 ## 정리

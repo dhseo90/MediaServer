@@ -60,11 +60,11 @@ GREEN exit=0 elapsed=0.463007125s
 [pass] D17 decoder exact duration·fallback 격리
 [pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
 [summary] pass=30 fail=2
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.dhQSSI bytes=1088888 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.dhQSSI bytes=1088888 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 
 # inventory S01~03 보완 후 동일 RED 재확인
 명령: bash scripts/internal/verify_recording_derived_selection.sh
 exit=1 pass=30 fail=2. 실패 assertion은 S01 native 구간 적용/입력 duration 독립성 두 개이며 미구현 예상 RED이다.
-cleanup=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.s03L6f bytes=1088888 removed=true; elapsed=2s source=bash-SECONDS.
+cleanup=<owned-temp>/media-server-derived-selection.s03L6f bytes=1088888 removed=true; elapsed=2s source=bash-SECONDS.
 원출력 전수는 동일 assertion 집합인 위 RED와 별개이며 이 요약을 새 실행 원출력으로 주장하지 않는다.

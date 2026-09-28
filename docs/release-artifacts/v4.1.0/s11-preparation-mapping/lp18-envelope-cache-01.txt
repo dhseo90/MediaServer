@@ -97,5 +97,5 @@ source: 03839d85 + envelope 전체필드 비교/byte 생성 중복 제거
            140804864  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=167329792 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5248,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":167329792}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.J41DW3","bytes":16892207,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.J41DW3","bytes":16892207,"removed":true}
 [exit] code=0 elapsed_seconds=36 source=bash-SECONDS

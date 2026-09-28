@@ -13,7 +13,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.SmvzAV",
+        "path": "<owned-temp>/media-server-cutover-candidate.SmvzAV",
         "bytes": 0,
         "absent": true
       }
@@ -34,7 +34,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.1IzamS",
+        "path": "<owned-temp>/media-server-cutover-candidate.1IzamS",
         "bytes": 7469008,
         "absent": true
       }
@@ -55,7 +55,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.GB5RLI",
+        "path": "<owned-temp>/media-server-cutover-candidate.GB5RLI",
         "bytes": 20782889,
         "absent": true
       }
@@ -76,7 +76,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.e8gpEn",
+        "path": "<owned-temp>/media-server-cutover-candidate.e8gpEn",
         "bytes": 7964303,
         "absent": true
       }
@@ -97,7 +97,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.IVJKbV",
+        "path": "<owned-temp>/media-server-cutover-candidate.IVJKbV",
         "bytes": 7964687,
         "absent": true
       }
@@ -118,7 +118,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.rWe74p",
+        "path": "<owned-temp>/media-server-cutover-candidate.rWe74p",
         "bytes": 21541709,
         "absent": true
       }
@@ -139,7 +139,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.nFtguk",
+        "path": "<owned-temp>/media-server-cutover-candidate.nFtguk",
         "bytes": 40613581,
         "absent": true
       }
@@ -160,7 +160,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.eQiaiH",
+        "path": "<owned-temp>/media-server-cutover-candidate.eQiaiH",
         "bytes": 48738158,
         "absent": true
       }
@@ -181,7 +181,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-candidate.ea9kpD",
+        "path": "<owned-temp>/media-server-cutover-candidate.ea9kpD",
         "bytes": 48763120,
         "absent": true
       }

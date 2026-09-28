@@ -11,7 +11,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.qBeJLk",
+        "path": "<owned-temp>/media-server-generation-append.qBeJLk",
         "bytes": 8376651,
         "reportedRemoved": true,
         "absent": true
@@ -31,7 +31,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.7DhRt0",
+        "path": "<owned-temp>/media-server-generation-append.7DhRt0",
         "bytes": 31395088,
         "reportedRemoved": true,
         "absent": true
@@ -51,7 +51,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.2rLgnO",
+        "path": "<owned-temp>/media-server-generation-append.2rLgnO",
         "bytes": 33756554,
         "reportedRemoved": true,
         "absent": true
@@ -71,7 +71,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.nUTm6m",
+        "path": "<owned-temp>/media-server-generation-append.nUTm6m",
         "bytes": 9899710,
         "reportedRemoved": true,
         "absent": true
@@ -91,7 +91,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.HT4dDw",
+        "path": "<owned-temp>/media-server-generation-append.HT4dDw",
         "bytes": 9916943,
         "reportedRemoved": true,
         "absent": true
@@ -111,7 +111,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.9x2P1u",
+        "path": "<owned-temp>/media-server-generation-append.9x2P1u",
         "bytes": 10418465,
         "reportedRemoved": true,
         "absent": true
@@ -131,7 +131,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.vjTTWj",
+        "path": "<owned-temp>/media-server-generation-append.vjTTWj",
         "bytes": 34300040,
         "reportedRemoved": true,
         "absent": true
@@ -151,7 +151,7 @@
     "dev": 16777234,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.H7cDRY",
+        "path": "<owned-temp>/media-server-generation-append.H7cDRY",
         "bytes": 34302930,
         "reportedRemoved": true,
         "absent": true
@@ -185,7 +185,7 @@
     "originalRemoved": true,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-preappend.DB0XgX",
+        "path": "<owned-temp>/media-server-generation-preappend.DB0XgX",
         "bytes": 33883904,
         "reportedRemoved": true,
         "absent": true
@@ -205,7 +205,7 @@
     "originalRemoved": true,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.TgWluM",
+        "path": "<owned-temp>/media-server-generation-readonly.TgWluM",
         "bytes": 31758665,
         "reportedRemoved": true,
         "absent": true
@@ -225,7 +225,7 @@
     "originalRemoved": true,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.Yf8GxP",
+        "path": "<owned-temp>/media-server-journal-generation-readonly.Yf8GxP",
         "bytes": 11719388,
         "reportedRemoved": true,
         "absent": true
@@ -265,7 +265,7 @@
     "originalRemoved": true,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.KB4ANR",
+        "path": "<owned-temp>/media-server-derived-jobs.KB4ANR",
         "bytes": 10433807,
         "reportedRemoved": true,
         "absent": true

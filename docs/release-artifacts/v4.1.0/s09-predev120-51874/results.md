@@ -60,7 +60,7 @@ externalTurn=false이며 원 출력의 미실행 행을 그대로 보존했다.
 - 3-code-comments.log: `./server.sh verify-code-comments`
 - 4-docs-links.log: `./server.sh verify-docs-links`
 - 5-config-json.log: `python3 -m json.tool config/codec_test_sources.json >/dev/null`
-- 6-report-summary.log: `./server.sh summarize-reports /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-091814/test-summary.json --output /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-091814/verification_report.md --html-output /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-091814/verification_report.html `
+- 6-report-summary.log: `./server.sh summarize-reports <home>/Workspace/mediaServer/.media_server.test/20260911-091814/test-summary.json --output <home>/Workspace/mediaServer/.media_server.test/20260911-091814/verification_report.md --html-output <home>/Workspace/mediaServer/.media_server.test/20260911-091814/verification_report.html `
 - 7-status.log: `./server.sh status`
 - 8-diagnose.log: `./server.sh diagnose`
 - 9-codec-file_local_h264_aac.log: `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='file_local_h264_aac' ./server.sh verify-codecs`
@@ -159,7 +159,7 @@ status의 TCP8555/HTTP8081 LISTEN 및 /health 성공, 두 RTSP ffprobe 성공이
 ```text
 [fail] rtsp_local_h265_opus: local launcher exited early
 Traceback (most recent call last):
-  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/serve_test_rtsp_source.py", line 8, in <module>
+  File "<home>/Workspace/mediaServer/scripts/internal/serve_test_rtsp_source.py", line 8, in <module>
     import gi
 ModuleNotFoundError: No module named 'gi'
 ```
@@ -191,6 +191,6 @@ binary PID39749 aliveBefore=true/aliveAfter=false, ownedPorts8555/8081, ports-cl
 | --- | --- | ---: | --- | --- |
 | /private/tmp/s09-predev120-9moPak | 격리 실행 root | 1732282 bytes | 메인 삭제 대기 | child 삭제 안 함 |
 | /private/tmp/media_server_predev-1789085881-39615 | runner log | 28143 bytes | 메인 삭제 대기 | child 삭제 안 함 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-091814 | child log/summary/report | 12478 bytes | 메인 삭제 대기 | child 삭제 안 함 |
+| <home>/Workspace/mediaServer/.media_server.test/20260911-091814 | child log/summary/report | 12478 bytes | 메인 삭제 대기 | child 삭제 안 함 |
 
 별도 검증/재실행/서버/코드 수정/커밋/푸시 없음. 원본 로그는 최종 evidence가 아니며 필요한 값은 이 파일로 이관했다. cleanup 완료는 메인 후속 기록으로 확인한다.

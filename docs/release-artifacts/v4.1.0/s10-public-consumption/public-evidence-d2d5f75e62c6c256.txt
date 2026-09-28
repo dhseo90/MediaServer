@@ -1,0 +1,10 @@
+In file included from <home>/Workspace/mediaServer/scripts/internal/recording_http_seed.cpp:2:
+<home>/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:44:9: error: unused function 'Encode' [-Werror,-Wunused-function]
+   44 | Encoded Encode(int frames, bool bframes, bool fractional,int width=160,int height=90) {
+      |         ^~~~~~
+<home>/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:115:6: error: unused function 'Shift' [-Werror,-Wunused-function]
+  115 | void Shift(Encoded& input, std::uint64_t offset) {
+      |      ^~~~~
+2 errors generated.
+[cleanup] path=<owned-temp>/media-server-http-seed.Iv0PQI bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

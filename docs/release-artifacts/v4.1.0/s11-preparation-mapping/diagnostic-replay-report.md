@@ -359,7 +359,7 @@ LP09-1 계약 add6469b 뒤 opt-in 진단을 추가했다. `node scripts/internal
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-J7uiTz | 작업소유 source/catalog/copy/cache | 81,176,678B | 안전 JSON 보존 후 삭제 | runner 부재확인 및 별도 test ! -e exit0 | 실제 원출력 |
+| <owned-temp>/media-server-current-integration-J7uiTz | 작업소유 source/catalog/copy/cache | 81,176,678B | 안전 JSON 보존 후 삭제 | runner 부재확인 및 별도 test ! -e exit0 | 실제 원출력 |
 | PID44810, HTTP53031/RTSP53032, owned UDP | 검증 서버/소켓 | 비대상 | 종료 | 서버 exit0·포트 반환·UDPclosed=true | cleanup |
 
 ## 2026-09-17 LP08 완료 작업 진단 도구
@@ -434,30 +434,30 @@ JS 예상 RED: 함수 미구현 8개 실패(exit1), owned root8개 모두 삭제
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1lY4lg | 소유 fixture | 819B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mPoPxJ | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B9qAup | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8ncG5P | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gc7uWW | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RFkGhP | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yath9n | 소유 fixture | 8B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XvQdNC | 소유 fixture | 96B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqjAIB | 소유 fixture | 1619B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HGXwts | 소유 fixture | 1619B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-agluh8 | 소유 fixture | 1620B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RAqVAI | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Bw8nfI | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-LNW4Yi | 소유 fixture | 8B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8bQ6J5 | 소유 fixture | 1601B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UdzGaq | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EzHvAL | 소유 fixture | 98B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MpCXtt | 소유 fixture | 1954B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-suE12t | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QmoGW0 | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tadrrN | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vkyRqv | 소유 fixture | 274B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MvTryv | 소유 fixture | 97B | 삭제 | 부재 확인 | JS 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fN58rr | 소유 fixture | 163B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-1lY4lg | 소유 fixture | 819B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-mPoPxJ | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-B9qAup | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-8ncG5P | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-gc7uWW | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-RFkGhP | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-yath9n | 소유 fixture | 8B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-XvQdNC | 소유 fixture | 96B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-WqjAIB | 소유 fixture | 1619B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-HGXwts | 소유 fixture | 1619B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-agluh8 | 소유 fixture | 1620B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-RAqVAI | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-Bw8nfI | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-LNW4Yi | 소유 fixture | 8B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-8bQ6J5 | 소유 fixture | 1601B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-UdzGaq | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-EzHvAL | 소유 fixture | 98B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-MpCXtt | 소유 fixture | 1954B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-suE12t | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-QmoGW0 | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-tadrrN | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-vkyRqv | 소유 fixture | 274B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-MvTryv | 소유 fixture | 97B | 삭제 | 부재 확인 | JS 원출력 |
+| <owned-temp>/recording-capture-fN58rr | 소유 fixture | 163B | 삭제 | 부재 확인 | JS 원출력 |
 
 ### C++ 개별 결과와 정리
 
@@ -524,10 +524,10 @@ JS 예상 RED: 함수 미구현 8개 실패(exit1), owned root8개 모두 삭제
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-BrEL8J | 소유 fixture | 17260040B | 삭제 | 부재 확인 | C++ 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-t8szU2 | 소유 fixture | 34149108B | 삭제 | 부재 확인 | C++ 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-3CIBfm | 소유 fixture | 16296156B | 삭제 | 부재 확인 | C++ 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-EsDoTg | 소유 fixture | 20913808B | 삭제 | 부재 확인 | C++ 원출력 |
+| <owned-temp>/media-server-archive-probe-tests-BrEL8J | 소유 fixture | 17260040B | 삭제 | 부재 확인 | C++ 원출력 |
+| <owned-temp>/media-server-archive-probe-tests-t8szU2 | 소유 fixture | 34149108B | 삭제 | 부재 확인 | C++ 원출력 |
+| <owned-temp>/media-server-archive-probe-tests-3CIBfm | 소유 fixture | 16296156B | 삭제 | 부재 확인 | C++ 원출력 |
+| <owned-temp>/media-server-archive-probe-tests-EsDoTg | 소유 fixture | 20913808B | 삭제 | 부재 확인 | C++ 원출력 |
 
 ## 2026-09-17 LP07 실제앱 재개 결과와 중단 판정
 
@@ -856,8 +856,8 @@ HTTP 총293개, sequence1~293 연속 누락없음=true. 모든 HTTP·5개검사 
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-J53GFh | 기동 전 소유fixture/cache | 22283408B | 삭제 | rootAbsent=true,processes[] | preflight 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-WDi1pN | 실제앱fixture/영상/DB/cache | 52592619B | PID43099 exit0/HTTP52456·RTSP52457·UDP반환후삭제 | rootAbsent=true/failureCount0, 별도 test ! -e 성공 | actual 출력 |
+| <owned-temp>/media-server-current-integration-J53GFh | 기동 전 소유fixture/cache | 22283408B | 삭제 | rootAbsent=true,processes[] | preflight 출력 |
+| <owned-temp>/media-server-current-integration-WDi1pN | 실제앱fixture/영상/DB/cache | 52592619B | PID43099 exit0/HTTP52456·RTSP52457·UDP반환후삭제 | rootAbsent=true/failureCount0, 별도 test ! -e 성공 | actual 출력 |
 
 안전요약 HTTP원출력/실행기록만 저장소보존. credentials/raw source URL/영상/원장본문은 이관하지 않았다. 후속진행 판단: 같은실패를무작정재시도하지 않고 과거미재현실패를 열린이슈로유지할지, 현재재현되는partial/대기정책을별도경로로먼저다룰지 사용자의 순서판단이필요하다. 이번 승인된순서를 임의변경하지 않는다.
 
@@ -1018,23 +1018,23 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-b2GAVT | 검증 소유 임시 증거/자식 fixture | 1619B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0BBlhV | 검증 소유 임시 증거/자식 fixture | 1619B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-egFfZP | 검증 소유 임시 증거/자식 fixture | 1620B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-S7YB8X | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qCkYrK | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-IkW63W | 검증 소유 임시 증거/자식 fixture | 8B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-lOKdH2 | 검증 소유 임시 증거/자식 fixture | 1601B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xf4iL3 | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tBVw0a | 검증 소유 임시 증거/자식 fixture | 98B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uWHNav | 검증 소유 임시 증거/자식 fixture | 1954B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AMCFXy | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kSmsCv | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5IanNM | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-p5vhGI | 검증 소유 임시 증거/자식 fixture | 274B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fiPcPx | 검증 소유 임시 증거/자식 fixture | 97B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gxy7YQ | 검증 소유 임시 증거/자식 fixture | 163B | 삭제 | removed=true | 최종49 출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-XfPBy1 | 실제 C++ 연결 fixture/media/cache | 14965736B | 삭제 | removed=true | B10 출력 |
+| <owned-temp>/recording-capture-b2GAVT | 검증 소유 임시 증거/자식 fixture | 1619B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-0BBlhV | 검증 소유 임시 증거/자식 fixture | 1619B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-egFfZP | 검증 소유 임시 증거/자식 fixture | 1620B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-S7YB8X | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-qCkYrK | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-IkW63W | 검증 소유 임시 증거/자식 fixture | 8B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-lOKdH2 | 검증 소유 임시 증거/자식 fixture | 1601B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-xf4iL3 | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-tBVw0a | 검증 소유 임시 증거/자식 fixture | 98B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-uWHNav | 검증 소유 임시 증거/자식 fixture | 1954B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-AMCFXy | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-kSmsCv | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-5IanNM | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-p5vhGI | 검증 소유 임시 증거/자식 fixture | 274B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-fiPcPx | 검증 소유 임시 증거/자식 fixture | 97B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/recording-capture-gxy7YQ | 검증 소유 임시 증거/자식 fixture | 163B | 삭제 | removed=true | 최종49 출력 |
+| <owned-temp>/media-server-archive-probe-tests-XfPBy1 | 실제 C++ 연결 fixture/media/cache | 14965736B | 삭제 | removed=true | B10 출력 |
 
 
 초기 helper 반복의 개별root 크기는 미계측이었다. 매 실행 finally의 root 삭제·부재 assertion은 수행했고, 최종16개부터 path/bytes/removed를 원출력에 추가했다. 네트워크 서버/포트는 이번 자체검사에서 기동하지 않았다. 오류·timeout용 자식은 spawnSync 종료 결과 확인, 최초/상세/재현 테스트 파일과 fake canary는 소유root에서 삭제했다.
@@ -1106,7 +1106,7 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 | A-35 | LP06-A05 code4 exact known (353.964125ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
 | A-36 | LP06-A05 code5 exact known (380.004958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
 
-`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-9O6kDj bytes=26189606 removed=true`
+`[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-9O6kDj bytes=26189606 removed=true`
 
 ### archive-diagnose-lp06-red2.txt
 
@@ -1120,7 +1120,7 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 | A-4 | LP06-A03 missing copy media preserves failed diagnosis (1979.351084ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
 | A-5 | LP06-A04 corrupt copy media preserves failed diagnosis (353.95825ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
 
-`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-hOcNIF bytes=13603153 removed=true`
+`[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-hOcNIF bytes=13603153 removed=true`
 
 ### archive-diagnose-lp06-green.txt
 
@@ -1155,7 +1155,7 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 | A-25 | LP05-03 rejects symlink copy without original mutation (275.041458ms) | pass | 해당 source/범위 검증 |
 | A-26 | LP05-03 rejects hardlink copy without original mutation (282.20925ms) | pass | 해당 source/범위 검증 |
 
-`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-a3Ko43 bytes=26141775 removed=true`
+`[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-a3Ko43 bytes=26141775 removed=true`
 
 ### archive-diagnose-basic-red.txt
 
@@ -1167,7 +1167,7 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 | A-2 | failing tests: | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
 | A-3 | LP06-A08 basic failure survives missing media without file inspection (2050.081958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
 
-`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-QUCEss bytes=13120279 removed=true`
+`[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-QUCEss bytes=13120279 removed=true`
 
 ### archive-diagnose-basic-green.txt
 
@@ -1203,7 +1203,7 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 | A-26 | LP05-03 rejects symlink copy without original mutation (274.928583ms) | pass | 해당 source/범위 검증 |
 | A-27 | LP05-03 rejects hardlink copy without original mutation (273.59425ms) | pass | 해당 source/범위 검증 |
 
-`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-vyrkuU bytes=26642674 removed=true`
+`[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-vyrkuU bytes=26642674 removed=true`
 
 ### archive-diagnose-basic-corrupt-green.txt
 
@@ -1213,7 +1213,7 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 | --- | --- | --- | --- |
 | A-1 | LP06-A08 basic failure survives corrupt media without file inspection (1892.549ms) | pass | 해당 source/범위 검증 |
 
-`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Xq4sAj bytes=13120318 removed=true`
+`[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-Xq4sAj bytes=13120318 removed=true`
 
 
 최종 문서검사: `git diff --check` exit0, `./server.sh verify-docs-links` exit0(282md/8655links/22images/110anchors,fail0). 실제root 부재도 별도 확인했다. 제품 전체빌드·UI/장시간·누적catalog·릴리즈 외부변경은미실행이다. 단기재현 준비와 실제 실패미재현을 분리해보고한다.
@@ -1240,8 +1240,8 @@ B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-irW1ve | 환경격리testroot | 18181668B | 삭제 | removed=true | isolated-env 원출력 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-qROJ8g | 실제app fixture/DB/영상/cache | 53530030B | PID38900 exit0·HTTP51460/RTSP51461/UDP반환후삭제 | rootAbsent=true | actual 원출력 |
+| <owned-temp>/media-server-archive-probe-tests-irW1ve | 환경격리testroot | 18181668B | 삭제 | removed=true | isolated-env 원출력 |
+| <owned-temp>/media-server-current-integration-qROJ8g | 실제app fixture/DB/영상/cache | 53530030B | PID38900 exit0·HTTP51460/RTSP51461/UDP반환후삭제 | rootAbsent=true | actual 원출력 |
 
 ## 최종 helper33개
 

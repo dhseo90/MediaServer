@@ -534,7 +534,7 @@ suite integrationExecutionPass=true/fullFoundationPass=false/resourceTrendPass=f
 | 522 | [pass] RT07 supported process measurements 3 | pass |
 | 523 | [pass] RT08 wrapper completed and cleanup absent | pass |
 | 524 | [pass] AP12 distinct loopback ports | pass |
-| 525 | [pass] AP12 actual foreground healthy \| pid=28017 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-7yLNdP | pass |
+| 525 | [pass] AP12 actual foreground healthy \| pid=28017 cwd=<owned-temp>/media-server-s09-foundation-7yLNdP | pass |
 | 526 | [pass] AP10-B production setup \| status=302 | pass |
 | 527 | [pass] AP10-B production login \| status=302 | pass |
 | 528 | [pass] POST /ops/api/users \| status=201 | pass |
@@ -799,7 +799,7 @@ suite integrationExecutionPass=true/fullFoundationPass=false/resourceTrendPass=f
 | 787 | [pass] AP01 positive UTC/PTS seg-9101-1789082286589-5 | pass |
 | 788 | [pass] AP01 actual bytes SHA seg-9101-1789082286589-5 \| bytes=3149221 sha256=cc7fa12155c42246356c7308d89c5c948051777a62028bc4d92c98e6ed4a10ec | pass |
 | 789 | [pass] AP12 distinct loopback ports | pass |
-| 790 | [pass] AP12 actual foreground healthy \| pid=28037 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-7yLNdP | pass |
+| 790 | [pass] AP12 actual foreground healthy \| pid=28037 cwd=<owned-temp>/media-server-s09-foundation-7yLNdP | pass |
 | 791 | [pass] AP10-B production login \| status=302 | pass |
 | 792 | [pass] AP10-B production login \| status=302 | pass |
 | 793 | [pass] AP10-B production login \| status=302 | pass |
@@ -1067,5 +1067,5 @@ suite integrationExecutionPass=true/fullFoundationPass=false/resourceTrendPass=f
 | 1055 | [pass] AP12 port absent 50679 | pass |
 | 1056 | [pass] AP12 port absent 50805 | pass |
 | 1057 | [pass] AP12 port absent 50806 | pass |
-| 1058 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-7yLNdP bytes=322688966 absent=true | pass |
+| 1058 | [pass] AP12 root cleanup \| path=<owned-temp>/media-server-s09-foundation-7yLNdP bytes=322688966 absent=true | pass |
 | 1059 | [pass] AP wrapper completed and cleanup absent | pass |

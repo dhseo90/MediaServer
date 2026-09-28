@@ -33,7 +33,7 @@
 
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
 | --- | --- | --- | --- |
-| 실제 공통 환경 | `/bin/bash -c "set -euo pipefail; source '/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh'; media_server_apply_homebrew_gst_env; '/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node' -e 'process.stdout.write(JSON.stringify(process.env))'"`; exit 0, 149ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
+| 실제 공통 환경 | `/bin/bash -c "set -euo pipefail; source '<home>/Workspace/mediaServer/scripts/internal/env_common.sh'; media_server_apply_homebrew_gst_env; '<home>/.nvm/versions/node/v24.13.0/bin/node' -e 'process.stdout.write(JSON.stringify(process.env))'"`; exit 0, 149ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | cold 검색 | `gst-inspect-1.0`; exit 0, 1103ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | warm 검색 | `gst-inspect-1.0`; exit 0, 88ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | blacklist 관찰 | `gst-inspect-1.0 -b`; exit 0, 81ms | pass | Blacklisted files:<br>  libgstvalidatessim.dylib<br><br>Total count: 1 blacklisted file<br> |
@@ -128,10 +128,10 @@
 | factory inspect rtpopusdepay | `gst-inspect-1.0 rtpopusdepay`; exit 0, 76ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | factory make rtpopusdepay | `/private/tmp/media-server-gst-env-recheck.YEjVi4/factory rtpopusdepay`; exit 0, 34ms | pass | {"factory":"rtpopusdepay","created":true,"ready":false}<br> |
 | WebRTC READY | `/private/tmp/media-server-gst-env-recheck.YEjVi4/factory --ready`; exit 0, 39ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
-| 무음 H264 decode | `gst-launch-1.0 -q filesrc location=/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4 "!" qtdemux "!" h264parse "!" avdec_h264 "!" fakesink sync=false`; exit 0, 129ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
+| 무음 H264 decode | `gst-launch-1.0 -q filesrc location=<home>/Workspace/mediaServer/video/sample_h264_video_only.mp4 "!" qtdemux "!" h264parse "!" avdec_h264 "!" fakesink sync=false`; exit 0, 129ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | priority compile 0 | `"c++" "-std=c++17" -dynamiclib -fPIC "-DENV_TEST_FACTORY=\"envpriorityfirst\"" /private/tmp/media-server-gst-env-recheck.YEjVi4/priority.cpp -I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -I/opt/homebrew/Cellar/glib/2.86.4/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -L/opt/homebrew/Cellar/gstreamer/1.28.1/lib -lgstreamer-1.0 "-Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib" -L/opt/homebrew/Cellar/glib/2.86.4/lib -lgobject-2.0 -lglib-2.0 -L/opt/homebrew/opt/gettext/lib -lintl -o "/private/tmp/media-server-gst-env-recheck.YEjVi4/priority 0/libgstenvpriority.so"`; exit 0, 83ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | priority compile 1 | `"c++" "-std=c++17" -dynamiclib -fPIC "-DENV_TEST_FACTORY=\"envprioritysecond\"" /private/tmp/media-server-gst-env-recheck.YEjVi4/priority.cpp -I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -I/opt/homebrew/Cellar/glib/2.86.4/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -L/opt/homebrew/Cellar/gstreamer/1.28.1/lib -lgstreamer-1.0 "-Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib" -L/opt/homebrew/Cellar/glib/2.86.4/lib -lgobject-2.0 -lglib-2.0 -L/opt/homebrew/opt/gettext/lib -lintl -o "/private/tmp/media-server-gst-env-recheck.YEjVi4/priority 1/libgstenvpriority.so"`; exit 0, 84ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
-| 사용자 root 순서 적용 | `/bin/bash -c "set -euo pipefail; source '/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh'; media_server_apply_homebrew_gst_env; '/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node' -e 'process.stdout.write(JSON.stringify(process.env))'"`; exit 0, 142ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
+| 사용자 root 순서 적용 | `/bin/bash -c "set -euo pipefail; source '<home>/Workspace/mediaServer/scripts/internal/env_common.sh'; media_server_apply_homebrew_gst_env; '<home>/.nvm/versions/node/v24.13.0/bin/node' -e 'process.stdout.write(JSON.stringify(process.env))'"`; exit 0, 142ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | 실제 중복 basename 선택 | `gst-inspect-1.0 envpriority`; exit 0, 1449ms | pass | 원문은 runtime-results.json의 동일 id 참조 |
 | S05 회귀 | `./server.sh verify-v410-event-recording`; exit 1, 220ms | fail | [S05 등록/결과 대조] FAIL: legacy 986 + S05 27 총계 불일치<br> |
 
@@ -195,26 +195,26 @@
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_y8adcwsg | fixture | 225704B / 16파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_ahrk_cs0 | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_g599r0a2 | fixture | 2424B / 17파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_ihkvsjry | fixture | 2470B / 21파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_0f_m9zhy | fixture | 215983B / 19파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_z0e9tt0w | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_li7tdcog | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_9yovbybu | fixture | 4078B / 21파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_7zuk14qs | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_ophwe_hl | fixture | 8903B / 18파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_7xherpno | fixture | 361B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_ojl4y3t0 | fixture | 6218B / 19파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_jv32vpyc | fixture | 362B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_9_me3c9j | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_ckiv3y2m | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_l5dimy98 | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_9o2bglp0 | fixture | 362B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_1ru69tri | fixture | 2137B / 16파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_mjcnti07 | fixture | 362B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_gst_env_td702sz9 | fixture | 3638B / 19파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_y8adcwsg | fixture | 225704B / 16파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_ahrk_cs0 | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_g599r0a2 | fixture | 2424B / 17파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_ihkvsjry | fixture | 2470B / 21파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_0f_m9zhy | fixture | 215983B / 19파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_z0e9tt0w | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_li7tdcog | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_9yovbybu | fixture | 4078B / 21파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_7zuk14qs | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_ophwe_hl | fixture | 8903B / 18파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_7xherpno | fixture | 361B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_ojl4y3t0 | fixture | 6218B / 19파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_jv32vpyc | fixture | 362B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_9_me3c9j | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_ckiv3y2m | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_l5dimy98 | fixture | 2005B / 15파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_9o2bglp0 | fixture | 362B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_1ru69tri | fixture | 2137B / 16파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_mjcnti07 | fixture | 362B / 11파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
+| <owned-temp>/media_server_gst_env_td702sz9 | fixture | 3638B / 19파일 | 소유한 전용 root 삭제 | 부재 확인 | unit-results.json |
 | /private/tmp/media-server-gst-env-recheck.YEjVi4 | 실제 plugin·registry·probe | 3303755B / 566파일 | 전용 root 삭제 | 부재 확인 | runtime-results.json |
 
 원본 sample·사용자 registry·GTK3/GTK4/Python 플러그인 5개 SHA는 모두 불변이다. JSON의 원문에는 credential/session/token이 포함되지 않는 최소 테스트 환경만 기록했다.

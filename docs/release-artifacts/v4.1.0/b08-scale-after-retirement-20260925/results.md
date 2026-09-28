@@ -8,11 +8,11 @@
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| B08-C01 예상 RED | 전체 완료 lock/span 집계 없는 기존 64행 ring 반례 | fail | 새 검사 1 PASS/1 FAIL. 이전 최대값이 tail 밖으로 밀리면 독립 집계 부재를 검출. [원출력](b08-scale-trace-red.log) |
-| B08-C01 집중 GREEN | tail 밖 최대값·동시 count·disabled 무출력 | pass | 2/2, [원출력](b08-scale-trace-green.log) |
-| B08-C01 기존 호환 | 신규 2개+기존 trace 24개 | pass | 26/26, [원출력](b08-scale-trace-compat.log) |
-| B08-C01 작은 실제 누적 | `bounded-small`, 원본 1/16/32개, 각 2N mutation 완전 drain·현재 snapshot 정확 1개·hash/재개방·보호 | pass | exit0, 75초. snapshot 1개 크기 1,881/26,170/52,170B, 32개 total 160,667,474B. [원출력](b08-scale-small.log) |
-| B08-C01 삭제 실제 누적 | `bounded-deleted`, 원본 1,020/2,049개, 각 4N mutation 완전 drain·현재 snapshot 정확 1개·삭제/재개방·보호 | pass | exit0, 125초. snapshot 3,487,953/7,027,713B, total 30,121,755/59,925,722B. [원출력](b08-scale-deleted.log) |
+| B08-C01 예상 RED | 전체 완료 lock/span 집계 없는 기존 64행 ring 반례 | fail | 새 검사 1 PASS/1 FAIL. 이전 최대값이 tail 밖으로 밀리면 독립 집계 부재를 검출. [원출력](public-evidence-8b124695b15d65c6.txt) |
+| B08-C01 집중 GREEN | tail 밖 최대값·동시 count·disabled 무출력 | pass | 2/2, [원출력](public-evidence-65f7563235b909bd.txt) |
+| B08-C01 기존 호환 | 신규 2개+기존 trace 24개 | pass | 26/26, [원출력](public-evidence-4abdbc17ac279ff6.txt) |
+| B08-C01 작은 실제 누적 | `bounded-small`, 원본 1/16/32개, 각 2N mutation 완전 drain·현재 snapshot 정확 1개·hash/재개방·보호 | pass | exit0, 75초. snapshot 1개 크기 1,881/26,170/52,170B, 32개 total 160,667,474B. [원출력](public-evidence-996e7098eb0aa062.txt) |
+| B08-C01 삭제 실제 누적 | `bounded-deleted`, 원본 1,020/2,049개, 각 4N mutation 완전 drain·현재 snapshot 정확 1개·삭제/재개방·보호 | pass | exit0, 125초. snapshot 3,487,953/7,027,713B, total 30,121,755/59,925,722B. [원출력](public-evidence-9cc037b173f6646b.txt) |
 
 두 누적 명령 모두 제품 reserve/finalize/request-delete/complete-delete를 원본마다
 수행했다. 바뀐 것은 검증 전용 native observer의 호출 간격뿐이다. 삭제 모드는

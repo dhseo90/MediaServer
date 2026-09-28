@@ -18,20 +18,20 @@
 | 원출력 / 메타 | 명령 | exit | 시작 UTC | 종료 UTC | elapsed ms |
 | --- | --- | --- | --- | --- | --- |
 | pf-red.log / pf-red.json | 명령 메타 없음: 당시 실행은 node scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 1 | 2026-09-21T23:06:22.113Z | 미기록 | 19485.228583 |
-| pf-policy-green.log / pf-policy-green.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 1 | 2026-09-21T23:08:19.208Z | 2026-09-21T23:08:19.300Z | 91.606625 |
-| pf-final-1.log / pf-final-1.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_exact_core_oracles_contract.mjs | 0 | 2026-09-21T23:17:10.488Z | 2026-09-21T23:17:12.201Z | 1712.486917 |
-| pf-final-2.log / pf-final-2.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_exact_oracle_catalog_contract.mjs | 0 | 2026-09-21T23:17:12.202Z | 2026-09-21T23:17:12.309Z | 106.870583 |
-| pf-final-3.log / pf-final-3.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs | 0 | 2026-09-21T23:17:12.309Z | 2026-09-21T23:17:28.787Z | 16478.188833 |
-| pf-final-4.log / pf-final-4.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 0 | 2026-09-21T23:17:28.787Z | 2026-09-21T23:17:49.166Z | 20378.763458 |
-| pf-final-5.log / pf-final-5.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs | 1 | 2026-09-21T23:17:49.166Z | 2026-09-21T23:17:58.256Z | 9089.241917 |
-| pf06-bundle.log / pf06-bundle.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs | 0 | 2026-09-21T23:19:42.272Z | 2026-09-21T23:19:51.285Z | 9012.637833 |
-| pf06-runtime.log / pf06-runtime.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_exact_oracle_runtime_contract.mjs | 0 | 2026-09-21T23:19:51.286Z | 2026-09-21T23:19:52.050Z | 763.621209 |
-| pf06-syntax-0.log / pf06-syntax-0.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs | 0 | 2026-09-21T23:19:52.050Z | 2026-09-21T23:19:52.078Z | 27.51175 |
-| pf06-syntax-1.log / pf06-syntax-1.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_v390_test_acceptance_bundle.mjs | 0 | 2026-09-21T23:19:52.078Z | 2026-09-21T23:19:52.101Z | 23.159791 |
-| pf06-syntax-2.log / pf06-syntax-2.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 0 | 2026-09-21T23:19:52.101Z | 2026-09-21T23:19:52.123Z | 21.553083 |
-| pf06-syntax-3.log / pf06-syntax-3.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs | 0 | 2026-09-21T23:19:52.123Z | 2026-09-21T23:19:52.144Z | 21.150583 |
-| pf06-syntax-4.log / pf06-syntax-4.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/v390_ui_exact_core_oracles.mjs | 0 | 2026-09-21T23:19:52.144Z | 2026-09-21T23:19:52.165Z | 20.09275 |
-| pf06-syntax-5.log / pf06-syntax-5.json | /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_v390_ui_exact_core_oracles_contract.mjs | 0 | 2026-09-21T23:19:52.165Z | 2026-09-21T23:19:52.184Z | 19.11475 |
+| pf-policy-green.log / pf-policy-green.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 1 | 2026-09-21T23:08:19.208Z | 2026-09-21T23:08:19.300Z | 91.606625 |
+| pf-final-1.log / pf-final-1.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_exact_core_oracles_contract.mjs | 0 | 2026-09-21T23:17:10.488Z | 2026-09-21T23:17:12.201Z | 1712.486917 |
+| pf-final-2.log / pf-final-2.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_exact_oracle_catalog_contract.mjs | 0 | 2026-09-21T23:17:12.202Z | 2026-09-21T23:17:12.309Z | 106.870583 |
+| pf-final-3.log / pf-final-3.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs | 0 | 2026-09-21T23:17:12.309Z | 2026-09-21T23:17:28.787Z | 16478.188833 |
+| pf-final-4.log / pf-final-4.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 0 | 2026-09-21T23:17:28.787Z | 2026-09-21T23:17:49.166Z | 20378.763458 |
+| pf-final-5.log / pf-final-5.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs | 1 | 2026-09-21T23:17:49.166Z | 2026-09-21T23:17:58.256Z | 9089.241917 |
+| pf06-bundle.log / pf06-bundle.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs | 0 | 2026-09-21T23:19:42.272Z | 2026-09-21T23:19:51.285Z | 9012.637833 |
+| pf06-runtime.log / pf06-runtime.json | <home>/.nvm/versions/node/v24.13.0/bin/node scripts/internal/verify_v390_ui_exact_oracle_runtime_contract.mjs | 0 | 2026-09-21T23:19:51.286Z | 2026-09-21T23:19:52.050Z | 763.621209 |
+| pf06-syntax-0.log / pf06-syntax-0.json | <home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs | 0 | 2026-09-21T23:19:52.050Z | 2026-09-21T23:19:52.078Z | 27.51175 |
+| pf06-syntax-1.log / pf06-syntax-1.json | <home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_v390_test_acceptance_bundle.mjs | 0 | 2026-09-21T23:19:52.078Z | 2026-09-21T23:19:52.101Z | 23.159791 |
+| pf06-syntax-2.log / pf06-syntax-2.json | <home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs | 0 | 2026-09-21T23:19:52.101Z | 2026-09-21T23:19:52.123Z | 21.553083 |
+| pf06-syntax-3.log / pf06-syntax-3.json | <home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs | 0 | 2026-09-21T23:19:52.123Z | 2026-09-21T23:19:52.144Z | 21.150583 |
+| pf06-syntax-4.log / pf06-syntax-4.json | <home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/v390_ui_exact_core_oracles.mjs | 0 | 2026-09-21T23:19:52.144Z | 2026-09-21T23:19:52.165Z | 20.09275 |
+| pf06-syntax-5.log / pf06-syntax-5.json | <home>/.nvm/versions/node/v24.13.0/bin/node --check scripts/internal/verify_v390_ui_exact_core_oracles_contract.mjs | 0 | 2026-09-21T23:19:52.165Z | 2026-09-21T23:19:52.184Z | 19.11475 |
 | pf06-diff.log / pf06-diff.json | git diff --check | 0 | 2026-09-21T23:19:52.184Z | 2026-09-21T23:19:52.244Z | 59.814958 |
 
 ## 최종 개별 217행

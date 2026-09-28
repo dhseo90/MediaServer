@@ -1,4 +1,4 @@
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-PIdNao bytes=15158518 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-PIdNao bytes=15158518 removed=true
 ✔ LP05-01 typed failed known0 (2102.519375ms)
 ✔ LP05-01 typed failed known1 (1517.22775ms)
 ✔ LP05-01 typed failed known2 (1525.28575ms)

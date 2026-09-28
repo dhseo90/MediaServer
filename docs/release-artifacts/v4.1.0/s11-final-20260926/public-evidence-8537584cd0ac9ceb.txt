@@ -1,0 +1,16 @@
+^D[scope] cold selected row; full archive SHA IO; physical admission; legacy 16MiB logical decompression bound
+[start] 2026-09-27T01:59:55Z
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  <home>/Workspace/mediaServer/src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  <home>/Workspace/mediaServer/src/recording/recording_contracts.cpp
+03feb3de6dcad84c62ee1b891b3cc50d0a8d14134f40bd428828df0fa7a8b8c6  <home>/Workspace/mediaServer/src/recording/recording_journal.cpp
+3dcdd1d4f24b89402ac951f51939c405ae5c5b77a0c88b64f0790d090903b248  <home>/Workspace/mediaServer/src/recording/recording_generation_manifest.cpp
+13959bfc857110f7533a659d426a8c67f86b505b75ab0844dd35f3a073abf83a  <home>/Workspace/mediaServer/src/recording/recording_generation_cold_mutation.cpp
+85f4d5d761e904a98bb7ecda8cb6f6761970f3b899d066c0b635f7b6560734ad  <home>/Workspace/mediaServer/scripts/internal/recording_generation_cold_mutation_smoke.cpp
+7f43b0b3e7e38a7878dfb9eb5b1b1fcb87fd37c2856bfaf1febc460a4dde564e  <home>/Workspace/mediaServer/include/recording/recording_generation_cold_mutation.h
+be5b4d33bf63ce51a52d81d6ebc98ed649333b3474c72de384bfa04798b1b480  <home>/Workspace/mediaServer/scripts/internal/verify_recording_generation_cold_mutation.sh
+B02-C01 PASS
+B02-C02 PASS
+B02-C03 PASS
+B02-C04 PASS
+[end] 2026-09-27T01:59:59Z
+[cleanup] path=<owned-temp>/media-server-generation-cold.4XbaNz bytes=2618243 removed=true

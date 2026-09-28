@@ -1,5 +1,5 @@
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-irW1ve bytes=18181668 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-irW1ve bytes=18181668 removed=true
 ✔ LP05-01 typed failed known0 (1943.891375ms)
 ✔ LP05-01 typed failed known1 (349.027958ms)
 ✔ LP05-01 typed failed known2 (349.870208ms)

@@ -346,6 +346,6 @@
 [writer-reference] case=reference factory=avdec_h264 output_corrupt_applicable=1 output_corrupt=0 configured=1 count=20 eos=1 corrupt_boundary_bits=0 invalid_pts_boundary_bits=0 bus_errors=0 bus_warnings=0 reason=none
 [pass] WR01 actual appsink observation flows through managed writer and decode
 [summary] pass=46 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.Dh60ZS bytes=16932062 removed=true
+[cleanup] path=<owned-temp>/media-server-managed-writer.Dh60ZS bytes=16932062 removed=true
 [elapsed] seconds=12 source=bash-SECONDS
 [reference-exit] wrapper=0 tee=0

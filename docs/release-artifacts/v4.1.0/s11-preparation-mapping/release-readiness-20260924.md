@@ -98,9 +98,9 @@ O25의 최신 정리 전수는 [O25 개별 결과](../lp26-o10-accumulation-2026
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-W2iVBH` | O21 실제 앱 | 397,914,204바이트 | 계측 충돌 후 PID 부재·소유권·비링크를 확인하고 해당 root만 제거 | 수동 제거·부재 확인, 원출력은 실패로 보존 | [O21 원출력](../lp26-o10-accumulation-20260923/o21-targeted-actual-app.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-py5HFT` | O22 실제 앱 | 375,854,587바이트 | 검증기 정리 | root 부재·실패 0 | [O22 원출력](../lp26-o10-accumulation-20260923/o22-targeted-actual-app.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-5u0IJc` | O23 실제 앱 | 398,618,017바이트 | 검증기 정리 | root 부재·실패 0 | [O23 원출력](../lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.jzAlUL` | O23 권한 실패 집중 검사 | 약 372KiB | 프로세스 부재·소유권·비링크 확인 뒤 정확한 root 제거 | 수동 제거·부재 확인 | [첫 집중 실패](lp22-read-context-green-lp22-media-lp26-o23-a.txt) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.lyX5Op` | O23 첫 권한 확장 | 10,674,614바이트 | 검증기 정리 | 제거 확인 | [첫 권한 확장](lp22-read-context-green-lp22-media-lp26-o23-b.txt) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.AnEg9V` | O23 집중 재검증 | 10,674,614바이트 | 검증기 정리 | 제거 확인 | [집중 PASS](lp22-read-context-green-lp22-media-lp26-o23-c.txt) |
+| `<owned-temp>/media-server-current-integration-W2iVBH` | O21 실제 앱 | 397,914,204바이트 | 계측 충돌 후 PID 부재·소유권·비링크를 확인하고 해당 root만 제거 | 수동 제거·부재 확인, 원출력은 실패로 보존 | [O21 원출력](../lp26-o10-accumulation-20260923/o21-targeted-actual-app.log.gz) |
+| `<owned-temp>/media-server-current-integration-py5HFT` | O22 실제 앱 | 375,854,587바이트 | 검증기 정리 | root 부재·실패 0 | [O22 원출력](../lp26-o10-accumulation-20260923/o22-targeted-actual-app.log.gz) |
+| `<owned-temp>/media-server-current-integration-5u0IJc` | O23 실제 앱 | 398,618,017바이트 | 검증기 정리 | root 부재·실패 0 | [O23 원출력](../lp26-o10-accumulation-20260923/o23-targeted-actual-app.log.gz) |
+| `<owned-temp>/media-server-catalog-cost.jzAlUL` | O23 권한 실패 집중 검사 | 약 372KiB | 프로세스 부재·소유권·비링크 확인 뒤 정확한 root 제거 | 수동 제거·부재 확인 | [첫 집중 실패](lp22-read-context-green-lp22-media-lp26-o23-a.txt) |
+| `<owned-temp>/media-server-catalog-cost.lyX5Op` | O23 첫 권한 확장 | 10,674,614바이트 | 검증기 정리 | 제거 확인 | [첫 권한 확장](lp22-read-context-green-lp22-media-lp26-o23-b.txt) |
+| `<owned-temp>/media-server-catalog-cost.AnEg9V` | O23 집중 재검증 | 10,674,614바이트 | 검증기 정리 | 제거 확인 | [집중 PASS](lp22-read-context-green-lp22-media-lp26-o23-c.txt) |

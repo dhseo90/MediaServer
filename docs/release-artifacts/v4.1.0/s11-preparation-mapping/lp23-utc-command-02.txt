@@ -1,6 +1,6 @@
 node --input-type=module - <<'JS'
 import fs from 'node:fs';import crypto from 'node:crypto';import path from 'node:path';import {runBounded,treeBytes} from './scripts/internal/recording_catalog_comparison_guard.mjs';
-const first=JSON.parse(fs.readFileSync('docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp23-utc-run-01.json')),root='/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-utc-diagnostic-x65YwB',s=fs.lstatSync(root),sha=x=>crypto.createHash('sha256').update(x).digest('hex');
+const first=JSON.parse(fs.readFileSync('docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp23-utc-run-01.json')),root='<owned-temp>/media-server-utc-diagnostic-x65YwB',s=fs.lstatSync(root),sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 if(root!==first.root||s.isSymbolicLink()||!s.isDirectory()||s.uid!==process.getuid()||s.dev!==first.cleanup.identity.dev||s.ino!==first.cleanup.identity.ino)throw Error('owned-root');
 const binary=path.join(root,'utc-diagnostic'),fixture=path.resolve('video/imports/va_tracking_event_1280x720_30fps_h264.mp4');
 if(sha(fs.readFileSync(binary))!==first.binarySha256||sha(fs.readFileSync(fixture))!==first.inputSha256||first.source.some(x=>sha(fs.readFileSync(x.file))!==x.sha256))throw Error('fingerprint');

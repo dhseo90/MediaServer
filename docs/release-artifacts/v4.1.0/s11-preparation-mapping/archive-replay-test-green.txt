@@ -1,4 +1,4 @@
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-nepjhi bytes=11529946 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-nepjhi bytes=11529946 removed=true
 ✖ LP05-06 valid media with synthetic failed reason does not reproduce failure (3322.329042ms)
 ℹ tests 1
 ℹ suites 0
@@ -30,7 +30,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:29:1
   +   'objc[38418]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x10c249258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122042d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\n'
   - ''
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:29:234)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:29:234)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {

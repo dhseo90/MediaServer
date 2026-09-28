@@ -45,7 +45,7 @@ Total output lines: 308
   168 |   _LIBCPP_HIDE_FROM_ABI basic_ostream& operator<<(nullptr_t) { return *this << "nullptr"; }
       |                                        ^          ~~~~~~~~~
 2 errors generated.
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.WUuPnx bytes=62691 removed=true
+[cleanup] path=<owned-temp>/media-server-managed-writer.WUuPnx bytes=62691 removed=true
 [elapsed] seconds=6 source=bash-SECONDS
 
 [tool-exit] 1

@@ -505,27 +505,27 @@
     },
     {
       "log": "generation-observer-green1.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-QnyeoZ\",\"bytes\":9760799,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-QnyeoZ\",\"bytes\":9760799,\"absent\":true}"
     },
     {
       "log": "generation-observer-green2.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-r8CIzp\",\"bytes\":9761055,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-r8CIzp\",\"bytes\":9761055,\"absent\":true}"
     },
     {
       "log": "generation-observer-final.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-SXXLS0\",\"bytes\":9761055,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-SXXLS0\",\"bytes\":9761055,\"absent\":true}"
     },
     {
       "log": "generation-observer-final2.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-AjqVmK\",\"bytes\":9910090,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-AjqVmK\",\"bytes\":9910090,\"absent\":true}"
     },
     {
       "log": "generation-observer-final3.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-n9ulxa\",\"bytes\":11615560,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-n9ulxa\",\"bytes\":11615560,\"absent\":true}"
     },
     {
       "log": "lifecycle-cache.log.gz",
-      "line": "[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-lifecycle-cache-pLquDh bytes=45298 removed=true"
+      "line": "[cleanup] path=<owned-temp>/media-server-lifecycle-cache-pLquDh bytes=45298 removed=true"
     },
     {
       "log": "observer-helpers.log.gz",
@@ -637,23 +637,23 @@
     },
     {
       "log": "observer-legacy-regression.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-TUu0xL\",\"bytes\":11538604,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-TUu0xL\",\"bytes\":11538604,\"absent\":true}"
     },
     {
       "log": "observer-legacy-final.log.gz",
-      "line": "[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-MXUHD3\",\"bytes\":11549590,\"absent\":true}"
+      "line": "[cleanup] {\"root\":\"<owned-temp>/media-server-current-observer-MXUHD3\",\"bytes\":11549590,\"absent\":true}"
     },
     {
       "log": "probe-red.log.gz",
-      "line": "[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-3UcN6q bytes=20859134 removed=true"
+      "line": "[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-3UcN6q bytes=20859134 removed=true"
     },
     {
       "log": "probe-green.log.gz",
-      "line": "[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-OptbvF bytes=55207946 removed=true"
+      "line": "[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-OptbvF bytes=55207946 removed=true"
     },
     {
       "log": "probe-final.log.gz",
-      "line": "[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-ne3JCd bytes=57227184 removed=true"
+      "line": "[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-ne3JCd bytes=57227184 removed=true"
     },
     {
       "log": "profile-anchor-final.log.gz",
@@ -777,15 +777,15 @@
     },
     {
       "log": "seed-red.log.gz",
-      "line": "[cleanup] {\"path\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.XUiKlg\",\"bytes\":13513757,\"removed\":true}"
+      "line": "[cleanup] {\"path\":\"<owned-temp>/media-server-current-ui-seed.XUiKlg\",\"bytes\":13513757,\"removed\":true}"
     },
     {
       "log": "seed-green.log.gz",
-      "line": "[cleanup] {\"path\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.xbZuF5\",\"bytes\":13853424,\"removed\":true}"
+      "line": "[cleanup] {\"path\":\"<owned-temp>/media-server-current-ui-seed.xbZuF5\",\"bytes\":13853424,\"removed\":true}"
     },
     {
       "log": "seed-final.log.gz",
-      "line": "[cleanup] {\"path\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.GIB8DC\",\"bytes\":13857520,\"removed\":true}"
+      "line": "[cleanup] {\"path\":\"<owned-temp>/media-server-current-ui-seed.GIB8DC\",\"bytes\":13857520,\"removed\":true}"
     }
   ],
   "tokenStart": null,

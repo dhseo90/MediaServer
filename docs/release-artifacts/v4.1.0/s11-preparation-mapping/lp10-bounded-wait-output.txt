@@ -36,7 +36,7 @@ build hash/flags:
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1
 
-CXX_INCLUDES = -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include
+CXX_INCLUDES = -I<home>/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include
 
 CXX_FLAGS = -std=c++17
 
@@ -48,10 +48,10 @@ exit: 0
 elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 원출력 시작
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
 [  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
@@ -61,7 +61,7 @@ elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 [ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 원출력 끝
 
 === red.txt ===
@@ -86,7 +86,7 @@ exit: 1
 [fail] LP10-W06 wait lease blocks deletion until exact worker cleanup
 [fail] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=0 fail=5
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.8XpTN3 bytes=11507482 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.8XpTN3 bytes=11507482 removed=true
 [elapsed] seconds=5 source=bash-SECONDS
 원출력 끝
 
@@ -96,10 +96,10 @@ exit: 0
 elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 원출력 시작
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
@@ -130,7 +130,7 @@ elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 [ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 원출력 끝
 
 === green-core.txt ===
@@ -155,7 +155,7 @@ exit: 0
 [pass] LP10-W06 wait lease blocks deletion until exact worker cleanup
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=5 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.ETVnB2 bytes=11790041 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.ETVnB2 bytes=11790041 removed=true
 [elapsed] seconds=5 source=bash-SECONDS
 원출력 끝
 
@@ -239,7 +239,7 @@ exit: 1
 [pass] LP10-W06 wait lease blocks deletion until exact worker cleanup
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=22 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.VDWxuU bytes=15668215 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.VDWxuU bytes=15668215 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -323,7 +323,7 @@ exit: 0
 [pass] LP10-W06 wait lease blocks deletion until exact worker cleanup
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=23 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.exLiI9 bytes=15470654 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.exLiI9 bytes=15470654 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -411,7 +411,7 @@ exit: 1
 [fail] LP10-W06 fractional start native proven preceding AU stays protected without decoded duration
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=23 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.o5zyeu bytes=15723098 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.o5zyeu bytes=15723098 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -496,7 +496,7 @@ exit: 1
 [fail] LP10-W06 fractional start native proven preceding AU stays protected without decoded duration
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=23 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.inTH07 bytes=15775972 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.inTH07 bytes=15775972 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -581,7 +581,7 @@ exit: 1
 [fail] LP10-W06 fractional start native proven preceding AU stays protected without decoded duration
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=23 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.xAzShN bytes=15776100 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.xAzShN bytes=15776100 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -591,10 +591,10 @@ exit: 0
 elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 원출력 시작
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
@@ -625,7 +625,7 @@ elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 [ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 원출력 끝
 
 === build-boundaries-final.txt ===
@@ -634,17 +634,17 @@ exit: 0
 elapsed: 미집계(원출력에 build wall-time 없음; 추정하지 않음)
 원출력 시작
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
 [  2%] Linking CXX static library libmedia_server_runtime.a
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 원출력 끝
 
 === green-boundaries.txt ===
@@ -744,7 +744,7 @@ exit: 0
 [pass] LP10-W08 terminal handoff releases runtime and durable source protection
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=31 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.MgQ2Hf bytes=16912609 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.MgQ2Hf bytes=16912609 removed=true
 [elapsed] seconds=8 source=bash-SECONDS
 원출력 끝
 
@@ -850,7 +850,7 @@ exit: 0
 [pass] LP10-W08 terminal handoff releases runtime and durable source protection
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=33 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.Q2ApAj bytes=17186352 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.Q2ApAj bytes=17186352 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -959,7 +959,7 @@ exit: 0
 [pass] LP10-W05 fractional source wait requires representable proven decoded overlap: overflow
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=36 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.J4QxAS bytes=17761856 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.J4QxAS bytes=17761856 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -1057,7 +1057,7 @@ exit: 0
 [pass] E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown
 [pass] E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음
 [summary] pass=2 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.zWPxfb bytes=15845022 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.zWPxfb bytes=15845022 removed=true
 [elapsed] seconds=12 source=bash-SECONDS
 원출력 끝
 
@@ -1094,7 +1094,7 @@ exit: 0
 [pass] LP09-Q01 independent scheduler first evaluation consumes current evidence before blocked renderer releases
 [pass] LP09-Q03 queued reference remains durably owned
 [summary] pass=25 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.Ow7TYH bytes=10769312 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.Ow7TYH bytes=10769312 removed=true
 [elapsed] seconds=4 source=bash-SECONDS
 원출력 끝
 
@@ -1212,7 +1212,7 @@ W08 기존 Submit rejection과 별도로 실제 admission event-capacity rejecti
 [pass] LP10-W11 constructor source budget clamp case=3
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=41 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.b7x0iJ bytes=18782460 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.b7x0iJ bytes=18782460 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -1282,7 +1282,7 @@ exit: 0
 [pass] LP09-S03c native Ready recovery same ID complete2
 [pass] LP09-S03c native recovery file hashes and resource cleanup
 [summary] pass=59 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2Ck6oD bytes=14608714 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.2Ck6oD bytes=14608714 removed=true
 [elapsed] seconds=24 source=bash-SECONDS
 원출력 끝
 
@@ -1355,7 +1355,7 @@ exit: 0
 [pass] D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서
 [recording] file evidence unavailable: file evidence profile/bound 오류
 [pass] D02-07 runtime startup intent recovery/보호/물리검사 순서
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.xBTDlD bytes=14404850 removed=true
+[cleanup] path=<owned-temp>/media-server-default-composition.xBTDlD bytes=14404850 removed=true
 [elapsed] seconds=34 source=bash-SECONDS
 원출력 끝
 
@@ -1401,7 +1401,7 @@ exit: 0
 [detail] injected=managed journal 미완결 tail 거부
 [detail] admission=created
 [summary] pass=23 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.k5O1bj bytes=9503087 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-jobs.k5O1bj bytes=9503087 removed=true
 [elapsed] seconds=7 source=bash-SECONDS
 원출력 끝
 
@@ -1410,6 +1410,6 @@ command: bash scripts/internal/verify_recording_derived_event_integration.sh --d
 exit: 0
 원출력 시작
 [pass] LP09-W08 no-OpenSSL formatter fails closed
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.zttTMV bytes=9994068 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.zttTMV bytes=9994068 removed=true
 [elapsed] seconds=4 source=bash-SECONDS
 원출력 끝

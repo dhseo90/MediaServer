@@ -12,7 +12,7 @@ exit:1
 [fail] LP14-C01 state=2 updates=1 full_parse=3 expected=1
 [fail] LP14-C01 state=3 updates=1 full_parse=3 expected=1
 [pass] LP14-C03 memory/sqlite canonical bytes and CompletedOracle
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.zqFGws","bytes":8607875,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.zqFGws","bytes":8607875,"removed":true}
 [exit] code=1 elapsed_seconds=5 source=bash-SECONDS
 
 보존 방식: 최초 tool output을 세션 저장소에 즉시 축적한 뒤 이 artifact로 이관. 출력 확보만을 위한 재실행 없음.
@@ -20,10 +20,10 @@ exit:1
 === BUILD ===
 command: ./server.sh build
 exit: 0
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
@@ -54,7 +54,7 @@ exit: 0
 [ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 === GREEN-1 ===
@@ -80,7 +80,7 @@ exit: 0
 [pass] LP14-C02 binding=owner rejected without apply
 [pass] LP14-C02 binding=prior rejected without apply
 [pass] LP14-C02 one-shot apply/reuse rejection
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.Zsnz7n","bytes":8868827,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.Zsnz7n","bytes":8868827,"removed":true}
 [exit] code=0 elapsed_seconds=5 source=bash-SECONDS
 
 
@@ -108,7 +108,7 @@ exit: 0
 [pass] LP14-C02 binding=prior rejected without apply
 [pass] LP14-C02 duplicate envelope no-apply/conflict rejection
 [pass] LP14-C02 one-shot apply/reuse rejection
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.3LZoPd","bytes":8869083,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.3LZoPd","bytes":8869083,"removed":true}
 [exit] code=0 elapsed_seconds=5 source=bash-SECONDS
 
 
@@ -153,7 +153,7 @@ exit: 0
 [detail] injected=managed journal 미완결 tail 거부
 [detail] admission=created
 [summary] pass=23 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.vPkOob bytes=9546207 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-jobs.vPkOob bytes=9546207 removed=true
 [elapsed] seconds=8 source=bash-SECONDS
 
 
@@ -357,7 +357,7 @@ exit: 0
 [pass] F12 SQLite rebuild·checkpoint 재개방 job/output 일치
 [pass] F13 Complete output tombstone 뒤 재생성 없음
 [summary] pass=43 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.yzCAzK bytes=17823841 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-job-service.yzCAzK bytes=17823841 removed=true
 [elapsed] seconds=26 source=bash-SECONDS
 
 
@@ -390,7 +390,7 @@ exit: 0
 [pass] LP09-S03a native profile cannot drop file evidence
 [pass] LP09-S03a overlapping substitute AU cannot replace selected identity
 [summary] pass=11 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.7LkQMJ bytes=5267688 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.7LkQMJ bytes=5267688 removed=true
 
 
 === 개별 결과 전수표 ===

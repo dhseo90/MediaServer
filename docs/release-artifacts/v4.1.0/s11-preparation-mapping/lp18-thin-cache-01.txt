@@ -95,7 +95,7 @@ fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944  include/record
            137593576  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=163774464 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5233,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":163774464}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.Bz1hrl","bytes":17110467,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.Bz1hrl","bytes":17110467,"removed":true}
 [exit] code=0 elapsed_seconds=16 source=bash-SECONDS
 real 16.10
 user 13.85

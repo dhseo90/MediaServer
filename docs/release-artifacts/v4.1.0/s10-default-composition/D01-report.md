@@ -30,7 +30,7 @@
 
 ## 제한·인계
 
-최종 유효 **361 pass / 0 fail**의 개별 행과 historical 결과·정리는 [전수 결과](D01-results.md)에 보존했다. [제품/fixture 7개 fingerprint](D01-fingerprints.log)는 이 D01 checkpoint의 코드이며 이후 D02 변경의 해시가 아니다.
+최종 유효 **361 pass / 0 fail**의 개별 행과 historical 결과·정리는 [전수 결과](D01-results.md)에 보존했다. [제품/fixture 7개 fingerprint](public-evidence-611c6719b1ea4225.txt)는 이 D01 checkpoint의 코드이며 이후 D02 변경의 해시가 아니다.
 
 | 명령 | exit / 개별 결과 | 원출력 |
 | --- | --- | --- |

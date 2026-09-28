@@ -99,9 +99,9 @@ test at scripts/internal/recording_failure_capture.test.mjs:22:1
   + 'undefined'
   - 'function'
 
-      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:22:68
-      at owned (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:10:137)
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:22:48)
+      at file://<home>/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:22:68
+      at owned (file://<home>/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:10:137)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:22:48)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.start (node:internal/test_runner/test:1003:17)
@@ -176,22 +176,22 @@ exit=0
 ✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.226583ms)
 ✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.695875ms)
 ✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.060916ms)
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-b2GAVT","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0BBlhV","bytes":1619,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-egFfZP","bytes":1620,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-S7YB8X","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qCkYrK","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-IkW63W","bytes":8,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-lOKdH2","bytes":1601,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xf4iL3","bytes":0,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tBVw0a","bytes":98,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uWHNav","bytes":1954,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AMCFXy","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kSmsCv","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5IanNM","bytes":266,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-p5vhGI","bytes":274,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fiPcPx","bytes":97,"removed":true}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gxy7YQ","bytes":163,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-b2GAVT","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-0BBlhV","bytes":1619,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-egFfZP","bytes":1620,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-S7YB8X","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-qCkYrK","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-IkW63W","bytes":8,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-lOKdH2","bytes":1601,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-xf4iL3","bytes":0,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-tBVw0a","bytes":98,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-uWHNav","bytes":1954,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-AMCFXy","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-kSmsCv","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-5IanNM","bytes":266,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-p5vhGI","bytes":274,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-fiPcPx","bytes":97,"removed":true}
+[cleanup] {"root":"<owned-temp>/recording-capture-gxy7YQ","bytes":163,"removed":true}
 ✔ LP06-B01 진단 파일을 재현 전에 보존 (24.552834ms)
 ✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (40.466041ms)
 ✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (73.862167ms)
@@ -220,7 +220,7 @@ exit=0
 ## C++ 실제 연결
 exit=0
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-XfPBy1 bytes=14965736 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-XfPBy1 bytes=14965736 removed=true
 ✔ LP06-B10 actual typed probe basic detail replay preserved independently (3654.104833ms)
 ℹ tests 1
 ℹ suites 0

@@ -31,15 +31,15 @@
 
 | 로그 | 정확 명령/실행 | exit·결과 | 시간·출처 |
 | --- | --- | --- | --- |
-| [AuthEnvironment.log](AuthEnvironment.log) | HTTP auth 격리 최초 실행 | 1; loopback EPERM, 예상 RED 아님 | 4,702ms/메모리 wrapper Date.now |
-| [AuthRed.log](AuthRed.log) | HTTP auth 승인 승격 재현 | 1; HTTP39 pass 뒤 미선언 passwords | 7,790ms/메모리 wrapper Date.now |
-| [AuthGreen.log](AuthGreen.log) | HTTP auth 최소 보완 | 0; HTTP40/0 | 6,754ms/메모리 wrapper Date.now |
-| [LdRed.log](LdRed.log) | node scripts/internal/recording_longrun_progress.test.mjs | 1; 44 pass/1 예상 fail | 47ms/test Date.now |
-| [LdGreen.log](LdGreen.log) | node scripts/internal/recording_longrun_progress.test.mjs | 0;45/0 | 49ms/test Date.now |
-| [Proxy.log](Proxy.log) | node scripts/internal/recording_ui_range_proxy.test.mjs | 0;10/0 | 58ms/test Date.now |
-| [AuthPrep.log](AuthPrep.log) | node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs | 0;17/0 | 전체 경과 미집계(출력 미제공) |
-| [Harness.log](Harness.log) | node scripts/internal/verify_v410_recording_harness.test.mjs all | 0;5cases/40checks/0fail | 26ms/test Date.now |
-| [Timeline.log](Timeline.log) | ./server.sh verify-v410-recording-timeline --read-model | 0;166 assertions+cleanup1 pass | 전체 경과 미집계(출력 미제공) |
+| [AuthEnvironment.log](public-evidence-a7ad1aef38d7def0.txt) | HTTP auth 격리 최초 실행 | 1; loopback EPERM, 예상 RED 아님 | 4,702ms/메모리 wrapper Date.now |
+| [AuthRed.log](public-evidence-4f3693e68a398999.txt) | HTTP auth 승인 승격 재현 | 1; HTTP39 pass 뒤 미선언 passwords | 7,790ms/메모리 wrapper Date.now |
+| [AuthGreen.log](public-evidence-a0a1c47f7d8b6737.txt) | HTTP auth 최소 보완 | 0; HTTP40/0 | 6,754ms/메모리 wrapper Date.now |
+| [LdRed.log](public-evidence-d9a479fb32192f21.txt) | node scripts/internal/recording_longrun_progress.test.mjs | 1; 44 pass/1 예상 fail | 47ms/test Date.now |
+| [LdGreen.log](public-evidence-70bb3a7a9b1fd035.txt) | node scripts/internal/recording_longrun_progress.test.mjs | 0;45/0 | 49ms/test Date.now |
+| [Proxy.log](public-evidence-d69f9e9594d81fb9.txt) | node scripts/internal/recording_ui_range_proxy.test.mjs | 0;10/0 | 58ms/test Date.now |
+| [AuthPrep.log](public-evidence-96b3dee2b2b45e3a.txt) | node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs | 0;17/0 | 전체 경과 미집계(출력 미제공) |
+| [Harness.log](public-evidence-17df0286675c395a.txt) | node scripts/internal/verify_v410_recording_harness.test.mjs all | 0;5cases/40checks/0fail | 26ms/test Date.now |
+| [Timeline.log](public-evidence-3bdc4ddede9629ad.txt) | ./server.sh verify-v410-recording-timeline --read-model | 0;166 assertions+cleanup1 pass | 전체 경과 미집계(출력 미제공) |
 
 HTTP 세 실행의 대상 명령은 `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth`다. 아래 실행 wrapper는 값을 command argv나 저장 파일에 포함하지 않고 CSPRNG5개를 자식 env에만 전달한다. 원출력에 값이 포함되면 출력하지 않고 redaction failure로 종료한다. 제품 users 파일은 hash만 저장되고 실제 plaintext 검사도 통과했다. 기존 auth-prep의 별도 테스트용0600 handoff 생성/삭제 검사는 UA04 범위이며 HTTP 실행 비밀번호를 사용하지 않는다.
 
@@ -55,13 +55,13 @@ token start/end/consumed는 작업별 사용량 계측 부재로 미집계다. e
 
 | 제목 | 실제 실행 결과 | pass/fail |
 | --- | --- | --- |
-| 1. read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.bdlzJv | AuthEnvironment.log 실제 출력 | pass |
+| 1. read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.bdlzJv | AuthEnvironment.log 실제 출력 | pass |
 | 2. [V410-S06 verifier] FAIL: listen EPERM: operation not permitted 127.0.0.1 | AuthEnvironment.log 실제 출력 | fail |
 ### AuthRed.log
 
 | 제목 | 실제 실행 결과 | pass/fail |
 | --- | --- | --- |
-| 1. read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.cwLebN | AuthRed.log 실제 출력 | pass |
+| 1. read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.cwLebN | AuthRed.log 실제 출력 | pass |
 | 2. I12~I16 principal 0 route 0 expected=200 actual=200 | AuthRed.log 실제 출력 | pass |
 | 3. I02 principal 0 허용 채널만 status 반환 | AuthRed.log 실제 출력 | pass |
 | 4. I01 principal 0 실제 비녹화 상태 | AuthRed.log 실제 출력 | pass |
@@ -106,7 +106,7 @@ token start/end/consumed는 작업별 사용량 계측 부재로 미집계다. e
 
 | 제목 | 실제 실행 결과 | pass/fail |
 | --- | --- | --- |
-| 1. read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.CypfVm | AuthGreen.log 실제 출력 | pass |
+| 1. read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.CypfVm | AuthGreen.log 실제 출력 | pass |
 | 2. I12~I16 principal 0 route 0 expected=200 actual=200 | AuthGreen.log 실제 출력 | pass |
 | 3. I02 principal 0 허용 채널만 status 반환 | AuthGreen.log 실제 출력 | pass |
 | 4. I01 principal 0 실제 비녹화 상태 | AuthGreen.log 실제 출력 | pass |
@@ -459,7 +459,7 @@ token start/end/consumed는 작업별 사용량 계측 부재로 미집계다. e
 | 164. I08 Corrupt 실제 catalog 전이 | Timeline.log 실제 출력 | pass |
 | 165. I08 Corrupt 실제 파일 존재해도 media 거부 | Timeline.log 실제 출력 | pass |
 | 166. I08 Corrupt timeline 불가 상태 | Timeline.log 실제 출력 | pass |
-| 167. read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.KZtJ9V | Timeline.log 실제 출력 | pass |
+| 167. read-model 임시 root 삭제 확인: <owned-temp>/media-server-s06-read.KZtJ9V | Timeline.log 실제 출력 | pass |
 
 ## cleanup·보존
 
@@ -467,16 +467,16 @@ token start/end/consumed는 작업별 사용량 계측 부재로 미집계다. e
 
 | 실행 | 소유 경로 | 크기·결과 |
 | --- | --- | --- |
-| AuthEnvironment.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.bdlzJv` | du -sk 3324 KiB; 후속 삭제 확인행 pass |
-| AuthEnvironment.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-W9Tl7B` | 854546 bytes, rootAbsent=true; process not-started, ports 없음 |
-| AuthRed.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.cwLebN` | du -sk 3324 KiB; 후속 삭제 확인행 pass |
-| AuthRed.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-MXprjT` | 2470456 bytes, rootAbsent=true; process 0, ports 57532:ECONNREFUSED,57533:ECONNREFUSED |
-| AuthGreen.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.CypfVm` | du -sk 3324 KiB; 후속 삭제 확인행 pass |
-| AuthGreen.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-JgVfdi` | 2470456 bytes, rootAbsent=true; process 0, ports 57597:ECONNREFUSED,57598:ECONNREFUSED |
+| AuthEnvironment.log | `<owned-temp>/media-server-s06-read.bdlzJv` | du -sk 3324 KiB; 후속 삭제 확인행 pass |
+| AuthEnvironment.log | `<owned-temp>/media-server-v410-s06-W9Tl7B` | 854546 bytes, rootAbsent=true; process not-started, ports 없음 |
+| AuthRed.log | `<owned-temp>/media-server-s06-read.cwLebN` | du -sk 3324 KiB; 후속 삭제 확인행 pass |
+| AuthRed.log | `<owned-temp>/media-server-v410-s06-MXprjT` | 2470456 bytes, rootAbsent=true; process 0, ports 57532:ECONNREFUSED,57533:ECONNREFUSED |
+| AuthGreen.log | `<owned-temp>/media-server-s06-read.CypfVm` | du -sk 3324 KiB; 후속 삭제 확인행 pass |
+| AuthGreen.log | `<owned-temp>/media-server-v410-s06-JgVfdi` | 2470456 bytes, rootAbsent=true; process 0, ports 57597:ECONNREFUSED,57598:ECONNREFUSED |
 | Proxy.log | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-LkOu2n` | 1720 bytes, absent=true |
 | AuthPrep.log | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-ui-auth-prep-test-Zcs3z3` | 53932785 bytes, absent=true |
 | Harness.log | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-h01-V2o44u` | 107 bytes, helperRootAbsent=true, 후속 finalRootAbsent=true |
-| Timeline.log | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.KZtJ9V` | du -sk 3724 KiB; 후속 삭제 확인행 pass |
+| Timeline.log | `<owned-temp>/media-server-s06-read.KZtJ9V` | du -sk 3724 KiB; 후속 삭제 확인행 pass |
 
 auth-prep 내부 seed subprocess의 stdout은 기존 test가 수집 후 출력하지 않으므로 그 내부 compile root 개별 이름/크기는 이번 최상위 로그에 미보존이다. 해당 seed exit0 및 기존 trap 실행, outer owned root 삭제는 확인했지만 미출력 내부 경로를 추정 복원하지 않는다. 로그에 직접 나온 소유 경로는 읽기 전용 부재 확인으로 대조한다. proxy/harness의 가짜 정리 실패와 실제 정리 결과는 분리한다.
 마감 시 위 담당 로그에서 추출한 소유 경로 10개 전부 `absent=true`를 직접 확인했다(exit0). 메인 소유 검사·과거 증거 정리는 [main-review.md](main-review.md)를 참조한다.
@@ -494,7 +494,7 @@ auth-prep 내부 seed subprocess의 stdout은 기존 test가 수집 후 출력�
 
 최초 AuthPrep.log의 내부 root 이름·크기 미보존 이력은 유지한다. 동일 도구 정리 범위에서 UA08-A/B/C를 실행 전 중앙에 등록하고 test만 보완했다. seed subprocess의 전체 stdout은 출력하지 않으며 canonical tmp 부모·소유 basename·두 안전행 일치를 검증한 뒤 du -sk/삭제 확인행만 출력하고 lstat ENOENT를 직접 확인한다. 제품/seed 코드와 기존17기능은 변경하지 않았다.
 
-명령 `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs`, exit0, 기존17+cleanup3=20 pass/0 fail. [AuthPrepFinal.log](AuthPrepFinal.log)에 전체 원출력을 보존했다. 관찰 elapsed 22.872초는 functions Date.now 실행요청→최종출력 보존 간격으로 polling/처리 지연을 포함하며 순수 실행시간은 별도 미집계다. 토큰도 미집계다.
+명령 `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs`, exit0, 기존17+cleanup3=20 pass/0 fail. [AuthPrepFinal.log](public-evidence-4f5ae049267499cd.txt)에 전체 원출력을 보존했다. 관찰 elapsed 22.872초는 functions Date.now 실행요청→최종출력 보존 간격으로 polling/처리 지연을 포함하며 순수 실행시간은 별도 미집계다. 토큰도 미집계다.
 
 | 제목 | 실제 검사 | pass/fail |
 | --- | --- | --- |
@@ -521,9 +521,9 @@ auth-prep 내부 seed subprocess의 stdout은 기존 test가 수집 후 출력�
 
 | 소유 경로 | 크기 | 정리 |
 | --- | ---: | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.TWLwwu` | 3324 KiB (du -sk 할당량) | 삭제 확인 안전행 및 lstat ENOENT |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.yP1jjb` | 3324 KiB (du -sk 할당량) | 삭제 확인 안전행 및 lstat ENOENT |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.rqfBvx` | 3324 KiB (du -sk 할당량) | 삭제 확인 안전행 및 lstat ENOENT |
+| `<owned-temp>/media-server-s06-read.TWLwwu` | 3324 KiB (du -sk 할당량) | 삭제 확인 안전행 및 lstat ENOENT |
+| `<owned-temp>/media-server-s06-read.yP1jjb` | 3324 KiB (du -sk 할당량) | 삭제 확인 안전행 및 lstat ENOENT |
+| `<owned-temp>/media-server-s06-read.rqfBvx` | 3324 KiB (du -sk 할당량) | 삭제 확인 안전행 및 lstat ENOENT |
 | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-ui-auth-prep-test-QaXzKG` | 53932785 bytes | outer root absent=true |
 
 최종 test SHA256: `9604f78798e073d98375fff3c725f122b94705ea1480b4e3951cb044fba2e724`. `git diff --check` exit0. 소스·기록 동결, 다른 suite 추가 재실행 및 커밋·푸시 없음.

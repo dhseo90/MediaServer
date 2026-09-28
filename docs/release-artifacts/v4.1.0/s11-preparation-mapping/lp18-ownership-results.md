@@ -53,10 +53,10 @@ RH01 확장 자체검사 [원출력](lp24-recovery-selftest-03.txt): exit0/1PASS
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.V0kIBt | LP24-03 격리 빌드·영상·DB·registry | 11387806B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj | LP24-04 격리 빌드·영상·DB·registry | 11387857B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.tyEzhJ | LP24-05 격리 빌드·영상·DB·registry | 11387937B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.Y2Q44L | LP24-06 격리 빌드·영상·DB·registry | 13170392B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| <owned-temp>/media-server-catalog-cost.V0kIBt | LP24-03 격리 빌드·영상·DB·registry | 11387806B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| <owned-temp>/media-server-catalog-cost.h4c7Zj | LP24-04 격리 빌드·영상·DB·registry | 11387857B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| <owned-temp>/media-server-catalog-cost.tyEzhJ | LP24-05 격리 빌드·영상·DB·registry | 11387937B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| <owned-temp>/media-server-catalog-cost.Y2Q44L | LP24-06 격리 빌드·영상·DB·registry | 13170392B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
 
 ### 원인 확인과 다음 재개 조건
 
@@ -595,7 +595,7 @@ HTTP01 request214의 반복 검증 hold3208.552ms와 직접 동일 부하 비교
 | TMPDIR/media-server-current-integration-FKdtx1 | 소유 입력·녹화·원장·진단 복제본·registry·probe | 180358628B | 필수 사후 evidence 미확보로 임시 보존 | rootAbsent=false, cleanup failureCount1 | HTTP02 cleanup 원출력 |
 | 아래 비민감 자료3개 | 저장소 실행 기록 | 947506B | 원출력·계측·종료 결과 보존 | 존재·hash 확인 | 아래 hash 표 |
 
-실제 root는 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-FKdtx1`이다.
+실제 root는 `<owned-temp>/media-server-current-integration-FKdtx1`이다.
 디렉터리·동일 소유자·비symlink·realpath 일치를 읽기로 확인했고, symlink를 따르지 않은 크기180358628B가 실행 결과와 일치했다.
 regular 파일48개, symlink277개가 있으며 외부 링크 대상은 읽거나 삭제하지 않았다. 임시 경로는 최종 완료 evidence가 아니다.
 대용량 미디어를 Git으로 이관하거나 영구 보존한 것이 아니라 진단/정리 판단 전 임시 보존이며 cleanup blocker다.
@@ -1086,7 +1086,7 @@ GREEN02의17PASS4FAIL과RH02의이전결과도보존하며최종합계에중복�
 
 #### lp22-latency-trace-03.txt
 
-[원출력](lp22-latency-trace-03.txt) 1969B, SHA256 `93b97a7e59367162e694e5690489ed68b8da2449ea82f6a8680d68c5e5381b50`.
+[원출력](public-evidence-3b746e64b65ab03b.txt) 1969B, SHA256 `93b97a7e59367162e694e5690489ed68b8da2449ea82f6a8680d68c5e5381b50`.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1116,7 +1116,7 @@ GREEN02의17PASS4FAIL과RH02의이전결과도보존하며최종합계에중복�
 실행·정리 원자료:
 
 ```text
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-Us9sLP","bytes":499780,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-latency-Us9sLP","bytes":499780,"removed":true}
 ℹ tests 22
 ℹ suites 0
 ℹ pass 22
@@ -1184,7 +1184,7 @@ GREEN02의17PASS4FAIL과RH02의이전결과도보존하며최종합계에중복�
 
 ```text
 [summary] pass=46 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.Al0lPt bytes=9129396 removed=true
+[cleanup] path=<owned-temp>/media-server-public-media.Al0lPt bytes=9129396 removed=true
 [elapsed] seconds=3 source=bash-SECONDS
 ```
 
@@ -1237,7 +1237,7 @@ GREEN02의17PASS4FAIL과RH02의이전결과도보존하며최종합계에중복�
 
 ```text
 [summary] pass=38 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.auPPRL bytes=35261147 removed=true
+[cleanup] path=<owned-temp>/media-server-public-timeline.auPPRL bytes=35261147 removed=true
 [elapsed] seconds=8 source=bash-SECONDS
 ```
 
@@ -1392,7 +1392,7 @@ exit0/7PASS, Node duration886.686416ms. RED 파일의 tool wall_time_seconds는 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | RED 임시물 | 없음 | 0 | 없음 | 서버/포트/root 생성 없음 | RED 원출력 |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-QvF4Tm` | smoke binary | 62584B | 소유 root 삭제 | removed=true·부재 assertion PASS | 첫 GREEN cleanup 행 |
+| `<owned-temp>/media-server-completion-QvF4Tm` | smoke binary | 62584B | 소유 root 삭제 | removed=true·부재 assertion PASS | 첫 GREEN cleanup 행 |
 
 ### LP22 자체검증·영향 회귀 원출력 전수
 
@@ -1539,12 +1539,12 @@ exit0/7PASS, Node duration886.686416ms. RED 파일의 tool wall_time_seconds는 
 | LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 | 원출력120행 | PASS | 해당 실행의 직접 결과 |
 | LP06-B09 만료 시 자식 미기동·남은 시간만 대기 | 원출력121행 | PASS | 해당 실행의 직접 결과 |
 
-정리 원출력: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3lTnW9","bytes":819,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mIQL5k","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqRYaX","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mUiUAj","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RUU5zh","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7dIGVv","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-pcHQPY","bytes":8,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-GAClns","bytes":96,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gWPX6u","bytes":3006,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-iQDArS","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1gUn5O","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THltqw","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3oOAfc","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TrkRQX","bytes":2654,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HnHXM5","bytes":2654,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kNLnAs","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wNYqt5","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QRAsV8","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ug470w","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-GUS2do","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qSXnSS","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dikZPL","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VaI2NW","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AkuznP","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-U8TvqS","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1TIyDN","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gyfQyB","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-u7RIC4","bytes":370,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vJ0pF9","bytes":431,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wIapTk","bytes":430,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dfbqC7","bytes":434,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ceRwZY","bytes":433,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vANQ6a","bytes":431,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ThlJMN","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-H7DWbJ","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Hvh0Q5","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-CZ3rnf","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4w60Dy","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-eiAXnF","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JuTf7O","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1k8hyr","bytes":8,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KIr3RL","bytes":2732,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-pQ2tR8","bytes":2732,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nRyS3T","bytes":2733,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MlvIrk","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gEalO2","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vNA20U","bytes":8,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZXGLCw","bytes":2714,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1dGiLp","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-CoD7FH","bytes":98,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZkRRsG","bytes":3067,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VMAq78","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uizL4t","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vLifeh","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-DZLI5M","bytes":274,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-hYZ72q","bytes":97,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6Vqr3F","bytes":163,"removed":true}`
+정리 원출력: `[cleanup] {"root":"<owned-temp>/recording-capture-3lTnW9","bytes":819,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-mIQL5k","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-WqRYaX","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-mUiUAj","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-RUU5zh","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-7dIGVv","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-pcHQPY","bytes":8,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-GAClns","bytes":96,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-gWPX6u","bytes":3006,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-iQDArS","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-1gUn5O","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-THltqw","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-3oOAfc","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-TrkRQX","bytes":2654,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-HnHXM5","bytes":2654,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-kNLnAs","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-wNYqt5","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-QRAsV8","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-ug470w","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-GUS2do","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-qSXnSS","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-dikZPL","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-VaI2NW","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-AkuznP","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-U8TvqS","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-1TIyDN","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-gyfQyB","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-u7RIC4","bytes":370,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-vJ0pF9","bytes":431,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-wIapTk","bytes":430,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-dfbqC7","bytes":434,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-ceRwZY","bytes":433,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-vANQ6a","bytes":431,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-ThlJMN","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-H7DWbJ","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-Hvh0Q5","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-CZ3rnf","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-4w60Dy","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-eiAXnF","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-JuTf7O","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-1k8hyr","bytes":8,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-KIr3RL","bytes":2732,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-pQ2tR8","bytes":2732,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-nRyS3T","bytes":2733,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-MlvIrk","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-gEalO2","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-vNA20U","bytes":8,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-ZXGLCw","bytes":2714,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-1dGiLp","bytes":0,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-CoD7FH","bytes":98,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-ZkRRsG","bytes":3067,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-VMAq78","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-uizL4t","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-vLifeh","bytes":266,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-DZLI5M","bytes":274,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-hYZ72q","bytes":97,"removed":true}`; `[cleanup] {"root":"<owned-temp>/recording-capture-6Vqr3F","bytes":163,"removed":true}`
 
 #### lp22-latency-trace-01.txt
 
 명령: `node --test scripts/internal/recording_latency_trace.test.mjs`; exit: 1, ℹ tests 22, ℹ pass 21, ℹ fail 1, ℹ duration_ms 1282.911417.
-[원출력](lp22-latency-trace-01.txt) 2635B, SHA256 `ce6d5c31f9476211aa0fb87a30aa11c16e7fd02de70d89c3e58509cfff1c4600`.
+[원출력](public-evidence-ac4e9de63c2dbb63.txt) 2635B, SHA256 `ce6d5c31f9476211aa0fb87a30aa11c16e7fd02de70d89c3e58509cfff1c4600`.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1571,7 +1571,7 @@ exit0/7PASS, Node duration886.686416ms. RED 파일의 tool wall_time_seconds는 
 | LP13-T04 incomplete 거부 | 원출력26행 | PASS | 해당 실행의 직접 결과 |
 | LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 | 원출력27행 | FAIL | 기존66 literal 미적응. 예상 RED 아님, 수정 후 재검사 별도 |
 
-정리 원출력: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-EXJ64a","bytes":494255,"removed":true}`
+정리 원출력: `[cleanup] {"root":"<owned-temp>/media-server-latency-EXJ64a","bytes":494255,"removed":true}`
 
 #### lp22-observation-completion-green-02.txt
 
@@ -1594,12 +1594,12 @@ exit0/7PASS, Node duration886.686416ms. RED 파일의 tool wall_time_seconds는 
 | LP22-O04 wait keeps late successful return and reports its client deadline overrun | 원출력15행 | PASS | 해당 실행의 직접 결과 |
 | LP22-O06 diagnostic report failure remains explicit without hiding primary error | 원출력16행 | PASS | 해당 실행의 직접 결과 |
 
-정리 원출력: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-pKFlNZ","bytes":62584,"removed":true}`
+정리 원출력: `[cleanup] {"root":"<owned-temp>/media-server-completion-pKFlNZ","bytes":62584,"removed":true}`
 
 #### lp22-selection-trace-01.txt
 
 명령: `node --test scripts/internal/recording_selection_trace.test.mjs`; exit: 0, ℹ tests 23, ℹ pass 23, ℹ fail 0, ℹ duration_ms 33.730791.
-[원출력](lp22-selection-trace-01.txt) 1604B, SHA256 `31c7ede756a9cd014ba049467d2ef84e647b2a999cb8b31384217a395adb6c36`.
+[원출력](public-evidence-700eb7eb4d289952.txt) 1604B, SHA256 `31c7ede756a9cd014ba049467d2ef84e647b2a999cb8b31384217a395adb6c36`.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1635,7 +1635,7 @@ LP13-T05의66→70 원인은 cd7172a28이며 현재는 입력↔변환70쌍/한�
 원출력의 공백-only 행과 마지막 빈 줄만 정규화했다. 검사본문/개별수치/실패내용은 변경하지 않았다.
 
 명령: `node --test scripts/internal/recording_latency_trace.test.mjs`; exit: 0, ℹ tests 22, ℹ pass 22, ℹ fail 0, ℹ duration_ms 1185.312375.
-[원출력](lp22-latency-trace-02.txt) 1973B SHA256 `5dac35a5279fe581ab05b716c8fa487641f9bae0fbaff9740e18dba05b831ff8`.
+[원출력](public-evidence-69bc71fbeb31b279.txt) 1973B SHA256 `5dac35a5279fe581ab05b716c8fa487641f9bae0fbaff9740e18dba05b831ff8`.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1662,7 +1662,7 @@ LP13-T05의66→70 원인은 cd7172a28이며 현재는 입력↔변환70쌍/한�
 | LP13-T04 incomplete 거부 | 원출력27행 | PASS | 기존 영향 회귀 재검사 |
 | LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 | 원출력28행 | PASS | 최초 FAIL 후1:1 대응 검사로 보완·동일22개 재검사 |
 
-정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-FojkAv","bytes":494255,"removed":true}`
+정리: `[cleanup] {"root":"<owned-temp>/media-server-latency-FojkAv","bytes":494255,"removed":true}`
 
 환경: macOS27.0/26A428 arm64, Node v24.13.0, GStreamer1.28.1, OpenSSL3.6.2.
 제품 동결 fingerprint:
@@ -2073,7 +2073,7 @@ Acquire+Validate합계3208.551706ms는전체Media의대부분이다. 각각Parse
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-hnvXc5` | 입력·녹화·복제본·registry·검증binary | 177501967B | 원본불변/사후진단·비민감증거보존후삭제 | rootAbsent=true·failureCount0 | cleanup원출력 |
+| `<owned-temp>/media-server-current-integration-hnvXc5` | 입력·녹화·복제본·registry·검증binary | 177501967B | 원본불변/사후진단·비민감증거보존후삭제 | rootAbsent=true·failureCount0 | cleanup원출력 |
 
 서버PID19611 exit0/signal없음/강제종료없음. HTTP49187·RTSP49188닫힘,UDPclosed=true.
 완료진단888행/손실0, latency1921행/요청214전부·미누락. 보존복제본자료는사후관측임을표기했다.
@@ -2540,7 +2540,7 @@ timeline319개는 모두200/ok, 최장2514ms지만 정상 전이 관측이 빠�
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-4JPJ8h` | 검증 소유 저장소·입력·복제본·환경 | 157511193B | 서버 종료·비민감 진단 후 삭제 | rootAbsent=true / 현재존재=false | 원출력cleanup, failureCount=0, udpClosed=true |
+| `<owned-temp>/media-server-current-integration-4JPJ8h` | 검증 소유 저장소·입력·복제본·환경 | 157511193B | 서버 종료·비민감 진단 후 삭제 | rootAbsent=true / 현재존재=false | 원출력cleanup, failureCount=0, udpClosed=true |
 
 ## LP21 누적 저장소와 작업 전이 개별 결과
 
@@ -3697,10 +3697,10 @@ root 별칭은 각 실행기가 생성한 소유root이며 원출력의 containm
 | <owned-root> | 격리 fixture·실행 산출물 | 28047328B | 삭제 | 부재 확인 | lp18-ownership-green-snapshot-typed-01.txt:97 |
 | <owned-root> | 격리 fixture·실행 산출물 | 7640516B | 삭제 | 부재 확인 | lp18-ownership-red-automatic-noop-01.txt:63 |
 | <owned-root> | 격리 fixture·실행 산출물 | 7657028B | 삭제 | 부재 확인 | lp18-ownership-red-automatic-noop-02.txt:63 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.DTc8nF | 격리 fixture·실행 산출물 | 17523133B | 삭제 | 부재 확인 | lp20-cache-01.txt:98 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.EESP5Q | 격리 fixture·실행 산출물 | 19259580B | 삭제 | 부재 확인 | lp20-snapshot-bounded-wait-01.txt:125 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.RhblJ8 | 격리 fixture·실행 산출물 | 16339230B | 삭제 | 부재 확인 | lp20-snapshot-derived-event-01.txt:107 |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.aSFsZr | 격리 fixture·실행 산출물 | 1371736B | 삭제 | 부재 확인 | lp20-snapshot-derived-selection-01.txt:80 |
+| <owned-temp>/media-server-checkpoint-cache.DTc8nF | 격리 fixture·실행 산출물 | 17523133B | 삭제 | 부재 확인 | lp20-cache-01.txt:98 |
+| <owned-temp>/media-server-bounded-wait.EESP5Q | 격리 fixture·실행 산출물 | 19259580B | 삭제 | 부재 확인 | lp20-snapshot-bounded-wait-01.txt:125 |
+| <owned-temp>/media-server-derived-event-integration.RhblJ8 | 격리 fixture·실행 산출물 | 16339230B | 삭제 | 부재 확인 | lp20-snapshot-derived-event-01.txt:107 |
+| <owned-temp>/media-server-derived-selection.aSFsZr | 격리 fixture·실행 산출물 | 1371736B | 삭제 | 부재 확인 | lp20-snapshot-derived-selection-01.txt:80 |
 | <owned-root> | 격리 fixture·실행 산출물 | 11168599B | 삭제 | 부재 확인 | lp20-snapshot-green-01.txt:76 |
 | 없음 | root 생성 전 실패 | 0B | 삭제 대상 없음 | 신규 임시물 없음 | lp20-snapshot-location-preparation-01.txt |
 | <owned-root> | 격리 fixture·실행 산출물 | 391861B | 삭제 | 부재 확인 | lp20-snapshot-red-01.txt:36 |
@@ -3966,7 +3966,7 @@ elapsed_observed_ms=46989
 
 ```text
 [exit] 0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.EESP5Q bytes=19259580 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.EESP5Q bytes=19259580 removed=true
 [elapsed] seconds=6 source=bash-SECONDS
 ```
 
@@ -4039,7 +4039,7 @@ elapsed_observed_ms=46989
 
 ```text
 [exit] 0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.RhblJ8 bytes=16339230 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.RhblJ8 bytes=16339230 removed=true
 [elapsed] seconds=10 source=bash-SECONDS
 ```
 
@@ -4118,7 +4118,7 @@ elapsed_observed_ms=46989
 
 ```text
 [exit] 0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.aSFsZr bytes=1371736 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-selection.aSFsZr bytes=1371736 removed=true
 [elapsed] seconds=2 source=bash-SECONDS
 ```
 
@@ -4800,7 +4800,7 @@ elapsed_observed_ms=46989
 종료·정리/원본 불변 원출력:
 
 ```text
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.DTc8nF","bytes":17523133,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.DTc8nF","bytes":17523133,"removed":true}
 [exit] code=0 elapsed_seconds=19 source=bash-SECONDS
 ```
 
@@ -6085,7 +6085,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-cache-01.txt), 3230B, SHA256 `2a21c0bc59194d0061f3447c58db1acfc06b843dfae2e40c26d02cc0be45fc08`.
 
-종료/정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.gSMS6E","bytes":8937916,"removed":true}`; `[exit] code=2 elapsed_seconds=4 source=bash-SECONDS`.
+종료/정리: `[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.gSMS6E","bytes":8937916,"removed":true}`; `[exit] code=2 elapsed_seconds=4 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -6115,7 +6115,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-cache-02.txt), 6911B, SHA256 `7952b53f4ca445ef3f3ab57a3c7a1c4d87e00b7e3a6ebfc05aa025f18ec3b66d`.
 
-종료/정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.QhQlG5","bytes":17500679,"removed":true}`; `[exit] code=0 elapsed_seconds=20 source=bash-SECONDS`.
+종료/정리: `[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.QhQlG5","bytes":17500679,"removed":true}`; `[exit] code=0 elapsed_seconds=20 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -6428,7 +6428,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-media-01.txt), 2793B, SHA256 `d29cc50b3b8830926e8e982105aab007cc85d584ab389451498ab1f16a967ea2`.
 
-종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.JEOSRI bytes=9004996 removed=true`; `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
+종료/정리: `[cleanup] path=<owned-temp>/media-server-public-media.JEOSRI bytes=9004996 removed=true`; `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -6483,7 +6483,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-prepared-01.txt), 1740B, SHA256 `61876bb61dd1bfa77250b22f97848cca6dc5c0af0d01559034d416db484d12ce`.
 
-종료/정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.AS7QJp","bytes":9283482,"removed":true}`; `[exit] code=0 elapsed_seconds=5 source=bash-SECONDS`.
+종료/정리: `[cleanup] {"root":"<owned-temp>/media-server-transition-reuse.AS7QJp","bytes":9283482,"removed":true}`; `[exit] code=0 elapsed_seconds=5 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -6503,7 +6503,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-retention-01.txt), 2053B, SHA256 `4b22d98f10fee045e2b2d4e02a42534b4bd0fc7ccfe687148317f822d8eb4ad4`.
 
-종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.ZhqKMh bytes=13616196 removed=true`; `[exit] code=0 elapsed_seconds=16 source=bash-SECONDS`.
+종료/정리: `[cleanup] path=<owned-temp>/media-server-retention-v2.ZhqKMh bytes=13616196 removed=true`; `[exit] code=0 elapsed_seconds=16 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -6536,7 +6536,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-service-01.txt), 14504B, SHA256 `e9b4cedc5141950b9282c1579a4072a4bfd3110c1b6ef8b089b1ef565760f0da`.
 
-종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.boAZMn bytes=18253812 removed=true`; `[exit] code=0 elapsed_seconds=18 source=bash-SECONDS`.
+종료/정리: `[cleanup] path=<owned-temp>/media-server-derived-job-service.boAZMn bytes=18253812 removed=true`; `[exit] code=0 elapsed_seconds=18 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -6588,7 +6588,7 @@ run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass"
 
 [원출력](lp18-typed-timeline-01.txt), 3127B, SHA256 `bc75f9af56383ca876b93c594809b3f6d00510d74544db0928c63fcbaf9b4592`.
 
-종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.PrwFtZ bytes=35136795 removed=true`; `[exit] code=0 elapsed_seconds=12 source=bash-SECONDS`.
+종료/정리: `[cleanup] path=<owned-temp>/media-server-public-timeline.PrwFtZ bytes=35136795 removed=true`; `[exit] code=0 elapsed_seconds=12 source=bash-SECONDS`.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |
@@ -14614,7 +14614,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 실행/정리 관측 | [summary] LP15 pass=44 fail=0 | PASS | exit0 원출력에 대응 |
 | 47. LP15-C04 peakRSS bytes=167362560 cap=536870912 | 원출력 assertion | PASS | 기존 oracle 유지 |
-| 실행/정리 관측 | [cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.hyZkPr","bytes":16778539,"removed":true} | PASS | exit0 원출력에 대응 |
+| 실행/정리 관측 | [cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.hyZkPr","bytes":16778539,"removed":true} | PASS | exit0 원출력에 대응 |
 | 실행/정리 관측 | [exit] code=0 elapsed_seconds=33 source=bash-SECONDS | PASS | exit0 원출력에 대응 |
 
 원출력 assertion 행수: 47개. 이 결과는 해당 단기 범위만 인정하며 HTTP/전체 RAM 수명/최종 S11 PASS가 아니다.
@@ -14926,7 +14926,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 43. WR08 media observation quality fast-step | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 44. WR01 actual appsink observation flows through managed writer and decode | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 실행/정리 관측 | [summary] pass=44 fail=0 | PASS | exit0 원출력에 대응 |
-| 실행/정리 관측 | [cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.Ed3hhv bytes=16596907 removed=true | PASS | exit0 원출력에 대응 |
+| 실행/정리 관측 | [cleanup] path=<owned-temp>/media-server-managed-writer.Ed3hhv bytes=16596907 removed=true | PASS | exit0 원출력에 대응 |
 | 실행/정리 관측 | [elapsed] seconds=10 source=bash-SECONDS | PASS | exit0 원출력에 대응 |
 
 원출력 assertion 행수: 44개. 이 결과는 해당 단기 범위만 인정하며 HTTP/전체 RAM 수명/최종 S11 PASS가 아니다.
@@ -14948,7 +14948,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 9. LP14-C02 binding=prior rejected without apply | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 10. LP14-C02 duplicate envelope no-apply/conflict rejection | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 11. LP14-C02 one-shot apply/reuse rejection | 원출력 assertion | PASS | 기존 oracle 유지 |
-| 실행/정리 관측 | [cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.t0QH2L","bytes":8921774,"removed":true} | PASS | exit0 원출력에 대응 |
+| 실행/정리 관측 | [cleanup] {"root":"<owned-temp>/media-server-transition-reuse.t0QH2L","bytes":8921774,"removed":true} | PASS | exit0 원출력에 대응 |
 | 실행/정리 관측 | [exit] code=0 elapsed_seconds=5 source=bash-SECONDS | PASS | exit0 원출력에 대응 |
 
 원출력 assertion 행수: 11개. 이 결과는 해당 단기 범위만 인정하며 HTTP/전체 RAM 수명/최종 S11 PASS가 아니다.
@@ -14966,7 +14966,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 5. CP06 different schema despite canonical equality rejected | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 6. CP06 different enum despite canonical equality rejected | 원출력 assertion | PASS | 기존 oracle 유지 |
 | 실행/정리 관측 | [summary] pass=6 fail=0 | PASS | exit0 원출력에 대응 |
-| 실행/정리 관측 | [cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.vZhAqI bytes=1013691 removed=true | PASS | exit0 원출력에 대응 |
+| 실행/정리 관측 | [cleanup] path=<owned-temp>/media-server-checkpoint-reproduction.vZhAqI bytes=1013691 removed=true | PASS | exit0 원출력에 대응 |
 | 실행/정리 관측 | [elapsed] seconds=1 source=bash-SECONDS | PASS | exit0 원출력에 대응 |
 
 원출력 assertion 행수: 6개. 이 결과는 해당 단기 범위만 인정하며 HTTP/전체 RAM 수명/최종 S11 PASS가 아니다.
@@ -15277,7 +15277,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 9. LP14-C02 binding=prior rejected without apply | 실제 assertion | PASS | 원출력 판정 보존 |
 | 10. LP14-C02 duplicate envelope no-apply/conflict rejection | 실제 assertion | PASS | 원출력 판정 보존 |
 | 11. LP14-C02 one-shot apply/reuse rejection | 실제 assertion | PASS | 원출력 판정 보존 |
-| 실행/정리 관측 | [cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.nzX9Rc","bytes":8987448,"removed":true} | PASS | 정상 exit0 명령에 대응 |
+| 실행/정리 관측 | [cleanup] {"root":"<owned-temp>/media-server-transition-reuse.nzX9Rc","bytes":8987448,"removed":true} | PASS | 정상 exit0 명령에 대응 |
 | 실행/정리 관측 | [exit] code=0 elapsed_seconds=5 source=bash-SECONDS | PASS | 정상 exit0 명령에 대응 |
 
 원출력 assertion 행수: 11개. 실행 범위/한계는 중앙 LP18 기록을 따른다.
@@ -15336,7 +15336,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 실제 assertion | PASS | 원출력 판정 보존 |
 | 실행/정리 관측 | [summary] LP15 pass=44 fail=0 | PASS | 정상 exit0 명령에 대응 |
 | 47. LP15-C04 peakRSS bytes=173670400 cap=536870912 | 실제 assertion | PASS | 원출력 판정 보존 |
-| 실행/정리 관측 | [cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.rRENn7","bytes":16832133,"removed":true} | PASS | 정상 exit0 명령에 대응 |
+| 실행/정리 관측 | [cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.rRENn7","bytes":16832133,"removed":true} | PASS | 정상 exit0 명령에 대응 |
 | 실행/정리 관측 | [exit] code=0 elapsed_seconds=33 source=bash-SECONDS | PASS | 정상 exit0 명령에 대응 |
 
 원출력 assertion 행수: 47개. 실행 범위/한계는 중앙 LP18 기록을 따른다.
@@ -15511,7 +15511,7 @@ source 불변·그룹 종료·5803849B 임시 root 삭제 완료. 전체3017ms, 
 | 43. WR08 media observation quality fast-step | 실제 assertion | PASS | 원출력 판정 보존 |
 | 44. WR01 actual appsink observation flows through managed writer and decode | 실제 assertion | PASS | 원출력 판정 보존 |
 | 실행/정리 관측 | [summary] pass=44 fail=0 | PASS | 정상 exit0 명령에 대응 |
-| 실행/정리 관측 | [cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.NOM7KO bytes=16649067 removed=true | PASS | 정상 exit0 명령에 대응 |
+| 실행/정리 관측 | [cleanup] path=<owned-temp>/media-server-managed-writer.NOM7KO bytes=16649067 removed=true | PASS | 정상 exit0 명령에 대응 |
 | 실행/정리 관측 | [elapsed] seconds=10 source=bash-SECONDS | PASS | 정상 exit0 명령에 대응 |
 
 원출력 assertion 행수: 44개. 실행 범위/한계는 중앙 LP18 기록을 따른다.

@@ -89,7 +89,7 @@
 | media-server-auth-unit-YQ4UaX | 메인 17개 port double | 68 | 메인 제거·부재 확인 |
 | media-server-auth-unit-IUwE2C | 메인 17개 server double | 573 | 메인 제거·부재 확인 |
 
-실제 실패 원출력: [최초](auth-bootstrap.log), [재실행](auth-bootstrap-retry.log). 첫 실패는 runtime.cpp995의 setup 전체 GET redirect와 충돌한 config JSON 파싱이었다. 메인 승인으로 typed whoami 상태 확인 후 setup 완료로 시점을 이동했으나, runtime.cpp1180의 unauth whoami401을 `curl -f`가 거부했다. 두 번째는 config 요청 전 실패다. 같은 인증 준비 경계 재발로 중지·메인 회수했다. 메인은 정상401 JSON과 공개 config route를 구분하여 `-sS -w`로 HTTP 상태와 body를 함께 엄격 검사하도록 수정했고 17개 자체검사 후 실제 순차 실행을 다시 승인했다. 제품 auth 정책이나 ICE 검사는 완화하지 않았다.
+실제 실패 원출력: [최초](public-evidence-3a7286006a2fd895.txt), [재실행](public-evidence-e9c84a58b04434df.txt). 첫 실패는 runtime.cpp995의 setup 전체 GET redirect와 충돌한 config JSON 파싱이었다. 메인 승인으로 typed whoami 상태 확인 후 setup 완료로 시점을 이동했으나, runtime.cpp1180의 unauth whoami401을 `curl -f`가 거부했다. 두 번째는 config 요청 전 실패다. 같은 인증 준비 경계 재발로 중지·메인 회수했다. 메인은 정상401 JSON과 공개 config route를 구분하여 `-sS -w`로 HTTP 상태와 body를 함께 엄격 검사하도록 수정했고 17개 자체검사 후 실제 순차 실행을 다시 승인했다. 제품 auth 정책이나 ICE 검사는 완화하지 않았다.
 
 준비 오류 exec 세션 종료 뒤 필터한 프로세스 조회에서 해당 Node/Python 후보는 없었다. 최초 실행은 자식 exact PID 미수집으로 exact PID 정리 대조가 불가능하다. 조회용 shell/rg만 출력됐으며 credential 출력은 없었다. 이후 stop fixture는 소유 PID를 변수로 유지하여 wait 및 kill-0 부재를 검사한다. 운영 프로세스 종료나 광역 삭제는 하지 않았다.
 
@@ -101,9 +101,9 @@ token start/end/consumed: 미집계(이 하위 작업의 신뢰 가능한 전용
 
 | mode | exit / summary | 원출력 PASS 행 | 원출력 |
 | --- | --- | --- | --- |
-| bootstrap | 0 / 19·0 | 19 | [로그](auth-bootstrap-final.log) |
-| users | 0 / 72·0 | 72 | [로그](auth-users.log) |
-| routes | 0 / 146·0 | 148 | [로그](auth-routes.log) |
+| bootstrap | 0 / 19·0 | 19 | [로그](public-evidence-b18108b0c623f74e.txt) |
+| users | 0 / 72·0 | 72 | [로그](public-evidence-5d188e2e0ac057d9.txt) |
+| routes | 0 / 146·0 | 148 | [로그](public-evidence-f07eceb0769f1bfa.txt) |
 
 총 summary237개, 실제 PASS239행이다. 차이2행은 기존 workflow413/451의 Python SourceRegistry/PublishedView field/type freeze 출력이며 shell pass_count를 증가시키지 않는다. 오류나 누락으로 숨기지 않고 아래239행에 포함한다. 초기 bootstrap 재실행의11개 PASS와 최종239개는 중복 집계하지 않는다. 최초 실패 로그의 고정 error행2/3은 독립 assertion 수가 아니라 같은 실패의 전달 단계다.
 

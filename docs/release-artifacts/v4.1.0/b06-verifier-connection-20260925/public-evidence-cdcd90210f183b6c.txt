@@ -1,0 +1,25 @@
+[start] 2026-09-25T10:27:21Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7  <home>/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  <home>/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  <home>/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+0894f07a7ec5d47d3a219797eccd65ab9fc62e4d8ab510d51d6daccb77ed6a81  <home>/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+68c4012100d9f1b20131a51728c829d58a8447db8295fbb6e7622c465c08d09d  <home>/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":145,"known":114,"unknown":31,"pages":2,"actualUiPass":false}
+PASS: LP26-U01-A owned initialized root and manifest refuse overwrite
+PASS: LP26-U01-A invalid owned target rejected without new artifacts
+[cleanup] {"path":"<owned-temp>/media-server-current-ui-seed.xbZuF5","bytes":13853424,"removed":true}
+[elapsed] seconds=9 source=bash-SECONDS actualUiPass=false

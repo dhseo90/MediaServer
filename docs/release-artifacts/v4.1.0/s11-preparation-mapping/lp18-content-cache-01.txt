@@ -97,5 +97,5 @@ source: a9bcd9fd + 호출-local 내용 proof 변경
            138527512  peak memory footprint
 [pass] LP15-C04 peakRSS bytes=164626432 cap=536870912
 [bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5248,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":164626432}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.BedU6R","bytes":16892239,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-checkpoint-cache.BedU6R","bytes":16892239,"removed":true}
 [exit] code=0 elapsed_seconds=36 source=bash-SECONDS

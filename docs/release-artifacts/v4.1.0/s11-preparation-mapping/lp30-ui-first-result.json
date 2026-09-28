@@ -11,7 +11,7 @@
     "source": "1ab70939959314c2d6dbda0503bbe8b9ecbbeb1a",
     "startedUtc": "2026-09-21T22:34:47.211Z",
     "udpPort": 52785,
-    "output": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current",
+    "output": "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current",
     "tokenStart": null,
     "tokenEnd": null,
     "tokenConsumed": null,
@@ -68,7 +68,7 @@
     {
       "id": "ui-exact-424",
       "status": "PASS",
-      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921223508-80062/ui-exact-424 --http-base http://127.0.0.1:51196 --role-state-map /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-RGKpCY/role-state-map.json --server-log /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-RGKpCY/media-server.log --runtime-descriptor /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-RGKpCY/runtime-descriptor.json --build-path build-gst-onnx/media_server",
+      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921223508-80062/ui-exact-424 --http-base http://127.0.0.1:51196 --role-state-map /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-RGKpCY/role-state-map.json --server-log /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-RGKpCY/media-server.log --runtime-descriptor /private/tmp/media-server-lp30-ui.wBzhhT/tmp/media_server_v390_ui-RGKpCY/runtime-descriptor.json --build-path build-gst-onnx/media_server",
       "exit": 0,
       "durationMs": 1529933,
       "reason": ""
@@ -84,7 +84,7 @@
     {
       "id": "ui-fulltest-qualification",
       "status": "FAIL",
-      "command": "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921223508-80062/ui-exact-424/policy-v4-summary.json --output-dir /Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921223508-80062/ui-fulltest-qualification --require-eligible",
+      "command": "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921223508-80062/ui-exact-424/policy-v4-summary.json --output-dir <home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/runs/v390-test-acceptance-20260921223508-80062/ui-fulltest-qualification --require-eligible",
       "exit": 1,
       "durationMs": 5933,
       "reason": ""
@@ -27711,8 +27711,8 @@
     "placeholderVideoFilesAbsent": true,
     "duplicateScreenshotFilesAbsent": true,
     "preservedArtifacts": [
-      "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json",
-      "/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md"
+      "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/summary.json",
+      "<home>/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current/report.md"
     ],
     "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
     "checks": [

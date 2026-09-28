@@ -134,7 +134,7 @@ Child 21 pass/0 fail/9 skip; 542s. Outer와 하위 판정 수는 서로 가산�
 | 3-code-comments.log | 명령: ./server.sh verify-code-comments | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
 | 4-docs-links.log | 명령: ./server.sh verify-docs-links | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
 | 5-config-json.log | 명령: python3 -m json.tool config/codec_test_sources.json >/dev/null | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
-| 6-report-summary.log | 명령: ./server.sh summarize-reports /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-125518/test-summary.json --output /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-125518/verification_report.md --html-output /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-125518/verification_report.html  | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
+| 6-report-summary.log | 명령: ./server.sh summarize-reports <home>/Workspace/mediaServer/.media_server.test/20260911-125518/test-summary.json --output <home>/Workspace/mediaServer/.media_server.test/20260911-125518/verification_report.md --html-output <home>/Workspace/mediaServer/.media_server.test/20260911-125518/verification_report.html  | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
 | 7-status.log | 명령: ./server.sh status | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
 | 8-diagnose.log | 명령: ./server.sh diagnose | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
 | 9-codec-file_local_h264_aac.log | 명령: MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='file_local_h264_aac' ./server.sh verify-codecs | pass | 실제 child 로그; 아래 하위 판정과 별도 계층 |
@@ -1689,7 +1689,7 @@ Process ledger: {"schema":"media-server.predev-server-process-ledger.v1","proces
 | --- | --- | ---: | ---: | --- |
 | /private/tmp/s09-predev30-jlQoBG | directory | 16016799 | 313 | 메인 삭제 예정 |
 | /private/tmp/media_server_predev-1789098915-51091 | directory | 550954 | 279 | 메인 삭제 예정 |
-| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-125518 | directory | 38096 | 24 | 메인 삭제 예정 |
+| <home>/Workspace/mediaServer/.media_server.test/20260911-125518 | directory | 38096 | 24 | 메인 삭제 예정 |
 
 ### 로그 연결된 신규 경로 (root 중복 포함)
 

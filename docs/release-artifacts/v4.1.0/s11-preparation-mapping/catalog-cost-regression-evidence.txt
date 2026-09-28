@@ -1,4 +1,4 @@
-[run] label=cost-final root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Oddk0d
+[run] label=cost-final root=<owned-temp>/media-server-file-evidence.Oddk0d
 [pass] actual-1 FE02 writer start
 [pass] actual-1 FE04 bound finalized mutation segment0
 [pass] actual-1 FE04 bound finalized mutation segment1
@@ -223,7 +223,7 @@
 [measure] writer_push_finalize_us=4766 input_aus=12 segments=1
 [pass] missing-dts FE08 unsupported original DTS keeps recording
 [summary] checks_pass=178 checks_fail=0 scope=file-evidence-storage-only derived-eight-cap=legacy-projection request_fully_satisfied=not-evaluated
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Oddk0d bytes=101003571 removed=true
+[cleanup] path=<owned-temp>/media-server-file-evidence.Oddk0d bytes=101003571 removed=true
 [elapsed] seconds=28 source=bash-SECONDS
 
 [run-result] command=bash scripts/internal/verify_recording_file_evidence.sh cost-final exit=0 signal=null elapsed_ms=28650 token_usage=unavailable

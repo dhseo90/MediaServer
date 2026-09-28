@@ -17,23 +17,23 @@ PREPARED rollback은 이전 snapshot을 보존한다. 재기동 복구는 새 ta
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| B08-R01 최초 RED | 두 회전 후 이전 snapshot이 남음을 확인. [원출력](b08-snapshot-red.log), exit1, B08-R01 1 FAIL | fail |
-| B08-R01/R02 receipt | 기존15·신규16필드 codec, 잘못된 소유 descriptor 거부. [원출력](b08-receipt-green.log), exit0, 개별111 PASS | pass |
-| B08-R01/R02 checkpoint 첫 GREEN | 새 회수는 통과했으나 SQL fixture가 성공 복구 뒤 이전 snapshot을 읽어 중단. [원출력](b08-checkpoint-green.log), exit2 | fail |
-| B08-R01/R02 checkpoint 보완 | SQL 실패 전 보존과 성공 복구 뒤 회수 기대를 분리. [원출력](b08-checkpoint-fixture-fixed.log), exit0, 개별139 PASS | pass |
-| B08-R02 transaction 준비 1 | `<fcntl.h>` 누락으로 compile 실패; 제품 미실행. [원출력](b08-transaction-green.log), exit1 | fail |
-| B08-R02 transaction 준비 2 | unsupported 구성의 새 검사 함수 미사용으로 compile 실패; 제품 미실행. [원출력](b08-transaction-header-fixed.log), exit1 | fail |
-| B08-R02 transaction 첫 통과 | header·빌드 구성을 보완한 중단/교체 검사. [원출력](b08-transaction-main.log), exit0, 개별213 PASS | pass |
-| B08-R02 정상 게시 부재 경계 | live ENOENT 거부·복구 ENOENT 인정 추가 뒤 [원출력](b08-transaction-live-missing.log), exit0, 개별216 PASS | pass |
-| B08-R01/R02 최종 checkpoint | 위 경계 변경 뒤 4구성 [원출력](b08-checkpoint-main.log), exit0, 개별139 PASS | pass |
-| B08-R02 관측기 준비 1 | 기존 검증 헤더의 `strict_json` 간접 include 누락으로 compile 실패, 제품 미실행. [원출력](b08-checkpoint-observer.log), exit1 | fail |
-| B08-R02 관측기 준비 2 | crypto-off 구성의 OpenSSL 간접 include 누락으로 compile 실패, 제품 미실행. [원출력](b08-checkpoint-observer-includes.log), exit1 | fail |
-| B08-R02 관측기 교차 | 두 비활성 구성의 사전 문법 검사 뒤 4구성 [원출력](b08-checkpoint-observer-final.log), exit0, 개별143 PASS. 이전 manifest 관측은 Busy·새 관측은 단일 현재 세대 | pass |
-| 관련 build | [원출력](b08-build.log), exit0, 100% | pass |
-| 관련 runtime | [원출력](b08-runtime-generation.log), exit0, 개별33 PASS | pass |
-| 관련 소비자 | [원출력](b08-consumers.log), exit0, 개별118 PASS | pass |
+| B08-R01 최초 RED | 두 회전 후 이전 snapshot이 남음을 확인. [원출력](public-evidence-b9754c7ebba049f0.txt), exit1, B08-R01 1 FAIL | fail |
+| B08-R01/R02 receipt | 기존15·신규16필드 codec, 잘못된 소유 descriptor 거부. [원출력](public-evidence-928b3fde34032fc0.txt), exit0, 개별111 PASS | pass |
+| B08-R01/R02 checkpoint 첫 GREEN | 새 회수는 통과했으나 SQL fixture가 성공 복구 뒤 이전 snapshot을 읽어 중단. [원출력](public-evidence-9c90f4953ae1a794.txt), exit2 | fail |
+| B08-R01/R02 checkpoint 보완 | SQL 실패 전 보존과 성공 복구 뒤 회수 기대를 분리. [원출력](public-evidence-c3d97ef2c64163c9.txt), exit0, 개별139 PASS | pass |
+| B08-R02 transaction 준비 1 | `<fcntl.h>` 누락으로 compile 실패; 제품 미실행. [원출력](public-evidence-04555e77de33951b.txt), exit1 | fail |
+| B08-R02 transaction 준비 2 | unsupported 구성의 새 검사 함수 미사용으로 compile 실패; 제품 미실행. [원출력](public-evidence-5549f07992785b70.txt), exit1 | fail |
+| B08-R02 transaction 첫 통과 | header·빌드 구성을 보완한 중단/교체 검사. [원출력](public-evidence-32dc42521efb0631.txt), exit0, 개별213 PASS | pass |
+| B08-R02 정상 게시 부재 경계 | live ENOENT 거부·복구 ENOENT 인정 추가 뒤 [원출력](public-evidence-3472e2be993a6386.txt), exit0, 개별216 PASS | pass |
+| B08-R01/R02 최종 checkpoint | 위 경계 변경 뒤 4구성 [원출력](public-evidence-e2f01b41b5369ba9.txt), exit0, 개별139 PASS | pass |
+| B08-R02 관측기 준비 1 | 기존 검증 헤더의 `strict_json` 간접 include 누락으로 compile 실패, 제품 미실행. [원출력](public-evidence-544cac90e6c72710.txt), exit1 | fail |
+| B08-R02 관측기 준비 2 | crypto-off 구성의 OpenSSL 간접 include 누락으로 compile 실패, 제품 미실행. [원출력](public-evidence-6714e7e13c005c70.txt), exit1 | fail |
+| B08-R02 관측기 교차 | 두 비활성 구성의 사전 문법 검사 뒤 4구성 [원출력](public-evidence-626a0f2afaef3787.txt), exit0, 개별143 PASS. 이전 manifest 관측은 Busy·새 관측은 단일 현재 세대 | pass |
+| 관련 build | [원출력](public-evidence-5d095179d95b8d1b.txt), exit0, 100% | pass |
+| 관련 runtime | [원출력](public-evidence-409f81d11baff425.txt), exit0, 개별33 PASS | pass |
+| 관련 소비자 | [원출력](public-evidence-7c650e88fb0bb657.txt), exit0, 개별118 PASS | pass |
 | 기능 inventory 최초 | B-08 목록만 추가돼 986개 기존 feature row는 동일하나 manifest의 전체 파일 hash가 달라 exit1. 기존 구현 항목 재생성 없음 | fail |
-| 기능 inventory 보완 | 986개 행의 byte/의미 동일 대조 후 hash 한 값만 수정. `verify-feature-implementation-evidence` exit0·986/986 reviewed·negative15/15. [기능 전수 원출력](b08-project-inventory-final.log) exit0·18 PASS/0 FAIL | pass |
+| 기능 inventory 보완 | 986개 행의 byte/의미 동일 대조 후 hash 한 값만 수정. `verify-feature-implementation-evidence` exit0·986/986 reviewed·negative15/15. [기능 전수 원출력](public-evidence-6759f29c44c966b4.txt) exit0·18 PASS/0 FAIL | pass |
 
 최종 유효 집중 실행의 **621개 개별 결과**는 [전수표](items.md)에서 원출력·
 실행 구성별로 대조한다. 앞선139 checkpoint 행은 같은 제품 코드의 유효
@@ -69,6 +69,6 @@ PASS를 사용하고, 뒤에 추가한 관측기 교차 4행은 최종 실행을
 | `media-server-generation-consumers.US5N6x` | 소비자 fixture | 33,703,416B | runner 소유 검사 후 삭제 | 부재 | consumers 원출력 |
 | `/private/tmp/b08-*.log` (16개) | 비민감 임시 원출력 | 각 파일 938~210,250B | redaction 검색·저장소 복제·byte 대조 후 원본 정리 | 저장소 복제 보존, 원본 16개 부재 | 이 디렉터리의 원출력 |
 
-fixture 부모는 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T`이며,
+fixture 부모는 `<owned-temp>`이며,
 각 runner의 `removed=true`와 소유 경로 부재 14건을 직접 확인했다. 전체 build는
 기존 관리 build 디렉터리를 갱신했으며 임시 fixture가 아니다.

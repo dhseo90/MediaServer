@@ -6,7 +6,7 @@
 
 승인된 validator 조건 한 곳만 제거했다. `start_ms-pre_ms<0`이어도 요청의 start/end/pre/post를 변경하지 않고 수락한다. 음수 필드, 역전 구간, end+post overflow, ID·품질·schema 검사는 유지한다. 실제 영상 존재/coverage/missing 판단, UTC 외삽, 공개 schema, bridge 로직은 변경하지 않았다. 초기 요청은 pending이며 파생 clip을 생성하지 않는다. 새 수락 레코드의 구형 바이너리 downgrade 호환은 보장하지 않는다.
 
-TDD 스킬에 따라 검사 먼저 작성했고 예상 7개 실패를 직접 관찰한 뒤 최소 수정했다. 기존 16개 reference/18개 connection 회귀는 RED에서도 모두 통과했다. C348의 start0/pre1 거부 기대만 승인 계약으로 C421 수락 검사에 옮겼으며 다른 5개 오류 검사는 유지했다. 최종 focused 41개 및 승인된 이벤트 회귀가 통과했다. 제품 build는 메인이 실행해 exit0을 전달하고 [Build.log](Build.log)에 보존했다.
+TDD 스킬에 따라 검사 먼저 작성했고 예상 7개 실패를 직접 관찰한 뒤 최소 수정했다. 기존 16개 reference/18개 connection 회귀는 RED에서도 모두 통과했다. C348의 start0/pre1 거부 기대만 승인 계약으로 C421 수락 검사에 옮겼으며 다른 5개 오류 검사는 유지했다. 최종 focused 41개 및 승인된 이벤트 회귀가 통과했다. 제품 build는 메인이 실행해 exit0을 전달하고 [Build.log](public-evidence-a153cf65b879f00f.txt)에 보존했다.
 
 ## 명령·최초 실패·재검증
 
@@ -42,56 +42,56 @@ C424/425는 후보가 없는 원본 요청 사실 저장을 확인하며 미디�
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| C341 계약 왕복 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C342 unknown/중복 필드 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C343 ID·종류·소유자 제약 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C344 품질·원본 nullable 조합 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C345 원본 수치·track 경계 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C346 event 요청·시간축 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C347 observation 요청 금지 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C348 요청 음수·역전·padding | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C419 media-pts 초기 요청 원문 왕복 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | 최초 예상 fail 후 pass |
-| C420 UTC 초기 요청 원문 왕복 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | 최초 예상 fail 후 pass |
-| C421 0·최대 pre 요청 및 오류 경계 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | 최초 예상 fail 후 pass |
-| C349 미지원 schema 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C350 실제 원장 저장·조회 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C351 동일 참조 멱등 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C352 동일 ID 충돌 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C353 opt-in·미open 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C354 SQL·JSONL 재시작 동등 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C355 checkpoint 참조 보존 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
-| C356 손상·충돌 replay 선차단 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](ReferenceGreen.log) | pass | RED/GREEN 모두 pass |
+| C341 계약 왕복 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C342 unknown/중복 필드 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C343 ID·종류·소유자 제약 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C344 품질·원본 nullable 조합 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C345 원본 수치·track 경계 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C346 event 요청·시간축 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C347 observation 요청 금지 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C348 요청 음수·역전·padding | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C419 media-pts 초기 요청 원문 왕복 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | 최초 예상 fail 후 pass |
+| C420 UTC 초기 요청 원문 왕복 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | 최초 예상 fail 후 pass |
+| C421 0·최대 pre 요청 및 오류 경계 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | 최초 예상 fail 후 pass |
+| C349 미지원 schema 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C350 실제 원장 저장·조회 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C351 동일 참조 멱등 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C352 동일 ID 충돌 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C353 opt-in·미open 거부 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C354 SQL·JSONL 재시작 동등 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C355 checkpoint 참조 보존 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
+| C356 손상·충돌 replay 선차단 | 해당 실제 fixture 실행, 상세 원출력 [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | pass | RED/GREEN 모두 pass |
 
 ### ConnectionGreen.log
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| C401 관측·참조 원자 저장 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C402 쌍 identity 불일치 거부 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C403 동일 원본 재전달·event 병합 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C405 SQL·JSONL·checkpoint 쌍 복구 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C404 다른 원본 동일PTS 구분 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C406 실제 OnResult 원본 참조 저장 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C407 OnEvent 강제 표본 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C408 종료track 과거참조 보존 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C409 종료track 참조부재 unknown | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C410 sampling·queue·StopAndDrain 회귀 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C411 exact·미색인 복수 후보 보존 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C412 nearest/ambiguous/unavailable 미승격 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C413 UTC unknown·삭제 상태 재판정 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C414 실제 TryResolve 요청참조 저장 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C415 event 재전달·확장·세대 구분 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C416 source/channel 충돌 거부 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C417 같은 원본 미디어 교집합 우선 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C418 공개 결과·구형 fallback 불변 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | RED/GREEN 모두 pass |
-| C422 실제 bridge 초기 pre-roll 수락·pending 유지 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | 최초 예상 fail 후 pass |
-| C423 초기 요청 멱등·갱신·generation 분리 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | 최초 예상 fail 후 pass |
-| C424 초기 요청 SQL·JSONL 복구 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | 최초 예상 fail 후 pass |
-| C425 초기 요청 checkpoint 복구 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](ConnectionGreen.log) | pass | 최초 예상 fail 후 pass |
+| C401 관측·참조 원자 저장 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C402 쌍 identity 불일치 거부 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C403 동일 원본 재전달·event 병합 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C405 SQL·JSONL·checkpoint 쌍 복구 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C404 다른 원본 동일PTS 구분 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C406 실제 OnResult 원본 참조 저장 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C407 OnEvent 강제 표본 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C408 종료track 과거참조 보존 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C409 종료track 참조부재 unknown | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C410 sampling·queue·StopAndDrain 회귀 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C411 exact·미색인 복수 후보 보존 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C412 nearest/ambiguous/unavailable 미승격 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C413 UTC unknown·삭제 상태 재판정 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C414 실제 TryResolve 요청참조 저장 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C415 event 재전달·확장·세대 구분 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C416 source/channel 충돌 거부 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C417 같은 원본 미디어 교집합 우선 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C418 공개 결과·구형 fallback 불변 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | RED/GREEN 모두 pass |
+| C422 실제 bridge 초기 pre-roll 수락·pending 유지 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | 최초 예상 fail 후 pass |
+| C423 초기 요청 멱등·갱신·generation 분리 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | 최초 예상 fail 후 pass |
+| C424 초기 요청 SQL·JSONL 복구 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | 최초 예상 fail 후 pass |
+| C425 초기 요청 checkpoint 복구 | 해당 실제 fixture 실행, 상세 원출력 [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | pass | 최초 예상 fail 후 pass |
 
 ## 이벤트 회귀 전수 결과
 
-기존 verifier의 실행 행을 아래에 보존한다. 중복 제목도 실행 횟수대로 남겼다. exact action 표는 하위 check ID와 executions도 함께 보존한다. 전체 표의 원출력은 [Event.log](Event.log)다.
+기존 verifier의 실행 행을 아래에 보존한다. 중복 제목도 실행 횟수대로 남겼다. exact action 표는 하위 check ID와 executions도 함께 보존한다. 전체 표의 원출력은 [Event.log](public-evidence-24bebcca3593b752.txt)다.
 
 | 제목 | 테스트내용 | pass/fail |
 | --- | --- | --- |
@@ -354,12 +354,12 @@ C424/425는 후보가 없는 원본 요청 사실 저장을 확인하며 미디�
 
 | 로그 | 소유 임시 경로 | 삭제 전 bytes | 결과 |
 | --- | --- | ---: | --- |
-| [ReferenceRed.log](ReferenceRed.log) | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.8w1Y40` | 3504765 | removed=true·부재 직접 확인 |
-| [ConnectionRed.log](ConnectionRed.log) | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.8JteiK` | 4550944 | removed=true·부재 직접 확인 |
-| [ReferenceGreen.log](ReferenceGreen.log) | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.OVtQYW` | 3504765 | removed=true·부재 직접 확인 |
-| [ConnectionGreen.log](ConnectionGreen.log) | `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.ACfr27` | 4560372 | removed=true·부재 직접 확인 |
-| [Event.log](Event.log) | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_yUs9JP` | 14564374 | 47개 파일, removed=true·부재 직접 확인 |
-| [Event.log](Event.log) | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.6vKRoD` | 4685691 | removed=true·부재 직접 확인 |
+| [ReferenceRed.log](public-evidence-6af8bb22b18aad4f.txt) | `<owned-temp>/media-server-consumer-reference.8w1Y40` | 3504765 | removed=true·부재 직접 확인 |
+| [ConnectionRed.log](public-evidence-6205c4e1a2126d2b.txt) | `<owned-temp>/media-server-consumer-connection.8JteiK` | 4550944 | removed=true·부재 직접 확인 |
+| [ReferenceGreen.log](public-evidence-7132678214827b9f.txt) | `<owned-temp>/media-server-consumer-reference.OVtQYW` | 3504765 | removed=true·부재 직접 확인 |
+| [ConnectionGreen.log](public-evidence-f2b2165a03a7cc09.txt) | `<owned-temp>/media-server-consumer-connection.ACfr27` | 4560372 | removed=true·부재 직접 확인 |
+| [Event.log](public-evidence-24bebcca3593b752.txt) | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_yUs9JP` | 14564374 | 47개 파일, removed=true·부재 직접 확인 |
+| [Event.log](public-evidence-24bebcca3593b752.txt) | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.6vKRoD` | 4685691 | removed=true·부재 직접 확인 |
 
 Build는 신규 임시 root/서버 기동 없이 기존 build output을 유지했다(메인 보고). 원출력은 재현·실패 이력 비교용으로 이 저장소 증적 디렉터리에 보존하며 외부 endpoint·운영 파일·비밀번호를 포함하지 않는다.
 

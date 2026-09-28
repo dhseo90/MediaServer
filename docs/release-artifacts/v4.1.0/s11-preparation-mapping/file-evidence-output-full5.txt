@@ -1,4 +1,4 @@
-[run] label=full5 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.FQqPQZ
+[run] label=full5 root=<owned-temp>/media-server-file-evidence.FQqPQZ
 [pass] actual-1 FE02 writer start
 [pass] actual-1 FE04 bound finalized mutation segment0
 [pass] actual-1 FE04 bound finalized mutation segment1
@@ -184,5 +184,5 @@
 [measure] writer_push_finalize_us=4804 input_aus=12 segments=1
 [pass] missing-dts FE08 unsupported original DTS keeps recording
 [summary] checks_pass=150 checks_fail=0 scope=file-evidence-storage-only derived-eight-cap=legacy-projection request_fully_satisfied=not-evaluated
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.FQqPQZ bytes=68586029 removed=true
+[cleanup] path=<owned-temp>/media-server-file-evidence.FQqPQZ bytes=68586029 removed=true
 [elapsed] seconds=32 source=bash-SECONDS

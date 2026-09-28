@@ -1,5 +1,5 @@
 {"kind":"preflight","mode":"selftest","id":"guard-02","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"7b8966fa39a2187cb5f049f3b8e4545064292b209151d9b6685d714237f86360","physicalBytes":25769803776,"reclaimableEstimateBytes":10480058368,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
-{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+{"kind":"command","label":"runner-selftest","command":"<home>/.nvm/versions/node/v24.13.0/bin/node","args":["--test","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
 ✔ LP17-H01 기존 RSS 실패와 유효 진단 분리 (0.531625ms)
 ✔ LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 (0.234083ms)
 ✔ LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 (0.406792ms)

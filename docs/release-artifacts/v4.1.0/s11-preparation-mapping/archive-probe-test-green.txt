@@ -1,4 +1,4 @@
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-NWtLoA bytes=14624652 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-NWtLoA bytes=14624652 removed=true
 ✔ LP05-01 typed failed known0 (2288.631083ms)
 ✔ LP05-01 typed failed known1 (1536.024083ms)
 ✔ LP05-01 typed failed known2 (1528.9725ms)

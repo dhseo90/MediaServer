@@ -33,7 +33,7 @@
 
 ## 12개 segment 측정 요약
 
-아래 시간 단위는 ns다. `offset`은 원본 PTS−파일 PTS의 min=max이며 모든 행에서 constant_offset=true, 정규화 잔차 min=max=0, EOS=true였다. UUID·generation/order·ordinal 및 패킷별 정확값은 [Final.log](Final.log)에 전수 보존한다.
+아래 시간 단위는 ns다. `offset`은 원본 PTS−파일 PTS의 min=max이며 모든 행에서 constant_offset=true, 정규화 잔차 min=max=0, EOS=true였다. UUID·generation/order·ordinal 및 패킷별 정확값은 [Final.log](public-evidence-f25316764d73bce7.txt)에 전수 보존한다.
 
 | case/segment | AU | media_start | media_end | offset |
 | --- | ---: | ---: | ---: | ---: |
@@ -58,15 +58,15 @@ C508 첫 epoch는 `e5974515-fe82-4828-9b0e-d88aac3c3d44`, reset 뒤 두 파일�
 
 | 실행 | 정확한 명령 | exit/결과 | elapsed와 원출력 |
 | --- | --- | --- | --- |
-| 초기 72389 | `bash scripts/internal/verify_recording_derived_time_probe.sh` | 0, pass 8/fail 0 | 4초, [Probe.log](Probe.log), packet 300행 |
-| 최종 79871 | `bash scripts/internal/verify_recording_derived_time_probe.sh` | 0, pass 8/fail 0 | 4초, [Final.log](Final.log), packet 300행 |
+| 초기 72389 | `bash scripts/internal/verify_recording_derived_time_probe.sh` | 0, pass 8/fail 0 | 4초, [Probe.log](public-evidence-a970b95af657e449.txt), packet 300행 |
+| 최종 79871 | `bash scripts/internal/verify_recording_derived_time_probe.sh` | 0, pass 8/fail 0 | 4초, [Final.log](public-evidence-f25316764d73bce7.txt), packet 300행 |
 
 초기 결과를 보존하고 최종 실행에서 C507 provenance/UTC endpoint 역행, C508 epoch 분리 및 last ordinal 직접 assertion을 보강했다. 두 실행 모두 컴파일 오류·테스트 실패는 없었다. 전체 도구 반환을 보존했으며 화면 표시의 토큰 축약과 달리 저장 원출력에는 truncation marker가 없고 각 300 packet 행이 있다. elapsed source는 runner의 `bash SECONDS`다. token start/end/consumed는 담당자 단위 집계 API가 없어 미집계다.
 
 | 임시 경로 | 종류 | 삭제 전 bytes | 조치/결과 |
 | --- | --- | ---: | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-time.QjhJqT` | 초기 실행 binary·MP4·managed store | 4799362 | 소유 prefix/부모 확인 후 삭제, removed=true |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-time.Oalgpl` | 최종 실행 binary·MP4·managed store | 4799554 | 소유 prefix/부모 확인 후 삭제, removed=true |
+| `<owned-temp>/media-server-derived-time.QjhJqT` | 초기 실행 binary·MP4·managed store | 4799362 | 소유 prefix/부모 확인 후 삭제, removed=true |
+| `<owned-temp>/media-server-derived-time.Oalgpl` | 최종 실행 binary·MP4·managed store | 4799554 | 소유 prefix/부모 확인 후 삭제, removed=true |
 
 원출력은 Probe.log 94,697 bytes/358행, Final.log 105,391 bytes/360행이다. 자체 fixture의 시간·불변 ID·검사 결과만 저장했으며 영상·비밀번호·외부 endpoint는 보존하지 않았다. 전체 원출력은 재현 비교를 위해 보존한다. 외부 호출·포트·운영 데이터 사용은 없다.
 

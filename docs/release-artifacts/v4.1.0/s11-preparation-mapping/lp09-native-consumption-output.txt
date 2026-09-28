@@ -36,15 +36,15 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03a observed identity and native interval mismatch rejected
 [pass] LP09-S03a native profile cannot drop file evidence
 [summary] pass=10 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.NMf50r bytes=5031896 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.NMf50r bytes=5031896 removed=true
 
 
 [실행 조각] lp10-build-red-start exit=running wall_time_seconds=1.003271667
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
 
@@ -63,7 +63,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 [실행 조각] lp10-native-red-start exit=running wall_time_seconds=1.002789417
@@ -104,16 +104,16 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03 case4 exact recovery sql1
 [pass] LP09-S03 case4 recovered reference completeness sql1
 [summary] pass=23 fail=8
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.RR4Xft bytes=10139087 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.RR4Xft bytes=10139087 removed=true
 [elapsed] seconds=9 source=bash-SECONDS
 
 
 [실행 조각] lp10-build-green-start exit=running wall_time_seconds=1.002797458
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
 
@@ -126,7 +126,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 [실행 조각] lp10-native-green-start exit=running wall_time_seconds=1.002977417
@@ -189,7 +189,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03 case4 recovered reference completeness sql1
 [fail] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql1
 [summary] pass=45 fail=10
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.roxl7a bytes=11735066 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.roxl7a bytes=11735066 removed=true
 [elapsed] seconds=19 source=bash-SECONDS
 
 
@@ -198,7 +198,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 [실행 조각] lp10-identity-red-start exit=running wall_time_seconds=1.002252042
@@ -231,7 +231,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03a native profile cannot drop file evidence
 [fail] LP09-S03a overlapping substitute AU cannot replace selected identity
 [summary] pass=10 fail=1
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.3rHy6t bytes=5147016 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.3rHy6t bytes=5147016 removed=true
 
 
 [실행 조각] lp10-identity-green-start exit=running wall_time_seconds=1.00246025
@@ -265,7 +265,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03a native profile cannot drop file evidence
 [pass] LP09-S03a overlapping substitute AU cannot replace selected identity
 [summary] pass=12 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.I9mC14 bytes=5147784 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.I9mC14 bytes=5147784 removed=true
 
 
 [실행 조각] lp10-dup-red-start exit=running wall_time_seconds=1.001362209
@@ -329,16 +329,16 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql1
 [fail] native fixture: source-count
 [summary] pass=51 fail=5
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.68gS8W bytes=11927099 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.68gS8W bytes=11927099 removed=true
 [elapsed] seconds=19 source=bash-SECONDS
 
 
 [실행 조각] lp10-build-native-final-start exit=running wall_time_seconds=1.002366083
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
 
@@ -350,7 +350,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 [실행 조각] lp10-timeline-diagnostic-start exit=running wall_time_seconds=1.002313833
@@ -505,7 +505,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03 case4 recovered reference completeness sql1
 [pass] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql1
 [summary] pass=51 fail=4
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.9KjXSM bytes=11738394 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.9KjXSM bytes=11738394 removed=true
 [elapsed] seconds=19 source=bash-SECONDS
 
 
@@ -517,7 +517,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 [실행 조각] lp10-native-fixed-start exit=running wall_time_seconds=1.003312167
@@ -580,16 +580,16 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03 case4 recovered reference completeness sql1
 [pass] LP09-S03 case4 timeline native interval and independent UTC placement sql1
 [summary] pass=55 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.0p0nPu bytes=11738778 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.0p0nPu bytes=11738778 removed=true
 [elapsed] seconds=19 source=bash-SECONDS
 
 
 [실행 조각] lp10-worker-red-start exit=1 wall_time_seconds=0.659811292
-/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_native_derived_smoke.cpp:37:167: error: no member named '_exit' in the global namespace
+<home>/Workspace/mediaServer/scripts/internal/recording_native_derived_smoke.cpp:37:167: error: no member named '_exit' in the global namespace
    37 |         DerivedJobService service(store.catalog,store.journal,{root,30000,[&](auto stage,auto){if(crash&&stage==DerivedJobProgress::ReadyDurable){std::cout.flush();::_exit(23);}}});DerivedJobRunResult run;
       |                                                                                                                                                                       ^~~~~
 1 error generated.
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2hChzI bytes=0 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.2hChzI bytes=0 removed=true
 [elapsed] seconds=1 source=bash-SECONDS
 
 
@@ -602,16 +602,16 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [fail] LP09-S03 case0 actual native remux Ready Complete
 [diagnostic] reason=failed:job-remux: file-original-timestamp-mismatch
 [summary] pass=1 fail=2
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.ZMwukr bytes=8613353 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.ZMwukr bytes=8613353 removed=true
 [elapsed] seconds=3 source=bash-SECONDS
 
 
 [실행 조각] lp10-worker-build-start exit=running wall_time_seconds=1.003350708
 [env] local override skipped
-[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[1/2] configure: <home>/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.1s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+-- Build files have been written to: <home>/Workspace/mediaServer/build-gst-onnx
 [2/2] build
 [  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
 
@@ -621,7 +621,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [ 98%] Built target media_server_runtime
 [ 99%] Linking CXX executable media_server
 [100%] Built target media_server
-[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[done] build=<home>/Workspace/mediaServer/build-gst-onnx/media_server
 
 
 [실행 조각] lp10-native-final-start exit=running wall_time_seconds=1.002495
@@ -689,7 +689,7 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03c native Ready recovery same ID complete2
 [pass] LP09-S03c native recovery file hashes and resource cleanup
 [summary] pass=59 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.HLENhF bytes=14417434 removed=true
+[cleanup] path=<owned-temp>/media-server-native-derived.HLENhF bytes=14417434 removed=true
 [elapsed] seconds=24 source=bash-SECONDS
 
 
@@ -724,4 +724,4 @@ token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 
 [pass] LP09-S03a native profile cannot drop file evidence
 [pass] LP09-S03a overlapping substitute AU cannot replace selected identity
 [summary] pass=12 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.z3whSD bytes=5148168 removed=true
+[cleanup] path=<owned-temp>/media-server-job-validation.z3whSD bytes=5148168 removed=true

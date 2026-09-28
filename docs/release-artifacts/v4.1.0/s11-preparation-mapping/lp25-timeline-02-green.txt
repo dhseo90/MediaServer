@@ -85,5 +85,5 @@ source: HEAD5767ba54d + preserved LP22 + LP25 source; runtime archive SHA256 408
 [pass] LP25-T07 reopen exact group IDs member provenance and deleted state
 [pass] LP25-T08 file-unit accumulated workspace cap rejects without partial response
 [summary] pass=66 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.2cWEQY bytes=48056627 removed=true
+[cleanup] path=<owned-temp>/media-server-public-timeline.2cWEQY bytes=48056627 removed=true
 [elapsed] seconds=14 source=bash-SECONDS

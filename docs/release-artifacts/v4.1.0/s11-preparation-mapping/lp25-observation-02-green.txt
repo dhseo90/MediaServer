@@ -1,6 +1,6 @@
 command: node --test scripts/internal/recording_current_observation.test.mjs scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_latency.test.mjs scripts/internal/recording_completion_trace.test.mjs scripts/internal/recording_latency_trace.test.mjs
 exit: 0
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-HLjCQW","bytes":62584,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-completion-HLjCQW","bytes":62584,"removed":true}
 ✔ LP22-T01 trace off and invalid environment emit nothing (345.129083ms)
 ✔ LP22-T02 trace hashes canary identity and rejects unknown raw fields (6.246625ms)
 ✔ LP22-T02 trace count and byte caps emit one explicit loss (19.403041ms)
@@ -94,7 +94,7 @@ exit: 0
 [load] {"requests":600,"locks":15000,"rows":3622,"bytes":494590,"sha256":"57c1dd26cc6eedeaf1699d141061915c7c48a357d39180419b0ed28a9e1a7945"}
 [load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1484367,"sha256":"e9542a3aa5a819f798189921170b19ed5ea787950ac79be7dc344a9932f74c62"}
 [wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-sY3aI5","bytes":506835,"removed":true}
+[cleanup] {"root":"<owned-temp>/media-server-latency-sY3aI5","bytes":506835,"removed":true}
 ✔ LP13-T01 collector 존재 (0.649834ms)
 ✔ LP13-T01 disabled/invalid null 무출력 (343.886958ms)
 ✔ LP13-T01 disabled/invalid "" 무출력 (42.55775ms)

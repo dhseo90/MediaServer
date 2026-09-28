@@ -100,7 +100,7 @@
         "- 실패: 1",
         "- 건너뜀: 0",
         "- 소요 시간: 52s (0.9m)",
-        "- 상세 로그: /Users/dhseo/Workspace/mediaServer/.media_server.test/20260926-092919",
+        "- 상세 로그: <home>/Workspace/mediaServer/.media_server.test/20260926-092919",
         "[결론] 실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요."
       ],
       "stderrTail": [],

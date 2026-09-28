@@ -112,7 +112,7 @@ JSON으로 출력했다. 보고서 전체1,067오류가 도구 반환과 동일�
 
 `bash -n scripts/internal/verify_gst_environment_actual.sh` exit0 뒤 실제 동일 runner exit0.
 2026-09-21T12:44:09.744Z, darwin/arm64, Node24.13.0, 관측6,176ms.
-[원출력](lp27-env12-actual.log)에 source·sample SHA와 subprocess exit/stderr/hash를 보존했다.
+[원출력](public-evidence-5ac3af7ddd676802.txt)에 source·sample SHA와 subprocess exit/stderr/hash를 보존했다.
 cold/warm 모두277 plugins·blacklist1·1525 features이며 feature SHA가 같다.
 blacklist1을 필수 factory 실패로 해석하지 않는다. 44inspect/44make 모두 성공,
 webrtc READY→NULL, 무음 H264300 buffers/EOS, sample 불변을 확인했다.
@@ -227,7 +227,7 @@ token start/end/consumed는 미집계(null), source는 전용 집계 없음이�
 정정하고 동일 링크 검사부터 재실행했다. 제품 실패가 아니며 후속 검사는 최초 실패 뒤 실행하지 않았다.
 
 `bash scripts/internal/verify_recording_preparation_contracts.sh` 1회 exit0,8PASS/0FAIL.
-전체2.578초/native1.664초, -Werror 빌드 성공. [원출력](lp27-prep-contracts.log)에 source/archive SHA를 보존했다.
+전체2.578초/native1.664초, -Werror 빌드 성공. [원출력](public-evidence-e1d5d22824b4852f.txt)에 source/archive SHA를 보존했다.
 직접 diff 검토·결과 대조: UID501/EACCES13, keyframe2개 중 ordinal11부터10개,
 admission 거부2·media/finalized0·drop0·동일20개 전달, INSERT 실패 후 동일 archive SQL1행/원본 불변.
 stderr74B는 고정 hash만 보존(critical0/warning0), 모델 추론·앱 재기동·UI PASS 아님.
@@ -317,10 +317,10 @@ main은 정책·실행기·실제 검사·증거·커밋·최종 판정을 맡�
 ### 진단 신뢰성 보완 결과
 
 메인 직접 diff 검토 후 CPD19 예상 RED(exit1·0.080초) → 구현 → CPD01~24 PASS(exit0·0.317초)를 확인했다.
-[RED](lp27-response-red.log)·[GREEN](lp27-response-green.log)·[AST](lp27-response-ast.log)는 원본 SHA 동일하게 이관했다.
+[RED](public-evidence-fcff99d6f05b55c4.txt)·[GREEN](public-evidence-8f766b75750a27a3.txt)·[AST](public-evidence-68892b8a7bd4891d.txt)는 원본 SHA 동일하게 이관했다.
 Python 테스트는 격리 자식만 사용했고 24개 fixture 삭제·부재를 각 행으로 확인했다.
 실제 `node scripts/internal/verify_recording_media_impact.mjs --http`는 exit0, 명령25,110ms/전체27,472ms.
-[실제 출력](lp27-http-02.log)·[고정 진단](lp27-http-diagnostic-02.jsonl)에 개별 결과·환경·source hash를 보존한다.
+[실제 출력](public-evidence-1b06bb54b083af36.txt)·[고정 진단](lp27-http-diagnostic-02.jsonl)에 개별 결과·환경·source hash를 보존한다.
 6개 RTSP 모두 응답2xx 각각5개, observed, stdout audio/video 각각1, 잘림false, 원래 exit0이다.
 이전 인식0이 실제 무응답이 아니라 parser 누락임을 확인했다. 과거20초 실패 원인 해결을 주장하지 않는다.
 request-response 상관·첫 RTP·prepare 원인은 여전히 미확정이며 libnice 경고2는 별도 관측이다.
@@ -392,7 +392,7 @@ token start/end/consumed: 전용 집계 없어 미집계. elapsed는 명령 측�
 1번 `05fb43ef` 후 `node scripts/internal/verify_recording_media_impact.mjs --run`을 한 번 실행했다.
 codec67 PASS/0FAIL·외부3 미실행(exit0·339,836ms) → ICE8 PASS/0FAIL(exit0·17,866ms).
 전체359,828ms·exit0이며 제품 SHA2ce43399…9fd7은 이전과 동일하다.
-[안전 원출력](lp27-hw03-media-02.log)·[고정 진단](lp27-hw03-diagnostic-02.jsonl)을 보존한다.
+[안전 원출력](public-evidence-39a66f0e5a98ebea.txt)·[고정 진단](lp27-hw03-diagnostic-02.jsonl)을 보존한다.
 58개 RTSP 모두 exit0·response_observation=observed·stdout audio/video 각각1이다.
 서버 exit0·forced false, TCP8·UDP63936 종료를 확인했다.
 기존 native self99/실제81의 두 파일 SHA(6dca697b…9ff/1f18e1bc…161)가 현재와 같아 증거를 유지했다.
@@ -744,24 +744,24 @@ Node 준비 실패도 finally에서 소유 root를 보고하도록 port 할당�
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| CPD01 정상 stdout·exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD02 timeout124 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD03 비정상 exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD04 고정 RTSP 계수 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD05 unknown trace | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD06 비밀 비노출 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
-| CPD07 출력 상한 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD08 소유 JSONL | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
-| CPD09 directory symlink | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD10 directory 권한·UID | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD11 file symlink·권한 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
-| CPD12 필드·ordinal | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD13 진단 오류와 원래 exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD14 제공기 종료 구분 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD15 부분·모호 trace | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD16 기본 shell 경로 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD17 제공기 전용 정상 구성 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
-| CPD18 제공기 잘못된 구성 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD01 정상 stdout·exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD02 timeout124 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD03 비정상 exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD04 고정 RTSP 계수 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD05 unknown trace | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD06 비밀 비노출 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
+| CPD07 출력 상한 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD08 소유 JSONL | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
+| CPD09 directory symlink | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD10 directory 권한·UID | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD11 file symlink·권한 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
+| CPD12 필드·ordinal | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD13 진단 오류와 원래 exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD14 제공기 종료 구분 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD15 부분·모호 trace | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD16 기본 shell 경로 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD17 제공기 전용 정상 구성 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
+| CPD18 제공기 잘못된 구성 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](public-evidence-166b84dbd5f9da07.txt) | PASS | 최초/최종 PASS |
 | HWD01 mode | node --self-test, exit0 | PASS | 미등록 옵션 거부 |
 | HWD02 목록 | 같은 자체검사 | PASS | 2/8/28/67+8 구분 |
 | HWD03 redaction | 같은 자체검사 | PASS | URL/session canary 비노출 |
@@ -785,7 +785,7 @@ Node 준비 실패도 finally에서 소유 root를 보고하도록 port 할당�
 | 공백 | git diff --check 및 --cached --check exit0 | PASS | 변경·stage 모두 확인 |
 
 Node 자체검사4개는 준비정리 경계 이동 전후 두 번 실행, 모두4/0·exit0이다. 별도 wall집계는 없으며
-전용 token start/end/consumed도 미제공이다. CPD 원출력은 [최초](lp27-diag-self-01.log)·[최종](lp27-diag-self-02.log).
+전용 token start/end/consumed도 미제공이다. CPD 원출력은 [최초](public-evidence-d243cd621370b80d.txt)·[최종](public-evidence-166b84dbd5f9da07.txt).
 최초 CPD06/08/11은 canonical directory 양성fixture가 macOS /var 별칭이라 거부된 것이고,
 제품 코드나 보안조건을 완화하지 않고 unit root만 realpath로 정정했다.
 실제 trace 형식·제공기·RTSP 경로는 다음 2번에서 확인하며 자체검사 PASS로 대체하지 않는다.
@@ -822,8 +822,8 @@ HTTP 실행에서는 두 로그0600 확인. 사용자 전역 설정·timeout·�
 | HW-A01 포트·정리 | TCP4개 폐쇄·UDP/제품서버 미생성·소유3경로 삭제/부재 exit0 | PASS | 아래 cleanup 표 |
 | HW-A02 종료·정리 | 제품 exit0/강제종료false·TCP4개 폐쇄·UDP종료·소유3경로 삭제/부재 exit0 | PASS | 아래 cleanup 표 |
 
-[제공기 원출력](lp27-providers-01.log)·[고정 진단](lp27-providers-diagnostic-01.jsonl),
-[HTTP 원출력](lp27-http-01.log)·[고정 진단](lp27-http-diagnostic-01.jsonl)에 모든 결과와 clock·경과·해시를 보존했다.
+[제공기 원출력](public-evidence-4d0d422d80098560.txt)·[고정 진단](lp27-providers-diagnostic-01.jsonl),
+[HTTP 원출력](public-evidence-3cfb2f6cc65e3216.txt)·[고정 진단](lp27-http-diagnostic-01.jsonl)에 모든 결과와 clock·경과·해시를 보존했다.
 전체 elapsed는 제공기1,657ms/HTTP26,776ms, token start/end/consumed 전용집계 없음이다.
 현재 ffprobe trace에서 method/SDP는 인식했지만 response/stream-line 수는0이다. 이것을 응답없음으로
 해석하지 않는다. codec stdout 판정은 별개이며 trace의 미등록 형식은 unknown으로 남았다.
@@ -840,7 +840,7 @@ HTTP 실행에서는 두 로그0600 확인. 사용자 전역 설정·timeout·�
 
 ### 2번 판정: 한정 비교 통과와 과거 원인 미확정
 
-[직전순서 비교 원출력](lp27-prefix-01.log)·[RTSP/제공기 고정 진단](lp27-prefix-diagnostic-01.jsonl).
+[직전순서 비교 원출력](public-evidence-b12560ee911a669c.txt)·[RTSP/제공기 고정 진단](lp27-prefix-diagnostic-01.jsonl).
 총28개·exit0, 전체90,949ms, 서버정상종료·포트/UDP해제·임시삭제 확인.
 같은 binary에서 HTTP /h264는 단독1.845초, 파일검사후2.018초로 기존20초 안에 끝났다.
 무음 제공기는 단독/HTTP/직전순서 모두 준비 성공했다. 별도 제품 수정은 하지 않았다.
@@ -939,7 +939,7 @@ HW-02 제품 변경은 `d5a0710b`로 커밋됐으며 HW-03 수행 중 제품 바
 
 `node scripts/internal/verify_recording_media_impact.mjs --run`은 기존 codec/ICE 명령을
 소유 loopback 서버·HTTP 제공기·UDP STUN으로 격리한다. 기존 codec timeout/판정은 그대로다.
-[실행 원출력](lp27-hw03-media-01.log), [안전 진단·25개 전수 결과·원문 해시](lp27-hw03-media-diagnostic.json)를 보존했다.
+[실행 원출력](public-evidence-4f4b3485cd5a3dbc.txt), [안전 진단·25개 전수 결과·원문 해시](lp27-hw03-media-diagnostic.json)를 보존했다.
 실행 101,535ms, codec 98,989ms/exit1·23 PASS·2 FAIL·skip0이다.
 outer runner600초 상한은 발생하지 않았고, 첫 실패는 ffprobe20초다. 새 재실행은 하지 않았다.
 
@@ -1020,7 +1020,7 @@ HW-03 변경은 회귀 도구·실패 증거로 필요하므로 보존하되 미
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha | 실행root·registry·원시로그·설정 | 1,814,763B | manifest 소유·realpath·해시 확인 후 삭제 | 부재 확인 | execution manifest·safe JSON·lsof |
+| <owned-temp>/media-server-hw-media-qD95Ha | 실행root·registry·원시로그·설정 | 1,814,763B | manifest 소유·realpath·해시 확인 후 삭제 | 부재 확인 | execution manifest·safe JSON·lsof |
 | /private/tmp/media-server-hw-media-qD95Ha-http_local_h264_aac.http.log | 임시 HTTP로그 | 427B | 원문 해시·진단 보존 후 삭제 | 부재 확인 | owned manifest |
 | /private/tmp/media-server-hw-media-qD95Ha-http_local_h264_video_only.http.log | 임시 HTTP로그 | 0B | 비어 있음·hash 보존 후 삭제 | 부재 확인 | owned manifest |
 
@@ -1158,7 +1158,7 @@ CPU·wall 및 현재 RSS 전후를 기록한다. peak RSS는 프로세스 누적
 실제01은 반복64와 CC01 시간/선택2 PASS 뒤 RTP 관측1 FAIL(exit1/1722ms)이다.
 encoding H265·CAPS1·EOS1·invalid1, decoder/consumer20개 시간값 모두 정상·bus/경고0이었다.
 실제 실패를 RED 또는 제품 통과로 바꾸지 않는다. CC02 이후·codec/ICE·PREP/CLOSE는 건너뛰었다.
-원출력: [자체01](lp27-hw03-self-01.log), [실제01](lp27-hw03-impact-01.log).
+원출력: [자체01](public-evidence-c3ecc2a5147c3cbe.txt), [실제01](public-evidence-7ad9eca96262c53b.txt).
 
 메인·단일 담당자의 읽기 검토에서 CAPS fixed 검사는 이미 통과했으며, 이벤트16 초과와 media name
 불일치의 원인 구분 필드가 빠져 있음을 확인했다. 같은 단계 검증 준비 결함으로 고정 숫자/boolean
@@ -1190,8 +1190,8 @@ RTP CAPS16 상한·형태·encoding·EOS1 검사는 유지한다. 기록/검사 
 | HW-RF11 | 정상 반복 제어 이벤트 | TAG17개를 모두 계수, payload 저장 없이 RTP 계약 유지 | v4.1.0 |
 | HW-RF12 | 계수 overflow | 최대값 뒤 증가를 포화·FAIL 처리, wrap 금지 | v4.1.0 |
 
-다음 자체 예정91(native88+IO3). 원출력 [자체02](lp27-hw03-self-02.log),
-[실제02](lp27-hw03-impact-02.log), 각1940132B 소유root 삭제·부재, 서버/포트 없음.
+다음 자체 예정91(native88+IO3). 원출력 [자체02](public-evidence-515d569141b6df6c.txt),
+[실제02](public-evidence-dbe55b9b0ca100ad.txt), 각1940132B 소유root 삭제·부재, 서버/포트 없음.
 
 ### HW-03 H265 fallback 관측 보완
 
@@ -1222,8 +1222,8 @@ CAPS만 받은 미선택 후보의 계수도 보존한다. 메인 판단 후 기
 | HW-DC07 | 실제 배열 상한 | CAPS17개 저장 시 overflow·판정 거부 | v4.1.0 |
 | HW-DC08 | 총계 포화 | scalar overflow는 포화·관측 불완전 거부 | v4.1.0 |
 
-다음 자체 예정99(native96+IO3). 원출력 [자체03](lp27-hw03-self-03.log),
-[실제03](lp27-hw03-impact-03.log), 각1956756B 소유root 삭제·부재, 서버/포트 없음.
+다음 자체 예정99(native96+IO3). 원출력 [자체03](public-evidence-a6bb9c818611f28e.txt),
+[실제03](public-evidence-13474fb64b8c36c3.txt), 각1956756B 소유root 삭제·부재, 서버/포트 없음.
 URI/자원·기존codec/ICE·PREP/CLOSE는 아직 건너뜀이다. 제품HW-02 바이트는 그대로다.
 
 ### HW-03 native 실행 전수 결과
@@ -1419,25 +1419,25 @@ RF09의 옛 총계 제한 자체검사는 폐기된 관측 방식의 역사적 �
 
 | 명령 회차 | 실제 실행·판정 | elapsed/source | 원출력 |
 | --- | --- | --- | --- |
-| self01 | exit0, pass87/fail0 | 1792ms/Node 실행 계측 | [로그](lp27-hw03-self-01.log) |
-| self02 | exit0, pass89/fail0 | 1575ms/Node 실행 계측 | [로그](lp27-hw03-self-02.log) |
-| self03 | exit0, pass91/fail0 | 1575ms/Node 실행 계측 | [로그](lp27-hw03-self-03.log) |
-| self04 | exit0, pass99/fail0 | 1570ms/Node 실행 계측 | [로그](lp27-hw03-self-04.log) |
-| impact01 | exit1, pass66/fail1 | 1722ms/Node 실행 계측 | [로그](lp27-hw03-impact-01.log) |
-| impact02 | exit2, pass66/fail1 | 1691ms/Node 실행 계측 | [로그](lp27-hw03-impact-02.log) |
-| impact03 | exit2, pass71/fail2 | 1784ms/Node 실행 계측 | [로그](lp27-hw03-impact-03.log) |
-| impact04 | exit0, pass81/fail0 | 8135ms/Node 실행 계측 | [로그](lp27-hw03-impact-04.log) |
+| self01 | exit0, pass87/fail0 | 1792ms/Node 실행 계측 | [로그](public-evidence-c3ecc2a5147c3cbe.txt) |
+| self02 | exit0, pass89/fail0 | 1575ms/Node 실행 계측 | [로그](public-evidence-515d569141b6df6c.txt) |
+| self03 | exit0, pass91/fail0 | 1575ms/Node 실행 계측 | [로그](public-evidence-a6bb9c818611f28e.txt) |
+| self04 | exit0, pass99/fail0 | 1570ms/Node 실행 계측 | [로그](public-evidence-2307b830c45396a2.txt) |
+| impact01 | exit1, pass66/fail1 | 1722ms/Node 실행 계측 | [로그](public-evidence-7ad9eca96262c53b.txt) |
+| impact02 | exit2, pass66/fail1 | 1691ms/Node 실행 계측 | [로그](public-evidence-dbe55b9b0ca100ad.txt) |
+| impact03 | exit2, pass71/fail2 | 1784ms/Node 실행 계측 | [로그](public-evidence-13474fb64b8c36c3.txt) |
+| impact04 | exit0, pass81/fail0 | 8135ms/Node 실행 계측 | [로그](public-evidence-76e615973945bd6c.txt) |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.vGwD7c | 소유 probe/cache | 1940068B | wrapper 삭제 | 부재true | self01 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.MjW3p6 | 소유 probe/cache | 1940132B | wrapper 삭제 | 부재true | self02 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.b0msCh | 소유 probe/cache | 1956756B | wrapper 삭제 | 부재true | self03 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.MnXt90 | 소유 probe/cache | 1958276B | wrapper 삭제 | 부재true | self04 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.jXfRhj | 소유 probe/cache | 1940068B | wrapper 삭제 | 부재true | impact01 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.eGnISu | 소유 probe/cache | 1940132B | wrapper 삭제 | 부재true | impact02 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.b62Lgk | 소유 probe/cache | 1956756B | wrapper 삭제 | 부재true | impact03 cleanup |
-| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.fXYbaJ | 소유 probe/cache/MP4 | 1979115B | wrapper 삭제 | 부재true | impact04 cleanup |
+| <owned-temp>/media-server-hw-impact.vGwD7c | 소유 probe/cache | 1940068B | wrapper 삭제 | 부재true | self01 cleanup |
+| <owned-temp>/media-server-hw-impact.MjW3p6 | 소유 probe/cache | 1940132B | wrapper 삭제 | 부재true | self02 cleanup |
+| <owned-temp>/media-server-hw-impact.b0msCh | 소유 probe/cache | 1956756B | wrapper 삭제 | 부재true | self03 cleanup |
+| <owned-temp>/media-server-hw-impact.MnXt90 | 소유 probe/cache | 1958276B | wrapper 삭제 | 부재true | self04 cleanup |
+| <owned-temp>/media-server-hw-impact.jXfRhj | 소유 probe/cache | 1940068B | wrapper 삭제 | 부재true | impact01 cleanup |
+| <owned-temp>/media-server-hw-impact.eGnISu | 소유 probe/cache | 1940132B | wrapper 삭제 | 부재true | impact02 cleanup |
+| <owned-temp>/media-server-hw-impact.b62Lgk | 소유 probe/cache | 1956756B | wrapper 삭제 | 부재true | impact03 cleanup |
+| <owned-temp>/media-server-hw-impact.fXYbaJ | 소유 probe/cache/MP4 | 1979115B | wrapper 삭제 | 부재true | impact04 cleanup |
 
 현재 macOS arm64/GStreamer1.28.1에서 일반20·B30×16회의 전체 PTS·EOS, H264→H265/VP8→H264/H265→H264,
 로컬 MP4 uridecodebin 경계가 통과했다. H265의 CAPS-only vtdec_hw 후보와 실제 avdec_h265 fallback을 구분했다.
@@ -1521,8 +1521,8 @@ token start/end/consumed는 전용 집계 미제공으로 미집계이며 실행
 
 ### HW-01 최초 실행과 준비 보완
 
-자체05는46/46 PASS·exit0·1931ms(wrapper3초), root1864596B 삭제·부재([원출력](lp27-hw-self-05.log)).
-진단01은normal20-burst에서exit2·1663ms(wrapper3초)로 중단했다([원출력](lp27-hw-drain-01.log)).
+자체05는46/46 PASS·exit0·1931ms(wrapper3초), root1864596B 삭제·부재([원출력](public-evidence-c7221b0132a37cc2.txt)).
+진단01은normal20-burst에서exit2·1663ms(wrapper3초)로 중단했다([원출력](public-evidence-742eea285369eb31.txt)).
 vtdec_hw 후보의 입력/출력은0, overlay는20이어서 단일 decoder 관측 전제가 성립하지 않았다.
 debug 관측은finish20/unsupported20/unknown warning2,drain callback/push0이었다. 제품 반례 결과가 아니라 준비 실패다.
 뒤의 세 셀 및 HW-02 이후는 실행하지 않았다. root1864596B 삭제·부재, 서버/포트 생성 없음.
@@ -1543,10 +1543,10 @@ VideoToolbox 접근 조건을 권한 절차로 분리한다. timeout·제품·�
 자체06 사전 개수는49개다. 공식 로그 출처는 GStreamer 1.28.1 vtdec.c/gstvideodecoder.c와 설치된 gstelement.h이며,
 새 failure를 제품 실패나 예상 RED로 바꾸지 않는다. 메인 첫 patch는 문맥 불일치로 미적용 후 정확한 행에 적용했다.
 
-자체06은49PASS/exit0/1620ms,root1865156B 삭제·부재([로그](lp27-hw-self-06.log)).
+자체06은49PASS/exit0/1620ms,root1865156B 삭제·부재([로그](public-evidence-37619f4592787014.txt)).
 승인된 일반 실행 권한의 진단02는 단일 vtdec_hw 실제 입력으로 normal burst/paced 모두20개 전체PTS/EOS 일치를 확인했다.
 B-frame burst의 decoder출력 2.8초3개까지 보존됐으나 로그가중간에잘려 네 셀 판정/내부 보정 증거가 보존되지 않았다.
-[진단02](lp27-hw-drain-02.log)는wrapper exit1/7초,root1865156B 삭제·부재이며 원출력 부재분은 추정 복원하지 않는다.
+[진단02](public-evidence-b9d8d0d9dcd7dded.txt)는wrapper exit1/7초,root1865156B 삭제·부재이며 원출력 부재분은 추정 복원하지 않는다.
 해당 결과는 HW-01 완료로 쓰지 않는다. 제품/source/AU는불변,첫실행과권한조건을구분한다.
 
 원인은 wrapper Node의 `process.stdout.write` 직후 `process.exit`였다. pipe 출력의 비동기 전송이 끝나기 전에
@@ -1564,7 +1564,7 @@ B-frame burst의 decoder출력 2.8초3개까지 보존됐으나 로그가중간�
 
 HW-01 원인 구분은 완료했다. 진단03 네 셀의 관측은 모두 완전하며, 제품 정확도는 두 셀 PASS/두 셀 FAIL이다.
 자체07은 native49+출력 IO1=50PASS,exit0/1457ms(wrapper3초), 진단03은exit1/6350ms(wrapper7초).
-[자체07 원출력](lp27-hw-self-07.log), [진단03 원출력](lp27-hw-drain-03.log)을 최종 증거로 보존한다.
+[자체07 원출력](public-evidence-f8048a52dbc2a199.txt), [진단03 원출력](public-evidence-0413180a449183ae.txt)을 최종 증거로 보존한다.
 진단01 준비 실패·진단02 출력 유실은 위에 남기며 최종 결과로 삭제하지 않는다.
 
 확정 원인 경로: macOS arm64/applemedia1.28.1/vtdec_hw의 EOS drain이 비동기 callback 완료 전에 정렬 대기를 해제한다.
@@ -1655,7 +1655,7 @@ invalid와 overflow bool을 쉼표로 함께 초기화하는 선언을 오탐했
 진단의 동작·ABI·시간값 처리는 같으므로 HW-01 네 셀 증거를 유지하고 자체검사/등록 검사만 재확인한다.
 이 기록 편집 중 patch 문맥/행접두사 오류와 파일 검색 glob 불일치는 각각 미적용/읽기 실패로 끝났으며
 제품·실행 증거를 바꾸지 않았다.
-자체08은50/50 PASS·exit0·1840ms(wrapper3초), stderr0이다([로그](lp27-hw-self-08.log)).
+자체08은50/50 PASS·exit0·1840ms(wrapper3초), stderr0이다([로그](public-evidence-cd46bdc256f36d81.txt)).
 등록 재검사02에서도 원래 선언을 인용한 이 문서가 같은 문자열 검사에 걸렸다(11PASS/1FAIL).
 원래 선언 인용을 설명으로 바꾸고 검사 대상 전부에 금지 문자열이 없는지 확인한 뒤 재검사한다.
 문서 링크02는 이전 이력으로 바꾼 제목을 가리키는 기존 anchor1개가 남아 실패했다. 해당 링크를 현재 제목으로 정정한다.
@@ -1674,28 +1674,28 @@ invalid와 overflow bool을 쉼표로 함께 초기화하는 선언을 오탐했
 | 문서 링크03 | 288문서/9346링크/135anchor, exit0 | PASS | lp27-hw01-docs-links-03.log |
 | bash 구문 | 진단 wrapper bash -n, exit0 | PASS | 의미 변경 없는 선언 분리 |
 | 공백 검사 | git diff --check 및 --cached --check, exit0 | PASS | 커밋 직전 재확인 |
-| 자산: README uses only representative product UI screenshots | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: English README uses English UI screenshots | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: UI guide keeps product screenshots in the shared asset set | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: docs UI asset policy documents capture rules | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: managed UI asset manifest stays complete | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: capture script owns every documented UI asset | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: docs capture covers current screenshots | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: representative screenshot docs do not point at stale visual baselines | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: docs UI asset directory contains managed PNG files | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 자산: VA documentation images keep full video frame bounds | 해당 명령 exit0, [자산 로그](lp27-hw01-docs-assets.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: dispatch parser recognizes explicit bash and node interpreters | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: server.sh dispatch targets exist and are executable | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: documented server.sh commands resolve to dispatch table | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: tracked scripts are classified and referenced | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: project inventory delegates script file inventory to this verifier | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: project inventory maps verifier families without duplicating dispatch details | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: CMake does not define a separate untracked CTest registry | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: test entry scripts are reachable from test_all | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: auth verifier has no hardcoded test password defaults | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: VA EventRecord dispatch verifier fails early and dispatches every poll by default | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: critical verifier pass output avoids grouped feature-result wording | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
-| 등록03: user-facing JS option parsers reject unknown options | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: README uses only representative product UI screenshots | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: English README uses English UI screenshots | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: UI guide keeps product screenshots in the shared asset set | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: docs UI asset policy documents capture rules | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: managed UI asset manifest stays complete | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: capture script owns every documented UI asset | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: docs capture covers current screenshots | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: representative screenshot docs do not point at stale visual baselines | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: docs UI asset directory contains managed PNG files | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 자산: VA documentation images keep full video frame bounds | 해당 명령 exit0, [자산 로그](public-evidence-4081accb80e0a332.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: dispatch parser recognizes explicit bash and node interpreters | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: server.sh dispatch targets exist and are executable | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: documented server.sh commands resolve to dispatch table | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: tracked scripts are classified and referenced | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: project inventory delegates script file inventory to this verifier | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: project inventory maps verifier families without duplicating dispatch details | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: CMake does not define a separate untracked CTest registry | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: test entry scripts are reachable from test_all | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: auth verifier has no hardcoded test password defaults | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: VA EventRecord dispatch verifier fails early and dispatches every poll by default | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: critical verifier pass output avoids grouped feature-result wording | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+| 등록03: user-facing JS option parsers reject unknown options | 해당 명령 exit0, [등록03 로그](public-evidence-1634375872751fd1.txt) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
 
 ## HW-02 실행 전 계약과 한정 보완
 
@@ -1793,94 +1793,94 @@ PTS/DTS·저장·공개 API·전역 rank는 변경하지 않았다. 설치된 Vi
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| HW-BUILD | 격리 cache·local override 제외, 전체 configure/build exit0 | PASS | [빌드 출력](lp27-hw02-build.log) |
+| HW-BUILD | 격리 cache·local override 제외, 전체 configure/build exit0 | PASS | [빌드 출력](public-evidence-4bc34a1755240645.txt) |
 | HW-NOGST | 위 GST OFF helper 컴파일 exit0, 원출력 없음 | PASS | 전체 Linux 실행 아님 |
-| `HW-IO01 pipe output and exit status preserved` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-IO02 incomplete mitigation summary cannot pass` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR01 reorder accepted` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR02 same-count duplicate omission rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR02 same-count omission replacement rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR03 legitimate duplicate preserved` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR04 missing frame rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR05 invalid PTS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR06 missing EOS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR07 overflow rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR08 duplicate EOS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR09 missing SEGMENT rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR10 non-TIME SEGMENT rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR11 complete oracle accepted` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR12 input mismatch is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR13 decoder mismatch is failure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR14 overlay mismatch is failure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR15 invalid observation is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR16 overflow is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR17 missing probe is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR18 missing bus EOS is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR19 bus ERROR is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR20 known error classification excludes raw text` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR21 unknown error classification excludes raw text` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR22 CAPS fixed allowlist rejects arbitrary values` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-GR01 actual product parse-launch PLACE_IN_BIN creates inspectable bin` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-GR02 no generated ghost sink occupies pending links` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-GR03 pay0 src connects directly to owned sink` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-GR04 dynamic downstream queue sink remains unoccupied` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-GR05 legacy automatic ghost occupies queue sink before PLAYING` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-OR23 delayed-link has fixed classification` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP01 callback retains decode number without pointers` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP02 push retains independent system number` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP03 decreasing warning preserves exact nanoseconds` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP04 malicious pointer token rejected without disclosure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP05 trailing injected field rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP06 invalid timestamp rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP07 unknown warning makes diagnosis inconclusive without raw retention` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP08 debug array overflow makes diagnosis inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP09 known decreasing warning completes diagnosis without product PASS` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP10 absent source log is not fabricated as wait completion` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP11 finish frame preserves pre-clamp PTS and unknown DTS without pointer` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP12 numeric overflow rejected before conversion` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP13 unrelated long LOG ignored before selected-prefix bound` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP14 selected-prefix oversized message is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP15 callback exception boundary makes diagnosis inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP16 malformed DTS rejected without inventing source formats` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP17 missing finish-frame observation is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP18 official entry-only finish log is not pre-clamp evidence` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP19 session-create error retains only signed numeric code` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-DP20 session-create error rejects arbitrary suffix` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP01 exact macOS H264 vtdec_hw tuple skips` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP02 exact macOS H264 vtdec tuple skips` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP03 other platform preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP04 nonfixed ANY or ambiguous caps preserve selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP05 empty caps preserve selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP06 H265 input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP07 VP8 input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP08 other factory preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP09 other plugin preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP10 older version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP11 newer version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP12 unknown version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP13 unknown factory preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP14 unknown plugin preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MP15 raw input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH01 existing decodebin hook follows platform gate` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH02 repeated installation does not duplicate hooks` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH03 dynamically nested decodebin hook follows platform gate` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH04 installation leaves global factory ranks unchanged` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH05 root and decoder lifetimes retain no external references` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH09 actual H264 signal returns SKIP only for installed affected tuple` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH10 actual ANY caps signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH11 actual H265 caps signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH12 actual avdec_h264 candidate signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH06 in-progress marker is not completion on macOS and untouched elsewhere` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH07 failed marker remains failed across repeated installation` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MH08 dynamic installation failure posts bus ERROR only on macOS` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
-| `HW-MI01-normal20-burst exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI01-normal20-burst selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI02-normal20-paced exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI02-normal20-paced selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI03-bframe30-burst exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI03-bframe30-burst selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI04-bframe30-paced exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
-| `HW-MI04-bframe30-paced selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-IO01 pipe output and exit status preserved` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-IO02 incomplete mitigation summary cannot pass` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR01 reorder accepted` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR02 same-count duplicate omission rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR02 same-count omission replacement rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR03 legitimate duplicate preserved` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR04 missing frame rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR05 invalid PTS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR06 missing EOS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR07 overflow rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR08 duplicate EOS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR09 missing SEGMENT rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR10 non-TIME SEGMENT rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR11 complete oracle accepted` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR12 input mismatch is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR13 decoder mismatch is failure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR14 overlay mismatch is failure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR15 invalid observation is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR16 overflow is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR17 missing probe is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR18 missing bus EOS is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR19 bus ERROR is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR20 known error classification excludes raw text` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR21 unknown error classification excludes raw text` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR22 CAPS fixed allowlist rejects arbitrary values` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-GR01 actual product parse-launch PLACE_IN_BIN creates inspectable bin` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-GR02 no generated ghost sink occupies pending links` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-GR03 pay0 src connects directly to owned sink` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-GR04 dynamic downstream queue sink remains unoccupied` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-GR05 legacy automatic ghost occupies queue sink before PLAYING` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-OR23 delayed-link has fixed classification` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP01 callback retains decode number without pointers` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP02 push retains independent system number` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP03 decreasing warning preserves exact nanoseconds` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP04 malicious pointer token rejected without disclosure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP05 trailing injected field rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP06 invalid timestamp rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP07 unknown warning makes diagnosis inconclusive without raw retention` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP08 debug array overflow makes diagnosis inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP09 known decreasing warning completes diagnosis without product PASS` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP10 absent source log is not fabricated as wait completion` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP11 finish frame preserves pre-clamp PTS and unknown DTS without pointer` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP12 numeric overflow rejected before conversion` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP13 unrelated long LOG ignored before selected-prefix bound` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP14 selected-prefix oversized message is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP15 callback exception boundary makes diagnosis inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP16 malformed DTS rejected without inventing source formats` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP17 missing finish-frame observation is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP18 official entry-only finish log is not pre-clamp evidence` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP19 session-create error retains only signed numeric code` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-DP20 session-create error rejects arbitrary suffix` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP01 exact macOS H264 vtdec_hw tuple skips` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP02 exact macOS H264 vtdec tuple skips` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP03 other platform preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP04 nonfixed ANY or ambiguous caps preserve selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP05 empty caps preserve selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP06 H265 input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP07 VP8 input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP08 other factory preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP09 other plugin preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP10 older version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP11 newer version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP12 unknown version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP13 unknown factory preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP14 unknown plugin preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MP15 raw input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH01 existing decodebin hook follows platform gate` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH02 repeated installation does not duplicate hooks` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH03 dynamically nested decodebin hook follows platform gate` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH04 installation leaves global factory ranks unchanged` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH05 root and decoder lifetimes retain no external references` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH09 actual H264 signal returns SKIP only for installed affected tuple` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH10 actual ANY caps signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH11 actual H265 caps signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH12 actual avdec_h264 candidate signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH06 in-progress marker is not completion on macOS and untouched elsewhere` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH07 failed marker remains failed across repeated installation` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MH08 dynamic installation failure posts bus ERROR only on macOS` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](public-evidence-bbfc80a1fb1ea47d.txt)의 개별 행 대조 |
+| `HW-MI01-normal20-burst exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI01-normal20-burst selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI02-normal20-paced exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI02-normal20-paced selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI03-bframe30-burst exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI03-bframe30-burst selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI04-bframe30-paced exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
+| `HW-MI04-bframe30-paced selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](public-evidence-baeb3625dab02045.txt)의 개별 행 대조 |
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
@@ -1897,21 +1897,21 @@ HW-02 마감: 문서 링크288개/9455링크/135anchor·실패0, 등록12/0·exi
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| HW-02 문서 링크 | 위288문서/9455링크/135anchor·exit0 | PASS | [문서 출력](lp27-hw02-docs-links.log) |
+| HW-02 문서 링크 | 위288문서/9455링크/135anchor·exit0 | PASS | [문서 출력](public-evidence-9eaa7a729efbb22b.txt) |
 | HW-02 bash 구문 | bash -n scripts/internal/verify_recording_hw_impact.sh exit0 | PASS | 실제 실행 전/마감 확인 |
 | HW-02 공백 | git diff --check 및 --cached --check exit0 | PASS | stage 범위 확인 |
-| dispatch parser recognizes explicit bash and node interpreters | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| server.sh dispatch targets exist and are executable | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| documented server.sh commands resolve to dispatch table | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| tracked scripts are classified and referenced | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| project inventory delegates script file inventory to this verifier | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| project inventory maps verifier families without duplicating dispatch details | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| CMake does not define a separate untracked CTest registry | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| test entry scripts are reachable from test_all | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| auth verifier has no hardcoded test password defaults | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| VA EventRecord dispatch verifier fails early and dispatches every poll by default | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| critical verifier pass output avoids grouped feature-result wording | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
-| user-facing JS option parsers reject unknown options | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| dispatch parser recognizes explicit bash and node interpreters | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| server.sh dispatch targets exist and are executable | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| documented server.sh commands resolve to dispatch table | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| tracked scripts are classified and referenced | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| project inventory delegates script file inventory to this verifier | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| project inventory maps verifier families without duplicating dispatch details | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| CMake does not define a separate untracked CTest registry | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| test entry scripts are reachable from test_all | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| auth verifier has no hardcoded test password defaults | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| VA EventRecord dispatch verifier fails early and dispatches every poll by default | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| critical verifier pass output avoids grouped feature-result wording | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
+| user-facing JS option parsers reject unknown options | HW-02 등록검사 exit0 | PASS | [등록 출력](public-evidence-ff582737de56a0fe.txt) |
 
 ## 이전 승인 범위와 순서
 
@@ -1992,11 +1992,11 @@ GStreamer 공식 1.28 release notes에는 후속 vtdec 수정 이력이 있으�
 
 ## 실행 결과·정리
 
-첫 자체검사 exit0/20PASS, 실행499ms·wrapper1초, root279787B 삭제·부재 확인. [원출력](lp27-hw-self-01.log).
+첫 자체검사 exit0/20PASS, 실행499ms·wrapper1초, root279787B 삭제·부재 확인. [원출력](public-evidence-b30678dd29031b62.txt).
 첫 실제 graph는 normal20 round1에서 exit2/1669ms·wrapper2초. 입력 push20은 수용됐으나
 decoder sink8/EOS0→src1/EOS0→overlay0·SEGMENT0, busERROR1/WARNING1으로 관측 전제가 미충족됐다.
 선택은 vtdec_hw/applemedia1.28.1/rank257. 이것은 과거20→19 재현이나제품무영향 증거가 아니다.
-원출력 [impact01](lp27-hw-impact-01.log), root1819636B 삭제·부재. 2~4번은 실행하지 않았다.
+원출력 [impact01](public-evidence-81225535ed99f600.txt), root1819636B 삭제·부재. 2~4번은 실행하지 않았다.
 
 진단 준비의 누락: bus 코드/분류를 보존하지 않아 ERROR 원인을 확정할 수 없다.
 동일 단계에서 source factory/domain/code 및 허용된 고정 negotiation/stream/decoder 오류 분류,
@@ -2010,8 +2010,8 @@ token start/end/consumed는 전용 집계 미제공으로 미집계. elapsed/sou
 
 ### 안전 분류 보완 후 재검사와 준비 결함 확정
 
-자체02는 exit0/23PASS,590ms·wrapper2초,root298987B 삭제·부재([로그](lp27-hw-self-02.log)).
-영향02는 exit2/1398ms·wrapper2초,normal20 round1에서 중단([로그](lp27-hw-impact-02.log)).
+자체02는 exit0/23PASS,590ms·wrapper2초,root298987B 삭제·부재([로그](public-evidence-83e1e5a1b9791543.txt)).
+영향02는 exit2/1398ms·wrapper2초,normal20 round1에서 중단([로그](public-evidence-f4f3562965002cb3.txt)).
 `gst_parse_error` code7은 로컬 gstparse.h의 `GST_PARSE_ERROR_DELAYED_LINK`다.
 decodebin warning 뒤 appsrc stream-error code1, decoder sink8/src1/overlay0, sink·src EOS0이었다.
 decoder 출력은 NV12/SystemMemory160x90이며, 영상 형식 자체가 원인이라고 단정하지 않는다.
@@ -2034,7 +2034,7 @@ GR04 수정된 생성 방식의 pending queue 미점유도 PASS이나 GR02는 re
 decodebin이 원래 갖는 내부 ghost sink와 진단의 외부 자동ghost를 구분하지 않은 검사 오류다.
 메인이 회수해 branch 외부 ghost sink0 및 queue target 점유0으로 수정한다. 실제 동적 연결 대기 queue1 기준은 유지한다.
 이것은 새 제품 합격 기준이 아니라 진단이 제품 graph를 바꾸지 않는 조건의 정확한 검사다.
-영향03은 아직 실행하지 않았다. root1840420B 삭제·부재, 원출력 [자체03](lp27-hw-self-03.log).
+영향03은 아직 실행하지 않았다. root1840420B 삭제·부재, 원출력 [자체03](public-evidence-7f5f7fce576a6f3e.txt).
 공식 원문 조회는 읽기 전용이며 각 curl+rg exit0, 파일 저장·외부 코드 복사·패키지 변경은 없었다.
 웹 읽기 도구의 cache miss 후 같은 공식 source를 curl로 읽었다. 문구 수정 patch1회는 대상 행 불일치로 미적용 후 정확한 행으로 적용했다.
 
@@ -2071,10 +2071,10 @@ decodebin이 원래 갖는 내부 ghost sink와 진단의 외부 자동ghost를 
 
 ### 실제 제품 경계 관측 결과와 중단 이유
 
-자체04는29PASS/0FAIL,exit0·1526ms·wrapper2초([로그](lp27-hw-self-04.log)).
+자체04는29PASS/0FAIL,exit0·1526ms·wrapper2초([로그](public-evidence-a238fc55c4a00076.txt)).
 영향03은 실제 제품과 같은 parse 방식에서 normal20 round1의 전체PTS/EOS 일치를 확인한 뒤,
 B-frame30 round1에서 최초 `decoder-pts-mismatch`로 종료했다(exit1·1394ms·wrapper2초).
-[영향03 원출력](lp27-hw-impact-03.log)은 source/입력 SHA·각 AU·세 경계 PTS·EOS·CAPS를 포함한다.
+[영향03 원출력](public-evidence-f33f63c0942e38db.txt)은 source/입력 SHA·각 AU·세 경계 PTS·EOS·CAPS를 포함한다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -2123,7 +2123,7 @@ B-frame30 round1에서 최초 `decoder-pts-mismatch`로 종료했다(exit1·1394
 이 문서 검사를 제품 실패·최종 안정화·1번 전체 PASS로 사용하지 않는다.
 
 실행은 위 순서대로 exit0이었다. 링크288md/9334links/실패0,자산10/스크립트12PASS,
-bash 구문 및 공백 검사 통과. [원출력](lp27-record-checks.log).
+bash 구문 및 공백 검사 통과. [원출력](public-evidence-6037368c87fbc077.txt).
 새 wrapper/native의 상호참조 및 이 기록의 호출 명령은 직접 확인했으나 tracked inventory12개가
 untracked 파일까지 정식 등록 완료로 판정한 것은 아니다. 커밋 조건 충족 시 stage 후 재확인 대상이다.
 
@@ -2157,7 +2157,7 @@ untracked 파일까지 정식 등록 완료로 판정한 것은 아니다. 커�
 
 ### 소유 임시 자료 정리
 
-경로의 공통 상위는 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/`다.
+경로의 공통 상위는 `<owned-temp>/`다.
 원출력에는 각 절대 경로를 보존했다. 아래 모든 실행은 자식 종료 후wrapper가 삭제했고 마지막 읽기 확인에서 모두 부재였다.
 삭제한 자료는 재생성 가능한 실행 전용 binary/cache/registry이며 필요한 비민감 값은 연결 로그에 보존했다.
 실제 서버·RTSP listener·HTTP listener를 만들지 않아 포트 정리 대상은 없다. 운영 자료·기존 영상 삭제 없음.

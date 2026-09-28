@@ -24,7 +24,7 @@
 - `c549ec00`: 2번 checkpoint·intent 중복 계산 제거, 동일성 검사, 임시 계측 제거.
 - 마지막 검증 준비·기록 커밋: 한정 HTTP 모드와 그 공유 helper/기존 통합 준비 파일, 과거 실패 및 이번 결과를 보존한다. 기존 전체 통합 준비 코드는 실행 완료라고 주장하지 않는다.
 
-문서 링크 검사는 exit0, Markdown271·로컬 링크8559·이미지22·anchor110·failures0이며 [로그](cp-docs-links.log)를 보존한다. diffcheck도 exit0이다. 커밋만으로 동일 제품 소스의 유효 테스트를 재실행하지 않는다.
+문서 링크 검사는 exit0, Markdown271·로컬 링크8559·이미지22·anchor110·failures0이며 [로그](public-evidence-06828e82765d52c7.txt)를 보존한다. diffcheck도 exit0이다. 커밋만으로 동일 제품 소스의 유효 테스트를 재실행하지 않는다.
 
 3번은 긴 GOP의 원본 확정 시점과 bounded 대기·요청 구간 충족을 정합화하고, 30fps 파일-duration의 1ns 잔차를 근거에 따라 처리하는 설계·구현이다. timeout 상향이나 시간 강제 보정으로 해결하지 않는다. 4번은 그 이후 실제 완전2출력·각 HTTP/hash, 재기동 뒤 기존 ID/hash 보존·새 생산, 현행5단계 통합이다. 이번 latencyPass는 4번의 actualEventPass/restartPass를 대체하지 않는다. 브라우저·장시간·최종 S11은 이번 미실행이다.
 
@@ -32,7 +32,7 @@
 
 `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp node scripts/internal/verify_recording_current_app.mjs --latency-only`는 exit0, 30,023ms, 5개 PASS다. 실제 timeline 190건 전부 HTTP200·4초 이내, 최대3,786ms. 동일 이벤트 작업의 Complete와 이후5초를 관측했다. 출력은 partial1이며 actualEventPass/restartPass는 false다. 최대 지연의 여유는214ms로, 장시간·더 큰 원장의 성능을 보장하지 않는다. 원본/후보 중복 복원 제거 및 이번 실제 지연 범위만 완료다.
 
-소유 PID74473 exit0, HTTP63279/RTSP63280 반환·UDP 종료, root `/private/tmp/media-server-current-integration-WnWwSm` 47,593,525B 삭제·부재 확인. [원출력](cp-http-actual.log). 사용자 대기 정책·완전성·공개 API·저장 포맷 변경은 없다. token start/end/consumed는 집계 소스 부재로 미집계, elapsed는 원출력 단조 시간이다.
+소유 PID74473 exit0, HTTP63279/RTSP63280 반환·UDP 종료, root `/private/tmp/media-server-current-integration-WnWwSm` 47,593,525B 삭제·부재 확인. [원출력](public-evidence-6f01ec04dc518176.txt). 사용자 대기 정책·완전성·공개 API·저장 포맷 변경은 없다. token start/end/consumed는 집계 소스 부재로 미집계, elapsed는 원출력 단조 시간이다.
 
 ### HTTP 실행 전수
 
@@ -385,7 +385,7 @@
 
 ## 2번 최종 판정
 
-원출력 전수표는 697행(과거 실행 포함 PASS693/FAIL4)이다. 이는 반복 실행을 포함한 보존 행수이며 독립 테스트 수가 아니다. 기록된 cleanup root14개는 최종 읽기 확인에서도 전부 부재였고 `git diff --check`는 exit0이었다. 최종 제품·fixture·runner fingerprint는 [cp2-fingerprints.log](cp2-fingerprints.log)에 보존한다. 삭제한 임시 diagnostic header는 fingerprint 대상이 아니라 삭제 diff로 확인한다.
+원출력 전수표는 697행(과거 실행 포함 PASS693/FAIL4)이다. 이는 반복 실행을 포함한 보존 행수이며 독립 테스트 수가 아니다. 기록된 cleanup root14개는 최종 읽기 확인에서도 전부 부재였고 `git diff --check`는 exit0이었다. 최종 제품·fixture·runner fingerprint는 [cp2-fingerprints.log](public-evidence-d61344c4076d8741.txt)에 보존한다. 삭제한 임시 diagnostic header는 fingerprint 대상이 아니라 삭제 diff로 확인한다.
 
 checkpoint 중복 검증 제거와 승인된 독립·영향 검증을 완료했다. 전체 앱 복수 출력/재기동/통합 완료는 아니다. #3 대기·시간·완전성 정책과 #4 전체 통합은 변경·실행하지 않았다.
 
@@ -412,27 +412,27 @@ runner는 `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp` 아래 실행했다. CP �
 
 | 로그 | 명령 | exit | 개별 PASS/FAIL |
 | --- | --- | --- | --- |
-| [cp2-catalog.log](cp2-catalog.log) | `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 | 246/0 |
-| [cp2-fields-build.log](cp2-fields-build.log) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
-| [cp2-fields-catalog.log](cp2-fields-catalog.log) | `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 | 246/0 |
-| [cp2-fields-final.log](cp2-fields-final.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` | 0 | 9/0 |
-| [cp2-fields-green.log](cp2-fields-green.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only` | 0 | 6/0 |
-| [cp2-fields-red.log](cp2-fields-red.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only` | 1 | 4/2 |
-| [cp2-final-build.log](cp2-final-build.log) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
-| [cp2-final.log](cp2-final.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` | 0 | 7/0 |
-| [cp2-green-build.log](cp2-green-build.log) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
-| [cp2-identity-assert-red.log](cp2-identity-assert-red.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 1 | 3/1 |
-| [cp2-identity-red.log](cp2-identity-red.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 1 | 0/0 (assertion 미출력) |
-| [cp2-jobs.log](cp2-jobs.log) | `bash scripts/internal/verify_recording_derived_jobs.sh` | 0 | 23/0 |
-| [cp2-media.log](cp2-media.log) | `bash scripts/internal/verify_recording_public_media.sh` | 0 | 46/0 |
-| [cp2-orchestration-red-build.log](cp2-orchestration-red-build.log) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
-| [cp2-pre-red-build.log](cp2-pre-red-build.log) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
-| [cp2-red-build.log](cp2-red-build.log) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
-| [cp2-replay-green.log](cp2-replay-green.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 0 | 8/0 |
-| [cp2-replay-red.log](cp2-replay-red.log) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 1 | 7/1 |
-| [cp2-service.log](cp2-service.log) | `bash scripts/internal/verify_recording_derived_job_service.sh` | 0 | 43/0 |
-| [cp2-timeline.log](cp2-timeline.log) | `bash scripts/internal/verify_recording_public_timeline.sh` | 0 | 38/0 |
-| [cp2-validation.log](cp2-validation.log) | `bash scripts/internal/verify_recording_derived_job_validation.sh --performance-budget` | 0 | 7/0 |
+| [cp2-catalog.log](public-evidence-e631a3c7d047c817.txt) | `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 | 246/0 |
+| [cp2-fields-build.log](public-evidence-a01024f725d81188.txt) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
+| [cp2-fields-catalog.log](public-evidence-c3862550c18aa8df.txt) | `bash scripts/internal/verify_v410_recording_catalog.sh` | 0 | 246/0 |
+| [cp2-fields-final.log](public-evidence-bda79dcb1839d35d.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` | 0 | 9/0 |
+| [cp2-fields-green.log](public-evidence-1509cf0919028f4e.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only` | 0 | 6/0 |
+| [cp2-fields-red.log](public-evidence-0e92c6cc2acd0c49.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only` | 1 | 4/2 |
+| [cp2-final-build.log](public-evidence-ffedae53fbeb215c.txt) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
+| [cp2-final.log](public-evidence-542fdc4188a7f054.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` | 0 | 7/0 |
+| [cp2-green-build.log](public-evidence-a7b7d1c472d05c3c.txt) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
+| [cp2-identity-assert-red.log](public-evidence-a712ddcd7c6c61f3.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 1 | 3/1 |
+| [cp2-identity-red.log](public-evidence-a66955e4b177ba88.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 1 | 0/0 (assertion 미출력) |
+| [cp2-jobs.log](public-evidence-445b564088223257.txt) | `bash scripts/internal/verify_recording_derived_jobs.sh` | 0 | 23/0 |
+| [cp2-media.log](public-evidence-fab66b3f69a31567.txt) | `bash scripts/internal/verify_recording_public_media.sh` | 0 | 46/0 |
+| [cp2-orchestration-red-build.log](public-evidence-d4707094c70bf910.txt) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
+| [cp2-pre-red-build.log](public-evidence-5ab4a61a5f60873c.txt) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
+| [cp2-red-build.log](public-evidence-5cc5c8b8e9d5592e.txt) | `./server.sh build` | 0 | 0/0 (assertion 미출력) |
+| [cp2-replay-green.log](public-evidence-43052b07409baa69.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 0 | 8/0 |
+| [cp2-replay-red.log](public-evidence-f8b12b7b15c29c10.txt) | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` | 1 | 7/1 |
+| [cp2-service.log](public-evidence-9c4d2dc96c72c62f.txt) | `bash scripts/internal/verify_recording_derived_job_service.sh` | 0 | 43/0 |
+| [cp2-timeline.log](public-evidence-9c017b66fa5ceca7.txt) | `bash scripts/internal/verify_recording_public_timeline.sh` | 0 | 38/0 |
+| [cp2-validation.log](public-evidence-b66a90e6fb45b0f1.txt) | `bash scripts/internal/verify_recording_derived_job_validation.sh --performance-budget` | 0 | 7/0 |
 
 ### 개별 원출력 전수 결과
 
@@ -1274,7 +1274,7 @@ CP07 한계는 메인과 확정했다. 공개 API는 semantic-invalid 원장을 
 
 ## 1차·burst baseline 결과
 
-안전runner최종baseline: [cp-owned-baseline.log](cp-owned-baseline.log), `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` exit0. CP01/02/03 세행pass,250mapping CP04 shape출력, 자동checkpoint2회·상한위반없음. ownedcache/stream분리/종료보완정상경로가실행됐다. 강제시간/출력상한음성은별도미실행이며정상결과로대체하지않는다. 제품영구최적화는아직미실시다.
+안전runner최종baseline: [cp-owned-baseline.log](public-evidence-da4a03d3858cb09f.txt), `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp bash scripts/internal/verify_recording_checkpoint_reproduction.sh --diagnostic-evidence` exit0. CP01/02/03 세행pass,250mapping CP04 shape출력, 자동checkpoint2회·상한위반없음. ownedcache/stream분리/종료보완정상경로가실행됐다. 강제시간/출력상한음성은별도미실행이며정상결과로대체하지않는다. 제품영구최적화는아직미실시다.
 
 CP04는 승인된 burst clock을 적용한 실제250mapping workload다(source1/sample250/mapping250/slice45/AU250). 별도baseline을 반복하지 않는다. burst2의 original/candidate Apply는 서로중첩되지않는 두영역이며 합4245862μs(약4.245862초), 해당Update5682680μs의대부분이다. canonical exact identity boolean은이번에미관측이며후속2TDD에서확인한다.
 
@@ -1282,7 +1282,7 @@ CP04는 승인된 burst clock을 적용한 실제250mapping workload다(source1/
 
 변경파일: 신규 scripts/internal/recording_checkpoint_reproduction_smoke.cpp와 verify_recording_checkpoint_reproduction.sh, optional인자만추가한 recording_media_test_fixture.h(기본10fps/keyint10불변), 임시 src/recording/recording_checkpoint_diagnostic.h와 recording_catalog.cpp, 본보고서/cp-*.log. 기존integration/carrier변경에는의존하지않는다. 커밋/푸시는메인담당으로미수행이다.
 
-[제품빌드](cp-build.log) exit0. [최초 compile](cp-first.log) exit1은 공통 Shift 미사용 -Werror 준비실패이며 fixture에서 Shift(input,0) 사용 후 [linear baseline](cp-retry.log) exit0/3pass이다. [burst baseline](cp-burst.log) exit0/3pass, 자동checkpoint2회, 상한초과 없음. 둘 모두 위 env-i runner 명령으로 직접 파일 capture했다. 최초 실패는 지우지 않았으며 준비실패를 예상RED로 바꾸지 않는다.
+[제품빌드](public-evidence-bc041f1699e2c43e.txt) exit0. [최초 compile](public-evidence-ddcf03115b581fba.txt) exit1은 공통 Shift 미사용 -Werror 준비실패이며 fixture에서 Shift(input,0) 사용 후 [linear baseline](public-evidence-0a0e47be5f3e0d17.txt) exit0/3pass이다. [burst baseline](public-evidence-c265a801074e5e44.txt) exit0/3pass, 자동checkpoint2회, 상한초과 없음. 둘 모두 위 env-i runner 명령으로 직접 파일 capture했다. 최초 실패는 지우지 않았으며 준비실패를 예상RED로 바꾸지 않는다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |

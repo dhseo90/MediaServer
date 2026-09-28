@@ -10,5 +10,5 @@ token start/end/consumed: 미집계(도구 집계 미제공)
 [pass] CP06 different schema despite canonical equality rejected
 [pass] CP06 different enum despite canonical equality rejected
 [summary] pass=6 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.vZhAqI bytes=1013691 removed=true
+[cleanup] path=<owned-temp>/media-server-checkpoint-reproduction.vZhAqI bytes=1013691 removed=true
 [elapsed] seconds=1 source=bash-SECONDS

@@ -53,5 +53,5 @@ exit: 0
 [pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
 [pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
 [summary] pass=46 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.Al0lPt bytes=9129396 removed=true
+[cleanup] path=<owned-temp>/media-server-public-media.Al0lPt bytes=9129396 removed=true
 [elapsed] seconds=3 source=bash-SECONDS

@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
   isDeniedArtifactPath,
+  loadReviewedHistoricalAssets,
   scanTrackedTextFile,
 } from "./public_repo_readiness_lib.mjs";
 
@@ -85,10 +86,11 @@ check("tracked file sizes stay public-friendly", () => {
 });
 
 check("tracked media assets are allowlisted", () => {
+  const reviewed = loadReviewedHistoricalAssets(rootDir, policy);
   const media = gitLsFiles().filter((file) => /\.(mp4|mov|mkv|avi|onnx|jpg|jpeg|png)$/i.test(file));
-  const unexpected = media.filter((file) => !matchesAny(file, policy.allowedTrackedAssetPatterns || []));
+  const unexpected = media.filter((file) => !matchesAny(file, policy.allowedTrackedAssetPatterns || []) && !reviewed.has(file));
   assert(unexpected.length === 0, `unexpected tracked asset(s):\n${unexpected.join("\n")}`);
-  return { assetCount: media.length };
+  return { assetCount: media.length, reviewedHistoricalAssets: reviewed.size };
 });
 
 check("current tracked content has no high-confidence secrets", () => {

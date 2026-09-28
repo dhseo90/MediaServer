@@ -666,7 +666,7 @@ AGENTS.md가 정책, 중앙 테스트 기록이 결과 기준이다. 아래 LP26
 | --- | --- | --- | --- |
 | 버전·build metadata | 4.1.0 | VERSION, CMake project, build-gst-onnx cache 일치 | VERSION:1/CMakeLists:3/CMakeCache:140 |
 | branch/upstream | v4.1.0/origin/v4.1.0 | 시작 ee1b7c4d15054da95d884c406dce020e875f5541, clean·ahead0/behind0 | git status/rev-list |
-| main 최신 원격 | 431397d9b86af69f1690aff6fa6f3e61ea4fbe03 | ls-remote exit0 | [원격 읽기 기록](lp26-release-remote.log) |
+| main 최신 원격 | 431397d9b86af69f1690aff6fa6f3e61ea4fbe03 | ls-remote exit0 | [원격 읽기 기록](public-evidence-bfc3a187f18672ec.txt) |
 | tag/Release | latest v4.0.0 | v4.1.0 원격tag 없음, latest API v4.0.0·draft=false/prerelease=false | 같은 원격 기록 |
 | PR·CI | 릴리즈 대상 PR/check 필요 | open head=v4.1.0 PR0, branch workflow run0. CI PASS 아님 | gh pr list/run list |
 | CHANGELOG/NEWS | 실제 파일 확인 | 제품 루트에 없음; test fixture CHANGELOG만 존재 | rg --files |

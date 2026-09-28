@@ -2,7 +2,7 @@
 
 독자: 개발·검토 담당자. lifecycle: 이번 내구 계약/보호·예약 단위의 증거. 정책은 AGENTS, 중앙 실행 기록은 release-test-records다. 5.3a 구현·승인 단기 검증을 마쳐 메인에게 인계하며 Ready/실제 파일/게시·5.3b/3D/S11 완료 증거가 아니다.
 
-최종 유효 assertion은 focused23 + catalog246 + retention56 + V2 retention24 =349개 모두 PASS다. [개별 349행과 cleanup20행](results.md), [source/run SHA-256](fingerprints.log), [전수 hash 확인](fingerprint-check.log), [환경](environment.log)을 보존한다. build·docs-links·diffcheck는 assertion 수와 별개다.
+최종 유효 assertion은 focused23 + catalog246 + retention56 + V2 retention24 =349개 모두 PASS다. [개별 349행과 cleanup20행](results.md), [source/run SHA-256](public-evidence-75389f67b861e713.txt), [전수 hash 확인](public-evidence-d6ac4d2e49484e9a.txt), [환경](public-evidence-0a651b41f706b856.txt)을 보존한다. build·docs-links·diffcheck는 assertion 수와 별개다.
 
 ## 범위와 구현 경계
 

@@ -559,7 +559,7 @@
       "processes": [
         {
           "pid": 12462,
-          "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "commandIdentity": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
           "aliveBefore": true,
           "aliveAfter": false,
           "ownedPorts": [
@@ -569,7 +569,7 @@
         },
         {
           "pid": 40447,
-          "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "commandIdentity": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
           "aliveBefore": true,
           "aliveAfter": false,
           "ownedPorts": [
@@ -2045,7 +2045,7 @@
     "skipCount": 9,
     "elapsedSeconds": 568,
     "elapsedMinutes": 9.5,
-    "logDir": "/Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-050122",
+    "logDir": "<home>/Workspace/mediaServer/.media_server.test/20260922-050122",
     "fullTargetSeconds": 1800,
     "fullReleaseCandidate": false
   },
@@ -2124,7 +2124,7 @@
       "symlinkTargetsUntouched": true
     },
     {
-      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/20260922-050122",
+      "path": "<home>/Workspace/mediaServer/.media_server.test/20260922-050122",
       "files": 24,
       "symlinks": 0,
       "bytesBefore": 37890,

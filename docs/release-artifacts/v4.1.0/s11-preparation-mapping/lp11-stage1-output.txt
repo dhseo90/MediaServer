@@ -55,7 +55,7 @@ typed intent sha256=05c35544a2cfaecf1b360b0100cc54b00c5094f9ffa61a82035b63786ccf
 
 === HTTP initial sandbox raw exit1 ===
 [fail] current actual app: bind EPERM 127.0.0.1
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-RPXPck","bytes":22547984,"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+[cleanup] {"root":"<owned-temp>/media-server-current-integration-RPXPck","bytes":22547984,"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true,"udpClosed":true}
 {"mode":"current-http-latency","passed":0,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true},"elapsedMs":851}
 
 === HTTP escalated raw exit1 ===
@@ -364,7 +364,7 @@ typed intent sha256=05c35544a2cfaecf1b360b0100cc54b00c5094f9ffa61a82035b63786ccf
 [pass] LP03-B diagnostic copy bytes/hash exact
 [job-diagnostic] {"diagnosticStatus":"complete","diagnosticEvidenceStatus":"preserved","detailStatus":"complete","detailEvidenceStatus":"preserved","replayStatus":"complete","replayEvidenceStatus":"preserved","cleanupAllowed":true,"evidenceFile":"failure-94c84fa4-2720-4581-8a83-80d1d05c8c53.json"}
 [pass] LP03-B original unchanged after diagnostic
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-MzCFN8","bytes":64790675,"rootAbsent":true,"failureCount":0,"processes":[{"pid":62050,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":58561,"closed":true},{"kind":"rtsp","port":58562,"closed":true}]}],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+[cleanup] {"root":"<owned-temp>/media-server-current-integration-MzCFN8","bytes":64790675,"rootAbsent":true,"failureCount":0,"processes":[{"pid":62050,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":58561,"closed":true},{"kind":"rtsp","port":58562,"closed":true}]}],"evidencePreservedOrNotRequired":true,"udpClosed":true}
 {"mode":"current-http-latency","passed":6,"failed":2,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":62050,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":58561,"closed":true},{"kind":"rtsp","port":58562,"closed":true}]}],"evidencePreservedOrNotRequired":true},"elapsedMs":34791}
 
 
@@ -417,7 +417,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:11:1
 ✖ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.4085ms)
   AssertionError [ERR_ASSERTION]: Got unwanted exception.
   Actual message: "selection-trace-invalid"
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:9)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:9)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -427,13 +427,13 @@ test at scripts/internal/recording_selection_trace.test.mjs:11:1
     generatedMessage: false,
     code: 'ERR_ASSERTION',
     actual: Error: selection-trace-invalid
-        at Module.validateSelectionTrace (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.mjs:15:821)
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:48
+        at Module.validateSelectionTrace (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.mjs:15:821)
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:48
         at Array.forEach (<anonymous>)
-        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:31
+        at file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:31
         at getActual (node:assert:611:5)
         at strict.doesNotThrow (node:assert:779:32)
-        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:9)
+        at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:9)
         at Test.runInAsyncScope (node:async_hooks:214:14)
         at Test.run (node:internal/test_runner/test:1106:25)
         at Test.processPendingSubtests (node:internal/test_runner/test:788:18),
@@ -445,8 +445,8 @@ test at scripts/internal/recording_selection_trace.test.mjs:11:1
 test at scripts/internal/recording_selection_trace.test.mjs:16:1
 ✖ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.5475ms)
   Error: selection-trace-sequence
-      at Module.matchSelectionTrace (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.mjs:24:303)
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:18:25)
+      at Module.matchSelectionTrace (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.mjs:24:303)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:18:25)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -457,7 +457,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:16:1
 test at scripts/internal/recording_selection_trace.test.mjs:20:91
 ✖ LP11-T03 budget-pair 정합성 거부 (0.099ms)
   AssertionError [ERR_ASSERTION]: Missing expected exception.
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:22:9)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:22:9)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -475,7 +475,7 @@ test at scripts/internal/recording_selection_trace.test.mjs:20:91
 test at scripts/internal/recording_selection_trace.test.mjs:24:78
 ✖ LP11-T04 after-terminal sequence 거부 (0.0575ms)
   AssertionError [ERR_ASSERTION]: Missing expected exception.
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:27:9)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:27:9)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -498,7 +498,7 @@ RAW_JSON_LINE: "  "
   + 'undefined'
   - 'function'
 RAW_JSON_LINE: "  "
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:33:9)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:33:9)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -521,7 +521,7 @@ RAW_JSON_LINE: "  "
   + 'undefined'
   - 'function'
 RAW_JSON_LINE: "  "
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:39:9)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:39:9)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
@@ -621,7 +621,7 @@ RAW_JSON_LINE: "  "
   + 'undefined'
   - 'function'
 RAW_JSON_LINE: "  "
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:43:9)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:43:9)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:788:18)

@@ -122,5 +122,5 @@ a782b967aba4e088530e411168d33d48a3823d22fcd100fb35a0b96a3e65ecfd  scripts/intern
 [pass] LP10-W11 constructor source budget clamp case=3
 [pass] LP10-W11 runtime source budget opt-in preserves base budget
 [summary] pass=41 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.EESP5Q bytes=19259580 removed=true
+[cleanup] path=<owned-temp>/media-server-bounded-wait.EESP5Q bytes=19259580 removed=true
 [elapsed] seconds=6 source=bash-SECONDS

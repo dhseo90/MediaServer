@@ -42,7 +42,7 @@ token start/end/consumed는 전용 집계가 없어 미집계다.
 root 저장 단위 반례는 10/10, 실제 앱 단기는 73/73으로 통과했다. 실제 앱에서는 두 채널
 녹화·삭제·비활성 재기동·재활성 녹화, stopped-copy 복구 3회, 서버 exit0·포트/UDP 해제와
 실행 root 정리를 확인했다. 최종 root는 290,408,558B로 상한 미달이었고 제품 경로에는
-새 오류가 없었다. 상세 요약은 [focused 결과](b11-root-stable-focused.log)를 따른다.
+새 오류가 없었다. 상세 요약은 [focused 결과](public-evidence-3a739c1c18a6096e.txt)를 따른다.
 
 실패 원출력과 독립 재생 결과를 이 문서·gzip에 이관한 뒤 소유권을 확인한 실패 root
 347,945,279B, wrapper 임시 디렉터리와 진단 출력 2개를 삭제하고 부재를 확인했다.

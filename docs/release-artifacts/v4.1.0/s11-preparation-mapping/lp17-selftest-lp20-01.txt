@@ -1,5 +1,5 @@
 {"kind":"preflight","mode":"selftest","id":"lp20-01","head":"942822783e704ab0fe73514911b0f53bde2a9f79","sourceManifest":"596837c27b4cb45b92c01584e9554425707895c55b7202b39474ddf6f138b26c","physicalBytes":25769803776,"reclaimableEstimateBytes":10865475584,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
-{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+{"kind":"command","label":"runner-selftest","command":"<home>/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
 TAP version 13
 # [selftest-cleanup] {"bytes":5,"removed":true}
 # [selftest-cleanup] {"bytes":0,"removed":true}

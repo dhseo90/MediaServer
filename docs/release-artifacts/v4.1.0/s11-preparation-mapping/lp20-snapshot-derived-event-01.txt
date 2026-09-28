@@ -104,5 +104,5 @@ a782b967aba4e088530e411168d33d48a3823d22fcd100fb35a0b96a3e65ecfd  scripts/intern
 [pass] E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown
 [pass] E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음
 [summary] pass=2 fail=0
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.RhblJ8 bytes=16339230 removed=true
+[cleanup] path=<owned-temp>/media-server-derived-event-integration.RhblJ8 bytes=16339230 removed=true
 [elapsed] seconds=10 source=bash-SECONDS

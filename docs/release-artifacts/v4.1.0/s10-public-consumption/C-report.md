@@ -23,10 +23,10 @@
 
 | 실행 | 실제 명령 | exit/결과 | 원출력 | 의미 |
 | --- | --- | --- | --- | --- |
-| 최초 RED | 위 Node 명령 | 1;10 PASS/19 FAIL;21ms | [C-ExpectedRed.log](C-ExpectedRed.log) | 신규 DTO 소비 미구현의 사전 특정 assertion. 기존7개는 PASS |
-| 첫 GREEN | 동일 | 0;29 PASS/0 FAIL;16ms | [C-FirstGreen.log](C-FirstGreen.log) | 첫 구현 확인 |
-| 중첩 안내 RED | 동일 | 1;28 PASS/1 FAIL;18ms | [C-OverlapRed.log](C-OverlapRed.log) | C05에 확인된 원본 ns 중첩 안내 assertion을 실행 전 추가. 안내 미구현만 실패 |
-| 최종 focused | 동일 | 0;29 PASS/0 FAIL;16ms | [C-FinalFocused.log](C-FinalFocused.log) | 중첩 안내 보완 후 전수 통과 |
+| 최초 RED | 위 Node 명령 | 1;10 PASS/19 FAIL;21ms | [C-ExpectedRed.log](public-evidence-39544cb8e68129d3.txt) | 신규 DTO 소비 미구현의 사전 특정 assertion. 기존7개는 PASS |
+| 첫 GREEN | 동일 | 0;29 PASS/0 FAIL;16ms | [C-FirstGreen.log](public-evidence-f9a0addebc703214.txt) | 첫 구현 확인 |
+| 중첩 안내 RED | 동일 | 1;28 PASS/1 FAIL;18ms | [C-OverlapRed.log](public-evidence-7d1677cc6e372bbb.txt) | C05에 확인된 원본 ns 중첩 안내 assertion을 실행 전 추가. 안내 미구현만 실패 |
+| 최종 focused | 동일 | 0;29 PASS/0 FAIL;16ms | [C-FinalFocused.log](public-evidence-be7291f3b5aab5c6.txt) | 중첩 안내 보완 후 전수 통과 |
 | diffcheck | `git diff --check` | 0;출력 없음 | 본 기록 | 당시 tracked 변경 whitespace 검사. 최종 stage 후 전체 검사는 별도 |
 
 4회 각29개인116개 원출력 행을 보존한다. 최종29행은 [C-results](C-results.md)와 대조했다.
@@ -35,7 +35,7 @@
 ## 실행 환경·정리
 
 - fingerprint 확인 UTC: `2026-09-13T09:48:52Z`; Darwin arm64, Node `v24.13.0`.
-- [C-fingerprints.log](C-fingerprints.log): 최종 제품 script/markup/CSS/test의 SHA-256.
+- [C-fingerprints.log](public-evidence-fd1033d3d6eaf608.txt): 최종 제품 script/markup/CSS/test의 SHA-256.
 - token start/end/consumed: 미집계(실행별 토큰 계측 도구 없음). elapsed: 각 Node summary.
   source: 최종 fingerprint 및 원출력. 중간 실행 source는 해당 RED/수정 이력으로 구분한다.
 - 서버·포트·계정·비밀번호·외부 서비스·브라우저는 사용하지 않았다.

@@ -1,4 +1,4 @@
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-7tVS0f bytes=14625212 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-7tVS0f bytes=14625212 removed=true
 ✖ LP05-01 typed failed known0 (1982.208167ms)
 ✖ LP05-01 typed failed known1 (1492.013958ms)
 ✖ LP05-01 typed failed known2 (1455.502666ms)
@@ -25,7 +25,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
@@ -43,7 +43,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -61,7 +61,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -79,7 +79,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -97,7 +97,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
@@ -115,7 +115,7 @@ test at scripts/internal/recording_current_archive_probe.test.mjs:26:1
   
   '[fail] archive-probe copy-catalog-open\n'
   
-      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:26:150)
+      at TestContext.<anonymous> (file://<home>/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:26:150)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
       at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {

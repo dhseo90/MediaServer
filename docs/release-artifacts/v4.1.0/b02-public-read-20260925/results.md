@@ -92,16 +92,16 @@ fixture 서버·포트는 사용하지 않았다. runner가 소유 fixture와 �
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.oCCqly` | 실행 전용 fixture·바이너리 | 0B | runner 삭제 | 부재 확인 | [red 원출력](red.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.9B1NE3` | 실행 전용 fixture·바이너리 | 7504552B | runner 삭제 | 부재 확인 | [red-fixture-fixed 원출력](red-fixture-fixed.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.efXbMG` | 실행 전용 fixture·바이너리 | 7506862B | runner 삭제 | 부재 확인 | [red-ready 원출력](red-ready.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.WsBFx7` | 실행 전용 fixture·바이너리 | 7692606B | runner 삭제 | 부재 확인 | [first-green 원출력](first-green.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.kxqSQV` | 실행 전용 fixture·바이너리 | 0B | runner 삭제 | 부재 확인 | [q-matrix-executable 원출력](q-matrix-executable.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.NF5zHp` | 실행 전용 fixture·바이너리 | 0B | runner 삭제 | 부재 확인 | [q-hook 원출력](q-hook.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.2LQwOU` | 실행 전용 fixture·바이너리 | 31414697B | runner 삭제 | 부재 확인 | [q-linked 원출력](q-linked.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.Xl2FOP` | 실행 전용 fixture·바이너리 | 31417913B | runner 삭제 | 부재 확인 | [q-final 원출력](q-final.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-generation-scratch.ZyYqzn` | 실행 전용 fixture·바이너리 | 21012879B | runner 삭제 | 부재 확인 | [scratch-regression 원출력](scratch-regression.log.gz) |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-journal-generation-readonly.J6yLnm` | 실행 전용 fixture·바이너리 | 11665212B | runner 삭제 | 부재 확인 | [journal-regression 원출력](journal-regression.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.oCCqly` | 실행 전용 fixture·바이너리 | 0B | runner 삭제 | 부재 확인 | [red 원출력](red.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.9B1NE3` | 실행 전용 fixture·바이너리 | 7504552B | runner 삭제 | 부재 확인 | [red-fixture-fixed 원출력](red-fixture-fixed.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.efXbMG` | 실행 전용 fixture·바이너리 | 7506862B | runner 삭제 | 부재 확인 | [red-ready 원출력](red-ready.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.WsBFx7` | 실행 전용 fixture·바이너리 | 7692606B | runner 삭제 | 부재 확인 | [first-green 원출력](first-green.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.kxqSQV` | 실행 전용 fixture·바이너리 | 0B | runner 삭제 | 부재 확인 | [q-matrix-executable 원출력](q-matrix-executable.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.NF5zHp` | 실행 전용 fixture·바이너리 | 0B | runner 삭제 | 부재 확인 | [q-hook 원출력](q-hook.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.2LQwOU` | 실행 전용 fixture·바이너리 | 31414697B | runner 삭제 | 부재 확인 | [q-linked 원출력](q-linked.log.gz) |
+| `<owned-temp>/media-server-generation-readonly.Xl2FOP` | 실행 전용 fixture·바이너리 | 31417913B | runner 삭제 | 부재 확인 | [q-final 원출력](q-final.log.gz) |
+| `<owned-temp>/media-server-catalog-generation-scratch.ZyYqzn` | 실행 전용 fixture·바이너리 | 21012879B | runner 삭제 | 부재 확인 | [scratch-regression 원출력](scratch-regression.log.gz) |
+| `<owned-temp>/media-server-journal-generation-readonly.J6yLnm` | 실행 전용 fixture·바이너리 | 11665212B | runner 삭제 | 부재 확인 | [journal-regression 원출력](journal-regression.log.gz) |
 | `/tmp/media_server_v410_recording_catalog-91208` | 실행 전용 fixture·바이너리 | 28793506B | runner 삭제 | 부재 확인 | [catalog 원출력](catalog.log.gz) |
 | q-matrix | fixture | 0 | 생성 전 실행 권한 오류 | 생성 없음 | 원출력 |
 | build-gst-onnx | 제품 빌드 | 해당 없음 | 유지 | 보존 | 이번 제품 빌드 |

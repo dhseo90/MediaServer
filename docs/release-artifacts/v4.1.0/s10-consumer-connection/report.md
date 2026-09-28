@@ -19,7 +19,7 @@
 최초 staged diffcheck는 새 Build/BuildFinal 로그 끝의 여분 빈 줄 각1개를 지적해 exit2였다.
 명령·출력 내용은 유지하고 해당 두 빈 줄만 제거했다. 제품 재검증 대상이 아닌 증적 형식 보완이다.
 
-원자 쌍 저장, 실제 opt-in projector/bridge 및 내부 참조 해석을 구현했다. 최종 focused 18/0과 승인된 관련 회귀가 통과했다. 기존 event 회귀의 컴파일 실패는 메인이 optional 부재 기본 초기화를 명시한 뒤 같은 명령으로 재검증하여 해소했다. 메인이 전체 제품 빌드와 최종 통합을 담당하며 [Build.log](Build.log), [BuildFinal.log](BuildFinal.log)에 별도 보존했다. 담당자는 커밋·푸시를 수행하지 않았다.
+원자 쌍 저장, 실제 opt-in projector/bridge 및 내부 참조 해석을 구현했다. 최종 focused 18/0과 승인된 관련 회귀가 통과했다. 기존 event 회귀의 컴파일 실패는 메인이 optional 부재 기본 초기화를 명시한 뒤 같은 명령으로 재검증하여 해소했다. 메인이 전체 제품 빌드와 최종 통합을 담당하며 [Build.log](public-evidence-4fd3622927130e11.txt), [BuildFinal.log](public-evidence-31a7583968d47309.txt)에 별도 보존했다. 담당자는 커밋·푸시를 수행하지 않았다.
 
 ## 구현 범위
 
@@ -35,21 +35,21 @@
 
 | 기록 | 명령 | exit | 실제 결과 | elapsed |
 | --- | --- | ---: | --- | --- |
-| [NearestRed.log](NearestRed.log) | `bash scripts/internal/verify_recording_consumer_connection.sh` | 1 | 실제 nearest/null 저장 assertion 0/1, 예상 RED | 4초 |
-| [NearestGreen.log](NearestGreen.log) | 동일 focused | 0 | nearest/null 1/0 | 5초 |
-| [Red.log](Red.log) | 동일 focused | 1 | C401/C406 예상 RED, 1/2 | 5초 |
-| [PartialGreen.log](PartialGreen.log) | 동일 focused | 0 | 초기 3/0, 전체 판정 아님 | 4초 |
-| [FixtureFailure.log](FixtureFailure.log) | 동일 focused | 2 | C401~403 PASS 뒤 직접 partial mutation ID 누락, 예상 RED 아님 | 6초 |
-| [Green.log](Green.log) | 동일 focused | 0 | 전체 첫 18/0, queue 추가 경계 이전 | 5초 |
-| [QueueRed.log](QueueRed.log) | 동일 focused | 1 | C410 같은 ID/다른 bbox silent merge 예상 RED, 17/1 | 6초 |
-| [QueueGreen.log](QueueGreen.log) | 동일 focused | 0 | 메모리 guard 후 18/0 | 6초 |
-| [Final.log](Final.log) | 동일 focused | 0 | 새 함수 가독성 정리 후 18/0 | 6초 |
-| [Reference.log](Reference.log) | `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 | 16/0 | 5초 |
-| [Binding.log](Binding.log) | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20/0 | 6초 |
-| [Correlation.log](Correlation.log) | `bash scripts/internal/verify_recording_frame_correlation.sh` | 0 | 10/0 | 2초 |
-| [Observations.log](Observations.log) | `bash scripts/internal/verify_v410_recording_observations.sh` | 0 | 기존 관측 71개, snapshot 10개, cleanup 1개 PASS | 미집계 |
-| [Event.log](Event.log) | `bash scripts/internal/verify_v410_event_recording.sh` | 1 | 등록기 35/0, GST-on 컴파일 실패. C++/application/runtime 미실행 | 미집계 |
-| [EventGreen.log](EventGreen.log) | `bash scripts/internal/verify_v410_event_recording.sh` | 0 | 등록기35/C++158/application7/runtime23/negative2/기능집계27 전부 PASS | 전체 미집계; negative 하위20,245ms |
+| [NearestRed.log](public-evidence-abc2cfcf8a11ac11.txt) | `bash scripts/internal/verify_recording_consumer_connection.sh` | 1 | 실제 nearest/null 저장 assertion 0/1, 예상 RED | 4초 |
+| [NearestGreen.log](public-evidence-423658bf575e822b.txt) | 동일 focused | 0 | nearest/null 1/0 | 5초 |
+| [Red.log](public-evidence-2b44fb3891e752af.txt) | 동일 focused | 1 | C401/C406 예상 RED, 1/2 | 5초 |
+| [PartialGreen.log](public-evidence-5e90e9eb8de1057e.txt) | 동일 focused | 0 | 초기 3/0, 전체 판정 아님 | 4초 |
+| [FixtureFailure.log](public-evidence-f90dcc888c7636b6.txt) | 동일 focused | 2 | C401~403 PASS 뒤 직접 partial mutation ID 누락, 예상 RED 아님 | 6초 |
+| [Green.log](public-evidence-0258d4bc1cb8281b.txt) | 동일 focused | 0 | 전체 첫 18/0, queue 추가 경계 이전 | 5초 |
+| [QueueRed.log](public-evidence-7df84c06091a3579.txt) | 동일 focused | 1 | C410 같은 ID/다른 bbox silent merge 예상 RED, 17/1 | 6초 |
+| [QueueGreen.log](public-evidence-a85eda1d32a4bd21.txt) | 동일 focused | 0 | 메모리 guard 후 18/0 | 6초 |
+| [Final.log](public-evidence-ab365d6a0c8bd8dd.txt) | 동일 focused | 0 | 새 함수 가독성 정리 후 18/0 | 6초 |
+| [Reference.log](public-evidence-03d440a25f128d14.txt) | `bash scripts/internal/verify_recording_consumer_reference.sh` | 0 | 16/0 | 5초 |
+| [Binding.log](public-evidence-bf4583af71865ffc.txt) | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20/0 | 6초 |
+| [Correlation.log](public-evidence-5b61757b60f161bc.txt) | `bash scripts/internal/verify_recording_frame_correlation.sh` | 0 | 10/0 | 2초 |
+| [Observations.log](public-evidence-ab758dca898d2e1d.txt) | `bash scripts/internal/verify_v410_recording_observations.sh` | 0 | 기존 관측 71개, snapshot 10개, cleanup 1개 PASS | 미집계 |
+| [Event.log](public-evidence-fe2c8c31ce391822.txt) | `bash scripts/internal/verify_v410_event_recording.sh` | 1 | 등록기 35/0, GST-on 컴파일 실패. C++/application/runtime 미실행 | 미집계 |
+| [EventGreen.log](public-evidence-dae02456243ae8d9.txt) | `bash scripts/internal/verify_v410_event_recording.sh` | 0 | 등록기35/C++158/application7/runtime23/negative2/기능집계27 전부 PASS | 전체 미집계; negative 하위20,245ms |
 
 `git diff --check`는 소스 동결 시 exit 0이었다. 비동기 도구 대기 시간은 전체 실행 시간과 달라 elapsed로 합산하지 않았다. token start/end/consumed는 담당자별 자동 집계 수단이 없어 미집계다. elapsed source는 해당 runner의 `bash SECONDS` 출력이다.
 
@@ -84,421 +84,421 @@
 
 | 제목 | 수행내용·원출력 위치 | 결과(pass/fail) |
 | --- | --- | --- |
-| C341 계약 왕복 | [Reference.log:2](Reference.log) — exit0 | pass |
-| C342 unknown/중복 필드 거부 | [Reference.log:3](Reference.log) — exit0 | pass |
-| C343 ID·종류·소유자 제약 | [Reference.log:4](Reference.log) — exit0 | pass |
-| C344 품질·원본 nullable 조합 | [Reference.log:5](Reference.log) — exit0 | pass |
-| C345 원본 수치·track 경계 | [Reference.log:6](Reference.log) — exit0 | pass |
-| C346 event 요청·시간축 | [Reference.log:7](Reference.log) — exit0 | pass |
-| C347 observation 요청 금지 | [Reference.log:8](Reference.log) — exit0 | pass |
-| C348 요청 음수·역전·padding | [Reference.log:9](Reference.log) — exit0 | pass |
-| C349 미지원 schema 거부 | [Reference.log:10](Reference.log) — exit0 | pass |
-| C350 실제 원장 저장·조회 | [Reference.log:11](Reference.log) — exit0 | pass |
-| C351 동일 참조 멱등 | [Reference.log:12](Reference.log) — exit0 | pass |
-| C352 동일 ID 충돌 거부 | [Reference.log:13](Reference.log) — exit0 | pass |
-| C353 opt-in·미open 거부 | [Reference.log:14](Reference.log) — exit0 | pass |
-| C354 SQL·JSONL 재시작 동등 | [Reference.log:15](Reference.log) — exit0 | pass |
-| C355 checkpoint 참조 보존 | [Reference.log:16](Reference.log) — exit0 | pass |
-| C356 손상·충돌 replay 선차단 | [Reference.log:27](Reference.log) — exit0 | pass |
-| S10-C301 결박 schema 왕복 | [Binding.log:2](Binding.log) — exit0 | pass |
-| S10-C302 식별·ordinal 검증 | [Binding.log:3](Binding.log) — exit0 | pass |
-| S10-C303 PTS 재정렬 보존 | [Binding.log:4](Binding.log) — exit0 | pass |
-| S10-C304 미디어 범위·timebase | [Binding.log:5](Binding.log) — exit0 | pass |
-| S10-C305 색인 상한·미색인 꼬리 | [Binding.log:6](Binding.log) — exit0 | pass |
-| S10-C306 단일 bound mutation | [Binding.log:7](Binding.log) — exit0 | pass |
-| S10-C307 source·저장 identity 결박 | [Binding.log:8](Binding.log) — exit0 | pass |
-| S10-C308 불변·멱등 | [Binding.log:9](Binding.log) — exit0 | pass |
-| S10-C309 소급·다운그레이드 금지 | [Binding.log:10](Binding.log) — exit0 | pass |
-| S10-C310 정확한 원본 tuple 조회 | [Binding.log:11](Binding.log) — exit0 | pass |
-| S10-C311 미색인·실제 부재 구분 | [Binding.log:12](Binding.log) — exit0 | pass |
-| S10-C312 복수 segment 후보 | [Binding.log:13](Binding.log) — exit0 | pass |
-| S10-C313 삭제·corrupt·pending 차단 | [Binding.log:14](Binding.log) — exit0 | pass |
-| S10-C314 채널·조회 오류 경계 | [Binding.log:15](Binding.log) — exit0 | pass |
-| S10-C315 SQL·JSONL 재시작 동등 | [Binding.log:16](Binding.log) — exit0 | pass |
-| S10-C316 checkpoint 보존 | [Binding.log:17](Binding.log) — exit0 | pass |
-| S10-C317 손상 원장 선차단 | [Binding.log:18](Binding.log) — exit0 | pass |
-| S10-C318 예약·옵트인 경계 | [Binding.log:19](Binding.log) — exit0 | pass |
-| S10-C319 기존 segment·조회 불변 | [Binding.log:20](Binding.log) — exit0 | pass |
-| S10-C320 실제 finalize 수락 경계 | [Binding.log:21](Binding.log) — exit0 | pass |
-| S10-C101 유일 timestamp 연관 | [Correlation.log:2](Correlation.log) — exit0 | pass |
-| S10-C102 최근접 추정 분리 | [Correlation.log:3](Correlation.log) — exit0 | pass |
-| S10-C103 중복 timestamp 모호성 | [Correlation.log:4](Correlation.log) — exit0 | pass |
-| S10-C104 원본 미관측 | [Correlation.log:5](Correlation.log) — exit0 | pass |
-| S10-C105 출력 PTS 부재 | [Correlation.log:6](Correlation.log) — exit0 | pass |
-| S10-C106 원본 PTS 부재·범위 | [Correlation.log:7](Correlation.log) — exit0 | pass |
-| S10-C107 bounded 이력 | [Correlation.log:8](Correlation.log) — exit0 | pass |
-| S10-C108 충돌·동일 입력 재전달 | [Correlation.log:9](Correlation.log) — exit0 | pass |
-| S10-C109 세대·track 분리 | [Correlation.log:10](Correlation.log) — exit0 | pass |
-| S10-C110 자체 영상 실제 decoder | [Correlation.log:11](Correlation.log) — exit0 | pass |
-| mutation-v2 | [Observations.log:2](Observations.log) — exit0 | pass |
-| null-roundtrip | [Observations.log:3](Observations.log) — exit0 | pass |
-| reference-roundtrip | [Observations.log:4](Observations.log) — exit0 | pass |
-| negative-created-time | [Observations.log:5](Observations.log) — exit0 | pass |
-| negative-reason | [Observations.log:6](Observations.log) — exit0 | pass |
-| negative-summary | [Observations.log:7](Observations.log) — exit0 | pass |
-| negative-observation-range | [Observations.log:8](Observations.log) — exit0 | pass |
-| negative-bbox | [Observations.log:9](Observations.log) — exit0 | pass |
-| journal-open | [Observations.log:10](Observations.log) — exit0 | pass |
-| catalog-open | [Observations.log:11](Observations.log) — exit0 | pass |
-| null-put | [Observations.log:12](Observations.log) — exit0 | pass |
-| gap-null | [Observations.log:13](Observations.log) — exit0 | pass |
-| missing-provenance-null | [Observations.log:14](Observations.log) — exit0 | pass |
-| segment-finalize | [Observations.log:15](Observations.log) — exit0 | pass |
-| pending-resolve | [Observations.log:16](Observations.log) — exit0 | pass |
-| located-roundtrip | [Observations.log:17](Observations.log) — exit0 | pass |
-| negative-locator-pts | [Observations.log:18](Observations.log) — exit0 | pass |
-| locator-put-reject | [Observations.log:19](Observations.log) — exit0 | pass |
-| located-put | [Observations.log:20](Observations.log) — exit0 | pass |
-| identity-put-reject | [Observations.log:21](Observations.log) — exit0 | pass |
-| identity-restore | [Observations.log:22](Observations.log) — exit0 | pass |
-| event-put | [Observations.log:23](Observations.log) — exit0 | pass |
-| reasons-merge | [Observations.log:24](Observations.log) — exit0 | pass |
-| missing-media-null | [Observations.log:25](Observations.log) — exit0 | pass |
-| v1-roundtrip | [Observations.log:26](Observations.log) — exit0 | pass |
-| deletion-request | [Observations.log:27](Observations.log) — exit0 | pass |
-| deleted-null | [Observations.log:28](Observations.log) — exit0 | pass |
-| sqlite-reopen | [Observations.log:29](Observations.log) — exit0 | pass |
-| journal-replay | [Observations.log:30](Observations.log) — exit0 | pass |
-| jsonl-parity | [Observations.log:31](Observations.log) — exit0 | pass |
-| sqlite-projection | [Observations.log:32](Observations.log) — exit0 | pass |
-| sqlite-payload-parity | [Observations.log:33](Observations.log) — exit0 | pass |
-| sampling-journal-open | [Observations.log:34](Observations.log) — exit0 | pass |
-| sampling-catalog-open | [Observations.log:35](Observations.log) — exit0 | pass |
-| stop-duration | [Observations.log:36](Observations.log) — exit0 | pass |
-| sampling-start | [Observations.log:37](Observations.log) — exit0 | pass |
-| sampling-60s-bound | [Observations.log:38](Observations.log) — exit0 | pass |
-| stop-once | [Observations.log:39](Observations.log) — exit0 | pass |
-| drain-bounded | [Observations.log:40](Observations.log) — exit0 | pass |
-| jobs-journal-open | [Observations.log:41](Observations.log) — exit0 | pass |
-| jobs-catalog-open | [Observations.log:42](Observations.log) — exit0 | pass |
-| ended-state-reuse | [Observations.log:43](Observations.log) — exit0 | pass |
-| pending-unrelated-finalize | [Observations.log:44](Observations.log) — exit0 | pass |
-| tracker-start | [Observations.log:45](Observations.log) — exit0 | pass |
-| runtime-journal-open | [Observations.log:46](Observations.log) — exit0 | pass |
-| runtime-catalog-open | [Observations.log:47](Observations.log) — exit0 | pass |
-| tracker-terminated-copy | [Observations.log:48](Observations.log) — exit0 | pass |
-| tracker-terminated-once | [Observations.log:49](Observations.log) — exit0 | pass |
-| observer-tracker-start-event-end | [Observations.log:50](Observations.log) — exit0 | pass |
-| observer-event-provenance | [Observations.log:51](Observations.log) — exit0 | pass |
-| late-journal-open | [Observations.log:52](Observations.log) — exit0 | pass |
-| late-catalog-open | [Observations.log:53](Observations.log) — exit0 | pass |
-| delayed-event-before-latest | [Observations.log:54](Observations.log) — exit0 | pass |
-| delayed-event-after-end | [Observations.log:55](Observations.log) — exit0 | pass |
-| config-zero-reject | [Observations.log:56](Observations.log) — exit0 | pass |
-| config-positive | [Observations.log:57](Observations.log) — exit0 | pass |
-| critical-overload-visible | [Observations.log:58](Observations.log) — exit0 | pass |
-| queue-cap | [Observations.log:59](Observations.log) — exit0 | pass |
-| concurrent-stop | [Observations.log:60](Observations.log) — exit0 | pass |
-| multi-namespace | [Observations.log:61](Observations.log) — exit0 | pass |
-| bounded-id | [Observations.log:62](Observations.log) — exit0 | pass |
-| storage-failure-counter | [Observations.log:63](Observations.log) — exit0 | pass |
-| pending-segment-finalize | [Observations.log:64](Observations.log) — exit0 | pass |
-| pending-finalize-automatic | [Observations.log:65](Observations.log) — exit0 | pass |
-| ambiguous-segment-finalize | [Observations.log:66](Observations.log) — exit0 | pass |
-| ambiguous-null | [Observations.log:67](Observations.log) — exit0 | pass |
-| corrupt-null | [Observations.log:68](Observations.log) — exit0 | pass |
-| reference-overflow-visible | [Observations.log:69](Observations.log) — exit0 | pass |
-| replay-identity-open | [Observations.log:70](Observations.log) — exit0 | pass |
-| replay-identity-memory | [Observations.log:71](Observations.log) — exit0 | pass |
-| replay-identity-sqlite | [Observations.log:72](Observations.log) — exit0 | pass |
-| 입력 전 위치 없음 | [Observations.log:74](Observations.log) — exit0 | pass |
-| 수락 packet anchor | [Observations.log:75](Observations.log) — exit0 | pass |
-| 동일 epoch 범위 확장 | [Observations.log:76](Observations.log) — exit0 | pass |
-| 캡처된 사본 불변 | [Observations.log:77](Observations.log) — exit0 | pass |
-| accepted-pts-exact-membership | [Observations.log:78](Observations.log) — exit0 | pass |
-| PTS 되감기 차단 | [Observations.log:79](Observations.log) — exit0 | pass |
-| 모호성 이후 추정 복원 금지 | [Observations.log:80](Observations.log) — exit0 | pass |
-| epoch 변경 차단 | [Observations.log:81](Observations.log) — exit0 | pass |
-| 종료 사본 차단 | [Observations.log:82](Observations.log) — exit0 | pass |
-| accepted-pts-history-bound | [Observations.log:83](Observations.log) — exit0 | pass |
-| S07 temporary cleanup | [Observations.log:85](Observations.log) — exit0 | pass |
-| 등록기: 정상 정식 등록 27개 | [Event.log:3](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 다른 등록군 추가와 일관된 총계 허용 | [Event.log:4](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 전체 총계 불일치 거부 | [Event.log:5](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: canonical 등록 수 변경 거부 | [Event.log:6](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: S05 등록 수 변경 거부 | [Event.log:7](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 등록군 중복 거부 | [Event.log:8](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 음수 등록 수 거부 | [Event.log:9](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 소수 등록 수 거부 | [Event.log:10](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 등록 범위 표 누락 거부 | [Event.log:11](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 누락 ID | [Event.log:12](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 중복 ID | [Event.log:13](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 추가 ID | [Event.log:14](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 빈 테스트 영역 | [Event.log:15](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 없는 구현 심볼 | [Event.log:16](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 없는 테스트 함수 | [Event.log:17](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 없는 check | [Event.log:18](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 중복 check ID | [Event.log:19](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 문서 행 누락 | [Event.log:20](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 실행 소비자 정상 합성 입력 | [Event.log:21](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 실제 check 결과 누락 | [Event.log:22](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: EOS assertion 제거와 감소한 summary도 거부 | [Event.log:23](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 실패 summary | [Event.log:24](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 성공 summary만으로 PASS 금지 | [Event.log:25](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 중복 application 결과 | [Event.log:26](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime 로그 전체 누락 | [Event.log:27](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime 시나리오 누락 | [Event.log:28](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 종료 취소 runtime 시나리오 누락 | [Event.log:29](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime assertion 누락 및 감소 summary | [Event.log:30](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime assertion 중복 및 증가 summary | [Event.log:31](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime summary 실패 | [Event.log:32](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime summary 중복 | [Event.log:33](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime failure marker | [Event.log:34](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime mutation 결과 누락 | [Event.log:35](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime mutation 결과 중복 | [Event.log:36](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: runtime negative summary 실패 | [Event.log:37](Event.log) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
-| 등록기: 정상 정식 등록 27개 | [EventGreen.log:3](EventGreen.log) — exit0 | pass |
-| 등록기: 다른 등록군 추가와 일관된 총계 허용 | [EventGreen.log:4](EventGreen.log) — exit0 | pass |
-| 등록기: 전체 총계 불일치 거부 | [EventGreen.log:5](EventGreen.log) — exit0 | pass |
-| 등록기: canonical 등록 수 변경 거부 | [EventGreen.log:6](EventGreen.log) — exit0 | pass |
-| 등록기: S05 등록 수 변경 거부 | [EventGreen.log:7](EventGreen.log) — exit0 | pass |
-| 등록기: 등록군 중복 거부 | [EventGreen.log:8](EventGreen.log) — exit0 | pass |
-| 등록기: 음수 등록 수 거부 | [EventGreen.log:9](EventGreen.log) — exit0 | pass |
-| 등록기: 소수 등록 수 거부 | [EventGreen.log:10](EventGreen.log) — exit0 | pass |
-| 등록기: 등록 범위 표 누락 거부 | [EventGreen.log:11](EventGreen.log) — exit0 | pass |
-| 등록기: 누락 ID | [EventGreen.log:12](EventGreen.log) — exit0 | pass |
-| 등록기: 중복 ID | [EventGreen.log:13](EventGreen.log) — exit0 | pass |
-| 등록기: 추가 ID | [EventGreen.log:14](EventGreen.log) — exit0 | pass |
-| 등록기: 빈 테스트 영역 | [EventGreen.log:15](EventGreen.log) — exit0 | pass |
-| 등록기: 없는 구현 심볼 | [EventGreen.log:16](EventGreen.log) — exit0 | pass |
-| 등록기: 없는 테스트 함수 | [EventGreen.log:17](EventGreen.log) — exit0 | pass |
-| 등록기: 없는 check | [EventGreen.log:18](EventGreen.log) — exit0 | pass |
-| 등록기: 중복 check ID | [EventGreen.log:19](EventGreen.log) — exit0 | pass |
-| 등록기: 문서 행 누락 | [EventGreen.log:20](EventGreen.log) — exit0 | pass |
-| 등록기: 실행 소비자 정상 합성 입력 | [EventGreen.log:21](EventGreen.log) — exit0 | pass |
-| 등록기: 실제 check 결과 누락 | [EventGreen.log:22](EventGreen.log) — exit0 | pass |
-| 등록기: EOS assertion 제거와 감소한 summary도 거부 | [EventGreen.log:23](EventGreen.log) — exit0 | pass |
-| 등록기: 실패 summary | [EventGreen.log:24](EventGreen.log) — exit0 | pass |
-| 등록기: 성공 summary만으로 PASS 금지 | [EventGreen.log:25](EventGreen.log) — exit0 | pass |
-| 등록기: 중복 application 결과 | [EventGreen.log:26](EventGreen.log) — exit0 | pass |
-| 등록기: runtime 로그 전체 누락 | [EventGreen.log:27](EventGreen.log) — exit0 | pass |
-| 등록기: runtime 시나리오 누락 | [EventGreen.log:28](EventGreen.log) — exit0 | pass |
-| 등록기: 종료 취소 runtime 시나리오 누락 | [EventGreen.log:29](EventGreen.log) — exit0 | pass |
-| 등록기: runtime assertion 누락 및 감소 summary | [EventGreen.log:30](EventGreen.log) — exit0 | pass |
-| 등록기: runtime assertion 중복 및 증가 summary | [EventGreen.log:31](EventGreen.log) — exit0 | pass |
-| 등록기: runtime summary 실패 | [EventGreen.log:32](EventGreen.log) — exit0 | pass |
-| 등록기: runtime summary 중복 | [EventGreen.log:33](EventGreen.log) — exit0 | pass |
-| 등록기: runtime failure marker | [EventGreen.log:34](EventGreen.log) — exit0 | pass |
-| 등록기: runtime mutation 결과 누락 | [EventGreen.log:35](EventGreen.log) — exit0 | pass |
-| 등록기: runtime mutation 결과 중복 | [EventGreen.log:36](EventGreen.log) — exit0 | pass |
-| 등록기: runtime negative summary 실패 | [EventGreen.log:37](EventGreen.log) — exit0 | pass |
-| C++: EQ journal open | [EventGreen.log:39](EventGreen.log) — exit0 | pass |
-| C++: EQ catalog open | [EventGreen.log:40](EventGreen.log) — exit0 | pass |
-| C++: EQ 실제 pending 등록 | [EventGreen.log:41](EventGreen.log) — exit0 | pass |
-| C++: EQ 각 event 실제 worker 최초 journal 기록 확인 | [EventGreen.log:42](EventGreen.log) — exit0 | pass |
-| C++: EQ deadline 이전 동일 event journal 증가 없음 | [EventGreen.log:44](EventGreen.log) — exit0 | pass |
-| C++: EQ 서로 다른 event link ID 보존 | [EventGreen.log:45](EventGreen.log) — exit0 | pass |
-| C++: EQ 미해석 PTS는 파생 비실행 | [EventGreen.log:46](EventGreen.log) — exit0 | pass |
-| C++: EQ journal open | [EventGreen.log:47](EventGreen.log) — exit0 | pass |
-| C++: EQ catalog open | [EventGreen.log:48](EventGreen.log) — exit0 | pass |
-| C++: EQ 실제 pending 등록 | [EventGreen.log:49](EventGreen.log) — exit0 | pass |
-| C++: EQ 실제 pending 등록 | [EventGreen.log:50](EventGreen.log) — exit0 | pass |
-| C++: EQ 각 event 실제 worker 최초 journal 기록 확인 | [EventGreen.log:51](EventGreen.log) — exit0 | pass |
-| C++: EQ deadline 이전 동일 event journal 증가 없음 | [EventGreen.log:53](EventGreen.log) — exit0 | pass |
-| C++: EQ 서로 다른 event link ID 보존 | [EventGreen.log:54](EventGreen.log) — exit0 | pass |
-| C++: EQ 미해석 PTS는 파생 비실행 | [EventGreen.log:55](EventGreen.log) — exit0 | pass |
-| C++: 기본 pending event link가 유효해야 함: | [EventGreen.log:56](EventGreen.log) — exit0 | pass |
-| C++: terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함 | [EventGreen.log:57](EventGreen.log) — exit0 | pass |
-| C++: terminal 대기 요청이 현재 범위를 축소하면 거부해야 함 | [EventGreen.log:58](EventGreen.log) — exit0 | pass |
-| C++: 미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함 | [EventGreen.log:59](EventGreen.log) — exit0 | pass |
-| C++: 미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함 | [EventGreen.log:60](EventGreen.log) — exit0 | pass |
-| C++: 서로 겹치는 ordered overlap을 거부해야 함 | [EventGreen.log:61](EventGreen.log) — exit0 | pass |
-| C++: overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함 | [EventGreen.log:62](EventGreen.log) — exit0 | pass |
-| C++: unknown link status를 영속 계약으로 허용하면 안 됨 | [EventGreen.log:63](EventGreen.log) — exit0 | pass |
-| C++: locator 없는 fallback evidence를 거부해야 함 | [EventGreen.log:64](EventGreen.log) — exit0 | pass |
-| C++: journal open 실패: | [EventGreen.log:65](EventGreen.log) — exit0 | pass |
-| C++: catalog open 실패: | [EventGreen.log:66](EventGreen.log) — exit0 | pass |
-| C++: event link 갱신은 SQLite primary projection에서 검증해야 함 | [EventGreen.log:67](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:68](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:69](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:70](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:71](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:72](EventGreen.log) — exit0 | pass |
-| C++: retention policy 실패: | [EventGreen.log:73](EventGreen.log) — exit0 | pass |
-| C++: 이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함 | [EventGreen.log:74](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:75](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:76](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:77](EventGreen.log) — exit0 | pass |
-| C++: 완전한 archive 파생 완료 뒤 ready clip을 반환해야 함 | [EventGreen.log:78](EventGreen.log) — exit0 | pass |
-| C++: event link ID와 derived clip path가 반환되어야 함 | [EventGreen.log:79](EventGreen.log) — exit0 | pass |
-| C++: 반개구간 overlap은 맞닿기만 한 segment를 제외해야 함 | [EventGreen.log:80](EventGreen.log) — exit0 | pass |
-| C++: media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함 | [EventGreen.log:81](EventGreen.log) — exit0 | pass |
-| C++: overlap segment가 UTC 순서로 전달되어야 함 | [EventGreen.log:82](EventGreen.log) — exit0 | pass |
-| C++: 파생 성공 link가 catalog complete로 저장되어야 함 | [EventGreen.log:83](EventGreen.log) — exit0 | pass |
-| C++: 파생 완료 뒤 원본 hold가 해제되어야 함 | [EventGreen.log:84](EventGreen.log) — exit0 | pass |
-| C++: 파생 완료 뒤 원본 hold가 해제되어야 함 | [EventGreen.log:85](EventGreen.log) — exit0 | pass |
-| C++: 파생 완료 뒤 원본 hold가 해제되어야 함 | [EventGreen.log:86](EventGreen.log) — exit0 | pass |
-| C++: 같은 event update는 파생 clip을 중복 생성하지 않아야 함 | [EventGreen.log:87](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:88](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:89](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:90](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:91](EventGreen.log) — exit0 | pass |
-| C++: 완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함 | [EventGreen.log:92](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:93](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:94](EventGreen.log) — exit0 | pass |
-| C++: cam-b policy 실패: | [EventGreen.log:95](EventGreen.log) — exit0 | pass |
-| C++: archive gap이 있으면 complete로 표시하면 안 됨 | [EventGreen.log:96](EventGreen.log) — exit0 | pass |
-| C++: link가 정확한 missing UTC range를 보존해야 함 | [EventGreen.log:97](EventGreen.log) — exit0 | pass |
-| C++: frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함 | [EventGreen.log:98](EventGreen.log) — exit0 | pass |
-| C++: 같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함 | [EventGreen.log:99](EventGreen.log) — exit0 | pass |
-| C++: cam-late policy 실패: | [EventGreen.log:100](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:101](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:102](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:103](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:104](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:105](EventGreen.log) — exit0 | pass |
-| C++: anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함 | [EventGreen.log:106](EventGreen.log) — exit0 | pass |
-| C++: PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨 | [EventGreen.log:107](EventGreen.log) — exit0 | pass |
-| C++: anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함 | [EventGreen.log:108](EventGreen.log) — exit0 | pass |
-| C++: 같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨 | [EventGreen.log:109](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:110](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:111](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:112](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:113](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:114](EventGreen.log) — exit0 | pass |
-| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:115](EventGreen.log) — exit0 | pass |
-| C++: 확장 회귀 journal open 실패: | [EventGreen.log:116](EventGreen.log) — exit0 | pass |
-| C++: 확장 회귀 initial catalog open 실패: | [EventGreen.log:117](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:118](EventGreen.log) — exit0 | pass |
-| C++: cleanup 확장 fixture 저장 실패: | [EventGreen.log:119](EventGreen.log) — exit0 | pass |
-| C++: cleanup 확장 fixture 저장 실패: | [EventGreen.log:120](EventGreen.log) — exit0 | pass |
-| C++: 확장 회귀 restart catalog open 실패: | [EventGreen.log:121](EventGreen.log) — exit0 | pass |
-| C++: 확장 policy 실패 | [EventGreen.log:122](EventGreen.log) — exit0 | pass |
-| C++: cleanup 확장 remux 실패는 한 번만 실행되어야 함 | [EventGreen.log:123](EventGreen.log) — exit0 | pass |
-| C++: 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | [EventGreen.log:124](EventGreen.log) — exit0 | pass |
-| C++: 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | [EventGreen.log:125](EventGreen.log) — exit0 | pass |
-| C++: PTS 확장은 다른 범위 ID를 사용해야 함 | [EventGreen.log:126](EventGreen.log) — exit0 | pass |
-| C++: 미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨 | [EventGreen.log:127](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:128](EventGreen.log) — exit0 | pass |
-| C++: PTS 확장 2회는 최초 포함 총 3회 파생해야 함 | [EventGreen.log:129](EventGreen.log) — exit0 | pass |
-| C++: quota journal open 실패: | [EventGreen.log:130](EventGreen.log) — exit0 | pass |
-| C++: quota catalog open 실패: | [EventGreen.log:131](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:132](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:133](EventGreen.log) — exit0 | pass |
-| C++: quota policy 실패: | [EventGreen.log:134](EventGreen.log) — exit0 | pass |
-| C++: event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok | [EventGreen.log:135](EventGreen.log) — exit0 | pass |
-| C++: event quota 충족을 위해 continuous를 삭제하면 안 됨 | [EventGreen.log:136](EventGreen.log) — exit0 | pass |
-| C++: event quota는 oldest eligible event를 삭제해야 함 | [EventGreen.log:137](EventGreen.log) — exit0 | pass |
-| C++: policy 재등록 실패: | [EventGreen.log:138](EventGreen.log) — exit0 | pass |
-| C++: policy 제거가 진행 중 event reservation을 지우면 안 됨 | [EventGreen.log:139](EventGreen.log) — exit0 | pass |
-| C++: 명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함 | [EventGreen.log:140](EventGreen.log) — exit0 | pass |
-| C++: queue journal open 실패: | [EventGreen.log:141](EventGreen.log) — exit0 | pass |
-| C++: queue catalog open 실패: | [EventGreen.log:142](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:143](EventGreen.log) — exit0 | pass |
-| C++: queue policy 실패: | [EventGreen.log:144](EventGreen.log) — exit0 | pass |
-| C++: bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함 | [EventGreen.log:145](EventGreen.log) — exit0 | pass |
-| C++: 긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨 | [EventGreen.log:146](EventGreen.log) — exit0 | pass |
-| C++: cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨 | [EventGreen.log:147](EventGreen.log) — exit0 | pass |
-| C++: terminal marker unlink 실패 시 source/output hold를 유지해야 함 | [EventGreen.log:148](EventGreen.log) — exit0 | pass |
-| C++: terminal marker unlink 실패 시 event reservation을 유지해야 함 | [EventGreen.log:149](EventGreen.log) — exit0 | pass |
-| C++: marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함 | [EventGreen.log:150](EventGreen.log) — exit0 | pass |
-| C++: terminal hold 해제 실패를 Complete로 기록하면 안 됨 | [EventGreen.log:151](EventGreen.log) — exit0 | pass |
-| C++: terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨 | [EventGreen.log:152](EventGreen.log) — exit0 | pass |
-| C++: 복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함 | [EventGreen.log:153](EventGreen.log) — exit0 | pass |
-| C++: terminal complete commit retry fixture 저장 실패: | [EventGreen.log:154](EventGreen.log) — exit0 | pass |
-| C++: complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨 | [EventGreen.log:155](EventGreen.log) — exit0 | pass |
-| C++: overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨 | [EventGreen.log:156](EventGreen.log) — exit0 | pass |
-| C++: hold overflow fixture 준비 실패: | [EventGreen.log:157](EventGreen.log) — exit0 | pass |
-| C++: event source lease hold_count overflow를 사전에 거부해야 함 | [EventGreen.log:158](EventGreen.log) — exit0 | pass |
-| C++: hold fixture journal open 실패: | [EventGreen.log:159](EventGreen.log) — exit0 | pass |
-| C++: hold fixture catalog open 실패: | [EventGreen.log:160](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:161](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:162](EventGreen.log) — exit0 | pass |
-| C++: hold pending link 저장 실패: | [EventGreen.log:163](EventGreen.log) — exit0 | pass |
-| C++: hold replay journal open 실패: | [EventGreen.log:164](EventGreen.log) — exit0 | pass |
-| C++: hold replay catalog open 실패: | [EventGreen.log:165](EventGreen.log) — exit0 | pass |
-| C++: 재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함 | [EventGreen.log:166](EventGreen.log) — exit0 | pass |
-| C++: terminal stage fixture event link 조회 | [EventGreen.log:167](EventGreen.log) — exit0 | pass |
-| C++: terminal stage fixture 저장 실패: | [EventGreen.log:168](EventGreen.log) — exit0 | pass |
-| C++: terminal stage replay journal open: | [EventGreen.log:169](EventGreen.log) — exit0 | pass |
-| C++: terminal stage catalog open: | [EventGreen.log:170](EventGreen.log) — exit0 | pass |
-| C++: complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨 | [EventGreen.log:171](EventGreen.log) — exit0 | pass |
-| C++: terminal Complete 기록 전 source 삭제 요청을 차단해야 함 | [EventGreen.log:172](EventGreen.log) — exit0 | pass |
-| C++: terminal Complete 기록 전 output 삭제 요청을 차단해야 함 | [EventGreen.log:173](EventGreen.log) — exit0 | pass |
-| C++: restart journal open 실패: | [EventGreen.log:174](EventGreen.log) — exit0 | pass |
-| C++: restart catalog open 실패: | [EventGreen.log:175](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:176](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:177](EventGreen.log) — exit0 | pass |
-| C++: restart pending link 저장 실패: | [EventGreen.log:178](EventGreen.log) — exit0 | pass |
-| C++: 재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함 | [EventGreen.log:179](EventGreen.log) — exit0 | pass |
-| C++: 재시작 복구에서 event clip을 중복 파생하면 안 됨 | [EventGreen.log:180](EventGreen.log) — exit0 | pass |
-| C++: segment finalize 실패: | [EventGreen.log:181](EventGreen.log) — exit0 | pass |
-| C++: conflict pending link 저장 실패: | [EventGreen.log:182](EventGreen.log) — exit0 | pass |
-| C++: 다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨 | [EventGreen.log:183](EventGreen.log) — exit0 | pass |
-| C++: segment ID conflict에서 파생을 실행하면 안 됨 | [EventGreen.log:184](EventGreen.log) — exit0 | pass |
-| C++: 실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: | [EventGreen.log:185](EventGreen.log) — exit0 | pass |
-| C++: remux 결과 파일과 size가 일치해야 함 | [EventGreen.log:186](EventGreen.log) — exit0 | pass |
-| C++: event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함 | [EventGreen.log:187](EventGreen.log) — exit0 | pass |
-| C++: event clip이 source segment 전체 단순 연결보다 작아야 함 | [EventGreen.log:188](EventGreen.log) — exit0 | pass |
-| C++: remux 결과 checksum과 crash cleanup marker를 남겨야 함 | [EventGreen.log:189](EventGreen.log) — exit0 | pass |
-| C++: 동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함 | [EventGreen.log:190](EventGreen.log) — exit0 | pass |
-| C++: 파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: | [EventGreen.log:191](EventGreen.log) — exit0 | pass |
-| C++: nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함 | [EventGreen.log:192](EventGreen.log) — exit0 | pass |
-| C++: event remux recovery journal open 실패: | [EventGreen.log:193](EventGreen.log) — exit0 | pass |
-| C++: 재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: | [EventGreen.log:194](EventGreen.log) — exit0 | pass |
-| C++: owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: | [EventGreen.log:195](EventGreen.log) — exit0 | pass |
-| C++: VP8/WebM test source 생성 실패: | [EventGreen.log:196](EventGreen.log) — exit0 | pass |
-| C++: VP8/WebM test source demux 실패: | [EventGreen.log:197](EventGreen.log) — exit0 | pass |
-| C++: 검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함 | [EventGreen.log:198](EventGreen.log) — exit0 | pass |
-| application: application header is standard-only with exact DTO/default manifests | [EventGreen.log:200](EventGreen.log) — exit0 | pass |
-| application: application source owns exact canonical mapping and overwrite semantics | [EventGreen.log:201](EventGreen.log) — exit0 | pass |
-| application: transport has zero canonical bypass and exact projection/call ordering | [EventGreen.log:202](EventGreen.log) — exit0 | pass |
-| application: recording link is durably admitted before the bounded storage queue can drop an event | [EventGreen.log:203](EventGreen.log) — exit0 | pass |
-| application: event clip output remains fd-bound and measured before no-replace publication | [EventGreen.log:204](EventGreen.log) — exit0 | pass |
-| application: compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | [EventGreen.log:205](EventGreen.log) — exit0 | pass |
-| application: S05 composition starts the bridge before ingress and drains it after storage | [EventGreen.log:206](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: 실제 EventStorage worker 진입을 관찰한다 | [EventGreen.log:208](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | [EventGreen.log:209](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | [EventGreen.log:210](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | [EventGreen.log:211](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | [EventGreen.log:212](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | [EventGreen.log:213](EventGreen.log) — exit0 | pass |
-| runtime disabled-admit: JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | [EventGreen.log:214](EventGreen.log) — exit0 | pass |
-| runtime disabled-recover: 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | [EventGreen.log:216](EventGreen.log) — exit0 | pass |
-| runtime disabled-recover: 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | [EventGreen.log:217](EventGreen.log) — exit0 | pass |
-| runtime disabled-recover: 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | [EventGreen.log:218](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: 실제 EventStorage worker 진입을 관찰한다 | [EventGreen.log:220](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | [EventGreen.log:221](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | [EventGreen.log:222](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | [EventGreen.log:223](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | [EventGreen.log:224](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | [EventGreen.log:225](EventGreen.log) — exit0 | pass |
-| runtime enabled-admit: JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | [EventGreen.log:226](EventGreen.log) — exit0 | pass |
-| runtime enabled-recover: 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | [EventGreen.log:228](EventGreen.log) — exit0 | pass |
-| runtime enabled-recover: 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | [EventGreen.log:229](EventGreen.log) — exit0 | pass |
-| runtime enabled-recover: 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | [EventGreen.log:230](EventGreen.log) — exit0 | pass |
-| runtime shutdown-cancel: post-event frame 대기 중인 실제 storage worker를 관찰한다 | [EventGreen.log:232](EventGreen.log) — exit0 | pass |
-| runtime shutdown-cancel: 종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다 | [EventGreen.log:233](EventGreen.log) — exit0 | pass |
-| runtime shutdown-cancel: frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다 | [EventGreen.log:234](EventGreen.log) — exit0 | pass |
-| disabled-guard: PASS (실제 assertion의 RED 확인) | [EventGreen.log:236](EventGreen.log) — exit0 | pass |
-| prequeue-admission: PASS (실제 assertion의 RED 확인) | [EventGreen.log:237](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I01 — V410-S05-I01-C01(1회), V410-S05-I01-C02(1회), V410-S05-I01-C03(1회) | [EventGreen.log:240](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I02 — V410-S05-I02-C01(1회), V410-S05-I02-C02(1회), V410-S05-I02-C03(1회), V410-S05-I02-C04(1회), V410-S05-I02-C05(1회), V410-S05-I02-C06(1회), V410-S05-I02-C07(1회), V410-S05-I02-C08(1회), V410-S05-I02-C09(1회), V410-S05-I02-C10(1회), V410-S05-I02-C11(1회), V410-S05-I02-C12(1회), V410-S05-I02-C13(1회), V410-S05-I02-C14(1회), V410-S05-I02-C15(1회), V410-S05-I02-C16(1회), V410-S05-I02-C17(1회), V410-S05-I02-C18(1회), V410-S05-I02-C19(1회), V410-S05-I02-C20(1회), V410-S05-I02-C21(1회) | [EventGreen.log:241](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I03 — V410-S05-I03-C01(1회) | [EventGreen.log:242](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I04 — V410-S05-I04-C01(1회), V410-S05-I04-C02(1회), V410-S05-I04-C03(1회) | [EventGreen.log:243](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I05 — V410-S05-I05-C01(1회), V410-S05-I05-C02(1회), V410-S05-I05-C03(1회) | [EventGreen.log:244](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I06 — V410-S05-I06-C01(1회), V410-S05-I06-C02(1회), V410-S05-I06-C03(1회), V410-S05-I06-C04(1회), V410-S05-I06-C05(1회), V410-S05-I06-C06(1회), V410-S05-I06-C07(1회), V410-S05-I06-C08(1회) | [EventGreen.log:245](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I07 — V410-S05-I07-C01(1회), V410-S05-I07-C02(1회), V410-S05-I07-C03(1회), V410-S05-I07-C04(1회) | [EventGreen.log:246](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I08 — V410-S05-I08-C01(17회), V410-S05-I08-C02(3회) | [EventGreen.log:247](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I09 — V410-S05-I09-C01(1회), V410-S05-I09-C02(1회), V410-S05-I09-C03(1회), V410-S05-I09-C04(1회) | [EventGreen.log:248](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I10 — V410-S05-I10-C01(1회) | [EventGreen.log:249](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I11 — V410-S05-I11-C01(1회) | [EventGreen.log:250](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I12 — V410-S05-I12-C01(1회) | [EventGreen.log:251](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I13 — V410-S05-I13-C01(1회), V410-S05-I13-C02(1회), V410-S05-I13-C03(1회) | [EventGreen.log:252](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I14 — V410-S05-I14-C01(1회), V410-S05-I14-C02(1회), V410-S05-I14-C03(1회), V410-S05-I14-C04(1회), V410-S05-I14-C05(1회) | [EventGreen.log:253](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I15 — V410-S05-I15-C01(1회), V410-S05-I15-C02(1회) | [EventGreen.log:254](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I16 — V410-S05-I16-C01(1회), V410-S05-I16-C02(1회) | [EventGreen.log:255](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I17 — V410-S05-I17-C01(1회) | [EventGreen.log:256](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I18 — V410-S05-I18-C01(1회), V410-S05-I18-C02(1회) | [EventGreen.log:257](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I19 — V410-S05-I19-C01(1회), V410-S05-I19-C02(1회) | [EventGreen.log:258](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I20 — V410-S05-I20-C01(1회), V410-S05-I20-C02(1회), V410-S05-I20-C03(1회), V410-S05-I20-C04(1회), V410-S05-I20-C05(1회) | [EventGreen.log:259](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I21 — V410-S05-I21-C01(1회), V410-S05-I21-C02(2회), V410-S05-I21-C03(1회), V410-S05-I21-C04(1회), V410-S05-I21-C05(1회) | [EventGreen.log:260](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I22 — V410-S05-I22-C01(1회) | [EventGreen.log:261](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I23 — V410-S05-I23-C01(1회), V410-S05-I23-C02(1회) | [EventGreen.log:262](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I24 — V410-S05-I24-C01(1회), V410-S05-I24-C02(1회), V410-S05-I24-C03(1회), V410-S05-I24-C04(1회) | [EventGreen.log:263](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I25 — V410-S05-I25-C01(1회) | [EventGreen.log:264](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I26 — V410-S05-I26-C01(1회) | [EventGreen.log:265](EventGreen.log) — exit0 | pass |
-| 기능집계 V410-S05-I27 — V410-S05-I27-C01(1회), V410-S05-I27-C02(1회), V410-S05-I27-C03(1회), V410-S05-I27-C04(1회) | [EventGreen.log:266](EventGreen.log) — exit0 | pass |
+| C341 계약 왕복 | [Reference.log:2](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C342 unknown/중복 필드 거부 | [Reference.log:3](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C343 ID·종류·소유자 제약 | [Reference.log:4](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C344 품질·원본 nullable 조합 | [Reference.log:5](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C345 원본 수치·track 경계 | [Reference.log:6](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C346 event 요청·시간축 | [Reference.log:7](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C347 observation 요청 금지 | [Reference.log:8](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C348 요청 음수·역전·padding | [Reference.log:9](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C349 미지원 schema 거부 | [Reference.log:10](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C350 실제 원장 저장·조회 | [Reference.log:11](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C351 동일 참조 멱등 | [Reference.log:12](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C352 동일 ID 충돌 거부 | [Reference.log:13](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C353 opt-in·미open 거부 | [Reference.log:14](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C354 SQL·JSONL 재시작 동등 | [Reference.log:15](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C355 checkpoint 참조 보존 | [Reference.log:16](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| C356 손상·충돌 replay 선차단 | [Reference.log:27](public-evidence-03d440a25f128d14.txt) — exit0 | pass |
+| S10-C301 결박 schema 왕복 | [Binding.log:2](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C302 식별·ordinal 검증 | [Binding.log:3](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C303 PTS 재정렬 보존 | [Binding.log:4](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C304 미디어 범위·timebase | [Binding.log:5](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C305 색인 상한·미색인 꼬리 | [Binding.log:6](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C306 단일 bound mutation | [Binding.log:7](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C307 source·저장 identity 결박 | [Binding.log:8](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C308 불변·멱등 | [Binding.log:9](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C309 소급·다운그레이드 금지 | [Binding.log:10](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C310 정확한 원본 tuple 조회 | [Binding.log:11](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C311 미색인·실제 부재 구분 | [Binding.log:12](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C312 복수 segment 후보 | [Binding.log:13](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C313 삭제·corrupt·pending 차단 | [Binding.log:14](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C314 채널·조회 오류 경계 | [Binding.log:15](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C315 SQL·JSONL 재시작 동등 | [Binding.log:16](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C316 checkpoint 보존 | [Binding.log:17](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C317 손상 원장 선차단 | [Binding.log:18](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C318 예약·옵트인 경계 | [Binding.log:19](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C319 기존 segment·조회 불변 | [Binding.log:20](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C320 실제 finalize 수락 경계 | [Binding.log:21](public-evidence-bf4583af71865ffc.txt) — exit0 | pass |
+| S10-C101 유일 timestamp 연관 | [Correlation.log:2](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C102 최근접 추정 분리 | [Correlation.log:3](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C103 중복 timestamp 모호성 | [Correlation.log:4](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C104 원본 미관측 | [Correlation.log:5](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C105 출력 PTS 부재 | [Correlation.log:6](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C106 원본 PTS 부재·범위 | [Correlation.log:7](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C107 bounded 이력 | [Correlation.log:8](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C108 충돌·동일 입력 재전달 | [Correlation.log:9](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C109 세대·track 분리 | [Correlation.log:10](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| S10-C110 자체 영상 실제 decoder | [Correlation.log:11](public-evidence-5b61757b60f161bc.txt) — exit0 | pass |
+| mutation-v2 | [Observations.log:2](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| null-roundtrip | [Observations.log:3](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| reference-roundtrip | [Observations.log:4](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| negative-created-time | [Observations.log:5](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| negative-reason | [Observations.log:6](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| negative-summary | [Observations.log:7](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| negative-observation-range | [Observations.log:8](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| negative-bbox | [Observations.log:9](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| journal-open | [Observations.log:10](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| catalog-open | [Observations.log:11](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| null-put | [Observations.log:12](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| gap-null | [Observations.log:13](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| missing-provenance-null | [Observations.log:14](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| segment-finalize | [Observations.log:15](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| pending-resolve | [Observations.log:16](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| located-roundtrip | [Observations.log:17](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| negative-locator-pts | [Observations.log:18](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| locator-put-reject | [Observations.log:19](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| located-put | [Observations.log:20](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| identity-put-reject | [Observations.log:21](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| identity-restore | [Observations.log:22](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| event-put | [Observations.log:23](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| reasons-merge | [Observations.log:24](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| missing-media-null | [Observations.log:25](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| v1-roundtrip | [Observations.log:26](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| deletion-request | [Observations.log:27](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| deleted-null | [Observations.log:28](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sqlite-reopen | [Observations.log:29](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| journal-replay | [Observations.log:30](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| jsonl-parity | [Observations.log:31](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sqlite-projection | [Observations.log:32](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sqlite-payload-parity | [Observations.log:33](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sampling-journal-open | [Observations.log:34](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sampling-catalog-open | [Observations.log:35](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| stop-duration | [Observations.log:36](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sampling-start | [Observations.log:37](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| sampling-60s-bound | [Observations.log:38](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| stop-once | [Observations.log:39](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| drain-bounded | [Observations.log:40](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| jobs-journal-open | [Observations.log:41](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| jobs-catalog-open | [Observations.log:42](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| ended-state-reuse | [Observations.log:43](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| pending-unrelated-finalize | [Observations.log:44](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| tracker-start | [Observations.log:45](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| runtime-journal-open | [Observations.log:46](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| runtime-catalog-open | [Observations.log:47](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| tracker-terminated-copy | [Observations.log:48](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| tracker-terminated-once | [Observations.log:49](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| observer-tracker-start-event-end | [Observations.log:50](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| observer-event-provenance | [Observations.log:51](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| late-journal-open | [Observations.log:52](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| late-catalog-open | [Observations.log:53](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| delayed-event-before-latest | [Observations.log:54](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| delayed-event-after-end | [Observations.log:55](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| config-zero-reject | [Observations.log:56](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| config-positive | [Observations.log:57](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| critical-overload-visible | [Observations.log:58](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| queue-cap | [Observations.log:59](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| concurrent-stop | [Observations.log:60](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| multi-namespace | [Observations.log:61](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| bounded-id | [Observations.log:62](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| storage-failure-counter | [Observations.log:63](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| pending-segment-finalize | [Observations.log:64](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| pending-finalize-automatic | [Observations.log:65](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| ambiguous-segment-finalize | [Observations.log:66](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| ambiguous-null | [Observations.log:67](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| corrupt-null | [Observations.log:68](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| reference-overflow-visible | [Observations.log:69](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| replay-identity-open | [Observations.log:70](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| replay-identity-memory | [Observations.log:71](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| replay-identity-sqlite | [Observations.log:72](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 입력 전 위치 없음 | [Observations.log:74](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 수락 packet anchor | [Observations.log:75](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 동일 epoch 범위 확장 | [Observations.log:76](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 캡처된 사본 불변 | [Observations.log:77](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| accepted-pts-exact-membership | [Observations.log:78](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| PTS 되감기 차단 | [Observations.log:79](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 모호성 이후 추정 복원 금지 | [Observations.log:80](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| epoch 변경 차단 | [Observations.log:81](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 종료 사본 차단 | [Observations.log:82](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| accepted-pts-history-bound | [Observations.log:83](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| S07 temporary cleanup | [Observations.log:85](public-evidence-ab758dca898d2e1d.txt) — exit0 | pass |
+| 등록기: 정상 정식 등록 27개 | [Event.log:3](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 다른 등록군 추가와 일관된 총계 허용 | [Event.log:4](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 전체 총계 불일치 거부 | [Event.log:5](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: canonical 등록 수 변경 거부 | [Event.log:6](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: S05 등록 수 변경 거부 | [Event.log:7](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 등록군 중복 거부 | [Event.log:8](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 음수 등록 수 거부 | [Event.log:9](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 소수 등록 수 거부 | [Event.log:10](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 등록 범위 표 누락 거부 | [Event.log:11](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 누락 ID | [Event.log:12](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 중복 ID | [Event.log:13](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 추가 ID | [Event.log:14](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 빈 테스트 영역 | [Event.log:15](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 없는 구현 심볼 | [Event.log:16](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 없는 테스트 함수 | [Event.log:17](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 없는 check | [Event.log:18](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 중복 check ID | [Event.log:19](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 문서 행 누락 | [Event.log:20](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 실행 소비자 정상 합성 입력 | [Event.log:21](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 실제 check 결과 누락 | [Event.log:22](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: EOS assertion 제거와 감소한 summary도 거부 | [Event.log:23](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 실패 summary | [Event.log:24](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 성공 summary만으로 PASS 금지 | [Event.log:25](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 중복 application 결과 | [Event.log:26](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime 로그 전체 누락 | [Event.log:27](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime 시나리오 누락 | [Event.log:28](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 종료 취소 runtime 시나리오 누락 | [Event.log:29](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime assertion 누락 및 감소 summary | [Event.log:30](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime assertion 중복 및 증가 summary | [Event.log:31](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime summary 실패 | [Event.log:32](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime summary 중복 | [Event.log:33](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime failure marker | [Event.log:34](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime mutation 결과 누락 | [Event.log:35](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime mutation 결과 중복 | [Event.log:36](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: runtime negative summary 실패 | [Event.log:37](public-evidence-fe2c8c31ce391822.txt) — 뒤 컴파일 실패; 개별 등록기만 pass | pass |
+| 등록기: 정상 정식 등록 27개 | [EventGreen.log:3](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 다른 등록군 추가와 일관된 총계 허용 | [EventGreen.log:4](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 전체 총계 불일치 거부 | [EventGreen.log:5](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: canonical 등록 수 변경 거부 | [EventGreen.log:6](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: S05 등록 수 변경 거부 | [EventGreen.log:7](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 등록군 중복 거부 | [EventGreen.log:8](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 음수 등록 수 거부 | [EventGreen.log:9](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 소수 등록 수 거부 | [EventGreen.log:10](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 등록 범위 표 누락 거부 | [EventGreen.log:11](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 누락 ID | [EventGreen.log:12](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 중복 ID | [EventGreen.log:13](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 추가 ID | [EventGreen.log:14](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 빈 테스트 영역 | [EventGreen.log:15](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 없는 구현 심볼 | [EventGreen.log:16](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 없는 테스트 함수 | [EventGreen.log:17](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 없는 check | [EventGreen.log:18](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 중복 check ID | [EventGreen.log:19](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 문서 행 누락 | [EventGreen.log:20](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 실행 소비자 정상 합성 입력 | [EventGreen.log:21](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 실제 check 결과 누락 | [EventGreen.log:22](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: EOS assertion 제거와 감소한 summary도 거부 | [EventGreen.log:23](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 실패 summary | [EventGreen.log:24](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 성공 summary만으로 PASS 금지 | [EventGreen.log:25](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 중복 application 결과 | [EventGreen.log:26](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime 로그 전체 누락 | [EventGreen.log:27](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime 시나리오 누락 | [EventGreen.log:28](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: 종료 취소 runtime 시나리오 누락 | [EventGreen.log:29](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime assertion 누락 및 감소 summary | [EventGreen.log:30](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime assertion 중복 및 증가 summary | [EventGreen.log:31](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime summary 실패 | [EventGreen.log:32](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime summary 중복 | [EventGreen.log:33](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime failure marker | [EventGreen.log:34](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime mutation 결과 누락 | [EventGreen.log:35](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime mutation 결과 중복 | [EventGreen.log:36](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 등록기: runtime negative summary 실패 | [EventGreen.log:37](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ journal open | [EventGreen.log:39](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ catalog open | [EventGreen.log:40](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 실제 pending 등록 | [EventGreen.log:41](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 각 event 실제 worker 최초 journal 기록 확인 | [EventGreen.log:42](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ deadline 이전 동일 event journal 증가 없음 | [EventGreen.log:44](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 서로 다른 event link ID 보존 | [EventGreen.log:45](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 미해석 PTS는 파생 비실행 | [EventGreen.log:46](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ journal open | [EventGreen.log:47](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ catalog open | [EventGreen.log:48](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 실제 pending 등록 | [EventGreen.log:49](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 실제 pending 등록 | [EventGreen.log:50](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 각 event 실제 worker 최초 journal 기록 확인 | [EventGreen.log:51](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ deadline 이전 동일 event journal 증가 없음 | [EventGreen.log:53](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 서로 다른 event link ID 보존 | [EventGreen.log:54](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: EQ 미해석 PTS는 파생 비실행 | [EventGreen.log:55](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 기본 pending event link가 유효해야 함: | [EventGreen.log:56](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함 | [EventGreen.log:57](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal 대기 요청이 현재 범위를 축소하면 거부해야 함 | [EventGreen.log:58](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함 | [EventGreen.log:59](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함 | [EventGreen.log:60](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 서로 겹치는 ordered overlap을 거부해야 함 | [EventGreen.log:61](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함 | [EventGreen.log:62](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: unknown link status를 영속 계약으로 허용하면 안 됨 | [EventGreen.log:63](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: locator 없는 fallback evidence를 거부해야 함 | [EventGreen.log:64](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: journal open 실패: | [EventGreen.log:65](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: catalog open 실패: | [EventGreen.log:66](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event link 갱신은 SQLite primary projection에서 검증해야 함 | [EventGreen.log:67](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:68](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:69](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:70](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:71](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:72](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: retention policy 실패: | [EventGreen.log:73](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함 | [EventGreen.log:74](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:75](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:76](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:77](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 완전한 archive 파생 완료 뒤 ready clip을 반환해야 함 | [EventGreen.log:78](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event link ID와 derived clip path가 반환되어야 함 | [EventGreen.log:79](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 반개구간 overlap은 맞닿기만 한 segment를 제외해야 함 | [EventGreen.log:80](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함 | [EventGreen.log:81](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: overlap segment가 UTC 순서로 전달되어야 함 | [EventGreen.log:82](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 성공 link가 catalog complete로 저장되어야 함 | [EventGreen.log:83](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 완료 뒤 원본 hold가 해제되어야 함 | [EventGreen.log:84](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 완료 뒤 원본 hold가 해제되어야 함 | [EventGreen.log:85](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 완료 뒤 원본 hold가 해제되어야 함 | [EventGreen.log:86](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 같은 event update는 파생 clip을 중복 생성하지 않아야 함 | [EventGreen.log:87](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:88](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:89](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:90](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:91](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함 | [EventGreen.log:92](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:93](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:94](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: cam-b policy 실패: | [EventGreen.log:95](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: archive gap이 있으면 complete로 표시하면 안 됨 | [EventGreen.log:96](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: link가 정확한 missing UTC range를 보존해야 함 | [EventGreen.log:97](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함 | [EventGreen.log:98](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함 | [EventGreen.log:99](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: cam-late policy 실패: | [EventGreen.log:100](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:101](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:102](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:103](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:104](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:105](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함 | [EventGreen.log:106](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨 | [EventGreen.log:107](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함 | [EventGreen.log:108](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨 | [EventGreen.log:109](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:110](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:111](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:112](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:113](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:114](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 중 원본 segment hold가 유지되어야 함 | [EventGreen.log:115](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 확장 회귀 journal open 실패: | [EventGreen.log:116](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 확장 회귀 initial catalog open 실패: | [EventGreen.log:117](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:118](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: cleanup 확장 fixture 저장 실패: | [EventGreen.log:119](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: cleanup 확장 fixture 저장 실패: | [EventGreen.log:120](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 확장 회귀 restart catalog open 실패: | [EventGreen.log:121](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 확장 policy 실패 | [EventGreen.log:122](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: cleanup 확장 remux 실패는 한 번만 실행되어야 함 | [EventGreen.log:123](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | [EventGreen.log:124](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | [EventGreen.log:125](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: PTS 확장은 다른 범위 ID를 사용해야 함 | [EventGreen.log:126](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨 | [EventGreen.log:127](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:128](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: PTS 확장 2회는 최초 포함 총 3회 파생해야 함 | [EventGreen.log:129](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: quota journal open 실패: | [EventGreen.log:130](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: quota catalog open 실패: | [EventGreen.log:131](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:132](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:133](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: quota policy 실패: | [EventGreen.log:134](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok | [EventGreen.log:135](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event quota 충족을 위해 continuous를 삭제하면 안 됨 | [EventGreen.log:136](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event quota는 oldest eligible event를 삭제해야 함 | [EventGreen.log:137](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: policy 재등록 실패: | [EventGreen.log:138](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: policy 제거가 진행 중 event reservation을 지우면 안 됨 | [EventGreen.log:139](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함 | [EventGreen.log:140](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: queue journal open 실패: | [EventGreen.log:141](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: queue catalog open 실패: | [EventGreen.log:142](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:143](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: queue policy 실패: | [EventGreen.log:144](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함 | [EventGreen.log:145](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨 | [EventGreen.log:146](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨 | [EventGreen.log:147](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal marker unlink 실패 시 source/output hold를 유지해야 함 | [EventGreen.log:148](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal marker unlink 실패 시 event reservation을 유지해야 함 | [EventGreen.log:149](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함 | [EventGreen.log:150](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal hold 해제 실패를 Complete로 기록하면 안 됨 | [EventGreen.log:151](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨 | [EventGreen.log:152](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함 | [EventGreen.log:153](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal complete commit retry fixture 저장 실패: | [EventGreen.log:154](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨 | [EventGreen.log:155](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨 | [EventGreen.log:156](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: hold overflow fixture 준비 실패: | [EventGreen.log:157](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event source lease hold_count overflow를 사전에 거부해야 함 | [EventGreen.log:158](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: hold fixture journal open 실패: | [EventGreen.log:159](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: hold fixture catalog open 실패: | [EventGreen.log:160](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:161](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:162](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: hold pending link 저장 실패: | [EventGreen.log:163](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: hold replay journal open 실패: | [EventGreen.log:164](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: hold replay catalog open 실패: | [EventGreen.log:165](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함 | [EventGreen.log:166](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal stage fixture event link 조회 | [EventGreen.log:167](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal stage fixture 저장 실패: | [EventGreen.log:168](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal stage replay journal open: | [EventGreen.log:169](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal stage catalog open: | [EventGreen.log:170](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨 | [EventGreen.log:171](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal Complete 기록 전 source 삭제 요청을 차단해야 함 | [EventGreen.log:172](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: terminal Complete 기록 전 output 삭제 요청을 차단해야 함 | [EventGreen.log:173](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: restart journal open 실패: | [EventGreen.log:174](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: restart catalog open 실패: | [EventGreen.log:175](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:176](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:177](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: restart pending link 저장 실패: | [EventGreen.log:178](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함 | [EventGreen.log:179](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 재시작 복구에서 event clip을 중복 파생하면 안 됨 | [EventGreen.log:180](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment finalize 실패: | [EventGreen.log:181](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: conflict pending link 저장 실패: | [EventGreen.log:182](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨 | [EventGreen.log:183](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: segment ID conflict에서 파생을 실행하면 안 됨 | [EventGreen.log:184](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: | [EventGreen.log:185](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: remux 결과 파일과 size가 일치해야 함 | [EventGreen.log:186](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함 | [EventGreen.log:187](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event clip이 source segment 전체 단순 연결보다 작아야 함 | [EventGreen.log:188](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: remux 결과 checksum과 crash cleanup marker를 남겨야 함 | [EventGreen.log:189](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함 | [EventGreen.log:190](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: | [EventGreen.log:191](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함 | [EventGreen.log:192](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: event remux recovery journal open 실패: | [EventGreen.log:193](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: | [EventGreen.log:194](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: | [EventGreen.log:195](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: VP8/WebM test source 생성 실패: | [EventGreen.log:196](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: VP8/WebM test source demux 실패: | [EventGreen.log:197](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| C++: 검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함 | [EventGreen.log:198](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: application header is standard-only with exact DTO/default manifests | [EventGreen.log:200](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: application source owns exact canonical mapping and overwrite semantics | [EventGreen.log:201](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: transport has zero canonical bypass and exact projection/call ordering | [EventGreen.log:202](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: recording link is durably admitted before the bounded storage queue can drop an event | [EventGreen.log:203](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: event clip output remains fd-bound and measured before no-replace publication | [EventGreen.log:204](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | [EventGreen.log:205](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| application: S05 composition starts the bridge before ingress and drains it after storage | [EventGreen.log:206](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: 실제 EventStorage worker 진입을 관찰한다 | [EventGreen.log:208](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | [EventGreen.log:209](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | [EventGreen.log:210](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | [EventGreen.log:211](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | [EventGreen.log:212](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | [EventGreen.log:213](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-admit: JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | [EventGreen.log:214](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-recover: 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | [EventGreen.log:216](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-recover: 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | [EventGreen.log:217](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime disabled-recover: 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | [EventGreen.log:218](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: 실제 EventStorage worker 진입을 관찰한다 | [EventGreen.log:220](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | [EventGreen.log:221](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | [EventGreen.log:222](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | [EventGreen.log:223](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | [EventGreen.log:224](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | [EventGreen.log:225](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-admit: JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | [EventGreen.log:226](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-recover: 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | [EventGreen.log:228](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-recover: 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | [EventGreen.log:229](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime enabled-recover: 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | [EventGreen.log:230](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime shutdown-cancel: post-event frame 대기 중인 실제 storage worker를 관찰한다 | [EventGreen.log:232](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime shutdown-cancel: 종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다 | [EventGreen.log:233](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| runtime shutdown-cancel: frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다 | [EventGreen.log:234](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| disabled-guard: PASS (실제 assertion의 RED 확인) | [EventGreen.log:236](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| prequeue-admission: PASS (실제 assertion의 RED 확인) | [EventGreen.log:237](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I01 — V410-S05-I01-C01(1회), V410-S05-I01-C02(1회), V410-S05-I01-C03(1회) | [EventGreen.log:240](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I02 — V410-S05-I02-C01(1회), V410-S05-I02-C02(1회), V410-S05-I02-C03(1회), V410-S05-I02-C04(1회), V410-S05-I02-C05(1회), V410-S05-I02-C06(1회), V410-S05-I02-C07(1회), V410-S05-I02-C08(1회), V410-S05-I02-C09(1회), V410-S05-I02-C10(1회), V410-S05-I02-C11(1회), V410-S05-I02-C12(1회), V410-S05-I02-C13(1회), V410-S05-I02-C14(1회), V410-S05-I02-C15(1회), V410-S05-I02-C16(1회), V410-S05-I02-C17(1회), V410-S05-I02-C18(1회), V410-S05-I02-C19(1회), V410-S05-I02-C20(1회), V410-S05-I02-C21(1회) | [EventGreen.log:241](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I03 — V410-S05-I03-C01(1회) | [EventGreen.log:242](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I04 — V410-S05-I04-C01(1회), V410-S05-I04-C02(1회), V410-S05-I04-C03(1회) | [EventGreen.log:243](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I05 — V410-S05-I05-C01(1회), V410-S05-I05-C02(1회), V410-S05-I05-C03(1회) | [EventGreen.log:244](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I06 — V410-S05-I06-C01(1회), V410-S05-I06-C02(1회), V410-S05-I06-C03(1회), V410-S05-I06-C04(1회), V410-S05-I06-C05(1회), V410-S05-I06-C06(1회), V410-S05-I06-C07(1회), V410-S05-I06-C08(1회) | [EventGreen.log:245](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I07 — V410-S05-I07-C01(1회), V410-S05-I07-C02(1회), V410-S05-I07-C03(1회), V410-S05-I07-C04(1회) | [EventGreen.log:246](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I08 — V410-S05-I08-C01(17회), V410-S05-I08-C02(3회) | [EventGreen.log:247](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I09 — V410-S05-I09-C01(1회), V410-S05-I09-C02(1회), V410-S05-I09-C03(1회), V410-S05-I09-C04(1회) | [EventGreen.log:248](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I10 — V410-S05-I10-C01(1회) | [EventGreen.log:249](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I11 — V410-S05-I11-C01(1회) | [EventGreen.log:250](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I12 — V410-S05-I12-C01(1회) | [EventGreen.log:251](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I13 — V410-S05-I13-C01(1회), V410-S05-I13-C02(1회), V410-S05-I13-C03(1회) | [EventGreen.log:252](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I14 — V410-S05-I14-C01(1회), V410-S05-I14-C02(1회), V410-S05-I14-C03(1회), V410-S05-I14-C04(1회), V410-S05-I14-C05(1회) | [EventGreen.log:253](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I15 — V410-S05-I15-C01(1회), V410-S05-I15-C02(1회) | [EventGreen.log:254](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I16 — V410-S05-I16-C01(1회), V410-S05-I16-C02(1회) | [EventGreen.log:255](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I17 — V410-S05-I17-C01(1회) | [EventGreen.log:256](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I18 — V410-S05-I18-C01(1회), V410-S05-I18-C02(1회) | [EventGreen.log:257](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I19 — V410-S05-I19-C01(1회), V410-S05-I19-C02(1회) | [EventGreen.log:258](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I20 — V410-S05-I20-C01(1회), V410-S05-I20-C02(1회), V410-S05-I20-C03(1회), V410-S05-I20-C04(1회), V410-S05-I20-C05(1회) | [EventGreen.log:259](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I21 — V410-S05-I21-C01(1회), V410-S05-I21-C02(2회), V410-S05-I21-C03(1회), V410-S05-I21-C04(1회), V410-S05-I21-C05(1회) | [EventGreen.log:260](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I22 — V410-S05-I22-C01(1회) | [EventGreen.log:261](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I23 — V410-S05-I23-C01(1회), V410-S05-I23-C02(1회) | [EventGreen.log:262](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I24 — V410-S05-I24-C01(1회), V410-S05-I24-C02(1회), V410-S05-I24-C03(1회), V410-S05-I24-C04(1회) | [EventGreen.log:263](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I25 — V410-S05-I25-C01(1회) | [EventGreen.log:264](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I26 — V410-S05-I26-C01(1회) | [EventGreen.log:265](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
+| 기능집계 V410-S05-I27 — V410-S05-I27-C01(1회), V410-S05-I27-C02(1회), V410-S05-I27-C03(1회), V410-S05-I27-C04(1회) | [EventGreen.log:266](public-evidence-dae02456243ae8d9.txt) — exit0 | pass |
 
 
 ## 실패·미실행

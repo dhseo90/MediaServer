@@ -13,7 +13,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-append.aJv4HA",
+        "path": "<owned-temp>/media-server-generation-append.aJv4HA",
         "bytes": 35535524,
         "absent": true
       }
@@ -34,7 +34,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.q5O1Rf",
+        "path": "<owned-temp>/media-server-generation-checkpoint.q5O1Rf",
         "bytes": 49539912,
         "absent": true
       }
@@ -55,7 +55,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.XgBLbV",
+        "path": "<owned-temp>/media-server-consumer-connection.XgBLbV",
         "bytes": 7987327,
         "absent": true
       }
@@ -76,7 +76,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.Gj5v7i",
+        "path": "<owned-temp>/media-server-derived-jobs.Gj5v7i",
         "bytes": 10469727,
         "absent": true
       }
@@ -97,7 +97,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.IAf6S9",
+        "path": "<owned-temp>/media-server-derived-job-service.IAf6S9",
         "bytes": 20931631,
         "absent": true
       }
@@ -133,7 +133,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.4vwYvR",
+        "path": "<owned-temp>/media-server-generation-consumers.4vwYvR",
         "bytes": 33703416,
         "absent": true
       }
@@ -154,7 +154,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.VgwPKw",
+        "path": "<owned-temp>/media-server-generation-consumers.VgwPKw",
         "bytes": 33630930,
         "absent": true
       }
@@ -175,7 +175,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.sOSQg7",
+        "path": "<owned-temp>/media-server-generation-consumers.sOSQg7",
         "bytes": 18232680,
         "absent": true
       }
@@ -211,7 +211,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-readonly.IlqZO6",
+        "path": "<owned-temp>/media-server-generation-readonly.IlqZO6",
         "bytes": 32974969,
         "absent": true
       }
@@ -232,7 +232,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.Dt19SU",
+        "path": "<owned-temp>/media-server-generation-consumers.Dt19SU",
         "bytes": 8883182,
         "absent": true
       }
@@ -253,7 +253,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-consumers.EmoQHw",
+        "path": "<owned-temp>/media-server-generation-consumers.EmoQHw",
         "bytes": 0,
         "absent": true
       }
@@ -274,7 +274,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.ffqNV2",
+        "path": "<owned-temp>/media-server-retention-v2.ffqNV2",
         "bytes": 14692092,
         "absent": true
       }
@@ -295,7 +295,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.bTuEsu",
+        "path": "<owned-temp>/media-server-default-composition.bTuEsu",
         "bytes": 18593847,
         "absent": true
       }
@@ -316,7 +316,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-runtime-generation.6PwEA8",
+        "path": "<owned-temp>/media-server-runtime-generation.6PwEA8",
         "bytes": 9693273,
         "absent": true
       }
@@ -352,7 +352,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-runtime-generation.cJ07l8",
+        "path": "<owned-temp>/media-server-runtime-generation.cJ07l8",
         "bytes": 9407337,
         "absent": true
       }

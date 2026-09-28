@@ -37,7 +37,7 @@ LP16 분리 측정 1회
 [memory] {"stage":18,"sources":32,"currentRssBytes":478806016,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
 [memory] {"stage":19,"sources":32,"currentRssBytes":478806016,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
 [memory-phase] {"phase":"fixture","status":"failed","exitCode":0,"signal":null,"peakRssBytes":688848896,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"selfPeakRssBytes":688848896,"effectivePeakRssBytes":688848896,"outputOverflow":false,"spawnFailed":false}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.qxauKj bytes=199717396 removed=true
+[cleanup] path=<owned-temp>/media-server-catalog-cost.qxauKj bytes=199717396 removed=true
 [exit] code=2 elapsed_seconds=53 token_usage=unavailable source=bash-SECONDS
 
 개별 결과
@@ -259,7 +259,7 @@ LP16-M03 fixture RSS | 자기/time max 688848896B | FAIL | 기능 PASS와 별도
 [memory] {"stage":18,"sources":32,"currentRssBytes":474529792,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
 [memory] {"stage":19,"sources":32,"currentRssBytes":474529792,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
 [memory-phase] {"phase":"fixture","status":"failed","exitCode":0,"signal":null,"peakRssBytes":681492480,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"selfPeakRssBytes":681492480,"effectivePeakRssBytes":681492480,"outputOverflow":false,"spawnFailed":false}
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.BOWDt2 bytes=199717723 removed=true
+[cleanup] path=<owned-temp>/media-server-catalog-cost.BOWDt2 bytes=199717723 removed=true
 [exit] code=2 elapsed_seconds=53 token_usage=unavailable source=bash-SECONDS
 
 제목 | 테스트내용 | pass/fail | 비고

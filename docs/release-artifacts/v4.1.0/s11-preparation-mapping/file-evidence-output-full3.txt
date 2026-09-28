@@ -1,4 +1,4 @@
-[run] label=full3 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.saIuvT
+[run] label=full3 root=<owned-temp>/media-server-file-evidence.saIuvT
 [pass] actual-1 FE02 writer start
 [pass] actual-1 FE04 bound finalized mutation segment0
 [pass] actual-1 FE04 bound finalized mutation segment1
@@ -121,5 +121,5 @@
 [pass] cap4096/legacy-job FE08 live legacy rejects source/ordinal/PTS/hash variant3
 [pass] cap4096/legacy-job FE08 proof job requires full live evidence match
 [fail] cap4096/legacy-job FE08 legacy job accepts exact live identity with optional proof
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.saIuvT bytes=14308493 removed=true
+[cleanup] path=<owned-temp>/media-server-file-evidence.saIuvT bytes=14308493 removed=true
 [elapsed] seconds=13 source=bash-SECONDS

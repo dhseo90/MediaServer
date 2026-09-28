@@ -189,9 +189,9 @@
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-YH9lwg` | 첫 현행 통합 실패 | 395,549,318바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-current-integration.log.gz` |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-Zqflrm` | 페이지 보완 뒤 작업 실패 | 373,862,968바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-actual-app-after-bound.log.gz` |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-7K8m1P` | sandbox 권한 실패 | 23,309,952바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·제품 미기동 | `o25-actual-app-after-order.log` |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.TzxoRG` | 이벤트 집중 회귀 | 16,548,641바이트 | 검증기 소유 root 삭제 | 부재 | `o25-worker-order.log` |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-Ee3Nog` | 실제 앱 재확인 | 399,405,928바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-actual-app-after-order-escalated.log.gz` |
-| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-0P8xGH` | 현행 5단계 실제 앱 | 395,045,654바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-current-integration-final.log.gz` |
+| `<owned-temp>/media-server-current-integration-YH9lwg` | 첫 현행 통합 실패 | 395,549,318바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-current-integration.log.gz` |
+| `<owned-temp>/media-server-current-integration-Zqflrm` | 페이지 보완 뒤 작업 실패 | 373,862,968바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-actual-app-after-bound.log.gz` |
+| `<owned-temp>/media-server-current-integration-7K8m1P` | sandbox 권한 실패 | 23,309,952바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·제품 미기동 | `o25-actual-app-after-order.log` |
+| `<owned-temp>/media-server-derived-event-integration.TzxoRG` | 이벤트 집중 회귀 | 16,548,641바이트 | 검증기 소유 root 삭제 | 부재 | `o25-worker-order.log` |
+| `<owned-temp>/media-server-current-integration-Ee3Nog` | 실제 앱 재확인 | 399,405,928바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-actual-app-after-order-escalated.log.gz` |
+| `<owned-temp>/media-server-current-integration-0P8xGH` | 현행 5단계 실제 앱 | 395,045,654바이트 | 검증기 소유 root 삭제 | 부재, 실패 0·두 프로세스 정리 | `o25-current-integration-final.log.gz` |

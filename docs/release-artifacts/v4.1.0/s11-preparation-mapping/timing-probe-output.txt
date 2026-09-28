@@ -21,5 +21,5 @@
 [pass] TP04 characterization samples=12 observed_1ns_gaps=0
 [summary] pass=4 fail=0 scope=timing-characterization-only
 [evidence] copied=29 verified=true
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-timing-probe.tQAMx5 bytes=5577994 removed=true
+[cleanup] path=<owned-temp>/media-server-timing-probe.tQAMx5 bytes=5577994 removed=true
 [elapsed] seconds=6 source=bash-SECONDS

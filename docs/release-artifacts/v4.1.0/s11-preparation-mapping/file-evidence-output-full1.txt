@@ -1,4 +1,4 @@
-[run] label=full1 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.em26Tr
+[run] label=full1 root=<owned-temp>/media-server-file-evidence.em26Tr
 [pass] FE02 writer start
 [pass] FE04 bound finalized mutation
 [pass] FE04 bound finalized mutation
@@ -123,5 +123,5 @@
 [measure] writer_push_finalize_us=4938 input_aus=12 segments=1
 [pass] FE08 unsupported original DTS keeps recording
 [summary] checks_pass=99 checks_fail=0 scope=file-evidence-storage-only derived-eight-cap=see-observation request_fully_satisfied=not-evaluated
-[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.em26Tr bytes=18860347 removed=true
+[cleanup] path=<owned-temp>/media-server-file-evidence.em26Tr bytes=18860347 removed=true
 [elapsed] seconds=12 source=bash-SECONDS

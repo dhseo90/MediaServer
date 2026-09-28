@@ -58,8 +58,8 @@
 | 명령 | exit | 범위·시간·원출력 |
 | --- | --- | --- |
 | `node scripts/internal/recording_ui_driver_boundary.test.mjs` | 0 | 6/6, 도구 원출력 및 위 전수 6행 |
-| `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs` | 0 | 21/21, 27,531ms, [원출력](b10-auth-prep.log) |
-| `node scripts/internal/recording_ui_range_proxy.test.mjs` | 0 | 11/11, 61ms, [원출력](b10-range-proxy.log) |
+| `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs` | 0 | 21/21, 27,531ms, [원출력](public-evidence-cca7a262642a35bb.txt) |
+| `node scripts/internal/recording_ui_range_proxy.test.mjs` | 0 | 11/11, 61ms, [원출력](public-evidence-2675bad7000751cf.txt) |
 
 ## 정리
 

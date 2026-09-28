@@ -686,7 +686,7 @@
 [http-timing] {"sequence":678,"method":"DELETE","routeClass":"tap","status":200,"headerElapsedMs":7,"bodyElapsedMs":0,"totalElapsedMs":7,"bytes":26,"phase":"complete","outcome":"ok"}
 [fail] current actual app: latency-transition-timeout
 [pass] S11-CI08 product-1 exit0 ports returned
-[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-HDIZMk","bytes":48057398,"rootAbsent":true,"failureCount":0,"processes":[{"pid":32493,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":63633,"closed":true},{"kind":"rtsp","port":63634,"closed":true}]}],"udpClosed":true}
+[cleanup] {"root":"<owned-temp>/media-server-current-integration-HDIZMk","bytes":48057398,"rootAbsent":true,"failureCount":0,"processes":[{"pid":32493,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":63633,"closed":true},{"kind":"rtsp","port":63634,"closed":true}]}],"udpClosed":true}
 {"mode":"current-http-latency","passed":3,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":32493,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":63633,"closed":true},{"kind":"rtsp","port":63634,"closed":true}]}]},"elapsedMs":51655}
 
 [run-result] exit=1 signal=null elapsed_ms=51703 token_usage=unavailable

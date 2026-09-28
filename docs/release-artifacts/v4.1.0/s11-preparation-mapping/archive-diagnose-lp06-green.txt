@@ -1,5 +1,5 @@
 [environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
-[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-a3Ko43 bytes=26141775 removed=true
+[cleanup] owned_root=<owned-temp>/media-server-archive-probe-tests-a3Ko43 bytes=26141775 removed=true
 ✔ LP06-A01-A02 stored safe evidence and validated file hashes without remux (2279.472916ms)
 ✔ LP06-A03 missing copy media preserves failed diagnosis (368.994ms)
 ✔ LP06-A04 corrupt copy media preserves failed diagnosis (374.1075ms)

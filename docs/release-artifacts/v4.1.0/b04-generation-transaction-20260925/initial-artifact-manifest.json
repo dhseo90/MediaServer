@@ -13,7 +13,7 @@
     "fail": 1,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.xcRgYj",
+        "path": "<owned-temp>/media-server-cutover-transaction.xcRgYj",
         "bytes": 7976960,
         "absent": true
       }
@@ -34,7 +34,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.S27g7k",
+        "path": "<owned-temp>/media-server-cutover-transaction.S27g7k",
         "bytes": 8109709,
         "absent": true
       }
@@ -55,7 +55,7 @@
     "fail": 0,
     "cleanup": [
       {
-        "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-cutover-transaction.J30N8J",
+        "path": "<owned-temp>/media-server-cutover-transaction.J30N8J",
         "bytes": 8190662,
         "absent": true
       }

@@ -7,7 +7,7 @@
   "sourceLog": "o28-stage4-focused-green1.log",
   "sourceLogSha256": "2f6be4a60770d01008a8871c21fafa3d487d138280b7785febfcfb31ebb1a4a9",
   "sourceLogBirthUtc": "2026-09-24T11:45:19.102Z",
-  "cwd": "/Users/dhseo/Workspace/mediaServer",
+  "cwd": "<home>/Workspace/mediaServer",
   "reason": "LP17-H11 limited process observation left same-second synthetic descendant; post-run main audit found exact command/group",
   "signal": "SIGTERM",
   "absent": true,

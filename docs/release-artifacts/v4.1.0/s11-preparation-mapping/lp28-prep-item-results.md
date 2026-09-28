@@ -5,7 +5,7 @@
 
 ## feature-01
 
-명령: `./server.sh verify-feature-implementation-evidence --json-report /private/tmp/media-server-lp28.K2YANY/prep-feature-report.json`. exit1, 633266ms. [전체 원출력](lp28-prep-feature-01.log).
+명령: `./server.sh verify-feature-implementation-evidence --json-report /private/tmp/media-server-lp28.K2YANY/prep-feature-report.json`. exit1, 633266ms. [전체 원출력](public-evidence-9f5a1379ba719009.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -28,7 +28,7 @@
 
 ## feature-02
 
-명령: `./server.sh verify-feature-implementation-evidence --json-report /private/tmp/media-server-lp28.K2YANY/prep-feature-report-02.json`. exit0, 627113ms. [전체 원출력](lp28-prep-feature-02.log).
+명령: `./server.sh verify-feature-implementation-evidence --json-report /private/tmp/media-server-lp28.K2YANY/prep-feature-report-02.json`. exit0, 627113ms. [전체 원출력](public-evidence-d427d9d96b0bb9a2.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -50,7 +50,7 @@
 
 ## inventory
 
-명령: `./server.sh verify-project-inventory`. exit0, 42678ms. [전체 원출력](lp28-prep-inventory.log).
+명령: `./server.sh verify-project-inventory`. exit0, 42678ms. [전체 원출력](public-evidence-629a0da14fae3ac2.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -5138,7 +5138,7 @@
 
 ## core
 
-명령: `./server.sh verify-v390-ui-exact-core-oracles-contract`. exit0, 2061ms. [전체 원출력](lp28-prep-core.log).
+명령: `./server.sh verify-v390-ui-exact-core-oracles-contract`. exit0, 2061ms. [전체 원출력](public-evidence-04b4ab2d034d490d.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -5162,7 +5162,7 @@
 
 ## combined
 
-명령: `./server.sh verify-v390-ui-exact-oracle-catalog-contract`. exit0, 356ms. [전체 원출력](lp28-prep-combined.log).
+명령: `./server.sh verify-v390-ui-exact-oracle-catalog-contract`. exit0, 356ms. [전체 원출력](public-evidence-46c04320419eb835.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -5172,7 +5172,7 @@
 
 ## native-02
 
-명령: `./server.sh verify-v390-ui-native-exact-cases-contract`. exit0, 16294ms. [전체 원출력](lp28-prep-native-02.log).
+명령: `./server.sh verify-v390-ui-native-exact-cases-contract`. exit0, 16294ms. [전체 원출력](public-evidence-343be72f8f044fcc.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -5239,7 +5239,7 @@
 
 ## scripts
 
-명령: `./server.sh verify-script-inventory`. exit0, 33836ms. [전체 원출력](lp28-prep-scripts.log).
+명령: `./server.sh verify-script-inventory`. exit0, 33836ms. [전체 원출력](public-evidence-5ef550197dd8b4d0.txt).
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
