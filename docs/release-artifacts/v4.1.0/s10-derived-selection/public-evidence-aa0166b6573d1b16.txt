@@ -1,0 +1,11 @@
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_manager.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_session_service.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/analysis_session_lifecycle_application_adapter.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/analysis_session_read_application_adapter.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_selection.cpp.o
+[  6%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+

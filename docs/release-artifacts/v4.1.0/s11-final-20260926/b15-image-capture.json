@@ -1,0 +1,317 @@
+{
+  "selected": [
+    {
+      "file": "ko-ops-rules.png",
+      "lang": "ko",
+      "name": "ops-rules",
+      "route": "/ops/rules",
+      "selector": ".rules-workspace-catalog-grid",
+      "clip": {
+        "x": 88,
+        "y": 1388,
+        "width": 1504,
+        "height": 491
+      },
+      "geometry": [
+        {
+          "x": 100,
+          "y": 1400.03125,
+          "width": 1480,
+          "height": 466.59375,
+          "scrollWidth": 1480,
+          "clientWidth": 1480
+        }
+      ],
+      "bytes": 68388,
+      "sha256": "85504cc1b46fde47effd2f9c51649d2cf300ab489edefd825b998cb2855558d6",
+      "capturedAt": "2026-09-28T10:04:27.948Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/ops-rules.png",
+      "attempt": 4,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "ko-ops-users.png",
+      "lang": "ko",
+      "name": "ops-users",
+      "route": "/ops/users",
+      "selector": "[data-access-task=\"users\"]",
+      "clip": {
+        "x": 88,
+        "y": 378,
+        "width": 1504,
+        "height": 580
+      },
+      "geometry": [
+        {
+          "x": 100,
+          "y": 390.265625,
+          "width": 1480,
+          "height": 555,
+          "scrollWidth": 1478,
+          "clientWidth": 1478
+        }
+      ],
+      "bytes": 84396,
+      "sha256": "98e9541c44bd1cc2880cf82f3f9c2403f4b3fa601ff25a952b58145fa7805a05",
+      "capturedAt": "2026-09-28T10:04:29.784Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/ops-users.png",
+      "attempt": 4,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "ko-client-live.png",
+      "lang": "ko",
+      "name": "client-live",
+      "route": "/client/live",
+      "selector": ".live-workspace-main,.live-toolbar",
+      "clip": {
+        "x": 353,
+        "y": 207,
+        "width": 1547,
+        "height": 1032
+      },
+      "geometry": [
+        {
+          "x": 365,
+          "y": 219,
+          "width": 1523,
+          "height": 1020,
+          "scrollWidth": 1523,
+          "clientWidth": 1523
+        },
+        {
+          "x": 1322,
+          "y": 233,
+          "width": 544,
+          "height": 50,
+          "scrollWidth": 544,
+          "clientWidth": 544
+        }
+      ],
+      "bytes": 1917843,
+      "sha256": "ce76caa4f88c0531b981c3f4567c5f3b65d133e6c43d3d930824aa549262587b",
+      "capturedAt": "2026-09-28T10:14:54.332Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/client-live.png",
+      "attempt": 7,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "ko-client-dashboard.png",
+      "lang": "ko",
+      "name": "client-dashboard",
+      "route": "/client/dashboard",
+      "selector": ".client-dashboard-head,[data-testid=\"client-dashboard-field-summary\"],[data-testid=\"client-dashboard-safe-summary\"]",
+      "clip": {
+        "x": 447,
+        "y": 123,
+        "width": 1145,
+        "height": 473
+      },
+      "geometry": [
+        {
+          "x": 459,
+          "y": 135,
+          "width": 1121,
+          "height": 79.1875,
+          "scrollWidth": 1119,
+          "clientWidth": 1119
+        },
+        {
+          "x": 459,
+          "y": 228.1875,
+          "width": 1121,
+          "height": 140,
+          "scrollWidth": 1119,
+          "clientWidth": 1119
+        },
+        {
+          "x": 459,
+          "y": 382.1875,
+          "width": 1121,
+          "height": 201,
+          "scrollWidth": 1119,
+          "clientWidth": 1119
+        }
+      ],
+      "bytes": 49733,
+      "sha256": "3c8c7255e108df9f910ff76e782de15b6f3a44d2b0051c21a516becc96478492",
+      "capturedAt": "2026-09-28T10:04:31.666Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/client-dashboard.png",
+      "attempt": 4,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "en-ops-rules.png",
+      "lang": "en",
+      "name": "ops-rules",
+      "route": "/ops/rules",
+      "selector": ".rules-workspace-catalog-grid",
+      "clip": {
+        "x": 88,
+        "y": 1518,
+        "width": 1504,
+        "height": 508
+      },
+      "geometry": [
+        {
+          "x": 100,
+          "y": 1530.71875,
+          "width": 1480,
+          "height": 482.59375,
+          "scrollWidth": 1480,
+          "clientWidth": 1480
+        }
+      ],
+      "bytes": 75262,
+      "sha256": "0ff35536df6d0410e6db00a4d0659dd479f28a2440da5d7d97be5f030b764504",
+      "capturedAt": "2026-09-28T10:04:36.152Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/en/ops-rules.png",
+      "attempt": 4,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "en-ops-users.png",
+      "lang": "en",
+      "name": "ops-users",
+      "route": "/ops/users",
+      "selector": "[data-access-task=\"users\"]",
+      "clip": {
+        "x": 88,
+        "y": 378,
+        "width": 1504,
+        "height": 596
+      },
+      "geometry": [
+        {
+          "x": 100,
+          "y": 390.265625,
+          "width": 1480,
+          "height": 571,
+          "scrollWidth": 1478,
+          "clientWidth": 1478
+        }
+      ],
+      "bytes": 83342,
+      "sha256": "8c97af029a9fb0e5bf0b9a0089ff24fc037e6b5cdfe98cc550cbae2342cd5448",
+      "capturedAt": "2026-09-28T10:11:09.898Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/en/ops-users.png",
+      "attempt": 5,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "en-client-live.png",
+      "lang": "en",
+      "name": "client-live",
+      "route": "/client/live",
+      "selector": ".live-workspace-main,.live-toolbar",
+      "clip": {
+        "x": 353,
+        "y": 207,
+        "width": 1547,
+        "height": 1032
+      },
+      "geometry": [
+        {
+          "x": 365,
+          "y": 219,
+          "width": 1523,
+          "height": 1020,
+          "scrollWidth": 1523,
+          "clientWidth": 1523
+        },
+        {
+          "x": 1309,
+          "y": 233,
+          "width": 557,
+          "height": 50,
+          "scrollWidth": 557,
+          "clientWidth": 557
+        }
+      ],
+      "bytes": 1966077,
+      "sha256": "433ace30958bf87c1a36a91519ea3d6d9e19098e9bb499e536c203d881fbf205",
+      "capturedAt": "2026-09-28T10:14:57.709Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/en/client-live.png",
+      "attempt": 7,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    },
+    {
+      "file": "en-client-dashboard.png",
+      "lang": "en",
+      "name": "client-dashboard",
+      "route": "/client/dashboard",
+      "selector": ".client-dashboard-head,[data-testid=\"client-dashboard-field-summary\"],[data-testid=\"client-dashboard-safe-summary\"]",
+      "clip": {
+        "x": 447,
+        "y": 123,
+        "width": 1145,
+        "height": 473
+      },
+      "geometry": [
+        {
+          "x": 459,
+          "y": 135,
+          "width": 1121,
+          "height": 79.1875,
+          "scrollWidth": 1119,
+          "clientWidth": 1119
+        },
+        {
+          "x": 459,
+          "y": 228.1875,
+          "width": 1121,
+          "height": 140,
+          "scrollWidth": 1119,
+          "clientWidth": 1119
+        },
+        {
+          "x": 459,
+          "y": 382.1875,
+          "width": 1121,
+          "height": 201,
+          "scrollWidth": 1119,
+          "clientWidth": 1119
+        }
+      ],
+      "bytes": 55283,
+      "sha256": "104639f67b8113755085f8a77364ce41e66f265b52727f35ee203fd9fa115d95",
+      "capturedAt": "2026-09-28T10:04:39.825Z",
+      "browserVersion": "152.0.7977.83",
+      "source": "현재 제품·격리 샘플·실제 브라우저",
+      "uiFulltestPass": false,
+      "path": "docs/assets/ui/en/client-dashboard.png",
+      "attempt": 4,
+      "review": "PASS",
+      "reviewScope": "실제 이미지 직접 검토. 전체 제품 UI 검증이 아님"
+    }
+  ],
+  "meaning": "직접 열람한 최종8개. 04 실행 전체는 실패했지만 해당5개 파일 생성·해시·정리와 직접 검수는 확인. 실패 이력은 별도 유지."
+}

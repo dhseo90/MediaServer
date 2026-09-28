@@ -1,0 +1,5 @@
+- PASS: public read contract uses only standard headers plus the approved application frame leaf
+- PASS: adapter owns every canonical field, optional, list order, timeout, and exception semantic
+- PASS: compiled fake canonical provider rejects mapping, null, timeout, order, and lifecycle false PASS
+- PASS: transport read and lifecycle calls use their injected application ports
+- summary: pass=4 fail=0

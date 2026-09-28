@@ -6,15 +6,16 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `4.0.0`
-- 최신 공개 GitHub Release: `v4.0.0`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
-  포함하지 않습니다.
-- 현재 source roadmap은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
-- 현재 latest published release는 `v4.0.0`입니다.
-- 현재 공개 release tag 기준은 `v4.0.0`입니다.
-- 현재 source tag 기준은 `v4.0.0`입니다.
-- `v4.0.0` GitHub Release publish 완료는 tag, GitHub Release,
+- 현재 소스 버전: `4.1.0`
+- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
+- 현재 release target: `v4.1.0`
+- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 현재 source roadmap은 `v4.1.0 Recording Foundation`입니다.
+- 현재 source/release target tag 기준은 `v4.1.0`입니다.
+- S11 제품 검증과 B14 공개 준비는 완료했습니다. PR·병합·서명 tag·GitHub Release는
+  실제 실행 기록에서만 완료로 판정합니다.
+- `v4.1.0` GitHub Release publish 완료는 signed tag, GitHub Release,
   `verify-release-metadata --published` evidence로 확인합니다.
 
 ## 기본 공개 범위
@@ -60,22 +61,21 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v4.0.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `4.0.0`, current roadmap
-`v4.0.0 Local Operations Policy and Stabilization`,
-latest published `v4.0.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
-`v4.0.0 Local Operations Policy and Stabilization`입니다.
+v4.1.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를 source `4.1.0`,
+release target `v4.1.0`, current roadmap `v4.1.0 Recording Foundation`, 직전 공개
+baseline `v4.0.0 Local Operations Policy and Stabilization`으로 구분하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v400-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v410-entry-baseline`입니다.
+historical v4.0.0 companion는 `./server.sh verify-v400-entry-baseline`입니다.
 historical v3.9.0 companion는 `./server.sh verify-v390-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v400-entry-baseline
+./server.sh verify-v410-entry-baseline
 ./server.sh verify-v390-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
@@ -124,6 +124,11 @@ redaction/크기/보존 사유를 기록합니다.
 
 ## v3.9.0 Longrun Runner 역할
 
+아래 역할 구분은 v3.9.0 당시 runner·evidence 이력이다. 현재 v4.1.0의 승인된
+`verify-predev --soak-minutes 30/120`와 녹화 전용120분 증거의 유효성은 AGENTS.md
+7.6.2 및 현재 S11 증거 연결표로 판단한다. 과거 runner 설명만으로 현재 PASS를
+폐기하거나 다른 장시간 실행을 자동 추가하지 않는다.
+
 v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`입니다.
 
 - `verify-predev` remains legacy/compatibility cumulative predev runner.
@@ -137,7 +142,7 @@ v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`�
 
 이 역할 분리는 과거 evidence를 다시 해석하지 않습니다. 이전 release의
 `verify-predev --soak-minutes 30/120` PASS 행은 historical/compatibility evidence로
-남기고, v3.9.0 이후 release-grade first-fail 장시간 evidence는
+남기고, 당시 release-grade first-fail 장시간 evidence는
 `verify-v390-server-longrun` summary/report로 분리합니다.
 `media-server.runtime-media-longrun-trigger-matrix.v1`의 v3.9.0 release-grade 30분/120분
 server longrun row도 `verify-v390-server-longrun --duration-minutes 30/120`을 표준
@@ -168,11 +173,39 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
+### v4.1.0 Release Close-out Runbook
+
+현재 source와 release target은 `v4.1.0`이고 직전 공개 baseline은 `v4.0.0`입니다.
+상시·이벤트 녹화 구현, S10 보강, S11 제품 검증과 B14 공개 준비를 완료했습니다.
+PR·병합·서명 tag·GitHub Release·published metadata는 실제 실행 뒤에만 완료로 기록합니다.
+이 절은 실행 순서 안내이며 완료 증거 또는 외부 변경 승인이 아닙니다. 작업 정책은
+AGENTS.md가 기준이며 PR, 병합, 서명 태그, GitHub Release는 각각 승인 후 수동으로만 진행합니다.
+
+- Dry-run checklist: `./server.sh verify-release-closeout-helper --dry-run`은 문서·명령과
+  수동 승인 경계만 확인합니다. 실제 릴리즈나 장시간·UI 검증을 대신하지 않습니다.
+- Real close-out checklist: 고정 소스의 단기 안정화 → 실제 30분 → 실제 UI·브라우저 미디어 →
+  공통 및 녹화 전용 120분 결과를 각각 확인합니다. 변경분의 증거 유효성은 AGENTS.md 7.6.2로
+  판단하며 이미 유효한 동일 검사를 인계 때문에 다시 실행하지 않습니다.
+- 최종 문서·출처·source-only 공개 범위·정리·커밋을 대조하고, 승인된 푸시 이후 PR merge와
+  Main fast-forward/sync의 실제 대상 해시를 확인합니다. public-readiness, bundle policy,
+  Actions status check는 실행 결과가 있는 항목만 완료로 기록합니다.
+- Tag 전략은 main의 승인된 릴리즈 커밋에 대한 signed annotated tag입니다. 로컬 서명 검증과
+  원격 Verified 확인 뒤 승인된 GitHub Release, Latest 확인, published metadata 검증을 진행합니다.
+  바이너리·런타임·모델 묶음을 소스 공개에 임의로 추가하지 않습니다.
+- Branch close는 기록·태그 대상의 정합 확인입니다. release branch 삭제 또는 Next branch sync를
+  자동 실행하지 않으며 각각 사용자 별도 승인이 필요합니다.
+- 이번 v4.1.0의 외부 서비스·실기기 검증은 사용자 명시 제외입니다. 미실행을 PASS로 기록하지 않고,
+  해당 환경의 동작 보장을 릴리즈 설명에 포함하지 않습니다. 로컬 필수 검증은 그대로 유지합니다.
+
+실패 이후 단계는 중단하고 최초 실패·보완·재검증을 보존합니다. 단기 검증 통과만으로 30분·UI·120분,
+CI 또는 릴리즈 완료를 선언하지 않습니다. 상세 실행 결과는 중앙 테스트 기록에서 연결합니다.
+
 ### v4.0.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-v4.0.0은 현재 source이며 latest published metadata 기준도 `v4.0.0`입니다.
+아래는 v4.0.0 당시 실행 이력입니다. 현재 release target은 `v4.1.0`이며 cut 직전
+published metadata 기준은 `v4.0.0`입니다.
 compact handoff boundary `09436674`를 포함한
 동일 clean source `b96f74ab`에서 fresh 30분/UI는 PASS했습니다. 120분은 재판정 후
 `conditional-not-run`입니다.
@@ -406,11 +439,11 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v4.0.0 Current Source Roadmap Scope
+## v4.0.0 Published Source Roadmap Scope
 
-현재 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. v4.0.0 (1)
-baseline 정렬은 current source `4.0.0`과 published `v4.0.0`를 맞춥니다. 신규 기능은
-`v4.1.0`부터 넣습니다. Binary/runtime/model bundle과 external field smoke는 공개
+공개된 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. 당시 v4.0.0 (1)
+baseline 정렬은 source `4.0.0`과 published `v4.0.0`를 맞췄습니다. 현재 개발 소스
+`v4.1.0`의 녹화 기능과 최종 검증 상태는 해당 로드맵·실행 기록으로 구분합니다. Binary/runtime/model bundle과 external field smoke는 공개
 asset 또는 실행 PASS로 승격하지 않습니다.
 
 ## v3.9.1 Previous Published Source Roadmap Scope
@@ -1073,13 +1106,20 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v4.0.0 Release Note Source
+## v4.1.0 Release Note Source
+
+현재 release target의 안정된 사용자용 release note source는
+[release-notes-v4.1.0.md](./release-notes-v4.1.0.md)입니다. 이 링크와 local 준비 완료는
+PR·병합·서명 tag·GitHub Release 또는 published metadata 완료 주장이 아닙니다.
+
+## v4.0.0 Historical Release Note Source
 
 아래 본문의 저장소 원본은
 [release-artifacts/v4.0.0/release-notes.md](./release-artifacts/v4.0.0/release-notes.md)입니다.
 아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. latest published metadata와
-현재 source tag 기준은 `v4.0.0`입니다. 실제 signed tag, GitHub Release, published
+이 절은 `v4.0.0`의 보존된 historical release note source입니다. 현재 release target
+tag 기준은 `v4.1.0`이며, 실제 signed tag, GitHub Release, published
 metadata 결과는 저장소 snapshot과 분리해 직접 확인합니다.
 
 ```markdown

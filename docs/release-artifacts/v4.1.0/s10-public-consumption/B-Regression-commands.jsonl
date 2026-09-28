@@ -1,0 +1,15 @@
+{"name":"LegacyTimeline","command":["bash","scripts/internal/verify_v410_recording_timeline.sh","--read-model"],"exit":0,"signal":null,"elapsed_ms":6902}
+{"name":"Location","command":["bash","scripts/internal/verify_recording_location_resolution.sh"],"exit":0,"signal":null,"elapsed_ms":6356}
+{"name":"SourceBinding","command":["bash","scripts/internal/verify_recording_source_binding.sh"],"exit":0,"signal":null,"elapsed_ms":7258}
+{"name":"Reference","command":["bash","scripts/internal/verify_recording_consumer_reference.sh"],"exit":0,"signal":null,"elapsed_ms":6344}
+{"name":"Retention","command":["bash","scripts/internal/verify_recording_retention_v2.sh"],"exit":0,"signal":null,"elapsed_ms":13248}
+{"name":"Finalize","command":["bash","scripts/internal/verify_v410_recording_finalize_recovery.sh","--integration"],"exit":0,"signal":null,"elapsed_ms":10615}
+{"name":"Range","command":["bash","scripts/internal/verify_recording_range_resolution.sh"],"exit":0,"signal":null,"elapsed_ms":7399}
+{"name":"Connection","command":["bash","scripts/internal/verify_recording_consumer_connection.sh"],"exit":0,"signal":null,"elapsed_ms":10705}
+{"name":"Event","command":["bash","scripts/internal/verify_v410_event_recording.sh"],"exit":1,"signal":null,"elapsed_ms":18790}
+{"name":"EventFixed","command":["bash","scripts/internal/verify_v410_event_recording.sh"],"exit":1,"signal":null,"elapsed_ms":181}
+{"name":"EventFinal","command":["bash","scripts/internal/verify_v410_event_recording.sh"],"exit":1,"signal":null,"elapsed_ms":22796}
+{"name":"EventClosed","command":["bash","scripts/internal/verify_v410_event_recording.sh"],"exit":0,"signal":null,"elapsed_ms":51704}
+{"name":"Identity","command":["bash","scripts/internal/verify_recording_identity.sh"],"exit":0,"signal":null,"elapsed_ms":11873}
+{"name":"Jobs","command":["bash","scripts/internal/verify_recording_derived_jobs.sh"],"exit":0,"signal":null,"elapsed_ms":7398}
+{"name":"FinalFocused","command":["bash","scripts/internal/verify_recording_public_timeline.sh"],"exit":0,"signal":null,"elapsed_ms":34608}

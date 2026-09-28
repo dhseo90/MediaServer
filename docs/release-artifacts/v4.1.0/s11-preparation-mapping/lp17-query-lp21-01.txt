@@ -1,0 +1,450 @@
+{"kind":"preflight","mode":"query","id":"lp21-01","head":"38b32a3a691f9a70a1a0ad70cceb8bd60acf79e1","sourceManifest":"ebc4a68bfd965c5e1ee7b5761ca69b0ce02e0bfc17d88e058e6928a66c494ae6","physicalBytes":25769803776,"reclaimableEstimateBytes":10649845760,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runtime-freshness","command":"cmake","args":["--build","<repo>/build-gst-onnx","--target","media_server_runtime","--parallel","2"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[100%] Built target media_server_runtime
+        0.63 real         0.29 user         0.20 sys
+            51380224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               14944  page reclaims
+                 353  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                  10  signals received
+                 186  voluntary context switches
+                 522  involuntary context switches
+           395513004  instructions retired
+           119741346  cycles elapsed
+             3310216  peak memory footprint
+{"kind":"phase-result","label":"runtime-freshness","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":650,"groupPeakRssBytes":103104512,"observationFailure":null,"outputBytes":818}
+{"kind":"command","label":"compile","command":"bash","args":["<repo>/scripts/internal/recording_catalog_comparison_build.sh","<owned-root>","query"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[source] file=recording_catalog.cpp original_sha256=04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888 instrumented_sha256=3a172d0de439a6234d24370c9f61ceb591cafc73083a600ba9a088be71248dae
+[source] file=recording_journal.cpp original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d instrumented_sha256=d2ea487ac654f9c56431b8b03734995e09f70ca03447a1ec083a2c906d97344a
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc instrumented_sha256=ff16e542cbd5f7dca026ef95cc621eb68008426ace3e6e5bbe44ea2c91714d05
+[pass] FC01 exact insertion checks count=102
+[lp17] {"kind":"instrument","file":"recording_catalog.h","originalSha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620","instrumentedSha256":"588f4874f34b4fa5a6f03ef2b51a0b4422f6b6cfc83413c5e26880fc84407b9f"}
+[lp17] {"kind":"instrument","file":"recording_journal.h","originalSha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5","instrumentedSha256":"9da1a57a52b7b63145a5716819df6c61b432b586b74b9f229e1dc8def22ae8ec"}
+[lp17] {"kind":"instrument","file":"recording_catalog.cpp","originalSha256":"3a172d0de439a6234d24370c9f61ceb591cafc73083a600ba9a088be71248dae","instrumentedSha256":"e89b44d98c707a1af389919f69991e3252b7c6d9331f3b58fad3dd08058f3e06"}
+[lp17] {"kind":"instrument","file":"recording_journal.cpp","originalSha256":"d2ea487ac654f9c56431b8b03734995e09f70ca03447a1ec083a2c906d97344a","instrumentedSha256":"2bfa09ff3ccd7dc7f9c02f935e566ff5edd22fb887682aeea5135a0a25644aef"}
+[lp17] {"kind":"instrumentSummary","exactEdits":11,"cacheChange":"retention-and-reuse-only"}
+[lp17] {"kind":"instrument","file":"recording_catalog_query_seed.h","originalSha256":"f8ca1e34423b1f7a65b40ea7f0143e1227324baa79c828bd6b5631ca8582c5b1","instrumentedSha256":"cb008428bbb63b7c9a46ec048b9bc65d1b02c41435a078552ade1eef1be2dec2"}
+[lp17] {"kind":"binary","name":"comparison","sha256":"32152534530db2f16101a1022fe664ab081f99a5e5165404bb19faa11d6df8e2"}
+[lp17] {"kind":"binary","name":"comparison-query","sha256":"94cd56c007f80ab51d1dd90ce7f3fb82df9604f4c558bbf66ee4857732958ce7"}
+<repo>/scripts/internal/recording_catalog_query_probe.cpp:61:4: warning: misleading indentation; statement is not part of the previous 'for' [-Wmisleading-indentation]
+   61 |   }writes&=matched==16&&s.store.catalog.consumer_references_.size()==16;}
+      |    ^
+<repo>/scripts/internal/recording_catalog_query_probe.cpp:59:33: note: previous statement is here
+   59 |  if(overlap){unsigned matched=0;for(const auto& mutation:replay.mutations)if(mutation.mutation_type==RecordingMutationType::ConsumerReferencePut){
+      |                                 ^
+In file included from <repo>/scripts/internal/recording_catalog_query_probe.cpp:2:
+<owned-root>/recording_catalog_query_seed.h:31:6: warning: unused function 'Prepare' [-Wunused-function]
+   31 | void Prepare(const std::filesystem::path& seed,unsigned samples,unsigned count){
+      |      ^~~~~~~
+<owned-root>/recording_catalog_query_seed.h:45:6: warning: unused function 'Scale' [-Wunused-function]
+   45 | void Scale(const std::filesystem::path& seed,const std::filesystem::path& root,const std::string& arm,unsigned samples,unsigned count){
+      |      ^~~~~
+<owned-root>/recording_catalog_query_seed.h:71:6: warning: unused function 'Recovery' [-Wunused-function]
+   71 | void Recovery(const std::filesystem::path& seed,const std::filesystem::path& root,const std::string& arm,unsigned samples,unsigned count,bool sql){
+      |      ^~~~~~~~
+4 warnings generated.
+        4.91 real         4.34 user         0.36 sys
+           337461248  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              115003  page reclaims
+                4520  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 695  messages sent
+                   5  messages received
+                   3  signals received
+                1373  voluntary context switches
+                6294  involuntary context switches
+            57877497  instructions retired
+            27078425  cycles elapsed
+             1687960  peak memory footprint
+{"kind":"phase-result","label":"compile","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":4933,"groupPeakRssBytes":397393920,"observationFailure":null,"outputBytes":4893}
+{"kind":"command","label":"prepare","command":"<owned-root>/comparison","args":["prepare","<owned-root>/seed","4096","32"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"memory","stage":"prepare_before","sources":0,"currentRssBytes":38977536,"peakRssBytes":38977536}
+[pass] recorded FE02 writer start
+[pass] recorded FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=1119270 input_aus=4096 segments=1
+[pass] LP17/prepare LP02.actual4096-prerequisite
+[pass] LP17/prepare seed.input-count
+[pass] LP17/prepare seed.input-identity-all-samples
+[pass] LP17/prepare seed.physical-evidence
+[lp17] {"kind":"memory","stage":"prepare_after","sources":32,"currentRssBytes":87310336,"peakRssBytes":87310336}
+[lp17] {"kind":"summary","mode":"prepare","arm":"seed","samples":4096,"count":32,"pass":6,"fail":0}
+        4.90 real         3.74 user         0.27 sys
+           157106176  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               68311  page reclaims
+                4308  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                  12  messages received
+                   0  signals received
+                 225  voluntary context switches
+               20598  involuntary context switches
+         60984263214  instructions retired
+         12487455060  cycles elapsed
+            51430120  peak memory footprint
+{"kind":"phase-result","label":"prepare","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":true,"peakRssBytes":157106176,"stopReason":null,"exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"prepare","arm":"seed","samples":4096,"count":32,"pass":6,"fail":0},"elapsedMs":4916,"groupPeakRssBytes":185729024,"observationFailure":null,"outputBytes":1441}
+{"kind":"query-seed","sha256":"c843019d756ebe8445fd7bf2f130369f753932399129fc5a52b6abbb43399aab","samples":4096,"count":32}
+{"kind":"command","label":"query-16","command":"<owned-root>/comparison-query","args":["<owned-root>/seed","<owned-root>/query-16","16"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":35}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":12375}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":59}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33276}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98617}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":72}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33172}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98049}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":72}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":32778}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97731}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":74}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33036}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97495}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":65}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33112}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97766}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":69}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33244}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97979}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":66}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33333}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97944}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":67}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33473}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98096}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":66}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33000}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98279}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":71}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33051}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98000}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":65}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33493}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98323}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":69}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33193}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98459}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":74}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33341}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98442}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":68}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33275}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98434}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":72}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33322}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98528}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":73}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33120}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98558}
+[pass] LP21-Q01 fixture separates total sources from two relevant 4096-sample bindings
+[lp17] {"kind":"memory","stage":"query_ready","sources":16,"currentRssBytes":77004800,"peakRssBytes":77004800}
+[pass] LP21-Q01 quiet wait queries preserve canonical bytes and cold detail
+[query] {"kind":"phase","stage":"quiet","total":16,"relevant":2,"protected":2,"samples":4096,"attempts":8,"fallbacks":0,"writes":0}
+[query] {"kind":"thread","stage":"quiet","thread":"reader","attempts":8,"fallbacks":0,"writes":0,"callCount":8,"wallNs":2266923292,"maxCallNs":284420541,"waitCount":40,"waitNs":2668,"maxWaitNs":208,"holdCount":40,"holdNs":520907416,"maxHoldNs":24999084,"offlockCalls":16,"offlockNs":1743078376,"protectionCalls":8,"protectionNs":126128417,"metricRows":19}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"journal.locatedRawRead.bytes","count":17255680,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"journal.locatedRawRead.calls","count":16,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call","count":8,"inclusiveNs":2266923292,"exclusiveNs":2934832,"maximumNs":284420541}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold","count":40,"inclusiveNs":520907416,"exclusiveNs":16167205,"maximumNs":24999084}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity","count":16,"inclusiveNs":6613043,"exclusiveNs":5339461,"maximumNs":442708}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":1273582,"exclusiveNs":1273582,"maximumNs":110459}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/journal.ParseRecordingMutationV1","count":16,"inclusiveNs":371998751,"exclusiveNs":371998751,"maximumNs":23776125}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection","count":8,"inclusiveNs":126128417,"exclusiveNs":50044,"maximumNs":15896167}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment","count":16,"inclusiveNs":126078373,"exclusiveNs":1599371,"maximumNs":8005500}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":124479002,"exclusiveNs":294462,"maximumNs":7899459}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":124184540,"exclusiveNs":124184540,"maximumNs":7880792}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.wait","count":40,"inclusiveNs":2668,"exclusiveNs":2668,"maximumNs":208}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize","count":16,"inclusiveNs":1743078376,"exclusiveNs":383080878,"maximumNs":109764292}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1","count":16,"inclusiveNs":1233413915,"exclusiveNs":1107362499,"maximumNs":77572333}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":126051416,"exclusiveNs":336210,"maximumNs":8024375}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":125715206,"exclusiveNs":125715206,"maximumNs":8002833}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment","count":16,"inclusiveNs":126583583,"exclusiveNs":1638708,"maximumNs":8061083}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":124944875,"exclusiveNs":303456,"maximumNs":7957792}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":124641419,"exclusiveNs":124641419,"maximumNs":7937958}
+[lp17] {"kind":"memory","stage":"query_quiet_after","sources":16,"currentRssBytes":184696832,"peakRssBytes":184696832}
+[pass] LP21-Q02 natural overlap preserves exact snapshots and all normal writes
+[query] {"kind":"phase","stage":"overlap","total":16,"relevant":2,"protected":2,"samples":4096,"attempts":8,"fallbacks":1,"writes":16}
+[query] {"kind":"thread","stage":"overlap","thread":"reader","attempts":8,"fallbacks":1,"writes":0,"callCount":8,"wallNs":2416780790,"maxCallNs":433575708,"waitCount":40,"waitNs":2876,"maxWaitNs":250,"holdCount":40,"holdNs":780556582,"maxHoldNs":298813125,"offlockCalls":15,"offlockNs":1633362125,"protectionCalls":8,"protectionNs":127237335,"metricRows":29}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"journal.locatedRawRead.bytes","count":18334160,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"journal.locatedRawRead.calls","count":17,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call","count":8,"inclusiveNs":2416780790,"exclusiveNs":2859207,"maximumNs":433575708}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold","count":40,"inclusiveNs":780556582,"exclusiveNs":17497290,"maximumNs":298813125}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment","count":2,"inclusiveNs":15892583,"exclusiveNs":199291,"maximumNs":8050417}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":2,"inclusiveNs":15693292,"exclusiveNs":39500,"maximumNs":7950250}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":2,"inclusiveNs":15653792,"exclusiveNs":15653792,"maximumNs":7930125}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity","count":17,"inclusiveNs":6963751,"exclusiveNs":5633380,"maximumNs":435083}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1","count":17,"inclusiveNs":1330371,"exclusiveNs":1330371,"maximumNs":87000}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/journal.ParseRecordingMutationV1","count":17,"inclusiveNs":395368332,"exclusiveNs":395368332,"maximumNs":23667000}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize","count":2,"inclusiveNs":217597291,"exclusiveNs":47848873,"maximumNs":108830291}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ParseRecordingSourceBindingV1","count":2,"inclusiveNs":153539459,"exclusiveNs":137474876,"maximumNs":76862709}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1","count":2,"inclusiveNs":16064583,"exclusiveNs":44625,"maximumNs":8081583}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":2,"inclusiveNs":16019958,"exclusiveNs":16019958,"maximumNs":8059875}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ValidateRecordingSourceBindingForSegment","count":2,"inclusiveNs":16208959,"exclusiveNs":225000,"maximumNs":8166584}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":2,"inclusiveNs":15983959,"exclusiveNs":39335,"maximumNs":8051334}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":2,"inclusiveNs":15944624,"exclusiveNs":15944624,"maximumNs":8031333}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection","count":8,"inclusiveNs":127237335,"exclusiveNs":53293,"maximumNs":16099709}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment","count":16,"inclusiveNs":127184042,"exclusiveNs":1614833,"maximumNs":8175875}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":125569209,"exclusiveNs":301001,"maximumNs":8072750}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":125268208,"exclusiveNs":125268208,"maximumNs":8052417}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.wait","count":40,"inclusiveNs":2876,"exclusiveNs":2876,"maximumNs":250}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize","count":15,"inclusiveNs":1633362125,"exclusiveNs":360254835,"maximumNs":109530875}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1","count":15,"inclusiveNs":1153682831,"exclusiveNs":1034846247,"maximumNs":77550750}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1","count":15,"inclusiveNs":118836584,"exclusiveNs":315417,"maximumNs":8071792}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":15,"inclusiveNs":118521167,"exclusiveNs":118521167,"maximumNs":8050250}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment","count":15,"inclusiveNs":119424459,"exclusiveNs":1580666,"maximumNs":8118667}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":15,"inclusiveNs":117843793,"exclusiveNs":290255,"maximumNs":8011958}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":15,"inclusiveNs":117553538,"exclusiveNs":117553538,"maximumNs":7988833}
+[query] {"kind":"thread","stage":"overlap","thread":"writer","attempts":0,"fallbacks":0,"writes":16,"callCount":0,"wallNs":0,"maxCallNs":0,"waitCount":16,"waitNs":25249623,"maxWaitNs":25249291,"holdCount":16,"holdNs":12889623,"maxHoldNs":4430041,"offlockCalls":0,"offlockNs":0,"protectionCalls":0,"protectionNs":0,"metricRows":12}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold","count":16,"inclusiveNs":12889623,"exclusiveNs":1031789,"maximumNs":4430041}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked","count":16,"inclusiveNs":11857834,"exclusiveNs":1678958,"maximumNs":4318500}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked","count":16,"inclusiveNs":2336584,"exclusiveNs":2336584,"maximumNs":272541}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked","count":16,"inclusiveNs":5021458,"exclusiveNs":5021458,"maximumNs":3639500}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned","count":16,"inclusiveNs":2820834,"exclusiveNs":2139086,"maximumNs":399833}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity","count":16,"inclusiveNs":39918,"exclusiveNs":21418,"maximumNs":4042}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":18500,"exclusiveNs":18500,"maximumNs":1375}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord","count":16,"inclusiveNs":115582,"exclusiveNs":89498,"maximumNs":10583}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":26084,"exclusiveNs":26084,"maximumNs":2125}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1","count":16,"inclusiveNs":505582,"exclusiveNs":505582,"maximumNs":41166}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":20666,"exclusiveNs":20666,"maximumNs":1792}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.wait","count":16,"inclusiveNs":25249623,"exclusiveNs":25249623,"maximumNs":25249291}
+[lp17] {"kind":"memory","stage":"query_overlap_after","sources":16,"currentRssBytes":186351616,"peakRssBytes":186351616}
+[pass] LP21-Q02 forced unrelated Apply falls back once without performance timing
+[pass] LP21-Q03 both selected sources stay protected until exact lease release
+[pass] LP21-Q03 released sources regain the existing deletion behavior
+[query] {"kind":"forced","total":16,"attempts":1,"fallbacks":1,"writes":1,"timed":false}
+[query] {"kind":"summary","total":16,"relevant":2,"protected":2,"samples":4096,"pass":6,"fail":0,"nativeFileEvidence":true}
+       25.50 real        24.80 user         0.24 sys
+           186548224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               13937  page reclaims
+                  45  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 205  voluntary context switches
+               11394  involuntary context switches
+        503909171436  instructions retired
+        107428967513  cycles elapsed
+           145294128  peak memory footprint
+{"kind":"phase-result","label":"query-16","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":25523,"groupPeakRssBytes":187924480,"observationFailure":null,"outputBytes":21197}
+{"kind":"query-oracle","total":16,"valid":true}
+{"kind":"store-cleanup","store":"<owned-root>/query-16","bytes":94153600,"removed":true}
+{"kind":"command","label":"query-32","command":"<owned-root>/comparison-query","args":["<owned-root>/seed","<owned-root>/query-32","32"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":49}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":12407}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":75}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33346}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98889}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":94}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33260}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98249}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":104}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33502}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98136}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":88}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33407}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97997}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":91}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33671}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98859}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":90}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33136}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98597}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":95}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33441}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98059}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":90}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33509}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":97994}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":90}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33501}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98407}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":94}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33242}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98377}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":94}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33004}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98026}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":92}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33415}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98687}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":116}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33563}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":99395}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":92}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33196}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98627}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":90}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33315}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98580}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":89}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33338}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98268}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":98}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33527}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98378}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":95}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33133}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98545}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":91}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33494}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98290}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":89}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33427}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98233}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":93}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33257}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98120}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":94}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33353}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98268}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":91}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33632}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98234}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":96}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33688}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98080}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":95}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33386}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98790}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":91}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33398}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98601}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":110}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33349}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98412}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":90}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33448}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98484}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":91}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33301}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98325}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":92}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33724}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98673}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":92}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33223}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98775}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":91}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":33399}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":98143}
+[pass] LP21-Q01 fixture separates total sources from two relevant 4096-sample bindings
+[lp17] {"kind":"memory","stage":"query_ready","sources":32,"currentRssBytes":77234176,"peakRssBytes":77234176}
+[pass] LP21-Q01 quiet wait queries preserve canonical bytes and cold detail
+[query] {"kind":"phase","stage":"quiet","total":32,"relevant":2,"protected":2,"samples":4096,"attempts":8,"fallbacks":0,"writes":0}
+[query] {"kind":"thread","stage":"quiet","thread":"reader","attempts":8,"fallbacks":0,"writes":0,"callCount":8,"wallNs":2266174291,"maxCallNs":284231958,"waitCount":40,"waitNs":2878,"maxWaitNs":208,"holdCount":40,"holdNs":521224247,"maxHoldNs":24841833,"offlockCalls":16,"offlockNs":1741920042,"protectionCalls":8,"protectionNs":125534834,"metricRows":19}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"journal.locatedRawRead.bytes","count":17255680,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"journal.locatedRawRead.calls","count":16,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call","count":8,"inclusiveNs":2266174291,"exclusiveNs":3027124,"maximumNs":284231958}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold","count":40,"inclusiveNs":521224247,"exclusiveNs":18002162,"maximumNs":24841833}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity","count":16,"inclusiveNs":6535334,"exclusiveNs":5269166,"maximumNs":429625}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":1266168,"exclusiveNs":1266168,"maximumNs":100834}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/journal.ParseRecordingMutationV1","count":16,"inclusiveNs":371151917,"exclusiveNs":371151917,"maximumNs":23684667}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection","count":8,"inclusiveNs":125534834,"exclusiveNs":49459,"maximumNs":15776792}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment","count":16,"inclusiveNs":125485375,"exclusiveNs":1580250,"maximumNs":7981333}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":123905125,"exclusiveNs":302958,"maximumNs":7880084}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":123602167,"exclusiveNs":123602167,"maximumNs":7861334}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/catalog.lock.wait","count":40,"inclusiveNs":2878,"exclusiveNs":2878,"maximumNs":208}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize","count":16,"inclusiveNs":1741920042,"exclusiveNs":383722754,"maximumNs":109521083}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1","count":16,"inclusiveNs":1233025458,"exclusiveNs":1108546791,"maximumNs":77427375}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":124478667,"exclusiveNs":337960,"maximumNs":7887334}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":124140707,"exclusiveNs":124140707,"maximumNs":7866334}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment","count":16,"inclusiveNs":125171830,"exclusiveNs":1648119,"maximumNs":7917917}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":123523711,"exclusiveNs":305295,"maximumNs":7814542}
+[query] {"kind":"cost","stage":"quiet","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":123218416,"exclusiveNs":123218416,"maximumNs":7795250}
+[lp17] {"kind":"memory","stage":"query_quiet_after","sources":32,"currentRssBytes":298647552,"peakRssBytes":298647552}
+[pass] LP21-Q02 natural overlap preserves exact snapshots and all normal writes
+[query] {"kind":"phase","stage":"overlap","total":32,"relevant":2,"protected":2,"samples":4096,"attempts":8,"fallbacks":1,"writes":16}
+[query] {"kind":"thread","stage":"overlap","thread":"reader","attempts":8,"fallbacks":1,"writes":0,"callCount":8,"wallNs":2486627376,"maxCallNs":433229959,"waitCount":40,"waitNs":2503,"maxWaitNs":209,"holdCount":40,"holdNs":789599709,"maxHoldNs":298115917,"offlockCalls":15,"offlockNs":1693928165,"protectionCalls":8,"protectionNs":129209915,"metricRows":29}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"journal.locatedRawRead.bytes","count":18334160,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"journal.locatedRawRead.calls","count":17,"inclusiveNs":0,"exclusiveNs":0,"maximumNs":0}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call","count":8,"inclusiveNs":2486627376,"exclusiveNs":3096999,"maximumNs":433229959}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold","count":40,"inclusiveNs":789599709,"exclusiveNs":19962506,"maximumNs":298115917}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment","count":2,"inclusiveNs":15493166,"exclusiveNs":197125,"maximumNs":7748083}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":2,"inclusiveNs":15296041,"exclusiveNs":39541,"maximumNs":7653416}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":2,"inclusiveNs":15256500,"exclusiveNs":15256500,"maximumNs":7632875}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity","count":17,"inclusiveNs":7148249,"exclusiveNs":5777208,"maximumNs":459125}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1","count":17,"inclusiveNs":1371041,"exclusiveNs":1371041,"maximumNs":92500}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/journal.ParseRecordingMutationV1","count":17,"inclusiveNs":400616498,"exclusiveNs":400616498,"maximumNs":25572542}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize","count":2,"inclusiveNs":217169375,"exclusiveNs":47424000,"maximumNs":108592125}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ParseRecordingSourceBindingV1","count":2,"inclusiveNs":154022875,"exclusiveNs":138243000,"maximumNs":77076667}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1","count":2,"inclusiveNs":15779875,"exclusiveNs":43416,"maximumNs":7949125}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":2,"inclusiveNs":15736459,"exclusiveNs":15736459,"maximumNs":7927542}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ValidateRecordingSourceBindingForSegment","count":2,"inclusiveNs":15722500,"exclusiveNs":204917,"maximumNs":7877792}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":2,"inclusiveNs":15517583,"exclusiveNs":38875,"maximumNs":7776458}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":2,"inclusiveNs":15478708,"exclusiveNs":15478708,"maximumNs":7756791}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection","count":8,"inclusiveNs":129209915,"exclusiveNs":64582,"maximumNs":16397542}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment","count":16,"inclusiveNs":129145333,"exclusiveNs":1675751,"maximumNs":8389542}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":16,"inclusiveNs":127469582,"exclusiveNs":308957,"maximumNs":8289250}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.hold/query.protection/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":16,"inclusiveNs":127160625,"exclusiveNs":127160625,"maximumNs":8270541}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/catalog.lock.wait","count":40,"inclusiveNs":2503,"exclusiveNs":2503,"maximumNs":209}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize","count":15,"inclusiveNs":1693928165,"exclusiveNs":365703120,"maximumNs":146825500}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1","count":15,"inclusiveNs":1207448417,"exclusiveNs":1087270625,"maximumNs":114399667}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1","count":15,"inclusiveNs":120177792,"exclusiveNs":336959,"maximumNs":8336500}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":15,"inclusiveNs":119840833,"exclusiveNs":119840833,"maximumNs":8311541}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment","count":15,"inclusiveNs":120776628,"exclusiveNs":1594464,"maximumNs":8473334}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1","count":15,"inclusiveNs":119182164,"exclusiveNs":311207,"maximumNs":8365459}
+[query] {"kind":"cost","stage":"overlap","thread":"reader","scope":"query.call/query.materialize/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence","count":15,"inclusiveNs":118870957,"exclusiveNs":118870957,"maximumNs":8343625}
+[query] {"kind":"thread","stage":"overlap","thread":"writer","attempts":0,"fallbacks":0,"writes":16,"callCount":0,"wallNs":0,"maxCallNs":0,"waitCount":16,"waitNs":25315416,"maxWaitNs":25315000,"holdCount":16,"holdNs":10394293,"maxHoldNs":1779458,"offlockCalls":0,"offlockNs":0,"protectionCalls":0,"protectionNs":0,"metricRows":12}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold","count":16,"inclusiveNs":10394293,"exclusiveNs":1009375,"maximumNs":1779458}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked","count":16,"inclusiveNs":9384918,"exclusiveNs":1688213,"maximumNs":1690083}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked","count":16,"inclusiveNs":2433456,"exclusiveNs":2433456,"maximumNs":301875}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked","count":16,"inclusiveNs":2482291,"exclusiveNs":2482291,"maximumNs":1035417}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned","count":16,"inclusiveNs":2780958,"exclusiveNs":1953999,"maximumNs":293042}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity","count":16,"inclusiveNs":57961,"exclusiveNs":36961,"maximumNs":22375}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":21000,"exclusiveNs":21000,"maximumNs":5000}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord","count":16,"inclusiveNs":116708,"exclusiveNs":89708,"maximumNs":13917}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":27000,"exclusiveNs":27000,"maximumNs":2541}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1","count":16,"inclusiveNs":632250,"exclusiveNs":632250,"maximumNs":118917}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1","count":16,"inclusiveNs":20040,"exclusiveNs":20040,"maximumNs":1625}
+[query] {"kind":"cost","stage":"overlap","thread":"writer","scope":"catalog.lock.wait","count":16,"inclusiveNs":25315416,"exclusiveNs":25315416,"maximumNs":25315000}
+[lp17] {"kind":"memory","stage":"query_overlap_after","sources":32,"currentRssBytes":301678592,"peakRssBytes":301678592}
+[pass] LP21-Q02 forced unrelated Apply falls back once without performance timing
+[pass] LP21-Q03 both selected sources stay protected until exact lease release
+[pass] LP21-Q03 released sources regain the existing deletion behavior
+[query] {"kind":"forced","total":32,"attempts":1,"fallbacks":1,"writes":1,"timed":false}
+[query] {"kind":"summary","total":32,"relevant":2,"protected":2,"samples":4096,"pass":6,"fail":0,"nativeFileEvidence":true}
+       43.88 real        43.13 user         0.43 sys
+           301875200  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               20958  page reclaims
+                  65  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 363  voluntary context switches
+               22886  involuntary context switches
+        872831169278  instructions retired
+        186633444348  cycles elapsed
+           260686736  peak memory footprint
+{"kind":"phase-result","label":"query-32","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":43899,"groupPeakRssBytes":303251456,"observationFailure":null,"outputBytes":25250}
+{"kind":"query-oracle","total":32,"valid":true}
+{"kind":"store-cleanup","store":"<owned-root>/query-32","bytes":188084768,"removed":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":64151889,"removed":true}
+{"kind":"run-result","mode":"query","id":"lp21-01","diagnosticPass":true,"failure":null,"phases":5,"elapsedMs":80273,"productPass":false,"tokenConsumed":null}

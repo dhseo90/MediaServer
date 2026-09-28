@@ -1,0 +1,23 @@
+✔ WLS01 genuine offer and compatible answer accepted (0.689334ms)
+✔ WLS02 wrong creation status or content type rejected (0.136458ms)
+✔ WLS03 echoed offer and wrong DTLS or direction rejected (0.120333ms)
+✔ WLS04 missing codec, mismatched mid or rejected media rejected (0.288833ms)
+✔ WLS05 unsafe or non-WHEP Location never followed (0.113334ms)
+✔ WLS06 bounded SDP rejects truncation, duplicate attributes and extra media (0.311541ms)
+✔ WLS07 ICE shape validated without requiring connectivity (0.077834ms)
+✔ WLS08 deletion and repeated deletion have distinct exact oracles (0.049042ms)
+✔ WLS09 malformed offer rejection cannot be a server error or SDP success (0.0655ms)
+✔ WLS10 external ICE environment and advertised config rejected (0.108375ms)
+✔ WLS11 timeout, overflow, signal and spawn failure never pass (0.062875ms)
+✔ WLS12 diagnostics expose only fixed numeric and hash fields and modes are exact (0.295291ms)
+✔ WLS13 failure phase and errno are allowlisted without raw error leakage (0.0685ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45.180375
+
+[execution] {"command":"bash server.sh verify-whep-local-signaling --self-test","utc":"2026-09-21T14:42:30.617Z","exit":0,"signal":null,"elapsedMs":157,"sha256":"a169b8e451f92dfea61c8f80edf665fb5e1466dbf8d3599c65cfe8747f8f6a33","bytes":1149,"runnerSha256":"1aab1060437fe828bd69cfbfc515e4b2ca3273a5526b451ba40b326146a800b7"}

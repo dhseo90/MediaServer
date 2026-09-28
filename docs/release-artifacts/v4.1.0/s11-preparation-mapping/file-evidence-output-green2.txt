@@ -1,0 +1,4 @@
+[run] label=green2 root=<owned-temp>/media-server-file-evidence.iUlQTo
+[pass] FE01 actual writer file_evidence persisted
+[cleanup] path=<owned-temp>/media-server-file-evidence.iUlQTo bytes=4646986 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

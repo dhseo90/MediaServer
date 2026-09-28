@@ -1,0 +1,10 @@
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 (158.407125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.709209

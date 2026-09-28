@@ -1,0 +1,7 @@
+{
+  "command": "./server.sh verify-v390-review4-feature-semantic-source-approvals",
+  "exit": 0,
+  "elapsedMs": 14402,
+  "stdout": "== V390 REVIEW4 independent source approvals ==\n- audit rows revalidated: 986\n- candidate digest: 46b99819c163277cf8421c058880d20ca4d32b8d2c4ba3cdbcff98099d1bdf59\n- approvals verified: 986\n- approval ledger write: committed-fixture-verified\n- failures: 0\n",
+  "stderr": ""
+}

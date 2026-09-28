@@ -1,0 +1,22 @@
+command: bash scripts/internal/verify_v410_recording_observation_runtime.sh
+exit: 0
+observation elapsed ms: 9702 (tool dispatch~final collection; process duration 아님)
+token start/end/consumed: 미집계 (실측 집계 도구 없음)
+[pass] runtime-configured-interval
+[pass] runtime-status-limited-scope
+[pass] runtime-status-global-scope
+[pass] runtime-real-vp8-fixture
+[pass] runtime-attach
+[pass] runtime-observer-exception-isolation
+[pass] runtime-tap-lock-reentry
+[pass] runtime-live-fanout-unblocked
+[pass] S10-C111 실제 manager 전달
+[pass] runtime-captured-provenance-immutable
+[pass] runtime-tracking-disabled-independent
+[pass] runtime-built-event-record-observer
+[pass] S10-C112 미관측 입력 기존 동작
+[pass] runtime-tap-stop-once
+[pass] runtime-subscriber-cleanup
+S07 runtime failures=0
+5384	/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-s07-runtime.vNm2ik
+[pass] runtime temporary cleanup

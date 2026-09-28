@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateS05Registration } from "./v410_s05_inventory.mjs";
 import {
   loadImplementationManifest,
   validateImplementationManifest,
@@ -84,6 +85,10 @@ const canonicalSourceSemanticClosureVerifiers = [
   "verify-v360-command-plan-dry-run-simulator",
 ];
 const checks = [];
+
+check("S05 개별 동작 등록 exact 연결 (실행 증거 아님)", () => {
+  validateS05Registration({ rootDir, inventoryText: inventory });
+});
 
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");

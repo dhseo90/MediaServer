@@ -1,0 +1,40 @@
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (1.337916ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.332333ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.144ms)
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (1.309084ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.218375ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.08125ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.055834ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.04575ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.042583ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.039959ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.040959ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.043458ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.177042ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.222208ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (5.281959ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.270417ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.203792ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.227416ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.164375ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.078167ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.501083ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.242708ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.0875ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.101833ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.045875ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.043083ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.072667ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.100875ms)
+✔ LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (1.807292ms)
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.258125ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.343958ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.052334ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.016125

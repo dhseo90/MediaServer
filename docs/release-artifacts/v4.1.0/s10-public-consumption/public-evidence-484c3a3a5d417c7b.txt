@@ -1,0 +1,17 @@
+[pass] LOC01 exact media location preserves identity and mapping
+[pass] LOC02 unknown UTC does not discard exact media location
+[pass] LOC03 UTC point returns both overlapping files
+[pass] LOC04 UTC point preserves separate mappings in one file
+[pass] LOC05 point lookup uses half-open bounds
+[pass] LOC06 unknown mapping never extrapolates UTC
+[pass] LOC07 known candidates coexist with unknown coverage
+[pass] LOC08 rational conversion preserves exact non-nanosecond PTS
+[pass] LOC09 fractional PTS remains unknown without rounding
+[pass] LOC10 arithmetic extremes do not overflow
+[pass] LOC11 deleted exact ID is channel scoped
+[pass] LOC12 invalid input is rejected without mutation
+[pass] LOC13 reopened JSONL and SQLite locations are identical
+[pass] LOC14 metadata resolution does not require files or alter holds
+[summary] pass=14 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.E7kez4 bytes=4753391 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

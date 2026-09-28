@@ -17,11 +17,13 @@ elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-PID_FILE="${ROOT_DIR}/.media_server.pid"
-ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
-PORT_FILE="${ROOT_DIR}/.media_server.port"
-MODE_FILE="${ROOT_DIR}/.media_server.mode"
-LOG_FILE="${ROOT_DIR}/.media_server.log"
+media_server_configure_runtime_state "${ROOT_DIR}"
+STATE_DIR="${MEDIA_SERVER_RESOLVED_STATE_DIR}"
+PID_FILE="${STATE_DIR}/.media_server.pid"
+ADDRESS_FILE="${STATE_DIR}/.media_server.address"
+PORT_FILE="${STATE_DIR}/.media_server.port"
+MODE_FILE="${STATE_DIR}/.media_server.mode"
+LOG_FILE="${STATE_DIR}/.media_server.log"
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 
 if [[ -n "${MEDIA_SERVER_LISTEN_PORT:-}" ]]; then

@@ -1,0 +1,23 @@
+[pass] runtime-configured-interval
+[pass] runtime-status-limited-scope
+[pass] runtime-status-global-scope
+[pass] runtime-real-vp8-fixture
+[pass] runtime-attach
+[pass] runtime-observer-exception-isolation
+[pass] runtime-tap-lock-reentry
+[pass] runtime-live-fanout-unblocked
+[pass] S10-C111 실제 manager 전달
+[pass] runtime-captured-provenance-immutable
+[pass] runtime-tracking-disabled-independent
+[pass] runtime-built-event-record-observer
+[pass] S10-C112 미관측 입력 기존 동작
+[fail] S10-D18 실제decoder-manager 직접구간 union 선택
+[fail] S10-D15 실제 queued sequence 미래제외
+[fail] S10-D20 live/latest 증거보존·history 신규포인터 제외
+[fail] S10-D19 실제PTS rollback namespace 증거격리
+[pass] runtime-rollback-and-tap-stop-once
+[pass] runtime-subscriber-cleanup
+S07 runtime failures=4
+6252	/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-s07-runtime.DBFvXq
+[pass] runtime temporary cleanup
+

@@ -1,0 +1,59 @@
+{"kind":"start","utc":"2026-09-20T01:38:57.128Z","mode":"green","id":"automatic-noop-crypto-02","suite":"automatic-noop-crypto-off","source":[{"name":"include/recording/recording_catalog.h","sha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"1c032bee44f8304cf87c9a2bd4afc32515ddf396df20541bfb499a7d7a378080"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"2765b0b02215022d86cf74fd8c9aadde35cf06feeb7a93029220b82cf5e76c27"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"},{"name":"scripts/internal/recording_checkpoint_noop_smoke.cpp","sha256":"123628c41932847b6119297ef24499fc313de711c41990b9d30a4a012b369fb7"},{"name":"scripts/internal/recording_checkpoint_noop_counter.h","sha256":"30760419b4a0d4bce1149b5a415fc91315374dd33fddbc2a00f99d96bdfdf2ba"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","automatic-noop-crypto-off"],"seconds":60}
+[instrument] noop_journal_exact_insertions=3 original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d instrumented_sha256=7f488ae532118b86223af75bfecbe94124929b7f8959b331e982f17dca550cae
+[instrument] noop_catalog_exact_insertions=2
+[source] {"name":"scripts/internal/recording_checkpoint_noop_smoke.cpp","sha256":"123628c41932847b6119297ef24499fc313de711c41990b9d30a4a012b369fb7"}
+[source] {"name":"scripts/internal/recording_checkpoint_noop_counter.h","sha256":"30760419b4a0d4bce1149b5a415fc91315374dd33fddbc2a00f99d96bdfdf2ba"}
+[source] {"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"}
+[instrument] catalog_sha256=4868a56cb79506d4df099713005ff539420621a5e7ec305e0d0ade4f52ccd41f binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+        3.36 real         2.93 user         0.20 sys
+           308068352  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               68840  page reclaims
+                3827  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  12  messages sent
+                   0  messages received
+                   2  signals received
+                 928  voluntary context switches
+                4416  involuntary context switches
+            80905427  instructions retired
+            36411401  cycles elapsed
+             2081176  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3379,"groupPeakRssBytes":319995904}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP20-C03 crypto-off preserves checkpoint rejection and resident support
+[summary] LP18 pass=1 fail=0
+        0.57 real         0.14 user         0.03 sys
+            36765696  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                3984  page reclaims
+                 436  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  18  voluntary context switches
+                 429  involuntary context switches
+          3091984558  instructions retired
+           676966090  cycles elapsed
+             5407392  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":585,"groupPeakRssBytes":4227072}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":6448175,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:39:01.106Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3979}

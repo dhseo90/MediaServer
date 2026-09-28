@@ -32,6 +32,7 @@ import {
   review4SelfDeclaredRuntimeReadback,
   review4SourceFlowDigest,
   review4WholeFileSourceAssertion,
+  review4AssertionBranchText,
   stableStringify,
   validateReview4ApprovalEnvelope,
   validateReview4SemanticProof,
@@ -1231,23 +1232,7 @@ function evidenceTokenBound(evidenceToken, from, to, kind) {
 }
 
 function rawAssertionBranchText(role) {
-  if (!role?.file || !Number.isInteger(role.line) || !fs.existsSync(path.join(rootDir, role.file))) return "";
-  const lines = readText(role.file).split(/\r?\n/);
-  const assertionIndex = role.line - 1;
-  const anchor = String(role.anchor || "");
-  for (let index = assertionIndex; index >= Math.max(0, assertionIndex - 120); index -= 1) {
-    const match = lines[index].match(/\bfor\s*\(\s*const\s+([A-Za-z_$][A-Za-z0-9_$]*)\s+of\s*\[/);
-    if (!match || !new RegExp(`\\b${escapeRegExp(match[1])}\\b`).test(anchor)) continue;
-    for (let probe = index; probe <= Math.min(assertionIndex, index + 120); probe += 1) {
-      if (!/\]\s*\)\s*\{\s*$/.test(lines[probe])) continue;
-      const column = lines[probe].lastIndexOf("{");
-      if (matchingBraceLine(lines, probe + 1, column) >= role.line) {
-        return lines.slice(index, assertionIndex + 1).join("\n");
-      }
-      break;
-    }
-  }
-  return lines.slice(Math.max(0, assertionIndex - 2), Math.min(lines.length, assertionIndex + 3)).join("\n");
+  return review4AssertionBranchText(rootDir, role);
 }
 
 function locatorContains(from, to, sourceIndex) {

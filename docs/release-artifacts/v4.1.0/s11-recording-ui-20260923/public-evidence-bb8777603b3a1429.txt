@@ -1,0 +1,251 @@
+명령: MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-v410-recording-catalog
+exit: 0
+
+[pass] journal open:
+[pass] fallback catalog open:
+[pass] SQLite off mode 표시
+[pass] segment finalize journal+projection:
+[pass] fallback range query
+[pass] event link FK 위반 거부
+[pass] FK 위반 transaction/journal 전체 rollback
+[pass] 최초 durable mutation 1개
+[pass] 동일 mutation 중복 append
+[pass] 손상 사이 정상 durable mutation 보존
+[pass] 중간 corrupt line count
+[pass] 마지막 truncated line skip
+[pass] fallback replay open
+[pass] 같은 mutation idempotent replay
+[pass] 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존
+[pass] 중복 replay row/합계 불증가
+[pass] 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:
+[pass] writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed
+[pass] v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed
+[pass] SQLite catalog open/rebuild:
+[pass] SQLite primary mode 표시
+[pass] SQLite on/off range query ID·순서 parity
+[pass] journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분
+[pass] journal 없는 손상 media orphan 구분
+[pass] projection failover journal open:
+[pass] projection failover catalog open:
+[pass] 실제 SQLite INSERT 실패 trigger 설치
+[pass] SQLite 투영 실패 뒤 journal+memory finalize 유지:
+[pass] SQLite 투영 실패 즉시 JSONL fallback 전환
+[pass] 재시작 rebuild 전 실패 trigger 제거
+[pass] 투영 실패 직후 in-memory query 정합성 유지
+[pass] projection failover 재시작 journal rebuild:
+[pass] 재시작 후 journal에서 누락 SQLite projection 복구
+[pass] 재시작 후 SQLite primary 복귀
+[pass] 재시작 journal rebuild가 실제 SQLite row 복원
+[pass] tombstone journal open:
+[pass] tombstone catalog open:
+[pass] tombstone 대상 segment finalize:
+[pass] tombstone 대상 deletion request:
+[pass] tombstone 완료 기록:
+[pass] catalog finalize가 tombstone segment ID 재사용을 거부해야 함
+[pass] 손상 SQLite 격리 후 journal rebuild:
+[pass] 손상 SQLite 원본 격리
+[pass] 격리 SQLite 파일 보존
+[pass] 격리 후 journal rebuild 결과
+[pass] S10-3A future-schema journal read open
+[pass] S10-3A future-schema unsupported classification
+[pass] S10-3A future-schema catalog open denied
+[pass] S10-3A future-schema catalog retry denied
+[pass] S10-3A future-schema journal bytes preserved
+[pass] S10-3A future-schema SQLite bytes preserved
+[pass] S10-3A future-schema writer cleanup untouched
+[pass] S10-3A arbitrary-schema journal read open
+[pass] S10-3A arbitrary-schema unsupported classification
+[pass] S10-3A arbitrary-schema catalog open denied
+[pass] S10-3A arbitrary-schema catalog retry denied
+[pass] S10-3A arbitrary-schema journal bytes preserved
+[pass] S10-3A arbitrary-schema SQLite bytes preserved
+[pass] S10-3A arbitrary-schema writer cleanup untouched
+[pass] S10-3A empty-schema journal read open
+[pass] S10-3A empty-schema unsupported classification
+[pass] S10-3A empty-schema catalog open denied
+[pass] S10-3A empty-schema catalog retry denied
+[pass] S10-3A empty-schema journal bytes preserved
+[pass] S10-3A empty-schema SQLite bytes preserved
+[pass] S10-3A empty-schema writer cleanup untouched
+[pass] S10-3A future-type journal read open
+[pass] S10-3A future-type unsupported classification
+[pass] S10-3A future-type catalog open denied
+[pass] S10-3A future-type catalog retry denied
+[pass] S10-3A future-type journal bytes preserved
+[pass] S10-3A future-type SQLite bytes preserved
+[pass] S10-3A future-type writer cleanup untouched
+[pass] S10-3A malformed journal open
+[pass] S10-3A malformed JSON missing fields and wrong types remain corrupt
+[pass] S10-O01 reservation journal open
+[pass] S10-O01 first reservation returns four IDs and sequence one
+[pass] S10-O01 versioned reservation payload replays
+[pass] S10-O01 new reservation records actual occurred time
+[pass] S10-O02 identical retry preserves sequence and bytes
+[pass] S10-O03 reopened instance allocates next sequence
+[pass] S10-O03 new process resumes durable sequence
+[pass] S10-O04 different store rejected
+[pass] S10-O04 reused request with different segment rejected
+[pass] S10-O04 reused request with different channel rejected
+[pass] S10-O04 reused segment with different request rejected
+[pass] S10-O04 conflicts preserve original bytes
+[pass] S10-O05/O06 reject and preserve corrupt
+[pass] S10-O05/O06 reject and preserve unsupported-schema
+[pass] S10-O05/O06 reject and preserve unsupported-type
+[pass] S10-O05/O06 reject and preserve tail
+[pass] S10-O05/O06 reject and preserve payload-zero
+[pass] S10-O05/O06 reject and preserve payload-negative
+[pass] S10-O05/O06 reject and preserve payload-fraction
+[pass] S10-O05/O06 reject and preserve payload-overflow
+[pass] S10-O05/O06 reject and preserve duplicate-sequence
+[pass] S10-O05/O06 reject and preserve decreasing-sequence
+[pass] S10-O05/O06 reject and preserve duplicate-request
+[pass] S10-O05/O06 reject and preserve duplicate-segment
+[pass] S10-O05/O06 reject and preserve store-conflict
+[pass] S10-O05/O06 reject and preserve ordinary-before
+[pass] S10-O05/O06 reject and preserve ordinary-after
+[pass] S10-O05/O06 reject and preserve line-cap
+[pass] S10-O05 reservation entity envelope binding rejects mismatch
+[pass] S10-O05 reservation request envelope binding rejects mismatch
+[pass] S10-O01 strict reservation parser accepts versioned literal
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O06 INT64_MAX identical retry remains valid
+[pass] S10-O06 sequence overflow rejected without write
+[pass] S10-O02 identical durable reservation duplicates remain idempotent
+[pass] S10-O06 sequence gaps remain valid and allocate above maximum
+[pass] S10-O07 four simultaneous processes finish reservations
+[pass] S10-O07 concurrent sequences are unique and complete
+[pass] S10-O07 next sequence follows concurrent reservations
+[pass] S10-O08 ordinary Append cannot reserve orders
+[pass] S10-O08 unopened journal rejected
+[pass] S10-O08 null result rejected
+[pass] S10-O08 invalid opaque ID rejected
+[pass] S10-O08 failed reservation does not expose tentative result
+[pass] S10-O09 unsafe file binding rejected and original preserved inode
+[pass] S10-O09 unsafe file binding rejected and original preserved parent
+[pass] S10-O09 unsafe file binding rejected and original preserved symlink
+[pass] S10-O09 unsafe file binding rejected and original preserved hardlink
+[pass] S10-O10 reservation and normal segment coexist in catalog
+[pass] S10-O04 reserve then finalize permits identical retry
+[pass] S10-O10 reservation survives catalog rebuild without changing segment query
+[pass] S10-O04 legacy segment cannot acquire retroactive reservation
+[pass] S10-M06 opened catalog accepts fresh exact reservation V2 finalize
+[pass] S10-M07 V2 find preserves complete metadata
+[pass] S10-M07 identical V2 recovery is idempotent
+[pass] S10-M07 V2 is absent from V1 range query
+[pass] S10-M07 V2 registered path is not orphan
+[pass] S10-M07 SQLite exact V2 JSON and path match
+[pass] S10-M07 JSONL restart preserves V2 exact payload
+[pass] S10-M06 wrong reservation tuple rejected store
+[pass] S10-M06 wrong reservation tuple rejected request
+[pass] S10-M06 wrong reservation tuple rejected segment
+[pass] S10-M06 wrong reservation tuple rejected channel
+[pass] S10-M06 wrong reservation tuple rejected sequence
+[pass] S10-M09 immutable V2 mapping mismatch rejected
+[pass] S10-M09 bad V2 startup retry preserves original state bad-payload
+[pass] S10-M09 bad V2 startup retry preserves original state missing-order
+[pass] S10-M09 bad V2 startup retry preserves original state bad-order
+[pass] S10-M09 bad V2 startup retry preserves original state conflicting-order
+[pass] S10-M09 bad V2 startup retry preserves original state tail
+[pass] S10-M09 bad V2 startup retry preserves original state corrupt
+[pass] S10-M09 bad V2 startup retry preserves original state unsafe-path
+[pass] S10-M09 default off rejects V2 before SQLite changes
+[pass] S10-M09 V2 replay namespace and deletion duplicate
+[pass] S10-M09 V2 replay namespace and deletion deleted
+[pass] S10-M09 V2 replay namespace and deletion v1-before
+[pass] S10-M09 V2 replay namespace and deletion v1-after
+[pass] S10-M09 V2 replay namespace and deletion deleted-before
+[pass] S10-M09 V2 replay namespace and deletion resurrection
+[pass] S10-M09 V2 replay namespace and deletion mutation-collision
+[pass] S10-M09 V2 finalize rejects missing media
+[pass] S10-M09 V2 finalize rejects directory media
+[pass] S10-M09 fresh candidate rejects mapping
+[pass] S10-M09 fresh candidate rejects path
+[pass] S10-M09 fresh candidate rejects tombstone
+[pass] S10-SW01 managed empty root opens with lifetime lease
+[pass] S10-SW02 same process second managed owner denied
+[pass] S10-SW03 different process owner and inherited use denied
+[pass] S10-SW12 managed duplicate descriptors are close-on-exec
+[pass] S10-SW05 managed reserve append replay use owned descriptor
+[pass] S10-SW06 raw managed access and legacy default path denied
+[pass] S10-SW01 managed Reserve rejects different store identity
+[pass] S10-SW10 catalog connection can inspect managed lease
+[pass] S10-SW04 owner destruction releases lease
+[pass] S10-SW01 managed reopen rejects different store identity
+[pass] S10-SW11 managed incomplete tail rejects append without changing bytes
+[pass] S10-SW07 legacy nonempty root preserved without conversion
+[pass] S10-SW08 partial initialization retry validates exact state lease
+[pass] S10-SW08 partial initialization retry validates exact state init
+[pass] S10-SW08 partial initialization retry validates exact state barrier
+[pass] S10-SW08 partial initialization retry validates exact state journal
+[pass] S10-SW08 partial initialization retry validates exact state incomplete
+[pass] S10-SW08 partial initialization retry validates exact state unknown
+[pass] S10-SW09 symlink inode and malformed marker rejected journal
+[pass] S10-SW09 symlink inode and malformed marker rejected marker
+[pass] S10-SW09 symlink inode and malformed marker rejected barrier
+[pass] S10-SW09 symlink inode and malformed marker rejected root-symlink
+[pass] S10-SB01 second managed catalog is denied
+[pass] S10-SB02 failed catalog cannot mutate journal or holds
+[pass] S10-SB03 attached catalog blocks unowned append but permits reservation
+[pass] S10-SB04 catalog destruction releases attachment
+[pass] S10-SB05 managed catalog rejects unsafe options outside
+[pass] S10-SB05 managed catalog rejects unsafe options dotdot
+[pass] S10-SB05 managed catalog rejects unsafe options media-symlink
+[pass] S10-SB05 managed catalog rejects unsafe options sqlite-symlink
+[pass] S10-SB05 managed catalog rejects unsafe options sqlite-hardlink
+[pass] S10-SB05 managed catalog rejects unsafe options disabled
+[pass] S10-SB06 failed open releases catalog attachment
+[pass] S10-SB07 managed SQLite sidecar rejected -wal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -wal hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal hardlink
+[pass] S10-SC01 managed repeated event fixture is valid
+[pass] S10-SC02 managed reservations avoid history reads
+[pass] S10-SC03 managed V2 finalize avoids full replay
+[pass] S10-SC04 checkpoint reduces superseded event payload bytes
+[pass] S10-SC05 checkpoint preserves latest event and all record identities
+[pass] S10-SC06 checkpoint is idempotent and preserves V2
+[pass] S10-SC08 receipt preserves retry identity and rejects direct append
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite
+[pass] S10-SC09 managed checkpoint SQL V2 payload and path
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl
+[pass] S10-SC10 checkpoint prefix recovers before writes
+[pass] S10-SC11 checkpoint mismatch preserves bytes and poisons owner
+[pass] S10-SC12 first accepted mutation controls latest event
+[pass] S10-SC16 automatic checkpoint uses accumulated growth
+[pass] S10-SC07 raw checkpoint is rejected
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens write
+[pass] S10-SC21 poison rejects hold mutation write
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens file-fsync
+[pass] S10-SC21 poison rejects hold mutation file-fsync
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens rename
+[pass] S10-SC21 poison rejects hold mutation rename
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync
+[pass] S10-SC21 poison rejects hold mutation dir-fsync
+[pass] S10-SC17 checkpoint preserves holds observations and deletion
+[pass] S10-SC17 checkpoint SQL hold observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart sqlite
+[pass] S10-SC17 checkpoint SQL restart observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart jsonl
+[pass] S10-SC19 invalid managed history remains unchanged malformed
+[pass] S10-SC19 invalid managed history remains unchanged unsupported
+[pass] S10-SC19 invalid managed history remains unchanged conflict
+[pass] S10-SC20 raw catalog rejects receipt before side effects
+[verify-v410-recording-catalog] pass=234 fail=0
+[pass] S10-SC13 crypto off raw remains usable
+[pass] S10-SC14 crypto off checkpoint is rejected
+[pass] S10-SC15 crypto off receipt reopen is rejected
+[pass] source 저장 callback reconcile 연결
+[pass] policy revision idempotency
+[pass] 5초 safety reconcile
+[pass] composition root 관리 저장소 선행 open
+[pass] composition helper journal 다음 catalog rebuild/open
+[pass] 서버 전 supervisor 시작
+[pass] ingress 전 event bridge 등록
+[pass] ingress 종료 뒤 recorder finalize
+[pass] composition root 시작/종료 순서
+[cleanup] path=/tmp/media_server_v410_recording_catalog-39966 bytes=27525470 removed=true

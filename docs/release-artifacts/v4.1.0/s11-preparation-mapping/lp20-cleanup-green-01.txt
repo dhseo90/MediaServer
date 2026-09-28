@@ -1,0 +1,258 @@
+command=node --test --test-reporter=tap scripts/internal/recording_current_integration.test.mjs
+exit=0
+elapsed_observed_ms=121; token start/end/consumed unavailable
+cleanup=no processes/listeners/temp; producer uses injected fixture
+ecf6f947367be661df1c28c2407eae36c685351579380839fbf286efe582fe48  scripts/internal/recording_current_integration_suite.mjs
+cec35734a79086df633cbc7bc6d04946b573a80e286c73ad27c0b61e701b0f5e  scripts/internal/recording_current_integration.test.mjs
+16d22abf33efaca8b44b593d59a044291c3a3ebef25db7bab239fc23de32f45a  scripts/internal/recording_process_cleanup.mjs
+
+TAP version 13
+# Subtest: S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박
+ok 1 - S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박
+  ---
+  duration_ms: 0.979916
+  type: 'test'
+  ...
+# Subtest: LP20-X01 실제 종료 producer의 정상 두 결과를 수용
+ok 2 - LP20-X01 실제 종료 producer의 정상 두 결과를 수용
+  ---
+  duration_ms: 0.107291
+  type: 'test'
+  ...
+# Subtest: LP20-X02 schema 누락는 정상 종료로 승인하지 않음
+ok 3 - LP20-X02 schema 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.166083
+  type: 'test'
+  ...
+# Subtest: LP20-X02 schema 불일치는 정상 종료로 승인하지 않음
+ok 4 - LP20-X02 schema 불일치는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.099417
+  type: 'test'
+  ...
+# Subtest: LP20-X02 반복 종료는 정상 종료로 승인하지 않음
+ok 5 - LP20-X02 반복 종료는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.136625
+  type: 'test'
+  ...
+# Subtest: LP20-X02 PID 누락는 정상 종료로 승인하지 않음
+ok 6 - LP20-X02 PID 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.067708
+  type: 'test'
+  ...
+# Subtest: LP20-X02 exit 비정상는 정상 종료로 승인하지 않음
+ok 7 - LP20-X02 exit 비정상는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.069791
+  type: 'test'
+  ...
+# Subtest: LP20-X02 signal 관측는 정상 종료로 승인하지 않음
+ok 8 - LP20-X02 signal 관측는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.068625
+  type: 'test'
+  ...
+# Subtest: LP20-X02 종료 미관측는 정상 종료로 승인하지 않음
+ok 9 - LP20-X02 종료 미관측는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.05875
+  type: 'test'
+  ...
+# Subtest: LP20-X02 stop 오류는 정상 종료로 승인하지 않음
+ok 10 - LP20-X02 stop 오류는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.094166
+  type: 'test'
+  ...
+# Subtest: LP20-X02 강제 종료는 정상 종료로 승인하지 않음
+ok 11 - LP20-X02 강제 종료는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.069542
+  type: 'test'
+  ...
+# Subtest: LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음
+ok 12 - LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.071667
+  type: 'test'
+  ...
+# Subtest: LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음
+ok 13 - LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.060458
+  type: 'test'
+  ...
+# Subtest: LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음
+ok 14 - LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.050625
+  type: 'test'
+  ...
+# Subtest: LP20-X02 archive 불가는 정상 종료로 승인하지 않음
+ok 15 - LP20-X02 archive 불가는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.041709
+  type: 'test'
+  ...
+# Subtest: LP20-X02 ports 누락는 정상 종료로 승인하지 않음
+ok 16 - LP20-X02 ports 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.045042
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 수 부족는 정상 종료로 승인하지 않음
+ok 17 - LP20-X02 port 수 부족는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.038875
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port kind 중복는 정상 종료로 승인하지 않음
+ok 18 - LP20-X02 port kind 중복는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.042916
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 미해제는 정상 종료로 승인하지 않음
+ok 19 - LP20-X02 port 미해제는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.056458
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음
+ok 20 - LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.046
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음
+ok 21 - LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.045375
+  type: 'test'
+  ...
+# Subtest: LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음
+ok 22 - LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.055541
+  type: 'test'
+  ...
+# Subtest: LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음
+ok 23 - LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.065709
+  type: 'test'
+  ...
+# Subtest: LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음
+ok 24 - LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음
+  ---
+  duration_ms: 0.050708
+  type: 'test'
+  ...
+# Subtest: S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부
+ok 25 - S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부
+  ---
+  duration_ms: 0.161583
+  type: 'test'
+  ...
+# Subtest: S11-CI02 nonzero 실패 후 나머지 미실행
+ok 26 - S11-CI02 nonzero 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.041667
+  type: 'test'
+  ...
+# Subtest: S11-CI02 signal 실패 후 나머지 미실행
+ok 27 - S11-CI02 signal 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.020625
+  type: 'test'
+  ...
+# Subtest: S11-CI02 output-limit 실패 후 나머지 미실행
+ok 28 - S11-CI02 output-limit 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.022166
+  type: 'test'
+  ...
+# Subtest: S11-CI02 summary-missing 실패 후 나머지 미실행
+ok 29 - S11-CI02 summary-missing 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.027708
+  type: 'test'
+  ...
+# Subtest: S11-CI02 summary-duplicate 실패 후 나머지 미실행
+ok 30 - S11-CI02 summary-duplicate 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.037167
+  type: 'test'
+  ...
+# Subtest: S11-CI02 cleanup-failed 실패 후 나머지 미실행
+ok 31 - S11-CI02 cleanup-failed 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.027
+  type: 'test'
+  ...
+# Subtest: S11-CI02 port-missing 실패 후 나머지 미실행
+ok 32 - S11-CI02 port-missing 실패 후 나머지 미실행
+  ---
+  duration_ms: 0.032208
+  type: 'test'
+  ...
+# Subtest: S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리
+ok 33 - S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리
+  ---
+  duration_ms: 0.045708
+  type: 'test'
+  ...
+# Subtest: S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부
+ok 34 - S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부
+  ---
+  duration_ms: 0.369792
+  type: 'test'
+  ...
+# Subtest: S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup
+ok 35 - S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup
+  ---
+  duration_ms: 3.847208
+  type: 'test'
+  ...
+# Subtest: S11-CI05 누락·중복item·불안정total·truncated·cap 거부
+ok 36 - S11-CI05 누락·중복item·불안정total·truncated·cap 거부
+  ---
+  duration_ms: 0.115833
+  type: 'test'
+  ...
+# Subtest: S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부
+ok 37 - S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부
+  ---
+  duration_ms: 0.127583
+  type: 'test'
+  ...
+# Subtest: S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부
+ok 38 - S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부
+  ---
+  duration_ms: 0.175291
+  type: 'test'
+  ...
+# Subtest: S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리
+ok 39 - S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리
+  ---
+  duration_ms: 0.148042
+  type: 'test'
+  ...
+# Subtest: S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부
+ok 40 - S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부
+  ---
+  duration_ms: 0.063791
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.020791

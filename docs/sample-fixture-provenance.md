@@ -23,6 +23,12 @@
 
 ## 공개 제외 대상
 
+검증 화면의 역사적 증거는 생성 fixture 자체와 구분합니다. v4.1.0 S09 JPEG20개에는
+숫자/색상 막대 검증 영상과 위 allowlist의 생성 tracking 영상에서 나온 player 화면이
+포함됩니다. 메인 직접 시각 확인·JPEG metadata 확인을 마친 정확한20개만 공개 정책의
+`reviewedHistoricalAssets` hash 결속으로 보존하며, 고객/현장 영상 허용으로 확장하지
+않습니다. 기존 부분 실행·실패·시각 정정 이력은 유지하고 새 UI 실행 결과로 사용하지 않습니다.
+
 - `video/imports/`의 allowlist 밖 영상
 - 운영/고객 영상, evidence snapshot, evidence clip bundle
 - YOLO/ONNX model binary와 대형 test media

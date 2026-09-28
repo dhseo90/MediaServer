@@ -4,6 +4,7 @@
 /build/
 /build-gst/
 /build-gst-onnx/
+/.media_server.gstreamer/
 /build-release-gst-onnx/
 /CMakeCache.txt
 /CMakeFiles/

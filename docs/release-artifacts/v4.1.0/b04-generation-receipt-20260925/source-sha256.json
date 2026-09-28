@@ -1,0 +1,42 @@
+[
+  {
+    "file": "src/domain/strict_json.cpp",
+    "sha256": "be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b"
+  },
+  {
+    "file": "include/domain/strict_json.h",
+    "sha256": "32ef5e1ab75432cf3c0cf9782fe942907242a75a1c0dec1a0496ae1e220ce9aa"
+  },
+  {
+    "file": "src/recording/recording_generation_manifest.cpp",
+    "sha256": "5fa8bed71c1809f6416ec4059b20c8e174a703a8783f2e511a984366bd43be72"
+  },
+  {
+    "file": "include/recording/recording_generation_manifest.h",
+    "sha256": "4688bd0890d3cd413ecad715d9c84c3fde7fc22153a74bd8d4e29cef288c4265"
+  },
+  {
+    "file": "src/recording/recording_generation_receipt.cpp",
+    "sha256": "5dc2a34f121b2a00e3f70f54d68e0de713efdf4d2fc1cb6c9b5fa02909637517"
+  },
+  {
+    "file": "include/recording/recording_generation_receipt.h",
+    "sha256": "a45e031a27a23c6f264b47dbf74053c651e28076c962ac99dea868845302f7a7"
+  },
+  {
+    "file": "scripts/internal/recording_generation_receipt_smoke.cpp",
+    "sha256": "4d9bbf64a0ee6cd2d822488090532e9242377a4e803e4f1885a637734ae73ddb"
+  },
+  {
+    "file": "scripts/internal/verify_recording_generation_receipt.sh",
+    "sha256": "89deb8194fefec8522804096f29fbf7fbbc4c73b3df4de1de2f9b2bd732237b6"
+  },
+  {
+    "file": "CMakeLists.txt",
+    "sha256": "14b0dd7eb8ddae1cbcd1c11053ad719ee1046c08f1bf12860cf825da2ae4082c"
+  },
+  {
+    "file": "server.sh",
+    "sha256": "cebbbfefa45dd718d3badf03d8331d2457820f5711bbdab0b3e3173aaf2d5b4c"
+  }
+]

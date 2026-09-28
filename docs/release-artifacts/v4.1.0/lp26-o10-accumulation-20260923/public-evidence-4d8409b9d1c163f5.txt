@@ -1,0 +1,11 @@
+[fail] 문서 로컬 링크/이미지 참조 오류
+  - docs/release-test-records.md: 존재하지 않는 anchor: superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#o29-후속-구조-보완의-선행-판정--2026-09-24
+
+== Docs link verification summary ==
+- markdown files: 328
+- local links: 12767
+- local images: 22
+- local anchors: 193
+- indexed docs: 76
+- index coverage exclusions: 244
+- failures: 1

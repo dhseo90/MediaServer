@@ -1,0 +1,87 @@
+{"kind":"start","utc":"2026-09-19T22:43:42.696Z","mode":"green","id":"checkpoint-snapshot-01","suite":"journal-checkpoint-snapshot","source":[{"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"},{"name":"include/recording/recording_journal.h","sha256":"4d69fab2e1f8ea671b20169d8eabec2cce40dad901e62c60d339f4b871712bd8"},{"name":"src/recording/recording_catalog.cpp","sha256":"d0791c60410512342f24dc6c33167f22e60a46ae80d12ac1daff72fcea046d39"},{"name":"src/recording/recording_journal.cpp","sha256":"424708728ad3661f4a6669adf8a38ec7b90e3016d3c39cedbd34455760ff6e2e"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f46c1fd2fca18478676314c989d6829b5dfc5f4227342d5f355ff2256f555bc4"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"fcb0edaa75054f45c320a536a126f6db75c9ec4e237bb4c887b3f4c5c0114bcd"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"d73004b1baf9fdae39c2c40b0a33ca8732a470896e2c023c1d513cc717e8ebb4"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"641e52e38bc67bedc630c9a13219e080f6b125bbc5e20a45141a361a0c35ca6a"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-checkpoint-snapshot"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] location_journal_original_sha256=424708728ad3661f4a6669adf8a38ec7b90e3016d3c39cedbd34455760ff6e2e location_journal_instrumented_sha256=578b1f119bb439ae186c3e54a16cfe85991d16780f519f0bd82f195e5470c597
+[instrument] location_declarations=1,1 location_header_sha256=4d69fab2e1f8ea671b20169d8eabec2cce40dad901e62c60d339f4b871712bd8
+[instrument] catalog_sha256=48e48f12766517fd815b7ce3dcfcd1d0029db588023218ec40bced38e99461d8 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"4d69fab2e1f8ea671b20169d8eabec2cce40dad901e62c60d339f4b871712bd8"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"424708728ad3661f4a6669adf8a38ec7b90e3016d3c39cedbd34455760ff6e2e"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"d0791c60410512342f24dc6c33167f22e60a46ae80d12ac1daff72fcea046d39"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"d73004b1baf9fdae39c2c40b0a33ca8732a470896e2c023c1d513cc717e8ebb4"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"641e52e38bc67bedc630c9a13219e080f6b125bbc5e20a45141a361a0c35ca6a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f46c1fd2fca18478676314c989d6829b5dfc5f4227342d5f355ff2256f555bc4"}
+        2.27 real         2.09 user         0.13 sys
+           302219264  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               56303  page reclaims
+                 591  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                   0  messages received
+                   3  signals received
+                  15  voluntary context switches
+                1930  involuntary context switches
+            79174394  instructions retired
+            36400950  cycles elapsed
+             2064792  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2288,"groupPeakRssBytes":315801600}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L17 snapshot baseline Replay preserves complete canonical value
+[pass] LP18-L17 checkpoint read snapshot capability exists
+[pass] LP18-L17 snapshot binds complete immutable original values
+[pass] LP18-L18 snapshot reads each cold original exactly once
+[pass] LP18-L17 external owned vector mutation cannot alter snapshot original
+[pass] LP18-L18 Prepare and Commit reuse snapshot without repeated cold reads
+[pass] LP18-L19 snapshot no-write checkpoint preserves exact bytes and tokens
+[pass] LP18-L19 recover-only snapshot cleanup retains generation and exact bytes
+[pass] LP18-L17 snapshot release leaves no journal or cache strong resident
+[pass] LP18-L18 null snapshot retains strict repeated-read fallback and exact receipt bytes
+[pass] LP18-L19 appended history invalidates snapshot and rejects stale candidate
+[pass] LP18-L19 reserved history invalidates snapshot and rejects stale candidate
+[pass] LP18-L19 detach and same-owner reattach require strict snapshot fallback
+[pass] LP18-L19 identical foreign journal snapshot uses strict local fallback
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison schema
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison id
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison entity
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison time
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison type
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison payload
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison order
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison count
+[pass] LP18-L19 snapshot does not bypass complete candidate field and order comparison null
+[pass] LP18-L19 receipt swap invalidates snapshot while old owned original survives
+[pass] LP18-L20 explicit Acquire rechecks same-size raw tamper despite owned snapshot
+[pass] LP18-L20 snapshot acquisition exception clears both outputs and poisons
+[pass] LP18-L17 snapshot preserves duplicate physical rows and noncanonical envelope bytes
+[pass] LP18-L18 catalog Checkpoint reuses one cold snapshot with exact bytes and projection
+[summary] LP18 pass=28 fail=0
+        0.64 real         0.15 user         0.04 sys
+            37011456  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4374  page reclaims
+                  59  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  46  voluntary context switches
+                 182  involuntary context switches
+          3566369760  instructions retired
+           794511743  cycles elapsed
+             6619832  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":659,"groupPeakRssBytes":2473984}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":5488547,"removed":true}
+{"kind":"result","utc":"2026-09-19T22:43:45.659Z","mode":"green","matched":true,"productPass":true,"elapsedMs":2964}

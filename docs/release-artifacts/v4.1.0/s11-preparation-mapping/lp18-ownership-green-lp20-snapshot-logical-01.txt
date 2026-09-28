@@ -1,0 +1,86 @@
+{"kind":"start","utc":"2026-09-20T02:00:56.886Z","mode":"green","id":"lp20-snapshot-logical-01","suite":"journal-logical","source":[{"name":"include/recording/recording_catalog.h","sha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"a4f8fbbcbd54e4598318dd5c3e4c9ac954da5cd485493c468714378358c34122"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"465856e8b6fc5eb805f6a16c2e52a0d8c144261fcbc445accfb2c977e0490c3a"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-logical"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d location_journal_instrumented_sha256=f4898ac228c769fcc413cda896a5cea6e41138e8f34bf48a7a3d52924e6721b9
+[instrument] location_declarations=1,1 location_header_sha256=44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5
+[instrument] catalog_sha256=fae7841311d61132a9ea4150c078c2d839cefde5ef9327f0b9e54d98727b61e7 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"a4f8fbbcbd54e4598318dd5c3e4c9ac954da5cd485493c468714378358c34122"}
+        2.41 real         2.21 user         0.14 sys
+           313180160  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               57694  page reclaims
+                 549  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  14  messages sent
+                   0  messages received
+                   3  signals received
+                  16  voluntary context switches
+                2284  involuntary context switches
+            81812567  instructions retired
+            38133214  cycles elapsed
+             2130328  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2425,"groupPeakRssBytes":326680576}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L21 logical ref baseline preserves raw bytes and independent Replay value
+[pass] LP18-L21 journal logical record ref capability exists
+[pass] LP18-L21 logical ref cold acquire preserves complete canonical value
+[pass] LP18-L21 logical ref acquisition does not retain a strong resident
+[pass] LP18-L21 logical ref reader survives resident release
+[pass] LP18-L22 logical refs remain unchanged after append and Reserve
+[pass] LP18-L22 logical ref retries preserve row count and durable bytes
+[pass] LP18-L24 null and foreign logical refs clear output without poisoning
+[pass] LP18-L21 logical refs distinguish duplicate IDs by physical row ordinal
+[pass] LP18-L23 no-write checkpoint preserves logical refs
+[pass] LP18-L23 recover-only checkpoint preserves logical refs
+[pass] LP18-L25 checkpoint ref preparation failure preserves bytes and current refs
+[pass] LP18-L23 receipt swap preserves refs only for full-field identical rows
+[pass] LP18-L23 changed receipt rejects old logical ref without poisoning
+[pass] LP18-L23 old owned original survives changed logical ref replacement
+[pass] LP18-L24 reopen rejects prior journal lineage without poisoning
+[pass] LP18-L21 resident fallback remains available through logical refs
+[pass] LP18-L24 logical ref acquire detects same-size raw tamper and poisons
+[pass] LP18-L24 logical ref truncation clears output and poisons
+[pass] LP18-L24 logical ref inode replacement clears output and poisons
+[pass] LP18-L25 logical ref Acquire exception clears output and poisons
+[pass] LP18-L24 logical ref fork rejects while parent remains valid
+[pass] LP18-L25 append ref mint exception poisons after durable write
+[pass] LP18-L25 append ref exception reopens exactly one durable record
+[pass] LP18-L25 Reserve ref mint exception withholds result and poisons
+[pass] LP18-L25 Reserve ref exception reopens and retries the same reservation
+[summary] LP18 pass=26 fail=0
+        0.66 real         0.26 user         0.04 sys
+           194592768  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               14226  page reclaims
+                  40  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  36  voluntary context switches
+                 218  involuntary context switches
+          6201220036  instructions retired
+          1270984004  cycles elapsed
+           164594528  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":680,"groupPeakRssBytes":9256960}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":22163874,"removed":true}
+{"kind":"result","utc":"2026-09-20T02:01:00.008Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3123}

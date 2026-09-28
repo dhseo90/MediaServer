@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -27,6 +28,8 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const policy = readPolicy();
+const preservedErrors = [];
+const preservedHeaders = validatePreservedHeaders();
 const files = collectCodeFiles(rootDir);
 const missingHeaders = [];
 const englishOnlyComments = [];
@@ -34,14 +37,22 @@ const headerPattern = new RegExp(policy.headerPatterns.join("|"));
 
 for (const file of files) {
   const relative = toRelative(file);
-  const lines = fs.readFileSync(file, "utf8").split(/\n/);
+  const bytes = fs.readFileSync(file);
+  const lines = bytes.toString("utf8").split(/\n/);
   const header = lines.slice(0, 8).join("\n");
-  if (!headerPattern.test(header)) {
+  const expectedHash = preservedHeaders.get(relative);
+  const preserved = expectedHash && crypto.createHash("sha256").update(bytes).digest("hex") === expectedHash;
+  if (expectedHash && !preserved) preservedErrors.push(`${relative}: read-hash-mismatch`);
+  if (!headerPattern.test(header) && !preserved) {
     missingHeaders.push(relative);
   }
   englishOnlyComments.push(...findEnglishOnlyComments(relative, lines));
 }
 
+if (preservedErrors.length > 0) {
+  console.log("[fail] preserved header 예외 검증");
+  for (const code of preservedErrors) console.log(`  - ${code}`);
+}
 if (missingHeaders.length > 0) {
   console.log("[fail] 상단 용도 주석 누락");
   for (const item of missingHeaders) console.log(`  - ${item}`);
@@ -57,8 +68,57 @@ console.log(`- files: ${files.length}`);
 console.log(`- missing headers: ${missingHeaders.length}`);
 console.log(`- english-only comments: ${englishOnlyComments.length}`);
 
-if (missingHeaders.length > 0 || englishOnlyComments.length > 0) {
+if (preservedErrors.length > 0 || missingHeaders.length > 0 || englishOnlyComments.length > 0) {
   process.exit(1);
+}
+
+function validatePreservedHeaders() {
+  const accepted = new Map();
+  const entries = policy.preservedHeaderExceptions === undefined ? [] : policy.preservedHeaderExceptions;
+  if (!Array.isArray(entries)) {
+    preservedErrors.push("invalid-list");
+    return accepted;
+  }
+  const seen = new Set();
+  for (const item of entries) {
+    if (!item || typeof item.path !== "string" ||
+        !/^[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*$/.test(item.path) ||
+        item.path.split("/").some(part => part === "." || part === "..") ||
+        typeof item.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(item.sha256) ||
+        typeof item.reason !== "string" || !/[가-힣]/.test(item.reason)) {
+      preservedErrors.push("invalid-entry");
+      continue;
+    }
+    if (seen.has(item.path)) {
+      preservedErrors.push(`${item.path}: duplicate-path`);
+      continue;
+    }
+    seen.add(item.path);
+    if (!item.path.startsWith("docs/release-artifacts/")) {
+      preservedErrors.push(`${item.path}: not-preserved-artifact`);
+      continue;
+    }
+    try {
+      let current = rootDir;
+      const parts = item.path.split("/");
+      for (let index = 0; index < parts.length; index++) {
+        current = path.join(current, parts[index]);
+        const stat = fs.lstatSync(current);
+        if (stat.isSymbolicLink() ||
+            (index === parts.length - 1 ? !stat.isFile() : !stat.isDirectory())) {
+          throw Error("invalid-file");
+        }
+      }
+      if (!isCodeFile(item.path) || shouldSkipPath(item.path) ||
+          crypto.createHash("sha256").update(fs.readFileSync(current)).digest("hex") !== item.sha256) {
+        throw Error("invalid-file");
+      }
+      accepted.set(item.path, item.sha256);
+    } catch {
+      preservedErrors.push(`${item.path}: file-binding-failed`);
+    }
+  }
+  return accepted;
 }
 
 function collectCodeFiles(dir) {

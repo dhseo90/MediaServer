@@ -1,0 +1,50 @@
+COMMAND bash scripts/internal/verify_recording_input_observation.sh
+RED exit=1 session=7878 elapsed=not-measured token=not-measured
+[FAIL] INPUT01 original missing zero and uint64 timestamps remain distinct
+[FAIL] INPUT02 serialized segment changes generation before next buffer
+[FAIL] INPUT03 DISCONT alone preserves source generation
+[FAIL] INPUT04 new sink lifetime has a distinct generation
+[FAIL] INPUT05 actual GOP cache replay preserves complete observation
+[FAIL] INPUT06 reordered PTS preserves generation original values and payload
+[FAIL] INPUT07 clock observation brackets UTC with a process identity
+[FAIL] INPUT08 repeated segment seqnum and duplicate installation do not reissue identity
+[FAIL] INPUT09 buffer list receives one observation per original buffer
+[FAIL] INPUT10 same buffer across pads and new segment retains first immutable observation
+[SUMMARY] pass=0 fail=10
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.Xy91Vn bytes=509944 removed=true
+
+COMMAND bash scripts/internal/verify_recording_input_observation.sh
+GREEN exit=0 session=49194 elapsed=not-measured token=not-measured
+[PASS] INPUT01 original missing zero and uint64 timestamps remain distinct
+[PASS] INPUT02 serialized segment changes generation before next buffer
+[PASS] INPUT03 DISCONT alone preserves source generation
+[PASS] INPUT04 new sink lifetime has a distinct generation
+[PASS] INPUT05 actual GOP cache replay preserves complete observation
+[PASS] INPUT06 reordered PTS preserves generation original values and payload
+[PASS] INPUT07 clock observation brackets UTC with a process identity
+[PASS] INPUT08 repeated segment seqnum and duplicate installation do not reissue identity
+[PASS] INPUT09 buffer list receives one observation per original buffer
+[PASS] INPUT10 same buffer across pads and new segment retains first immutable observation
+[SUMMARY] pass=10 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.YIeSxK bytes=520856 removed=true
+
+COMMAND git diff --check
+exit=0 output=empty
+
+COMMAND bash scripts/internal/verify_recording_input_observation.sh
+FINAL exit=0 session=51876 elapsed=not-measured token=not-measured
+[PASS] INPUT01 original missing zero and uint64 timestamps remain distinct
+[PASS] INPUT02 serialized segment changes generation before next buffer
+[PASS] INPUT03 DISCONT alone preserves source generation
+[PASS] INPUT04 new sink lifetime has a distinct generation
+[PASS] INPUT05 actual GOP cache replay preserves complete observation
+[PASS] INPUT06 reordered PTS preserves generation original values and payload
+[PASS] INPUT07 clock observation brackets UTC with a process identity
+[PASS] INPUT08 repeated segment seqnum and duplicate installation do not reissue identity
+[PASS] INPUT09 buffer list receives one observation per original buffer
+[PASS] INPUT10 same buffer across pads and new segment retains first immutable observation
+[PASS] INPUT01 missing installation or stream signal remains unobserved
+[PASS] INPUT02 flush followed by same sequence segment starts a new generation
+[PASS] INPUT10 concurrent pads bind one immutable observation
+[SUMMARY] pass=13 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.xhff2m bytes=545160 removed=true

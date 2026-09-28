@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <utility>
@@ -184,8 +185,64 @@ std::optional<int> ParseIntField(const std::string& body, const std::string& fie
     if (end == pos || (end == pos + 1 && body[pos] == '-')) {
         return std::nullopt;
     }
+    std::size_t value_end = end;
+    while (value_end < body.size() &&
+           std::isspace(static_cast<unsigned char>(body[value_end])) != 0) {
+        ++value_end;
+    }
+    if (value_end < body.size() && body[value_end] != ',' && body[value_end] != '}') {
+        return std::nullopt;
+    }
     try {
         return std::stoi(body.substr(pos, end - pos));
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::optional<std::int64_t> ParseInt64Field(const std::string& body,
+                                            const std::string& field) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) return std::nullopt;
+    std::size_t pos = *colon_pos + 1;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) ++pos;
+    std::size_t end = pos;
+    if (end < body.size() && body[end] == '-') ++end;
+    while (end < body.size() && std::isdigit(static_cast<unsigned char>(body[end])) != 0) ++end;
+    if (end == pos || (end == pos + 1 && body[pos] == '-')) return std::nullopt;
+    std::size_t value_end = end;
+    while (value_end < body.size() &&
+           std::isspace(static_cast<unsigned char>(body[value_end])) != 0) {
+        ++value_end;
+    }
+    if (value_end < body.size() && body[value_end] != ',' && body[value_end] != '}') {
+        return std::nullopt;
+    }
+    try {
+        return std::stoll(body.substr(pos, end - pos));
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::optional<std::uint64_t> ParseUInt64Field(const std::string& body, const std::string& field) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) return std::nullopt;
+    std::size_t pos = *colon_pos + 1;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) ++pos;
+    std::size_t end = pos;
+    while (end < body.size() && std::isdigit(static_cast<unsigned char>(body[end])) != 0) ++end;
+    if (end == pos) return std::nullopt;
+    std::size_t value_end = end;
+    while (value_end < body.size() &&
+           std::isspace(static_cast<unsigned char>(body[value_end])) != 0) {
+        ++value_end;
+    }
+    if (value_end < body.size() && body[value_end] != ',' && body[value_end] != '}') {
+        return std::nullopt;
+    }
+    try {
+        return static_cast<std::uint64_t>(std::stoull(body.substr(pos, end - pos)));
     } catch (...) {
         return std::nullopt;
     }
@@ -407,7 +464,7 @@ std::optional<std::vector<std::string>> ExtractJsonObjectArrayStrict(const std::
     return objects;
 }
 
-bool IsSafeRegistryId(const std::string& id) {
+[[maybe_unused]] bool IsSafeRegistryId(const std::string& id) {
     return !id.empty() && std::all_of(id.begin(), id.end(), [](unsigned char ch) {
         return std::isalnum(ch) != 0 || ch == '-' || ch == '_' || ch == '.';
     });
@@ -760,6 +817,114 @@ std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::str
         ParseStringField(body, "floorName").value_or("")));
     source.zone = Trim(ParseStringField(body, "zone").value_or(
         ParseStringField(body, "zoneName").value_or("")));
+    constexpr std::int64_t kMillisecondsPerDay = 24LL * 60LL * 60LL * 1000LL;
+    const auto default_max_bytes = app::GetAppConfig().recording_default_channel_quota_bytes;
+    const auto default_max_age_ms =
+        static_cast<std::int64_t>(app::GetAppConfig().recording_default_retention_days) *
+        kMillisecondsPerDay;
+    source.recording.continuous_max_bytes = default_max_bytes;
+    source.recording.continuous_max_age_ms = default_max_age_ms;
+    source.recording.event_max_bytes = default_max_bytes;
+    source.recording.event_max_age_ms = default_max_age_ms;
+    if (const auto recording = ExtractDelimitedField(body, "recording", '{', '}'); recording.has_value()) {
+        source.recording.enabled = ParseBoolField(*recording, "enabled").value_or(false);
+        const bool has_legacy_max_bytes =
+            FindJsonFieldColon(*recording, "quotaBytes").has_value();
+        const bool has_legacy_retention_days =
+            FindJsonFieldColon(*recording, "retentionDays").has_value();
+        const auto legacy_max_bytes = ParseUInt64Field(*recording, "quotaBytes");
+        const auto legacy_retention_days = ParseIntField(*recording, "retentionDays");
+        if (has_legacy_max_bytes && !legacy_max_bytes.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "recording quotaBytes는 uint64여야 함";
+            }
+            return std::nullopt;
+        }
+        if (has_legacy_retention_days && !legacy_retention_days.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "recording retentionDays는 int여야 함";
+            }
+            return std::nullopt;
+        }
+        if (legacy_max_bytes.has_value()) {
+            source.recording.continuous_max_bytes = *legacy_max_bytes;
+            source.recording.event_max_bytes = *legacy_max_bytes;
+        }
+        if (legacy_retention_days.has_value() && *legacy_retention_days < 0) {
+            if (error_message != nullptr) *error_message = "recording retentionDays는 음수일 수 없음";
+            return std::nullopt;
+        }
+        if (legacy_retention_days.has_value()) {
+            source.recording.continuous_max_age_ms =
+                static_cast<std::int64_t>(*legacy_retention_days) * kMillisecondsPerDay;
+            source.recording.event_max_age_ms = source.recording.continuous_max_age_ms;
+        }
+        const bool has_continuous_max_bytes =
+            FindJsonFieldColon(*recording, "continuousMaxBytes").has_value();
+        const bool has_event_max_bytes =
+            FindJsonFieldColon(*recording, "eventMaxBytes").has_value();
+        const auto continuous_max_bytes =
+            ParseUInt64Field(*recording, "continuousMaxBytes");
+        const auto event_max_bytes = ParseUInt64Field(*recording, "eventMaxBytes");
+        if (has_continuous_max_bytes && !continuous_max_bytes.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "recording continuousMaxBytes는 uint64여야 함";
+            }
+            return std::nullopt;
+        }
+        if (has_event_max_bytes && !event_max_bytes.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "recording eventMaxBytes는 uint64여야 함";
+            }
+            return std::nullopt;
+        }
+        if (continuous_max_bytes.has_value()) {
+            source.recording.continuous_max_bytes = *continuous_max_bytes;
+        }
+        if (event_max_bytes.has_value()) {
+            source.recording.event_max_bytes = *event_max_bytes;
+        }
+        const bool has_continuous_max_age =
+            FindJsonFieldColon(*recording, "continuousMaxAgeMs").has_value();
+        const bool has_event_max_age =
+            FindJsonFieldColon(*recording, "eventMaxAgeMs").has_value();
+        const auto continuous_max_age = ParseInt64Field(*recording, "continuousMaxAgeMs");
+        const auto event_max_age = ParseInt64Field(*recording, "eventMaxAgeMs");
+        if (has_continuous_max_age &&
+            (!continuous_max_age.has_value() || *continuous_max_age < 0)) {
+            if (error_message != nullptr) {
+                *error_message = "recording continuousMaxAgeMs는 0 이상의 int64여야 함";
+            }
+            return std::nullopt;
+        }
+        if (has_event_max_age && (!event_max_age.has_value() || *event_max_age < 0)) {
+            if (error_message != nullptr) {
+                *error_message = "recording eventMaxAgeMs는 0 이상의 int64여야 함";
+            }
+            return std::nullopt;
+        }
+        if (continuous_max_age.has_value()) {
+            source.recording.continuous_max_age_ms = *continuous_max_age;
+        }
+        if (event_max_age.has_value()) source.recording.event_max_age_ms = *event_max_age;
+        source.recording.storage_path = Trim(ParseStringField(*recording, "storagePath").value_or(""));
+        source.recording.revision = ParseUInt64Field(*recording, "revision").value_or(1);
+    }
+    if (source.recording.enabled &&
+        (source.recording.continuous_max_bytes == 0 ||
+         source.recording.event_max_bytes == 0)) {
+        if (error_message != nullptr) {
+            *error_message = "recording continuousMaxBytes/eventMaxBytes는 활성화 시 0일 수 없음";
+        }
+        return std::nullopt;
+    }
+    if (!source.recording.storage_path.empty()) {
+        const std::filesystem::path relative(source.recording.storage_path);
+        if (relative.is_absolute() || source.recording.storage_path.find("..") != std::string::npos) {
+            if (error_message != nullptr) *error_message = "recording storagePath는 안전한 상대 경로여야 함";
+            return std::nullopt;
+        }
+    }
     source.canonical_source_key = CanonicalSourceKey(source);
     if (source.kind.empty() || source.canonical_source_key.empty()) {
         if (error_message != nullptr) {
@@ -851,6 +1016,16 @@ std::string SourceJson(const SourceViewRegistry::SourceRecord& source, bool incl
         << ",\"group\":\"" << JsonEscape(source.group) << "\""
         << ",\"floor\":\"" << JsonEscape(source.floor) << "\""
         << ",\"zone\":\"" << JsonEscape(source.zone) << "\"";
+    out << ",\"recording\":{\"enabled\":" << (source.recording.enabled ? "true" : "false")
+        << ",\"revision\":" << source.recording.revision;
+    if (include_sensitive) {
+        out << ",\"continuousMaxBytes\":" << source.recording.continuous_max_bytes
+            << ",\"continuousMaxAgeMs\":" << source.recording.continuous_max_age_ms
+            << ",\"eventMaxBytes\":" << source.recording.event_max_bytes
+            << ",\"eventMaxAgeMs\":" << source.recording.event_max_age_ms
+            << ",\"storagePath\":\"" << JsonEscape(source.recording.storage_path) << "\"";
+    }
+    out << "}";
     if (include_sensitive) {
         bool first = false;
         out << ",\"canonicalSourceKey\":\"" << JsonEscape(source.canonical_source_key) << "\"";
@@ -1994,7 +2169,7 @@ bool SourceViewRegistry::Snapshot(std::vector<SourceRecord>* sources,
 }
 
 RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {
-    std::lock_guard lock(mu_);
+    std::unique_lock lock(mu_);
     std::string load_error;
     if (!EnsureLoadedLocked(&load_error)) {
         return ErrorResult(500, "Internal Server Error", load_error);
@@ -2024,12 +2199,15 @@ RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {
         return ErrorResult(500, "Internal Server Error", save_error);
     }
     sources_ = std::move(next_sources);
+    const auto callback = source_mutation_callback_;
+    lock.unlock();
+    if (callback) callback(*source);
     return JsonResult(201, "Created", "{\"ok\":true,\"status\":\"created\",\"source\":" +
                                           SourceJson(*source, true) + "}");
 }
 
 RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, const std::string& body) {
-    std::lock_guard lock(mu_);
+    std::unique_lock lock(mu_);
     std::string load_error;
     if (!EnsureLoadedLocked(&load_error)) {
         return ErrorResult(500, "Internal Server Error", load_error);
@@ -2067,6 +2245,9 @@ RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, co
         return ErrorResult(500, "Internal Server Error", save_error);
     }
     sources_ = std::move(next_sources);
+    const auto callback = source_mutation_callback_;
+    lock.unlock();
+    if (callback) callback(*source);
     return JsonResult(updated ? 200 : 201,
                       updated ? "OK" : "Created",
                       "{\"ok\":true,\"status\":\"" + std::string(updated ? "updated" : "created") +
@@ -2077,7 +2258,7 @@ RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
     const std::string& source_id,
     const std::string& source_body,
     const std::string& published_view_body) {
-    std::lock_guard lock(mu_);
+    std::unique_lock lock(mu_);
     std::string load_error;
     if (!EnsureLoadedLocked(&load_error)) {
         return ErrorResult(500, "Internal Server Error", load_error);
@@ -2261,6 +2442,7 @@ RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
 
     sources_ = std::move(next_sources);
     views_ = std::move(next_views);
+    const auto callback = source_mutation_callback_;
     const bool created = !source_updated || !view_updated;
     std::ostringstream out;
     out << "{"
@@ -2275,11 +2457,14 @@ RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
         << "\"partialSave\":false,"
         << "\"source\":" << SourceJson(*source, true) << ","
         << "\"publishedView\":" << PublishedViewJson(*view) << "}";
-    return JsonResult(created ? 201 : 200, created ? "Created" : "OK", out.str());
+    const auto result = JsonResult(created ? 201 : 200, created ? "Created" : "OK", out.str());
+    lock.unlock();
+    if (callback) callback(*source);
+    return result;
 }
 
 RegistryResult SourceViewRegistry::DisableSource(const std::string& source_id) {
-    std::lock_guard lock(mu_);
+    std::unique_lock lock(mu_);
     std::string load_error;
     if (!EnsureLoadedLocked(&load_error)) {
         return ErrorResult(500, "Internal Server Error", load_error);
@@ -2294,13 +2479,22 @@ RegistryResult SourceViewRegistry::DisableSource(const std::string& source_id) {
                 return ErrorResult(500, "Internal Server Error", save_error);
             }
             sources_ = std::move(next_sources);
-            return JsonResult(200,
-                              "OK",
-                              "{\"ok\":true,\"status\":\"disabled\",\"source\":" +
-                                  source_json + "}");
+            const auto callback = source_mutation_callback_;
+            const auto result = JsonResult(200,
+                                           "OK",
+                                           "{\"ok\":true,\"status\":\"disabled\",\"source\":" +
+                                               source_json + "}");
+            lock.unlock();
+            if (callback) callback(source);
+            return result;
         }
     }
     return ErrorResult(404, "Not Found", "Source not found");
+}
+
+void SourceViewRegistry::SetSourceMutationCallback(SourceMutationCallback callback) {
+    std::lock_guard lock(mu_);
+    source_mutation_callback_ = std::move(callback);
 }
 
 RegistryResult SourceViewRegistry::CreateView(const std::string& body) {

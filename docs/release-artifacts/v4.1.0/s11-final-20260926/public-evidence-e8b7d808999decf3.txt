@@ -1,0 +1,4 @@
+[pass] B11-O01 session request serializes one canonical line and waits for one JSON line
+[pass] B11-O01 concurrent request, extra line, timeout and stderr cap fail closed without raw output
+[pass] B11-O01 pollAsync shares generation acceptance and latches transport failure without sync fallback
+{"scope":"generation-observer-short","passed":3,"failed":0,"elapsedMs":256,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}

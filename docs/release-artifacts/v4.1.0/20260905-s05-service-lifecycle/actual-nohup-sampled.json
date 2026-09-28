@@ -1,0 +1,405 @@
+{
+  "schema": "media-server.v410-s05-service-lifecycle.v1",
+  "release": "v4.1.0",
+  "mode": "nohup",
+  "scope": "durable-link-and-fallback-boundary; derived clip full coverage 아님",
+  "stages": [
+    {
+      "id": "preflight",
+      "result": "pass",
+      "detail": {
+        "label": "com.dhseo.mediaserver.v410s05.nohup.1ae66c1b3a53",
+        "rtspPort": 64391,
+        "httpPort": 64392,
+        "legacyStateAbsent": 6,
+        "repoSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef"
+      },
+      "elapsedMs": 131
+    },
+    {
+      "id": "isolated-config",
+      "result": "pass",
+      "detail": {
+        "stateDir": "<run-root>/state",
+        "dataDir": "<run-root>/data",
+        "eventDir": "<run-root>/events",
+        "recordingDir": "<run-root>/recordings",
+        "gstCacheDir": "<run-root>/gst-cache",
+        "authFile": "<run-root>/data/users.json",
+        "sourceFile": "<run-root>/data/sources.json"
+      },
+      "elapsedMs": 137
+    },
+    {
+      "id": "start",
+      "result": "pass",
+      "detail": {
+        "command": "start_server.sh",
+        "exit": 0,
+        "durationMs": 1350,
+        "observedPid": null,
+        "forcedTermination": false,
+        "processTransitions": [],
+        "stdoutTail": [
+          "[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env",
+          "[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1",
+          "[3/3] start: 127.0.0.1:64391, http 127.0.0.1:64392",
+          "started: pid=65028",
+          "mode: detached",
+          "ai: 1",
+          "build: <home>/Workspace/mediaServer/build-gst-onnx",
+          "log: <run-root>/state/.media_server.log",
+          "local ops: http://127.0.0.1:64392/ops/home",
+          "local h264: rtsp://127.0.0.1:64391/dhseo?file=sample_h264.mp4",
+          "local h265: rtsp://127.0.0.1:64391/dhseo/h265?file=sample_h265.mp4",
+          "external bind: rtsp://127.0.0.1:64391/dhseo",
+          "external bind: http://127.0.0.1:64392/ops/home",
+          "stop: ./server.sh stop"
+        ],
+        "stderrTail": [
+          ""
+        ],
+        "pid": 65028,
+        "ports": [
+          {
+            "port": 64391,
+            "pids": [
+              65028
+            ]
+          },
+          {
+            "port": 64392,
+            "pids": [
+              65028
+            ]
+          }
+        ]
+      },
+      "elapsedMs": 1540
+    },
+    {
+      "id": "environment-handoff",
+      "result": "pass",
+      "detail": {
+        "mode": "nohup",
+        "behavioralReadback": "후속 격리 data/event/recording 생성으로 확인"
+      },
+      "elapsedMs": 1540
+    },
+    {
+      "id": "health",
+      "result": "pass",
+      "detail": {
+        "status": 200,
+        "pid": 65028
+      },
+      "elapsedMs": 1552
+    },
+    {
+      "id": "source-create",
+      "result": "pass",
+      "detail": {
+        "status": 201,
+        "sourceId": "9101"
+      },
+      "elapsedMs": 1623
+    },
+    {
+      "id": "source-readback",
+      "result": "pass",
+      "detail": {
+        "status": 200,
+        "sourceId": "9101",
+        "recordingEnabled": true
+      },
+      "elapsedMs": 1624
+    },
+    {
+      "id": "first-segment",
+      "result": "pass",
+      "detail": {
+        "segments": [
+          {
+            "segmentId": "seg-9101-1788570319074-1",
+            "channelId": "9101",
+            "sizeBytes": 4096788,
+            "lifecycle": "finalized"
+          }
+        ]
+      },
+      "elapsedMs": 10230
+    },
+    {
+      "id": "rule-create",
+      "result": "pass",
+      "detail": {
+        "status": 200,
+        "ruleId": "9101"
+      },
+      "elapsedMs": 10237
+    },
+    {
+      "id": "first-tap",
+      "result": "pass",
+      "detail": {
+        "tapId": "analysis-tap-1",
+        "streamKey": "file::<run-root>/input/identity.mp4"
+      },
+      "elapsedMs": 10283
+    },
+    {
+      "id": "first-event",
+      "result": "pass",
+      "detail": {
+        "eventId": "evt_1788570328008_3",
+        "recordingLinkId": "event-link-sha256-1e5446f0ced76d6787e7545d47eeecf864b3cda2b5bc7a554186890c4b8a0629",
+        "channelId": "file::<run-root>/input/identity.mp4"
+      },
+      "elapsedMs": 11354
+    },
+    {
+      "id": "first-event-link",
+      "result": "pass",
+      "detail": {
+        "eventId": "evt_1788570328008_3",
+        "rows": 16,
+        "exact": true,
+        "scope": "durable-link-and-fallback-boundary; derived clip full coverage 아님"
+      },
+      "elapsedMs": 11358
+    },
+    {
+      "id": "restart",
+      "result": "fail",
+      "detail": {
+        "message": "restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22161
+    },
+    {
+      "id": "old-pid-exit",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "new-pid-health",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "source-recovery",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "catalog-recovery",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "second-segment",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "second-tap",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "second-event",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "second-event-link",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "normal-stop",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]"
+      },
+      "elapsedMs": 22162
+    },
+    {
+      "id": "cleanup-service",
+      "result": "pass",
+      "detail": {
+        "needed": true,
+        "exit": 0
+      },
+      "elapsedMs": 23504
+    },
+    {
+      "id": "cleanup-label",
+      "result": "pass",
+      "detail": {
+        "label": "com.dhseo.mediaserver.v410s05.nohup.1ae66c1b3a53",
+        "absent": true
+      },
+      "elapsedMs": 23510
+    },
+    {
+      "id": "cleanup-pids-ports",
+      "result": "pass",
+      "detail": {
+        "checkedPids": [
+          65028,
+          65253
+        ],
+        "ports": [
+          {
+            "port": 64391,
+            "pids": []
+          },
+          {
+            "port": 64392,
+            "pids": []
+          }
+        ]
+      },
+      "elapsedMs": 23575
+    },
+    {
+      "id": "cleanup-state",
+      "result": "pass",
+      "detail": {
+        "residue": []
+      },
+      "elapsedMs": 23575
+    },
+    {
+      "id": "binary-invariant",
+      "result": "pass",
+      "detail": {
+        "checked": true,
+        "before": {
+          "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+          "mtimeMs": 1788531780868.6682
+        },
+        "after": {
+          "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+          "mtimeMs": 1788531780868.6682
+        }
+      },
+      "elapsedMs": 23583
+    },
+    {
+      "id": "repo-invariant",
+      "result": "pass",
+      "detail": {
+        "checked": true,
+        "beforeSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef",
+        "afterSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef"
+      },
+      "elapsedMs": 23583
+    },
+    {
+      "id": "cleanup-root",
+      "result": "pass",
+      "detail": {
+        "root": "<run-root>",
+        "sizes": {
+          "recordings": {
+            "files": 9,
+            "bytes": 38839981
+          },
+          "events": {
+            "files": 136,
+            "bytes": 26736620
+          },
+          "gst-cache": {
+            "files": 278,
+            "bytes": 62691
+          },
+          "state": {
+            "files": 0,
+            "bytes": 0
+          },
+          "log": {
+            "files": 1,
+            "bytes": 1266
+          }
+        },
+        "removed": true
+      },
+      "elapsedMs": 23606
+    }
+  ],
+  "outcome": "fail",
+  "binary": {
+    "path": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
+    "before": {
+      "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+      "mtimeMs": 1788531780868.6682
+    }
+  },
+  "preflight": {
+    "label": "com.dhseo.mediaserver.v410s05.nohup.1ae66c1b3a53",
+    "rtspPort": 64391,
+    "httpPort": 64392,
+    "legacyStateAbsent": 6,
+    "repoSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef"
+  },
+  "firstTapStreamKey": "file::<run-root>/input/identity.mp4",
+  "cleanup": {
+    "root": "<run-root>",
+    "sizes": {
+      "recordings": {
+        "files": 9,
+        "bytes": 38839981
+      },
+      "events": {
+        "files": 136,
+        "bytes": 26736620
+      },
+      "gst-cache": {
+        "files": 278,
+        "bytes": 62691
+      },
+      "state": {
+        "files": 0,
+        "bytes": 0
+      },
+      "log": {
+        "files": 1,
+        "bytes": 1266
+      }
+    },
+    "removed": true
+  },
+  "failure": "restart_server.sh가 정상 종료 대신 강제 종료를 사용함: graceful stop timeout for pid=65028; sending SIGKILL; durationMs=10793; processTransitions=[{\"atMs\":1,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:11\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":206,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":914,\"alive\":true,\"parentPid\":1,\"state\":\"S\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1014,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:12\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":1217,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:13\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2223,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2323,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":2424,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3131,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:14\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3231,\"alive\":true,\"parentPid\":1,\"state\":\"U\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":3331,\"alive\":true,\"parentPid\":1,\"state\":\"R\",\"elapsed\":\"00:15\",\"command\":\"<home>/Workspace/mediaServer/build-gst-onnx/media_server\"},{\"atMs\":4239,\"alive\":false}]",
+  "elapsedMs": 23606,
+  "stageSummary": {
+    "pass": 19,
+    "fail": 1,
+    "skipped": 9
+  }
+}

@@ -140,6 +140,7 @@ function isDocsIndexCoverageExcluded(file) {
     normalized.startsWith("docs/v220-") ||
     normalized.startsWith("docs/v230-") ||
     normalized === "docs/release-evidence-index.md" ||
+    /^docs\/release-evidence-v\d+\.md$/.test(normalized) ||
     normalized === "docs/release-test-records.md" ||
     normalized === "docs/project-feature-test-inventory.md" ||
     normalized === "docs/v390-current-state-and-verification-debt-audit-2026-08-12.md" ||

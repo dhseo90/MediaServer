@@ -36,6 +36,13 @@ SourceViewApplicationService::SourceRecord ToApplicationSource(
     output.group = input.group;
     output.floor = input.floor;
     output.zone = input.zone;
+    output.recording.enabled = input.recording.enabled;
+    output.recording.continuous_max_bytes = input.recording.continuous_max_bytes;
+    output.recording.continuous_max_age_ms = input.recording.continuous_max_age_ms;
+    output.recording.event_max_bytes = input.recording.event_max_bytes;
+    output.recording.event_max_age_ms = input.recording.event_max_age_ms;
+    output.recording.storage_path = input.recording.storage_path;
+    output.recording.revision = input.recording.revision;
     return output;
 }
 
@@ -145,6 +152,13 @@ bool SourceViewApplicationService::Snapshot(std::vector<SourceRecord>* sources,
         *views = std::move(converted);
     }
     return true;
+}
+
+void SourceViewApplicationService::SetSourceMutationCallback(SourceMutationCallback callback) {
+    SourceViewRegistry::Instance().SetSourceMutationCallback(
+        [callback = std::move(callback)](const SourceViewRegistry::SourceRecord& input) {
+            if (callback) callback(ToApplicationSource(input));
+        });
 }
 
 ApplicationServiceResult SourceViewApplicationService::CreateSource(const std::string& body) {

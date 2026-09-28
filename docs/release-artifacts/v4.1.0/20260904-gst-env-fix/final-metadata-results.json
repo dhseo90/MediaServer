@@ -1,0 +1,5197 @@
+{
+  "scope": "S05 후속 GStreamer 환경 보완의 등록/문서 정합성. UI·장시간·릴리즈 실행 증거 아님.",
+  "records": [
+    {
+      "title": "소스 감사 및 승인된 manifest 반영",
+      "command": "./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest",
+      "chunk_id": "0c4b14",
+      "wall_time_seconds": 0.000002208,
+      "exit_code": 0,
+      "original_token_count": 3203,
+      "output": "[pass] candidate covers the exact 986 inventory IDs without using REVIEW3 claims\n[pass] every row has an independently dispatched verifier\n[pass] all rows are source-resolved before REVIEW4 approval\n[pass] source proof roles and independent readback are exact\n[pass] known REVIEW3 false mappings are replaced by actual source owners\n[pass] UI-001 through UI-050 remain strict and VLM mutations use independent readback\n[pass] UI-051 through UI-100 remain strict on canonical functional verifiers\n[pass] stored approvals are external to candidate generation and cover all rows\n[pass] negative fixtures reject unrelated, shared, self-comparison, invented-edge, and generator approval\n[pass] outside-3-line function/blob mutation invalidates source-flow digest\n[pass] unrelated product file mutation outside bound body preserves source-flow digest\n[pass] require-only or basename-mention dispatch is rejected\n[pass] stored audit body tamper invalidates canonical candidate digest\n[pass] apply-time proof tamper is rejected by source-flow recomputation\n[pass] unrelated proof row swap is rejected by typed obligation\n[pass] fake def-use edge without shared symbol or variable is rejected\n[pass] comparison and arrow operators cannot impersonate assignment def-use\n[pass] generic canonical role labels cannot satisfy def-use sharing\n[pass] same-body assignment def-use rejects reverse source order\n[pass] reviewer symbols and consumer-only returned calls cannot impersonate directional def-use\n[pass] co-asserted boundary requires both ordered values in one canonical assertion\n[pass] static source-string assertion cannot satisfy mutation runtime readback\n[pass] static source-string assertion cannot satisfy non-mutation runtime-readback edge\n[pass] witness-only token and primary mutation response cannot satisfy independent readback\n[pass] explicit REVIEW4 proof-only scaffold cannot satisfy source semantics\n[pass] authored edge ranges and generated proof narratives are rejected before normalization\n[pass] typed requirement honors explicit deferral without corrupting positive mutations\n[pass] Python runtime assertions and case-normalized field identifiers preserve exact semantic binding\n[pass] typed negative boundaries recognize exact false field names\n[pass] comparison-only body cannot impersonate authoritative mutation\n[pass] generic condition cannot hide static source provenance in its enclosing body\n[pass] semantic readback labels bind their enclosing check callback instead of a later regex test call\n[pass] runtime artifact write then separate file read remains eligible readback\n[pass] default object argument brace resolves the real enclosing function body\n[pass] same-check token in a different assertion loop cannot satisfy readback\n[pass] generic snippet loop cannot satisfy a structural readback token\n[pass] whole-file anywhere assertion cannot satisfy structural product readback\n[pass] whole-file aliases cannot disguise an anywhere assertion\n[pass] literal objects and fixture files cannot impersonate runtime observations\n[pass] approval envelope rejects generator-shaped per-row approval claims\n[pass] same-route proof row swap cannot bypass strong outcome binding\n[pass] mixed positive UI keeps allow outcome and binds explicit negative boundaries\n[pass] negative boundary words in assertion messages cannot satisfy the condition oracle\n[pass] negative boundaries do not cross unrelated positive save clauses\n[pass] same negative condition with different messages is shared ambiguity\n[pass] outcome obligation cardinality is possible and stale ledger requires regeneration\n[pass] self-declared reports and fixture-derived outcomes are not product runtime readbacks\n[pass] auth wrapper fixed mode reaches only its selected workflow oracle\n[pass] multiline destructured arrow brace resolves the real enclosing function body\n[pass] positive oracle cannot approve deny or redact obligation\n[pass] token or adjacent-line changes cannot bypass canonical shared flow detection\n\n== V390 REVIEW4 feature semantic source audit ==\n- rows: 986\n- resolvedCandidates: 986\n- discoveredCandidates: 0\n- unresolvedCandidates: 0\n- resolvedIds: UI-001,UI-002,UI-003,UI-004,UI-005,UI-006,UI-007,UI-008,UI-009,UI-010,UI-011,UI-012,UI-013,UI-014,UI-015,UI-016,UI-017,UI-018,UI-019,UI-020,UI-021,UI-022,UI-023,UI-024,UI-025,UI-026,UI-027,UI-028,UI-029,UI-030,UI-031,UI-032,UI-033,UI-034,UI-035,UI-036,UI-037,UI-038,UI-039,UI-040,UI-041,UI-042,UI-043,UI-044,UI-045,UI-046,UI-047,UI-048,UI-049,UI-050,UI-051,UI-052,UI-053,UI-054,UI-055,UI-056,UI-057,UI-058,UI-059,UI-060,UI-061,UI-062,UI-063,UI-064,UI-065,UI-066,UI-067,UI-068,UI-069,UI-070,UI-071,UI-072,UI-073,UI-074,UI-075,UI-076,UI-077,UI-078,UI-079,UI-080,UI-081,UI-082,UI-083,UI-084,UI-085,UI-086,UI-087,UI-088,UI-089,UI-090,UI-091,UI-092,UI-093,UI-094,UI-095,UI-096,UI-097,UI-098,UI-099,UI-100,UI-101,UI-102,UI-103,UI-104,UI-105,UI-106,UI-107,UI-108,UI-109,UI-110,UI-111,UI-112,UI-113,UI-114,UI-115,AUTH-001,AUTH-002,AUTH-003,AUTH-004,AUTH-005,AUTH-006,AUTH-007,AUTH-008,AUTH-009,AUTH-010,AUTH-011,AUTH-012,AUTH-013,AUTH-014,AUTH-015,AUTH-016,AUTH-017,AUTH-018,AUTH-019,AUTH-020,AUTH-021,AUTH-022,AUTH-023,AUTH-024,AUTH-025,AUTH-026,AUTH-027,AUTH-028,AUTH-029,AUTH-030,AUTH-031,AUTH-032,AUTH-033,AUTH-034,AUTH-035,AUTH-036,AUTH-037,AUTH-038,AUTH-039,AUTH-040,AUTH-041,AUTH-042,SRC-001,SRC-002,SRC-003,SRC-004,SRC-005,SRC-006,SRC-007,SRC-008,SRC-009,SRC-010,SRC-011,SRC-012,SRC-013,SRC-014,SRC-015,SRC-016,SRC-017,SRC-018,SRC-019,SRC-020,SRC-021,SRC-022,SRC-023,SRC-024,SRC-025,SRC-026,SRC-027,SRC-028,SRC-029,SRC-030,SRC-031,SRC-032,SRC-033,SRC-034,SRC-035,SRC-036,SRC-037,SRC-038,SRC-039,SRC-040,SRC-041,SRC-042,SRC-043,SRC-044,SRC-045,SRC-046,SRC-047,SRC-048,SRC-049,SRC-050,SRC-051,SRC-052,SRC-053,SRC-054,SRC-055,SRC-056,SRC-057,SRC-058,SRC-059,SRC-060,SRC-061,SRC-062,SRC-063,SRC-064,SRC-065,SRC-066,SRC-067,SRC-068,RULE-001,RULE-002,RULE-003,RULE-004,RULE-005,RULE-006,RULE-007,RULE-008,RULE-009,RULE-010,RULE-011,RULE-012,RULE-013,RULE-014,RULE-015,RULE-016,RULE-017,RULE-018,RULE-019,RULE-020,RULE-021,RULE-022,RULE-023,RULE-024,RULE-025,RULE-026,RULE-027,RULE-028,RULE-029,RULE-030,RULE-031,RULE-032,RULE-033,RULE-034,RULE-035,RULE-036,RULE-037,RULE-038,RULE-039,RULE-040,RULE-041,RULE-042,RULE-043,RULE-044,RULE-045,RULE-046,RULE-047,RULE-048,RULE-049,RULE-050,RULE-051,RULE-052,RULE-053,RULE-054,RULE-055,RULE-056,RULE-057,RULE-058,RULE-059,RULE-060,RULE-061,RULE-062,RULE-063,RULE-064,RULE-065,RULE-066,RULE-067,RULE-068,RULE-069,RULE-070,RULE-071,RULE-072,RULE-073,RULE-074,RULE-075,RULE-076,RULE-077,RULE-078,RULE-079,RULE-080,RULE-081,RULE-082,RULE-083,RULE-084,RULE-085,RULE-086,RULE-087,RULE-088,RULE-089,RULE-090,RULE-091,RULE-092,RULE-093,RULE-094,RULE-095,RULE-096,RULE-097,RULE-098,RULE-099,RULE-100,RULE-101,RULE-102,RULE-103,RULE-104,RULE-105,RULE-106,RULE-107,RULE-108,RULE-109,RULE-110,RULE-111,RULE-112,EVT-001,EVT-002,EVT-003,EVT-004,EVT-005,EVT-006,EVT-007,EVT-008,EVT-009,EVT-010,EVT-011,EVT-012,EVT-013,EVT-014,EVT-015,EVT-016,EVT-017,EVT-018,EVT-019,EVT-020,EVT-021,EVT-022,EVT-023,EVT-024,EVT-025,EVT-026,EVT-027,EVT-028,EVT-029,EVT-030,EVT-031,EVT-032,EVT-033,EVT-034,EVT-035,EVT-036,EVT-037,EVT-038,EVT-039,EVT-040,EVT-041,EVT-042,EVT-043,EVT-044,EVT-045,EVT-046,EVT-047,EVT-048,EVT-049,EVT-050,EVT-051,EVT-052,EVT-053,EVT-054,EVT-055,EVT-056,EVT-057,EVT-058,EVT-059,EVT-060,EVT-061,EVT-062,EVT-063,EVT-064,EVT-065,EVT-066,EVT-067,EVT-068,EVT-069,EVT-070,EVT-071,EVT-072,EVT-073,EVT-074,EVT-075,EVT-076,EVT-077,EVT-078,EVT-079,EVT-080,EVT-081,EVT-082,EVT-083,EVT-084,EVT-085,EVT-086,EVT-087,CLIENT-001,CLIENT-002,CLIENT-003,CLIENT-004,CLIENT-005,CLIENT-006,CLIENT-007,CLIENT-008,CLIENT-009,CLIENT-010,CLIENT-011,CLIENT-012,CLIENT-013,CLIENT-014,CLIENT-015,CLIENT-016,CLIENT-017,CLIENT-018,CLIENT-019,CLIENT-020,CLIENT-021,CLIENT-022,CLIENT-023,CLIENT-024,CLIENT-025,CLIENT-026,CLIENT-027,CLIENT-028,CLIENT-029,CLIENT-030,CLIENT-031,CLIENT-032,CLIENT-033,CLIENT-034,CLIENT-035,CLIENT-036,CLIENT-037,CLIENT-038,CLIENT-039,CLIENT-040,CLIENT-041,CLIENT-042,MEDIA-001,MEDIA-002,MEDIA-003,MEDIA-004,MEDIA-005,MEDIA-006,MEDIA-007,MEDIA-008,MEDIA-009,MEDIA-010,MEDIA-011,MEDIA-012,MEDIA-013,MEDIA-014,MEDIA-015,MEDIA-016,MEDIA-017,MEDIA-018,MEDIA-019,MEDIA-020,MEDIA-021,MEDIA-022,MEDIA-023,MEDIA-024,MEDIA-025,MEDIA-026,MEDIA-027,LAB-001,LAB-002,LAB-003,LAB-004,LAB-005,LAB-006,LAB-007,LAB-008,LAB-009,LAB-010,LAB-011,LAB-012,LAB-013,LAB-014,LAB-015,LAB-016,LAB-017,LAB-018,LAB-019,LAB-020,LAB-021,LAB-022,LAB-023,LAB-024,LAB-025,LAB-026,LAB-027,LAB-028,LAB-029,LAB-030,LAB-031,LAB-032,LAB-033,LAB-034,LAB-035,LAB-036,LAB-037,LAB-038,LAB-039,LAB-040,LAB-041,LAB-042,LAB-043,LAB-044,LAB-045,LAB-046,LAB-047,LAB-048,LAB-049,LAB-050,LAB-051,LAB-052,LAB-053,LAB-054,LAB-055,LAB-056,LAB-057,LAB-058,LAB-059,LAB-060,LAB-061,LAB-062,LAB-063,LAB-064,LAB-065,LAB-066,LAB-067,LAB-068,LAB-069,LAB-070,LAB-071,LAB-072,LAB-073,LAB-074,LAB-075,LAB-076,LAB-077,LAB-078,LAB-079,LAB-080,LAB-081,LAB-082,LAB-083,LAB-084,LAB-085,LAB-086,LAB-087,LAB-088,LAB-089,LAB-090,LAB-091,LAB-092,LAB-093,LAB-094,LAB-095,LAB-096,LAB-097,LAB-098,LAB-099,LAB-100,LAB-101,LAB-102,LAB-103,LAB-104,LAB-105,LAB-106,LAB-107,LAB-108,LAB-109,LAB-110,LAB-111,LAB-112,LAB-113,LAB-114,LAB-115,LAB-116,LAB-117,LAB-118,LAB-119,LAB-120,LAB-121,LAB-122,LAB-123,LAB-124,LAB-125,LAB-126,SAFE-001,SAFE-002,SAFE-003,SAFE-004,SAFE-005,SAFE-006,SAFE-007,SAFE-008,SAFE-009,SAFE-010,SAFE-011,SAFE-012,SAFE-013,SAFE-014,SAFE-015,SAFE-016,SAFE-017,SAFE-018,SAFE-019,SAFE-020,SAFE-021,SAFE-022,SAFE-023,SAFE-024,SAFE-025,SAFE-026,SAFE-027,SAFE-028,SAFE-029,SAFE-030,SAFE-031,SAFE-032,SAFE-033,SAFE-034,SAFE-035,SAFE-036,SAFE-037,SAFE-038,SAFE-039,SAFE-040,SAFE-041,SAFE-042,SAFE-043,SAFE-044,SAFE-045,SAFE-046,SAFE-047,SAFE-048,SAFE-049,SAFE-050,SAFE-051,SAFE-052,SAFE-053,SAFE-054,SAFE-055,SAFE-056,SAFE-057,SAFE-058,SAFE-059,SAFE-060,SAFE-061,SAFE-062,SAFE-063,SAFE-064,SAFE-065,SAFE-066,SAFE-067,SAFE-068,SAFE-069,SAFE-070,SAFE-071,SAFE-072,SAFE-073,SAFE-074,SAFE-075,SAFE-076,SAFE-077,SAFE-078,SAFE-079,SAFE-080,SAFE-081,SAFE-082,SAFE-083,SAFE-084,SAFE-085,SAFE-086,SAFE-087,SAFE-088,SAFE-089,SAFE-090,SAFE-091,SAFE-092,SAFE-093,SAFE-094,SAFE-095,SAFE-096,SAFE-097,SAFE-098,SAFE-099,SAFE-100,SAFE-101,SAFE-102,SAFE-103,SAFE-104,SAFE-105,SAFE-106,SAFE-107,SAFE-108,SAFE-109,SAFE-110,SAFE-111,SAFE-112,SAFE-113,SAFE-114,SAFE-115,SAFE-116,SAFE-117,SAFE-118,SAFE-119,SAFE-120,SAFE-121,SAFE-122,SAFE-123,SAFE-124,SAFE-125,SAFE-126,SAFE-127,SAFE-128,SAFE-129,SAFE-130,SAFE-131,SAFE-132,SAFE-133,SAFE-134,SAFE-135,SAFE-136,SAFE-137,SAFE-138,SAFE-139,SAFE-140,SAFE-141,SAFE-142,SAFE-143,SAFE-144,SAFE-145,SAFE-146,SAFE-147,SAFE-148,SAFE-149,SAFE-150,SAFE-151,SAFE-152,SAFE-153,SAFE-154,SAFE-155,SAFE-156,SAFE-157,SAFE-158,SAFE-159,SAFE-160,SAFE-161,SAFE-162,SAFE-163,SAFE-164,SAFE-165,SAFE-166,SAFE-167,SAFE-168,SAFE-169,SAFE-170,SAFE-171,SAFE-172,SAFE-173,SAFE-174,SAFE-175,SAFE-176,SAFE-177,SAFE-178,SAFE-179,SAFE-180,SAFE-181,SAFE-182,SAFE-183,SAFE-184,SAFE-185,SAFE-186,SAFE-187,SAFE-188,SAFE-189,SAFE-190,SAFE-191,SAFE-192,SAFE-193,SAFE-194,SAFE-195,SAFE-196,SAFE-197,SAFE-198,SAFE-199,SAFE-200,SAFE-201,SAFE-202,SAFE-203,SAFE-204,SAFE-205,SAFE-206,SAFE-207,SAFE-208,SAFE-209,SAFE-210,SAFE-211,SAFE-212,SAFE-213,SAFE-214,SAFE-215,SAFE-216,SAFE-217,OPS-035,OPS-036,OPS-037,OPS-038,OPS-039,OPS-040,OPS-041,OPS-042,OPS-043,OPS-044,OPS-045,OPS-046,OPS-047,OPS-048,OPS-049,OPS-050,OPS-051,OPS-052,OPS-053,OPS-054,OPS-055,OPS-056,OPS-057,OPS-058,OPS-059,OPS-060,OPS-061,OPS-062,OPS-063,OPS-064,OPS-065,OPS-066,OPS-067,OPS-068,OPS-069,OPS-070,OPS-071,OPS-072,OPS-073,OPS-074,OPS-075,OPS-076,OPS-077,OPS-078,OPS-079,OPS-080,OPS-081,OPS-082,OPS-083,OPS-084,OPS-085,OPS-086,OPS-087,OPS-088,OPS-089,OPS-090,OPS-091,OPS-092,OPS-093,OPS-094,OPS-095,OPS-096,OPS-097,OPS-098,OPS-099,OPS-100,OPS-101,OPS-102,OPS-103,OPS-104,OPS-105,OPS-106,OPS-107,OPS-108,OPS-109,OPS-110,OPS-111,OPS-112,OPS-113,OPS-114,OPS-115,OPS-116,OPS-117,OPS-118,OPS-119,OPS-120,OPS-121,OPS-122,OPS-123,OPS-124,OPS-125,OPS-126,OPS-127,OPS-128,OPS-129,OPS-130,OPS-131,OPS-132,OPS-133,OPS-134,OPS-135,OPS-136,OPS-137,OPS-138,OPS-139,OPS-140,OPS-141,OPS-142,OPS-143,OPS-144,OPS-145,OPS-146,OPS-147,OPS-148,OPS-149,OPS-150,OPS-151,OPS-152,OPS-153,OPS-154,OPS-155,OPS-156,OPS-157,OPS-158,OPS-159,OPS-160,OPS-161,OPS-162,OPS-163,OPS-164,OPS-165,OPS-166,OPS-167,OPS-168,OPS-169,OPS-170,OPS-171,OPS-172,OPS-173,OPS-174,OPS-175,OPS-176,OPS-177,OPS-178,OPS-179,OPS-180,OPS-181,OPS-182,OPS-183,OPS-184\n- familyStatus: UI:115/0,AUTH:42/0,SRC:68/0,RULE:112/0,EVT:87/0,CLIENT:42/0,MEDIA:27/0,LAB:126/0,SAFE:217/0,OPS:150/0\n- unresolvedReasons: none\n- typedSemanticErrors: none\n- reviewedProofErrors: none\n- approvals: 986\n- pass: 51\n- fail: 0\n[pass] applied independently approved REVIEW4 source flows to canonical implementation manifest\n"
+    },
+    {
+      "title": "등록기 최신 단위 재검증",
+      "command": "node scripts/internal/v410_s05_inventory.test.mjs",
+      "chunk_id": "76b8cc",
+      "wall_time_seconds": 0.000002041,
+      "exit_code": 0,
+      "original_token_count": 531,
+      "output": "[등록기 단위 테스트] PASS 정상 정식 등록 27개\n[등록기 단위 테스트] PASS 다른 등록군 추가와 일관된 총계 허용\n[등록기 단위 테스트] PASS 전체 총계 불일치 거부\n[등록기 단위 테스트] PASS canonical 등록 수 변경 거부\n[등록기 단위 테스트] PASS S05 등록 수 변경 거부\n[등록기 단위 테스트] PASS 등록군 중복 거부\n[등록기 단위 테스트] PASS 음수 등록 수 거부\n[등록기 단위 테스트] PASS 소수 등록 수 거부\n[등록기 단위 테스트] PASS 등록 범위 표 누락 거부\n[등록기 단위 테스트] PASS 누락 ID\n[등록기 단위 테스트] PASS 중복 ID\n[등록기 단위 테스트] PASS 추가 ID\n[등록기 단위 테스트] PASS 빈 테스트 영역\n[등록기 단위 테스트] PASS 없는 구현 심볼\n[등록기 단위 테스트] PASS 없는 테스트 함수\n[등록기 단위 테스트] PASS 없는 check\n[등록기 단위 테스트] PASS 중복 check ID\n[등록기 단위 테스트] PASS 문서 행 누락\n[등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력\n[등록기 단위 테스트] PASS 실제 check 결과 누락\n[등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부\n[등록기 단위 테스트] PASS 실패 summary\n[등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지\n[등록기 단위 테스트] PASS 중복 application 결과\n[등록기 단위 테스트] PASS runtime 로그 전체 누락\n[등록기 단위 테스트] PASS runtime 시나리오 누락\n[등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary\n[등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary\n[등록기 단위 테스트] PASS runtime summary 실패\n[등록기 단위 테스트] PASS runtime summary 중복\n[등록기 단위 테스트] PASS runtime failure marker\n[등록기 단위 테스트] PASS runtime mutation 결과 누락\n[등록기 단위 테스트] PASS runtime mutation 결과 중복\n[등록기 단위 테스트] PASS runtime negative summary 실패\n[v410-s05-inventory-unit] pass=34 fail=0\n"
+    },
+    {
+      "title": "스크립트 인벤토리",
+      "command": "./server.sh verify-script-inventory",
+      "chunk_id": "6620d6",
+      "wall_time_seconds": 0.000001875,
+      "exit_code": 0,
+      "original_token_count": 171,
+      "output": "[pass] server.sh dispatch targets exist and are executable\n[pass] documented server.sh commands resolve to dispatch table\n[pass] tracked scripts are classified and referenced\n[pass] project inventory delegates script file inventory to this verifier\n[pass] project inventory maps verifier families without duplicating dispatch details\n[pass] CMake does not define a separate untracked CTest registry\n[pass] test entry scripts are reachable from test_all\n[pass] auth verifier has no hardcoded test password defaults\n[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default\n[pass] critical verifier pass output avoids grouped feature-result wording\n[pass] user-facing JS option parsers reject unknown options\n\n== Script inventory verification summary ==\n- pass: 11\n- fail: 0\n"
+    },
+    {
+      "title": "문서 링크(최종 문서 갱신 전)",
+      "command": "./server.sh verify-docs-links",
+      "chunk_id": "5442a5",
+      "wall_time_seconds": 0.000002042,
+      "exit_code": 0,
+      "original_token_count": 47,
+      "output": "\n== Docs link verification summary ==\n- markdown files: 221\n- local links: 1003\n- local images: 22\n- local anchors: 100\n- indexed docs: 76\n- index coverage exclusions: 134\n- failures: 0\n"
+    },
+    {
+      "title": "문서 UI asset 정합성",
+      "command": "./server.sh verify-docs-ui-assets",
+      "chunk_id": "d79a86",
+      "wall_time_seconds": 0.000002791,
+      "exit_code": 0,
+      "original_token_count": 159,
+      "output": "[pass] README uses only representative product UI screenshots\n[pass] English README uses English UI screenshots\n[pass] UI guide keeps product screenshots in the shared asset set\n[pass] docs UI asset policy documents capture rules\n[pass] managed UI asset manifest stays complete\n[pass] capture script owns every documented UI asset\n[pass] docs capture covers current screenshots\n[pass] representative screenshot docs do not point at stale visual baselines\n[pass] docs UI asset directory contains managed PNG files\n[pass] VA documentation images keep full video frame bounds\n\n== Docs UI asset verification summary ==\n- pass: 10\n- fail: 0\n"
+    }
+  ],
+  "projectInventory": {
+    "command": "./server.sh verify-project-inventory",
+    "startedAt": "2026-09-04T12:16:07.426Z",
+    "endedAt": "2026-09-04T12:16:33.202Z",
+    "exitCode": 0,
+    "stderr": "",
+    "stdoutLineCount": 5088,
+    "featureCheckCategories": [
+      "name present",
+      "UI need",
+      "test need",
+      "test area assigned",
+      "pass criteria present"
+    ],
+    "featureRows": [
+      {
+        "id": "UI-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-069",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-070",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-071",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-072",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-073",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-074",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-075",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-076",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-077",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-078",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-079",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-080",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-081",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-082",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-083",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-084",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-085",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-086",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-087",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-088",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-089",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-090",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-091",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-092",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-093",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-094",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-095",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-096",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-097",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-098",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-099",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-100",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-101",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-102",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-103",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-104",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-105",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-106",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-107",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-108",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-109",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-110",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-111",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-112",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-113",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-114",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "UI-115",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "AUTH-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SRC-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-069",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-070",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-071",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-072",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-073",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-074",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-075",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-076",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-077",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-078",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-079",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-080",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-081",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-082",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-083",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-084",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-085",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-086",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-087",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-088",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-089",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-090",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-091",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-092",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-093",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-094",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-095",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-096",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-097",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-098",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-099",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-100",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-101",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-102",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-103",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-104",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-105",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-106",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-107",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-108",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-109",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-110",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-111",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "RULE-112",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-069",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-070",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-071",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-072",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-073",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-074",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-075",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-076",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-077",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-078",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-079",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-080",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-081",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-082",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-083",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-084",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-085",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-086",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "EVT-087",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "CLIENT-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "MEDIA-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-069",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-070",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-071",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-072",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-073",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-074",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-075",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-076",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-077",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-078",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-079",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-080",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-081",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-082",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-083",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-084",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-085",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-086",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-087",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-088",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-089",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-090",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-091",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-092",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-093",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-094",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-095",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-096",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-097",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-098",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-099",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-100",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-101",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-102",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-103",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-104",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-105",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-106",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-107",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-108",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-109",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-110",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-111",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-112",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-113",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-114",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-115",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-116",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-117",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-118",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-119",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-120",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-121",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-122",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-123",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-124",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-125",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "LAB-126",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-001",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-002",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-003",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-004",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-005",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-006",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-007",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-008",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-009",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-010",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-011",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-012",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-013",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-014",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-015",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-016",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-017",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-018",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-019",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-020",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-021",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-022",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-023",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-024",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-025",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-026",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-027",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-028",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-029",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-030",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-031",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-032",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-033",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-034",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-069",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-070",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-071",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-072",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-073",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-074",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-075",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-076",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-077",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-078",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-079",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-080",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-081",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-082",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-083",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-084",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-085",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-086",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-087",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-088",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-089",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-090",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-091",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-092",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-093",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-094",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-095",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-096",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-097",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-098",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-099",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-100",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-101",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-102",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-103",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-104",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-105",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-106",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-107",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-108",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-109",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-110",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-111",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-112",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-113",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-114",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-115",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-116",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-117",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-118",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-119",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-120",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-121",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-122",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-123",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-124",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-125",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-126",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-127",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-128",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-129",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-130",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-131",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-132",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-133",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-134",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-135",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-136",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-137",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-138",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-139",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-140",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-141",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-142",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-143",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-144",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-145",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-146",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-147",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-148",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-149",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-150",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-151",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-152",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-153",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-154",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-155",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-156",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-157",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-158",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-159",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-160",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-161",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-162",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-163",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-164",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-165",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-166",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-167",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-168",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-169",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-170",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-171",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-172",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-173",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-174",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-175",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-176",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-177",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-178",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-179",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-180",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-181",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-182",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-183",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-184",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-185",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-186",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-187",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-188",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-189",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-190",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-191",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-192",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-193",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-194",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-195",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-196",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-197",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-198",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-199",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-200",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-201",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-202",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-203",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-204",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-205",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-206",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-207",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-208",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-209",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-210",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-211",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-212",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-213",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-214",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-215",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-216",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "SAFE-217",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-035",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-036",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-037",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-038",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-039",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-040",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-041",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-042",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-043",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-044",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-045",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-046",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-047",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-048",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-049",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-050",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-051",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-052",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-053",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-054",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-055",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-056",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-057",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-058",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-059",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-060",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-061",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-062",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-063",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-064",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-065",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-066",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-067",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-068",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-069",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-070",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-071",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-072",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-073",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-074",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-075",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-076",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-077",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-078",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-079",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-080",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-081",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-082",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-083",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-084",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-085",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-086",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-087",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-088",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-089",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-090",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-091",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-092",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-093",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-094",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-095",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-096",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-097",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-098",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-099",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-100",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-101",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-102",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-103",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-104",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-105",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-106",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-107",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-108",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-109",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-110",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-111",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-112",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-113",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-114",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-115",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-116",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-117",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-118",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-119",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-120",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-121",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-122",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-123",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-124",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-125",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-126",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-127",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-128",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-129",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-130",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-131",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-132",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-133",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-134",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-135",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-136",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-137",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-138",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-139",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-140",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-141",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-142",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-143",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-144",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-145",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-146",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-147",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-148",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-149",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-150",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-151",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-152",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-153",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-154",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-155",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-156",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-157",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-158",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-159",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-160",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-161",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-162",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-163",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-164",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-165",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-166",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-167",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-168",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-169",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-170",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-171",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-172",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-173",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-174",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-175",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-176",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-177",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-178",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-179",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-180",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-181",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-182",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-183",
+        "pass": 5,
+        "fail": 0
+      },
+      {
+        "id": "OPS-184",
+        "pass": 5,
+        "fail": 0
+      }
+    ],
+    "otherOutput": [
+      "[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)",
+      "[pass] public docs index excludes internal feature inventory",
+      "[pass] feature inventory pins current release scope",
+      "[pass] required sections exist",
+      "[pass] historical V280 source-of-truth keeps the 2.x runway boundary explicit",
+      "[pass] historical V290 source-of-truth keeps source, published, and roadmap distinct",
+      "[pass] inventory summary count 전체 기능 항목 986",
+      "[pass] inventory summary count UI 직접 필요 400",
+      "[pass] inventory summary count UI 간접 필요 36",
+      "[pass] inventory summary count UI 비대상 550",
+      "[pass] inventory summary count 테스트 필요 986",
+      "[pass] inventory summary count 안정화 대상 976",
+      "[pass] inventory summary count UI 풀테스트 대상 424",
+      "[pass] inventory summary count 30분 soak 대상 50",
+      "[pass] inventory summary count 120분 대상 7",
+      "[pass] summary counts match current feature IDs",
+      "[pass] implementation evidence manifest matches all feature rows",
+      "[pass] feature rows have required matrix columns",
+      "[pass] inventory rejects separate test-area labels",
+      "[pass] coverage wording separates mapping from execution",
+      "[pass] current feature expansion rows exist",
+      "[pass] manual UI docs reference inventory",
+      "[pass] manual checklist references seed fixture",
+      "[pass] manual result template references seed fixture",
+      "[pass] VA seed inventory commands select the latest published baseline explicitly",
+      "[pass] AGENTS requires individual future feature test rows",
+      "[pass] manual UI seed account role admin",
+      "[pass] manual UI seed account role operator",
+      "[pass] manual UI seed account role viewer",
+      "[pass] manual UI seed account role integrator",
+      "[pass] manual UI seed profile 9101 numeric id",
+      "[pass] manual UI seed profile 9101 tracking classes present",
+      "[pass] manual UI seed profile 9102 numeric id",
+      "[pass] manual UI seed profile 9102 tracking classes present",
+      "[pass] manual UI seed profile 9103 numeric id",
+      "[pass] manual UI seed profile 9103 tracking classes present",
+      "[pass] manual UI seed profile 9104 numeric id",
+      "[pass] manual UI seed profile 9104 tracking classes present",
+      "[pass] manual UI seed profile 9105 numeric id",
+      "[pass] manual UI seed profile 9105 tracking classes present",
+      "[pass] manual UI seed profile 9106 numeric id",
+      "[pass] manual UI seed profile 9106 tracking classes present",
+      "[pass] manual UI seed profile 9107 numeric id",
+      "[pass] manual UI seed profile 9107 tracking classes present",
+      "[pass] manual UI seed event type presence",
+      "[pass] manual UI seed event type enter",
+      "[pass] manual UI seed event type exit",
+      "[pass] manual UI seed event type line-crossing",
+      "[pass] manual UI seed event type intrusion-dwell",
+      "[pass] manual UI seed event type re-entry",
+      "[pass] manual UI seed event type wrong-direction",
+      "[pass] manual UI seed event type intrusion-after-line-crossing",
+      "[pass] manual UI seed event type loitering",
+      "[pass] manual UI seed event type zone-occupancy",
+      "[pass] manual UI seed event template 9201 numeric id",
+      "[pass] manual UI seed event template 9201 event type presence",
+      "[pass] manual UI seed event template 9201 profile reference",
+      "[pass] manual UI seed event template 9202 numeric id",
+      "[pass] manual UI seed event template 9202 event type enter",
+      "[pass] manual UI seed event template 9202 profile reference",
+      "[pass] manual UI seed event template 9203 numeric id",
+      "[pass] manual UI seed event template 9203 event type exit",
+      "[pass] manual UI seed event template 9203 profile reference",
+      "[pass] manual UI seed event template 9204 numeric id",
+      "[pass] manual UI seed event template 9204 event type line-crossing",
+      "[pass] manual UI seed event template 9204 profile reference",
+      "[pass] manual UI seed event template 9205 numeric id",
+      "[pass] manual UI seed event template 9205 event type line-crossing",
+      "[pass] manual UI seed event template 9205 profile reference",
+      "[pass] manual UI seed event template 9206 numeric id",
+      "[pass] manual UI seed event template 9206 event type line-crossing",
+      "[pass] manual UI seed event template 9206 profile reference",
+      "[pass] manual UI seed event template 9207 numeric id",
+      "[pass] manual UI seed event template 9207 event type intrusion-dwell",
+      "[pass] manual UI seed event template 9207 profile reference",
+      "[pass] manual UI seed event template 9208 numeric id",
+      "[pass] manual UI seed event template 9208 event type re-entry",
+      "[pass] manual UI seed event template 9208 profile reference",
+      "[pass] manual UI seed event template 9209 numeric id",
+      "[pass] manual UI seed event template 9209 event type wrong-direction",
+      "[pass] manual UI seed event template 9209 profile reference",
+      "[pass] manual UI seed event template 9210 numeric id",
+      "[pass] manual UI seed event template 9210 event type intrusion-after-line-crossing",
+      "[pass] manual UI seed event template 9210 profile reference",
+      "[pass] manual UI seed event template 9211 numeric id",
+      "[pass] manual UI seed event template 9211 event type loitering",
+      "[pass] manual UI seed event template 9211 profile reference",
+      "[pass] manual UI seed event template 9212 numeric id",
+      "[pass] manual UI seed event template 9212 event type zone-occupancy",
+      "[pass] manual UI seed event template 9212 profile reference",
+      "[pass] manual UI seed line direction any",
+      "[pass] manual UI seed line direction forward",
+      "[pass] manual UI seed line direction reverse",
+      "[pass] manual UI seed scenario preset default",
+      "[pass] manual UI seed scenario preset road",
+      "[pass] manual UI seed scenario preset retail",
+      "[pass] manual UI seed scenario preset park",
+      "[pass] manual UI seed scenario preset indoor",
+      "[pass] manual UI seed scenario preset lobby",
+      "[pass] manual UI seed scenario preset platform",
+      "[pass] manual UI seed scenario preset entrance",
+      "[pass] manual UI seed scenario preset doorway",
+      "[pass] manual UI seed scenario preset parking",
+      "[pass] manual UI seed scenario preset elevator",
+      "[pass] manual UI seed scenario preset custom",
+      "[pass] manual UI seed vaRule 9301 numeric id",
+      "[pass] manual UI seed vaRule 9301 profile reference",
+      "[pass] manual UI seed vaRule 9301 event template reference",
+      "[pass] manual UI seed vaRule 9302 numeric id",
+      "[pass] manual UI seed vaRule 9302 profile reference",
+      "[pass] manual UI seed vaRule 9302 event template reference",
+      "[pass] manual UI seed vaRule 9303 numeric id",
+      "[pass] manual UI seed vaRule 9303 profile reference",
+      "[pass] manual UI seed vaRule 9303 event template reference",
+      "[pass] manual UI seed vaRule 9304 numeric id",
+      "[pass] manual UI seed vaRule 9304 profile reference",
+      "[pass] manual UI seed vaRule 9304 event template reference",
+      "[pass] manual UI seed vaRule 9305 numeric id",
+      "[pass] manual UI seed vaRule 9305 profile reference",
+      "[pass] manual UI seed vaRule 9305 event template reference",
+      "[pass] manual UI seed vaRule 9306 numeric id",
+      "[pass] manual UI seed vaRule 9306 profile reference",
+      "[pass] manual UI seed vaRule 9306 event template reference",
+      "[pass] manual UI seed vaRule 9307 numeric id",
+      "[pass] manual UI seed vaRule 9307 profile reference",
+      "[pass] manual UI seed vaRule 9307 event template reference",
+      "[pass] manual UI seed vaRule 9308 numeric id",
+      "[pass] manual UI seed vaRule 9308 profile reference",
+      "[pass] manual UI seed vaRule 9308 event template reference",
+      "[pass] manual UI seed vaRule 9309 numeric id",
+      "[pass] manual UI seed vaRule 9309 profile reference",
+      "[pass] manual UI seed vaRule 9309 event template reference",
+      "[pass] manual UI seed vaRule 9310 numeric id",
+      "[pass] manual UI seed vaRule 9310 profile reference",
+      "[pass] manual UI seed vaRule 9310 event template reference",
+      "[pass] manual UI seed vaRule 9311 numeric id",
+      "[pass] manual UI seed vaRule 9311 profile reference",
+      "[pass] manual UI seed vaRule 9311 event template reference",
+      "[pass] manual UI seed vaRule 9312 numeric id",
+      "[pass] manual UI seed vaRule 9312 profile reference",
+      "[pass] manual UI seed vaRule 9312 event template reference",
+      "[pass] manual UI seed tracker Re-ID pair none/off",
+      "[pass] manual UI seed tracker Re-ID pair lite/off",
+      "[pass] manual UI seed tracker Re-ID pair kalman-lite/off",
+      "[pass] manual UI seed tracker Re-ID pair bytetrack/off",
+      "[pass] manual UI seed tracker Re-ID pair lite/assist",
+      "[pass] manual UI seed tracker Re-ID pair kalman-lite/assist",
+      "[pass] manual UI seed tracker Re-ID pair bytetrack/assist",
+      "[pass] manual UI seed invalid policy tracker none Re-ID assist",
+      "[pass] manual UI seed final state minimum vaRules",
+      "[pass] manual UI VA seed matrix covers required current release cases",
+      "== Project feature/test inventory summary ==",
+      "- featureRows: 986",
+      "- seedFixture: test/fixtures/manual_ui_fulltest_va_seed_matrix.json",
+      "- pass: 18",
+      "- fail: 0"
+    ]
+  },
+  "initialManifestDiagnostic": {
+    "chunk_id": "5ef7a7",
+    "wall_time_seconds": 0.058573417,
+    "exit_code": 1,
+    "original_token_count": 194,
+    "output": "node:assert:152\n  throw new AssertionError(obj);\n  ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'inventorySha256',\n+   'items'\n  ]\n\n    at [eval]:1:399\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n    at evalFunction (node:internal/process/execution:283:30)\n    at evalTypeScript (node:internal/process/execution:295:3)\n    at node:internal/main/eval_string:71:3 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: [ 'inventorySha256', 'items' ],\n  expected: [ 'inventorySha256' ],\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.13.0\n",
+    "interpretation": "inventorySha256만 바뀔 것이라는 진단 전제 오류. 이후 전수 비교에서 승인 의미 불변과 locator/파생 digest 변경만 확인."
+  },
+  "manifestClassification": {
+    "type": "읽기 전용 manifest 차이 진단",
+    "result": "PASS",
+    "rows": 986,
+    "shift16": 971,
+    "shift2Ids": [
+      "SAFE-052",
+      "SAFE-053",
+      "SAFE-054",
+      "SAFE-055",
+      "SAFE-056",
+      "SAFE-058",
+      "SAFE-059",
+      "SAFE-060",
+      "SAFE-061",
+      "SAFE-062",
+      "SAFE-065",
+      "SAFE-066",
+      "SAFE-067",
+      "SAFE-068",
+      "SAFE-069"
+    ],
+    "changedLeaves": 5917,
+    "inventorySha256": "b0c0916c6d47bb817c98d7a7fd9d08251312309e986818131d8f4902dc80c0a8",
+    "unchanged": "위 6개 파생 필드/locator와 inventorySha256을 제외한 모든 값·ID 순서·승인 envelope·sourceFlowDigest 동일",
+    "checks": [
+      "현재 source line 및 contextSha256 일치",
+      "edge proof JSON SHA256 986개 일치",
+      "semanticDigest 쌍 986개 일치",
+      "기타 전체 JSON deepEqual"
+    ],
+    "limits": "제품 runtime/UI PASS가 아니며 semanticDigest 계산 정당성은 정식 source audit 51/0으로 별도 확인"
+  },
+  "independentReview": "동일 변경을 읽기 전용 서브 에이전트 1명이 대조. 승인/ID/sourceFlowDigest 불변, 971개 +16행·15개 +2행 및 파생 digest 갱신으로 확인. 다른 플랫폼·UI 검증으로 대체하지 않음."
+}

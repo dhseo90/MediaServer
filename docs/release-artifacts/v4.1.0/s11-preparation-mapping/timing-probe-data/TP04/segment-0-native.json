@@ -1,0 +1,296 @@
+{
+  "fileBytes": 11900,
+  "fileSHA256": "3638dd00c0ede1ff5105cffdfaf45c6e0f00582f60fbeee8258aac64a0ec85f8",
+  "timescale": 3000,
+  "movieTimescale": 3000,
+  "stts": [
+    [
+      1,
+      60
+    ],
+    [
+      1,
+      150
+    ],
+    [
+      1,
+      60
+    ],
+    [
+      1,
+      150
+    ],
+    [
+      1,
+      60
+    ],
+    [
+      1,
+      150
+    ],
+    [
+      1,
+      60
+    ],
+    [
+      1,
+      150
+    ],
+    [
+      1,
+      60
+    ],
+    [
+      1,
+      150
+    ],
+    [
+      1,
+      60
+    ],
+    [
+      1,
+      100
+    ]
+  ],
+  "ctts": [],
+  "edits": [
+    [
+      "1210",
+      "0",
+      65536
+    ]
+  ],
+  "boxes": [
+    {
+      "type": "ftyp",
+      "offset": 0,
+      "size": 32,
+      "data": 8
+    },
+    {
+      "type": "free",
+      "offset": 32,
+      "size": 8,
+      "data": 40
+    },
+    {
+      "type": "mdat",
+      "offset": 40,
+      "size": 10869,
+      "data": 48
+    },
+    {
+      "type": "moov",
+      "offset": 10909,
+      "size": 991,
+      "data": 10917
+    },
+    {
+      "type": "mvhd",
+      "offset": 10917,
+      "size": 108,
+      "data": 10925
+    },
+    {
+      "type": "trak",
+      "offset": 11025,
+      "size": 814,
+      "data": 11033
+    },
+    {
+      "type": "tkhd",
+      "offset": 11033,
+      "size": 92,
+      "data": 11041
+    },
+    {
+      "type": "edts",
+      "offset": 11125,
+      "size": 36,
+      "data": 11133
+    },
+    {
+      "type": "elst",
+      "offset": 11133,
+      "size": 28,
+      "data": 11141
+    },
+    {
+      "type": "mdia",
+      "offset": 11161,
+      "size": 617,
+      "data": 11169
+    },
+    {
+      "type": "mdhd",
+      "offset": 11169,
+      "size": 32,
+      "data": 11177
+    },
+    {
+      "type": "hdlr",
+      "offset": 11201,
+      "size": 45,
+      "data": 11209
+    },
+    {
+      "type": "minf",
+      "offset": 11246,
+      "size": 532,
+      "data": 11254
+    },
+    {
+      "type": "vmhd",
+      "offset": 11254,
+      "size": 20,
+      "data": 11262
+    },
+    {
+      "type": "dinf",
+      "offset": 11274,
+      "size": 36,
+      "data": 11282
+    },
+    {
+      "type": "stbl",
+      "offset": 11310,
+      "size": 468,
+      "data": 11318
+    },
+    {
+      "type": "stsd",
+      "offset": 11318,
+      "size": 212,
+      "data": 11326
+    },
+    {
+      "type": "stts",
+      "offset": 11530,
+      "size": 112,
+      "data": 11538
+    },
+    {
+      "type": "stss",
+      "offset": 11642,
+      "size": 20,
+      "data": 11650
+    },
+    {
+      "type": "stsc",
+      "offset": 11662,
+      "size": 28,
+      "data": 11670
+    },
+    {
+      "type": "stsz",
+      "offset": 11690,
+      "size": 68,
+      "data": 11698
+    },
+    {
+      "type": "stco",
+      "offset": 11758,
+      "size": 20,
+      "data": 11766
+    },
+    {
+      "type": "udta",
+      "offset": 11778,
+      "size": 61,
+      "data": 11786
+    },
+    {
+      "type": "udta",
+      "offset": 11839,
+      "size": 61,
+      "data": 11847
+    }
+  ],
+  "samples": [
+    {
+      "index": 0,
+      "dts": 0,
+      "pts": 0,
+      "duration": 60,
+      "sha256": "e24916557285c63dc6ab45fe406b7e5867892bc3c6d1b4bc01550debf1575291"
+    },
+    {
+      "index": 1,
+      "dts": 60,
+      "pts": 60,
+      "duration": 150,
+      "sha256": "c806dc7b95c856fcf5f93713a64b97597a6caadcace278d3df4af9b95107ffae"
+    },
+    {
+      "index": 2,
+      "dts": 210,
+      "pts": 210,
+      "duration": 60,
+      "sha256": "6fe7efdc5a8243e668c0ed6805ffbfecb690c568e32a717fe5b2b83a2087877e"
+    },
+    {
+      "index": 3,
+      "dts": 270,
+      "pts": 270,
+      "duration": 150,
+      "sha256": "7f46b631f64275146d819b06794e9faf4d1d46d5ef2f47041c569285181d1deb"
+    },
+    {
+      "index": 4,
+      "dts": 420,
+      "pts": 420,
+      "duration": 60,
+      "sha256": "a4bf6dadefe40b6db173b42dc5ac1dd7d7cb444ee024fef0cc24e1af7f3731aa"
+    },
+    {
+      "index": 5,
+      "dts": 480,
+      "pts": 480,
+      "duration": 150,
+      "sha256": "2d28e66c221afd72b472e2511b0d16effd83179cec9edee04ea2198be9d132b9"
+    },
+    {
+      "index": 6,
+      "dts": 630,
+      "pts": 630,
+      "duration": 60,
+      "sha256": "5288b24b57d880a1e6afeeedbdc59b542e6aba725d698fc53f97f10b6e0c49f3"
+    },
+    {
+      "index": 7,
+      "dts": 690,
+      "pts": 690,
+      "duration": 150,
+      "sha256": "a8d7f5e6f1d82fd80f3f2c2cf1395dd0f0925ae1eb4f11a9d6de2e99cce61815"
+    },
+    {
+      "index": 8,
+      "dts": 840,
+      "pts": 840,
+      "duration": 60,
+      "sha256": "4954341393fefe24bdf7dbd6a0fcb359a467e5465a41b29c0ad624a4a8ea1399"
+    },
+    {
+      "index": 9,
+      "dts": 900,
+      "pts": 900,
+      "duration": 150,
+      "sha256": "10e50b4558387611bbdc98f0a907af47c1fb095be112aa59302445c9c651ac05"
+    },
+    {
+      "index": 10,
+      "dts": 1050,
+      "pts": 1050,
+      "duration": 60,
+      "sha256": "d43a94b9371f1f4a2a71cd1db4fc1b86acaee48881e2159fd2ab7a7d7eb836c4"
+    },
+    {
+      "index": 11,
+      "dts": 1110,
+      "pts": 1110,
+      "duration": 100,
+      "sha256": "121f3697dfc179b4567b1c6a7ac6c03ce4a3307f906aab02fac22c378edfbeb9"
+    }
+  ]
+}

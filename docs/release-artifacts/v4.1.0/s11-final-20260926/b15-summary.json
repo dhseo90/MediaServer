@@ -1,0 +1,883 @@
+{
+  "commands": [
+    {
+      "id": "b15-capture-syntax",
+      "file": "b15-capture-syntax.json.gz",
+      "command": [
+        "node",
+        "--check",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs"
+      ],
+      "exit": 0,
+      "elapsedMs": 29.21,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-01",
+      "file": "b15-capture-01.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.1Yu4Oj"
+      ],
+      "exit": 1,
+      "elapsedMs": 17684.720333,
+      "items": 9,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-entry-01",
+      "file": "b15-docs-entry-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-v410-entry-baseline"
+      ],
+      "exit": 0,
+      "elapsedMs": 122.30145800000001,
+      "items": 46,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-metadata-01",
+      "file": "b15-docs-metadata-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "exit": 1,
+      "elapsedMs": 79.42291700000001,
+      "items": 18,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-02",
+      "file": "b15-capture-02.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.1Yu4Oj"
+      ],
+      "exit": 1,
+      "elapsedMs": 50891.2575,
+      "items": 13,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-metadata-02",
+      "file": "b15-docs-metadata-02.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "exit": 0,
+      "elapsedMs": 79.73525,
+      "items": 18,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-03",
+      "file": "b15-capture-03.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.fxSGTG"
+      ],
+      "exit": 1,
+      "elapsedMs": 11924.051958,
+      "items": 9,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-metadata-unit-01",
+      "file": "b15-metadata-unit-01.json.gz",
+      "command": [
+        "node",
+        "--test",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-metadata.test.mjs"
+      ],
+      "exit": 0,
+      "elapsedMs": 1090.641625,
+      "items": 2,
+      "evidenceValid": false,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-04",
+      "file": "b15-capture-04.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.fxSGTG"
+      ],
+      "exit": 1,
+      "elapsedMs": 51274.640959000004,
+      "items": 16,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-links-01",
+      "file": "b15-docs-links-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 188.277792,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-05",
+      "file": "b15-capture-05.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.ZJW3yz",
+        "en-ops-users,en-client-live"
+      ],
+      "exit": 0,
+      "elapsedMs": 16095.899541,
+      "items": 11,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-06",
+      "file": "b15-capture-06.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.kFOSN8",
+        "ko-client-live,en-client-live"
+      ],
+      "exit": 0,
+      "elapsedMs": 18374.657167,
+      "items": 11,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-capture-07",
+      "file": "b15-capture-07.json.gz",
+      "command": [
+        "node",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-capture.mjs",
+        "/private/tmp/media-server-b15.ozWcZx",
+        "ko-client-live,en-client-live"
+      ],
+      "exit": 0,
+      "elapsedMs": 18141.614999999998,
+      "items": 11,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-assets-unit-01",
+      "file": "b15-assets-unit-01.json.gz",
+      "command": [
+        "node",
+        "--test",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-assets.test.mjs"
+      ],
+      "exit": 0,
+      "elapsedMs": 1081.720875,
+      "items": 6,
+      "evidenceValid": false,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-assets-unit-02",
+      "file": "b15-assets-unit-02.json.gz",
+      "command": [
+        "node",
+        "--test",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-assets.test.mjs"
+      ],
+      "exit": 0,
+      "elapsedMs": 813.198416,
+      "items": 6,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-metadata-unit-02",
+      "file": "b15-metadata-unit-02.json.gz",
+      "command": [
+        "node",
+        "--test",
+        "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-metadata.test.mjs"
+      ],
+      "exit": 0,
+      "elapsedMs": 1006.999209,
+      "items": 2,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-entry-02",
+      "file": "b15-entry-02.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-v410-entry-baseline"
+      ],
+      "exit": 0,
+      "elapsedMs": 99.185375,
+      "items": 46,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-metadata-03",
+      "file": "b15-metadata-03.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "exit": 0,
+      "elapsedMs": 101.137833,
+      "items": 18,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-assets-01",
+      "file": "b15-assets-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-ui-assets"
+      ],
+      "exit": 0,
+      "elapsedMs": 55.693625,
+      "items": 10,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-script-inventory-01",
+      "file": "b15-script-inventory-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "exit": 0,
+      "elapsedMs": 59906.103375,
+      "items": 12,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-github-ruleset",
+      "file": "b15-github-ruleset.json.gz",
+      "command": [
+        "gh",
+        "api",
+        "repos/dhseo90/MediaServer/rulesets/16171792"
+      ],
+      "exit": 0,
+      "elapsedMs": 376.88908399999997,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-feature-coverage-01",
+      "file": "b15-feature-coverage-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "exit": 1,
+      "elapsedMs": 81441.91483299999,
+      "items": 8,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-github-actions-permissions",
+      "file": "b15-github-actions-permissions.json.gz",
+      "command": [
+        "gh",
+        "api",
+        "repos/dhseo90/MediaServer/actions/permissions/workflow"
+      ],
+      "exit": 0,
+      "elapsedMs": 349.1075,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-github-repository",
+      "file": "b15-github-repository.json.gz",
+      "command": [
+        "gh",
+        "repo",
+        "view",
+        "dhseo90/MediaServer",
+        "--json",
+        "nameWithOwner,description,visibility,defaultBranchRef,viewerPermission,repositoryTopics,url"
+      ],
+      "exit": 0,
+      "elapsedMs": 719.7345,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-trust-producer-01",
+      "file": "b15-trust-producer-01.json.gz",
+      "command": [
+        "./server.sh",
+        "produce-v390-review4-migration-aware-approvals",
+        "--write-ledger",
+        "--prior-audit",
+        "/private/tmp/media-server-b15-review4.X2KPku/prior-audit.json",
+        "--prior-approvals",
+        "/private/tmp/media-server-b15-review4.X2KPku/prior-approvals.json",
+        "--migration-evidence",
+        "/private/tmp/media-server-b15-review4.X2KPku/migration-evidence.json",
+        "--decisions",
+        "/private/tmp/media-server-b15-review4.X2KPku/independent-decisions.json",
+        "--review-package",
+        "/private/tmp/media-server-b15-review4.X2KPku/review-package.json"
+      ],
+      "exit": 0,
+      "elapsedMs": 79279.870167,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-feature-coverage-02",
+      "file": "b15-feature-coverage-02.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "exit": 0,
+      "elapsedMs": 81500.66608299999,
+      "items": 8,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-code-comments-01",
+      "file": "b15-verify-code-comments-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-code-comments"
+      ],
+      "exit": 0,
+      "elapsedMs": 257.40099999999995,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-release-closeout-helper-01",
+      "file": "b15-verify-release-closeout-helper-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-closeout-helper"
+      ],
+      "exit": 1,
+      "elapsedMs": 154.771916,
+      "items": 6,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-release-closeout-helper-02",
+      "file": "b15-verify-release-closeout-helper-02.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-closeout-helper",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "elapsedMs": 204.47375,
+      "items": 6,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-actions-security-01",
+      "file": "b15-verify-actions-security-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-actions-security"
+      ],
+      "exit": 0,
+      "elapsedMs": 33.857916,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-ci-local-gate-parity-01",
+      "file": "b15-verify-ci-local-gate-parity-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-ci-local-gate-parity"
+      ],
+      "exit": 0,
+      "elapsedMs": 34.568708,
+      "items": 6,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-syntax-shell-01",
+      "file": "b15-syntax-shell-01.json.gz",
+      "command": [
+        "bash",
+        "-n",
+        "server.sh",
+        "scripts/internal/verify_v410_entry_baseline.sh"
+      ],
+      "exit": 0,
+      "elapsedMs": 4.879791000000001,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-v390-review4-feature-semantic-source-approvals-01",
+      "file": "b15-verify-v390-review4-feature-semantic-source-approvals-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-approvals"
+      ],
+      "exit": 0,
+      "elapsedMs": 19823.200999999997,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-verify-v390-ui-native-exact-cases-01",
+      "file": "b15-verify-v390-ui-native-exact-cases-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-v390-ui-native-exact-cases"
+      ],
+      "exit": 0,
+      "elapsedMs": 1130.705708,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-metadata-04",
+      "file": "b15-metadata-04.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "exit": 0,
+      "elapsedMs": 78.543791,
+      "items": 18,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-links-02",
+      "file": "b15-docs-links-02.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 1,
+      "elapsedMs": 171.85637499999999,
+      "items": 1,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-links-03",
+      "file": "b15-docs-links-03.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 172.047667,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-public-current-01",
+      "file": "b15-public-current-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-public-repo-readiness",
+        "--no-history"
+      ],
+      "exit": 0,
+      "elapsedMs": 1261.857459,
+      "items": 7,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-links-04",
+      "file": "b15-docs-links-04.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 173.07825,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-entry-03",
+      "file": "b15-entry-03.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-v410-entry"
+      ],
+      "exit": 1,
+      "elapsedMs": 14.679625000000001,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-entry-04",
+      "file": "b15-entry-04.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-v410-entry-baseline"
+      ],
+      "exit": 0,
+      "elapsedMs": 97.763291,
+      "items": 46,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-public-current-02",
+      "file": "b15-public-current-02.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-public-repo-readiness",
+        "--no-history"
+      ],
+      "exit": 0,
+      "elapsedMs": 1260.147208,
+      "items": 7,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-public-history-01",
+      "file": "b15-public-history-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-public-repo-readiness",
+        "--max-history",
+        "1"
+      ],
+      "exit": 0,
+      "elapsedMs": 3359.680833,
+      "items": 8,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-links-final",
+      "file": "b15-docs-links-final.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 170.247666,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-template-closeout",
+      "file": "b15-template-closeout.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-closeout-helper",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "elapsedMs": 90.91512499999999,
+      "items": 6,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-template-links",
+      "file": "b15-template-links.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 207.81991699999998,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    }
+  ],
+  "images": 20,
+  "cleanupRoots": 5,
+  "cleanupRemoved": true,
+  "sourceProductChanged": false,
+  "externalReleaseStatus": "cut 동결 이후 실제 PR/Release 기록으로 확인",
+  "token": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "개별 실제 집계 도구 미제공"
+  }
+}

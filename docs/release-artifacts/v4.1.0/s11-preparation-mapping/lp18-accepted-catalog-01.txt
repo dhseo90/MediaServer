@@ -1,0 +1,123 @@
+LP18 accepted catalog 회귀
+증거 한계: tool 출력 한도1500으로 중간 원출력이 잘렸다. 남은 개별 행은108개뿐이다.
+실제 exit0/제품 summary234+crypto3+composition9는 확인되지만 개별246행 증거로 사용할 수 없다.
+잘린 원출력은 추정 복원하지 않으며 재수집 실행을 별도 파일로 보존한다.
+명령: MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh
+exit: 0
+elapsed: 전체 미집계
+token start/end/consumed: 미집계(집계 미제공)
+후행 공백 원출력 줄은 RAW_JSON_LINE JSON 문자열로 손실 없이 보존.
+
+Warning: truncated output (original token count: 3579)
+Total output lines: 248
+
+RAW_JSON_LINE "[pass] journal open: "
+RAW_JSON_LINE "[pass] fallback catalog open: "
+[pass] SQLite off mode 표시
+RAW_JSON_LINE "[pass] segment finalize journal+projection: "
+[pass] fallback range query
+[pass] event link FK 위반 거부
+[pass] FK 위반 transaction/journal 전체 rollback
+[pass] 최초 durable mutation 1개
+[pass] 동일 mutation 중복 append
+[pass] 손상 사이 정상 durable mutation 보존
+[pass] 중간 corrupt line count
+[pass] 마지막 truncated line skip
+[pass] fallback replay open
+[pass] 같은 mutation idempotent replay
+[pass] 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존
+[pass] 중복 replay row/합계 불증가
+RAW_JSON_LINE "[pass] 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: "
+[pass] writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed
+[pass] v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed
+RAW_JSON_LINE "[pass] SQLite catalog open/rebuild: "
+[pass] SQLite primary mode 표시
+[pass] SQLite on/off range query ID·순서 parity
+[pass] journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분
+[pass] journal 없는 손상 media orphan 구분
+RAW_JSON_LINE "[pass] projection failover journal open: "
+RAW_JSON_LINE "[pass] projection failover catalog open: "
+[pass] 실제 SQLite INSERT 실패 trigger 설치
+RAW_JSON_LINE "[pass] SQLite 투영 실패 뒤 journal+memory finalize 유지: "
+[pass] SQLite 투영 실패 즉시 JSONL fallback 전환
+[pass] 재시작 rebuild 전 실패 trigger 제거
+[pass] 투영 실패 직후 in-memory query 정합성 유지
+RAW_JSON_LINE "[pass] projection failover 재시작 journal rebuild: "
+[pass] 재시작 후 journal에서 누락 SQLite projection 복구
+[pass] 재시작 후 SQLite primary 복귀
+[pass] 재시작 journal rebuild가 실제 SQLite row 복원
+RAW_JSON_LINE "[pass] tombstone journal open: "
+RAW_JSON_LINE "[pass] tombstone catalog open: "
+RAW_JSON_LINE "[pass] tombstone 대상 segment finalize: "
+RAW_JSON_LINE "[pass] tombstone 대상 deletion request: "
+RAW_JSON_LINE "[pass] tombstone 완료 기록: "
+[pass] catalog finalize가 tombstone segment ID 재사용을 거부해야 함
+RAW_JSON_LINE "[pass] 손상 SQLite 격리 후 journal rebuild: "
+[pass] 손상 SQLite 원본 격리
+[pass] 격리 SQLite 파일 보존
+[pass] 격리 후 journal rebuild 결과
+[pass] S10-3A future-schema journal read open
+[pass] S10-3A future-schema unsupported classification
+[pass] S10-3A future-schema catalog open denied
+[pass] S10-3A future-schema catalog retry denied
+[pass] S10-3A future-schema journal bytes preserved
+[pass] S10-3A future-schema SQLite bytes preserved
+[pass] S10-3A future-schema writer cleanup untouched
+[pass] S10-3A arbitrary-schema journal read open
+[pass] S10-3A arbitrary-schema unsupported classification
+[pass] S10-3A arbitrary-schema catalog open denied
+[pass] S10-3A arbitrary-schema catalog retry denied
+[pass] S10-3A arbitrary-schema journal bytes preserved
+[pass] S10-3A arbitrary-schema SQLite bytes preserved
+[pass] S10-3A arbitrary-schema writer cleanup untouched
+[pass] S10-3A empty-schema journal read open
+[pass] S10-3A empty-schema unsuppo…2079 tokens truncated…[pass] S10-SB07 managed SQLite sidecar rejected -shm symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal hardlink
+[pass] S10-SC01 managed repeated event fixture is valid
+[pass] S10-SC02 managed reservations avoid history reads
+[pass] S10-SC03 managed V2 finalize avoids full replay
+[pass] S10-SC04 checkpoint reduces superseded event payload bytes
+[pass] S10-SC05 checkpoint preserves latest event and all record identities
+[pass] S10-SC06 checkpoint is idempotent and preserves V2
+[pass] S10-SC08 receipt preserves retry identity and rejects direct append
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite
+[pass] S10-SC09 managed checkpoint SQL V2 payload and path
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl
+[pass] S10-SC10 checkpoint prefix recovers before writes
+[pass] S10-SC11 checkpoint mismatch preserves bytes and poisons owner
+[pass] S10-SC12 first accepted mutation controls latest event
+[pass] S10-SC16 automatic checkpoint uses accumulated growth
+[pass] S10-SC07 raw checkpoint is rejected
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens write
+[pass] S10-SC21 poison rejects hold mutation write
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens file-fsync
+[pass] S10-SC21 poison rejects hold mutation file-fsync
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens rename
+[pass] S10-SC21 poison rejects hold mutation rename
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync
+[pass] S10-SC21 poison rejects hold mutation dir-fsync
+[pass] S10-SC17 checkpoint preserves holds observations and deletion
+[pass] S10-SC17 checkpoint SQL hold observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart sqlite
+[pass] S10-SC17 checkpoint SQL restart observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart jsonl
+[pass] S10-SC19 invalid managed history remains unchanged malformed
+[pass] S10-SC19 invalid managed history remains unchanged unsupported
+[pass] S10-SC19 invalid managed history remains unchanged conflict
+[pass] S10-SC20 raw catalog rejects receipt before side effects
+[verify-v410-recording-catalog] pass=234 fail=0
+[pass] S10-SC13 crypto off raw remains usable
+[pass] S10-SC14 crypto off checkpoint is rejected
+[pass] S10-SC15 crypto off receipt reopen is rejected
+[pass] source 저장 callback reconcile 연결
+[pass] policy revision idempotency
+[pass] 5초 safety reconcile
+[pass] composition root 관리 저장소 선행 open
+[pass] composition helper journal 다음 catalog rebuild/open
+[pass] 서버 전 supervisor 시작
+[pass] ingress 전 event bridge 등록
+[pass] ingress 종료 뒤 recorder finalize
+[pass] composition root 시작/종료 순서
+[cleanup] path=/tmp/media_server_v410_recording_catalog-54013 bytes=26904486 removed=true

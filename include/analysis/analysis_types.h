@@ -6,11 +6,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace analysis {
+
+struct DecodedIntervalSnapshot;
 
 enum class PixelFormat {
     Unknown,
@@ -18,6 +21,20 @@ enum class PixelFormat {
     RGB,
     BGR,
     Gray8,
+};
+
+enum class SourceAssociationQuality { TimestampMatch, Nearest, Ambiguous, Unavailable };
+// 현재 decoder 입력 이력의 timestamp 연관이며 decoded frame 고유성의 증명이 아니다.
+struct OriginalSampleIdentity {
+    std::string source_generation;
+    std::uint64_t generation_order{0};
+    std::uint64_t ordinal{0};
+    std::string track_id;
+    std::uint64_t pts_ns{0};
+};
+struct SourceAssociation {
+    SourceAssociationQuality quality{SourceAssociationQuality::Unavailable};
+    std::optional<OriginalSampleIdentity> original;
 };
 
 struct RawVideoFrame {
@@ -29,6 +46,8 @@ struct RawVideoFrame {
     PixelFormat format{PixelFormat::Unknown};
     std::int64_t pts{0};
     std::vector<unsigned char> data;
+    SourceAssociation source_association;
+    std::optional<std::uint64_t> source_duration_ns;
 };
 
 struct RectF {
@@ -139,6 +158,11 @@ struct AnalysisContext {
     std::string client_id;
     std::string va_rule_id;
     std::vector<std::string> va_rule_ids;
+    // 이벤트 녹화 시간축은 내부 분석(media-pts-ms)과 외부 UTC 입력을 명시적으로 구분한다.
+    std::string event_time_basis{"media-pts-ms"};
+    std::int64_t event_anchor_utc_ms{0};
+    std::int64_t event_anchor_pts_ms{0};
+    std::string event_stream_epoch_id;
 };
 
 struct AnalysisProfile {
@@ -391,16 +415,30 @@ struct AnalysisMetricsReport {
     std::vector<AnalysisChannelMetrics> channels;
 };
 
+struct AnalysisObservationContext {
+    std::string source_id;
+    std::string channel_id;
+    std::string stream_epoch_id;
+    std::string locator_reason{"missing-provenance"};
+};
+
 struct AnalysisResult {
     std::string source_key;
     std::string profile_key;
     AnalysisContext context;
     std::uint64_t frame_id{0};
     std::int64_t pts{0};
+    SourceAssociation source_association;
+    // live observer/event/latest 전용. 공개 serializer 및 장기 result_history에는 보존하지 않는다.
+    std::shared_ptr<const DecodedIntervalSnapshot> decoded_intervals;
     int frame_width{0};
     int frame_height{0};
     std::vector<Detection> detections;
     std::vector<Track> tracks;
+    // 녹화 검색 관측 내부 계약. 기존 metadata/EventRecord serializer에는 추가하지 않는다.
+    std::vector<Track> terminated_tracks;
+    AnalysisObservationContext observation_context;
+    std::string observation_namespace;
     std::vector<CloseObjectAssociationDiagnostic> close_object_diagnostics;
     std::vector<PoseKeypoint> pose_keypoints;
     bool debug_state_requested{false};
@@ -408,6 +446,14 @@ struct AnalysisResult {
     bool metrics_report_requested{false};
     std::optional<AnalysisDebugState> debug_state;
     std::optional<AnalysisMetricsReport> metrics_report;
+};
+
+class AnalysisResultObserver {
+public:
+    virtual ~AnalysisResultObserver() = default;
+    virtual AnalysisObservationContext CaptureContext(const std::string& stream_key, std::int64_t pts) = 0;
+    virtual void OnResult(const AnalysisResult& result) = 0;
+    virtual void OnStopped(const std::string& observation_namespace, const std::string& reason) = 0;
 };
 
 }  // namespace analysis

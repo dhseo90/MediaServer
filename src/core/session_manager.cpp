@@ -36,6 +36,14 @@ std::int64_t NowUnixMs() {
 SessionManager::SessionManager(StreamRegistry& registry, ResourceGuard& resource_guard)
     : registry_(registry), resource_guard_(resource_guard) {}
 
+SessionManager::~SessionManager() {
+    // 상위 서비스가 새 요청을 멈춘 뒤, registry/guard가 살아 있을 때 정리를 닫는다.
+    std::unique_lock lock(idle_cleanup_mu_);
+    idle_cleanup_closing_ = true;
+    idle_cleanup_cv_.notify_all();
+    idle_cleanup_cv_.wait(lock, [this] { return idle_cleanup_calls_ == 0; });
+}
+
 SessionManager::CreateResult SessionManager::CreateSession(const media::IngressRequest& request,
                                                            SharedStream::SubscriberCallback callback) {
     // 세션 수 제한은 source 파싱보다 먼저 적용해서 잘못된 요청도 과도하게 누적되지 않게 한다.
@@ -159,6 +167,11 @@ SessionManager::RuntimeStateSnapshot SessionManager::GetRuntimeStateSnapshot() c
     snapshot.resource_active_streams = resource_guard_.ActiveStreams();
     snapshot.registry_active_streams = registry_.ActiveStreamCount();
     snapshot.active_analysis_taps = AuxiliaryRuntimeSnapshot().active_consumers;
+    for (const auto& [_, stream] : registry_.Snapshot()) {
+        if (stream != nullptr && stream->RecordingSubscriberCount() > 0) {
+            ++snapshot.active_recording_channels;
+        }
+    }
     return snapshot;
 }
 
@@ -238,6 +251,15 @@ std::vector<SessionManager::SourceEgressStats> SessionManager::SourceEgressStats
         auto& stats = stats_by_stream[entry.stream_key];
         stats.stream_key = entry.stream_key;
         stats.analysis_tap_count += entry.consumer_count;
+    }
+    for (const auto& [stream_key, stream] : registry_.Snapshot()) {
+        auto& stats = stats_by_stream[stream_key];
+        stats.stream_key = stream_key;
+        if (stream != nullptr) {
+            stats.session_count = stream->RefCount();
+            stats.analysis_tap_count = stream->AnalysisSubscriberCount();
+            stats.recording_subscriber_count = stream->RecordingSubscriberCount();
+        }
     }
 
     std::vector<SourceEgressStats> stats;
@@ -376,13 +398,31 @@ SessionManager::AuxiliaryStreamRuntimeSnapshot SessionManager::AuxiliaryRuntimeS
 
 void SessionManager::ScheduleIdleCleanup(StreamKey stream_key) const {
     // file/VOD stream은 짧은 grace period를 둬 연속 요청 시 재시작 비용을 줄인다.
-    std::thread([this, key = std::move(stream_key)] {
-        std::this_thread::sleep_for(std::chrono::milliseconds(app::GetAppConfig().idle_grace_period_ms));
-        if (registry_.TryRemoveIfIdle(key)) {
-            TraceSessionEvent("idle cleanup removed key=" + key);
-            resource_guard_.ReleaseStream();
-        }
-    }).detach();
+    const auto grace = std::chrono::milliseconds(app::GetAppConfig().idle_grace_period_ms);
+    std::lock_guard lock(idle_cleanup_mu_);
+    if (idle_cleanup_closing_) return;
+    ++idle_cleanup_calls_;
+    try {
+        std::thread([this, key = std::move(stream_key), grace] {
+            std::unique_lock callback_lock(idle_cleanup_mu_);
+            const bool cancelled = idle_cleanup_cv_.wait_for(
+                callback_lock, grace, [this] { return idle_cleanup_closing_; });
+            if (!cancelled) {
+                callback_lock.unlock();
+                if (registry_.TryRemoveIfIdle(key)) {
+                    TraceSessionEvent("idle cleanup removed key=" + key);
+                    resource_guard_.ReleaseStream();
+                }
+                callback_lock.lock();
+            }
+            --idle_cleanup_calls_;
+            // 마지막 객체 접근까지 lock 안에서 끝내 destructor의 반환과 경합하지 않는다.
+            idle_cleanup_cv_.notify_all();
+        }).detach();
+    } catch (...) {
+        --idle_cleanup_calls_;
+        throw;
+    }
 }
 
 void SessionManager::RecordSourceReconnect(const StreamKey& stream_key) {

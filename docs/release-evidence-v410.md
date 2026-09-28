@@ -1,0 +1,887 @@
+# v4.1.0 로컬 개발 증적
+
+이 문서는 v4.1.0 단계별 구현 위치와 직접 실행한 local 검증을 기록한다. local verifier
+PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
+published metadata 완료를 뜻하지 않는다.
+
+## S09 진행: 실제 runtime 부분 통합 검증 (2026-09-11)
+
+### 통합 진입점 실행과 장시간 검증 준비
+
+첫 실제 `verify-v410-recording-foundation --all` 실행48365는 exit0,
+runtime517개·auth535개 및 wrapper2개를 통과했다. elapsed132661ms이며
+integrationExecutionPass=true, fullFoundationPass=false, resourceTrendPass=false다.
+메인이 개별 PASS1054행·측정5행을 보존표와 직접 대조하고 runtime/app/GST 임시
+경로3개와 원로그 정리를 확인했다. 자세한 결과는 중앙 테스트 기록을 따른다.
+
+기존 승인된 predev120 실행 준비에서 내부 fail-fast 전달 누락, 상속된 저장 경로,
+과거 summary가 섞일 수 있는 보고서 glob을 확인했다. 첫 항목은 명시 옵션만
+내부 test에 전달하는 최소 보완 뒤 focused34개를 통과했다. 최초 utility 실패와
+예상 RED를 중앙 PF 기록에 보존했으며, 실제 서버나 장시간 실행 증거는 아니다.
+보고서 입력은 현재 summary 한 개로 제한하고, Bash 및 Python glob의 재해석을
+막도록 호출부를 보완했다. 최종39789 focused72개에 PF 회귀, 실제 Python 보고서
+생성, 특수 경로·다른 파일 배제, 보고서 실패 전파가 포함된다. 메인이 diff와 결과를
+검토하고 PR 임시59경로 부재를 확인했다. 저장 경로 격리 환경과 장시간 실행 준비는
+남아 있으며, 이 보완을 S09 전체 완료로 해석하지 않는다.
+
+### 녹화 장시간 도구 구현·단위 검증
+
+`verify-v410-recording-longrun --duration-minutes 120`의 명시 실행 경로를 구현했다.
+기존 앱 초기 기능·재시작 확인 뒤 양채널 지속 녹화, 증분 journal 진전과 물리 삭제,
+PID별 표본 연속성, 녹화 비활성화 후 정상 종료·새 PID 복구·재활성화를 연결했다.
+메인은 helper·실제 연결·정리·CLI 코드와 단위 증거를 직접 검토했다. 삭제 기록만으로
+물리 삭제를 판정하던 초안을 보완해 lstat ENOENT만 부재로 인정하며 경로 바이트도
+집계 메모리 상한에 포함했다. 최초 schema 오기 및 예상 RED 이력은 중앙 기록에 남겼다.
+최종 신규43개와 변경하지 않은 reader40개·observer33개 증거를 합쳐116개 순수·회귀
+항목을 확인했다. 실제120분 실행, 자원 정상 범위 검토, UI·predev 검증은 미완료다.
+단위에서 합성 시간을 진행한 것은 실제120분 실행 증거가 아니다.
+
+### 임시 인증 검증 재실행
+
+사용자 승인으로 임시 무작위 비밀번호 5개를 실행 프로세스 환경에만 전달했다.
+40595의 최초 46pass/1fail은 초기 기본 소스를 누락한 검증기 기대집합 결함이었다.
+독립 source 목록으로 초기 기대값을 고정하고 성공 POST·재시작을 exact 비교하도록
+검증기만 보완한 뒤, 90713 `--app-auth`가 exit0/앱534pass+wrapper1pass/0fail,
+48985ms로 통과했다. 기본 ID 1~5와 생성 채널의 admin 전체 목록 및 제한 계정의
+채널별 목록, 상시/fallback/파생 영상 권한, 재시작 후 동일 권한을 확인했다.
+authSuiteCompleted=true이며 fullFoundationPass=false다. 비밀번호 원문은 기록하지
+않았고, 해시 계정 파일이 있던 격리 앱 root328175375bytes와 GST root62691bytes의
+삭제를 메인이 직접 확인했다. 개별 결과와 최초 실패 이력은
+[중앙 테스트 기록](release-test-records.md)에 보존한다. 30분/120분/UI는 이번 실행에
+포함하지 않았으며 S09 전체 완료 또는 릴리즈 가능 판정이 아니다.
+
+### Enqueue 수정 후 실제 관측 재검증
+
+장시간 연결 준비로 `recording_longrun_summary.mjs`에 PID별 수치·원장 증가와
+warmup 이후 변화를 계산하는 요약을 추가했다. 이 모듈은 실측 runner 연결 전이며
+resourceTrendPass=false/reviewRequired=true로 판단을 보류한다. 실제 서버 장시간
+검증을 대신하지 않는다. 합성 단위51개 통과 후 메인 리뷰에서 테스트 최상위 예외의
+실패 전파를 보완했다. check 밖 예외 주입의 exit1과 에러 본문 비노출을 확인했으며,
+같은51개 단위가 다시 통과했다. 메인은 모듈·검사 코드와 중앙 결과를 확인했다.
+
+사용자 승인으로 동일 `--app-observe`를1회 실행한32023은 exit0,
+앱289개+wrapper1개=290pass/0fail이었다. 두 서버 정상 종료·4개 loopback 포트 해제와
+앱 임시root322986806bytes/GSTroot143595bytes 정리를 확인했다. 동적 세그먼트·관측
+개수와 polling 횟수에 따라 개별 assertion 수가 달라지며, 단순 총계 차이를 테스트
+생략으로 해석하지 않는다. 실제 상시/fallback/파생 재생·event 우선순위·oldest 삭제 후
+녹화 지속·새 PID 복구 흐름은 모두 실행했다.
+
+| 관측 | 수정 전27991 | 수정 후32023 |
+| --- | ---: | ---: |
+| 앱 실행 시간(ms) | 58678 | 49079 |
+| event_link_created 행 | 46497 | 484 |
+| 전체 원장 행 | 46714 | 708 |
+| 최종 원장 bytes | 48269484 | 747845 |
+| 첫 PID 최고 표본 RSS(bytes) | 416284672 | 416268288 |
+| 재시작 PID 마지막 표본 RSS(bytes) | 223297536 | 122044416 |
+
+같은 시나리오에서 이벤트 연결 발행량은 약98.96% 감소했다. 실행 시간·실시간 입력
+타이밍 차이가 있으므로 통제된 성능 벤치마크는 아니다. fixedclock focused 재현과
+함께 이동 후 키 사용 결함의 수정 효과를 뒷받침한다. 첫 PID RSS는 거의 같아
+기존 메모리 증가까지 해결했다고 판정하지 않는다. 최종 backlog/partial0, 중복mutation0,
+observationCompleted=true이나 resourceTrendPass/fullFoundationPass=false다.
+인증·UI·30분·120분과 S09 전체 완료는 여전히 미확보이며, 개별 증거는 중앙 기록을 따른다.
+
+`scripts/internal/recording_foundation_runtime_smoke.cpp`와
+`verify_v410_recording_foundation_runtime.sh`, `server.sh` 명령 연결을 추가했다.
+기존 runtime archive의 실제 source·recorder·YOLO/tracker·production projector·catalog를
+결속해 단일 녹화, 실제 영상 위치, 정상·조기 실패 종료를 확인한다. 공개 API나 제품
+로직을 바꾸지 않았고, 테스트 작업 디렉터리·환경·미디어·registry를 격리한다.
+
+최신 정상 실행은 518 assertions와 cleanup 1개가 통과했다. 입력·초기화 연결 누락의
+최초 실패와 메인 리뷰에서 확인한 조기 종료 수명 위험은 보완·재검증했다.
+원출력 개별 결과·실패 주입·기존 S07 회귀·12개 임시 경로 정리 기록은
+`release-test-records.md`의 S09 runtime RAII 절이 source-of-truth다.
+메인은 최종 519개 결과 행과 12개 경로 부재, 종료 guard와 실제 앱 연결을 대조했다.
+
+이 결과는 S09 전체 완료가 아니다. 초기보다 증가한 스레드 7개의 원인과 장시간
+RSS 안정성은 미확정이다. 실제 앱 이벤트·재생·보존·재시작의 비인증 통합 검증은
+아래66598 실행에서 통과했으며, 인증과 전체 통합 실행 연결은 아직 남아 있다.
+인증 5개 환경변수는 미설정이어서 해당 검증을 시작하지 않았다. UI·30분·녹화 직접
+120분은 미승인·미실행이고 기존 predev120 승인은 최종 코드에서 사용한다.
+이번 S09 변경은 아직 커밋·푸시하지 않았다.
+
+### 인증 실행 준비
+
+`verify_v410_recording_foundation.mjs`의 `--app-auth` 부분 모드와
+`recording_foundation_auth_helpers.mjs/.test.mjs`를 추가했다. 실제 setup/login/users API,
+상시·파생·fallback 미디어의 역할·채널 접근 제한, 재시작 재로그인 검증을 연결했다.
+인증값 시작 검사, 명시적 미인증 Cookie 제거, 겹친 비밀값 가림, timeline 채널 제한,
+필수 검사 누락 거부의 보조24개 검사는 통과했다. 실제 인증 앱은 필수 환경변수
+미설정으로 실행하지 않았으며, 보조 검사 통과를 AP10 실제 인증 통과로 사용하지 않는다.
+제품 인증 정책이나 비밀번호 저장 방식을 변경하지 않았다.
+
+기본 통합 실행은 `recording_foundation_suite.mjs`를 통해 인증 사전조건 확인 후
+고정 runtime wrapper→인증 앱 wrapper를 순차 실행하도록 연결했다. 각 종료값,
+완료 요약과 cleanup 표시를 대조하며, 앞 단계 실패 또는 누락이면 뒤 단계를 실행하지
+않는다. 내부 앱 스크립트의 직접 무인자/`--all` 호출은 root 생성 전에 거부한다.
+메인 검토에서 wrapper 강제 종료가 별도 그룹의 서버를 남길 수 있어 상위 자동 kill을
+제거했다. 출력 상한을 넘으면 저장·출력을 중단하고 기존 검사기의 정리·close 이후
+실패로 반환한다. 컴파일·OS 정체에 대한 전역 강제 종료 시간 보장은 아니다.
+연결 단위와 짧은 제어 프로세스 검증은 실제 runtime/인증 앱 실행 증거가 아니며,
+`integrationExecutionPass`와 `fullFoundationPass`·자원 추세·버전 완료를 구분한다.
+최종 연결 단위29개(241ms)와 기존 인증 보조24개(82ms)가 통과했다. 메인은 고정
+실행 경로·secret 분리·close 이후 반환·내부 진입점 거부 코드와 중앙 개별 결과를
+대조했다. 최초 RED 및 리뷰에서 발견한 종료 위험과 보완 이력도 중앙 기록에 남겼다.
+
+### 장시간 검증용 외부 프로세스 계측 준비
+
+최초 `--app-observe`는 collector 컴파일 뒤
+loopback 포트 예약에서 EPERM으로 앱 시작 전에 실패했다. 뒤따른 최종 미측정 오류를
+별도 제품 손상으로 해석하지 않는다. 정상 권한 상승 요청도 승인 심사에서 거부됐으며
+당시 우회하지 않았다. 이후 사용자의 `상승` 명시 승인으로 동일 단기 검사를 재개했다.
+최초 실패의 중앙 기록과 임시3경로 삭제를 메인이 대조했다.
+관측 연결 단위33개 통과는 실제 서버 PID·원장 증가·자원 안정성 측정의 대체 증거가 아니다.
+
+승인 후 실제 실행27991은 exit0·58,678ms, 앱292pass/0fail 및 wrapper 완료1pass로
+종료했다. 새 PID를 포함한11개 자원 표본과 최종 원장 집계를 확보했다. 총46,714행 중
+event_link_created46,497행, segment_finalized33행, observation_v2_put168행,
+삭제 요청·완료 각8행이며 고유 mutation46,714개·entity121개다. 최종 원장은
+48,269,484bytes, backlog/미완결 꼬리0이며 ID UTF-8 보유량은1,068,248bytes다.
+메인은 전체 로그의293개 pass와 앱 summary292개+wrapper1개의 차이,11개 표본과
+최종 집계를 직접 대조했다. 첫 PID RSS는51,478,528→416,284,672bytes, 재시작 후
+PID는199,999,488→223,297,536bytes로 관측됐다. 이는 원인 미확정의 자원 증가
+신호이며, 재시작 전후 표본을 같은 기울기로 합치거나 누수 부재로 판정하지 않는다.
+후속 focused 재현에서 `Enqueue`의 이동 후 이벤트 ID 사용으로 재시도 일정이
+보존되지 않는 결함을 확인했다. 고정 시각의 deadline 이전 기록36→1779행 증가를
+예상 RED로 관측한 뒤, 이동 전 ID 보존만 수정했다. 동일 GREEN15개와 기존 연결
+회귀를 포함한144개 검사가 통과했다. 최초 fixture 생성자 컴파일 오류는 별도 실패로
+보존했다. 메인은 최소 diff·실제 bridge 검사·중앙159개 실행행과 임시5경로 부재를
+확인했다. 공개 schema·보존 정책·retry 값은 변경하지 않았다.
+수정 후 전체 빌드80764도 exit0으로 runtime 정적 라이브러리와 media_server를
+재컴파일·링크했다. 실제 앱의 원장 증가량 감소와 장시간 안정성은 아직 재측정하지 않았다. 실제 인증·UI·30분·120분
+및 S09 전체 완료는 아니며, 전체 개별 결과와 정리 기록은 중앙 테스트 기록을 따른다.
+
+`recording_process_metrics.cpp`는 지정한 외부 PID의 시작 식별자·RSS 바이트·스레드·FD를
+관측한다. PID 재사용이나 관측 오류를 정상 수치 0으로 바꾸지 않고, 측정 불가이면
+`valid=false`와 null 수치·비정상 종료값을 반환한다. macOS는 libproc, Linux는 procfs를
+사용하며 전체 카운터가 원자적 스냅샷이라는 보장은 하지 않는다.
+
+실제 macOS 제어 자식 프로세스와 순수 판독 검사를 합친 최종 41개 검사가 통과했다.
+FD 3→19→3, 스레드 1→4→1과 할당 후 RSS 증가, 자식 종료 후 측정 거부를 확인했다.
+메인은 오류 분류·부분 FD 판독 거부·PID 시작 식별자 재확인 코드와 중앙 41개 결과를
+대조했다. 최초 RED 및 후속 보완 이력, 임시 root 정리 결과는 중앙 테스트 기록에 보존한다.
+Linux 실제 실행·실제 권한 거부·PID 재사용 재현은 미실행이다. 이 결과는 계측기 검증이며
+미디어 서버의 누수 부재나 녹화 장시간 통과가 아니다. 원장 증분 집계와 장시간 runner
+연결·판정 기준 및 승인된 범위의 실제 실행은 남아 있다.
+
+원장 관측용 `recording_journal_reader.mjs/.test.mjs`를 추가했다. 마지막 완결 LF의
+byte offset만 소비하고, 미완결 꼬리는 재읽으며, 파일·부모 디렉터리 교체와 소비한
+prefix 아래 잘림·판독 오류는 오류 상태로 유지한다. 기본 poll4MiB·행1MiB로 제한된
+배치를 반환하며 전체 원장을 내부에 누적하지 않는다. 부분 UTF-8, 꼬리 복구,
+26,000행의 두 배치 판독, 경로 보호와 종료까지 최종40개 단위 검사가 통과했다.
+테스트 반복에도 최대20회·offset 전진·최종 완주 조건을 적용했다. 메인은 코드와
+40개 결과를 대조했다. 제품 strict JSON/catalog 수용 여부나 fsync 성공을 검증하는
+도구는 아니며, 실제 녹화 runner 연결·집계·장시간 실행은 아직 남아 있다.
+
+### 실제 앱에서 확인한 fallback 연결 결함 보완 중
+
+AP13에서 정상 생성된 VP8 WebM의 manifest 원본 stream/channel과 녹화 catalog의
+매핑된 source/channel이 불일치함을 확인했다. 이는 앞의 runtime 부분 검증이 다루지
+않은 제품 조회 경계다. `event_recording_bridge.cpp:RecordFallback`과
+`recording_read_service.cpp:ResolveMedia`, `recording_contracts.h/.cpp` 내부 helper에
+기존 opaque ID를 이용한 내구 identity 결속 보완을 진행한다. 공개 JSON 필드나 원본
+이벤트·manifest를 변경하지 않으며 기존 legacy identity 검사는 유지한다.
+
+새 `recording_fallback_binding_smoke.cpp`의 실제 bridge→catalog→reader 경로에서
+사전 지정한 재생 fd assertion 실패(RED)를 확인한 뒤 최종 내부 검사 60개가 통과했다.
+identity 변조 거부, 새 catalog의 journal replay, legacy 호환, OpenSSL 미지원 시 거부를
+확인했다. 관련 S05 검증과 S06 memory/SQLite read-model 152개 및 cleanup 1개,
+전체 제품 빌드도 통과했다. 메인은 제품 diff와 개별 결과를 대조했다.
+후속 실제 앱 실행 41535에서 새 bound fallback의 priority200·partial·requested-fallback
+표시와 실제 WebM의 GET Range206을 확인했다. 이 부분의 앱 검증은 통과했지만,
+다음 derived 검증은 기존 이벤트를 다시 고른 입력 선택 결함으로 실패했다.
+그 이벤트는 실제 녹화 공백을 포함해 정상적으로 Partial을 유지했다. 기존 공백을
+숨기거나 Complete로 승격하지 않고 검증기의 신규 이벤트 선택을 보완했다.
+후속 실행67556에서는 별도 신규 이벤트의 derived Complete, 실제1254148bytes의
+TS 파일 SHA, GET Range206(`0032a600`), 이벤트200·상시100의 우선순위와
+superseded 표시까지 확인했다. 이 실행의 전체88pass/1fail 결과는 중앙 기록에 보존했다.
+실제 상시 파일4개 합77917761bytes가64MiB를 초과한 뒤 oldest 순서의 원장 삭제와
+실파일 부재도 확인했으나, 이후 신규 살아있는 파일 대기가 시간 초과됐다.
+후속 진단73110에서는 대기 중 신규8개 최종화가 각각 내구 삭제로 이어짐을 확인했다.
+64MiB 예약과 동일한 quota에서 새 파일이 즉시 순환 삭제되는데 검증기가 살아있는
+파일만 찾은 것이 실패 원인이다. 기존 실행의 timeout 실패 기록은 유지하며,
+생성·삭제 원장 기반의 연속 녹화 판정과 실제 파일 확인을 구분하도록 보완했다.
+판정기 예상 RED0/1 후 단위13/0을 확인했고, 실제 앱66598은294pass/0fail,
+58802ms로 통과했다. AP07 이후 신규2개 최종화·순차 삭제와 파일 부재,
+quota 복원 후 신규 녹화·정상 종료 뒤 살아있는 파일 크기/SHA를 확인했다.
+새 PID로 같은 archive를 복구해 segment/link/observation/tombstone 불변성,
+미디어 SHA, 중복 mutation ID 없음 및 재시작 후 새 녹화 생성도 확인했다.
+이 결과는 비인증 실제 앱 통합 범위이며 인증·장시간·UI 또는 S09 전체 PASS가 아니다.
+상세 실행 결과는 `release-test-records.md`의 S09 fallback binding 절을 따른다.
+이 보완은 아직 전체 완료가 아니다.
+
+## S08 시작 복구 구현·단계 검증 완료 (2026-09-11)
+
+`4b7639db`의 최종화 복구 위에 `recording_startup_recovery.h/.cpp`와 application 초기화
+연결을 구현했다. 원장·catalog를 연 뒤 기존 삭제 대기→ready 복구→전체 Finalized
+검사를 동기로 수행하고, 복구 오류·검사 불가·보호된 손상의 상태 적용 실패는
+recorder/supervisor·event bridge·HTTP 시작 전에 반환한다. 새 quota 삭제 정책이나
+공개 V1·권한·스트리밍 계약을 추가하지 않는다. 이미 Corrupt인 자료는 재승격하지 않는다.
+
+`FinalizedSegmentsForStartup`은 경로 해석 실패 자료도 검사에서 빠지지 않도록 내부
+metadata 사본을 반환한다. S06 HTTP 실영상 seed는 실제 SHA를 사용하도록 보완하며,
+순수 read-model의 기존 의존성은 유지한다. startup verifier와 기존 seed wrapper의
+비정상 종료·cleanup 결과도 성공으로 숨기지 않도록 확인한다.
+
+메인 전체 build exit0, startup 단위44개·실제 앱144개(별도 nested seed cleanup1)가
+통과했다. 실제 앱21회 시작/오류/재시작과 예약42포트 부재, 활성 녹화 생성/오류시 차단을
+확인했다. finalize20·retention56·catalog45와 wiring9·corruption92·V1 golden4와 reader89·
+S06 read-model152와 cleanup1도 통과했다. 무변경 writer/event/inspector/observations/B1의
+직전 유효 회귀는 재사용했다. 임시 root24개는 담당자와 메인이 각각 부재를 대조했다.
+
+최초 환경 오류·예상 RED·fixture 오류·stdout 관측 오류·Bash 오류와 수정 이력은
+`release-test-records.md`가 source-of-truth다. 메인 문서 링크 검사와 종합 근거 대조까지
+마쳐 S08 단계 완료로 판정한다. 승인된 커밋·푸시는 실제 결과로 별도 보고하며,
+S09·버전 전체 완료를 뜻하지 않는다. 장시간·UI 실행 시점과 승인 경계는 아래 최신 목표를 따른다.
+
+## S08 최종화 복구 구현·단계 검증 완료 (2026-09-11)
+
+기준 커밋은 `f3736adf`이며, 이번 묶음은 S08 잔여 1번 최종화 복구다.
+서버 시작 시 자동 복구 연결과 S08 전체 완료는 별도다. 아래 과거 절의 승인·미푸시
+설명은 각 실행 당시 기록이며, 현재 목표는 S08 잔여 완료·커밋·푸시 후 S09 진행이다.
+
+| 구현 위치 | 추가 로직과 유지 경계 |
+| --- | --- |
+| `recording_finalize_recovery.h/.cpp` | 원래 ID·V1 metadata·소유 경로의 내구 ready ticket, no-replace publish, 재연결, 동일 파일 binding의 원위치 손상 진단. 삭제 ID·충돌·검사 불가는 원본 보존 |
+| `gstreamer_segment_writer.cpp` | ready 전 invalid V1 정리, ready 이후 불확실·콜백 실패 보존, 같은 Push의 새 admission까지 차단 |
+| `event_clip_deriver.cpp`, `event_recording_bridge.cpp` | 실제 MPEG-TS 출력의 ready, 선행 Pending, 출력 예약 상한, 복구 후 원래 이벤트 연결과 terminal hold 해제 |
+| `recording_catalog.cpp` | ready partial cleanup 보존, 기존 ID/path 불변, 신규 이벤트 output에만 source/output hold 복원 |
+| focused·integration smoke와 각 wrapper | 실제 파일·writer·remux·bridge·SQLite/fallback·실패 재시작 검증, 새 링크 의존성 및 개별 결과 기록 |
+
+최신 기록: 기본20·통합140·root5, recorder93, event 등록35/C++140/application7/
+runtime23/negative2/action27, catalog45+연결9, retention56, B1 40, B2a92,
+inspector53+13+15, V1 golden4+reader89, S07 82, S06 읽기모델153, S01 89가 통과했다.
+범위별 개별 assertion, 최초 실패·수정·재검증·미실행·cleanup의 source-of-truth는
+`release-test-records.md`의 S08 finalize 최신 검증이다. 같은 증거를 인계만을 이유로
+재실행하지 않았으며, 변경 영향을 받은 경계는 다시 검사했다.
+
+메인 직접 확인: 최종 제품 빌드 `./server.sh build` 세션24545 exit0,
+`git diff --check` exit0, 문서 링크226md/1049links/22images/103anchors/
+76indexed/142excluded/0fail. 기록된 임시경로 중 /tmp·/private/tmp31개를 직접 대조해
+present[]를 확인했다. 담당자의 정규화 run root39개 전수 대조도 present[]/exit0이며
+임시 산출물 보존은 없다. 두 대조의 범위를 구분한다. 메인 elapsed/token은 별도
+집계하지 않았으며 담당자 측정치로 대체하지 않는다.
+
+단일packet 시간구간·Push 실패 후 재admission, 잘못된 TS 손상 기대값,
+인벤토리 요약 산술 및 내부 runtime 링크 누락의 최초 실패를 모두 보존했다.
+공개 V1/이벤트 payload·권한·기존 재생 계약은 변경하지 않았다.
+장시간·UI는 S09 최종 코드에서 실행한다. 30분/UI/녹화 전용120분은 아직 실행
+승인이 없고 predev120분 기존 승인은 녹화 직접 관찰을 대신하지 않는다.
+
+
+## S08-B2b 실제 파일 검사 구현·검증 (2026-09-10)
+
+다음 잔여 이슈인 known segment 실제 파일 검사기를 추가했다. 크기·SHA-256과
+MP4/WebM demux 검사 결과를 정상/확정 손상/검사 불가로 분리하고 기존 B2a 상태
+적용과 연결한다. 모든 프레임 디코딩, orphan 복구·publish, startup 자동 연결은
+이 항목에 포함하지 않는다.
+`recording_media_inspector.h/.cpp`의 `InspectRecordingMedia`는 고정 FD에서 검사하고,
+`InspectAndMarkRecordingMedia`는 확정 손상만 기존 `MarkSegmentCorrupt`로 전달한다.
+검사 결과와 durable 적용 결과를 분리하며 hold·Pending·삭제 보호는 변경하지 않았다.
+`server.sh verify-v410-recording-media-inspector`와 CMake에 검사기·검증 명령을 연결했다.
+실제 media focused 52개·no-GStreamer 1개·추가 경계 13개·콜백 상한 15개,
+기존 B2a 92개·B1 40개·
+S03 catalog45개와 wiring9개·S07 core71개와 시간10개 및 cleanup·A digest4개와
+reader89개, 전체 build가 통과했다. 최초 예상 RED 및 개별 결과·cleanup은
+`release-test-records.md`의 B2b 기록을 따른다.
+
+검사 범위는 H264/MP4·VP8/WebM의 신뢰된 checksum 일치 및 demux 정상 여부다.
+전체 프레임 decode, 비협력 외부 writer와의 원자적 배제는 보장하지 않는다.
+예산은 최대60초, demux 단일 요청은 최대16MiB이며 초과는 검사 불가다.
+16MiB 초과·시간 초과·seek 경계는 실제 appsrc와 내부 콜백을 연결한 단위 검증을
+통과했다. 실제 컨테이너가 과대 요청을 발생시키는 통합 경로나 OS I/O 정체 유발을
+확인한 것은 아니며 그 범위의 정상 판정 증거로 확대하지 않는다.
+검사기 기반 추가는 startup 복구·orphan publish 또는 S08 전체 완료를 뜻하지 않는다.
+최신 지시에는 커밋·푸시가 없으며 기존 A·B1·B2a는 `e03a9a6b`까지 원격 반영됐다.
+
+## S08 부분 구현: A·B1·B2a 기반 (2026-09-09)
+
+B2a는 `recording_catalog.h/.cpp`의 `MarkSegmentCorrupt`에 알려진 finalized segment의
+손상 상태를 원장→메모리→SQLite에 반영하는 내부 진입점을 추가했다. 사용 중 hold와
+pending event 참조는 거부하고 삭제 대기·삭제 완료를 우선한다. 동일 ID의 finalized
+재등장은 최초 메타데이터를 바꾸거나 손상 상태를 취소하지 못한다. SQL 재구축은
+실제로 수용한 상태 mutation의 내용과 원장 순서를 함께 대조한다. 공개 V1과 실제
+영상 파일은 바꾸지 않는다.
+
+`recording_corruption_smoke.cpp`와 `verify-v410-recording-corruption`에서 focused92개,
+B1·S03·S07·A 회귀 및 전체 build가 통과했다. 최초 86/4 실패는 새 관측 fixture의 위치
+해석 누락으로, 제품 S07 코드를 변경하지 않고 실제 Resolve 후 저장하도록 보완했다.
+개별 결과·최초 실패·cleanup은 `release-test-records.md`의 S08-B2a를 따른다.
+자동 파일 손상 검사·startup 복구 연결과 S08 전체 완료는 아직 아니다.
+
+B1은 `recording_journal.cpp`의 Open/Append/Replay에 파일·상위 디렉터리 inode 확인과
+미commit 꼬리 원본 격리→truncate/fsync→새 append를 추가했다. 격리 실패 또는 16MiB
+초과 꼬리는 원장을 보존하고 쓰기를 거부한다. `recording_catalog.cpp`의 Open 및
+RebuildSqliteLocked는 Replay I/O 실패를 정상 빈 원장으로 처리하지 않는다.
+새 recovery smoke 40개, S03 catalog45개·wiring9개, 계약89개, A digest4개·reader89개,
+전체 서버 build가 통과했다. 상세 예상 RED·개별 결과·cleanup·미검증 경계는
+`release-test-records.md`의 S08-B1에 보존했다. B1은 영상 파일 복구·손상 상태 반영이나
+S08 전체 완료가 아니며, 공개 V1 및 스트리밍·권한 계약은 바꾸지 않았다.
+
+`compatibility-manifest.json`과 `verify_v410_recording_fixture_compatibility.mjs`에 기존
+V1 golden4개 SHA-256을 고정했다. digest 자동 갱신 없이 누락·바이트 변조·manifest 교체를
+거부한다. `recording_contract_smoke.cpp`는 실제 C++ reader의 필수 의미, unknown optional,
+schema 변경·필수 ID 누락 거부를 검사한다. `server.sh`에 정식 실행 진입점을 등록했다.
+기존 golden4개와 제품 reader 코드는 변경하지 않았다.
+
+Node9개, 고정digest4개, 실제 reader89개 및 기존계약89개가 통과했다. 최초 진입점의
+실행 속성 누락과 수정 후 통과 이력·임시 파일 정리는 release-test-records의 S08-A에
+보존했다. 이는 A만의 완료이며 crash 복구·손상 격리·SQLite parity·S08 전체 완료는 아니다.
+
+## S07 구현·단계 검증 완료 (2026-09-09)
+
+S06 마감 기준 `db308d4d` 위에서 검색용 분석 관측을 추가한다. 아래 S06 절의 승인·현재
+상태 설명은 해당 실행 당시 기록이며, 이번 승인 범위는 S07 마감·커밋·푸시다.
+S08은 설명만 하고 개발하지 않는다. 상세 개별 결과와 최초 실패·수정·재검증 이력은
+`release-test-records.md`의 S07 절이 source-of-truth다.
+
+| 구현 위치 | 추가 로직과 유지 경계 |
+| --- | --- |
+| `recording_contracts`, `recording_journal`, `recording_catalog` | 기존 V1 유지, nullable 위치·선정 사유·실제 이벤트 참조·track 요약을 가진 V2 별도 저장/재구축 |
+| `analysis_observation_projector` | start/interval/event/end 선정, bounded 비동기 저장, pending finalize 재해석, 실패·포화 진단 |
+| `analysis_manager`, `object_tracker`, `event_storage` | 입력 시점 provenance, 내부 종료 track 사본, 실제 EventRecord 생성 후 관측 통지. 공개 metadata 직렬화 유지 |
+| `recording_time_snapshot`, `gstreamer_segment_writer`, `recording_session_service` | 실제 수락 PTS 사본과 유일 채널 조회, finalize 알림 예외 격리. 모호한 epoch는 null |
+| `media_server_application`, `recording_application_service` | 분석·녹화 수명 연결, 전역 권한에 한정된 안전한 관측 통계. 새 검색 UI 없음 |
+| `recording_observation_smoke`, `recording_observation_runtime_smoke`, 시간·writer·identity 검증 | 신규 계약·실제 decoder/manager·이벤트·시간/종료 경계 및 기존 단계 회귀 |
+
+검증: S07 core 71개·시간 사본 10개, 실제 H.264/VP8 writer 79개, 세션/ID 23개 통과.
+S06 읽기 모델 152개·HTTP 31개·인증 40개·lifecycle 10개, 일반 인증 239개,
+분석 상태 181개와 S01/S03/S04/S05 관련 회귀도 통과했다.
+중앙 인벤토리 최초 17 pass/1 fail의 승인 증적 불일치는 사용자 승인 범위에서 해소했다.
+위치를 교정하고 후보 생성에 관여하지 않은 독립 검토자가 299개를 검토했으며,
+687개는 strict-equivalence로 이관했다. 정식 원장 이관과 승인 986개 검증이 통과했다.
+최종 구현 증적 986개·부정 fixture 15/15·오류0, 중앙 인벤토리 18/0,
+script inventory 12/0이다. 최초 실패·승인 차단·수정·재검증은 테스트 기록의
+`S07 독립 승인 이관 후 최종 마감` 및 이전 이력에 보존한다.
+이는 S07 단계 완료이며 S08/S09, 버전 전체 UI·장시간 검증이나 릴리즈 완료는 아니다.
+writer의 최근 수락 PTS 256개에 없는 frame은 범위 안이어도 locator에 연결하지 않는다.
+전역 관측 통계는 전역 source 읽기 권한에만 반환하며 제한 권한에서는 생략한다.
+직접 내부 recorder 스크립트 실행 시의 GI/GTK 환경 경고와 정식 server.sh 실행에서 경고 없이
+통과한 결과는 구분한다. 패키지 삭제·전역 환경 변경은 수행하지 않았다.
+
+## S06 구현·단계 검증 완료 (2026-09-08)
+
+S06 조회·재생 API와 Ops 화면, 잔여 1~5번의 수정·검증을 완료했다.
+구현은 afb6c5a3, 9de62e0e, f03ec0a6, a4a02991, 4da626e6으로 분할 커밋했다.
+현재 문서 마감은 잔여 6번이며 S07·릴리즈 action은 포함하지 않는다.
+
+- 구현: RecordingReadService의 event 우선 조회·안전한 fd 해석,
+  RecordingApplicationService의 권한별 status/timeline 응답,
+  HTTP runtime의 GET/HEAD·Range·bounded 전송·종료 gate, Ops events 필터·목록·player.
+- 최종 검증: build, focused 152, HTTP 31, S06 auth 37, lifecycle 10,
+  인증 회귀 239, S03/S04/S05 및 범위 한정 직접 UI 검증 통과.
+- 실패 수정: Range 헤더 조회, frozen 환경·source/partial fixture,
+  날짜 배치, 삭제 ID fallback 재사용, 녹화 global off의 registry 기동 실패.
+- 개별 실행·실패·수정·cleanup의 source-of-truth는
+  [release-test-records.md](release-test-records.md)의 S06 잔여 3~6번 기록이다.
+- 버전 전체 UI 풀테스트·30분·120분은 미실행이다. 이 단계의 완료를 v4.1.0 출시 가능이나
+  전체 UI PASS로 확대하지 않는다. S07 이후 개발과 버전 종료 판정은 별도다.
+
+아래는 당시 승인·검증 준비 이력이며 현재 미완료 상태나 새 실행 권한으로 해석하지 않는다.
+
+### 전체 구현 재개 승인 이력 (2026-09-06)
+
+검증 준비 체크포인트 `de84cca6ee262d76c882650c266ce8bbb56add37`를 커밋·푸시한 뒤,
+사용자가 S06 전체 구현·안정화·분할/최종 커밋·푸시와 실패 수정 후 계속 진행을 승인했다.
+당시 Sol/xhigh 담당자 설정은 2026-09-08 AGENTS.md의 medium 기본 정책으로 대체됐다.
+Astra/medium 담당자 생성이 thread limit으로 거부되고 이전 담당자가 Sol/xhigh로 확인되어
+메인이 구현을 회수했다. 상태·timeline·권한·파일/lease·Range/HEAD·Ops 화면이 이번 범위다.
+완료 여부는 release-test-records의 이번 재개 결과로 판정하며 S07·릴리즈 action·
+30분/120분·실제 UI 풀테스트는 자동 포함하지 않는다. 아래 준비 이력은 과거 실행 기록이다.
+
+### S06 검증 도구 보완 이력
+
+승인 범위는 Task 6 개발이며 커밋·푸시·S07 이후는 포함하지 않는다. S06 개별 기능 ID 34개를
+project-feature-test-inventory와 release-test-records에 실행 전 등록하고 Sol xhigh 한 개를
+구현 담당자로 지정했다. Astra 메인은 계약·안전 경계·diff·증적·최종 판정을 맡는다.
+첫 focused는 loopback bind EPERM, 다음 재개는 포트 확인의 반환값 누락·cleanup PASS
+불일치로 각각 중단했다. 추가 승인 후 메인이 `verify_v410_recording_ui_contract.mjs`의
+성공 증거 반환과 소비자의 미확인 증거 거부를 보완했다. 내부 H01~H03 및 H03-R01/R02
+5개·40검사 통과, 같은 I01 focused에서 상태 API 404 예상 RED와 서버 정상 종료·두 포트
+ECONNREFUSED·격리 root 삭제를 확인했다. 두 실패 이력과 최신 명령·개별 결과·정리는
+`release-test-records.md`의 S06 절에 보존한다. 이 결과는 포트 정리 판정 보완의 증거이며
+제품 API·UI PASS가 아니다. I27·제품 구현·build·인증·관련 제품 회귀는 미실행이고,
+제품 코드·CMake·server.sh는 변경하지 않았다. S06 완료·커밋 가능 상태로 보지 않는다.
+
+## S05 종료 선행 1/3 — 운영 실행 상태 격리
+
+`env_common.sh`의 `media_server_configure_runtime_state`가 선택형
+`MEDIA_SERVER_STATE_DIR`와 `MEDIA_SERVER_LAUNCHD_LABEL`을 검증하고,
+`start_server.sh`·`stop_server.sh`·`check_server.sh`·`diagnose_media_server.sh`가 같은
+상태 namespace를 사용하도록 연결했다. 전용 상태 디렉터리는 절대경로·현재 사용자
+소유·비-symlink여야 하고 6개 상태 leaf의 symlink를 접근 전에 거부한다. 전용 stop은
+exact label과 설정/기록 포트의 `media_server` listener에 결속된 PID만 종료하며 기본
+포트·고정 label·plist 경로 fallback을 사용하지 않는다. 기본 상태 경로의 기존 동작은
+호환 유지하고 launchd mode는 더 이상 `detached`로 덮이지 않는다.
+
+TDD RED에서 상태/label 무시, unsafe 입력, leaf symlink, unrelated PID signal,
+legacy fallback, launchd mode 덮어쓰기를 재현했다. 후속 독립 검토에서는 전용 label이
+이미 등록됐을 때 start가 선제 bootout하는 경계를 RED로 재현하고, 기존 exact label을
+종료하지 않은 채 fail-closed하도록 보강했다. 최소 구현 뒤
+`python3 scripts/internal/server_state_isolation_test.py` 13/0,
+`./server.sh verify-gst-environment` 20/0, S05 등록 34/0, 프로젝트 인벤토리 18/0,
+문서 링크 실패 0건, S05 회귀 140/0+7/0+20/0+2/0+27/0, 제품 build 100%, 관련
+Bash syntax와 `git diff --check`를 통과했다. 이 결과는 실제 제품 서버를 띄운 것이
+아니며 nohup/launchd 녹화·이벤트 연결·
+재시작·정상 종료, SSIM blacklist 원인, 다른 PC 패키징, UI·30분·120분 PASS가 아니다.
+S06은 시작하지 않았다.
+
+## S05 종료 선행 2/3 — 실제 lifecycle과 종료 drain 보완
+
+실제 `nohup` 재시작에서 기존 PID가 정상 종료 제한 안에 끝나지 않아 SIGKILL로 넘어가는
+FAIL을 재현했다. PID는 zombie가 아니었고 `/usr/bin/sample`에서 main thread가
+`RunMediaServerApplication → StopEventStorage → EventStorageDispatcher::Stop → join`,
+storage worker가 `ApplyMediaHooks → FileEventClipHook::CaptureClip → FramesForClip`의 미래
+post-event frame 조건 대기 중임을 확인했다. 재시작 직전 tap을 닫아 새 frame이 올 수 없는
+종료 경계가 직접 원인이며, timeout 값은 늘리지 않았다.
+
+`src/analysis/event_storage.cpp`의 `EventFrameBuffer::CancelPostEventWaits`가 종료 시 미래
+frame 대기만 깨우고 `EventStorageDispatcher::Stop`은 이미 접수된 EventRecord의 JSONL
+저장을 계속 drain한 뒤 join한다. 두 번째 정적 소멸 호출은 종료·join 완료 상태에서 즉시
+반환해 frame buffer 소멸 순서를 다시 건드리지 않는다.
+
+TDD에서 3초 post-event 대기에 실제 worker가 진입한 뒤 `StopEventStorage()`가 1초 안에
+끝나고 queue 0·stored 1을 유지하는 `shutdown-cancel`을 RED→GREEN으로 추가했다. 기존
+`V410-S05-I27`에 C02~C04로 등록해 새 action ID를 만들지 않았다. 정식 S05 결과는 등록기
+35/0, C++ 140/0, application 7/0, runtime 23/0, mutation 2/0, action 27/0(check 92)이고
+제품 build도 통과했다.
+
+수정 바이너리의 실제 `nohup`과 `launchd` lifecycle은 각각 29/0이다. 두 mode 모두 첫
+segment, 실제 EventRecord와 catalog exact link, 재시작 source/catalog, 새 segment/event/link,
+강제 종료 0회, 정상 stop과 PID·포트·label·state·임시 root 정리를 확인했다. `nohup`은
+재시작 old PID 약 2.0초·최종 stop 약 1.3초, `launchd`는 약 1.3초·1.5초에 종료됐다.
+[실패·sample·최종 실제 결과](release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
+소급 삭제하지 않고 보존한다.
+
+종료 로직 변경 뒤 프로젝트 인벤토리가 `EVT-008/009`의 stored blob trust drift를
+fail-closed로 탐지했다. 오래된 proof locator까지 보정한 뒤 독립 검토가 두 행의 bounded
+함수 본문과 source-flow 불변을 확인했다. 공식 migration은 984행 동등 이관과 2행 독립
+승인을 분리해 audit·approval·implementation manifest를 재결속했다. 독립 approval
+986/986, 구현 증적 986/986·negative 15/15, 프로젝트 인벤토리 18/0이며 상세 판정은
+[의미 증적 재결속 기록](release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)에
+보존한다.
+
+## S05 종료 선행 3/3 — SSIM blacklist 분류
+
+`libgstvalidatessim.dylib`은 별도 GTK 설치물이 아니라 Homebrew `gstreamer 1.28.1` formula에
+포함된 GstValidate 전용 모듈이다. 일반 GStreamer scanner가 이를 읽을 때 upstream
+`gst_validate_ssim_init`은 GstValidate가 초기화되지 않았으면 `FALSE`를 반환하므로 registry에
+blacklist로 기록된다. dylib 직접 `dlopen`, 의존 라이브러리와 arm64 형식은 정상이었다.
+
+의도된 `GST_VALIDATE_PLUGIN_PATH`와 `gst-validate-1.0`에서는 같은 파일이 실제 PNG를 만들고
+종료 코드 0·issue 0으로 동작했다. 제품 소스의 validate/SSIM 호출과 제품 binary 동적 링크는
+각각 0건이다. 따라서 설치 패키지 삭제, 전역 설정 변경 또는 제품 필수 plugin 제외는 하지
+않는다. 다른 PC의 필수 조건은 GStreamer와 제품이 사용하는 44개 factory이며, 이 전용
+검증 모듈의 일반 registry blacklist 유무가 아니다. 근거와 설치 파일 SHA는 위 증적에 남겼다.
+
+## S05 후속 GStreamer 환경 보완 — 수정·제한 범위 재검증 통과
+
+2026-09-04 최초 환경 검증의 17개 중 runner 12개 실패 후 사용자 승인으로 수정·재개했다.
+`env_common.sh`의 Bash 3.2 빈 배열·상속 경로 치환, `gst_environment_test.py`의 실경로와
+원인별 거부 검증, `gst_plugin_cache.py`의 `.so` 보존·root 순서를 보완했다.
+`server.sh`의 환경 초기화는 S02~S05 녹화 검증으로 한정했다. S05 등록기의 고정 총계
+오류도 별도 승인 후 수정해 기존 canonical 986개/S05 27개 검증과 환경 13개를 분리했다.
+
+최종 환경 단위 20/0, 실제 macOS cold/warm 1525 features 일치·stderr 0, 필수 factory
+44개 생성·WebRTC READY·무음 H264 decode·동일 basename plugin 우선순위가 통과했다.
+S05는 C++ 140/0, application 7/0, runtime 20/0, mutation 2/0, 등록기 34/0,
+action 27/0(check 89개), 제품 증분 build가 통과했다. 소스 감사 51/0·기존 승인 986개,
+중앙 inventory 18/0, script inventory 11/0, 문서 링크·asset 검증도 통과했다.
+
+이는 한 대의 macOS arm64에서 수행한 제한 범위 검증이다. 실제 Linux/Intel/다른 PC 설치,
+브라우저·장시간 검증은 미실행이다. 이 절 당시 미확인이던 SSIM blacklist는 위 2026-09-05
+후속 조사에서 GstValidate 전용 초기화 경계로 분류했다. GTK/GI 경고 해소를 모든
+플러그인·모든 PC 호환성 완료로 확대하지 않는다.
+최초 실패·수정 파일/함수·개별 실행·cleanup은 [저장소 테스트 기록](release-test-records.md)에
+보존했다. 패키지/전역 설정·C++ 녹화 로직·S06 이후는 변경하지 않았으며 커밋·푸시는 미수행이다.
+
+## V410-S05 이벤트 녹화 연결과 파생 clip
+
+### 테스트 범위와 승인 경계
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | S05 구현 후 관련 검증 지시와 단계 종료 조건 | `event_recording_bridge.cpp`, `event_clip_deriver.cpp`, `AGENTS.md` 3.5·7.6.2 | S05 focused·S01~S04 회귀·build·문서·인벤토리 범위 실행 |
+| 30분 테스트 | 진행 대상 | 버전 개발 종료·릴리즈 완료 필수 evidence | `AGENTS.md` 7.6.2 | 별도 실행 승인 없음, 미실행·릴리즈 blocker |
+| UI 풀테스트 | 진행 대상 | 버전 개발 종료·릴리즈 완료 필수 evidence | `AGENTS.md` 7.6.2 | 별도 실행 승인 없음, 미실행(판정 FAIL)·릴리즈 blocker |
+| 120분 테스트 | 진행 대상 | writer cleanup과 application drain/lifecycle 직접 변경 | `gstreamer_segment_writer.cpp`, `media_server_application.cpp`, `AGENTS.md` 7.6.2 조건 4 | 별도 실행 승인 없음, 미실행; focused PASS로 대체 불가 |
+
+### 구현과 직접 검증
+
+- 현재 상태: S05 local 구현·개별 등록·재실행·독립 인벤토리 재결속 검증 완료.
+  아래 최초 실행 이력은 당시 등록 누락 FAIL을 소급해서 지우지 않는다.
+  등록 보정 당시 재검증은 C++ 140/0, application-only 7/0, 등록기 단위 16/0, 개별 동작 27/0
+  (당시 check 69개), 소스 감사 51/0, 승인 986개, 구현 오류 0·negative 15/15,
+  중앙 inventory 18/0, coverage 8/0이다.
+  [개별 결과 및 독립 검토 기록](release-test-records.md)을 최종 증거로 사용한다.
+- S05 잔여 통합 검증 완료(선행 커밋 `d7ee14a1` 이후):
+  `event_storage_recording_runtime_smoke.cpp`의 `VerifyAdmission`/`VerifyRecovery`와
+  `verify_v410_event_storage_recording_runtime.mjs`를 기존 S05 dispatch에 연결했다.
+  실제 EventStorage queue=2에 이벤트 5개를 접수해 2개가 퇴출되더라도 5개 PTS 연결이
+  유지되며, JSONL 비활성은 파일 없음·stored=0, 활성은 event 0/3/4만 stored=3이다.
+  각 모드의 새 프로세스가 원래 SQLite 대신 journal로 새 primary를 재구축하고,
+  후행 H264 source의 UTC 매핑 후 퇴출 이벤트까지 실제 clip 5개를 파생한다.
+  재접수는 같은 derived ID를 유지한다. 고정 설정·시각·가용량과 worker latch는 시험 장치이며 제품 코드는
+  추가 변경하지 않았다. 전체 서버/HTTP/환경변수 파싱/라이브 입력 재시작의 증거는 아니다.
+  최종 정식 실행은 C++ 140/0, application 7/0, runtime 20/0, source mutation 2/0,
+  등록기 단위 26/0, 개별 동작 27/0(check 89개)다.
+  [통합 개별 결과](release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)에
+  실제 assertion·check·소스 SHA와 cleanup을 보존한다. 독립 검토의 mutation 로그 누락
+  대조 지적 1건도 TDD RED 후 보강해 CLOSED했다. 기존 canonical 986개 직접 결박은
+  변경되지 않아 새로운 승인 원장 이행은 하지 않았다.
+- 구현 위치:
+  - `event_storage.h/.cpp`, `event_storage_application_service.*`,
+    `webrtc_http_server_ops_incidents.cpp`: optional event 시간축/anchor/epoch와 recording
+    link/completeness, JSONL 저장과 독립된 bridge dispatch, derived 우선·bounded
+    frame-buffer fallback
+  - `analysis_session_read_application_service.h`,
+    `analysis_session_read_application_adapter.cpp`: analysis session의 event 시간축/UTC·PTS
+    anchor/stream epoch를 application 경계 양방향에 보존
+  - `event_recording_bridge.h/.cpp`: event ID별 bounded 비동기 job과 durable pending 재흡수,
+    추정 없는 PTS→UTC 변환, finalized continuous overlap, source lease, SHA-256 결정 ID,
+    pending 재시작 복구, remux 중 admission lock 해제, terminal resource-release 재시도
+  - `event_clip_deriver.h/.cpp`: 검증된 video-only H.264/MP4 overlap seek/remux,
+    source와 output fd 결박, MPEG-TS 순차 출력, owner-only output/inode 재검증,
+    UUID partial을 결박한 durable v2 cleanup marker, no-replace publish/fsync/SHA-256, 실제 packet timestamp로
+    측정한 keyframe 확대 범위. VP8/WebM event 파생은 fail-closed
+  - `recording_catalog.*`, `recording_contracts.*`, `retention_coordinator.*`: event link/segment
+    조회, 일괄 hold lease, 동일 event ID 충돌 방지, Event 전용 quota reservation·oldest-first,
+    optional actual range/미해석 media PTS/fallback locator/derivation mode/time basis/
+    completeness reason와 SQLite/JSONL projection, terminal link 전 derived output hold
+  - `media_server_application.cpp`: ingress 전 recording bridge 등록과 ingress → continuous
+    finalize → EventStorage drain → event bridge drain/해제 종료 순서
+  - `event_recording_link_smoke.cpp`, `verify_v410_event_recording.sh`, `server.sh`,
+    `CMakeLists.txt`: 실제 H.264/MP4 source→MPEG-TS remux를 포함한 focused verifier와
+    제품 build 연결
+- RED/수정 확인: 신규 구현 부재 compile 실패 뒤 async 이동 ID, status/reason 분리,
+  canonical `/tmp` root와 GStreamer 출력 fd 경계를 재현해 수정했다. Matroska 시도는 seek 뒤
+  header가 없는 산출물을 만들어 실제 demux 검증이 실패했으며, pre-opened fd에 순차 쓰기가
+  가능한 MPEG-TS로 바꿔 끝까지 재생 가능한지 확인했다. SQLite primary에서 같은 event
+  link의 overlap/fallback 갱신 projection이 유지되는 회귀 항목도 추가했다.
+- GREEN 확인:
+  - `./server.sh verify-v410-event-recording`: C++ `pass=140 fail=0`
+    - 같은 명령의 EventStorage application-only 계약: `pass=6 fail=0`
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh verify-v410-recording-retention`: `pass=56 fail=0`
+  - `./server.sh verify-v410-recording-catalog`: C++ `pass=45 fail=0`, composition 정적 항목 9건 PASS
+  - `./server.sh verify-v410-recording-recorder`: `pass=71 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+- 개별 확인: 3개 segment overlap 순서와 반개구간 경계, PTS anchor UTC 변환,
+  derive 중 hold/완료 후 해제, 동일 event 중복 방지, 정확한 missing range와 fallback,
+  불명확 시간축 PTS 보존·segment mapping 복구, event quota가 continuous를 삭제하지 않는 경계,
+  policy 제거 중 reservation 보존, SQLite link 갱신,
+  restart에서 이미 finalized된 결정적 event segment 재연결, 다른 channel/class의 동일
+  segment ID 충돌과 tombstone ID 재사용 거부, 96자 초과 공통 prefix ID 비충돌, queue가
+  EventRecord를 버리기 전 catalog link 선행 기록과 pending 재흡수, 같은 process에서 anchor 없는
+  PTS가 finalized segment 추가 뒤 재dispatch 없이 완료되는 복구, complete event 범위 확장 시
+  새 결정 segment 파생, 긴 remux 중 다른 event admission 비차단, cleanup/terminal resource 해제
+  실패의 hold·reservation 유지와 재시도, 빈 epoch의 ID 계산 전 source epoch 고정,
+  hold overflow 거부, pending derived
+  hold 재구성, overlap/missing exact partition, 실제 H.264/MP4 다중 source의 무재인코딩
+  MPEG-TS remux·재생 가능성·checksum·cleanup marker·no-replace·실측 actual range, foreign final/
+  fixed partial 보존, v2 marker 소유 crash partial만 정리한 뒤 재파생, hardlink partial
+  fail-closed와 orphan 진단, terminal complete 기록 전 source/output 삭제 차단,
+  marker/terminal 중 event·fallback 갱신의 단계 보존과 내구 UTC 확장 요청 round-trip/후속 파생,
+  cleanup 복구 중 확장 요청의 Partial/Failed 수렴, anchor 없는 PTS complete 후 범위 확장,
+  미해석 후속 PTS의 별도 내구 기록·round-trip과 후행 segment/worker 재시작 복구,
+  VP8/WebM fail-closed
+- 재검토 RED/수정(2026-09-04): cleanup 대기 중 UTC 확장을 보존한 상태에서 실패 전이가
+  계약에 거부되는 회귀(`pass=62 fail=1`)와 anchor 없는 PTS의 complete 이후 확장 유실
+  (`pass=65 fail=1`)을 재현했다. finalized 파생물이 없으면 재파생 전에 보류 요청을
+  소비하고, PTS 후속 요청은 기존 epoch의 segment map으로 변환하거나
+  `deferred_media_pts_range_ms`에 내구 보존하도록 수정했다. 최종 focused `140/0`과
+  독립 정적 재검토에서 두 Important의 해소를 확인했다.
+- 실행 경고: macOS GStreamer plugin scanner가 기존 GI/GTK 경고를 출력했지만 실제 remux와
+  smoke 본체는 `140/0`으로 종료했다. 경고 자체는 해결 완료로 기록하지 않는다.
+- 역사적 gate 경계: `verify-v390-event-storage-application-boundary` 전체 명령은 v3.9.0
+  branch와 당시 exact 구조 graph를 함께 요구하므로 현재 브랜치에서 application 계약
+  `6/6 PASS`, 역사적 구조 결박은 신규 S05 파일의 inventory 재결합 전 FAIL이었다. 기본
+  명령의 의미는 바꾸지 않고
+  `--application-only`를 추가해 S05 verifier가 DTO/mapping/transport/queue 선행 내구 기록/
+  fd-bound 출력/compiled matrix 6개만
+  현재 회귀 gate로 실행한다. 이를 v3.9 구조 gate PASS로 확대 해석하지 않는다.
+- 인벤토리 위치 이행의 첫 준비 이력: 기존 proof 중 중복 anchor 때문에 자동 위치 이동이 안 된 22개 ID의
+  role/edge 위치를 HEAD 대비 diff로 대응시켰다. feature 계약·anchor·심볼·검증 의미는
+  바꾸지 않았다. fresh candidate는 986개 모두 해석됐으며 semantic digest는 이전과 같다.
+  파일/본문 trust 결박이 변한 109개는 자동 승인으로 넘기지 않고 독립 검토 대상으로
+  분리하고, 나머지 877개만 strict-equivalent 이전 승인 이행 대상으로 둔다.
+- 최종 인벤토리 이행: S05 정식 등록 27개를 기존 canonical 986개와 분리하고 중앙
+  검사에 필수 연결했다. 이 연결로 바뀐 SAFE-064/071/200까지 포함해 독립 검토 112개,
+  carry 874개를 공식 producer로 적용했다. 독립 검토에서 현재 anchor/edge와 562개 bounded
+  본문을 확인했고 I01 owner·I14 EOS check·I02 정적 disabled guard 판정의 세 지적을
+  수정 후 재검토했다. 실제 JSONL 비활성·포화 장시간 운용 PASS로 확대하지 않는다.
+- 미실행/비대체: S06 timeline API/UI, S07 검색 관측, S08 recovery/compatibility 종합 gate,
+  S09 안정화, 실제 UI 풀테스트, 30분/120분, field smoke, published metadata,
+  PR/main/tag/GitHub Release
+- 회귀 가능성: 긴 keyframe 간격의 actual range 확대, MPEG-TS 소비자 호환성,
+  VP8/WebM event 파생 미지원에 따른 frame-buffer fallback 의존, catalog finalize/cleanup
+  장애에서 marker/hold/reservation을 fail-closed로 유지하는 경계, GStreamer plugin 설치
+  drift. 전용 verifier와 S01~S04 회귀 묶음으로 방어
+
+## V410-S04 등급별 순환 보존과 disk reserve
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `retention_coordinator.h/.cpp`: catalog snapshot 기반 순수 `Plan`, 등급별 quota·기간,
+    `(end_utc_ms, segment_id)` oldest-first, continuous 우선 reserve 정리와
+    `RequestDeletion → unlink → CompleteDeletion` 실행 경계, pending 재시도,
+    채널별 pending 격리, 채널 간 in-flight 용량 예약과 실제 쓰기 진행량 정산,
+    `openat`/`unlinkat` dirfd 결박 삭제
+  - `recording_catalog.h/.cpp`, `recording_contracts.h/.cpp`: retention snapshot,
+    process-lifetime `hold_count`, 삭제 완료 시 media locator 제거, retention class가 포함된
+    additive tombstone와 SQLite/in-memory projection parity, SQLite 투영 실패 즉시
+    `jsonl-fallback` 전환과 재시작 journal rebuild
+  - `recording_runtime_defaults.h`, `recording_runtime_config_data.h`, `app_config.cpp`:
+    `MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES`,
+    `MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS` 기본값·검증·환경변수 로드
+  - `source_view_registry.*`, `source_view_application_service.*`,
+    `product_ui_ops_sources_script.cpp`: `continuousMaxBytes/continuousMaxAgeMs`와
+    `eventMaxBytes/eventMaxAgeMs` 분리 저장, 기존 `quotaBytes/retentionDays` 호환 이행,
+    viewer-safe 비노출
+  - `gstreamer_segment_writer.*`, `recording_supervisor.*`,
+    `media_server_application.cpp`: segment-open admission, 채널별 policy reconcile/주기 정리,
+    공간 부족 시 해당 writer만 keyframe 쓰기 보류, container overhead를 포함한 segment
+    예약 상한, partial/final 실제 크기 보고, finalize/실패 시 reserve 반환,
+    cleanup 전 dirfd·`O_NOFOLLOW|O_EXCL` 결박 fsync 내구 마커, 안전한 unlink/truncate,
+    회복 시 새 epoch 재개
+  - `recording_retention_smoke.cpp`, `verify_v410_recording_retention.sh`, `server.sh`,
+    `CMakeLists.txt`: 실제 C++ focused verifier와 제품 runtime 연결
+- RED 확인:
+  - 최초 `./server.sh verify-v410-recording-retention`은
+    `src/recording/retention_coordinator.cpp` 부재로 compile 실패
+  - source 등급별 설정과 writer admission test 추가 뒤에는 해당 config/policy/callback 심볼
+    부재로 compile 실패
+  - 안전성 보강 RED에서 `CompleteContinuousWrite`/`media_root` 계약 부재로 compile
+    실패했고, 음수·비정상 quota 입력은 recorder smoke `fail=2`를 확인
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-retention`: `pass=56 fail=0`
+  - `./server.sh verify-v410-recording-recorder`: `pass=67 fail=0`
+  - `./server.sh verify-v410-recording-catalog`: C++ `pass=37 fail=0`, supervisor/composition
+    정적 항목 8건 PASS
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+- 개별 확인: continuous/event quota·기간 상호 비침범, 예상 segment 크기를
+  포함한 oldest-first 선회, pinned/hold·hold overflow 보호, journal/unlink/tombstone 각 실패
+  경계, pending idempotent 복구와 채널별 실패 격리, reserve continuous 우선,
+  실제 병렬 채널 중복 예약 차단, partial 물리 사용량 이중 차감 방지,
+  삭제 불가 채널의 `storage-blocked`, 공간 회복·새 epoch, tombstone 존치와
+  media/locator 제거, replay containment와 dirfd 결박 unlink 경쟁 조건 방어,
+  event quota 초과와 continuous admission 분리, SQLite projection 장애 폴백/재구축,
+  legacy source policy 이행, Ops 복제 시 event 보존 정책 유지, 예약보다 큰 실제 EOS 파일과
+  catalog callback 실패의 catalog 전 cleanup, 삭제·truncate 동시 실패 시 예약·내구 마커 유지,
+  symlink/hardlink 마커 선점 시 외부·공유 inode 불변, catalog 성공 뒤 마커 제거 실패 시
+  예약 유지, 재시작 시 catalog가 추적 media는 보존하고 미추적 partial과 마커만 정리하며
+  소유권을 증명할 수 없는 final은 삭제하지 않고 orphan 진단에 남긴다. 안전 제거가
+  불가능하면 open을 거부하는 복구
+- 실행 경고: macOS GStreamer plugin scanner가 GI/GTK 동적 라이브러리 경고를 출력했지만
+  recorder smoke 본체는 `67/0`으로 종료했다. 경고를 기능 PASS로 숨기거나 해결 완료로
+  기록하지 않는다.
+- 미실행/비대체: S06 timeline API/UI, 실제 UI 풀테스트,
+  30분/120분 장시간 녹화, disk-full 실장비 field smoke, published metadata,
+  PR/main/tag/GitHub Release
+- 회귀 가능성: filesystem 여유 공간 조회와 container overhead 예약치의 편차,
+  cleanup 마커 복구 시 디렉터리 권한·I/O 실패가 catalog open blocker가 되는 경계,
+  source policy legacy 이행 drift, GStreamer keyframe 간격이 긴 채널의 재개 지연.
+  pending은 다음 retention tick에서 재시도하고, focused retention/recorder/catalog verifier와
+  제품 build로 현재 S04 경계를 방어
+
+## V410-S03 JSONL 원장, SQLite projection과 supervisor wiring
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `recording_journal.h/.cpp`: mutation envelope, 6종 type, mutex append/write/fsync,
+    corrupt/truncated replay report
+  - `recording_catalog.h/.cpp`: `RecordingStorePort` 구현, idempotent memory projection,
+    SQLite schema v1/WAL/FK/index, JSONL fallback, 손상 DB 격리/rebuild, orphan 분류
+  - `recording_supervisor.h/.cpp`: 시작 snapshot, source 저장 callback, 5초 safety reconcile,
+    policy revision idempotency와 channel recorder lifecycle
+  - `media_server_application.cpp`: journal→catalog→session→supervisor→ingress 시작 순서와
+    ingress→supervisor finalize→EventStorage 종료 순서
+  - `recording_catalog_smoke.cpp`, `verify_v410_recording_catalog.sh`, `server.sh`:
+    C++ recovery/parity test와 composition order 확인
+- RED 확인: 최초 verifier는 `recording_journal.cpp`, `recording_catalog.cpp` 부재로 실패
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-catalog`: C++ `pass=24 fail=0`, supervisor/composition
+    정적 항목 8건 PASS
+  - `./server.sh verify-v410-recording-recorder`: `pass=38 fail=0`
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh build`: 제품 runtime/executable 100% PASS
+- 개별 확인: 동일 mutation 중복 replay, 마지막 truncate, 중간 corrupt, SQLite on/off query
+  parity, event link FK 위반 무기록 rollback, 정상/손상 final media orphan, 손상 SQLite 원본
+  격리와 journal rebuild, 저장 callback/5초 reconcile/revision idempotency, 시작·종료 순서
+- 미실행/비대체: S04 순환 삭제, event runtime 연결, timeline API/UI, UI 풀테스트,
+  30분/120분, published metadata, PR/main/tag/GitHub Release
+- 회귀 가능성: journal append 후 projection 실패 시 재시작 replay에 의존하는 경계,
+  SQLite compile-time on/off drift, source policy revision 누락, shutdown 순서 역전.
+  focused catalog/recorder verifier와 제품 build로 방어
+
+## V410-S02 채널 정책, Recorder subscriber와 segment writer
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `include/core/recording_runtime_defaults.h`,
+    `include/core/recording_runtime_config_data.h`, `include/app_config.h`, `src/app_config.cpp`:
+    default-off 전역 설정, 전용 root, quota, 10초 segment와 storage layout validation
+  - `include/ingress/source_view_registry.h`, `src/ingress/source_view_registry.cpp`,
+    `source_view_application_service.*`, `webrtc_http_server.cpp`,
+    `product_ui_ops_sources_script.cpp`: nested recording policy의 create/upsert/save/load/snapshot/
+    Ops form round-trip, 저장 후 callback, viewer-safe quota/path 비노출
+  - `include/core/shared_stream.h`, `src/core/shared_stream.cpp`, `StreamRegistry`,
+    `SessionManager`: Recorder 역할, client/analysis/recorder 독립 계수와 queue
+  - `segment_writer.h`, `gstreamer_segment_writer.*`: H.264/MP4·VP8/WebM keyframe segment,
+    `.partial`→final atomic rename, checksum, PTS rollback epoch
+  - `recording_session_service.*`: auxiliary stream acquire/subscribe/start와 detach/release 순서
+  - `recording_segment_writer_smoke.cpp`, `verify_v410_recording_recorder.sh`, `server.sh`:
+    실제 encoded fixture 기반 focused verifier
+- RED 확인:
+  - 최초 verifier는 `gstreamer_segment_writer.cpp` 부재로 실패
+  - 첫 구현 후 GStreamer 미포함 `-Werror` 경계와 VP8 intermediate parser 경로가 실패했고,
+    미포함 fail-closed와 `video/x-vp8 → webmmux` 직접 경로로 수정
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-recorder`: `pass=38 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+- 개별 확인: global/source/channel disabled, quota 0, 녹화/media root 중복, source policy
+  round-trip, 저장 실패 callback 미호출, viewer-safe 비노출, 역할별 subscriber 계수,
+  느린 recorder queue 격리, H.264/VP8 delta-start 차단, 10초 뒤 keyframe 분할,
+  `.partial`/final callback 순서, PTS rollback 새 epoch
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분, S03 catalog/recovery,
+  순환 삭제/event 연동/timeline, external field smoke, published metadata, release action
+- 회귀 가능성: source policy revision 누락, client quota/path 노출, codec caps와 muxer drift,
+  recorder detach lease 불균형. focused C++ verifier와 제품 build로 방어
+
+## V410-S02 전 선행 인벤토리 정합성 부채
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `docs/project-feature-test-inventory.md`: current release 목표를 `v4.1.0`으로 pin하고
+    S00/S01 현재 범위와 후속 `REC-*` ID 추가 시점을 분리
+  - `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`,
+    `scripts/internal/verify_project_feature_test_inventory.mjs`: 수동 UI 준비 fixture를
+    current `v4.1.0`, latest published `v4.0.0`으로 정렬
+  - `scripts/internal/verify_v290_release_test_records_enforcement.mjs`:
+    Markdown 표의 pass/fail 결과 열만 검사하고 상태표는 분리하는 parser와 양·음성 self-check
+  - `docs/release-test-records.md`: historical 개발 상태표 다섯 곳을 pass/fail 결과표와 분리
+  - REVIEW4 audit/approval/implementation/native exact fixture: 공식 migration-aware producer로
+    980행 strict carry-forward와 6행 독립 검토를 원자 반영
+- RED 확인:
+  - `verify-project-inventory`: current inventory/seed pin과 published seed 기준 실패
+  - `verify-v290-release-test-records-enforcement`: 상태표 `미실행`을 결과 셀로 오인
+  - `verify-feature-inventory-coverage`: REVIEW4 trust binding drift로 실패
+- GREEN 확인:
+  - `verify-v290-release-test-records-enforcement`: 8/0
+  - `verify-project-inventory`: 17/0
+  - REVIEW4 migration: 986행 중 carry-forward 980, independent-review
+    `UI-019`, `SAFE-064`, `SAFE-071`, `SAFE-075`, `OPS-041`, `OPS-045`
+  - `verify-feature-implementation-evidence`: 986/986와 negative fixture 전부 PASS
+  - `verify-feature-inventory-coverage`: 986/986 exact mapping, 테스트 영역 7/7
+- 독립 검토 경계: UI 테마, V280/V290 역사적 inventory, V290 기록 분리의 각
+  owner→dispatch→action→state→readback→verifier 의미를 행 단위로 확인했다. whole-file
+  또는 inventory pin 변경을 다른 기능 승인으로 확장하지 않는다.
+- 미실행/비대체: 실제 UI 풀테스트, 30분/120분, field smoke, published metadata,
+  release action
+- 영향 범위: 내부 inventory/fixture/verifier/REVIEW4 evidence만 변경한다. C++ 제품 로직,
+  API/schema/event payload, RTSP/WebRTC media path, 제품 UI 동작은 변경하지 않는다.
+
+## V410-S01 녹화 v1 영속 계약과 golden fixture
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `include/recording/recording_contracts.h`, `src/recording/recording_contracts.cpp`:
+    `RecordingSegmentV1`, `FrameLocatorV1`, `EventRecordingLinkV1`,
+    `AnalysisObservationV1`, `RecordingTombstoneV1`의 strict parser와 정규 serializer
+  - `include/recording/recording_store_port.h`: 세그먼트 finalize, 이벤트 연결, 분석 관측,
+    삭제 요청·완료와 시간 범위 조회의 내부 port. filesystem path는 finalize 인자로만 전달
+  - `test/fixtures/recording/v1/*.jsonl`: segment/event link/observation/tombstone v1
+    golden fixture. segment fixture는 알 수 없는 optional field를 포함
+  - `scripts/internal/recording_contract_smoke.cpp`,
+    `scripts/internal/verify_v410_recording_contracts.sh`, `server.sh`: 실제 C++ compile/run
+    verifier와 dispatch
+  - `CMakeLists.txt`: `src/recording/recording_contracts.cpp`를 제품 runtime target에 연결
+- 계약 원칙:
+  - ID는 경로·빈 값·SQLite rowid가 아닌 opaque string이며 tombstone이 남은 segment ID는
+    재사용하지 않는다.
+  - 시간 범위는 UTC millisecond 반개구간 `[start, end)`이고 PTS와 timebase를 함께 보존한다.
+  - 재생 가능 상태는 `finalized` 하나뿐이다. 알 수 없는 lifecycle은 호환 읽기 후
+    `Unknown`으로 내리고 재생 가능 상태로 승격하지 않는다.
+  - v1의 알 수 없는 optional field는 무시하고 known field를 보존한다. v1 변경은 additive
+    optional field만 허용하고 breaking 변경은 새 schema version과 별도 fixture로 추가한다.
+  - rebuild는 v1 JSONL record를 parser로 다시 읽는 방식이며, tombstone을 삭제의 최종
+    기록으로 적용한다. v1 golden fixture는 후속 버전에서 덮어쓰지 않는다.
+  - 공개 JSON에는 filesystem path를 직렬화하지 않는다.
+- RED 확인:
+  - 최초 `./server.sh verify-v410-recording-contracts`는 제품 구현 전
+    `src/recording/recording_contracts.cpp` 부재로 exit 1 실패
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+  - `./server.sh verify-docs-links`: 최초 내부 release evidence 문서가 공개 문서 색인 필수
+    대상으로 잘못 분류돼 failure 1. 공개 색인 제외 정책과 verifier를 일치시킨 뒤
+    Markdown 218개, local link 980개, failure 0 PASS
+  - 확대 확인에서 `verify-project-inventory`, `verify-feature-inventory-coverage`,
+    `verify-v290-release-test-records-enforcement`는 FAIL. 별도 clean clone의 시작 commit
+    `b55f4bf0`에서도 각각 v4.1 inventory/seed 미정렬과 REVIEW4 trust binding 2건,
+    기존 `| 미실행 |` cell로 동일하게 실패함을 확인했다. S01 회귀나 완료 evidence로
+    사용하지 않고 후속 정합성 부채로 분리
+- 개별 확인 항목:
+  - opaque ID 정상/빈 값/path/SQLite rowid 4건
+  - UTC 반개구간 겹침/맞닿음/빈 범위 3건
+  - unknown optional field known-value 보존, PTS/timebase exact round-trip,
+    public JSON path 비노출
+  - unknown lifecycle 호환 parse, `Unknown` 보존, 비재생 3건
+  - segment 2건, event link 1건, observation 1건, tombstone 1건의
+    parse → canonical serialize → parse → serialize parity
+  - tombstone segment ID 재사용 거부와 신규 ID 허용
+- 미실행/비대체: 실제 녹화, 파일 쓰기, SQLite/JSONL store, recorder subscriber,
+  event clip 생성, timeline API/UI, UI 풀테스트, 30분/120분 장시간 테스트,
+  external field smoke, published metadata, release action
+- 영향 범위: 새 `recording` C++ 계약과 내부 store port, fixture, focused verifier만 추가.
+  기존 API/schema/event payload와 RTSP/WebRTC media path, 제품 UI 동작은 변경하지 않음
+- 회귀 가능성: 후속 writer가 반개구간·PTS/timebase·lifecycle·tombstone 불변 조건을
+  우회하거나 v1 fixture를 덮어쓸 위험. focused verifier와 제품 build로 S01 경계를 방어.
+  release evidence를 공개 색인으로 오분류할 위험은 docs link verifier의 명시적 pattern으로 방어
+
+## V410-S00 표준·오픈소스·IP 게이트와 source baseline
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `VERSION`, `CMakeLists.txt`: source target `4.1.0`
+  - `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`,
+    `docs/development-backlog.md`, `docs/versioning-policy.md`, `docs/release-policy.md`,
+    `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`:
+    current source와 latest published baseline 분리
+  - `config/docs_ui_assets.json`, `scripts/internal/verify_docs_ui_assets.mjs`:
+    current source `4.1.0`, latest published `v4.0.0`, 기존 캡처·직접 검수 날짜 보존
+  - `docs/v410-v49-recording-search-roadmap.md`: S00 완료 및 S01~S09 미착수 경계
+  - `docs/research/v410-recording-storage-open-source-review.md`: 공개 표준·revision·license·참고 범위
+  - `docs/research/v410-recording-ip-risk-gate.md`: 접근별 허용/재설계/보류와 clean-room 차단선
+  - `scripts/internal/verify_v410_research_gate.sh`: 자료별 provenance와 IP 차단선 검증
+  - `scripts/internal/verify_v410_entry_baseline.sh`: branch/source/current roadmap/published baseline 검증
+  - `scripts/internal/verify_release_metadata_consistency.mjs`: source `v4.1.0`과 published
+    `v4.0.0` 분리, v4.0.0 release note source 보존
+  - `server.sh`: 두 focused verifier dispatch
+- RED 확인:
+  - `./server.sh verify-v410-research-gate`: 조사 문서 부재로 예상 실패
+  - `./server.sh verify-v410-entry-baseline`: source `4.0.0`과 문서 미정렬로 예상 실패
+- GREEN 확인:
+  - `bash -n scripts/internal/verify_v410_research_gate.sh scripts/internal/verify_v410_entry_baseline.sh`:
+    PASS
+  - `./server.sh verify-v410-research-gate`: PASS, source record 8개, IP 접근 결정 5개,
+    특정 특허 상세 반입 `false`, 법률 의견/FTO 대체 안 함
+  - `./server.sh verify-v410-entry-baseline`: PASS, `pass=33 fail=0`
+  - `./server.sh verify-release-metadata`: 최초 `source-only/live-only` 정책 문구 누락으로
+    `pass=17 fail=1` FAIL, 문구 복원 후 `pass=18 fail=0` PASS
+  - `./server.sh verify-docs-ui-assets`: 최초 manifest source/published pin 불일치로
+    `pass=9 fail=1` FAIL, manifest와 검증 상수 정렬 후 `pass=10 fail=0` PASS
+  - `./server.sh verify-script-inventory`: 최초 S01~S09 planned verifier ID가 현재 실행
+    명령처럼 적혀 `pass=10 fail=1` FAIL. 가짜 dispatch를 만들지 않고 구현계획의 미래
+    명령을 `planned-command`로 명시한 뒤 `pass=11 fail=0` PASS
+  - `./server.sh verify-docs-links`: PASS, Markdown 218개, local link 979개, failure 0
+  - `git diff --check`: PASS
+- 미실행: 제품 build, 안정화 묶음, UI 풀테스트, 30분/120분 장시간 테스트,
+  external TURN/WHEP, ONVIF 실기기, 외부 VLM/provider, published metadata
+- 비범위: V410-S01~S09 기능 구현, 녹화 API/schema/media path/UI 변경
+- 영향 범위: source/release metadata, 공개 문서, 조사 기록, local verifier dispatch만 변경.
+  C++ 제품 로직, 기존 API/schema/event payload, RTSP/WebRTC media path, 제품 UI 동작은 변경하지 않음
+- 회귀 가능성: current source/published tag 분리 문구와 UI asset manifest pin drift. S00 entry,
+  release metadata, docs UI asset, docs link, script inventory verifier로 방어

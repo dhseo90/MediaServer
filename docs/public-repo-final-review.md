@@ -1,16 +1,20 @@
 # Public Repo Final Review
 
-이 문서는 public repository 상태와 release readiness를 확인하는 기준입니다. GitHub
-Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 수동 체크로 남깁니다.
+이 문서는 public repository 상태와 release readiness를 확인하는 기준입니다. GitHub가
+제공하는 동일 설정 필드는 read-only API 실제 응답으로 확인할 수 있으며, API가 제공하지
+않는 표시·설정만 owner가 GitHub Settings UI에서 직접 확인합니다. 확인 수단을 바꿔 PASS를
+추정하거나 설정을 변경하지 않습니다.
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `4.0.0`
-- 최신 공개 GitHub Release: `v4.0.0`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
-- 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- `v4.0.0` publish 완료는 signed tag, source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
+- 현재 소스 버전: `4.1.0`
+- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
+- 현재 release target: `v4.1.0`
+- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 현재 source roadmap: `v4.1.0 Recording Foundation`
+- S11 제품 검증과 B14 공개 준비는 완료했습니다. v4.1.0 외부 release는 signed tag,
+  source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
 - public repository 기준은 source-only 공개입니다.
 
 ## 공개 대상
@@ -39,6 +43,12 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 또는 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-final-screenshots/`
 아래의 최종 evidence 경로만 허용합니다. v3.9.0에서 이미 보존 계약에 결속된 audit-only
 historical root 7개와 bounded failure root 1개의 PNG는 해당 정확한 경로만 추가 허용합니다.
+v4.1.0 S09의 JPEG20개는 직접 시각·metadata 검토를 마친 과거 부분 증거로 유지합니다.
+`reviewedHistoricalAssets`가 지정한 검토 manifest의 SHA와 개별 path/bytes/SHA가 모두
+일치할 때만 허용하며, 동일 폴더의 새 이미지나 변경된 바이트는 허용하지 않습니다.
+기존 실패·잘못 촬영한 화면·`wholeSuitePass=false`는 그대로이며 현재 UI PASS나 공개
+대표 이미지로 승격하지 않습니다. 정제 transcript는 원본/정제본 해시·치환 영수증과
+함께 평문으로 보존해 내용 검사가 가능해야 합니다. 원본 로그의 단순 압축은 정제가 아닙니다.
 그 밖의 raw auth/registry/log/ports/seed 산출물과 운영 snapshot/clip bundle은 공개 대상이
 아닙니다.
 
@@ -73,27 +83,31 @@ GitHub check-run annotation JSON을 확보한 경우에만 아래 gate를 추가
 
 annotation 상태를 확인하지 않았으면 release gate PASS로 대체하지 않습니다.
 
-## 수동 GitHub 설정
+## GitHub 설정 확인
 
-아래 항목은 owner가 GitHub UI에서 직접 확인합니다.
+아래 항목은 read-only API의 동일 필드 실제 응답 또는 API가 제공하지 않는 경우 owner의
+GitHub UI 직접 확인으로 판정합니다.
 
-| 영역 | 확인 항목 |
-| --- | --- |
-| Actions | Workflow permissions가 read-only인지 확인 |
-| Actions | GitHub Actions가 pull request를 create/approve할 수 없도록 설정 |
-| Branch protection | `main` required status checks가 저장소 정책과 일치 |
-| Branch protection | force push 차단 |
-| Branch protection | branch deletion 차단 |
-| Repository metadata | Description과 topics가 현재 제품 경계를 설명 |
-| Visibility | public 상태와 owner 정책 일치 |
+| 영역 | 확인 항목 | 허용 근거 |
+| --- | --- | --- |
+| Actions | Workflow permissions가 read-only인지 확인 | Actions permissions API의 `default_workflow_permissions=read` 실제 응답 또는 UI |
+| Actions | GitHub Actions가 pull request를 create/approve할 수 없도록 설정 | Actions permissions API의 `can_approve_pull_request_reviews=false` 실제 응답 또는 UI |
+| Branch protection | `main` required status checks가 저장소 정책과 일치 | active ruleset API의 strict required checks 실제 응답 또는 UI |
+| Branch protection | force push 차단 | active ruleset API의 `non_fast_forward`/bypass 실제 응답 또는 UI |
+| Branch protection | branch deletion 차단 | active ruleset API의 deletion/bypass 실제 응답 또는 UI |
+| Repository metadata | Description과 topics가 현재 제품 경계를 설명 | repository/topics API 실제 응답 또는 UI |
+| Visibility | public 상태와 owner 정책 일치 | repository API의 visibility·permission 실제 응답 또는 UI |
+
+read-only API가 반환하지 않는 UI 표시나 owner 정책 의도는 수동 UI 확인으로 남깁니다.
+API 응답 일부만으로 API 미제공 항목까지 확인했다고 확장하지 않습니다.
 
 ## Release 직전 확인
 
 | 항목 | 상태 기준 |
 | --- | --- |
 | working tree | `git status --short --branch`가 의도한 변경만 표시 |
-| secret scan | secret, token, password, auth store, 개인 local path가 문서/코드/history에 없음 |
-| README 첫 화면 | 제품 경계, 최신 공개 릴리즈, 현재 소스 버전, 빠른 시작이 한눈에 보임 |
+| secret scan | 현재 추적 텍스트의 금지 경로·고신뢰 비밀 패턴과 기본 최근500 commit의 고신뢰 비밀 패턴 검사를 구분해 기록. 임의 비밀번호·모든 archive·전체 이력 부재로 확대하지 않음 |
+| README 첫 화면 | 제품 경계, release target, live Latest 링크, 현재 소스 버전, 빠른 시작이 한눈에 보임 |
 | 영문 문서 | README.en과 docs/en/README가 한국어 문서와 같은 상태를 설명 |
 | VERSION/CMake | `VERSION`과 `CMakeLists.txt` 버전 일치 |
 | release policy | source-only, tag, GitHub Release, not-run 경계가 현재 상태와 일치 |
@@ -102,3 +116,7 @@ annotation 상태를 확인하지 않았으면 release gate PASS로 대체하지
 
 각 항목은 실제 확인한 날짜와 명령/화면 근거가 있을 때만 PASS로 기록합니다. 이 문서는
 과거 체크박스를 현재 PASS로 재사용하지 않습니다.
+정제 전 원본 증거의 개인/임시 경로는 현재 파일에서 제거하되 원본 commit과 해시를
+역사적 복구 근거로 보존합니다. 따라서 현재 자료 정제와 Git 전체 이력의 경로 삭제는
+다릅니다. 이력 재작성이나 비밀 원문의 공개 허용을 뜻하지 않으며, 별도 이력 삭제는
+사용자 결정이 필요합니다.

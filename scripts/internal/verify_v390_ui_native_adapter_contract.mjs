@@ -4,6 +4,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import os from "node:os";
+import { createHash } from "node:crypto";
+import { createNativeExactCaseChildSummary, validateCanonicalParentChildSummary } from "./v390_ui_native_exact_cases_lib.mjs";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -54,7 +57,7 @@ Checks module discovery, missing-module hard failure, native action capabilities
 runner integration, dispatch/docs, and preserved standalone native evidence.
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["h", "help", "lifecycle-diagnostics-only"]);
 
 const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
 const browserCallbackSource = readText("scripts/internal/v390_ui_browser_callback_boundary.mjs");
@@ -74,6 +77,137 @@ const docs = [
   readText("docs/release-evidence-index.md"),
 ].join("\n");
 const checks = [];
+// PATH-01/02 사전 명세: diagnostic path만 생략하며 부모 민감자료 거부와 authoritative 판정은 유지한다.
+for (const [label, pathname, omitted] of [
+  ["auth", "/ops/api/auth/password", true],
+  ["case-variants", "/ops/PASSWORD/Authorization/COOKIE", true],
+  ["correlation", "/ops/correlationId", true],
+  ["raw-request", "/ops/raw-request-object", true],
+  ["raw-response", "/ops/raw-response-object", true],
+  ["normal", "/ops/api/site-operations/runbook-instance-ledger", false],
+]) {
+  check(`LD-path-${label} diagnostic path omission preserves authoritative evaluation`, () => {
+    const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "PATH" });
+    const request = fakeLifecycleRequest(`http://runtime.invalid${pathname}`);
+    ledger.requestLifecycleRecorder.recordRequest(request);
+    ledger.bindLegacyRequestDiagnostic(request, "native-request-58");
+    ledger.sealRequestLifecycleLedger();
+    const before = ledger.evaluateRequestLifecycleLedger();
+    const row = ledger.safeRequestLifecycleProjection().diagnostics.requests[0];
+    assert(row.path === (omitted ? "" : pathname) && row.pathOmitted === omitted,
+      "diagnostic path omission contract missing");
+    assert(row.legacyRequestId === "native-request-58" && row.requestIdentity && row.start.sequence > 0 &&
+      before === ledger.evaluateRequestLifecycleLedger() && before.failures.some(item => item.code === "RESPONSE_MISSING"),
+    "path omission changed authoritative evidence");
+  });
+}
+check("LD-path-parent full child validator accepts omission and rejects raw sensitive path", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ui-path-parent-"));
+  try {
+    const stable = value => value && typeof value === "object"
+      ? (Array.isArray(value) ? `[${value.map(stable).join(",")}]` : `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stable(value[key])}`).join(",")}}`)
+      : JSON.stringify(value);
+    const implementationFiles = Object.fromEntries(["runner", "library", "adapter", "recorder", "evaluator"]
+      .map(key => [key, { path: `${key}.mjs`, sha256: "a".repeat(64) }]));
+    const binding = { baselineSourceCommitSha: "a".repeat(40), verificationCommitSha: "b".repeat(40),
+      verificationBranch: "fixture", runnerSchema: "media-server.v390-ui-canonical-parent.v1",
+      manifestSha256: "c".repeat(64), buildSha256: "d".repeat(64), implementationFiles,
+      implementationSha256: createHash("sha256").update(stable(implementationFiles)).digest("hex") };
+    const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "PATH" });
+    const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/auth/password");
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request, ledger.captureContext({}));
+    ledger.registerCapturedRequest(envelope, {});
+    ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request));
+    ledger.requestLifecycleRecorder.recordRequestFinished(request);
+    ledger.sealRequestLifecycleLedger();
+    const projection = ledger.safeRequestLifecycleProjection();
+    assert(projection.status === "PASS" && projection.failures.length === 0,
+      "parent positive fixture lifecycle must pass");
+    const item = { caseId: "PATH", featureId: "PATH" };
+    const summary = createNativeExactCaseChildSummary({ item, status: "PASS", executionStatus: "fixture-only",
+      sourceBinding: binding, startedAtMs: 1, finishedAtMs: 2,
+      requestLifecycleEvaluation: projection,
+      cleanupAttestation: { schema: "media-server.v390-ui-case-cleanup-attestation.v1", pass: true,
+        primaryFailurePresent: false, primaryFailurePreserved: true, caseRuntimeRestoreAttempted: true,
+        caseRuntimeRestored: true, browserCloseAttempted: true, browserContextClosed: true,
+        cleanupEntryCount: 1, failureCode: "" } });
+    const summaryPath = path.join(root, "summary.json");
+    const validate = () => {
+      fs.writeFileSync(summaryPath, JSON.stringify(summary), { mode: 0o600 });
+      return validateCanonicalParentChildSummary({ summary, item, expectedSourceBinding: binding,
+        exitCode: 0, summaryPath, outputDir: root });
+    };
+    const errors = validate();
+    assert(errors.length === 0, `parent full validation rejected projection: ${errors.join(",")}`);
+    summary.case.requestLifecycleEvaluation.diagnostics.requests[0].path = "/ops/api/auth/password";
+    const rejected = validate();
+    assert(rejected.length === 1 && rejected[0] === "child-summary-sensitive-material", "parent raw sensitive rejection changed");
+  } finally {
+    const bytes = fs.readdirSync(root).reduce((sum, name) => sum + fs.lstatSync(path.join(root, name)).size, 0);
+    fs.rmSync(root, { recursive: true });
+    console.log(`[cleanup] ${root} bytes=${bytes} absent=${!fs.existsSync(root)}`);
+  }
+});
+// LD01~03 사전 명세: 직접 ID 결속, terminal/seal 구분, 비밀 제외 및 판정 불변.
+for (const scenario of ["mapped", "finished", "failed"]) {
+  check(`LD-${scenario} lifecycle diagnostic identity terminal and seal evidence`, () => {
+    const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "LD", clock: () => 100 });
+    const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/events?token=DO_NOT_RECORD");
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request);
+    assert(typeof ledger.bindLegacyRequestDiagnostic === "function", "direct identity diagnostic mapping missing");
+    ledger.bindLegacyRequestDiagnostic(request, "native-request-58");
+    if (scenario === "finished") {
+      ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request));
+      ledger.requestLifecycleRecorder.recordRequestFinished(request);
+    }
+    if (scenario === "failed") ledger.requestLifecycleRecorder.recordRequestFailed(request, { errorText: "DO_NOT_RECORD" });
+    ledger.noteRequestCaptureSeal();
+    ledger.noteRequestAfterSeal("response", request);
+    ledger.sealRequestLifecycleLedger();
+    const before = ledger.evaluateRequestLifecycleLedger();
+    const projection = ledger.safeRequestLifecycleProjection();
+    const row = projection.diagnostics.requests[0];
+    assert(row.requestIdentity === envelope.objectIdentity && row.legacyRequestId === "native-request-58" &&
+      row.method === "GET" && row.path === "/ops/api/events", "safe direct mapping mismatch");
+    assert(row.start.sequence === envelope.sequence && row.start.timestamp === envelope.timestamp &&
+      row.responses.length === Number(scenario === "finished") &&
+      row.finished.length === Number(scenario === "finished") && row.failed.length === Number(scenario === "failed"),
+    "terminal evidence mismatch");
+    assert(projection.diagnostics.seal.timestamp === 100 && projection.diagnostics.afterSeal[0].event === "response" &&
+      projection.diagnostics.afterSeal[0].requestIdentity === envelope.objectIdentity &&
+      projection.diagnostics.afterSeal[0].sequence > projection.diagnostics.seal.sequence,
+    "seal/drop evidence missing");
+    assert(!JSON.stringify(projection).includes("DO_NOT_RECORD") && ledger.evaluateRequestLifecycleLedger() === before,
+      "diagnostics exposed secret or changed evaluation");
+  });
+}
+check("LD-unmapped diagnostic missing mapping remains explicit and method is restricted", () => {
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "LD-UNMAPPED" });
+  const request = fakeLifecycleRequest("https://user:DO_NOT_RECORD@runtime.invalid/ops/api/events?key=DO_NOT_RECORD#DO_NOT_RECORD",
+    { method: "DO_NOT_RECORD" });
+  ledger.requestLifecycleRecorder.recordRequest(request);
+  ledger.sealRequestLifecycleLedger();
+  const projection = ledger.safeRequestLifecycleProjection();
+  const row = projection.diagnostics.requests[0];
+  assert(row.legacyRequestId === "" && row.method === "OTHER" && row.path === "/ops/api/events" &&
+    projection.diagnostics.seal === null && projection.diagnostics.afterSeal.length === 0 &&
+    !JSON.stringify(projection).includes("DO_NOT_RECORD"), "unmapped/secret diagnostic contract drift");
+});
+check("LD-diagnostic-error cannot prevent authoritative capture or change failure", () => {
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "LD-ERROR",
+    clock: () => { throw new Error("DO_NOT_RECORD"); } });
+  const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/events");
+  ledger.requestLifecycleRecorder.recordRequest(request);
+  ledger.bindLegacyRequestDiagnostic(null, "native-request-1");
+  ledger.noteRequestCaptureSeal();
+  ledger.noteRequestAfterSeal("failed", request);
+  ledger.requestLifecycleRecorder.recordRequestFailed(request, { errorText: "actual failure" });
+  ledger.sealRequestLifecycleLedger();
+  const projection = ledger.safeRequestLifecycleProjection();
+  assert(projection.diagnostics.diagnosticErrors === 3 && projection.diagnostics.requests[0].failed.length === 1 &&
+    projection.failures.some(item => item.code === "REQUEST_FAILED") && !JSON.stringify(projection).includes("DO_NOT_RECORD"),
+  "diagnostic failure changed capture or exposed exception");
+});
 
 check("native callbacks use the capture-only recorder as lifecycle authority", () => {
   const requestCallback = callbackSource("request", "response");
@@ -2340,7 +2474,8 @@ check("server dispatch and docs expose reproducible native commands", () => {
   }
 });
 
-check("preserved standalone evidence proves native actions", () => {
+// v3.9.1 공개 최소화 정책: 과거 7개 action의 보존 정합성이며 현재 UI 실행 증거가 아니다.
+check("historical action record consistency matches retained summary report and PNG", () => {
   const summaryPath = path.join(rootDir, "docs/release-artifacts/v3.9.0/ui-native-adapter-final/summary.json");
   assert(fs.existsSync(summaryPath), "native adapter summary missing");
   const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
@@ -2352,10 +2487,7 @@ check("preserved standalone evidence proves native actions", () => {
     assert(summary.actions.some(action => action.kind === kind && action.status === "PASS"), `missing PASS action ${kind}`);
   }
   assert(summary.finalState === "native-adapter:ready:typed", "native final state mismatch");
-  const artifactNames = {
-    screenshotPath: "native-adapter.png",
-    tracePath: "trace.json",
-  };
+  const artifactNames = { screenshotPath: "native-adapter.png" };
   for (const [field, expectedName] of Object.entries(artifactNames)) {
     assert(path.basename(String(summary[field] || "")) === expectedName,
       `native artifact identity drifted ${field}`);
@@ -2366,10 +2498,29 @@ check("preserved standalone evidence proves native actions", () => {
   assert(screenshot.length > 8 && screenshot.subarray(0, 8).equals(
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
   "native screenshot is not a PNG artifact");
-  const trace = JSON.parse(fs.readFileSync(
-    path.join(path.dirname(summaryPath), artifactNames.tracePath), "utf8"));
-  assert(trace.schema === "media-server.v390-ui-native-adapter-trace.v1",
-    "native adapter trace schema mismatch");
+  const report = fs.readFileSync(path.join(path.dirname(summaryPath), "report.md"), "utf8");
+  const expectedActions = [
+    ["wait", "#native-name"], ["fill", "#native-name"], ["type", "#native-note"],
+    ["select", "#native-mode=ready"], ["click", "#native-apply"],
+    ["wait", "#native-status=native-adapter:ready:typed"], ["screenshot", "native-adapter.png"],
+  ];
+  assert(summary.actions.length === 7, "historical action census mismatch");
+  const rows = report.split("\n").filter(line => /^\| (wait|fill|type|select|click|screenshot) \|/.test(line));
+  assert(rows.length === 7, "historical report action census mismatch");
+  summary.actions.forEach((action, index) => {
+    const [kind, target] = expectedActions[index];
+    assert(action.kind === kind && (kind === "screenshot" ? path.basename(action.target) : action.target) === target &&
+      action.status === "PASS" && Number.isSafeInteger(action.durationMs) && action.durationMs >= 0,
+    `historical action contract mismatch ${index}`);
+    assert(rows[index] === `| ${action.kind} | ${action.target} | ${action.status} | ${action.durationMs} |`,
+      `historical report row mismatch ${index}`);
+  });
+  for (const line of ["result: PASS", "engine: playwright-native", "fallbackUsed: false",
+    "finalState: native-adapter:ready:typed", `moduleVersion: ${summary.selectedAdapter.moduleVersion}`]) {
+    assert(report.split("\n").includes(line), "historical report metadata mismatch");
+  }
+  assert(summary.cleanup?.pageClosed === true && summary.cleanup?.serverStopped === true &&
+    summary.cleanup?.fallbackUsed === false, "historical cleanup record mismatch");
 });
 
 check("current UI suite state does not reuse stale native evidence", () => {
@@ -2438,9 +2589,106 @@ check("dashboard marker response projection keeps only digests and fails closed"
   "dashboard marker response projection retained raw response material");
 });
 
+// 실제 메서드 본문을 실행하되 브라우저·시계·요청 저장소만 격리 대역으로 제공한다.
+function navigationSettlingHarness({ waitFailure = false } = {}) {
+  const start = adapterSource.indexOf("    navigate: async (");
+  const end = adapterSource.indexOf("    setCorrelationId:", start);
+  assert(start >= 0 && end > start, "navigate source boundary missing");
+  let release;
+  const calls = [];
+  const gate = new Promise(resolve => { release = resolve; });
+  const navigate = new Function("waitForPendingRequestSnapshot", "documentNavigationLedger",
+    "networkEntries", "performNavigation", "buildNavigationEvidence", "urlTarget", "httpBase",
+    `return ({${adapterSource.slice(start, end)}}).navigate;`)(
+    async options => { calls.push({kind: "wait", options}); await gate;
+      if (waitFailure) throw new Error("pending request snapshot timeout");
+      return {unresolvedRequestCount: 0}; },
+    [], [], async () => { calls.push({kind: "goto"}); return {invocationId: "test"}; },
+    value => value, value => value, "http://fixture.invalid");
+  return {navigate, calls, release};
+}
+
+check("NAV01 auxiliary readback navigation awaits pending snapshot before goto", async () => {
+  for (const kind of ["catalog-source-navigation", "catalog-restore-navigation"]) {
+    const h = navigationSettlingHarness();
+    const running = h.navigate("/ops/events", {kind});
+    await Promise.resolve();
+    assert(h.calls.length === 1 && h.calls[0].kind === "wait" && h.calls[0].options.seal === false,
+      "auxiliary goto occurred before an unsealed pending snapshot completed");
+    h.release();
+    const result = await running;
+    assert(h.calls[1]?.kind === "goto" && result.pendingRequestSnapshot?.unresolvedRequestCount === 0 &&
+      result.pendingRequestSnapshot.captureSealed === false,
+      "completed snapshot attestation or goto missing");
+  }
+});
+
+check("NAV02 auxiliary snapshot timeout prevents goto", async () => {
+  for (const kind of ["catalog-source-navigation", "catalog-restore-navigation"]) {
+    const h = navigationSettlingHarness({waitFailure: true});
+    const running = h.navigate("/ops/events", {kind}); h.release();
+    let rejected = false;
+    try { await running; } catch (error) { rejected = error.message === "pending request snapshot timeout"; }
+    assert(rejected && !h.calls.some(c => c.kind === "goto"), "timeout allowed auxiliary goto");
+  }
+});
+check("NAV03 user navigation bypasses auxiliary snapshot wait", async () => {
+  for (const kind of ["explicit-navigation", "local-link-document-navigation", "logout", "form-navigation", "catalog-source-navigation-extra"]) {
+    const h = navigationSettlingHarness();
+    const result = await h.navigate("/ops/events", {kind});
+    assert(h.calls.length === 1 && h.calls[0].kind === "goto" && !result.pendingRequestSnapshot,
+      "non-auxiliary navigation policy changed");
+  }
+});
+function pendingSnapshotHarness() {
+  const start = adapterSource.indexOf("  const waitForPendingRequestSnapshot = async (");
+  const end = adapterSource.indexOf("  const sealRequestCaptureBoundary =", start);
+  assert(start >= 0 && end > start, "private pending snapshot source boundary missing");
+  let now = 0, seals = 0;
+  const pending = new Map(), entries = [], reads = new Set(), failures = [];
+  const h = {pending, entries, reads, failures, tick: () => {}, get seals() { return seals; }, get now() { return now; }};
+  h.wait = new Function("pendingRequests", "networkEntries", "pendingSafeResponseReads",
+    "safeResponseReadFailures", "sealRequestCaptureBoundary", "formatSafeResponseReadFailure",
+    "page", "Date", "timeoutMs", `${adapterSource.slice(start, end)}return waitForPendingRequestSnapshot;`)(
+    pending, entries, reads, failures, () => { seals++; }, () => "safe response read failure",
+    {waitForTimeout: async ms => { now += ms; h.tick(now); }}, {now: () => now}, 30000);
+  return h;
+}
+check("NAV04 missing response and unfinished safe body remain failures", async () => {
+  for (const mode of ["missing-response", "pending-body", "failed-body"]) {
+    const h = pendingSnapshotHarness(); h.pending.set("a", {requestId: "a"});
+    if (mode !== "missing-response") h.entries.push({phase: "response", requestId: "a"});
+    if (mode === "pending-body") h.reads.add("body");
+    if (mode === "failed-body") h.failures.push("failure");
+    let rejected = false;
+    try { await h.wait({seal: false}); } catch { rejected = true; }
+    assert(rejected && h.seals === 0 && h.pending.size === 1, "incomplete evidence accepted or removed");
+  }
+});
+check("NAV05 unsealed auxiliary snapshot preserves next document capture and cleanup seal", async () => {
+  const h = pendingSnapshotHarness(); h.pending.set("a", {requestId: "a"}); h.reads.add("body");
+  h.tick = now => { if (now === 300) { h.entries.push({phase: "response", requestId: "a"}); h.reads.clear(); } };
+  const first = await h.wait({seal: false});
+  assert(first.capturedRequestCount === 1 && h.seals === 0 && h.pending.size === 1, "auxiliary wait sealed or erased ledger");
+  h.pending.set("b", {requestId: "b"});
+  h.entries.push({phase: "response", requestId: "b"});
+  const cleanup = await h.wait();
+  assert(cleanup.capturedRequestCount === 2 && h.seals === 1 && h.pending.size === 2,
+    "new document request lost or default cleanup seal missing");
+});
+check("NAV06 snapshot preserves default observation quiet period and timeout", async () => {
+  const h = pendingSnapshotHarness(); const result = await h.wait({seal: false});
+  assert(result.observedMs >= 275 && result.unresolvedQuietMs >= 25 && h.seals === 0,
+    "default 250ms observation plus 25ms quiet period changed");
+  const missing = pendingSnapshotHarness(); missing.pending.set("a", {requestId: "a"});
+  try { await missing.wait({seal: false}); } catch {}
+  assert(missing.now === 30000 && missing.seals === 0, "existing timeout changed");
+});
+
 let pass = 0;
 let fail = 0;
 for (const item of checks) {
+  if (rawArgs.includes("--lifecycle-diagnostics-only") && !item.name.startsWith("LD-")) continue;
   try {
     await item.fn();
     pass += 1;

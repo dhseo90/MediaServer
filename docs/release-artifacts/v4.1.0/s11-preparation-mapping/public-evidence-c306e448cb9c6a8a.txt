@@ -1,0 +1,9 @@
+[pass] EV01 canonical application 왕복 같은 녹화 증거
+[pass] EV02 실제 rule 평가 왕복 증거 보존
+[pass] EV04 source 충돌 거부
+[pass] EV04 PTS 충돌 거부
+[pass] EV04 frame 충돌 거부
+[pass] EV04 증거 부재 발명 금지
+[pass] EV05 history snapshot null 보존
+[summary] pass=7 fail=0
+[cleanup] path=/private/tmp/media-server-application-evidence.nlZmi7 bytes=7376731 absent=true

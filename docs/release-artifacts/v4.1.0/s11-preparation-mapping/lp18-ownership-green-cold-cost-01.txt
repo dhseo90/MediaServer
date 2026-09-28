@@ -1,0 +1,88 @@
+{"kind":"start","utc":"2026-09-19T22:32:48.635Z","mode":"green","id":"cold-cost-01","suite":"envelope-cost","source":[{"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"},{"name":"include/recording/recording_journal.h","sha256":"54fef15110880fc9cca531c91c8d590bb312e9a82621cedc8ee1723bf82f5330"},{"name":"src/recording/recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"},{"name":"src/recording/recording_journal.cpp","sha256":"bbf5069f1710f44796b341d87755e77c7589e8c39b779a15d5673f5407ec65df"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f2d1790f113312372cd3ede637d3fc8c0203b6e9bc42e78df3fb2ed30aa69214"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"f53f1a0cedb09ad08302fb879dcf67890614f2c80619e67f286e56289ef6aba6"},{"name":"scripts/internal/recording_checkpoint_envelope_cost_smoke.cpp","sha256":"0fb809dc69ae4036a2055a409516a1cdcbb3e56bdfd3b43e6444541f1f175334"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","envelope-cost"],"seconds":60}
+[instrument] envelope_exact_insertions=2 journal_original_sha256=bbf5069f1710f44796b341d87755e77c7589e8c39b779a15d5673f5407ec65df journal_instrumented_sha256=02e383efa6138193b4450c5d5371071b27dbf73961ca717042ec9ab30f138de5
+[instrument] catalog_sha256=7b68327f9ab8e8cbd8f707c8435b2e13ea660ee2046b7c4b773b8be818c7dd23 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"54fef15110880fc9cca531c91c8d590bb312e9a82621cedc8ee1723bf82f5330"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"bbf5069f1710f44796b341d87755e77c7589e8c39b779a15d5673f5407ec65df"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_checkpoint_envelope_cost_smoke.cpp","sha256":"0fb809dc69ae4036a2055a409516a1cdcbb3e56bdfd3b43e6444541f1f175334"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f2d1790f113312372cd3ede637d3fc8c0203b6e9bc42e78df3fb2ed30aa69214"}
+        2.38 real         2.21 user         0.14 sys
+           302530560  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               57427  page reclaims
+                 592  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  10  messages sent
+                   0  messages received
+                   4  signals received
+                  15  voluntary context switches
+                2063  involuntary context switches
+            77273504  instructions retired
+            35539039  cycles elapsed
+             2032024  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2402,"groupPeakRssBytes":319160320}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-E01 independent value and owned sequences compare equal
+[pass] LP18-E01 full field mismatch rejected schema
+[pass] LP18-E01 full field mismatch rejected type
+[pass] LP18-E01 full field mismatch rejected id
+[pass] LP18-E01 full field mismatch rejected entity
+[pass] LP18-E01 full field mismatch rejected time
+[pass] LP18-E01 full field mismatch rejected payload
+[pass] LP18-E01 sequence order remains significant
+[pass] LP18-E01 sequence count remains significant
+[pass] LP18-E01 null on either side remains rejected
+[pass] LP18-E01 identical invalid schema retains comparison result
+[pass] LP18-E01 identical invalid enum retains comparison result
+[pass] LP18-E01 enum canonical collision remains rejected
+[pass] LP18-E01 escape and control bytes retain exact comparison
+[pass] LP18-E01 int64 boundaries retain exact comparison
+[pass] LP18-E01 payload whitespace remains significant
+[pass] LP18-E02 SameSequence performs zero envelope serializations
+[envelope-counts] sequenceSerializations=0
+[pass] LP18-E03 receipt candidate preparation preserves original bytes
+[pass] LP18-E04 CommitCheckpoint builds JournalBytes exactly once
+[pass] LP18-E03 independent candidate publishes exact bytes and preserves prior owner
+[pass] LP18-E03 compacted bytes retain independent full projection
+[envelope-counts] commitJournalBytes=1
+[pass] LP18-E03 invalid candidate rejected before byte building schema
+[pass] LP18-E03 invalid candidate rejected before byte building type
+[pass] LP18-E03 invalid candidate rejected before byte building id
+[pass] LP18-E03 invalid candidate rejected before byte building entity
+[pass] LP18-E03 invalid candidate rejected before byte building time
+[pass] LP18-E03 invalid candidate rejected before byte building payload
+[pass] LP18-E03 invalid candidate rejected before byte building order
+[pass] LP18-E03 invalid candidate rejected before byte building count
+[pass] LP18-E03 invalid candidate rejected before byte building null
+[summary] LP18 pass=30 fail=0
+        0.52 real         0.14 user         0.02 sys
+            36126720  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4312  page reclaims
+                  59  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  21  voluntary context switches
+                 137  involuntary context switches
+          3061848160  instructions retired
+           649875574  cycles elapsed
+             5423800  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":541,"groupPeakRssBytes":9224192}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":5461384,"removed":true}
+{"kind":"result","utc":"2026-09-19T22:32:51.591Z","mode":"green","matched":true,"productPass":true,"elapsedMs":2957}

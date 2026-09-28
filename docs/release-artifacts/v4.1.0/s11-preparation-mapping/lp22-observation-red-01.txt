@@ -1,0 +1,39 @@
+command: node --test scripts/internal/recording_current_observation.test.mjs
+exit: 1
+wall_time_seconds: 0.00000675
+✖ LP22-O01 optional page observation preserves values and captures every page (0.914083ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.133083
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_observation.test.mjs:5:1
+✖ LP22-O01 optional page observation preserves values and captures every page (0.914083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   'page',
+  -   'page',
+  -   'complete'
+  - ]
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:9:44)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'page', 'page', 'complete' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+cleanup: no temporary root/server/port created

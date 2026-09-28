@@ -3,10 +3,13 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace ingress {
+
+struct RecordingEvidenceCarrier;
 
 struct EventStorageApplicationBox {
     float x{0.0F};
@@ -22,6 +25,13 @@ struct EventStorageApplicationDispatchSource {
     std::string route{"*"};
     std::string client_id;
     std::int64_t pts{0};
+    std::string time_basis;
+    std::int64_t time_anchor_utc_ms{0};
+    std::int64_t time_anchor_pts_ms{0};
+    std::string stream_epoch_id;
+    std::uint64_t frame_id{0};
+    // 해당 분석 결과에 결박된 내부 증거이며 EventRecord 필드가 아니다.
+    std::shared_ptr<const RecordingEvidenceCarrier> recording_evidence;
 };
 
 struct EventStorageApplicationDispatchEvent {

@@ -1715,13 +1715,15 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 WebRtcHttpServer::WebRtcHttpServer(WebRtcMediaApplicationService& media_sessions,
                                    AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                    AnalysisSessionReadApplicationService& analysis_session_reads,
-                                   const WebRtcHttpRuntimeConfig& runtime_config)
+                                   const WebRtcHttpRuntimeConfig& runtime_config,
+                                   RecordingApplicationService* recording_service)
     : media_sessions_(media_sessions),
       analysis_session_lifecycle_(analysis_session_lifecycle),
       analysis_session_reads_(analysis_session_reads),
       runtime_config_(runtime_config),
       impl_(std::make_unique<Impl>(
           media_sessions, analysis_session_lifecycle, analysis_session_reads)) {
+    impl_->recording_service = recording_service;
     const AnalysisRuleApplicationCallbacks analysis_rule_callbacks{
         &WebRtcHttpAnalysisProfileDocumentsSnapshotBackend,
         &WebRtcHttpAnalysisRuleDocumentsSnapshotBackend,
@@ -4333,6 +4335,12 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div class="row" data-testid="published-view-rule-scope-management">
             <label>허용 룰 ID<input name="allowedRuleIds" placeholder="쉼표 또는 공백으로 구분" /></label>
             <label>클라이언트 그룹<input name="clientGroups" placeholder="쉼표 또는 공백으로 구분" /></label>
+          </div>
+          <div class="row" data-testid="recording-policy-management">
+            <label>상시녹화 사용<input name="recordingEnabled" type="checkbox" value="true" /></label>
+            <label>녹화 용량(byte)<input name="recordingQuotaBytes" type="number" min="1" value="10737418240" /></label>
+            <label>보존 일수<input name="recordingRetentionDays" type="number" min="1" value="7" /></label>
+            <label>저장 하위경로<input name="recordingStoragePath" placeholder="예: parking/b1" /></label>
           </div>
           </div>
           <div class="ops-channels-input-grid" data-channel-task="inputs">

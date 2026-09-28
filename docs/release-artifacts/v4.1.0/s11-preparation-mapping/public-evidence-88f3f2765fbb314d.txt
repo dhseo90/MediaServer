@@ -1,0 +1,6 @@
+[pass] S11-CI09 product-1 healthy isolated ICE
+[pass] S11-CI07 run1 actual tuple EventRecord reference
+[fail] current actual app: event-lineage
+[pass] S11-CI08 product-1 exit0 ports returned
+[cleanup] {"root":"/private/tmp/media-server-current-integration-lwLFau","bytes":28430719,"rootAbsent":true,"failureCount":0,"processes":[{"pid":57548,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":51397,"closed":true},{"kind":"rtsp","port":51398,"closed":true}]}],"udpClosed":true}
+{"mode":"current-actual-app","passed":3,"failed":1,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":57548,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":51397,"closed":true},{"kind":"rtsp","port":51398,"closed":true}]}]},"elapsedMs":13504}

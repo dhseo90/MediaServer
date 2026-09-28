@@ -1,0 +1,2 @@
+[S05 등록/결과 대조] FAIL: V410-S05-I27-C01: 시험 함수/check 없음
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.XxUZo5 bytes=0 removed=true

@@ -39,6 +39,20 @@
   ],
   "dependencies": [
     {
+      "id": "sqlite3",
+      "name": "SQLite",
+      "license": "Public domain (upstream deliverable library)",
+      "usage": "녹화 catalog의 SQLite 조회 투영과 재구축; 없으면 journal 기반 fallback",
+      "source": "시스템 pkg-config sqlite3; 공식 출처 https://sqlite.org/copyright.html (2026-09-21 확인)",
+      "distribution": "외부 선택 dependency이며 이 저장소에 SQLite 원문/바이너리를 vendoring하지 않음",
+      "versionPolicy": "CMake의 SQLITE3_FOUND로 선택하고 실제 설치 버전은 dependency snapshot에서 확인합니다.",
+      "minimumVersion": "별도 고정 없음. 빌드 및 저장/복구 검증 결과로 지원 환경을 확인합니다.",
+      "bundlePolicy": "현재 source-only 공개에는 SQLite 바이너리를 포함하지 않습니다. 향후 번들에서는 실제 패키지 구성과 upstream 출처를 확인하며 public-domain 표기를 프로젝트 Apache-2.0 재라이선스로 바꾸지 않습니다.",
+      "detectors": [
+        { "label": "sqlite3", "command": "pkg-config", "args": ["--modversion", "sqlite3"], "versionPattern": "^(.+)$" }
+      ]
+    },
+    {
       "id": "gstreamer",
       "name": "GStreamer, gst-rtsp-server, gst-plugins-base/good/bad",
       "license": "LGPL-family and plugin-specific upstream terms",

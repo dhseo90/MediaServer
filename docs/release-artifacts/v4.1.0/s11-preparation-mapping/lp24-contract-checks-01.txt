@@ -1,0 +1,18 @@
+범위: LP24 실행 전 범위·복구 계약·개별 검사 사전등록 문서
+명령: git diff --check
+exit: 0
+output: 없음
+명령: ./server.sh verify-docs-links
+exit: 0
+== Docs link verification summary ==
+- markdown files: 285
+- local links: 9082
+- local images: 22
+- local anchors: 130
+- indexed docs: 76
+- index coverage exclusions: 201
+- failures: 0
+문서 검사 PASS이며 제품·단기 실제 앱·릴리즈 PASS가 아니다.
+token start/end/consumed: 미집계(전용 집계 미제공)
+elapsed: diffcheck 0.008초, links 0.058초(tool wall time)
+cleanup: 검증 소유 임시 산출물 없음

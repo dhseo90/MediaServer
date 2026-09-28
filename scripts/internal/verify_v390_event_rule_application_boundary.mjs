@@ -14,7 +14,8 @@ if (hasHelpFlag(args)) printUsageAndExit(`V390 Event Rule application boundary v
 Usage:
   ./server.sh verify-v390-event-rule-application-boundary
 `);
-assertKnownOptions(args, ["h", "help"]);
+assertKnownOptions(args, ["h", "help", "application-only"]);
+const applicationOnly = args.includes("--application-only");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
@@ -41,6 +42,8 @@ const transportPaths = [
 const checks = [];
 function assert(value, message) { if (!value) throw new Error(message); }
 function check(name, fn) {
+  if (applicationOnly && (name === "CMake, server dispatch, and current graph bind exact Slice 29 successor" ||
+      name === "current structure gate accepts exact non-final Event Rule successor")) return;
   try { fn(); checks.push({name, status: "PASS"}); }
   catch (error) { checks.push({name, status: "FAIL", detail: error.message}); }
 }

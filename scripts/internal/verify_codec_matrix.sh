@@ -31,6 +31,39 @@ LAUNCHER_LOGS=()
 LAST_LAUNCHER_PID=""
 LAST_LAUNCHER_LOG=""
 AUTH_COOKIE_FILE=""
+DIAG_DIR="${MEDIA_SERVER_VERIFY_CODEC_DIAGNOSTICS_DIR:-}"
+DIAG_HELPER="${SCRIPT_DIR}/codec_probe_diagnostics.py"
+DIAG_CASE=0
+DIAG_ROUTE=0
+DIAG_FAILED=0
+HTTP_DIAG_PIDS=()
+HTTP_DIAG_CASES=()
+HTTP_DIAG_STOPPED=()
+
+codec_launcher_diag() {
+  [[ -z "${DIAG_DIR}" ]] && return 0
+  if ! python3 -B "${DIAG_HELPER}" launcher "${DIAG_DIR}" "$@"; then
+    DIAG_FAILED=1
+  fi
+}
+
+codec_wait_launcher() {
+  local pid="$1" index=0 status=0 alive=0 tracked
+  [[ -z "${pid}" ]] && return 1
+  for tracked in "${HTTP_DIAG_PIDS[@]:-}"; do
+    if [[ "${tracked}" == "${pid}" ]]; then
+      [[ "${HTTP_DIAG_STOPPED[$index]}" == 1 ]] && return 0
+      kill -0 "${pid}" 2>/dev/null && alive=1
+      if ((alive)); then kill "${pid}" >/dev/null 2>&1 || true; fi
+      wait "${pid}" 2>/dev/null || status=$?
+      codec_launcher_diag stop "${HTTP_DIAG_CASES[$index]}" "${pid}" "${alive}" -1 -1 0 "${status}"
+      HTTP_DIAG_STOPPED[$index]=1
+      return 0
+    fi
+    index=$((index+1))
+  done
+  return 1
+}
 
 log_info() {
   echo "[info] $*"
@@ -188,7 +221,9 @@ http_launcher_answers() {
 }
 
 cleanup() {
+  local prior=$?
   for pid in "${LAUNCHER_PIDS[@]:-}"; do
+    if [[ -n "${DIAG_DIR}" ]] && codec_wait_launcher "${pid}"; then continue; fi
     if kill -0 "${pid}" 2>/dev/null; then
       kill "${pid}" >/dev/null 2>&1 || true
       wait "${pid}" 2>/dev/null || true
@@ -203,6 +238,7 @@ cleanup() {
   if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
     rm -f "${AUTH_COOKIE_FILE}"
   fi
+  if [[ -n "${DIAG_DIR}" && "${prior}" == 0 && "${DIAG_FAILED}" != 0 ]]; then exit 2; fi
 }
 
 prepare_auth_cookie() {
@@ -272,19 +308,29 @@ start_local_http_launcher() {
   local name="$1"
   local port="$2"
   local root_rel="$3"
+  local diag_alive=-1 diag_listen=0 diag_curl=-1
 
   # HTTP URI source 검증은 로컬 MP4를 간단한 정적 HTTP 서버로 열어 MediaServer가 source=http로 가져가게 한다.
   # 연속 verify-codecs 프로세스가 같은 포트를 재사용하면 이전 launcher의 LISTEN이 남아
   # ready 오판 또는 bind 대기가 생긴다. listen과 HTTP GET을 함께 확인한다.
   if media_server_is_tcp_listening "${port}"; then
+    diag_listen=1
+    if [[ "${MEDIA_SERVER_VERIFY_CODEC_LAUNCHERS_ONLY:-0}" == 1 ]]; then
+      codec_launcher_diag failure "${DIAG_CASE}" 0 -1 1 -1 0 -1
+      log_fail "codec provider=${DIAG_CASE}: preexisting listener is not owned"
+      return 1
+    fi
     if http_launcher_answers "${port}"; then
+      codec_launcher_diag ready "${DIAG_CASE}" 0 -1 1 0 0 -1
       log_info "HTTP launcher already listening on ${port} (${name})"
       return 0
-    fi
+    else diag_curl=$?; fi
+    codec_launcher_diag failure "${DIAG_CASE}" 0 -1 1 "${diag_curl}" 0 -1
     log_fail "${name}: port ${port} is occupied but does not serve HTTP"
     return 1
   fi
   if ! wait_until_tcp_free "${port}" 20; then
+    codec_launcher_diag failure "${DIAG_CASE}" 0 -1 1 -1 0 -1
     log_fail "${name}: port ${port} stayed occupied after previous launcher"
     return 1
   fi
@@ -299,24 +345,37 @@ start_local_http_launcher() {
   LAUNCHER_LOGS+=("${log_file}")
   LAST_LAUNCHER_PID="${launcher_pid}"
   LAST_LAUNCHER_LOG="${log_file}"
+  if [[ -n "${DIAG_DIR}" ]]; then
+    HTTP_DIAG_PIDS+=("${launcher_pid}")
+    HTTP_DIAG_CASES+=("${DIAG_CASE}")
+    HTTP_DIAG_STOPPED+=(0)
+    codec_launcher_diag start "${DIAG_CASE}" "${launcher_pid}" -1 -1 -1 0 -1
+  fi
 
   local i=0
   while (( i < 40 )); do
     if ! kill -0 "${launcher_pid}" 2>/dev/null; then
+      codec_launcher_diag failure "${DIAG_CASE}" "${launcher_pid}" 0 "${diag_listen}" "${diag_curl}" "$((i+1))" -1
       log_fail "${name}: local HTTP launcher exited early"
-      tail -n 40 "${log_file}" || true
+      if [[ -z "${DIAG_DIR}" ]]; then tail -n 40 "${log_file}" || true; fi
       return 1
     fi
-    if media_server_is_tcp_listening "${port}" && http_launcher_answers "${port}"; then
-      log_info "HTTP launcher ready: http://127.0.0.1:${port}/"
-      return 0
+    diag_alive=1;diag_listen=0;diag_curl=-1
+    if media_server_is_tcp_listening "${port}"; then
+      diag_listen=1
+      if http_launcher_answers "${port}"; then
+        codec_launcher_diag ready "${DIAG_CASE}" "${launcher_pid}" 1 1 0 "$((i+1))" -1
+        log_info "HTTP launcher ready: http://127.0.0.1:${port}/"
+        return 0
+      else diag_curl=$?; fi
     fi
     sleep 0.25
     i=$((i + 1))
   done
 
   log_fail "${name}: local HTTP launcher did not become ready"
-  tail -n 40 "${log_file}" || true
+  codec_launcher_diag failure "${DIAG_CASE}" "${launcher_pid}" "${diag_alive}" "${diag_listen}" "${diag_curl}" 40 -1
+  if [[ -z "${DIAG_DIR}" ]]; then tail -n 40 "${log_file}" || true; fi
   return 1
 }
 
@@ -500,7 +559,9 @@ stop_tracked_launcher() {
   local pid="$1"
   local log_file="${2:-}"
   [[ -z "${pid}" ]] && return 0
-  if kill -0 "${pid}" 2>/dev/null; then
+  if [[ -n "${DIAG_DIR}" ]] && codec_wait_launcher "${pid}"; then
+    :
+  elif kill -0 "${pid}" 2>/dev/null; then
     kill "${pid}" >/dev/null 2>&1 || true
     wait "${pid}" 2>/dev/null || true
   fi
@@ -513,6 +574,10 @@ stop_tracked_launcher() {
 probe_rtsp_url() {
   local url="$1"
   local timeout_us="$2"
+  if [[ -n "${DIAG_DIR}" ]]; then
+    python3 -B "${DIAG_HELPER}" probe "${DIAG_DIR}" "${DIAG_CASE}" "${DIAG_ROUTE}" "${timeout_us}" "${url}"
+    return $?
+  fi
   local command_timeout_s
   command_timeout_s="$(python3 - "${timeout_us}" <<'PY'
 import math
@@ -575,7 +640,11 @@ verify_rtsp_case() {
   local url="rtsp://${RTSP_ADDRESS}:${RTSP_PORT}/${ROUTE}${route_suffix}?${query}"
   local output
   if ! output="$(probe_rtsp_url "${url}" "${timeout_us}" 2>&1)"; then
-    log_fail "${name}: OnMediaConfigure RTSP probe failed (${url})"
+    if [[ -n "${DIAG_DIR}" ]]; then
+      log_fail "codec case=${DIAG_CASE} route=${DIAG_ROUTE}: RTSP probe failed (product preparation stage unknown)"
+    else
+      log_fail "${name}: OnMediaConfigure RTSP probe failed (${url})"
+    fi
     echo "${output}" | sed 's/^/  /'
     return 1
   fi
@@ -712,6 +781,8 @@ PY
 
 verify_source() {
   local source_json="$1"
+  DIAG_CASE=$((DIAG_CASE+1))
+  DIAG_ROUTE=0
   local name source_kind source enabled requires_network notes
   name="$(json_field "${source_json}" "name")"
   source_kind="$(json_field "${source_json}" "source_kind")"
@@ -859,6 +930,7 @@ PY
     if [[ "${SKIP_RTSP}" != "1" && "${source_skip_rtsp}" != "true" ]]; then
       while IFS='|' read -r route_suffix expect_video expect_audio; do
         [[ -z "${route_suffix}${expect_video}${expect_audio}" ]] && continue
+        DIAG_ROUTE=$((DIAG_ROUTE+1))
         verify_rtsp_case "${name}" "${query}" "${route_suffix}" "${expect_video}" "${expect_audio}" "${source_ffprobe_timeout_us}" || true
       done < <(emit_rtsp_route_matrix "${verify_profile_json}")
     else
@@ -885,6 +957,34 @@ PY
 }
 
 main() {
+  local providers_only="${MEDIA_SERVER_VERIFY_CODEC_LAUNCHERS_ONLY:-0}"
+  if [[ "${providers_only}" != 0 && "${providers_only}" != 1 ]]; then
+    echo '[fail] invalid codec launcher mode' >&2; exit 2
+  fi
+  if [[ -n "${DIAG_DIR}" ]]; then
+    python3 -B "${DIAG_HELPER}" init "${DIAG_DIR}" || exit 2
+  fi
+  if [[ "${providers_only}" == 1 ]]; then
+    if [[ -z "${DIAG_DIR}" ]]; then echo '[fail] codec launcher diagnostics required' >&2; exit 2; fi
+    python3 -B "${DIAG_HELPER}" providers "${DIAG_DIR}" 1 "${CONFIG_FILE}" || exit 2
+    trap cleanup EXIT
+    while IFS= read -r source_json; do
+      DIAG_CASE=$((DIAG_CASE+1))
+      local provider_name provider_port provider_root
+      provider_name="$(json_field "${source_json}" name)"
+      provider_port="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["launcher"]["port"])' "${source_json}")"
+      provider_root="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["launcher"]["root"])' "${source_json}")"
+      if start_local_http_launcher "${provider_name}" "${provider_port}" "${provider_root}"; then
+        log_pass "codec provider=${DIAG_CASE} preparation ready (productPass=false)"
+        stop_tracked_launcher "${LAST_LAUNCHER_PID}" "${LAST_LAUNCHER_LOG}"
+      else
+        exit 1
+      fi
+    done < <(load_config)
+    echo "[provider-summary] pass=${PASS_COUNT} fail=${FAIL_COUNT} diagnosticFailure=${DIAG_FAILED} productPass=false"
+    ((DIAG_FAILED==0)) || exit 2
+    return
+  fi
   require_cmd python3
   require_cmd curl
   require_cmd ffprobe
@@ -925,6 +1025,7 @@ main() {
   if [[ ${FAIL_COUNT} -ne 0 ]]; then
     exit 1
   fi
+  if [[ ${DIAG_FAILED} -ne 0 ]]; then exit 2; fi
 }
 
 main "$@"

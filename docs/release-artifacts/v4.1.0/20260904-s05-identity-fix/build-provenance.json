@@ -1,0 +1,68 @@
+{
+  "source": "부모 독립 build 결과 및 고정 source 대조",
+  "recordedAt": "2026-09-04T14:23:41.247Z",
+  "stages": [
+    {
+      "stage": "environment",
+      "sha256": "48056f7cc4655db3c708dc25139becfe05cba8e4e9af907eb57ab273ef87bc48",
+      "exit": 0,
+      "expectedRed": false,
+      "elapsedMs": 302
+    },
+    {
+      "stage": "red",
+      "sha256": "72db8243415192721f573cf7f840438e8ac1d6c5b7126f642e7e8198ea44163a",
+      "exit": 1,
+      "expectedRed": true,
+      "elapsedMs": 167
+    },
+    {
+      "stage": "unit",
+      "sha256": "61b4647384b15a5c25a98c44c1dcf79001fc9398d75c04f5d5b79ea35d18fd41",
+      "exit": 0,
+      "expectedRed": false,
+      "elapsedMs": 249
+    },
+    {
+      "stage": "s05",
+      "sha256": "a0643207c763054ce730b88784532a781f60045798cc666d216d5117b06aa445",
+      "exit": 0,
+      "expectedRed": false,
+      "elapsedMs": 28630
+    },
+    {
+      "stage": "contracts",
+      "sha256": "98c4240171c3aac9309bcf6f4c501d45b524b447dbed89266dd0e25876c479e7",
+      "exit": 0,
+      "expectedRed": false,
+      "elapsedMs": 1316
+    },
+    {
+      "stage": "configure",
+      "sha256": "279606eea6e582f9f2fde7d2047f2fbe5414155acf07ec8a93b6d489067e4440",
+      "exit": 0,
+      "expectedRed": false,
+      "elapsedMs": 249
+    },
+    {
+      "stage": "build",
+      "sha256": "7bced9b625de5694eeda661484aff2673373aeb822201d85f7ba35401d2bb09e",
+      "exit": 0,
+      "expectedRed": false,
+      "elapsedMs": 39852
+    }
+  ],
+  "frozenFiles": 1035,
+  "frozenSourcesUnchanged": true,
+  "binary": {
+    "path": "build-gst-onnx/media_server",
+    "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+    "mtimeMs": 1788531780868.6682,
+    "bytes": 19190800
+  },
+  "flags": {
+    "media_server": "CXX_DEFINES = -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1",
+    "media_server_runtime": "CXX_DEFINES = -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1"
+  },
+  "actualRunnerSha256": "dfa43d418f298fd81038267593efd2583542b37f748cd29218372196d68b5100"
+}

@@ -6,10 +6,11 @@
 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
-현재 소스 버전은 `4.0.0`입니다. 최신 공개 GitHub Release는 `v4.0.0` source-only
-release이며, 최신 published baseline은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
-이 문서는 현재 source tree의 UI 구조와 v4.0.0 Local Operations Policy and Stabilization
-roadmap, v3.9.1 previous published baseline 경계를 설명합니다.
+현재 소스 버전과 release target은 `4.1.0`입니다. 직전 공개 baseline은 `v4.0.0 Local Operations Policy and Stabilization`이며,
+이전 공개 baseline은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
+Live GitHub Latest는 repository의 `releases/latest`에서
+확인합니다. 이 문서는 현재 source tree의 UI 구조와 v4.1.0 Recording Foundation roadmap을
+설명하며 외부 release 완료를 주장하지 않습니다.
 UI 풀테스트 직접 조작 evidence는 별도 실행한 경우에만 PASS로 기록합니다.
 
 ## 목차
@@ -226,6 +227,9 @@ README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니�
 
 ![클라이언트 라이브](assets/ui/client-live.png)
 
+위 대표 이미지는 긴 페이지 전체가 아니라 완결된 설정 목록·사용자 목록·영상 작업
+영역을 보여 줍니다. Live의 전체 영상과 도구 모음은 포함하고 별도 탐색 도크는 제외합니다.
+
 운영/개발 진단 화면은 아래 상세 섹션에서 따로 다룹니다.
 
 ## 2. Login / Session
@@ -241,13 +245,10 @@ role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
 
 ![로그인 화면](assets/ui/auth-login.png)
 
-로컬 QA, 수동 smoke, 자동 auth smoke의 계정 비밀번호는 테스트 실행자가
-명시적으로 지정합니다. auth verifier는 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
-`MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
-`MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
-`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
-`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 시작 전에 실패해야 합니다.
-문서, 스크립트, fixture에 고정 기본 비밀번호를 두지 않습니다.
+운영·수동 QA의 기존 계정 비밀번호는 사용자가 관리합니다. 격리 자동 auth smoke는
+AGENTS.md 7.6에 따라 실행마다 임시값을 생성하므로 사용자 지정이 필요하지 않습니다.
+검증 내부의 다섯 값과 전달 경계는 [검증 안내](stream-verification.md)의 Fixture cleanup 경계를 따릅니다.
+고정 기본값·이전 실행값 재사용·원문 로그/명령행/Git 보존은 금지하며, 운영 계정 비밀번호를 변경하지 않습니다.
 
 Password policy 기본값은 `kr-privacy`입니다.
 `/setup`과 `/password/change`는 동일한 정책을 적용합니다.
@@ -1028,6 +1029,30 @@ EventRecord/snapshot/clip hook:
 - clip bundle은 운영 evidence용 frame 묶음이며 장기 녹화/MP4 플레이어 기능은 아닙니다.
 - 상태 확인은 `/lab/analysis/event-storage/status` API와 관련 metrics를 사용합니다.
 
+### 녹화 조회와 재생 (v4.1.0 S06)
+
+`/ops/events`의 녹화 영역에서 허용 채널과 시작·종료 시간을 선택하고 조회합니다.
+시간 입력은 브라우저 현지 시간이며 API에는 UTC epoch 밀리초로 전달됩니다.
+유효 UTC0은1970년 날짜로 표시하지만, 시간이 없다는 뜻의 null은 날짜로 바꾸지 않습니다.
+시간 귀속 미확인 자료는 별도 목록에 표시되며 조회한 시간 범위 안의 자료라는 뜻이 아닙니다.
+
+S10 공개 소비에서는 같은 원본의 확인된 중첩에만 이벤트 우선을 적용합니다. 완전히 겹친 원본은
+원본 보기로 펼치며 부분 중첩 원본은 기본 목록에도 남습니다. 이벤트가 다른 페이지에 있어도 같은 원칙입니다.
+같은 영상 파일의 다른 구간은 별도 항목으로 선택합니다. 이전/다음은 시간 확인·미확인 목록에 각각 적용됩니다.
+이전/다음으로 페이지를 이동하고 항목 선택 후 영상의 기본 재생·일시정지·탐색 컨트롤을 사용합니다.
+부분 구간, 실제 범위 미확인, 재생 불가, 빈 결과와 조회 오류는 별도 상태로 표시됩니다.
+작업 완료·요청 구간 충족·파일 등록 상태·실제 파일 제공 가능성을 분리해 표시합니다.
+추정 시각에는 불확실성 안내가 있으며 원본 미디어 시각 요청을 실제 날짜처럼 바꾸지 않습니다.
+영상은 파일 시작부터 재생합니다. 표시 구간과 원본 미디어 중첩 ns는 파일 내 재생 위치를 보장하지 않으며,
+UTC 차이 자동 탐색이나 다음 파일 자동 재생은 하지 않습니다.
+브라우저가 해당 codec/container를 지원해야 실제 재생할 수 있습니다.
+형식 지원 감지나 메타데이터 로드는 디코딩 성공 판정이 아닙니다.
+채널 상태에는 상시·이벤트 사용량/용량과 녹화·저장 차단 상태가 표시됩니다.
+
+이 화면은 Ops 권한과 채널 scope를 적용하는 직접 route이며 새 primary nav는 추가하지 않습니다.
+자연어·벡터 검색은 S06 기능이 아닙니다. 기존 frame bundle hook과 녹화 영상 재생은 구분합니다.
+API 입력·권한·Range 규칙은 [설정 가이드](config-reference.md#녹화-조회재생-api-v410-s06)를 참고합니다.
+
 ## 12. 미리보기와 메타데이터 확인
 
 운영 화면에서는 `/ops/rules`의 채널 미리보기와 `/client/live`로 설정을 확인합니다.
@@ -1536,9 +1561,9 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-08-31에 source `4.0.0` / published `v3.9.1` 기준으로 v3.8.0 구도를 참고해 다시 캡처한 제품 shell 설명 이미지. GitHub Release publish evidence나 UI 풀테스트 PASS 증거가 아님. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-09-28 v4.1.0에서 한글/영문 Rules·Users·Client Live·Client Dashboard 8개를 완결 영역별 재촬영. 나머지 UI10개와 VA2개는 직접 검수 후 유지. Live는 전체 영상·VA·도구 모음, Dashboard는 요약 카드. 공개 완료나 UI 풀테스트 PASS 증거가 아님 |
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
-| historical v2.9.0 S07 | 당시 대표 이미지 교체 없이 v2.9 source/published baseline 문구만 정리한 기록. 현재 대표 이미지는 2026-08-31 recapture |
+| historical v2.9.0 S07 | 당시 대표 이미지 교체 없이 v2.9 source/published baseline 문구만 정리한 기록. 2026-08-31 전체 재촬영 후 현재는 2026-09-28 부분 교체·전수 검수 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082`. Codex 세션에서는 인앱 브라우저 확인을 우선한다. 2026-08-31 대표 이미지는 사용자 명시 승인 아래 Chrome/CDP로 캡처했다 |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
 | visual regression 산출물 | Codex 인앱 브라우저 screenshot/evidence 또는 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |

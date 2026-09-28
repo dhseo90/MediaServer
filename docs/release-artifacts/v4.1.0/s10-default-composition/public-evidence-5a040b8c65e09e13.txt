@@ -1,0 +1,7 @@
+include/recording/recording_contracts.h: OK
+src/recording/recording_contracts.cpp: OK
+src/recording/recording_catalog.cpp: OK
+src/recording/recording_journal.cpp: OK
+src/recording/recording_read_service.cpp: OK
+scripts/internal/recording_numeric_reference_smoke.cpp: OK
+scripts/internal/verify_recording_numeric_reference.sh: OK

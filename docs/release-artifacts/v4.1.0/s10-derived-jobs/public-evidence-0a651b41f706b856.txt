@@ -1,0 +1,7 @@
+기준 HEAD=d6554de7592044745ae6e4b773c569ba6eafe8f4
+OS=Darwin 25.6.0 arm64
+sqlite3=3.51.0
+openssl=3.6.2
+gstreamer-1.0=1.28.1
+생성 시각=2026-09-13T00:44:51.736Z
+서버/port/외부입력/비밀=사용 없음

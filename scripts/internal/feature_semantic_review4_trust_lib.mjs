@@ -717,7 +717,7 @@ function validateTypedEdge(edge, roles, evidenceToken, trustBindings, dispatchIn
     const token = String(evidenceToken || '');
     const readbackEvidence = kind === 'structural-producer-assertion'
       ? String(to.anchor || '')
-      : `${to.anchor || ''}\n${localAssertionBranchText(rootDir, to, trustBindings?.roles?.[edge.to])}`;
+      : `${to.anchor || ''}\n${review4AssertionBranchText(rootDir, to)}`;
     if (!token || !String(from.anchor || '').includes(token) || !readbackEvidence.includes(token)) errors.push('readback-token-unbound');
     if (kind === 'structural-producer-assertion' && review4WholeFileSourceAssertion(rootDir, to, trustBindings?.roles?.[edge.to])) {
       errors.push('whole-file-source-assertion');
@@ -741,12 +741,13 @@ function validateTypedEdge(edge, roles, evidenceToken, trustBindings, dispatchIn
   return errors;
 }
 
-function localAssertionBranchText(rootDir, role, trust, radius = 12) {
+export function review4AssertionBranchText(rootDir, role) {
   if (!rootDir || !role?.file || !Number.isInteger(role.line)) return '';
   try {
     const lines = fs.readFileSync(path.join(rootDir, role.file), 'utf8').split(/\r?\n/);
     const assertionIndex = role.line - 1;
     const anchor = String(role.anchor || '');
+    if (/^if\s+.+;\s*then\s*$/.test(anchor.trim())) return boundedShellIfBranch(lines, assertionIndex, anchor);
     const start = Math.max(0, assertionIndex - 120);
     for (let index = assertionIndex; index >= start; index -= 1) {
       const match = lines[index].match(/\bfor\s*\(\s*const\s+([A-Za-z_$][A-Za-z0-9_$]*)\s+of\s*\[/);
@@ -764,6 +765,37 @@ function localAssertionBranchText(rootDir, role, trust, radius = 12) {
   } catch {
     return '';
   }
+}
+
+// 실제 한 줄 shell if/then 문법만 지원한다. 문자열·heredoc·다중행 문법을
+// 추측하여 fi로 간주하지 않으며, 닫힌 outer fi와 상한을 확인한 뒤 then arm만 반환한다.
+function boundedShellIfBranch(lines, start, anchor) {
+  if (lines[start]?.trim() !== anchor.trim() || !/^if\s+.+;\s*then\s*$/.test(anchor.trim())) return '';
+  let depth = 0, bytes = 0, armEnd = null;
+  for (let index = start; index < Math.min(lines.length, start + 128); index += 1) {
+    const line = lines[index].trim();
+    bytes += Buffer.byteLength(lines[index], 'utf8') + 1;
+    if (bytes > 32768) return '';
+    if (!line || line.startsWith('#')) continue;
+    let quote = '', escaped = false;
+    for (const char of line) {
+      if (escaped) { escaped = false; continue; }
+      if (char === '\\' && quote !== "'") { escaped = true; continue; }
+      if (quote) { if (char === quote) quote = ''; }
+      else if (char === "'" || char === '"') quote = char;
+    }
+    if (quote || escaped || /<<|^\s*(?:case|for|while|until|select|function)\b/.test(line)) return '';
+    if (/^if\b/.test(line)) {
+      if (!/^if\s+.+;\s*then\s*$/.test(line) || ++depth > 16) return '';
+    } else if (/^(?:else|elif)\b/.test(line)) {
+      if (!/^(?:else|elif\s+.+;\s*then)\s*$/.test(line) || depth < 1) return '';
+      if (depth === 1 && armEnd === null) armEnd = index;
+    } else if (/^fi\b/.test(line)) {
+      if (!/^fi\s*;?\s*(?:#.*)?$/.test(line) || --depth < 0) return '';
+      if (depth === 0) return lines.slice(start, armEnd ?? index + 1).join('\n');
+    }
+  }
+  return '';
 }
 
 function sharedIdentifiers(from, to, evidenceToken) {
@@ -973,7 +1005,8 @@ function shellFunctionSections(text) {
 function readbackAssertion({ rootDir, role, trust, item, witness }) {
   const anchor = String(role?.anchor || '');
   if (assertionLine(anchor)) return true;
-  const body = bindingBodyText(rootDir, role, trust);
+  const shellIf = /^if\s+.+;\s*then\s*$/.test(anchor.trim());
+  const body = shellIf ? review4AssertionBranchText(rootDir, role) : bindingBodyText(rootDir, role, trust);
   const anchorOffset = body.indexOf(anchor);
   if (!body || anchorOffset < 0) return false;
   const shellCase = /^case\s+.+\s+in\s*$/.test(anchor.trim());
@@ -981,7 +1014,7 @@ function readbackAssertion({ rootDir, role, trust, item, witness }) {
   const conditional = conditionalStart >= 0 && anchorOffset - conditionalStart <= 800
     ? body.slice(conditionalStart, anchorOffset + anchor.length)
     : anchor;
-  if (!shellCase && !/(?:\bif\s*\(|\?|&&|\|\||===|!==|<=|>=|<|>)/.test(conditional)) return false;
+  if (!shellIf && !shellCase && !/(?:\bif\s*\(|\?|&&|\|\||===|!==|<=|>=|<|>)/.test(conditional)) return false;
   const afterCondition = body.slice(anchorOffset);
   const failure = /(?:\bthrow\s+new\s+Error|\bthrow\b|process\.exit\s*\(\s*[1-9]|\breturn\s+(?:false|[1-9]\d*)\b|\bfail(?:ure)?Count\s*\+\+|\bfail\s*\+=\s*1|results\.fail\s*\+=\s*1|\bfail\s+["']|\bassert\.fail\s*\()/i.test(afterCondition);
   if (!failure) return false;
@@ -1315,7 +1348,6 @@ export function review4SelfDeclaredRuntimeReadback(rootDir, role, trust) {
 }
 
 function semanticSourceCorpus(rootDir) {
-  if (semanticSourceCorpusCache.has(rootDir)) return semanticSourceCorpusCache.get(rootDir);
   const files = [];
   for (const directory of ['src', 'include', 'config', 'scripts/internal']) {
     const absolute = path.join(rootDir, directory);
@@ -1323,10 +1355,19 @@ function semanticSourceCorpus(rootDir) {
     collectSourceFiles(absolute, files);
   }
   if (fs.existsSync(path.join(rootDir, 'server.sh'))) files.push(path.join(rootDir, 'server.sh'));
+  // 프로세스 재사용 중 수정/추가/삭제된 source를 이전 corpus로 판정하지 않는다.
+  // mtime만 복원한 같은 크기 수정도 ctime(ns)로 구분한다.
+  files.sort();
+  const fingerprint = files.map(file => {
+    const stat = fs.statSync(file, { bigint: true });
+    return `${file}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
+  }).join('\n');
+  const cached = semanticSourceCorpusCache.get(rootDir);
+  if (cached?.fingerprint === fingerprint) return cached.corpus;
   const corpus = files.map(file => {
     try { return fs.readFileSync(file, 'utf8'); } catch { return ''; }
   }).join('\n');
-  semanticSourceCorpusCache.set(rootDir, corpus);
+  semanticSourceCorpusCache.set(rootDir, { fingerprint, corpus });
   return corpus;
 }
 
@@ -1342,6 +1383,19 @@ function semanticToken(token) {
   const value = String(token || '').trim();
   if (value.length < 2 || value.length > 180) return false;
   return !/^(?:필요|비대상|안정화|확인|표시|적용|설정|검증|성공|실패|화면|목록|상세|조회|유지|일치|반영|관리|source|status|result|response|current|actual|pass|fail|true|false|ops|runtime|event|events|view|viewer|client|media|rule|profile|schema|payload|field|type|baseline|HTTP|HTTPS|JSON|UI|API|URI|CRUD|SHA|VA|GET|POST|PUT|PATCH|DELETE|S\d+|V\d+)$/i.test(value);
+}
+
+// 후보 해석용 비교일 뿐 승인 hash를 갱신하지 않는다. 최종 hard trust 검사는 별도 유지한다.
+export function review4LocatorMatchesApprovedBody(rootDir, locator, approved) {
+  if (!approved || !/^[a-f0-9]{64}$/.test(String(approved.enclosingBodySha256 || ''))) return false;
+  try {
+    const current = roleTrustBinding(rootDir, locator);
+    return current.file === approved.file && current.symbol === approved.symbol &&
+      current.enclosingBodyScope === approved.enclosingBodyScope &&
+      current.enclosingBodySha256 === approved.enclosingBodySha256;
+  } catch {
+    return false;
+  }
 }
 
 function roleTrustBinding(rootDir, locator) {

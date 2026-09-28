@@ -122,6 +122,24 @@ background 실행은 기본적으로 `nohup`을 사용합니다. macOS 사용자
 MEDIA_SERVER_START_MODE=launchd ./server.sh start
 ```
 
+다른 실행과 상태·종료 범위를 분리해야 하면 같은 셸에서 전용 상태 디렉터리와 고유
+launchd label을 start/restart/stop/status/diagnose에 동일하게 전달합니다. 상태 디렉터리는
+미리 만들고 현재 사용자가 소유해야 하며, 상대경로·상태 디렉터리 symlink·내부 상태
+파일 symlink는 거부됩니다.
+
+```bash
+mkdir -p /tmp/media-server-my-run/state
+MEDIA_SERVER_STATE_DIR=/tmp/media-server-my-run/state \
+MEDIA_SERVER_LAUNCHD_LABEL=com.dhseo.mediaserver.my-run \
+MEDIA_SERVER_START_MODE=launchd ./server.sh start
+```
+
+전용 상태 디렉터리를 지정한 stop은 그 label과 명시·기록 포트의 `media_server` listener만
+대상으로 삼습니다. 저장소 기본 포트나 기본 label을 fallback으로 탐색하지 않으며, PID
+파일이 다른 프로세스를 가리키면 signal하지 않습니다. start 시 같은 exact label이 이미
+등록돼 있으면 기존 job을 내리지 않고 실패하므로 실행마다 고유 label을 사용해야 합니다.
+기본값을 사용한 기존 실행의 종료 동작은 호환성을 위해 유지됩니다.
+
 대표 접속 URL은 실제 `./server.sh status` 또는 `./server.sh urls` 결과를 우선합니다.
 
 ```text

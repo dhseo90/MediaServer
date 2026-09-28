@@ -123,11 +123,22 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
     return "ndjson"
 
 
+# test-summary의 정수 계수를 읽으며 결측/잘못된 값을 성공 계수로 보정하지 않는다.
+def test_summary_counts(payload: dict[str, Any]) -> tuple[int, int, int] | None:
+    values = tuple(payload.get(key) for key in ("passCount", "failCount", "skipCount"))
+    if all(type(value) is int and value >= 0 for value in values):
+        return values
+    return None
+
+
 # fail count와 명시 status를 합쳐 사람이 훑기 쉬운 상태 문자열로 만든다.
 def extract_status(payloads: list[dict[str, Any]]) -> str:
     if not payloads:
         return "empty"
     first = payloads[0]
+    if first.get("schema") == "media-server.test-summary.v1":
+        counts = test_summary_counts(first)
+        return "fail" if counts is None or counts[1] > 0 else "pass"
     status = first.get("status")
     if isinstance(status, str) and status:
         return status
@@ -142,6 +153,9 @@ def extract_counts(payloads: list[dict[str, Any]]) -> tuple[int | str, int | str
     if not payloads:
         return "-", "-", "-"
     first = payloads[0]
+    if first.get("schema") == "media-server.test-summary.v1":
+        counts = test_summary_counts(first)
+        return counts if counts is not None else ("-", "-", "-")
     if all(key in first for key in ("pass", "fail", "skip")):
         return first.get("pass", "-"), first.get("fail", "-"), first.get("skip", "-")
     if all(key in first for key in ("pass", "fail")):

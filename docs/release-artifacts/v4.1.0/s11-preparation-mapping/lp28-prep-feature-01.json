@@ -1,0 +1,86 @@
+{
+  "schema": "media-server.feature-implementation-evidence-validation.v1",
+  "executionEvidenceStatus": "not-execution-evidence",
+  "result": {
+    "ok": false,
+    "errors": [
+      "MEDIA-003 verifierEvidence file is not tracked: scripts/internal/verify_whep_local_signaling.mjs"
+    ],
+    "summary": {
+      "inventoryRows": 986,
+      "manifestRows": 986,
+      "sourceEvidenceRows": 986,
+      "uiEvidenceRows": 441,
+      "verifierEvidenceRows": 986,
+      "manualUiCaseRows": 424,
+      "semanticReviewedRows": 986,
+      "uniqueSemanticDigests": 986,
+      "uniqueReviewReasons": 986,
+      "reviewedCallChains": 986,
+      "errors": 1
+    }
+  },
+  "review4GlobalErrors": [],
+  "negativeChecks": [
+    {
+      "name": "missing-id",
+      "pass": true
+    },
+    {
+      "name": "duplicate-id",
+      "pass": true
+    },
+    {
+      "name": "wrong-section-prefix",
+      "pass": true
+    },
+    {
+      "name": "missing-source-file",
+      "pass": true
+    },
+    {
+      "name": "missing-source-anchor",
+      "pass": true
+    },
+    {
+      "name": "missing-ui-control-anchor",
+      "pass": true
+    },
+    {
+      "name": "missing-ui-screen-route",
+      "pass": true
+    },
+    {
+      "name": "unknown-verifier-command",
+      "pass": true
+    },
+    {
+      "name": "missing-verifier-assertion",
+      "pass": true
+    },
+    {
+      "name": "legacy-longrun-command",
+      "pass": true
+    },
+    {
+      "name": "inventory-hash-drift",
+      "pass": true
+    },
+    {
+      "name": "missing-reviewed-call-chain",
+      "pass": true
+    },
+    {
+      "name": "bulk-review-reason",
+      "pass": true
+    },
+    {
+      "name": "safe-140-unrelated-owner",
+      "pass": true
+    },
+    {
+      "name": "rule-017-generic-json-owner",
+      "pass": true
+    }
+  ]
+}

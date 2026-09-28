@@ -1,0 +1,15 @@
+명령: node --test scripts/internal/recording_recovery_content.test.mjs
+exit: 0
+✔ LP24-RH01 RED와 GREEN 판정 자체검사 (1.67575ms)
+✔ LP24-RH02 준비 전용 실행계획 (0.290167ms)
+✔ LP24-RH03 안전진단 필드·비밀 거부 (0.746959ms)
+✔ LP24-RH04 native 준비 경로·증거 결박 (0.248083ms)
+✔ LP24-RH05 실패/진단 누락 판정 (0.194083ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34.450042

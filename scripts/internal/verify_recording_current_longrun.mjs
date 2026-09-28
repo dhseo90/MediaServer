@@ -1,0 +1,206 @@
+// 파일 용도: 현행 2채널 녹화·보존·재기동 관측. 짧은 준비 실행은 장시간/자원/UI PASS가 아니다.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import os from 'node:os';
+import dgram from 'node:dgram';
+import {spawn,spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration} from './recording_current_observer.mjs';
+import {collectProcess} from './recording_foundation_observer.mjs';
+import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay} from './recording_longrun_progress.mjs';
+import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
+import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
+import {createProcessCleanup} from './recording_process_cleanup.mjs';
+import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
+import {summarizeSpawnDiagnostic,validatedPhaseReceipt,snapshotTree,copyVerified,receiptTree,diagnosticRootIdentity,sourceManifest,preserveDiagnosticReceipt} from './recording_archive_diagnostic_profile.mjs';
+import {removeDiagnosticRoot} from './recording_failure_capture.mjs';
+const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe',
+  diagnoseFast=args.length===1&&args[0]==='--diagnose-status-1020',diagnoseOriginal=args.length===1&&args[0]==='--diagnose-status-1020-original',diagnose=diagnoseFast||diagnoseOriginal;
+const duration=short?30000:diagnoseFast?780000:diagnoseOriginal?1440000:parseLongrunArgs(args),repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');
+const start=performance.now(),deadline=start+(short?180000:diagnoseFast?900000:diagnoseOriginal?1500000:7380000),processes=[],samples=[],ports=[];
+const native=path.join(root,'normalize'),collector=path.join(root,'process-metrics');
+let cancelled=false,failed=0,passed=0,observer,progress,phaseResult,summary,udp,udpClosed=false,observationStart=null;
+process.on('SIGTERM',()=>{cancelled=true;});process.on('SIGINT',()=>{cancelled=true;});
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+function check(ok,label){if(!ok)throw Error(label);passed++;console.log('[pass] '+label);}
+function size(dir){let bytes=0,entries=0;function visit(p){const s=fs.lstatSync(p);if(++entries>100000)throw Error('root-entry-bound');
+  if(s.isSymbolicLink()){if(!p.startsWith(path.join(root,'gst-cache')+path.sep))throw Error('root-unsafe-symlink');bytes+=s.size;return;}
+  if(s.isDirectory())for(const n of fs.readdirSync(p))visit(path.join(p,n));else{if(!s.isFile()||s.nlink!==1)throw Error('root-unsafe-file');bytes+=s.size;}}visit(dir);return bytes;}
+// live SQLite에 별도 reader lock을 만들지 않는다. page PRAGMA는 writer 종료 뒤 post-stop에서만 실행한다.
+function rootDiagnostic(reason,measurement=measureCurrentRootStable(root),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
+  const journalMutationTypesCoverage=observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable';
+  console.log('[root-storage] '+JSON.stringify({reason,final,elapsedMs:Math.round(performance.now()-start),journalMutationTypes,journalMutationTypesCoverage,...measurement}));return measurement;}
+function cadence(){if(observationStart!==null){const now=performance.now(),previous=samples.at(-1)?.phaseAt??observationStart;
+  if(now-previous>15000){console.log('[sample-gap] '+JSON.stringify({previousAt:previous,observedAt:now,gapMs:now-previous,limitMs:15000}));throw Error('sample-gap');}}}
+function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=measureCurrentRootStable(root);if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
+async function until(fn,ms=15000){const end=performance.now()+ms;while(performance.now()<end){budget();const v=await fn();if(v)return v;await pause(100);}throw Error('observation-wait-timeout');}
+function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')};
+  const values={SKIP_LOCAL_ENV:1,SKIP_BUILD:1,BIN_PATH:path.join(repo,'build-gst-onnx/media_server'),AUTH_MODE:'off',ENABLE_AI:0,ENABLE_LAB:0,ENABLE_OPS:1,ENABLE_CLIENT:0,ENABLE_YOUTUBE_SOURCE:0,
+    LISTEN_ADDRESS:'127.0.0.1',HTTP_LISTEN_ADDRESS:'127.0.0.1',LISTEN_PORT:rtsp,HTTP_LISTEN_PORT:http,FORCE_RTSP_TCP:1,
+    FILE_ROOT:path.join(root,'input'),DEFAULT_FILE:path.join(root,'input/retention-9101.mp4'),STATE_DIR:path.join(root,'state'),AUTH_USERS_FILE:path.join(root,'state/users.json'),
+    SOURCE_REGISTRY:path.join(root,'state/sources.json'),PUBLISHED_VIEWS:path.join(root,'state/views.json'),ANALYSIS_REGISTRY:path.join(root,'state/analysis.json'),
+    ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
+    ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
+    RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:diagnoseFast?1:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
+    VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
+    GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
+  for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
+}
+async function request(app,method,route,body){const begin=performance.now();budget();console.log('[request-budget] '+JSON.stringify({elapsedMs:Math.round(performance.now()-begin)}));
+  const response=await measuredHttpResponse({route,method,maxBytes:4*1024*1024,report:value=>console.log('[http-timing] '+JSON.stringify(value)),
+    request:()=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(4000),headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined})});
+  if(response.status!==200&&response.status!==201)throw Error('http-status-'+response.status);
+  return JSON.parse(response.bytes.toString());}
+async function launch(stun){const http=await reservePort(),rtsp=await reservePort();ports.push(http,rtsp);
+  const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:environment(http,rtsp,stun),stdio:['ignore','pipe','pipe']});
+  const log=path.join(root,`server-${processes.length+1}.private.log`),logFd=fs.openSync(log,'wx',0o600);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd};processes.push(app);
+  app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
+  child.on('error',()=>{app.error=true;});child.on('close',()=>{app.closed=true;});
+  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{app.bytes+=chunk.length;if(app.bytes>4*1024*1024){app.overflow=true;child.kill('SIGTERM');return;}
+    try{fs.writeSync(app.logFd,chunk);}catch{app.overflow=true;child.kill('SIGTERM');}});
+  await until(async()=>{if(app.closed||app.error)throw Error('server-start-failed');try{return !!await request(app,'GET','/health');}catch{return false;}});
+  assertLocalIceConfig(await request(app,'GET','/webrtc/config'),stun);check(true,'LP26-O05 isolated server healthy');return app;
+}
+async function stop(app){if(!app.stopPromise)app.stopPromise=app.cleanup().then(r=>{app.result=r;console.log('[process-cleanup] '+JSON.stringify(r));if(!r.normalShutdownPass)throw Error('server-stop-failed');return r;});return app.stopPromise;}
+function source(id){return {sourceId:id,displayName:`S11 recording ${id}`,kind:'file',file:`retention-${id}.mp4`,enabled:true,
+  recording:{enabled:true,revision:1,continuousMaxBytes:134217728,eventMaxBytes:134217728,continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000}};}
+async function settings(app,enabled){const registry=await request(app,'GET','/ops/api/sources');for(const id of ['9101','9201']){const body=source(id);body.recording=nextRecordingSettings(registry,id,enabled);
+  const r=await request(app,'PUT','/ops/api/sources/'+id,body);check(r.source?.recording?.enabled===enabled&&r.source.recording.revision===body.recording.revision,'LP26-O05 setting '+id+' '+enabled);}}
+async function drain(now){let result;for(let i=0;i<128;i++){result=await observer.pollAsync();for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
+async function sample(app){const begin=performance.now();let metricsMs=null,drainMs=null,storageMs=null;
+  try{const m=await collectProcess(collector,app.child.pid);metricsMs=performance.now()-begin;if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');const phaseAt=performance.now();
+  if(samples.length>=10000)throw Error('sample-cap');const previous=samples.at(-1),point={...m,phaseAt,mutationCount:observer.prefix.length};samples.push(point);
+  assertSampleStep(previous,point,observationStart,app.child.pid);
+  const drainStart=performance.now();let r;try{r=await drain(phaseAt);point.mutationCount=r.mutationCount;}finally{drainMs=performance.now()-drainStart;}
+  const storageStart=performance.now();try{rootDiagnostic('sample');}finally{storageMs=performance.now()-storageStart;}
+  console.log('[current-observation] '+JSON.stringify({pid:m.pid,startIdentity:m.startIdentity,sampledAt:m.sampledAt,phaseAt,rssBytes:m.rssBytes,threadCount:m.threadCount,fdCount:m.fdCount,
+    mutationCount:r.mutationCount,typeCounts:r.typeCounts,identityBytes:r.identityBytes,combinedLogicalIds:observer.budget.ids,combinedLogicalBytes:observer.budget.bytes,
+    rotations:r.rotations,partialBytes:r.partialBytes,progress:progress.status(phaseAt),resourceTrendPass:false}));cadence();return r;
+  }finally{console.log('[sample-timing] '+JSON.stringify({sampleIndex:samples.length,metricsMs,drainMs,storageMs,totalMs:performance.now()-begin}));}
+}
+function fileHash(file){const h=crypto.createHash('sha256'),fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const chunk=Buffer.alloc(65536);let n;while((n=fs.readSync(fd,chunk,0,chunk.length,null)))h.update(chunk.subarray(0,n));return h.digest('hex');}finally{fs.closeSync(fd);}}
+function snapshotEnvironment(){const env={PATH:process.env.PATH,MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'},allowed=['GST_REGISTRY','GST_REGISTRY_1_0','GST_PLUGIN_PATH','GST_PLUGIN_PATH_1_0','GST_PLUGIN_SYSTEM_PATH','GST_PLUGIN_SYSTEM_PATH_1_0','GST_PLUGIN_SCANNER','GST_PLUGIN_SCANNER_1_0','DYLD_LIBRARY_PATH','DYLD_FALLBACK_LIBRARY_PATH','MEDIA_SERVER_GST_CACHE_DIR','MEDIA_SERVER_GST_PLUGIN_PROFILE'];for(const key of allowed)if(typeof process.env[key]==='string')env[key]=process.env[key];return env;}
+function verifyStatusUsage(status){
+  const mediaRoot=path.join(root,'recordings'),expected=new Map(['9101','9201'].map(id=>[id,{alive:0n,history:0n,deleted:0}]));
+  for(const record of progress.records.values()){
+    const usage=expected.get(record.channel);if(!usage)continue;
+    const bytes=BigInt(record.sizeBytes);usage.history+=bytes;
+    const file=path.resolve(mediaRoot,record.mediaRelpath);
+    if(!file.startsWith(mediaRoot+path.sep))throw Error('status-media-containment');
+    if(record.state==='deleted'){
+      usage.deleted++;if(fs.existsSync(file))throw Error('status-deleted-media-present');continue;
+    }
+    if(record.state!=='finalized')throw Error('status-unsettled-segment');
+    const stat=fs.lstatSync(file,{bigint:true});
+    if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1n||stat.size!==bytes)throw Error('status-physical-size-mismatch');
+    usage.alive+=bytes;
+  }
+  for(const [id,usage] of expected){
+    const rows=status.channels?.filter(channel=>channel.channelId===id),row=rows?.[0];
+    console.log('[status-usage] '+JSON.stringify({channelId:id,aliveBytes:String(usage.alive),historicalBytes:String(usage.history),deleted:usage.deleted,
+      apiContinuousBytes:row?.continuousBytes??null,apiEventBytes:row?.eventBytes??null,physicalFilesChecked:true}));
+    check(rows?.length===1&&Number.isSafeInteger(row.continuousBytes)&&row.continuousBytes===Number(usage.alive)&&
+      row.eventBytes===0&&usage.deleted>0&&usage.history>usage.alive,'LP26-O11 independent status usage '+id);
+  }
+}
+function snapshot(){
+  if(processes.some(p=>!p.result?.archiveSafe))throw Error('snapshot-live-owner');
+  const original=path.join(root,'recordings'),sourceTree=snapshotTree(original);
+  if(sourceTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
+  const copyParent=fs.realpathSync(os.tmpdir()),copyRoot=fs.realpathSync(fs.mkdtempSync(path.join(copyParent,'media-server-current-observer-copy-')));fs.chmodSync(copyRoot,0o700);
+  const copyIdentity=diagnosticRootIdentity(copyRoot,copyParent,'current-observer-snapshot'),copy=path.join(copyRoot,'recordings');
+  let copied=false,primary=null,result,copyTree=null,receiptPreserved=false,originalUnchanged=false,manifestUnchanged=false,groupClosed=false,childSuccess=false;
+  try{
+    copyTree=copyVerified(original,copy,sourceTree);copied=true;if(copyTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
+    const manifestEntries=[
+      {name:'catalog-source',file:path.join(repo,'src/recording/recording_catalog.cpp')},{name:'catalog-instrumented',file:path.join(root,'catalog-instrumented.cpp')},
+      {name:'runtime-archive',file:path.join(repo,'build-gst-onnx/libmedia_server_runtime.a')},{name:'native-source',file:path.join(repo,'scripts/internal/recording_current_observer_native.cpp')},
+      {name:'trace-header',file:path.join(repo,'scripts/internal/recording_archive_phase_trace.h')},{name:'generation-observation',file:path.join(repo,'scripts/internal/recording_generation_observation.h')},{name:'native-binary',file:native}],manifest=sourceManifest(manifestEntries);
+    const childStart=performance.now(),r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,detached:true,env:snapshotEnvironment()});
+    const child=summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart}),trace=validatedPhaseReceipt(r.stderr);console.log('[snapshot-process] '+JSON.stringify(child));
+    try{process.kill(-r.pid,0);}catch(error){groupClosed=error?.code==='ESRCH';}childSuccess=groupClosed&&!r.error&&!r.signal&&r.status===0;
+    try{const after=snapshotTree(original);originalUnchanged=after.sha256===sourceTree.sha256&&after.bytes===sourceTree.bytes&&after.count===sourceTree.count;}catch{}
+    try{manifestUnchanged=JSON.stringify(sourceManifest(manifestEntries))===JSON.stringify(manifest);}catch{}
+    const receiptPath=path.join(process.env.MEDIA_SERVER_RECORDING_RECEIPT_DIR??'',`o28-current-snapshot-${crypto.randomUUID()}.json`);
+    const receipt=preserveDiagnosticReceipt({evidencePath:receiptPath,receipt:{schema:'media-server.recording-diagnostic-receipt.v1',profile:'current-observer-snapshot',child,trace,
+      command:{name:'recording-current-observer-native',args:['--snapshot','owned-copy'],timeoutMs:15000,maxBuffer:16384},sourceTree:receiptTree(sourceTree),
+      copyTree:receiptTree(copyTree),originalUnchanged,manifestUnchanged,groupClosed,limits:{treeBytes:448*1024*1024,treeEntries:4096},manifest,rawPathsPublished:false}});
+    receiptPreserved=receipt.preserved;console.log('[snapshot-receipt] '+JSON.stringify({...receipt,rawPathsPublished:false}));
+    check(childSuccess,'LP26-O05 stopped copy native catalog recovery');
+    result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&result.deleted>0,'LP26-O05 native surviving and deleted states');
+    // 이름 하나가 아닌 원본 전체 파일의 경로·크기·해시를 대조한다(B/legacy 모두).
+    check(originalUnchanged,'LP26-O05 original journal bytes unchanged');
+  }catch(error){primary=error;
+  }finally{let bytes=null,reason=null,absent=false;try{bytes=size(copyRoot);}catch{reason='size-unavailable';}
+    if(!primary&&childSuccess&&receiptPreserved&&originalUnchanged&&manifestUnchanged&&groupClosed)try{removeDiagnosticRoot(copyRoot,copyIdentity,true);absent=!fs.existsSync(copyRoot);}catch{reason='remove-failed';}
+    else reason='preserved-for-diagnostic';
+    console.log('[copy-cleanup] '+JSON.stringify({root:copyRoot,bytes,copied,absent,reason,receiptPreserved,originalUnchanged,manifestUnchanged,groupClosed}));
+    if(!absent){fs.writeFileSync(path.join(root,'cleanup-blocked'),'recovery copy or evidence cleanup unresolved\n',{mode:0o600});if(!primary)primary=Error('snapshot-preserved');}
+    if(absent&&reason===null)check(true,'LP26-O05 recovery copy cleanup');else if(primary){failed++;console.log('[fail] LP26-O05 recovery copy cleanup');}else check(false,'LP26-O05 recovery copy cleanup');}
+  if(primary)throw primary;return result;
+}
+try{
+  check(fs.statSync(path.join(repo,'build-gst-onnx/media_server')).isFile()&&(fs.statSync(path.join(repo,'build-gst-onnx/media_server')).mode&0o111)!==0,'LP26-O05 fixed current executable');
+  for(const d of ['input','state','events/clips','events/snapshots','recordings','tmp'])fs.mkdirSync(path.join(root,d),{recursive:true,mode:0o700});
+  const generationStart=performance.now();
+  const generated=spawnSync('gst-launch-1.0',['-q','-e','videotestsrc','num-buffers=120','pattern=snow','!','video/x-raw,width=640,height=360,framerate=30/1','!','x264enc','tune=zerolatency','speed-preset=ultrafast','pass=quant','quantizer=0','key-int-max=30','!','h264parse','!','mp4mux','!','filesink',`location=${path.join(root,'input/retention.mp4')}`],{encoding:'utf8',timeout:30000,maxBuffer:65536,env:{...process.env,TMPDIR:path.join(root,'tmp')}});
+  let generatedBytes=null;try{const s=fs.lstatSync(path.join(root,'input/retention.mp4'));if(s.isFile()&&s.nlink===1)generatedBytes=s.size;}catch{}
+  console.log('[fixture-generation] '+JSON.stringify(summarizeFixtureGeneration(generated,{elapsedMs:Math.round(performance.now()-generationStart),outputBytes:generatedBytes})));
+  check(generated.status===0&&!generated.error&&!generated.signal&&generatedBytes!==null&&generatedBytes>0&&generatedBytes<96*1024*1024,'LP26-O05 original bounded retention fixture');
+  for(const id of ['9101','9201'])fs.copyFileSync(path.join(root,'input/retention.mp4'),path.join(root,'input',source(id).file),fs.constants.COPYFILE_EXCL);
+  fs.unlinkSync(path.join(root,'input/retention.mp4'));
+  check(new Set(['9101','9201'].map(id=>fs.realpathSync(path.join(root,'input',source(id).file)))).size===2,'LP26-O05 distinct canonical sources');
+  fs.writeFileSync(path.join(root,'state/sources.json'),JSON.stringify({sources:[]}));fs.writeFileSync(path.join(root,'state/views.json'),JSON.stringify({views:[]}));
+  udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});const stun=udp.address().port;
+  const first=await launch(stun),initial=await request(first,'GET','/ops/api/recordings/status');
+  const initialIds=initial.channels?.map(c=>c.channelId);
+  check(Array.isArray(initialIds)&&initialIds.every(id=>/^[A-Za-z0-9_-]+$/.test(id)&&!['9101','9201'].includes(id))&&
+    (initialIds.length===0||disabledChannelsExact(initial,initialIds)),'LP26-O05 independent initial channels');
+  const expectedIds=[...initialIds,'9101','9201'];
+  for(const id of ['9101','9201'])await request(first,'POST','/ops/api/sources',source(id));
+  const begin=performance.now(),observationBudget=new CurrentObservationBudget();observationStart=begin;progress=new CurrentLongrunProgress(begin,['9101','9201'],observationBudget);observer=new CurrentRecordingObserver(path.join(root,'recordings'),native,observationBudget);
+  while(diagnose?progress.records.size<1020:performance.now()-begin<duration){
+    if(diagnose&&performance.now()-begin>=duration)throw Error('status-1020-not-reached');
+    await sample(first);const status=await request(first,'GET','/ops/api/recordings/status');
+    for(const id of ['9101','9201']){const c=status.channels?.filter(c=>c.channelId===id);check(c?.length===1&&c[0].enabled&&c[0].active&&!c[0].storageBlocked,'LP26-O05 active '+id);}
+    cadence();
+    const sleepMs=nextSampleDelay(samples.at(-1).phaseAt,performance.now(),begin+duration);
+    if(sleepMs>0)await pause(sleepMs);cadence();}
+  await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
+  phaseResult=short||diagnose?progress.status(end):progress.finish(end);
+  if(diagnose)check(progress.records.size>=1020&&Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O15 status under 1020 actual originals');
+  else check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
+  summary=summarizeCurrentSamples(samples);observationStart=null;progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
+  const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
+  if(!diagnose){const before=snapshot();
+  const second=await launch(stun);const s=await request(second,'GET','/ops/api/recordings/status');
+  verifyStatusUsage(s);
+  console.log('[channel-observation] '+JSON.stringify({expectedIds,channels:s.channels?.map(c=>({id:c.channelId,enabled:c.enabled,active:c.active}))}));
+  check(disabledChannelsExact(s,expectedIds),'LP26-O05 disabled restart');
+  await stop(second);const after=snapshot();check(JSON.stringify(before)===JSON.stringify(after),'LP26-O05 restart exact catalog media state');
+  const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
+  await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
+  check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
+  }catch(error){failed++;try{rootDiagnostic('failure-live',measureCurrentRootStable(root),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
+finally{
+  observationStart=null;summary=summarizeAvailableSamples(samples);
+  try{rootDiagnostic('final-live',measureCurrentRootStable(root),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
+  for(const app of processes)try{await stop(app);}catch{failed++;}
+  try{rootDiagnostic('post-stop',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{failed++;console.log('[root-storage] '+JSON.stringify({reason:'post-stop',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
+  for(const app of processes){try{fs.closeSync(app.logFd);const text=fs.readFileSync(app.log,'utf8');
+    const categories=['file evidence unavailable','storageBlocked','shutdown','ERROR','WARNING'].map(code=>({code,count:text.split(code).length-1}));
+    const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));
+    console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
+    const slow=slowTraceSummary(text,app.result?.normalShutdownPass===true);console.log('[server-slow-diagnostic] '+JSON.stringify(slow));
+    if(slow.status!=='captured'){failed++;console.log('[fail] slow-diagnostic-unavailable');}
+  }catch{failed++;console.log('[fail] server-diagnostic-capture');}}
+  try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
+  if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
+  console.log(JSON.stringify({mode:short?'current-app-observe-short':diagnoseFast?'current-status-1020-diagnostic':diagnoseOriginal?'current-status-1020-diagnostic-original':'current-recording-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,statusCumulativePass:diagnose&&failed===0&&progress?.records.size>=1020,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+    phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
+    tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));process.exitCode=failed?1:0;
+}

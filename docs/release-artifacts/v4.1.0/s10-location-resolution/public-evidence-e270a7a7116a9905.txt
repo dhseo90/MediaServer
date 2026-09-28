@@ -1,0 +1,80 @@
+command: bash scripts/internal/verify_recording_location_resolution.sh
+
+=== session 31092 exit=1 ===
+[fail] LOC01 exact media location preserves identity and mapping
+[fail] LOC02 unknown UTC does not discard exact media location
+[fail] LOC03 UTC point returns both overlapping files
+[fail] LOC04 UTC point preserves separate mappings in one file
+[fail] LOC05 point lookup uses half-open bounds
+[fail] LOC06 unknown mapping never extrapolates UTC
+[fail] LOC07 known candidates coexist with unknown coverage
+[fail] LOC08 rational conversion preserves exact non-nanosecond PTS
+[fail] LOC09 fractional PTS remains unknown without rounding
+[fail] LOC10 arithmetic extremes do not overflow
+[fail] LOC11 deleted exact ID is channel scoped
+[pass] LOC12 invalid input is rejected without mutation
+[fail] LOC13 reopened JSONL and SQLite locations are identical
+[fail] LOC14 metadata resolution does not require files or alter holds
+[summary] pass=1 fail=13
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.U3bvr5 bytes=2401707 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+=== session 20176 exit=0 ===
+[pass] LOC01 exact media location preserves identity and mapping
+[pass] LOC02 unknown UTC does not discard exact media location
+[pass] LOC03 UTC point returns both overlapping files
+[pass] LOC04 UTC point preserves separate mappings in one file
+[pass] LOC05 point lookup uses half-open bounds
+[pass] LOC06 unknown mapping never extrapolates UTC
+[pass] LOC07 known candidates coexist with unknown coverage
+[pass] LOC08 rational conversion preserves exact non-nanosecond PTS
+[pass] LOC09 fractional PTS remains unknown without rounding
+[pass] LOC10 arithmetic extremes do not overflow
+[pass] LOC11 deleted exact ID is channel scoped
+[pass] LOC12 invalid input is rejected without mutation
+[pass] LOC13 reopened JSONL and SQLite locations are identical
+[pass] LOC14 metadata resolution does not require files or alter holds
+[summary] pass=14 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.RdBp2g bytes=2528335 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+=== session 9177 exit=1 ===
+[pass] LOC01 exact media location preserves identity and mapping
+[pass] LOC02 unknown UTC does not discard exact media location
+[pass] LOC03 UTC point returns both overlapping files
+[pass] LOC04 UTC point preserves separate mappings in one file
+[pass] LOC05 point lookup uses half-open bounds
+[pass] LOC06 unknown mapping never extrapolates UTC
+[pass] LOC07 known candidates coexist with unknown coverage
+[pass] LOC08 rational conversion preserves exact non-nanosecond PTS
+[pass] LOC09 fractional PTS remains unknown without rounding
+[pass] LOC10 arithmetic extremes do not overflow
+[pass] LOC11 deleted exact ID is channel scoped
+[fail] LOC12 invalid input is rejected without mutation
+[pass] LOC13 reopened JSONL and SQLite locations are identical
+[pass] LOC14 metadata resolution does not require files or alter holds
+[summary] pass=13 fail=1
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.HOrmCX bytes=2528447 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+=== session 70418 exit=0 ===
+[pass] LOC01 exact media location preserves identity and mapping
+[pass] LOC02 unknown UTC does not discard exact media location
+[pass] LOC03 UTC point returns both overlapping files
+[pass] LOC04 UTC point preserves separate mappings in one file
+[pass] LOC05 point lookup uses half-open bounds
+[pass] LOC06 unknown mapping never extrapolates UTC
+[pass] LOC07 known candidates coexist with unknown coverage
+[pass] LOC08 rational conversion preserves exact non-nanosecond PTS
+[pass] LOC09 fractional PTS remains unknown without rounding
+[pass] LOC10 arithmetic extremes do not overflow
+[pass] LOC11 deleted exact ID is channel scoped
+[pass] LOC12 invalid input is rejected without mutation
+[pass] LOC13 reopened JSONL and SQLite locations are identical
+[pass] LOC14 metadata resolution does not require files or alter holds
+[summary] pass=14 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.8s8R8P bytes=2528447 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+git diff --check: exit=0
+Token start/end/consumed: unmeasured (no per-run usage integration).

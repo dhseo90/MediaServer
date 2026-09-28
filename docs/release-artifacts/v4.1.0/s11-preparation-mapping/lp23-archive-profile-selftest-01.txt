@@ -1,0 +1,18 @@
+command: node --test scripts/internal/recording_archive_diagnostic_profile.test.mjs
+exit: 0
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (1.080708ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.123292ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (10.552541ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.051ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (1.089791ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (614.675375ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 681.984583
+cleanup: 4 owned synthetic roots removed and absence asserted; removed byte counts were not emitted in this first run
+scope: no preserved original opened or modified; no actual application run

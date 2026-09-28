@@ -1,0 +1,38 @@
+[
+  {
+    "source": "/private/tmp/b03-append-docs-links.log",
+    "artifact": "docs-links.log.gz",
+    "exit": 0,
+    "bytes": 187,
+    "gzipBytes": 154,
+    "sha256": "42c612b67bf511ab6ae02df921cb4192bc77e12f91489f26aa25f0a43acf6a87",
+    "uid": 501,
+    "ino": 159509035,
+    "dev": 16777234,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-append-docs-assets.log",
+    "artifact": "docs-assets.log.gz",
+    "exit": 0,
+    "bytes": 636,
+    "gzipBytes": 327,
+    "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2",
+    "uid": 501,
+    "ino": 159509047,
+    "dev": 16777234,
+    "originalRemoved": true
+  },
+  {
+    "source": "/private/tmp/b03-append-inventory.log",
+    "artifact": "inventory.log.gz",
+    "exit": 0,
+    "bytes": 210250,
+    "gzipBytes": 15454,
+    "sha256": "24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00",
+    "uid": 501,
+    "ino": 159509053,
+    "dev": 16777234,
+    "originalRemoved": true
+  }
+]

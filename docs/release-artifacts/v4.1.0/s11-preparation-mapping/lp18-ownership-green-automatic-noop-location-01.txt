@@ -1,0 +1,92 @@
+{"kind":"start","utc":"2026-09-20T01:39:38.724Z","mode":"green","id":"automatic-noop-location-01","suite":"journal-location","source":[{"name":"include/recording/recording_catalog.h","sha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"1c032bee44f8304cf87c9a2bd4afc32515ddf396df20541bfb499a7d7a378080"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"2765b0b02215022d86cf74fd8c9aadde35cf06feeb7a93029220b82cf5e76c27"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-location"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d location_journal_instrumented_sha256=f4898ac228c769fcc413cda896a5cea6e41138e8f34bf48a7a3d52924e6721b9
+[instrument] location_declarations=1,1 location_header_sha256=44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5
+[instrument] catalog_sha256=c665a177ccc5b4be469db9ed1534e36eda8c79627ee6f90e9fa5560ba6021c6b binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"1c032bee44f8304cf87c9a2bd4afc32515ddf396df20541bfb499a7d7a378080"}
+        2.41 real         2.21 user         0.15 sys
+           308527104  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               57122  page reclaims
+                 633  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  14  messages sent
+                   0  messages received
+                   3  signals received
+                  34  voluntary context switches
+                2423  involuntary context switches
+            79860966  instructions retired
+            38081419  cycles elapsed
+             2113944  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2431,"groupPeakRssBytes":321650688}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L01 baseline managed Replay preserves full canonical record
+[pass] LP18-L01 journal located record capability exists
+[pass] LP18-L02 acquired record retains complete canonical value
+[pass] LP18-L02 public Replay mutation cannot alter acquired immutable value
+[pass] LP18-L03 Append retry preserves physical row count and original value
+[pass] LP18-L03 Reserve retry preserves physical row count and sequence
+[pass] LP18-L02 reopen reconstructs located original and reservation records
+[pass] LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order
+[pass] LP18-L04 repeated mutation ID retains separate physical row tokens
+[pass] LP18-L04 located reads preserve accepted noncanonical envelope bytes
+[pass] LP18-L05 no-write checkpoint keeps existing location generation usable
+[pass] LP18-L05 recover-only pending cleanup keeps existing generation usable
+[pass] LP18-L05 receipt swap rebinds all locations to exact committed bytes
+[pass] LP18-L05 stale location rejects and clears output without poisoning current journal
+[pass] LP18-L05 previously acquired owned record survives receipt file replacement
+[pass] LP18-L05 retry after receipt returns original type without new location
+[pass] LP18-L06 null token clears output without poisoning
+[pass] LP18-L06 foreign or null owner rejects without poisoning
+[pass] LP18-L06 other journal token rejects without poisoning
+[pass] LP18-L06 fork rejects located access while parent retains valid ownership
+[pass] LP18-L07 same-size raw tamper poisons and clears output despite resident handle
+[pass] LP18-L07 truncation poisons and clears output
+[pass] LP18-L07 inode replacement poisons and clears output
+[pass] LP18-L08 oversized append remains available through resident fallback only
+[pass] LP18-L08 oversized retry preserves original value and durable row count
+[pass] LP18-L09 append location exception clears output and poisons after durable write
+[pass] LP18-L09 append exception reopens exactly one durable original record
+[pass] LP18-L09 reserve location exception withholds result and poisons after durable write
+[pass] LP18-L09 reserve exception reopens reservation and retry does not duplicate it
+[pass] LP18-L09 checkpoint location exception preserves bytes and usable generation without poison
+[pass] LP18-L09 checkpoint retries successfully after location preparation exception
+[pass] LP18-L09 acquire allocation exception poisons clears output and retains old owned value
+[summary] LP18 pass=32 fail=0
+        1.82 real         1.33 user         0.06 sys
+           253427712  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               17848  page reclaims
+                  59  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  40  voluntary context switches
+                 778  involuntary context switches
+         28921471910  instructions retired
+          5857016002  cycles elapsed
+           223445904  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":1833,"groupPeakRssBytes":254443520}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":22145376,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:39:43.007Z","mode":"green","matched":true,"productPass":true,"elapsedMs":4288}

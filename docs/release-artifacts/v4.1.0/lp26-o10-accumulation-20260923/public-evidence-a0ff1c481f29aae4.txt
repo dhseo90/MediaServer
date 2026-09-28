@@ -1,0 +1,46 @@
+[pass] explicit 120 minutes accepted
+[pass] invalid CLI []
+[pass] invalid CLI ["120"]
+[pass] invalid CLI ["--duration-minutes","30"]
+[pass] invalid CLI ["--duration-minutes","120","extra"]
+[pass] invalid CLI ["--unknown","120"]
+[pass] two channels progress and ordered deletion
+[pass] stall rejected
+[pass] duplicate rejected
+[pass] UTC regression rejected
+[pass] completion without request rejected
+[pass] invalid media metadata rejected
+[pass] duration cannot be shortened
+[pass] unknown channel cannot satisfy progress
+[pass] backward clock rejected
+[pass] sample continuous accepted
+[pass] sample gap rejected
+[pass] sample wrong PID rejected
+[pass] sample wrong identity rejected
+[pass] sample missing beginning rejected
+[pass] sample missing end rejected
+[pass] sample insufficient rejected
+[pass] actual golden schema accepted
+[pass] full duration distributed progress accepted
+[pass] last moment only cannot pass
+[pass] ID limit rejected
+[pass] UTF8 byte limit rejected
+[pass] queried revision advanced disable
+[pass] missing source rejected
+[pass] duplicate source rejected
+[pass] invalid revision rejected
+[pass] public CLI rejects []
+[pass] public CLI rejects ["120"]
+[pass] public CLI rejects ["--duration-minutes","30"]
+[pass] public CLI rejects ["--duration-minutes","120","extra"]
+[pass] public CLI rejects ["--unknown","120"]
+[pass] completed batch returns media path once
+[pass] missing media path rejected
+[pass] media path byte limit rejected
+[pass] ENOENT media absent
+[pass] regular media present rejected
+[pass] dangling symlink present rejected
+[pass] media permission error rejected
+[pass] S09-LD01 invalid segment diagnostics are specific and redacted
+[pass] S09-LD01 missing timestamp diagnostics remain specific and redacted
+[summary] passed=45 failed=0 elapsedMs=57

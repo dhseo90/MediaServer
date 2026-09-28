@@ -1,0 +1,15 @@
+command: node --test scripts/internal/recording_recovery_content.test.mjs
+exit: 0
+stdout:
+✔ LP24-RH01 RED 판정 자체검사 (1.09525ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34.476625
+stderr: empty
+cleanup: no temporary root, child process, media, or generated binary created by this selftest
+scope: decision function only; native compile and actual RED not run

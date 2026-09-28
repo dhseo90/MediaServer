@@ -1,0 +1,62 @@
+# S11 준비 1번 — v4.1.0 테스트 매핑 감사
+
+## 최신 실행 연결 상태 — LP26
+
+[현행 기능별 실행 연결 선택](lp26-current-execution-map.md)이 아래 초기 스냅샷 이후의 명령·oracle 선택 기준이다.
+현행5단계 통합은 LP25 실행 증거가 있고, LP26 observer/longrun·UI seed는 managed 계약으로 준비를 전환했다.
+단기 observer71개 결과와 UI 준비 결과는 실제120분·자원 추세·브라우저 PASS가 아니다.
+S01~04 prose의 직접 assertion을 구체화했지만 정식 고정 ID 공백, 일부 복합 요구의 exact 연결,
+ENV12 영속 runner·실제검사가 남는다. 매핑 리뷰에서 발견한 summary delta/gap·합산예산 차이는 LP26에서 보완했다.
+전체 focused를5단계에 포함했다고 주장하지 않으며 최종 S11 선택·릴리즈 전수 판정은 메인 기록이 기준이다.
+이하 내용은 037d42ee 기준 최초 매핑과 당시 실행 상태를 보존한 역사적 스냅샷이다.
+
+문서 링크 보완(2026-09-14): 두 매핑 문서의 로컬 절대경로·콜론 행번호 링크가 저장소 링크 검사에서 1,165건 실패했다. 상대경로 링크와 별도 행번호 표기로 기계 변환했으며 매핑 내용·과거 기준 행번호는 바꾸지 않았다. `./server.sh verify-docs-links` 재검사 exit0, Markdown269개/링크8,080개/실패0. 현재 작업의 최종 제품 검증 결과가 아니다.
+
+독자: 현재 버전 개발·최종 검증 담당자. 수명: S11 준비 기간의 기준 스냅샷.
+정책 source-of-truth는 AGENTS.md, 실행 결과는 중앙 테스트 기록이다. 이 문서는 실행 증적이 아니다.
+
+## 결론
+
+후속 1번 보완: 최초 S10 미결박33행을 기존검사7/공유·상위묶음24/통합검사 일부 누락1/사용자 제외1로 분류했다. R01 잘못된 앵커와 D/J의12개 ID 의미충돌을 정정했다. 초기 S01~04 고정 ID 등록 공백·ENV12 영속 runner 공백은 실제 후속 과제로 남기며 테스트가 전부 없다고 단정하지 않는다. 매핑 분류 보완 완료와 전체 coverage/실행 연결 완료는 별개다.
+
+후속 2번 선행: [재사용 결정·독립 합격 기준](reuse-decision.md)을 확정했다. 기존 managed HTTP/default/이벤트 검사를 우선 사용하고, 새 C++ adapter는 조건부로 둔다. 실제 앱 이벤트→HTTP 연결·두 번째 기동·실제 입력속도/drift 통합의 공백은 후속 구현 대상이다. 실행 순서는 기존4번 인증 선수조건→2번 통합→3번 관측기→5번 UI 준비→6번 정리→7번 코드/증거 고정이다. 준비 문서 확정이지 제품/테스트 구현 완료가 아니다.
+
+기준 `v4.1.0 / 037d42ee`, 2026-09-14. **테스트가 모두 현재 계약을 검사하고 최종 묶음에 연결되었다고 판정할 수 없다.**
+등록·코드 위치 매핑과 결함 분류를 작성했다. 미결박·충돌은 숨기지 않고 후속 준비 대상으로 남긴다.
+과거 PASS를 폐기하거나 현재 PASS로 승격하지 않았다. S11 최종 검증과 실제 브라우저는 실행하지 않았다.
+
+- [S00~S09 / ENV / IDMAP 매핑](s00-s09-mapping.md): inventory 표 283행, S05 자식 검사92개, 초기 assertion 위치 및 표 밖 정의.
+- [S10 / 공개 소비 매핑](s10-mapping.md): 등록·실제 코드·oracle·직접 실행·최종 연결을 구분.
+- [선행 준비 감사 및 개발 순서](../../../superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md): S11 준비 절.
+
+숫자는 실행 PASS 수가 아니다. 초기 단계 ID 공백·prose 등록·S10 ID 충돌을 단일 총계로 억지 합산하지 않는다.
+과거 canonical986 전체 회귀를 이번 정적 조사로 재검증했다고 주장하지 않는다.
+
+## 확인된 준비 과제와 개발 순서
+
+| 순서 | 분류 | 직접 근거 | 해야 할 일 / 완료 조건 |
+| --- | --- | --- | --- |
+| 1 보완 | 등록 공백·정의 충돌 | 상세 매핑의 초기 S01~04, prose 정의, S10 중복 문맥 | 기존 이력 보존, 문맥별 키와 exact oracle를 확정. 문자 ID 발견만으로 coverage 충족 금지 |
+| 2 | 미연결·구형 통합 | recording_foundation_suite.mjs:35~38; verify_v410_recording_foundation.mjs:108,424,582 | 새 default/reference/job/복수 output 검사 및 최종 manifest 연결. 직접 runner 존재와 묶음 포함을 분리 |
+| 3 | 구형 장시간 판정 | recording_journal_reader.mjs:4; recording_longrun_progress.mjs:45 | 현재 mutation/order/epoch/UTC mapping으로 전환. UTC 역행을 녹화 순서 오류로 간주하지 않음 |
+| 4 | 인증 준비·상충 gate | verify_auth_workflow.sh:48,1331,1345; verify_v410_recording_timeline.sh:72; verify_script_inventory.mjs:185,189 | 실행별 임시값·비밀 비노출 주입. operator env 강제 문구를 요구하는 inventory 검사도 함께 수정. 기존 role/scope/암호이력 oracle 유지 |
+| 5 | UI 준비 구형 seed | verify_v410_recording_ui_contract.mjs:686; verify_v410_recording_ui_auth_prep.test.mjs:94 | managed seed·문자열 시간·null·itemId·복수 출력과 exact UI action 연결. 브라우저 PASS는 별도 |
+| 6 | 구형 제거 선수조건 | v1 fixture 추적8개, compatibility manifest golden4개 | 대체 검증 확보 후 정확 사용처/소유 확인. V1 명칭만으로 현행 consumer/job 계약 삭제 금지 |
+| 7 | 최종 준비 종료 | 위 미결박·구형·미연결 해소 후 | 코드를 고정하고 유지/부분 무효/전체 무효 증거를 판단한 뒤 승인된 최종 검증 범위를 확정 |
+
+소스 경로는 `scripts/internal/` 기준이다. 테스트 부재, ID 미등록, 실행 미연결, 구형 oracle, 의도된 중복 회귀는 서로 다른 결함이다.
+현재 매핑의 미확정 oracle는 후속 수정의 선수조건이며 전체 coverage 감사 완료나 S11 준비 완료로 처리하지 않는다.
+
+## 이번 실행 경계
+
+| 영역 | 이번 상태 | 근거 |
+| --- | --- | --- |
+| 안정화 제품 테스트 | 미실행 | 1번 문서 매핑만 수행 |
+| 30분 / 120분 | 미실행 | 최종 검증은 준비 이후 |
+| 실제 UI | 제외·미실행 | 사용자 브라우저 제외 유지 |
+| 문서 형식 | git diff --check 및 신규 문서 no-index diffcheck, 문서 링크 대상 존재 확인 | 테스트 PASS와 별개 |
+| 커밋 / 푸시 / 삭제 | 미수행 | 이번 범위 아님 |
+
+테스트 서버·계정·미디어·임시 실행 디렉터리 생성 없음. 정리 대상 없음.
+문서 초안의 중복 JSON/코드 발췌는 축소했다. 이번 생성한 중복 JSON만 제거했으며 기존 테스트/과거 증적은 삭제하지 않았다.
+token start/end/consumed: 실행별 집계 도구 미제공으로 미집계. elapsed: 정적 조사 도구별 소요만 존재하고 전체 작업 시간은 미집계.

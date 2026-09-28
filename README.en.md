@@ -2,24 +2,28 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v4.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
-![Source Version](https://img.shields.io/badge/source-4.0.0-informational)
+[![Release Target](https://img.shields.io/badge/release%20target-v4.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
+![Source Version](https://img.shields.io/badge/source-4.1.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
 
-The current product boundary is **live source onboarding, live source health, and
-live VA event quality**. Long-term recording, VMS/NVR, playback/archive search,
-and runtime/model bundle distribution are outside the default public release.
+The v4.1.0 release target adds **continuous/event recording, circular retention,
+and timeline/playback foundations** to the v4.0.0 live-source and VA boundary.
+S11 product validation and B14 public-readiness work are complete. External state—
+PR, merge, signed tag, GitHub Release, and published verification—is reported only
+from actual execution. This is not a complete VMS/NVR, natural-language archive
+search, or runtime/model bundle distribution.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
-- Current source version: `4.0.0`
-- v4.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- Latest published baseline: v4.0.0 Local Operations Policy and Stabilization
-- Previous published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
+- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
+- Current release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
+- Current source version: `4.1.0`
+- Current source roadmap: `v4.1.0 Recording Foundation`
+- v4.1.0 status: S01-S08 implementation, S10 hardening, S11 product validation, and B14 public readiness are complete. External release actions remain separately evidence-based.
+- Prior published baseline: v4.0.0 Local Operations Policy and Stabilization
+- Earlier published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
 
 ## At a Glance
 
@@ -32,7 +36,9 @@ and runtime/model bundle distribution are outside the default public release.
 - **Incident memory**: the current source tree projects EventRecord, audit, source
   health, and alert dry-run data into `/ops/events` search, timelines, explainable
   briefs, and similar-incident lookup.
-- **Out of scope**: VMS/NVR, long-term recording, broad archive playback/search, VLM
+- **Recording**: per-channel opt-in continuous/event recording, capacity-bounded
+  circular retention, event-priority timelines, and permission-scoped playback.
+- **Out of scope**: a complete VMS/NVR, guaranteed indefinite archive operation, broad archive search, VLM
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
@@ -112,7 +118,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
+- Current release-note source: [v4.1.0](docs/release-notes-v4.1.0.md)
 
 ## UI Preview
 
@@ -135,6 +141,8 @@ are not UI fulltest or GitHub Release evidence. Details live in
 
 ![Ops rules](docs/assets/ui/en/ops-rules.png)
 
+Complete configuration-type selector and rule list, rather than a scaled-down full editor page.
+
 **Rule Preview Editor**
 
 ![Rule preview editor](docs/assets/ui/en/ops-rules-preview.png)
@@ -143,9 +151,14 @@ are not UI fulltest or GitHub Release evidence. Details live in
 
 ![Ops users](docs/assets/ui/en/ops-users.png)
 
+Complete user-list card. Invitations and detail editing are covered in the UI guide.
+
 **Client Live**
 
 ![Client live](docs/assets/ui/en/client-live.png)
+
+Complete video workspace and toolbar, including the four-scene frame, VA overlay, and playback
+controls. The separate navigation dock is outside this composition.
 
 ## Account Views
 

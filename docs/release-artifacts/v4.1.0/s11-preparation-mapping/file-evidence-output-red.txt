@@ -1,0 +1,8 @@
+[run] label=red root=<owned-temp>/media-server-file-evidence.gsTFfg
+In file included from <home>/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:2:
+<home>/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:117:6: error: unused function 'Shift' [-Werror,-Wunused-function]
+  117 | void Shift(Encoded& input, std::uint64_t offset) {
+      |      ^~~~~
+1 error generated.
+[cleanup] path=<owned-temp>/media-server-file-evidence.gsTFfg bytes=0 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

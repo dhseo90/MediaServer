@@ -1,0 +1,11 @@
+{"kind":"preflight","mode":"small","id":"fixture-01","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"9346966896774a934a288dd2d4bcd2c81566e9c6e5c749fcfb625a891f017cb9","physicalBytes":25769803776,"reclaimableEstimateBytes":10508779520,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runtime-freshness","command":"cmake","args":["--build","<repo>/build-gst-onnx","--target","media_server_runtime","--parallel","2"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+
+make[2]: *** [CMakeFiles/media_server_runtime.dir/all] Terminated: 15
+make[1]: *** [CMakeFiles/media_server_runtime.dir/rule] Terminated: 15
+make: *** [media_server_runtime] Terminated: 15
+{"kind":"phase-result","label":"runtime-freshness","diagnosticPass":false,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":null,"signal":"SIGTERM","stopReason":"resource-observation","elapsedMs":530,"groupPeakRssBytes":92536832,"outputBytes":189}
+{"kind":"diagnostic-failure","code":"phase-failed","nextPhases":"not-run"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"small","id":"fixture-01","diagnosticPass":false,"failure":"phase-failed","phases":1,"elapsedMs":626,"productPass":false,"tokenConsumed":null}

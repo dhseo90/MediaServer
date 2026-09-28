@@ -1,0 +1,4 @@
+libc++abi: terminating due to uncaught exception of type std::logic_error: analysis rule application service is not configured
+[pass] EV01 canonical application 왕복 같은 녹화 증거
+scripts/internal/verify_recording_application_evidence.sh: line 25: 55914 Abort trap: 6           MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=0 MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED=0 MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED=0 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=0 "$RUN_ROOT/check"
+[cleanup] path=/private/tmp/media-server-application-evidence.1GPbsa bytes=7359291 absent=true

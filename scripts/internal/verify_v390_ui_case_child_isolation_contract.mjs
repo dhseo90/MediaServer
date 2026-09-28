@@ -36,6 +36,7 @@ const ordinaryModes = Object.freeze([
   ["cleanup-error-after-assertion", "DOM_ASSERTION_FAILED", "CASE_RUNTIME_CLEANUP_FAILED"],
 ]);
 const checks = [];
+// PF-LC01~03: 실제 wrapper의 plain primary 보존, lifecycle 중복 방지, 비밀 비노출·정리 회귀.
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "v390-case-child-contract-"));
 
 check("completed actual case child bypasses the Node worker shutdown deadlock", () => {
@@ -85,6 +86,15 @@ check("production suite-finalizer child writes one attested PASS summary", () =>
   assertSuiteFinalizerSummary(child.summary, "PASS");
   assert(child.summary.visualMatrixProbes.length === 1,
     "suite-finalizer PASS did not preserve its injected matrix probe");
+});
+
+// FD08 사전 명세: 실제 finalizer subprocess가 독립 PNG 생성 뒤 case canonical 참조를 확정한다.
+check("FD08 finalizer subprocess canonicalizes new PNG before summary and secret attestation", () => {
+  const child = runProductionSuiteFinalizer("pass");
+  assert(child.exitCode === 0, "FD08 fixture child failed before dedup assertion");
+  assert(child.canonicalReference && !child.duplicatePngRemains && child.casePngUnchanged,
+    "FD08 finalizer duplicate PNG remains or canonical reference missing");
+  assertSuiteFinalizerSummary(child.summary, "PASS");
 });
 
 check("production suite-finalizer child writes one safe attested FAIL summary", () => {
@@ -192,6 +202,35 @@ try {
     assert(child.summary.case.cleanupAttestation?.pass === false &&
       child.summary.case.cleanupAttestation?.failureCode === "CASE_RUNTIME_CLEANUP_FAILED",
     "cleanup failure attestation mismatch");
+  });
+
+  const plainLifecycleChild = runContractChild("plain-primary-plus-lifecycle");
+  check("PF-LC01 plain primary remains first before secondary missing response", () => {
+    assert(plainLifecycleChild.exitCode === 1, "composite child exit mismatch");
+    assert(plainLifecycleChild.summary?.case.failureCode === "CASE_EXECUTION_FAILED",
+      "plain primary was overwritten by secondary lifecycle code");
+    assert(plainLifecycleChild.summary.case.failurePhase === "case-execution" &&
+      plainLifecycleChild.summary.case.failureClass === "case-execution-failure",
+      "plain primary inherited secondary lifecycle class or phase");
+    assert(JSON.stringify(plainLifecycleChild.summary.case.failureCensus.map(item => item.code)) ===
+      JSON.stringify(["CASE_EXECUTION_FAILED", "RESPONSE_MISSING"]), "primary census order mismatch");
+  });
+  check("PF-LC02 lifecycle-only missing response is not duplicated", () => {
+    const child = runContractChild("missing-response-lifecycle-only");
+    assert(child.exitCode === 1 && child.summary?.case.failureCode === "REQUEST_LIFECYCLE_FAILED",
+      "lifecycle-only primary mismatch");
+    assert(JSON.stringify(child.summary.case.failureCensus.map(item => item.code)) ===
+      JSON.stringify(["RESPONSE_MISSING"]), "lifecycle-only census duplicated");
+  });
+  check("PF-LC03 plain primary remains redacted with cleanup and fixture boundary", () => {
+    assertCommonSummary(plainLifecycleChild.summary, "FAIL");
+    const serialized = JSON.stringify(plainLifecycleChild.summary);
+    for (const forbidden of [...secretCanaries, "https://example.invalid", "?token="]) {
+      assert(!serialized.includes(forbidden), "composite child exposed a secret canary");
+    }
+    assert(plainLifecycleChild.summary.actualBrowserExecution === false &&
+      plainLifecycleChild.summary.case.cleanupAttestation.pass === true,
+      "composite cleanup or fixture boundary mismatch");
   });
 
   for (const [mode, primaryCode] of [
@@ -459,7 +498,13 @@ function listRegularFiles(rootPath) {
 }
 
 function runProductionSuiteFinalizer(mode) {
-  const outputDir = fs.mkdtempSync(path.join(rootDir, ".v390-suite-finalizer-contract-"));
+  const ownedRoot = fs.mkdtempSync(path.join(rootDir, ".v390-suite-finalizer-contract-"));
+  const outputDir = path.join(ownedRoot, "suite-finalizer");
+  fs.mkdirSync(outputDir);
+  const canonical = path.join(ownedRoot, "cases", "001-UI-001", "screenshots", "UI-001.png");
+  fs.mkdirSync(path.dirname(canonical), { recursive: true });
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN9sAAAAASUVORK5CYII=", "base64");
+  fs.writeFileSync(canonical, png);
   const buildPath = path.join(outputDir, "build-placeholder");
   const serverLogPath = path.join(outputDir, "server.log");
   fs.writeFileSync(buildPath, "contract build placeholder\n");
@@ -497,12 +542,17 @@ function runProductionSuiteFinalizer(mode) {
       stdout: child.stdout || "",
       stderr: child.stderr || "",
       summary,
+      canonicalReference: summary?.visualMatrixProbes?.[0]?.screenshotPath === canonical,
+      duplicatePngRemains: fs.existsSync(path.join(outputDir, "visual-matrix", "contract-probe.png")),
+      casePngUnchanged: fs.readFileSync(canonical).equals(png),
       secretArtifactExists: fs.existsSync(path.join(outputDir, "retained-secret.txt")),
       treeContainsCanary: listRegularFiles(outputDir).some(filePath =>
         fs.readFileSync(filePath).includes("round2-finalizer-secret-canary")),
     };
   } finally {
-    fs.rmSync(outputDir, { recursive: true, force: true });
+    const bytes = listRegularFiles(ownedRoot).reduce((sum, file) => sum + fs.lstatSync(file).size, 0);
+    fs.rmSync(ownedRoot, { recursive: true, force: true });
+    console.log(`[cleanup] ${ownedRoot} bytes=${bytes} absent=${!fs.existsSync(ownedRoot)}`);
   }
 }
 

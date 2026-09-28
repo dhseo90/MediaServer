@@ -1,0 +1,62 @@
+{"kind":"start","utc":"2026-09-19T22:31:58.883Z","mode":"green","id":"journal-cold-crypto-01","suite":"journal-location-crypto-off","source":[{"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"},{"name":"include/recording/recording_journal.h","sha256":"54fef15110880fc9cca531c91c8d590bb312e9a82621cedc8ee1723bf82f5330"},{"name":"src/recording/recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"},{"name":"src/recording/recording_journal.cpp","sha256":"bbf5069f1710f44796b341d87755e77c7589e8c39b779a15d5673f5407ec65df"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f2d1790f113312372cd3ede637d3fc8c0203b6e9bc42e78df3fb2ed30aa69214"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"f53f1a0cedb09ad08302fb879dcf67890614f2c80619e67f286e56289ef6aba6"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"d83ca919d4948434681b6ff196e7f591b8a90c0295f84c6fdf9d6ddf501986af"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"43da29f7ddbbaa372a2345128116e895e151543aa62a515c6d98ba7c283078b4"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-location-crypto-off"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] location_journal_original_sha256=bbf5069f1710f44796b341d87755e77c7589e8c39b779a15d5673f5407ec65df location_journal_instrumented_sha256=53e875be53ef18d535081b834322e9497fb9adff6f57e3ffd0d16356b2cabca4
+[instrument] location_declarations=1,1 location_header_sha256=54fef15110880fc9cca531c91c8d590bb312e9a82621cedc8ee1723bf82f5330
+[instrument] catalog_sha256=7b68327f9ab8e8cbd8f707c8435b2e13ea660ee2046b7c4b773b8be818c7dd23 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"54fef15110880fc9cca531c91c8d590bb312e9a82621cedc8ee1723bf82f5330"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"bbf5069f1710f44796b341d87755e77c7589e8c39b779a15d5673f5407ec65df"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"d83ca919d4948434681b6ff196e7f591b8a90c0295f84c6fdf9d6ddf501986af"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"43da29f7ddbbaa372a2345128116e895e151543aa62a515c6d98ba7c283078b4"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f2d1790f113312372cd3ede637d3fc8c0203b6e9bc42e78df3fb2ed30aa69214"}
+        2.12 real         1.95 user         0.13 sys
+           302284800  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               52890  page reclaims
+                 591  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                   0  messages received
+                   2  signals received
+                  15  voluntary context switches
+                1867  involuntary context switches
+            78559278  instructions retired
+            35256987  cycles elapsed
+             2064792  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2139,"groupPeakRssBytes":319340544}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L10 crypto-off managed append acquires exact resident value only
+[pass] LP18-L10 crypto-off retry preserves resident value and physical row count
+[pass] LP18-L10 crypto-off checkpoint remains rejected with owner and resident value intact
+[summary] LP18 pass=3 fail=0
+        0.51 real         0.13 user         0.02 sys
+            32669696  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4062  page reclaims
+                  41  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+                 140  involuntary context switches
+          2970371199  instructions retired
+           621165006  cycles elapsed
+             5292704  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":528,"groupPeakRssBytes":27770880}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":5076805,"removed":true}
+{"kind":"result","utc":"2026-09-19T22:32:01.563Z","mode":"green","matched":true,"productPass":true,"elapsedMs":2681}

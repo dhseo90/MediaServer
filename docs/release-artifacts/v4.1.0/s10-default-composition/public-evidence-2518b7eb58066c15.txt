@@ -1,0 +1,25 @@
+[identity-pass] V410-IDMAP-I01
+[identity-pass] V410-IDMAP-I02
+[identity-pass] V410-IDMAP-I03
+[identity-pass] V410-IDMAP-I04
+[identity-pass] V410-IDMAP-I05
+[identity-pass] V410-IDMAP-I06
+[identity-pass] V410-IDMAP-I07
+[identity-pass] S07-time-session-start
+[identity-pass] S07-time-session-input
+[identity-pass] S07-time-session-range
+[identity-pass] S07-time-session-accepted-gap-null
+[identity-pass] S07-time-session-ambiguous-channel
+[identity-pass] S07-time-finalize-success-observer-exception-isolated
+[identity-pass] S07-time-session-restart
+[identity-pass] S07-time-session-restart-null
+[identity-pass] S07-time-finalize-failure-no-observer-stop-null
+[identity-pass] V410-IDMAP-I08
+[identity-pass] V410-IDMAP-I09
+[identity-pass] V410-IDMAP-I10
+[identity-pass] V410-IDMAP-I11
+[identity-pass] V410-IDMAP-I12
+[identity-pass] V410-IDMAP-I13
+[identity-pass] S07-time-session-blocked-writer-null-nonblocking
+[identity-cleanup] files=5 bytes=7027217
+[identity-cleanup] absent=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-identity-unit.zOBxkI

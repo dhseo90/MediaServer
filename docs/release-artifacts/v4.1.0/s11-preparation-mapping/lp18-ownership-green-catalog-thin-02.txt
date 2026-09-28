@@ -1,0 +1,91 @@
+{"kind":"start","utc":"2026-09-19T23:23:21.747Z","mode":"green","id":"catalog-thin-02","suite":"catalog-thin","source":[{"name":"include/recording/recording_catalog.h","sha256":"341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037"},{"name":"include/recording/recording_journal.h","sha256":"fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944"},{"name":"src/recording/recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"},{"name":"src/recording/recording_journal.cpp","sha256":"00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"21f07f7a98419c39c20a46eb5913dc9948bdbb8d341b0efe33b8ab3ad3980508"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"231526ff8c06ee4e908586eb40f14f7824213b18a29c7213650dc6e0050bf630"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"f7a983ec801f91d8d9e0a61240b783dac962c8753dd5455282095b286fbabc0c"},{"name":"scripts/internal/recording_catalog_thin_link_smoke.cpp","sha256":"f86da5a04cb2a419691fbfc6064b0c8b641de36fc1b8f06f54132c32e90fb208"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"0e7a63b65fb8227182e77e8954c3c28f2607ebe1a523aa5e70cdff89bd1f8408"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","catalog-thin"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067 location_journal_instrumented_sha256=cad810e42292af1ee5eacd2e3a5fc89d8c94b2323de59821c1c75b2690b44c4a
+[instrument] location_declarations=1,1 location_header_sha256=fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944
+[instrument] catalog_sha256=b864ea20c98837c62d91db276b44a0b4e417db0699e746f5b262ba703165adb0 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"21f07f7a98419c39c20a46eb5913dc9948bdbb8d341b0efe33b8ab3ad3980508"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"0e7a63b65fb8227182e77e8954c3c28f2607ebe1a523aa5e70cdff89bd1f8408"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"231526ff8c06ee4e908586eb40f14f7824213b18a29c7213650dc6e0050bf630"}
+[source] {"name":"scripts/internal/recording_catalog_thin_link_smoke.cpp","sha256":"f86da5a04cb2a419691fbfc6064b0c8b641de36fc1b8f06f54132c32e90fb208"}
+        2.34 real         2.17 user         0.14 sys
+           310362112  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               57582  page reclaims
+                 590  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  15  messages sent
+                   0  messages received
+                   3  signals received
+                  15  voluntary context switches
+                2049  involuntary context switches
+            78524553  instructions retired
+            35794824  cycles elapsed
+             2064792  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2354,"groupPeakRssBytes":319848448}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L26 thin-link baseline preserves complete canonical journal bytes
+[pass] LP18-L26 sealed view and thin-link capability exists
+[pass] LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation
+[pass] LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons
+[pass] LP18-L30 primed cold prefix reuses current read once with exact bytes and projection
+[pass] LP18-L26 same-read sealed view binds exact owned envelope
+[pass] LP18-L26 same-append sealed view binds exact new envelope
+[pass] LP18-L27 accepted live shadow and prefix release detailed envelope ownership
+[pass] LP18-L27 accepted cold acquisition preserves canonical and durable bytes
+[pass] LP18-L27 accepted cold acquisition remains transient
+[pass] LP18-L28 shadow reads through current attachment authority
+[pass] LP18-L27 prefix cold acquisition preserves full envelope
+[pass] LP18-L29 accepted duplicate retains full canonical collision rejection
+[pass] LP18-L30 prefix mismatch falls back to full replay without rejecting valid input
+[pass] LP18-L26 mismatched sealed view rejects before registration schema
+[pass] LP18-L26 mismatched sealed view rejects before registration type
+[pass] LP18-L26 mismatched sealed view rejects before registration id
+[pass] LP18-L26 mismatched sealed view rejects before registration entity
+[pass] LP18-L26 mismatched sealed view rejects before registration time
+[pass] LP18-L26 mismatched sealed view rejects before registration payload
+[pass] LP18-L26 raw Apply without view preserves resident fallback
+[pass] LP18-L28 foreign sealed authority cannot become fallback provenance
+[pass] LP18-L28 detached authority blocks cold read while owned reader survives
+[pass] LP18-L28 same-address reattach does not revive old authority
+[pass] LP18-L29 reopen preserves thin canonical ordinal and projection sqlite
+[pass] LP18-L29 SQLite rebuild keeps ordinal gate with thin links
+[pass] LP18-L29 SQLite rebuild keeps full canonical gate with thin links
+[pass] LP18-L29 reopen preserves thin canonical ordinal and projection fallback
+[pass] LP18-L26 receipt retry returns original without binding receipt view
+[pass] LP18-L30 cold thin-link corruption fails closed instead of cache fallback
+[summary] LP18 pass=30 fail=0
+        0.68 real         0.16 user         0.06 sys
+            36962304  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4566  page reclaims
+                  59  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 244  voluntary context switches
+                 211  involuntary context switches
+          3930863316  instructions retired
+           899819923  cycles elapsed
+             6226616  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":694,"groupPeakRssBytes":2932736}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":7757561,"removed":true}
+{"kind":"result","utc":"2026-09-19T23:23:24.815Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3069}

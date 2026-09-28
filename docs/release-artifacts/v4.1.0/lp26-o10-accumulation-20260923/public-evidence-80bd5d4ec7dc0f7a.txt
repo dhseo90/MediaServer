@@ -1,0 +1,12 @@
+✔ LP26-O10-A01 4N 독립 규모와 최대 bound (0.441375ms)
+✔ LP26-O10-B01 정확한 네 type·count·partial/backlog oracle (0.119083ms)
+✔ LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle (0.05225ms)
+✔ LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서 (0.239834ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30.170833

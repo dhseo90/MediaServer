@@ -869,6 +869,27 @@ export function createNativeRequestLifecycleLedger({
     correlationDigest: defaultCorrelationDigest,
   });
   const states = new Set();
+  const legacyDiagnosticIds = new WeakMap();
+  const afterSealDiagnostics = [];
+  let diagnosticSequence = 0;
+  let diagnosticSeal = null;
+  let diagnosticErrors = 0;
+  const diagnosticOnly = fn => {
+    try { fn(); } catch { diagnosticErrors += 1; }
+  };
+  const diagnosticStamp = () => ({ sequence: ++diagnosticSequence, timestamp: clock() });
+  const bindLegacyRequestDiagnostic = (request, id) => diagnosticOnly(() => {
+    if (/^native-request-[1-9][0-9]*$/.test(id)) legacyDiagnosticIds.set(request, id);
+  });
+  const noteRequestCaptureSeal = () => diagnosticOnly(() => {
+    diagnosticSeal ??= diagnosticStamp();
+  });
+  const noteRequestAfterSeal = (event, request) => diagnosticOnly(() => {
+    if (!["request", "response", "finished", "failed"].includes(event)) return;
+    const envelope = requestLifecycleRecorder.snapshot().requests.find(item => item.requestObject === request);
+    afterSealDiagnostics.push({ ...diagnosticStamp(), event,
+      requestIdentity: envelope?.objectIdentity || "", legacyRequestId: legacyDiagnosticIds.get(request) || "" });
+  });
   const events = { navigation: [], action: [] };
   const rows = { navigation: [], action: [] };
   const invocationIds = { navigation: new Set(), action: new Set() };
@@ -1110,6 +1131,30 @@ export function createNativeRequestLifecycleLedger({
     return freezeJsonProjection({
       status: String(result.status || "FAIL"),
       census: { ...result.census },
+      diagnostics: {
+        sequenceDomain: "diagnostic-seal-and-after-seal-only",
+        diagnosticErrors,
+        seal: diagnosticSeal,
+        afterSeal: afterSealDiagnostics,
+        requests: snapshot.requests.map(item => {
+          const stamp = entry => ({ sequence: entry.sequence, timestamp: entry.timestamp });
+          const pathOmitted = /\b(?:password|authorization|cookie)\b/i.test(item.path) ||
+            item.path.includes("correlationId") || item.path.includes("raw-request-object") ||
+            item.path.includes("raw-response-object");
+          return {
+            requestIdentity: item.objectIdentity,
+            legacyRequestId: legacyDiagnosticIds.get(item.requestObject) || "",
+            method: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(item.method) ? item.method : "OTHER",
+            path: pathOmitted ? "" : item.path,
+            pathOmitted,
+            start: stamp(item),
+            responses: snapshot.responses.filter(entry => entry.responseRequestObject === item.requestObject)
+              .map(entry => ({ ...stamp(entry), status: entry.status })),
+            finished: snapshot.requestFinished.filter(entry => entry.requestObject === item.requestObject).map(stamp),
+            failed: snapshot.requestFailed.filter(entry => entry.requestObject === item.requestObject).map(stamp),
+          };
+        }),
+      },
       requests: snapshot.requests.map(item => ({
         requestIdentity: item.objectIdentity,
         redirectedFromIdentity: item.redirectedFromObjectIdentity,
@@ -1131,6 +1176,9 @@ export function createNativeRequestLifecycleLedger({
     });
   };
   const api = {
+    bindLegacyRequestDiagnostic,
+    noteRequestCaptureSeal,
+    noteRequestAfterSeal,
     requestLifecycleRecorder,
     beginInvocation,
     endInvocation,
@@ -1523,6 +1571,7 @@ async function openNativePlaywrightPage(playwright, {
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
+    if (requestCaptureSealed) requestLifecycleLedger.noteRequestAfterSeal("request", request);
     if (requestCaptureSealed) return;
     let redirectedFrom = null;
     let actionRequestOwnership = null;
@@ -1598,6 +1647,7 @@ async function openNativePlaywrightPage(playwright, {
     const correlationId = String(routeInjectedCorrelation?.correlationId ||
       request.headers()["x-media-server-correlation-id"] || "");
     const identity = requestIdentity(request);
+    requestLifecycleLedger.bindLegacyRequestDiagnostic(request, identity.requestId);
     const requestId = identity.requestId;
     const requestStartedAtMs = Date.now();
     const actionContext = actionRequestOwnership?.context || null;
@@ -1756,6 +1806,9 @@ async function openNativePlaywrightPage(playwright, {
     }
   });
   page.on("response", response => {
+    if (requestCaptureSealed) {
+      try { requestLifecycleLedger.noteRequestAfterSeal("response", response.request()); } catch {}
+    }
     if (requestCaptureSealed) return;
     requestLifecycleRecorder.recordResponse(response);
     try {
@@ -1921,11 +1974,13 @@ async function openNativePlaywrightPage(playwright, {
     }
   };
   page.on("requestfinished", request => {
+    if (requestCaptureSealed) requestLifecycleLedger.noteRequestAfterSeal("finished", request);
     if (requestCaptureSealed) return;
     requestLifecycleRecorder.recordRequestFinished(request);
     completeOwnedRequest(request);
   });
   page.on("requestfailed", request => {
+    if (requestCaptureSealed) requestLifecycleLedger.noteRequestAfterSeal("failed", request);
     if (requestCaptureSealed) return;
     let failure = null;
     try {
@@ -2131,8 +2186,58 @@ async function openNativePlaywrightPage(playwright, {
       ? structuredClone(initialRouteSettlingAttestation.navigation)
       : buildNavigationEvidence();
   };
+  const waitForPendingRequestSnapshot = async ({
+      seal = true,
+      minimumObservationMs = 250,
+      unresolvedQuietMs = 25,
+    } = {}) => {
+      const startedAt = Date.now();
+      const deadline = startedAt + timeoutMs;
+      const capturedRequestIds = new Set();
+      let unresolvedQuietStartedAt = null;
+      while (Date.now() < deadline) {
+        for (const request of pendingRequests.values()) {
+          const requestId = String(request.requestId || "");
+          if (requestId) capturedRequestIds.add(requestId);
+        }
+        const pendingRequestIds = new Set([...pendingRequests.values()]
+          .map(request => String(request.requestId || ""))
+          .filter(Boolean));
+        const terminalRequestIds = new Set(networkEntries
+          .filter(entry => entry.phase === "response")
+          .map(entry => String(entry.requestId || ""))
+          .filter(Boolean));
+        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
+          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
+        const observationComplete = Date.now() - startedAt >= minimumObservationMs;
+        if (observationComplete && unresolvedRequestIds.length === 0 &&
+            pendingSafeResponseReads.size === 0) {
+          unresolvedQuietStartedAt ??= Date.now();
+        } else {
+          unresolvedQuietStartedAt = null;
+        }
+        if (unresolvedQuietStartedAt !== null &&
+            Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs) {
+          if (safeResponseReadFailures.length > 0) {
+            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+          }
+          if (seal) sealRequestCaptureBoundary();
+          return {
+            capturedRequestCount: capturedRequestIds.size,
+            unresolvedRequestCount: 0,
+            observedMs: Date.now() - startedAt,
+            unresolvedQuietMs: Date.now() - unresolvedQuietStartedAt,
+          };
+        }
+        await page.waitForTimeout(10);
+      }
+      throw new Error(
+        `pending request snapshot timeout: ${pendingRequests.size}`,
+      );
+    };
   const sealRequestCaptureBoundary = () => {
     if (requestCaptureSealed) return;
+    requestLifecycleLedger.noteRequestCaptureSeal();
     requestCaptureSealed = true;
     if (requestListenerEndSequence === null) {
       requestListenerEndSequence = ++lifecycleSequence;
@@ -2354,6 +2459,9 @@ async function openNativePlaywrightPage(playwright, {
       kind = "explicit-navigation",
       lifecycleScope = "operation",
     } = {}) => {
+      // 독립 readback 보조 이동만 기다리며 사용자 이동과 요청 캡처 수명은 변경하지 않는다.
+      const pendingRequestSnapshot = kind === "catalog-source-navigation" || kind === "catalog-restore-navigation"
+        ? await waitForPendingRequestSnapshot({ seal: false }) : null;
       const ledgerStart = documentNavigationLedger.length;
       const networkStart = networkEntries.length;
       const response = await performNavigation(nextPagePath, {
@@ -2362,13 +2470,16 @@ async function openNativePlaywrightPage(playwright, {
         allowCorrelation: false,
       });
       const observedInvocationId = response.invocationId;
-      return buildNavigationEvidence({
+      const navigationEvidence = buildNavigationEvidence({
         requestedPath: urlTarget(new URL(nextPagePath, `${httpBase}/`).toString()),
         invocationId: observedInvocationId,
         response,
         ledger: lifecycleScope === "case" ? documentNavigationLedger : documentNavigationLedger.slice(ledgerStart),
         scopedNetworkEntries: networkEntries.slice(networkStart),
       });
+      return pendingRequestSnapshot
+        ? { ...navigationEvidence, pendingRequestSnapshot: { ...pendingRequestSnapshot, captureSealed: false } }
+        : navigationEvidence;
     },
     setCorrelationId: async (
       correlationId,
@@ -3002,54 +3113,7 @@ async function openNativePlaywrightPage(playwright, {
       }
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
-    waitForPendingRequestSnapshot: async ({
-      minimumObservationMs = 250,
-      unresolvedQuietMs = 25,
-    } = {}) => {
-      const startedAt = Date.now();
-      const deadline = startedAt + timeoutMs;
-      const capturedRequestIds = new Set();
-      let unresolvedQuietStartedAt = null;
-      while (Date.now() < deadline) {
-        for (const request of pendingRequests.values()) {
-          const requestId = String(request.requestId || "");
-          if (requestId) capturedRequestIds.add(requestId);
-        }
-        const pendingRequestIds = new Set([...pendingRequests.values()]
-          .map(request => String(request.requestId || ""))
-          .filter(Boolean));
-        const terminalRequestIds = new Set(networkEntries
-          .filter(entry => entry.phase === "response")
-          .map(entry => String(entry.requestId || ""))
-          .filter(Boolean));
-        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
-          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
-        const observationComplete = Date.now() - startedAt >= minimumObservationMs;
-        if (observationComplete && unresolvedRequestIds.length === 0 &&
-            pendingSafeResponseReads.size === 0) {
-          unresolvedQuietStartedAt ??= Date.now();
-        } else {
-          unresolvedQuietStartedAt = null;
-        }
-        if (unresolvedQuietStartedAt !== null &&
-            Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs) {
-          if (safeResponseReadFailures.length > 0) {
-            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
-          }
-          sealRequestCaptureBoundary();
-          return {
-            capturedRequestCount: capturedRequestIds.size,
-            unresolvedRequestCount: 0,
-            observedMs: Date.now() - startedAt,
-            unresolvedQuietMs: Date.now() - unresolvedQuietStartedAt,
-          };
-        }
-        await page.waitForTimeout(10);
-      }
-      throw new Error(
-        `pending request snapshot timeout: ${pendingRequests.size}`,
-      );
-    },
+    waitForPendingRequestSnapshot,
     click: async (selector) => {
       await revealClosedDetailsForSelector(page, selector, {
         state: "visible",

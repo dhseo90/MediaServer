@@ -32,6 +32,8 @@ Usage:
 개발/검증 명령:
   foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
   test           기본값은 --basic입니다. 기본/풀/외부 통합 테스트를 한글 리포트로 실행합니다.
+  verify-gst-environment
+                GStreamer 검색·캐시·실행 환경 전달을 격리 fixture로 검증합니다.
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
@@ -1207,6 +1209,49 @@ Usage:
                  v4.0.0 release readiness(네 영역 판정, 30/UI 미실행 blocker, close-out dry-run)를 검증합니다.
   verify-v400-roadmap-contract
                  v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
+  verify-v410-research-gate
+                 v4.1.0 녹화 기반의 공개 자료 provenance와 IP clean-room 차단선을 검증합니다.
+  verify-v410-entry-baseline
+                 v4.1.0 source target과 published v4.0.0 baseline 분리를 검증합니다.
+  verify-v410-recording-contracts
+                 v4.1.0 녹화 v1 계약과 golden JSONL fixture의 ID·시간·호환성 경계를 검증합니다.
+  verify-v410-recording-generation
+  verify-v410-recording-generation-files
+  verify-v410-recording-generation-active
+  verify-v410-recording-generation-cold-mutation
+  verify-v410-recording-generation-projection
+  verify-v410-recording-journal-generation-readonly
+  verify-v410-recording-catalog-generation-scratch
+  verify-v410-recording-catalog-generation-readonly
+  verify-v410-recording-generation-preappend
+  verify-v410-recording-generation-append
+  verify-v410-recording-generation-checkpoint
+  verify-v410-recording-generation-consumers
+  verify-v410-recording-runtime-generation
+  verify-v410-recording-cutover-input
+  verify-v410-recording-cutover-session
+  verify-v410-recording-order-snapshot
+  verify-v410-recording-identity-shards
+  verify-v410-recording-catalog-snapshot
+                 B안 파일·복원·증분 쓰기·세대 회전의 해당 단위를 검사합니다. 전체 제품 통합 PASS는 아닙니다.
+  verify-v410-recording-retention
+                 v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
+  verify-v410-event-recording
+                 v4.1.0 이벤트-상시녹화 연결, 비동기 remux, fallback과 event quota 경계를 검증합니다.
+  verify-v410-recording-timeline
+                 S06 조회·Range·인증·전송 수명을 검증합니다. 인증 환경변수 5개와 빌드된 서버가 필요합니다.
+  verify-v410-recording-observations
+                 S07 V2 관측·sampling·종료·시간 snapshot focused 검증을 실행합니다.
+  verify-v410-recording-foundation-runtime
+                 S09 실제 runtime oracle 1/5/7을 검증합니다. 전체 S09 PASS를 뜻하지 않습니다.
+  verify-v410-recording-foundation
+                 기본 --all은 runtime→app-auth, 부분모드는 별도 실행합니다. 전체 S09 PASS가 아닙니다.
+  verify-v410-recording-longrun --duration-minutes 120
+                 S09 실제 녹화120분 관측입니다. 자원 안정성은 별도 검토하며 명시 실행 승인 필요.
+  verify-v410-recording-fallback-binding
+                 S09 fallback의 durable identity 결속·legacy·noOpenSSL 거부를 검증합니다.
+  verify-v410-recording-ui-contract
+                 S06 화면 정적 계약을 검증합니다. 실제 UI 풀테스트 PASS를 뜻하지 않습니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -1451,7 +1496,21 @@ if [[ -z "${cmd}" || "${cmd}" == "help" || "${cmd}" == "-h" || "${cmd}" == "--he
 fi
 shift || true
 
+# 현재 녹화 focused 검증에만 적용한다. 문서/help/알 수 없는 명령은 GST에 의존하지 않는다.
 case "${cmd}" in
+  verify-v410-recording-recorder|verify-v410-recording-catalog|verify-v410-recording-retention|verify-v410-event-recording)
+    if [[ $# -eq 0 ]]; then
+      source "${INTERNAL_DIR}/env_common.sh"
+      media_server_apply_homebrew_gst_env
+    fi
+    ;;
+esac
+
+case "${cmd}" in
+  verify-gst-environment)
+    require_internal verify_gst_environment.sh
+    exec "${INTERNAL_DIR}/verify_gst_environment.sh" "$@"
+    ;;
   install)
     require_internal install_deps.sh
     exec "${INTERNAL_DIR}/install_deps.sh" "$@"
@@ -1511,6 +1570,10 @@ case "${cmd}" in
   verify-webrtc-ice)
     require_internal verify_webrtc_ice_config.sh
     exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
+    ;;
+  verify-whep-local-signaling)
+    require_internal verify_whep_local_signaling.mjs
+    exec "${INTERNAL_DIR}/verify_whep_local_signaling.mjs" "$@"
     ;;
   verify-external-turn-whep-field-gate)
     require_internal verify_external_turn_whep_field_gate.mjs
@@ -3011,6 +3074,175 @@ case "${cmd}" in
   verify-v400-entry-baseline)
     require_internal verify_v400_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v400_entry_baseline.mjs" "$@"
+    ;;
+  verify-v410-research-gate)
+    require_internal verify_v410_research_gate.sh
+    exec "${INTERNAL_DIR}/verify_v410_research_gate.sh" "$@"
+    ;;
+  verify-v410-entry-baseline)
+    require_internal verify_v410_entry_baseline.sh
+    exec "${INTERNAL_DIR}/verify_v410_entry_baseline.sh" "$@"
+    ;;
+  verify-v410-recording-media-inspector)
+    require_internal "verify_v410_recording_media_inspector.sh"
+    exec "${INTERNAL_DIR}/verify_v410_recording_media_inspector.sh" "$@"
+    ;;
+  verify-v410-recording-startup)
+    if [[ "${1:-}" == "--unit" ]]; then
+      shift
+      require_internal "verify_v410_recording_startup.sh"
+      exec "${INTERNAL_DIR}/verify_v410_recording_startup.sh" "$@"
+    fi
+    require_internal "verify_v410_recording_startup.mjs"
+    exec node "$ROOT_DIR/scripts/internal/verify_v410_recording_startup.mjs" "$@"
+    ;;
+  verify-v410-recording-finalize-recovery)
+    require_internal "verify_v410_recording_finalize_recovery.sh"
+    exec "${INTERNAL_DIR}/verify_v410_recording_finalize_recovery.sh" "$@"
+    ;;
+  verify-v410-recording-corruption)
+    require_internal verify_v410_recording_corruption.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_corruption.sh" "$@"
+    ;;
+  verify-v410-recording-recovery)
+    require_internal verify_v410_recording_recovery.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_recovery.sh" "$@"
+    ;;
+  verify-v410-recording-fixture-compatibility)
+    require_internal verify_v410_recording_fixture_compatibility.mjs
+    exec node "${INTERNAL_DIR}/verify_v410_recording_fixture_compatibility.mjs" "$@"
+    ;;
+  verify-v410-recording-contracts)
+    require_internal verify_v410_recording_contracts.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_contracts.sh" "$@"
+    ;;
+  verify-v410-recording-recorder)
+    require_internal verify_v410_recording_recorder.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_recorder.sh" "$@"
+    ;;
+  verify-v410-recording-catalog)
+    require_internal verify_v410_recording_catalog.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_catalog.sh" "$@"
+    ;;
+  verify-v410-recording-generation)
+    require_internal verify_recording_generation_manifest.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_manifest.sh" "$@"
+    ;;
+  verify-v410-recording-generation-files)
+    require_internal verify_recording_generation_files.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_files.sh" "$@"
+    ;;
+  verify-v410-recording-generation-active)
+    require_internal verify_recording_generation_active.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_active.sh" "$@"
+    ;;
+  verify-v410-recording-generation-cold-mutation)
+    require_internal verify_recording_generation_cold_mutation.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_cold_mutation.sh" "$@"
+    ;;
+  verify-v410-recording-generation-projection)
+    require_internal verify_recording_catalog_generation_projection.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_catalog_generation_projection.sh" "$@"
+    ;;
+  verify-v410-recording-journal-generation-readonly)
+    require_internal verify_recording_journal_generation_readonly.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_journal_generation_readonly.sh" "$@"
+    ;;
+  verify-v410-recording-catalog-generation-scratch)
+    require_internal verify_recording_catalog_generation_scratch.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_catalog_generation_scratch.sh" "$@"
+    ;;
+  verify-v410-recording-catalog-generation-readonly)
+    require_internal verify_recording_catalog_generation_readonly.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_catalog_generation_readonly.sh" "$@"
+    ;;
+  verify-v410-recording-generation-preappend)
+    require_internal verify_recording_generation_preappend.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_preappend.sh" "$@"
+    ;;
+  verify-v410-recording-generation-append)
+    require_internal verify_recording_generation_append.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_append.sh" "$@"
+    ;;
+  verify-v410-recording-generation-checkpoint)
+    require_internal verify_recording_generation_checkpoint.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_checkpoint.sh" "$@"
+    ;;
+  verify-v410-recording-cutover-input)
+    require_internal verify_recording_cutover_input.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_cutover_input.sh" "$@"
+    ;;
+  verify-v410-recording-cutover-session)
+    require_internal verify_recording_cutover_session.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_cutover_session.sh" "$@"
+    ;;
+  verify-v410-recording-generation-receipt)
+    require_internal verify_recording_generation_receipt.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_receipt.sh" "$@"
+    ;;
+  verify-v410-recording-cutover-candidate)
+    require_internal verify_recording_cutover_candidate.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_cutover_candidate.sh" "$@"
+    ;;
+  verify-v410-recording-generation-transaction)
+    require_internal verify_recording_generation_transaction.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_transaction.sh" "$@"
+    ;;
+  verify-v410-recording-generation-consumers)
+    require_internal verify_recording_generation_consumers.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_generation_consumers.sh" "$@"
+    ;;
+  verify-v410-recording-runtime-generation)
+    require_internal verify_recording_runtime_generation.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_runtime_generation.sh" "$@"
+    ;;
+  verify-v410-recording-order-snapshot)
+    require_internal verify_recording_order_history_snapshot.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_order_history_snapshot.sh" "$@"
+    ;;
+  verify-v410-recording-identity-shards)
+    require_internal verify_recording_identity_shards.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_identity_shards.sh" "$@"
+    ;;
+  verify-v410-recording-catalog-snapshot)
+    require_internal verify_recording_catalog_snapshot.sh
+    exec bash "${INTERNAL_DIR}/verify_recording_catalog_snapshot.sh" "$@"
+    ;;
+  verify-v410-recording-retention)
+    require_internal verify_v410_recording_retention.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_retention.sh" "$@"
+    ;;
+  verify-v410-event-recording)
+    require_internal verify_v410_event_recording.sh
+    exec "${INTERNAL_DIR}/verify_v410_event_recording.sh" "$@"
+    ;;
+  verify-v410-recording-timeline)
+    require_internal verify_v410_recording_timeline.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_timeline.sh" "$@"
+    ;;
+  verify-v410-recording-observations)
+    require_internal verify_v410_recording_observations.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_observations.sh" "$@"
+    ;;
+  verify-v410-recording-foundation-runtime)
+    require_internal verify_v410_recording_foundation_runtime.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_foundation_runtime.sh" "$@"
+    ;;
+  verify-v410-recording-foundation)
+    require_internal verify_v410_recording_foundation.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_foundation.sh" "$@"
+    ;;
+  verify-v410-recording-longrun)
+    require_internal verify_v410_recording_longrun.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_longrun.sh" "$@"
+    ;;
+  verify-v410-recording-fallback-binding)
+    require_internal verify_v410_recording_fallback_binding.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_fallback_binding.sh" "$@"
+    ;;
+  verify-v410-recording-ui-contract)
+    require_internal verify_v410_recording_ui_contract.mjs
+    exec node "${INTERNAL_DIR}/verify_v410_recording_ui_contract.mjs" "$@"
     ;;
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs

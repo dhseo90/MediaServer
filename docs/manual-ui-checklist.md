@@ -1,21 +1,47 @@
 # Manual UI Checklist
 
+B08-Q01~Q04는 녹화 기록 읽기 내부 검증의 사전등록이며 신규 UI 비대상이다. 집중 검사 결과를 실제 브라우저 재생·UI 풀테스트 PASS로 대체하지 않는다.
+B08-I02는 실제 앱 검증기의 임시 SQLite journal 관측 경계이며 신규 UI 비대상이다. 검증기 단기 결과를 실제 통합이나 UI PASS로 대체하지 않는다.
+
+S10 3C-4 C419~425는 요청 사실 보존의 내부 단기 검증이다. 신규 UI 비대상이며 실제 영상 범위·재생 가능·UI PASS를 증명하지 않는다.
+
+S10 3C-5A C501~508은 실제 파일 시간 측정용 내부 단기 검사로 UI 비대상이며 파생 기능 완료 PASS가 아니다.
+
+S10 3C-4 C401~418은 내부 opt-in 소비자 연결이며 신규 UI 비대상이다. 실제 producer 단기 PASS가 UI 풀테스트 PASS는 아니다.
+
+S10 3C-3C C341~356은 내부 원본 참조 저장이며 신규 UI 비대상이다. focused·복구 검증을 UI 전체 PASS로 확대하지 않는다.
+
+S10 3C-3B C321~336은 내부 writer/ready 결박이며 신규 UI 비대상이다. 실제 영상 단기 검증도 UI 전체 PASS가 아니다.
+
+S10 3C-3A C301~320은 내부 저장 결박이며 신규 UI 비대상이다. metadata 검증을 실제 writer/ready/UI PASS로 확대하지 않는다.
+
+S10 3C-2 C201~216은 내부 구간 해석이며 신규 UI 비대상이다. 실제 UI 결과를 대체하지 않는다.
+
+S10 3C-1 C101~112는 내부 원본·분석 연관이며 신규 UI 비대상이다. 단기 결과를 실제 UI PASS로 대체하지 않는다.
+
+
+S10 후속 3B B01~23은 내부 보존·재생 보호로 신규 UI 비대상이다. 단기 결과는 실제 UI PASS가 아니다.
+S10 후속 3A LOC01~14는 내부 위치 해석으로 UI 비대상이며 단기 결과를 UI PASS로 사용하지 않는다.
+S10 후속 2번 INPUT01~10/WR01~09는 내부 입력·writer 기능으로 신규 UI가 없어야 정상이다.
+직접 미디어 단기 검증은 중앙 기록을 따르며 UI 풀테스트 PASS로 사용하지 않는다.
+
 이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
 기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용합니다. 최신 공개 release 기준은 `v4.0.0`이고 직전 공개 제품 baseline은
-`v3.9.1`이며, 현재 소스 기준도 `v4.0.0`입니다.
-exact-ID 체크 대상은 `test/fixtures/project_feature_implementation_evidence.json`의
+`v3.9.1`이며, 현재 소스 기준은 `v4.1.0`입니다.
+baseline exact-ID 체크 대상은 `test/fixtures/project_feature_implementation_evidence.json`의
 UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, anchor이며 누락 ID를
 prefix/range delegation으로 대체하지 않습니다.
-UI 문서 기준은 `v4.0.0 Local Operations Policy and Stabilization`이며,
+과거 UI 문서 기준은 `v4.0.0 Local Operations Policy and Stabilization`이며,
 제품 기능 baseline은 v3.9.1이 유지한 v3.9.0-origin exact 424-case 범위를 그대로 상속합니다.
 UI 풀테스트 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v4.0.0`, v4.0.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v4.1.0`이며, `v4.1.0 release UI gate`는 아래432개 ID의 현재
+UI evidence 경계를 뜻합니다. v4.0.0 release UI gate는 당시 이력입니다. UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다. 이번
-Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
+historical Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
 기준서 current화, 장시간/UI 테스트 시작 조건 current화, `v3.5-v3.8 UI coverage bridge`
 정렬을 닫는 문서/test-source gate입니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
@@ -26,6 +52,25 @@ Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
 `./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.
 이 wrapper는 UI 풀테스트 선수/보조 verifier 묶음만 실행하며 30분/120분 장시간
 테스트는 실행하지 않습니다.
+
+## v4.1.0 추가 녹화 UI 실행
+
+현재 대상은 baseline 424 + inventory I27~I34 녹화 8 = 432개 ID입니다.
+기존 canonical/native manifest는 보존하고 424 qualifier는 baseline만 판정합니다.
+[결과 템플릿의 action별 사전 정의](./manual-ui-result-template.md#v410-녹화-8개-id-action별-결과)를
+한 행도 생략하지 않고 실행합니다. 이 표는 ID 8개 안의 세부 조작을 정의하며 새 ID가 아닙니다.
+
+1. baseline 424개 exact 실행·증거를 확보하고 녹화 8개와 집계를 분리합니다.
+2. /ops/events에서 I27 정상/빈값/역전/페이지 → I28 이벤트 우선 → I29 원본 →
+   I30 실제 영상 재생/정지/탐색을 실제 control로 조작합니다.
+3. I31 partial의 일부 구간·재생 가능 여부, 실제 삭제/손상 fixture 각각의 공통 재생 불가 안내, 미완결 event, 공백, 오류를 확인합니다. 정확한 missingRanges 표출이나 Writing segment의 목록 표출은 요구하지 않습니다. Writing 재생 금지는 내부 안전성 V410-S06-I08(`verify-v410-recording-timeline --read-model`)로 별도 검증하며 Pending event UI로 대체하지 않습니다. I32 quota/활성/blocked를 각각 확인합니다.
+   준비 fixture에 없는 상태는 미실행으로 남기고 정상 상태로 대체하지 않습니다.
+4. I33 navigation 범위와 I34 실제 role/scope/redaction 및
+   320/390/760/1180 × light/dark 8개 조합을 확인합니다.
+5. 과거 S06 PASS는 재사용하지 않습니다. auth-off --ui-direct 준비·종료는 역할 검증이
+   아니므로 실제 로그인·권한별 조작 및 제품 반영을 별도로 기록합니다.
+6. 메인이 exact 432개와 모든 세부 action·AGENTS Policy v4 공통 조건·cleanup을
+   확인한 뒤 whole-suite 판정합니다. 424 qualifier나 준비 도구 exit0로 대체하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라 실제 브라우저에서 제품 화면을
 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. 인앱 직접 조작 또는 Policy v4

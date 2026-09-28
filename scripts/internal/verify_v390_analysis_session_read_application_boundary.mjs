@@ -14,7 +14,8 @@ if (hasHelpFlag(args)) printUsageAndExit(`V390 Analysis Session read application
 Usage:
   ./server.sh verify-v390-analysis-session-read-application-boundary
 `);
-assertKnownOptions(args, ["h", "help"]);
+assertKnownOptions(args, ["h", "help", "application-only"]);
+const applicationOnly = args.includes("--application-only");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
@@ -38,6 +39,8 @@ const transportPaths = [
 const checks = [];
 function assert(value, message) { if (!value) throw new Error(message); }
 function check(name, fn) {
+  if (applicationOnly && (name === "CMake, server dispatch, and graph register the exact non-final Slice30A successor" ||
+      name === "current structure gate accepts the exact non-final Slice30A frontier")) return;
   try { fn(); checks.push({name, status: "PASS"}); }
   catch (error) { checks.push({name, status: "FAIL", detail: error.message}); }
 }
@@ -151,14 +154,14 @@ const mappingSpecs = [
   ["AnalysisSessionApplicationAppearanceExtractorStats", "analysis::AppearanceExtractorStats", []],
   ["AnalysisSessionApplicationTrackStateMetrics", "analysis::TrackStateMetrics", []],
   ["AnalysisSessionApplicationResult", "analysis::AnalysisResult",
-    ["detections", "tracks", "close_object_diagnostics", "pose_keypoints", "debug_state", "metrics_report"]],
+    ["detections", "tracks", "close_object_diagnostics", "pose_keypoints", "debug_state", "metrics_report", "recording_evidence"]],
   ["AnalysisSessionApplicationSnapshot", "analysis::AnalysisManager::TapSnapshot", ["latest_result"]],
 ];
 
 function assertServiceHeaderContract(header) {
   const includes = [...header.matchAll(/^\s*#\s*include\s*([<"][^>"]+[>"])/gm)].map(item => item[1]);
   assert(JSON.stringify(includes) === JSON.stringify([
-    "<cstddef>", "<cstdint>", "<optional>", "<string>", "<vector>",
+    "<cstddef>", "<cstdint>", "<memory>", "<optional>", "<string>", "<vector>",
     '"ingress/image_codec_application_service.h"',
   ]), "service header include manifest drift");
   assert(exactCount(header, /^\s*#\s*include\s*"/gm) === 1,
@@ -189,6 +192,13 @@ function assertAdapterContract(source) {
     const fields = directFields(bracedDefinition(read(serviceHeaderPath), "struct", dto));
     const mapping = functionBodyByParameter(source, canonical);
     for (const field of fields) {
+      if (dto === "AnalysisSessionApplicationResult" && field.name === "recording_evidence") {
+        assert(exactCount(mapping, /output\.recording_evidence = CaptureRecordingEvidence\(input\);/g) === 1,
+          "approved recording evidence capture missing");
+        assert(exactCount(source, /RestoreRecordingEvidence\(input\.recording_evidence, output\);/g) === 1,
+          "approved recording evidence restore missing");
+        continue;
+      }
       const expected = nestedFields.includes(field.name) ? 2 : 1;
       assert(exactCount(mapping, new RegExp(`input\\.${field.name}\\b`, "g")) === expected,
         `${dto}.${field.name} canonical read count/order drift expected=${expected}`);
@@ -248,7 +258,7 @@ function assertTransportContract(transport, composition, serverHeader, detail, s
     detail.includes("AnalysisSessionReadApplicationService& analysis_session_reads"),
   "HTTP constructor/Impl read port injection missing");
   assert(ordered(composition, [
-    "analysis::AnalysisSessionService analysis_sessions(session_manager)",
+    "analysis::AnalysisSessionService analysis_sessions(session_manager, recording_evidence)",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions)",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions)",
     "MakeWebRtcMediaApplicationAdapter(session_manager)",
@@ -299,6 +309,8 @@ function transformedCanonicalStructs() {
   for (const [from, to] of nameMap) definitions = definitions.replaceAll(from, to);
   definitions = definitions.replace("struct Track {", "struct Track {\n    using TrailPoint = TrackTrailPoint;");
   definitions = definitions.replace("ImageCodecFrame frame;", "RawVideoFrame frame;");
+  definitions = definitions.replace("std::shared_ptr<const RecordingEvidenceCarrier> recording_evidence;",
+    "AnalysisObservationContext observation_context; std::string observation_namespace; SourceAssociation source_association; std::shared_ptr<const DecodedIntervalSnapshot> decoded_intervals;");
   return definitions;
 }
 
@@ -308,10 +320,16 @@ function fakeCanonicalHeader() {
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 namespace analysis {
+struct DecodedIntervalSnapshot;
+enum class SourceAssociationQuality { TimestampMatch, Nearest, Ambiguous, Unavailable };
+struct OriginalSampleIdentity { std::string source_generation; std::uint64_t generation_order{}, ordinal{}; std::string track_id; std::uint64_t pts_ns{}; };
+struct SourceAssociation { SourceAssociationQuality quality{SourceAssociationQuality::Unavailable}; std::optional<OriginalSampleIdentity> original; };
+struct AnalysisObservationContext { std::string source_id, channel_id, stream_epoch_id; std::string locator_reason{"missing-provenance"}; };
 enum class PixelFormat { Unknown, I420, RGB, BGR, Gray8 };
 struct RawVideoFrame { std::string source_key; std::string track_id; int width{0}; int height{0}; PixelFormat format{PixelFormat::Unknown}; std::int64_t pts{0}; std::vector<unsigned char> data; };
 ${transformedCanonicalStructs()}
@@ -371,6 +389,8 @@ function compileAndRunCase(temp, source, name) {
     '#pragma once\n#include "analysis/analysis_session_service.h"\n');
   fs.writeFileSync(path.join(caseRoot, "analysis_session_application_mapping.h"),
     read("src/ingress/analysis_session_application_mapping.h"));
+  fs.writeFileSync(path.join(caseRoot, "recording_evidence_application_mapping.h"),
+    read("src/ingress/recording_evidence_application_mapping.h"));
   const sourceFile = path.join(caseRoot, "adapter.cpp");
   const harnessFile = path.join(caseRoot, "harness.cpp");
   fs.writeFileSync(sourceFile, source);

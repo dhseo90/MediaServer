@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.recording-v1-compatibility-manifest.v1",
+  "files": {
+    "segments.jsonl": "11b7f8b1b41ad7ba0d8921bcfa9ba132051d8c5234a9a0c7a0e34f58276769d9",
+    "event-links.jsonl": "92151bef9763ef928f4fda1b0185be5443dd89a19b0b30c31e457245ec8d550d",
+    "observations.jsonl": "70c3bc9705e22606b1a2cf7738e92ea427a03f6ab3d632b33fab62c8e1fe94a7",
+    "tombstones.jsonl": "0def653610a2c5afdd2e2ef9bea58ca9ba19a4b9a3b322362201619c7853cfe8"
+  }
+}

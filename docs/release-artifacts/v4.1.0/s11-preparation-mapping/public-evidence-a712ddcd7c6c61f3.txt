@@ -1,0 +1,7 @@
+[fail] CP06 exact canonical sequence equality
+[pass] CP06 same length different payload rejected
+[pass] CP06 reordered sequence rejected
+[pass] CP06 different count rejected
+[summary] pass=3 fail=1
+[cleanup] path=/private/tmp/media-server-checkpoint-reproduction.nfdiry bytes=928299 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

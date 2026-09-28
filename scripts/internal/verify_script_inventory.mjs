@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { parseServerDispatches as parseFixedServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -32,6 +33,15 @@ const checks = [];
 const projectInventory = readText(path.join(rootDir, "docs/project-feature-test-inventory.md"));
 const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
 
+check("dispatch parser recognizes explicit bash and node interpreters", () => {
+  for (const [interpreter, expected] of [["", 1], ["bash ", 1], ["node ", 1], ["python ", 0]]) {
+    const source = '  verify-example)\n    require_internal example.sh\n    exec ' + interpreter + '"${INTERNAL_DIR}/example.sh" "$@"\n    ;;';
+    const actual = parseServerDispatches(source);
+    assert(actual.length === expected && (!expected || actual[0].command === "verify-example" && actual[0].script === "example.sh"),
+      `dispatch interpreter recognition failed: ${interpreter || "direct"}`);
+  }
+});
+
 check("server.sh dispatch targets exist and are executable", () => {
   const dispatches = parseServerDispatches();
   assert(dispatches.length > 0, "server.sh dispatch command not found");
@@ -45,6 +55,9 @@ check("server.sh dispatch targets exist and are executable", () => {
 
 check("documented server.sh commands resolve to dispatch table", () => {
   const commands = new Set(parseServerDispatches().map(item => item.command));
+  // help는 내부 script dispatch가 아니라 server.sh 자체가 직접 처리한다.
+  const server = readText(path.join(rootDir, "server.sh"));
+  if (/"\$\{cmd\}" == "help"[^\n]*\]\]; then\n\s+usage\n/.test(server)) commands.add("help");
   const files = walkDocsAndScripts();
   const misses = [];
   for (const file of files) {
@@ -169,11 +182,14 @@ check("auth verifier has no hardcoded test password defaults", () => {
     "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
     "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
   ]) {
-    assert(authWorkflow.includes(`require_auth_secret_env ${envName}`), `auth workflow does not require ${envName}`);
     assert(streamVerification.includes(envName), `stream verification docs missing ${envName}`);
     assert(agents.includes(envName), `AGENTS.md missing ${envName}`);
   }
-  assert(authWorkflow.includes("Auth verifier passwords must be provided by the test operator"), "auth workflow missing explicit no-default failure message");
+  assert(authWorkflow.includes('recording_auth_preparation.sh') && authWorkflow.includes('auth_generate_passwords'), 'auth workflow missing isolated credential bootstrap');
+  const preparation=readText(path.join(rootDir,'scripts/internal/recording_auth_preparation.mjs'));
+  assert(preparation.includes("randomBytes(24)") && preparation.includes("['-q','--config','-']"), 'auth preparation missing CSPRNG/stdin transport boundary');
+  assert(!authWorkflow.includes('require_auth_secret_env'), 'auth workflow still requires operator secrets');
+  assert(fs.existsSync(path.join(rootDir,'scripts/internal/recording_auth_preparation.test.mjs')), 'auth behavioral selftest missing');
 });
 
 check("VA EventRecord dispatch verifier fails early and dispatches every poll by default", () => {
@@ -682,17 +698,8 @@ function fileExists(file) {
   return fs.existsSync(path.join(rootDir, file));
 }
 
-function parseServerDispatches() {
-  const server = readText(path.join(rootDir, "server.sh"));
-  const dispatches = [];
-  const regex = /^\s{2}([a-zA-Z0-9_.|-]+)\)\n\s+require_internal [^\n]+\n\s+exec "\$\{INTERNAL_DIR\}\/([^"\n]+)"/gm;
-  let match;
-  while ((match = regex.exec(server)) !== null) {
-    for (const command of match[1].split("|")) {
-      dispatches.push({ command, script: match[2] });
-    }
-  }
-  return dispatches;
+function parseServerDispatches(server = readText(path.join(rootDir, "server.sh"))) {
+  return parseFixedServerDispatches(server);
 }
 
 function walkDocsAndScripts() {

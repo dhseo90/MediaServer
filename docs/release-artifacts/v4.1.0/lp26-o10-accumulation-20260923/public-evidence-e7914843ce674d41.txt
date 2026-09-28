@@ -1,0 +1,21 @@
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-native] {"compileExit":0,"runExit":0,"sourceSha256":"ba5448b720bb359358ab71258daaeec685769e654260b4a1131cd357d460a078","binarySha256":"b4771dcf6756427cd4b7ceb6d31812f009ac3100c4788e2e6cac0c6877b625f3"}
+[profile-selftest-cleanup] {"bytes":56503,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (0.960292ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.124667ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (10.415375ms)
+✔ O28-D01 child termination classes and bounded metadata remain distinct (0.242083ms)
+✔ O28-D02 missing partial malformed loss and incomplete traces never synthesize completion (0.143709ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.63ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.887625ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (341.723834ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 399.569916

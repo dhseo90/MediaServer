@@ -1,0 +1,207 @@
+[S05 등록 대조] 27개 연결 확인; 실행 증거 아님
+[등록기 단위 테스트] PASS 정상 정식 등록 27개
+[등록기 단위 테스트] PASS 다른 등록군 추가와 일관된 총계 허용
+[등록기 단위 테스트] PASS 전체 총계 불일치 거부
+[등록기 단위 테스트] PASS canonical 등록 수 변경 거부
+[등록기 단위 테스트] PASS S05 등록 수 변경 거부
+[등록기 단위 테스트] PASS 등록군 중복 거부
+[등록기 단위 테스트] PASS 음수 등록 수 거부
+[등록기 단위 테스트] PASS 소수 등록 수 거부
+[등록기 단위 테스트] PASS 등록 범위 표 누락 거부
+[등록기 단위 테스트] PASS 누락 ID
+[등록기 단위 테스트] PASS 중복 ID
+[등록기 단위 테스트] PASS 추가 ID
+[등록기 단위 테스트] PASS 빈 테스트 영역
+[등록기 단위 테스트] PASS 없는 구현 심볼
+[등록기 단위 테스트] PASS 없는 테스트 함수
+[등록기 단위 테스트] PASS 없는 check
+[등록기 단위 테스트] PASS 중복 check ID
+[등록기 단위 테스트] PASS 문서 행 누락
+[등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력
+[등록기 단위 테스트] PASS 실제 check 결과 누락
+[등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부
+[등록기 단위 테스트] PASS 실패 summary
+[등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지
+[등록기 단위 테스트] PASS 중복 application 결과
+[등록기 단위 테스트] PASS runtime 로그 전체 누락
+[등록기 단위 테스트] PASS runtime 시나리오 누락
+[등록기 단위 테스트] PASS 종료 취소 runtime 시나리오 누락
+[등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary
+[등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary
+[등록기 단위 테스트] PASS runtime summary 실패
+[등록기 단위 테스트] PASS runtime summary 중복
+[등록기 단위 테스트] PASS runtime failure marker
+[등록기 단위 테스트] PASS runtime mutation 결과 누락
+[등록기 단위 테스트] PASS runtime mutation 결과 중복
+[등록기 단위 테스트] PASS runtime negative summary 실패
+[v410-s05-inventory-unit] pass=35 fail=0
+[s05-assert] "EQ journal open"
+[s05-assert] "EQ catalog open"
+[s05-assert] "EQ 실제 pending 등록"
+[s05-assert] "EQ 각 event 실제 worker 최초 journal 기록 확인"
+[eq-evidence] events=1 clock=10000 deadline=10250 before=2, after=2,
+[s05-assert] "EQ deadline 이전 동일 event journal 증가 없음"
+[s05-assert] "EQ 서로 다른 event link ID 보존"
+[s05-assert] "EQ 미해석 PTS는 파생 비실행"
+[s05-assert] "EQ journal open"
+[s05-assert] "EQ catalog open"
+[s05-assert] "EQ 실제 pending 등록"
+[s05-assert] "EQ 실제 pending 등록"
+[s05-assert] "EQ 각 event 실제 worker 최초 journal 기록 확인"
+[eq-evidence] events=2 clock=10000 deadline=10250 before=2,2, after=2,2,
+[s05-assert] "EQ deadline 이전 동일 event journal 증가 없음"
+[s05-assert] "EQ 서로 다른 event link ID 보존"
+[s05-assert] "EQ 미해석 PTS는 파생 비실행"
+[s05-assert] "기본 pending event link가 유효해야 함: "
+[s05-assert] "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함"
+[s05-assert] "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함"
+[s05-assert] "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함"
+[s05-assert] "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함"
+[s05-assert] "서로 겹치는 ordered overlap을 거부해야 함"
+[s05-assert] "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함"
+[s05-assert] "unknown link status를 영속 계약으로 허용하면 안 됨"
+[s05-assert] "locator 없는 fallback evidence를 거부해야 함"
+[s05-assert] "journal open 실패: "
+[s05-assert] "catalog open 실패: "
+[s05-assert] "event link 갱신은 SQLite primary projection에서 검증해야 함"
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "retention policy 실패: "
+[s05-assert] "이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함"
+[s05-assert] "event link ID와 derived clip path가 반환되어야 함"
+[s05-assert] "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함"
+[s05-assert] "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함"
+[s05-assert] "overlap segment가 UTC 순서로 전달되어야 함"
+[s05-assert] "파생 성공 link가 catalog complete로 저장되어야 함"
+[s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함"
+[s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함"
+[s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함"
+[s05-assert] "같은 event update는 파생 clip을 중복 생성하지 않아야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함"
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "cam-b policy 실패: "
+[s05-assert] "archive gap이 있으면 complete로 표시하면 안 됨"
+[s05-assert] "link가 정확한 missing UTC range를 보존해야 함"
+[s05-assert] "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함"
+[s05-assert] "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함"
+[s05-assert] "cam-late policy 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함"
+[s05-assert] "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨"
+[s05-assert] "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함"
+[s05-assert] "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "파생 중 원본 segment hold가 유지되어야 함"
+[s05-assert] "확장 회귀 journal open 실패: "
+[s05-assert] "확장 회귀 initial catalog open 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "cleanup 확장 fixture 저장 실패: "
+[s05-assert] "cleanup 확장 fixture 저장 실패: "
+[s05-assert] "확장 회귀 restart catalog open 실패: "
+[s05-assert] "확장 policy 실패"
+[s05-assert] "cleanup 확장 remux 실패는 한 번만 실행되어야 함"
+[s05-assert] "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함"
+[s05-assert] "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함"
+[s05-assert] "PTS 확장은 다른 범위 ID를 사용해야 함"
+[s05-assert] "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨"
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "PTS 확장 2회는 최초 포함 총 3회 파생해야 함"
+[s05-assert] "quota journal open 실패: "
+[s05-assert] "quota catalog open 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "quota policy 실패: "
+[s05-assert] "event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok"
+[s05-assert] "event quota 충족을 위해 continuous를 삭제하면 안 됨"
+[s05-assert] "event quota는 oldest eligible event를 삭제해야 함"
+[s05-assert] "policy 재등록 실패: "
+[s05-assert] "policy 제거가 진행 중 event reservation을 지우면 안 됨"
+[s05-assert] "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함"
+[s05-assert] "queue journal open 실패: "
+[s05-assert] "queue catalog open 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "queue policy 실패: "
+[s05-assert] "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함"
+[s05-assert] "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨"
+[s05-assert] "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨"
+[s05-assert] "terminal marker unlink 실패 시 source/output hold를 유지해야 함"
+[s05-assert] "terminal marker unlink 실패 시 event reservation을 유지해야 함"
+[s05-assert] "marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함"
+[s05-assert] "terminal hold 해제 실패를 Complete로 기록하면 안 됨"
+[s05-assert] "terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨"
+[s05-assert] "복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함"
+[s05-assert] "terminal complete commit retry fixture 저장 실패: "
+[s05-assert] "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨"
+[s05-assert] "overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨"
+[s05-assert] "hold overflow fixture 준비 실패: "
+[s05-assert] "event source lease hold_count overflow를 사전에 거부해야 함"
+[s05-assert] "hold fixture journal open 실패: "
+[s05-assert] "hold fixture catalog open 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "hold pending link 저장 실패: "
+[s05-assert] "hold replay journal open 실패: "
+[s05-assert] "hold replay catalog open 실패: "
+[s05-assert] "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함"
+[s05-assert] "terminal stage fixture event link 조회"
+[s05-assert] "terminal stage fixture 저장 실패: "
+[s05-assert] "terminal stage replay journal open: "
+[s05-assert] "terminal stage catalog open: "
+[s05-assert] "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨"
+[s05-assert] "terminal Complete 기록 전 source 삭제 요청을 차단해야 함"
+[s05-assert] "terminal Complete 기록 전 output 삭제 요청을 차단해야 함"
+[s05-assert] "restart journal open 실패: "
+[s05-assert] "restart catalog open 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "restart pending link 저장 실패: "
+[s05-assert] "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함"
+[s05-assert] "재시작 복구에서 event clip을 중복 파생하면 안 됨"
+[s05-assert] "segment finalize 실패: "
+[s05-assert] "conflict pending link 저장 실패: "
+[s05-assert] "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨"
+[s05-assert] "segment ID conflict에서 파생을 실행하면 안 됨"
+[s05-assert] "실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: "
+[s05-assert] "remux 결과 파일과 size가 일치해야 함"
+[s05-assert] "event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함"
+[s05-assert] "event clip이 source segment 전체 단순 연결보다 작아야 함"
+[s05-assert] "remux 결과 checksum과 crash cleanup marker를 남겨야 함"
+[s05-assert] "동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함"
+[s05-assert] "파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: "
+[s05-assert] "nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함"
+[s05-assert] "event remux recovery journal open 실패: "
+[s05-assert] "재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: "
+[s05-assert] "owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: "
+[s05-assert] "VP8/WebM test source 생성 실패: "
+[s05-assert] "VP8/WebM test source demux 실패: "
+[s05-assert] "검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함"
+[verify-v410-event-recording] pass=158 fail=0
+- PASS: application header is standard-only with exact DTO/default manifests
+- PASS: application source owns exact canonical mapping and overwrite semantics
+- PASS: transport has zero canonical bypass and exact projection/call ordering
+- PASS: recording link is durably admitted before the bounded storage queue can drop an event
+- PASS: event clip output remains fd-bound and measured before no-replace publication
+- PASS: compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order
+- FAIL: S05 composition starts the bridge before ingress and drains it after storage — storage → bridge drain → 해제 순서 불일치
+- summary: pass=6 fail=1
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.5u5OuE bytes=7172691 removed=true

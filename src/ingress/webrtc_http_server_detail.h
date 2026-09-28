@@ -1,6 +1,8 @@
 #pragma once
 // 파일 용도: split WebRTC HTTP server translation unit이 공유하는 내부 선언을 제공한다.
 #include "ingress/webrtc_http_server.h"
+#include "ingress/recording_application_service.h"
+#include "ingress/recording_request_gate.h"
 
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -1698,6 +1700,8 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3020 type
 struct WebRtcHttpServer::Impl {
+    RecordingApplicationService* recording_service{nullptr};
+    std::shared_ptr<RecordingRequestGate> recording_gate{std::make_shared<RecordingRequestGate>()};
     struct SessionEntry {
         std::string session_id;
         std::string ingress_client_id;

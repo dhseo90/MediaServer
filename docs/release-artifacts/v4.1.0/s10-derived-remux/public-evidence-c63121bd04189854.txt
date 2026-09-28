@@ -1,0 +1,5 @@
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_remux.cpp.o
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server

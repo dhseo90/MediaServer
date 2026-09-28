@@ -1,0 +1,53 @@
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1717 removed=true
+[R4L13 cleanup] owned=true bytes=943 removed=true
+[R4L13 cleanup] owned=true bytes=1875 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1260 removed=true
+[R4L13 cleanup] owned=true bytes=1283 removed=true
+[R4L13 cleanup] owned=true bytes=1606 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1606 removed=true
+[R4L13 cleanup] owned=true bytes=1848 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1372 removed=true
+[R4L13 cleanup] owned=true bytes=1876 removed=true
+[R4L13 cleanup] owned=true bytes=1373 removed=true
+[R4L13 cleanup] owned=true bytes=1875 removed=true
+[R4L13 cleanup] owned=true bytes=1882 removed=true
+[R4L13 cleanup] owned=true bytes=903 removed=true
+[R4L13 cleanup] owned=true bytes=811 removed=true
+[R4L13 cleanup] owned=true bytes=901 removed=true
+[R4L13 cleanup] owned=true bytes=2089 removed=true
+[R4L13 cleanup] owned=true bytes=826 removed=true
+[R4L13 cleanup] owned=true bytes=903 removed=true
+✔ R4L01 baseline exact source (11.121708ms)
+✔ R4L02 unique insertion relocation preserves approved semantics (4.894666ms)
+✔ R4L03 unique deletion relocation (3.494834ms)
+✔ R4L04 duplicate context even at original location rejected (2.437417ms)
+✔ R4L05 changed local context rejected (2.978ms)
+✔ R4L06 changed enclosing body rejected (3.050958ms)
+✔ R4L07 assertion removal rejected (2.161083ms)
+✔ R4L08 verifier body change rejected (4.401792ms)
+✔ R4L09 same-process source relocation is fresh (4.002875ms)
+✔ R4L10 same-process context and body mutation rejected (5.822291ms)
+✔ R4L11 validation never mutates proof or approval digests (3.302292ms)
+✔ R4L12 stale-range decoy cannot conceal actual readback mutation (2.614709ms)
+✔ R4L14 same-process corpus sees source token addition and removal (2.172292ms)
+✔ R4L15 optional roles retained relocated and validated (7.993791ms)
+✔ R4L16 duplicate statement in different function resolves approved body (3.007958ms)
+✔ R4L17 same approved body with multiple candidates stays ambiguous (3.725083ms)
+✔ R4L18 no approved body match cannot fall back to stored line (2.201667ms)
+✔ R4L19 nested shell failure branch preserves exact oracle (4.258584ms)
+✔ R4L20 closed fi excludes outside token and failure decoys (3.371583ms)
+✔ R4L21 incomplete bounded and success-only shell branches rejected (8.762083ms)
+✔ R4L22 generator and consumer use same bounded branch reader (3.162917ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 127.985

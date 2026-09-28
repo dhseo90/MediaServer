@@ -1,0 +1,5 @@
+{"command":["git","rev-parse","HEAD"],"exit":0,"stdout":"e491705672351d45e7aec47f5ba44259d86d01d6","stderr":""}
+{"command":["uname","-s","-r","-m"],"exit":0,"stdout":"Darwin 25.6.0 arm64","stderr":""}
+{"command":["c++","--version"],"exit":0,"stdout":"Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin","stderr":""}
+{"command":["pkg-config","--modversion","gstreamer-1.0","gstreamer-app-1.0","gstreamer-video-1.0","openssl","sqlite3"],"exit":0,"stdout":"1.28.1\n1.28.1\n1.28.1\n3.6.2\n3.51.0","stderr":""}
+{"captured_at":"2026-09-13T02:58:38.912Z","token_start":null,"token_end":null,"token_consumed":null,"reason":"하위 작업별 token 계측 도구 없음"}

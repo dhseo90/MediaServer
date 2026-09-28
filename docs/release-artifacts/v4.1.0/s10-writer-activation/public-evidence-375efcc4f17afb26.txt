@@ -1,0 +1,15 @@
+✔ ISO01 explicit owned loopback accepted (0.280958ms)
+✔ ISO02 empty STUN rejected (0.084167ms)
+✔ ISO03 external STUN rejected (0.035834ms)
+✔ ISO04 mixed server ICE rejected (0.035458ms)
+✔ ISO05 TURN rejected (0.300709ms)
+✔ ISO06 unowned port rejected (0.044333ms)
+✔ ISO07 unexpected credentials rejected (0.03675ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30.599209

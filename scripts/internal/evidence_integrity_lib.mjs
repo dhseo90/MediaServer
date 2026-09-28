@@ -151,6 +151,73 @@ export function deduplicateScreenshotArtifactAgainstTree(item, root) {
   return evidence;
 }
 
+// finalizer에서 새로 촬영한 PNG만 정리한다. 기존 case 증거는 읽기 전용이다.
+export function deduplicateFinalizerScreenshots(probes, root) {
+  const owned = path.resolve(root);
+  const fresh = path.join(owned, "suite-finalizer", "visual-matrix");
+  if (!Array.isArray(probes) || probes.length > 1000) throw new Error("finalizer probe input invalid");
+  const validate = (file, directory = false) => {
+    const resolved = path.resolve(file);
+    if (resolved !== owned && !isWithin(owned, resolved)) throw new Error("finalizer path outside owned root");
+    let cursor = owned;
+    for (const part of ["", ...path.relative(owned, resolved).split(path.sep).filter(Boolean)]) {
+      if (part) cursor = path.join(cursor, part);
+      const stat = fs.lstatSync(cursor);
+      if (stat.isSymbolicLink() || (cursor !== resolved && !stat.isDirectory())) throw new Error("finalizer unsafe path");
+      if (cursor === resolved && !(directory ? stat.isDirectory() : stat.isFile())) throw new Error("finalizer invalid file type");
+    }
+    return resolved;
+  };
+  validate(owned, true);
+  const candidates = [];
+  const visit = directory => {
+    validate(directory, true);
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const file = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) throw new Error("finalizer unsafe candidate path");
+      if (entry.isDirectory()) visit(file);
+      else if (entry.name.toLowerCase().endsWith(".png")) candidates.push(validate(file));
+      if (candidates.length > 10000) throw new Error("finalizer candidate bound exceeded");
+    }
+  };
+  const cases = path.join(owned, "cases");
+  let hasCases = true;
+  try { fs.lstatSync(cases); } catch (error) { if (error.code === "ENOENT") hasCases = false; else throw error; }
+  if (hasCases) visit(cases);
+  const seenPaths = new Set();
+  // 모든 입력 검증을 삭제/참조 변경보다 먼저 완료한다.
+  const inputs = probes.map(probe => {
+    if (!probe || typeof probe.screenshotPath !== "string" || !probe.screenshotPath) throw new Error("finalizer screenshot missing");
+    const file = validate(probe.screenshotPath);
+    if (!isWithin(fresh, file) || !file.toLowerCase().endsWith(".png") || seenPaths.has(file)) throw new Error("finalizer screenshot ownership invalid");
+    seenPaths.add(file);
+    return { probe, file, sha256: sha256File(file) };
+  });
+  const canonical = new Map();
+  for (const file of candidates) {
+    const hash = sha256File(file);
+    if (!canonical.has(hash)) canonical.set(hash, { file, id: path.basename(path.dirname(path.dirname(file))).replace(/^\d+-/, "") });
+  }
+  const plan = inputs.map(input => {
+    const prior = canonical.get(input.sha256);
+    if (!prior) canonical.set(input.sha256, { file: input.file, id: String(input.probe.id || "") });
+    return { ...input, target: prior?.file || input.file, duplicateOfCaseId: prior?.id || "" };
+  });
+  for (const item of plan) {
+    validate(item.file); validate(item.target);
+    if (sha256File(item.file) !== item.sha256 || sha256File(item.target) !== item.sha256) throw new Error("finalizer screenshot changed during planning");
+  }
+  for (const item of plan) {
+    validate(item.file); validate(item.target);
+    if (sha256File(item.file) !== item.sha256 || sha256File(item.target) !== item.sha256) throw new Error("finalizer screenshot changed before removal");
+    if (item.file !== item.target) fs.unlinkSync(item.file);
+    item.probe.screenshotPath = item.target;
+    item.probe.screenshotEvidence = { status: "captured", sha256: item.sha256,
+      canonicalPath: item.target, deduplicated: item.file !== item.target, duplicateOfCaseId: item.duplicateOfCaseId };
+  }
+  return { removed: plan.filter(item => item.file !== item.target).length, retained: canonical.size };
+}
+
 export function pruneUnreferencedArtifactFiles({ roots, referencedPaths }) {
   const resolvedRoots = [...new Set((roots || []).map(value => path.resolve(value)))];
   const referenced = new Set((referencedPaths || []).filter(Boolean).map(value => path.resolve(value)));

@@ -1,0 +1,5 @@
+[gstreamer] GStreamer 1.28.1
+[profile-factory] trak-timescale=1000000000 movie-timescale=1000000000
+[profile-factory] trak-timescale=1000000000 movie-timescale=1000000000
+[checkpoint] TP01 finalized=250 unfinalized=50
+[capture-fail] boundary-count

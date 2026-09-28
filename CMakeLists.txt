@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 4.0.0 LANGUAGES CXX)
+project(media_server VERSION 4.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,6 +12,9 @@ option(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE "Enable lab-only experimental YouTube 
 set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root")
 
 find_package(PkgConfig QUIET)
+# 삭제된 녹화의 상세 원장 행을 가역 압축·복구하기 위한 필수 의존성.
+# 라이선스 원문: https://zlib.net/zlib_license.html (zlib License).
+find_package(ZLIB REQUIRED)
 
 add_library(media_server_runtime STATIC
     src/analysis/analysis_manager.cpp
@@ -52,6 +55,7 @@ add_library(media_server_runtime STATIC
     src/app_config.cpp
     src/core/analysis_runtime_port.cpp
     src/core/command_runner.cpp
+    src/core/gst_decode_compatibility.cpp
     src/core/shared_stream.cpp
     src/core/source_factory.cpp
     src/core/stream_registry.cpp
@@ -88,6 +92,45 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_assets.cpp
     src/ingress/product_ui_action_execution_deferral.cpp
     src/ingress/product_ui_auth_pages.cpp
+    src/recording/recording_contracts.cpp
+    src/recording/event_clip_deriver.cpp
+    src/recording/event_recording_bridge.cpp
+    src/recording/gstreamer_segment_writer.cpp
+    src/recording/recording_file_evidence.cpp
+    src/recording/recording_journal.cpp
+    src/recording/recording_generation_manifest.cpp
+    src/recording/recording_generation_active.cpp
+    src/recording/recording_generation_cold_mutation.cpp
+    src/recording/recording_generation_files.cpp
+    src/recording/recording_cutover_input.cpp
+    src/recording/recording_generation_receipt.cpp
+    src/recording/recording_generation_transaction.cpp
+    src/recording/recording_cutover_stage_writer.cpp
+    src/recording/recording_catalog_cutover_candidate.cpp
+    src/recording/recording_order_history_snapshot.cpp
+    src/recording/recording_identity_shard.cpp
+    src/recording/recording_catalog_snapshot.cpp
+    src/recording/recording_catalog_generation_projection.cpp
+    src/recording/recording_media_inspector.cpp
+    src/recording/recording_finalize_recovery.cpp
+    src/recording/recording_startup_recovery.cpp
+    src/recording/recording_catalog.cpp
+    src/recording/recording_catalog_snapshot_export.cpp
+    src/recording/analysis_observation_projector.cpp
+    src/recording/recording_read_service.cpp
+    src/recording/recording_timeline_projection.cpp
+    src/recording/recording_derived_selection.cpp
+    src/recording/recording_derived_job.cpp
+    src/recording/recording_derived_job_ready.cpp
+    src/recording/recording_derived_job_service.cpp
+    src/recording/recording_derived_event_worker.cpp
+    src/recording/recording_evidence_observer.cpp
+    src/recording/recording_runtime_composition.cpp
+    src/recording/recording_derived_remux.cpp
+    src/ingress/recording_application_service.cpp
+    src/recording/retention_coordinator.cpp
+    src/recording/recording_session_service.cpp
+    src/recording/recording_supervisor.cpp
     src/ingress/product_ui_components.cpp
     src/ingress/product_ui_client_css.cpp
     src/ingress/product_ui_client_scripts.cpp
@@ -122,6 +165,10 @@ add_executable(media_server
 )
 
 target_include_directories(media_server_runtime PUBLIC include)
+target_link_libraries(media_server_runtime PUBLIC ZLIB::ZLIB)
+# 기존 단독 v1 runner의 링크 범위를 바꾸지 않는다. 실제 제품과 B 전용 runner는
+# generation backend를 함께 컴파일하여 동일한 v1/B 분기 안전 경계를 검증한다.
+target_compile_definitions(media_server_runtime PRIVATE MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1)
 target_link_libraries(media_server PRIVATE media_server_runtime)
 
 if(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE)

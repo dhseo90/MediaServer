@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -58,6 +59,20 @@ struct StreamDescriptor {
     bool is_live{false};
 };
 
+struct SampleObservation {
+    std::string source_generation;
+    std::uint64_t generation_order{0};
+    std::uint64_t ordinal{0};
+    std::optional<std::uint64_t> pts_ns;
+    std::optional<std::uint64_t> dts_ns;
+    std::optional<std::uint64_t> duration_ns;
+    std::string clock_process_id;
+    std::int64_t mono_before_ns{0};
+    std::int64_t observed_utc_ns{0};
+    std::int64_t mono_after_ns{0};
+    bool discont{false};
+};
+
 struct MediaSample {
     // SourceWorker가 fan-out하는 최소 미디어 단위다. payload는 codec elementary stream 형태를 유지한다.
     MediaKind kind{MediaKind::Video};
@@ -67,6 +82,7 @@ struct MediaSample {
     std::int64_t pts{0};
     std::int64_t dts{0};
     std::vector<unsigned char> payload;
+    std::optional<SampleObservation> observation;
 };
 
 using Packet = MediaSample;

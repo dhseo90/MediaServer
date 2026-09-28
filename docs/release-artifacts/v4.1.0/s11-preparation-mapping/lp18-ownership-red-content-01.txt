@@ -1,0 +1,83 @@
+{"kind":"start","utc":"2026-09-19T14:32:38.895Z","mode":"red","id":"content-01","suite":"content","source":[{"name":"include/recording/recording_catalog.h","sha256":"f284e8cda82c5be12a8123d86e68137fc928c9a7e7608c52645e5ef2746c7b5d"},{"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"},{"name":"src/recording/recording_catalog.cpp","sha256":"dc68dd556f9e0cbe873cea705fbfd0a9c26edb7285a7cb735fd3b9de9d5e00cd"},{"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"f0723b12e3108ec0b9f6f0bc8daf676e5e379ce933c1df14ca045421fa4de7d2"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"1679ec9f6b7b6fbb247ba4878146fe8b713afe990e5494682308bbd26aa62ba3"},{"name":"scripts/internal/recording_job_content_proof_smoke.cpp","sha256":"cc3363a5de16e3a7738080e378592e72798f715067a7a8b9f42ffcc6a7301b03"},{"name":"scripts/internal/recording_job_content_proof_counter.h","sha256":"0be2ac7eba931a85b13ef47abc9a3c2169ee3e84a37b8b881e16f2b088aeee12"},{"name":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"},{"name":"src/recording/recording_derived_job_ready.cpp","sha256":"b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","content"],"seconds":60}
+[instrument] proof_exact_insertions=4 ready_sha256=9dcab5e43598bdddb7a62339bccc968121dd94571b6c4891bcfe08af0def17bd
+[instrument] catalog_sha256=181140838345af1228164233188294a0503023f541b0511f0915b0ebb601fcf5 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"f284e8cda82c5be12a8123d86e68137fc928c9a7e7608c52645e5ef2746c7b5d"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"dc68dd556f9e0cbe873cea705fbfd0a9c26edb7285a7cb735fd3b9de9d5e00cd"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_job_content_proof_smoke.cpp","sha256":"cc3363a5de16e3a7738080e378592e72798f715067a7a8b9f42ffcc6a7301b03"}
+[source] {"name":"scripts/internal/recording_job_content_proof_counter.h","sha256":"0be2ac7eba931a85b13ef47abc9a3c2169ee3e84a37b8b881e16f2b088aeee12"}
+[source] {"name":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"}
+[source] {"name":"src/recording/recording_derived_job_ready.cpp","sha256":"b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}
+        3.65 real         3.39 user         0.23 sys
+           293994496  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84891  page reclaims
+                 736  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                   0  messages received
+                   2  signals received
+                  18  voluntary context switches
+                2962  involuntary context switches
+            75868282  instructions retired
+            35853312  cycles elapsed
+             1950104  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3669,"groupPeakRssBytes":310034432}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=eca8b86daaa1dc9c76ea6dc63a5367e88aa7ee1c32fd862915dba7b8c0082d38
+[record-cost] iteration=1 serialize_us=77325 parse_us=141801
+[record-cost] iteration=2 serialize_us=78180 parse_us=142653
+[record-cost] iteration=3 serialize_us=78165 parse_us=142149
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=7b51da4ddd7dc9db44a9d1e620fd0d1bc8282c202dfa81cd7e6051f14fe1a0ed
+[record-cost] iteration=1 serialize_us=77943 parse_us=142358
+[record-cost] iteration=2 serialize_us=77826 parse_us=141824
+[record-cost] iteration=3 serialize_us=77570 parse_us=144239
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=9355423e8055b84f6fe92326ebbf4c8f09cb135a3d5a60e9475fa55a55e7f93e
+[record-cost] iteration=1 serialize_us=77989 parse_us=142245
+[record-cost] iteration=2 serialize_us=77758 parse_us=142453
+[record-cost] iteration=3 serialize_us=77715 parse_us=142682
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=b5b921d881057cff537f3f68fe7355c3a157c4e4f0ac46147325785700d42e8f
+[record-cost] iteration=1 serialize_us=77764 parse_us=142130
+[record-cost] iteration=2 serialize_us=78438 parse_us=142380
+[record-cost] iteration=3 serialize_us=78037 parse_us=142445
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[pass] LP18-V01 every normal update strictly parses content once
+[pass] LP18-V01 automatic checkpoint applies current update payload
+[fail] LP18-V01 automatic checkpoint reuses current validated content without parsing
+[pass] LP18-V04 managed reopen retains strict content parsing
+[pass] LP18-V04 manual checkpoint retains strict content parsing
+[proof-counts] updates=8 liveParses=8 automaticCheckpoints=2 automaticApplications=2 automaticParses=2 reopenParses=4 manualParses=1
+[summary] LP18 pass=6 fail=1
+       27.26 real        26.51 user         0.28 sys
+           157155328  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               75391  page reclaims
+                  65  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 107  messages sent
+                  88  messages received
+                   0  signals received
+                 141  voluntary context switches
+               18688  involuntary context switches
+        548798555328  instructions retired
+        111132362635  cycles elapsed
+            76923696  peak memory footprint
+{"kind":"phase","label":"focused","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":27278,"groupPeakRssBytes":182714368}
+{"kind":"oracle","mode":"red","expectedRed":true,"productPass":false,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":13567669,"removed":true}
+{"kind":"result","utc":"2026-09-19T14:33:09.856Z","mode":"red","matched":true,"productPass":false,"elapsedMs":30962}

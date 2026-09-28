@@ -1,0 +1,39 @@
+{"kind":"start","utc":"2026-09-19T13:58:36.663Z","mode":"green","id":"binding-01","suite":"binding","source":[{"name":"include/recording/recording_catalog.h","sha256":"484496495b7c9d90f36220955c9f99e4a9d4e8e5eafb8bf3373ad7235f650aab"},{"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"},{"name":"src/recording/recording_catalog.cpp","sha256":"48adb2b5ca6cf5958479e4e81a876311edf104b0b331e405f7cb1c78d98334ec"},{"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"7b15631cee4839f7b230e06d986a7ee9caf9d0bb095f0832ffcba4bfa9ef9a67"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"152bec4322bccac675d187292353753f92daa88051409b88307c342540e52274"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"d2b0646d54bd10dadc74e6756598b1c71b68d7abff7e5745259d700f3b93d3a3"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>"],"seconds":60}
+[instrument] catalog_sha256=4e9b00d79210734e3aa95d139f189e0cecbebeb4b46d72101bc4beb06c0286b3 binding_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"484496495b7c9d90f36220955c9f99e4a9d4e8e5eafb8bf3373ad7235f650aab"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"48adb2b5ca6cf5958479e4e81a876311edf104b0b331e405f7cb1c78d98334ec"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"7b15631cee4839f7b230e06d986a7ee9caf9d0bb095f0832ffcba4bfa9ef9a67"}
+<repo>/scripts/internal/recording_immutable_ownership_smoke.cpp:184:616: error: use of undeclared identifier 'SerializeRecordingOrderReservationV1'; did you mean 'RecordingOrderReservationV1'?
+  184 |   auto next_segment=segment;next_segment.segment_id="typed-next";next_segment.order_request_id="typed-next-order";++next_segment.order_sequence;auto next_binding=binding;next_binding.segment_id=next_segment.segment_id;auto next_order=order;next_order.mutation_id=next_segment.order_request_id;next_order.entity_id=next_segment.segment_id;RecordingOrderReservationV1 reserved;Need(ParseRecordingOrderReservationV1(order.payload_json,&reserved,&error));reserved.request_id=next_segment.order_request_id;reserved.segment_id=next_segment.segment_id;reserved.sequence=next_segment.order_sequence;next_order.payload_json=SerializeRecordingOrderReservationV1(reserved);Need(target.ApplyMutationLocked(next_order,false,&error));auto next=mutation;next.mutation_id="typed-next-mutation";next.entity_id=next_segment.segment_id;next.payload_json="{\"segment\":"+SerializeRecordingSegmentV2(next_segment)+",\"mediaRelpath\":\"typed-next.mp4\",\"sourceBinding\":"+SerializeRecordingSourceBindingV1(next_binding)+"}";auto next_handle=std::make_shared<const RecordingSourceBindingV1>(next_binding);pool.emplace(next_segment.segment_id,next_handle);ownership_probe::ResetBindingPoolCounts();
+      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<owned-root>/include/recording/recording_journal.h:62:8: note: 'RecordingOrderReservationV1' declared here
+   62 | struct RecordingOrderReservationV1 {
+      |        ^
+1 error generated.
+        2.20 real         1.95 user         0.12 sys
+           293470208  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               44899  page reclaims
+                 496  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                1258  messages sent
+                   0  messages received
+                   2  signals received
+                  15  voluntary context switches
+                1501  involuntary context switches
+            74205618  instructions retired
+            35553512  cycles elapsed
+             1933720  peak memory footprint
+{"kind":"phase","label":"build","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2216,"groupPeakRssBytes":307347456}
+{"kind":"failure","code":"LP18_BUILD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":335407,"removed":true}
+{"kind":"result","utc":"2026-09-19T13:58:38.892Z","mode":"green","matched":false,"productPass":false,"elapsedMs":2229}

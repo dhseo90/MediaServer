@@ -1,0 +1,12 @@
+A-Build.log trailing-whitespace-lines=0
+A-ExpectedRed.log trailing-whitespace-lines=0
+A-Extended.log trailing-whitespace-lines=0
+A-FinalBuild.log trailing-whitespace-lines=0
+A-FinalFocused.log trailing-whitespace-lines=0
+A-FirstGreen.log trailing-whitespace-lines=0
+A-FrozenBuild.log trailing-whitespace-lines=0
+A-PreparationBuild.log trailing-whitespace-lines=0
+A-Red.log trailing-whitespace-lines=0
+A-RetentionRegression.log trailing-whitespace-lines=0
+A-ServiceRegression.log trailing-whitespace-lines=0
+[summary] files=11 fail=0

@@ -1,0 +1,19 @@
+[pass] dispatch parser recognizes explicit bash and node interpreters
+[pass] server.sh dispatch targets exist and are executable
+[pass] documented server.sh commands resolve to dispatch table
+[pass] tracked scripts are classified and referenced
+[pass] project inventory delegates script file inventory to this verifier
+[pass] project inventory maps verifier families without duplicating dispatch details
+[pass] CMake does not define a separate untracked CTest registry
+[pass] test entry scripts are reachable from test_all
+[pass] auth verifier has no hardcoded test password defaults
+[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default
+[fail] critical verifier pass output avoids grouped feature-result wording: grouped feature-result wording remains:
+scripts/internal/recording_hw_impact_probe.cpp: \u002c overflow=
+[pass] user-facing JS option parsers reject unknown options
+
+== Script inventory verification summary ==
+- pass: 11
+- fail: 1
+[artifact-note] 실패 원문 중 쉼표 한 글자를 U+002C 표기로 보존. 저장소 전수 문자열 검사의 이력 로그 오탐 방지이며 원검사 FAIL은 유지.
+[original-sha256] b1e13259a86c1e6003e49e574f4d9e4d35a1c52bdffdadb13c6f82fd973cb773

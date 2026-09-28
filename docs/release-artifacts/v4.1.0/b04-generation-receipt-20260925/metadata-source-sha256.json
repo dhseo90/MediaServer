@@ -1,0 +1,42 @@
+[
+  {
+    "file": "src/domain/strict_json.cpp",
+    "sha256": "be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b"
+  },
+  {
+    "file": "include/domain/strict_json.h",
+    "sha256": "32ef5e1ab75432cf3c0cf9782fe942907242a75a1c0dec1a0496ae1e220ce9aa"
+  },
+  {
+    "file": "src/recording/recording_generation_manifest.cpp",
+    "sha256": "a7fa3ca8db6c4bc13ad25e177f74f23dcaf1993f3658b35c503d9c643567e54a"
+  },
+  {
+    "file": "include/recording/recording_generation_manifest.h",
+    "sha256": "4688bd0890d3cd413ecad715d9c84c3fde7fc22153a74bd8d4e29cef288c4265"
+  },
+  {
+    "file": "src/recording/recording_generation_receipt.cpp",
+    "sha256": "87341b587dfd5f013071dca1184332e9e80ac145353797871b17f2f8908d29cf"
+  },
+  {
+    "file": "include/recording/recording_generation_receipt.h",
+    "sha256": "118295925037ad2247dc39aea9ee98647f329e4aa00d361f031834c19db116b3"
+  },
+  {
+    "file": "scripts/internal/recording_generation_receipt_smoke.cpp",
+    "sha256": "44ac0d46c7967241f359a01ac4f003dc07689a3d7e28815b9f3ec8fbd33dba02"
+  },
+  {
+    "file": "scripts/internal/verify_recording_generation_receipt.sh",
+    "sha256": "89deb8194fefec8522804096f29fbf7fbbc4c73b3df4de1de2f9b2bd732237b6"
+  },
+  {
+    "file": "scripts/internal/recording_generation_manifest_smoke.cpp",
+    "sha256": "d10b2eda4716e65955150bdde908d24f53238bfdad3c147fa8c93337413bbe4a"
+  },
+  {
+    "file": "scripts/internal/verify_recording_generation_manifest.sh",
+    "sha256": "058b72378700a39e8a7719b7378b8359f2131c9c81b6b8974591adfceac0899c"
+  }
+]

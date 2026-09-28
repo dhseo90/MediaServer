@@ -1,0 +1,157 @@
+{
+  "scope": "B13 기존 증거 무결성·실행 소스 대조; 새 UI/장시간 실행 아님",
+  "head": "dae8f3ae52e283bde2acd55986815a18c0a169bf",
+  "productLastCommit": "c47355793d688f89f2b7171a89f8d69f91e9a2dc",
+  "productDiffSinceLastCommit": [],
+  "ui": {
+    "sourceCommit": "0c14c3405d87fb4cf3cf3b327ef1f4fe4ef1a783",
+    "productHash": "8637eb2f73772d373d09fe3c97b7b50628a8605fbdd0f25f14c99e2eb77ef46e",
+    "archiveSha256": "05c0693e514fc59b25c189fc53b4fe4676a767131910231a0908927f5b877e8d",
+    "artifactsChecked": 95,
+    "pass": 31,
+    "fail": 0,
+    "notRun": 0,
+    "ids": [
+      {
+        "id": "I27-filter",
+        "status": "pass"
+      },
+      {
+        "id": "I27-empty",
+        "status": "pass"
+      },
+      {
+        "id": "I27-inverted",
+        "status": "pass"
+      },
+      {
+        "id": "I27-page",
+        "status": "pass"
+      },
+      {
+        "id": "I28-event",
+        "status": "pass"
+      },
+      {
+        "id": "I29-original",
+        "status": "pass"
+      },
+      {
+        "id": "I30-play",
+        "status": "pass"
+      },
+      {
+        "id": "I30-pause",
+        "status": "pass"
+      },
+      {
+        "id": "I30-seek",
+        "status": "pass"
+      },
+      {
+        "id": "I31-partial",
+        "status": "pass"
+      },
+      {
+        "id": "I31-deleted",
+        "status": "pass"
+      },
+      {
+        "id": "I31-corrupt",
+        "status": "pass"
+      },
+      {
+        "id": "I31-pending",
+        "status": "pass"
+      },
+      {
+        "id": "I31-gap",
+        "status": "pass"
+      },
+      {
+        "id": "I31-error",
+        "status": "pass"
+      },
+      {
+        "id": "I32-quota",
+        "status": "pass"
+      },
+      {
+        "id": "I32-active",
+        "status": "pass"
+      },
+      {
+        "id": "I32-blocked",
+        "status": "pass"
+      },
+      {
+        "id": "I33-navigation",
+        "status": "pass"
+      },
+      {
+        "id": "I34-admin",
+        "status": "pass"
+      },
+      {
+        "id": "I34-operator",
+        "status": "pass"
+      },
+      {
+        "id": "I34-viewer-unauth",
+        "status": "pass"
+      },
+      {
+        "id": "I34-redaction",
+        "status": "pass"
+      },
+      {
+        "id": "I34-320-light",
+        "status": "pass"
+      },
+      {
+        "id": "I34-320-dark",
+        "status": "pass"
+      },
+      {
+        "id": "I34-390-light",
+        "status": "pass"
+      },
+      {
+        "id": "I34-390-dark",
+        "status": "pass"
+      },
+      {
+        "id": "I34-760-light",
+        "status": "pass"
+      },
+      {
+        "id": "I34-760-dark",
+        "status": "pass"
+      },
+      {
+        "id": "I34-1180-light",
+        "status": "pass"
+      },
+      {
+        "id": "I34-1180-dark",
+        "status": "pass"
+      }
+    ]
+  },
+  "thirty": {
+    "pass": 109,
+    "fail": 0,
+    "skip": 1,
+    "iterations": 20,
+    "durationSec": 2438
+  },
+  "recording120": {
+    "pass": 10093,
+    "fail": 0,
+    "verifiedDurationMs": 7200546.870875,
+    "processesClosed": true,
+    "udpClosed": true
+  },
+  "b12LogsChecked": 20,
+  "elapsedMs": 15958.170583
+}

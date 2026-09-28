@@ -1,0 +1,79 @@
+명령: bash scripts/internal/verify_v410_recording_finalize_recovery.sh
+exit: 0
+[pass] ready partial recovers original segment ID
+[pass] FR02 interrupted publish converges: final only
+[pass] FR02 repeated recovery no duplicate mutation
+[pass] FR02 interrupted publish converges: owned two links
+[pass] FR02 repeated recovery no duplicate mutation
+[pass] FR03 catalog commit before cleanup does not append or replace
+[pass] FR04 invalid version preserves original without publication
+[pass] FR04 invalid duplicate preserves original without publication
+[pass] FR04 invalid nonce preserves original without publication
+[pass] FR04 invalid escape preserves original without publication
+[pass] FR04 invalid identity preserves original without publication
+[pass] FR05 symlink ticket rejected and external target untouched
+[pass] FR05 foreign hardlink rejected without unlink
+[pass] FR05 actual unreadable ticket preserves media
+[pass] FR06 corrupt unknown isolated in place without finalized mutation
+[pass] FR06 repeated corruption recovery converges without resurrection
+[pass] FR07 pending takes precedence over ready publication
+[pass] FR07 deleted takes precedence over ready publication
+[pass] FR07 conflict takes precedence over ready publication
+[pass] FR08 orphan not inferred and legacy owned partial cleaned
+[boundary-summary] pass=19 fail=0
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker partial
+[pass] S10-M08 V2 ready recovers exact metadata partial
+[pass] S10-M08 V2 journal restart and repeated recovery partial
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker two-links
+[pass] S10-M08 V2 ready recovers exact metadata two-links
+[pass] S10-M08 V2 journal restart and repeated recovery two-links
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker final
+[pass] S10-M08 V2 ready recovers exact metadata final
+[pass] S10-M08 V2 journal restart and repeated recovery final
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker committed
+[pass] S10-M08 V2 ready recovers exact metadata committed
+[pass] S10-M08 V2 journal restart and repeated recovery committed
+[pass] S10-M08 V2 ready writer preserves versioned envelope
+[pass] S10-M09 V2 ready refusal preserves originals missing-order
+[pass] S10-M09 V2 ready refusal preserves originals wrong-tuple
+[pass] S10-M09 V2 ready refusal preserves originals optout
+[pass] S10-M09 V2 ready refusal preserves originals deleted
+[pass] S10-M09 V2 ready refusal preserves originals mapping
+[pass] S10-M09 V2 ready refusal preserves originals path
+[pass] S10-M09 V2 ready refusal preserves originals version
+[pass] S10-M09 V2 ready refusal preserves originals event
+[pass] S10-M09 V2 ready refusal preserves originals corrupt-pair
+[pass] S10-M09 V2 ready refusal preserves originals foreign-link
+[pass] S10-M09 V2 ready writer rejects mixed-id
+[pass] S10-M09 V2 ready writer rejects mixed-size
+[pass] S10-M09 V2 ready writer rejects mixed-source
+[pass] S10-M09 V2 ready writer rejects mixed-time
+[pass] S10-M09 V2 ready writer rejects event
+[pass] S10-M09 V2 ready writer rejects oversize
+[pass] S10-M09 V2 direct publish requires catalog
+[pass] S10-M09 V1 inspector still rejects two links
+[pass] S10-M09 V2 direct clear preserves uncommitted ticket and marker
+[pass] S10-WR09 active ready validates publishes commits and clears exact ticket
+[pass] S10-WR09 active ready refusal preserves originals changed-ticket
+[pass] S10-WR09 active ready refusal preserves originals missing-order
+[pass] S10-C328 ready3 writer의 엄격 원본 결박 envelope
+[pass] S10-C328 ready3 거부 identity
+[pass] S10-C328 ready3 거부 legacy
+[pass] S10-C328 ready3 거부 event
+[pass] S10-C328 ready3 거부 missing-binding
+[pass] S10-C328 ready3 거부 null-binding
+[pass] S10-C328 ready3 거부 extra
+[pass] S10-C329 ready 버전별 읽기 상한 1
+[pass] S10-C329 ready 버전별 읽기 상한 2
+[pass] S10-C329 ready 버전별 읽기 상한 3
+[pass] S10-C329 ready3은1MiB를넘는유효결박을수용
+[pass] S10-C330 ready3 원본 결박 복구 partial
+[pass] S10-C331 ready3 원본 결박 복구 two-links
+[pass] S10-C332 ready3 원본 결박 복구 final
+[pass] S10-C333 ready3 원본 결박 복구 committed
+[pass] S10-C334 ready3 거부 상태 원본 보존 no-reservation-final
+[pass] S10-C335 ready3 거부 상태 원본 보존 pending
+[pass] S10-C335 ready3 거부 상태 원본 보존 conflict
+[pass] S10-C335 ready3 거부 상태 원본 보존 damaged-media
+[v2-summary] pass=54 fail=0
+[cleanup] path=/private/tmp/media-server-finalize-lrsUKz bytes=10234290 removed=true

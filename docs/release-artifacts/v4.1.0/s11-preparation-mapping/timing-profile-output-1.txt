@@ -1,0 +1,8 @@
+[gstreamer] GStreamer 1.28.1
+[profile-factory] trak-timescale=1000000000 movie-timescale=1000000000
+[profile-factory] trak-timescale=1000000000 movie-timescale=1000000000
+[checkpoint] TP01 finalized=250 unfinalized=50
+[capture-fail] boundary-count
+[evidence] copied=1 verified=true
+[cleanup] path=<owned-temp>/media-server-timing-profile.ZVCUo5 bytes=4749573 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

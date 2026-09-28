@@ -1,0 +1,43 @@
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1717 removed=true
+[R4L13 cleanup] owned=true bytes=943 removed=true
+[R4L13 cleanup] owned=true bytes=1875 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1260 removed=true
+[R4L13 cleanup] owned=true bytes=1283 removed=true
+[R4L13 cleanup] owned=true bytes=1606 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1606 removed=true
+[R4L13 cleanup] owned=true bytes=1848 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1372 removed=true
+[R4L13 cleanup] owned=true bytes=1876 removed=true
+[R4L13 cleanup] owned=true bytes=1373 removed=true
+[R4L13 cleanup] owned=true bytes=1875 removed=true
+[R4L13 cleanup] owned=true bytes=1882 removed=true
+✔ R4L01 baseline exact source (9.9305ms)
+✔ R4L02 unique insertion relocation preserves approved semantics (3.599625ms)
+✔ R4L03 unique deletion relocation (2.656542ms)
+✔ R4L04 duplicate context even at original location rejected (1.936334ms)
+✔ R4L05 changed local context rejected (1.825042ms)
+✔ R4L06 changed enclosing body rejected (2.682375ms)
+✔ R4L07 assertion removal rejected (1.695375ms)
+✔ R4L08 verifier body change rejected (2.409667ms)
+✔ R4L09 same-process source relocation is fresh (3.500292ms)
+✔ R4L10 same-process context and body mutation rejected (4.27975ms)
+✔ R4L11 validation never mutates proof or approval digests (2.731917ms)
+✔ R4L12 stale-range decoy cannot conceal actual readback mutation (2.306958ms)
+✔ R4L14 same-process corpus sees source token addition and removal (2.147708ms)
+✔ R4L15 optional roles retained relocated and validated (5.799166ms)
+✔ R4L16 duplicate statement in different function resolves approved body (2.224333ms)
+✔ R4L17 same approved body with multiple candidates stays ambiguous (4.073625ms)
+✔ R4L18 no approved body match cannot fall back to stored line (1.967417ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.31775

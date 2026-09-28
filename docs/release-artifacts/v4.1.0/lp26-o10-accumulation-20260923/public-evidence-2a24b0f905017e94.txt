@@ -1,0 +1,18 @@
+✔ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.704541ms)
+✔ LP26-O09-A02 identity·clock·pid 불일치 (0.072375ms)
+✔ LP26-O09-A03 보존 attempt3의 초과5건 중 첫 간격에서 실패 (1.057292ms)
+✔ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.304958ms)
+✔ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.068875ms)
+✔ LP26-O09-C02 slow 숫자행·완료/미완료·비밀 거부 (0.391375ms)
+✔ O28-D04 snapshot 진단이 판정 전 출력되고 최초 오류가 cleanup 뒤 재전파된다 (0.159333ms)
+✔ O28-D05 snapshot의 기존 15초·16KiB 상한과 성공 검사 계약을 유지한다 (0.094541ms)
+✔ O28-R03 observer wrapper는 실패 또는 cleanup-blocked root를 보존한다 (0.071459ms)
+✔ O28-R04 accumulation runner와 EXIT는 receipt 누락·실패를 삭제하지 않는다 (0.118708ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.78925

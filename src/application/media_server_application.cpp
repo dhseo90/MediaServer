@@ -2,13 +2,17 @@
 // 동작 요약: 설정, registry/session, RTSP/HTTP 서버를 조립하고 기존 시작·정리 순서를 보존한다.
 
 #include "application/media_server_application.h"
+#include "ingress/recording_application_service.h"
+#include <limits>
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -31,6 +35,19 @@
 #include "ingress/gstreamer_rtsp_server.h"
 #include "ingress/http_auth.h"
 #include "ingress/webrtc_http_server.h"
+#include "ingress/source_view_application_service.h"
+#include "recording/gstreamer_segment_writer.h"
+#include "recording/event_clip_deriver.h"
+#include "recording/event_recording_bridge.h"
+#include "recording/recording_catalog.h"
+#include "recording/recording_startup_recovery.h"
+#include "recording/recording_runtime_composition.h"
+#include "recording/recording_evidence_observer.h"
+#include "recording/recording_derived_job_service.h"
+#include "recording/analysis_observation_projector.h"
+#include "recording/recording_journal.h"
+#include "recording/recording_session_service.h"
+#include "recording/recording_supervisor.h"
 
 namespace media_server::application {
 namespace {
@@ -307,7 +324,121 @@ int RunMediaServerApplication(int argc, char** argv) {
     core::StreamRegistry registry;
     core::ResourceGuard resource_guard(config.max_sessions, config.max_streams);
     core::SessionManager session_manager(registry, resource_guard);
-    analysis::AnalysisSessionService analysis_sessions(session_manager);
+
+    const std::filesystem::path recording_root(config.recording_storage_root);
+    recording::RecordingRuntimeStorage recording_storage(recording_root);
+    std::string recording_error;
+    if (!recording_storage.Open(&recording_error)) {
+        std::cerr << "recording catalog open failed: " << recording_error << "\n";
+        return 1;
+    }
+    auto& recording_journal=recording_storage.journal();
+    auto& recording_catalog=recording_storage.catalog();
+    recording::RetentionCoordinator::Options retention_options;
+    retention_options.reserved_free_bytes = config.recording_reserved_free_bytes;
+    retention_options.media_root = recording_root;
+    recording::RetentionCoordinator recording_retention(
+        recording_catalog,
+        [&recording_catalog] { return recording_catalog.RetentionSnapshot(); },
+        [&recording_root](std::uint64_t* free_bytes, std::string* error) {
+            std::error_code fs_error;
+            const auto space = std::filesystem::space(recording_root, fs_error);
+            if (fs_error) {
+                if (error != nullptr) *error = fs_error.message();
+                return false;
+            }
+            *free_bytes = space.available;
+            if (error != nullptr) error->clear();
+            return true;
+        },
+        [&recording_root](const std::filesystem::path& path, std::string* error) {
+            return recording::RemoveContainedMediaFile(recording_root, path, error);
+        },
+        retention_options);
+    recording::RecordingStartupRecoveryReport startup_recovery;
+    recording::DerivedJobService derived_job_service(recording_catalog,recording_journal,{recording_root,30000,{}});
+    const auto recovery_now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    if (!recording::RecoverRuntimeRecordingAtStartup(recording_catalog, recording_retention,&derived_job_service,
+            recording_root, recovery_now_ms, &startup_recovery, &recording_error)) {
+        // 외부 URL이나 파일 경로를 노출하지 않는 고정 단계 진단.
+        std::cerr << "recording startup recovery failed: stage=" << startup_recovery.failed_stage << "\n";
+        return 1;
+    }
+    std::cout << "recording startup recovery complete: deleted=" << startup_recovery.deletions_completed
+              << " recovered=" << startup_recovery.ready.recovered
+              << " inspected=" << startup_recovery.inspected
+              << " corrupt=" << startup_recovery.corrupt << "\n";
+    recording::RecordingSessionService recording_sessions(
+        session_manager,
+        recording_catalog,
+        [&config, &recording_retention,&recording_storage] {
+            auto options=recording_storage.WriterOptions(
+                static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000);
+            options.admit_segment = [&recording_retention](
+                                        const std::string& channel_id,
+                                        std::uint64_t minimum_segment_bytes) {
+                const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        std::chrono::system_clock::now().time_since_epoch())
+                                        .count();
+                const auto admission = recording_retention.AdmitContinuousWrite(
+                    channel_id, minimum_segment_bytes, now_ms);
+                return recording::SegmentAdmissionDecision{
+                    admission.allowed,
+                    admission.start_new_epoch,
+                    admission.reserved_bytes,
+                };
+            };
+            options.report_segment_progress = [&recording_retention](
+                                                  const std::string& channel_id,
+                                                  std::uint64_t written_bytes) {
+                recording_retention.UpdateContinuousWriteProgress(
+                    channel_id, written_bytes);
+            };
+            options.complete_segment = [&recording_retention](
+                                           const std::string& channel_id,
+                                           std::uint64_t actual_segment_bytes) {
+                recording_retention.CompleteContinuousWrite(
+                    channel_id, actual_segment_bytes);
+            };
+            return std::make_unique<recording::GStreamerSegmentWriter>(std::move(options));
+        });
+    recording::RecordingSupervisor recording_supervisor(
+        config,
+        ingress::SourceViewApplicationService::Instance(),
+        recording_sessions,
+        recording_retention);
+    std::shared_ptr<recording::AnalysisObservationProjector> observation_projector;
+    std::shared_ptr<recording::RecordingEvidenceObserver> recording_evidence;
+    if (config.recording_enabled) {
+        recording::AnalysisObservationProjector::Options options;
+        options.interval_ms = config.recording_observation_interval_ms;
+        options.use_consumer_references=true;
+        options.resolve_context = [&recording_sessions](const std::string& stream_key, std::int64_t) {
+            analysis::AnalysisObservationContext context;
+            if (const auto channel = recording_sessions.ResolveRecordingChannel(stream_key)) {
+                context.source_id = *channel;
+                context.channel_id = *channel;
+            }
+            return context;
+        };
+        observation_projector = std::make_shared<recording::AnalysisObservationProjector>(recording_catalog, std::move(options));
+        recording_evidence=std::make_shared<recording::RecordingEvidenceObserver>(observation_projector);
+        std::weak_ptr<recording::AnalysisObservationProjector> weak = observation_projector;
+        recording_sessions.SetFinalizedObserver([weak] { if (auto projector = weak.lock()) projector->NotifyFinalized(); });
+        analysis::SetEventObservationObserver([weak](const auto& result, const auto& record, const auto& event) {
+            if (auto projector = weak.lock())
+                projector->OnEvent(result, record.event_id, record.track_id, record.zone_id, record.line_id,
+                                   event.rule_id, ""); // scenario_name은 scenario ID로 추정하지 않는다.
+        });
+    }
+    analysis::AnalysisSessionService analysis_sessions(session_manager, recording_evidence);
+    const auto stop_observations = [&] {
+        analysis::SetEventObservationObserver({});
+        recording_sessions.SetFinalizedObserver({});
+        if(recording_evidence)recording_evidence->Stop();
+        if (observation_projector) observation_projector->StopAndDrain();
+    };
     auto analysis_session_lifecycle =
         ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);
     auto analysis_session_reads =
@@ -319,17 +450,97 @@ int RunMediaServerApplication(int argc, char** argv) {
     // 두 transport와 runtime accounting은 같은 analysis service를 공유해 tap 수명과 source fan-out을 일치시킨다.
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
     const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);
+    recording::RecordingReadService recording_reads(recording_catalog, config.analysis_event_clip_dir);
+    ingress::RecordingApplicationService recording_api(
+        recording_reads, recording_catalog, config.recording_enabled,
+        [&recording_sessions, &recording_retention](const auto& catalog_status, auto* output) {
+            std::vector<ingress::SourceViewApplicationService::SourceRecord> sources;
+            std::vector<ingress::SourceViewApplicationService::PublishedViewRecord> views;
+            if (!ingress::SourceViewApplicationService::Instance().Snapshot(&sources, &views, nullptr)) return false;
+            for (const auto& source : sources) {
+                ingress::RecordingChannelStatus status;
+                status.channel_id = source.source_id;
+                status.display_name = source.display_name;
+                status.enabled = source.enabled && source.recording.enabled;
+                status.active = recording_sessions.IsChannelRecording(source.source_id);
+                status.storage_blocked = recording_retention.ChannelStatus(source.source_id).storage_blocked;
+                status.continuous_max_bytes = source.recording.continuous_max_bytes;
+                status.event_max_bytes = source.recording.event_max_bytes;
+                const auto usage=catalog_status.channels.find(source.source_id);
+                if(usage!=catalog_status.channels.end()){
+                    status.continuous_bytes=usage->second.continuous_bytes;
+                    status.event_bytes=usage->second.event_bytes;
+                }
+                output->push_back(std::move(status));
+            }
+            return true;
+        }, [observation_projector] {
+            return observation_projector ? observation_projector->GetStatus() : recording::AnalysisObservationProjector::Status{};
+        });
     ingress::WebRtcHttpServer webrtc_http_server(
         *webrtc_media_sessions,
         *analysis_session_lifecycle,
         *analysis_session_reads,
-        webrtc_http_runtime_config);
+        webrtc_http_runtime_config,
+        &recording_api);
+
+    // 외부 ingress를 열기 전에 recording bridge를 등록해야 시작 직후 이벤트도
+    // bounded EventStorage queue보다 먼저 durable link를 얻는다.
+    std::shared_ptr<recording::GStreamerEventClipDeriver> event_clip_deriver;
+    std::shared_ptr<recording::CatalogEventRecordingBridge> event_recording_bridge;
+    if (config.recording_enabled) {
+        event_clip_deriver = std::make_shared<recording::GStreamerEventClipDeriver>();
+        recording::CatalogEventRecordingBridge::Options bridge_options;
+        bridge_options.output_root = recording_root;
+        bridge_options.use_consumer_references=true;
+        bridge_options.use_runtime_stream_identity=true;
+        bridge_options.derived_service=&derived_job_service;
+        bridge_options.derived_options=recording::RecordingRuntimeEventBudget(
+            static_cast<std::int64_t>(config.recording_segment_duration_seconds)*1000,config.analysis_event_post_event_ms);
+        const char* selection_trace = std::getenv("MEDIA_SERVER_VERIFY_RECORDING_SELECTION_TRACE");
+        if (selection_trace && std::string(selection_trace) == "1") {
+            bridge_options.derived_options.diagnostic = [](const auto& reference, const auto& diagnostic) {
+                const auto safe = recording::SerializeDerivedEventAttemptDiagnostic(reference, diagnostic);
+                std::cerr << ("[recording-selection-attempt] " + safe + "\n");
+            };
+        }
+        std::weak_ptr<recording::RecordingEvidenceObserver> weak_evidence=recording_evidence;
+        bridge_options.derived_options.latest_evidence=[weak_evidence](const auto& reference) {
+            if(auto observer=weak_evidence.lock())return observer->Latest(reference);
+            return recording::DerivedEventEvidenceUpdate{};
+        };
+        bridge_options.resolve_recording_channel = [&recording_sessions](const std::string& key) {
+            return recording_sessions.ResolveRecordingChannel(key);
+        };
+        bridge_options.finalization_grace_ms =
+            static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000 + 1000;
+        event_recording_bridge =
+            std::make_shared<recording::CatalogEventRecordingBridge>(
+                recording_catalog, recording_retention, *event_clip_deriver,
+                std::move(bridge_options));
+        analysis::SetEventRecordingBridge(event_recording_bridge);
+    }
+
+    // 관리 복구와 observer/bridge 구성이 끝난 뒤에만 녹화 생산자를 시작한다.
+    if (!recording_supervisor.Start(&recording_error)) {
+        std::cerr << "recording supervisor start failed: " << recording_error << "\n";
+        if(event_recording_bridge)event_recording_bridge->StopAndDrain();
+        analysis::SetEventRecordingBridge(nullptr);
+        stop_observations();
+        return 1;
+    }
 
     std::string server_error;
     const bool rtsp_server_started = gst_rtsp_server.Start(rtsp_port, &server_error);
     if (!rtsp_server_started) {
         std::cerr << "gstreamer rtsp server started: no\n";
         std::cerr << "reason: " << server_error << "\n";
+        if(event_recording_bridge)event_recording_bridge->StopAndDrain();
+        recording_supervisor.Stop();
+        analysis_sessions.Shutdown();
+        analysis::StopEventStorage();
+        analysis::SetEventRecordingBridge(nullptr);
+        stop_observations();
         return 1;
     }
 
@@ -339,6 +550,12 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::cerr << "webrtc http server started: no\n";
         std::cerr << "reason: " << http_error << "\n";
         gst_rtsp_server.Stop();
+        if(event_recording_bridge)event_recording_bridge->StopAndDrain();
+        recording_supervisor.Stop();
+        analysis_sessions.Shutdown();
+        analysis::StopEventStorage();
+        analysis::SetEventRecordingBridge(nullptr);
+        stop_observations();
         return 1;
     }
 
@@ -347,6 +564,8 @@ int RunMediaServerApplication(int argc, char** argv) {
     std::cout << "listen: rtsp://" << rtsp_address << ":" << rtsp_port << "/" << config.stream_route << "\n";
     std::cout << "ops console: http://" << http_address << ":" << http_port << "/ops/home\n";
     std::cout << "client live: http://" << http_address << ":" << http_port << "/client/live\n";
+    std::cout << "recording catalog: " << recording_catalog.catalog_mode()
+              << " (enabled=" << (config.recording_enabled ? "yes" : "no") << ")\n";
     std::cout << "file test url: rtsp://" << rtsp_address << ":" << rtsp_port << "/" << config.stream_route
               << "?file=" << default_file_token << "\n";
     std::cout << "running... (SIGINT/SIGTERM to stop)\n";
@@ -361,8 +580,13 @@ int RunMediaServerApplication(int argc, char** argv) {
 
     webrtc_http_server.Stop();
     gst_rtsp_server.Stop();
-    session_manager.SetAuxiliaryStreamRuntimeProvider({});
+    if(event_recording_bridge)event_recording_bridge->StopAndDrain();
+    recording_supervisor.Stop();
+    analysis_sessions.Shutdown();
     analysis::StopEventStorage();
+    analysis::SetEventRecordingBridge(nullptr);
+    stop_observations();
+    session_manager.SetAuxiliaryStreamRuntimeProvider({});
     return 0;
 }
 

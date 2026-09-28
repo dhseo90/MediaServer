@@ -1,5 +1,27 @@
 # Manual UI Result Template
 
+S10 3C-4 C419~425는 요청 사실 보존의 내부 단기 검증이다. 신규 UI 비대상이며 실제 영상 범위·재생 가능·UI PASS를 증명하지 않는다.
+
+S10 3C-5A C501~508은 실제 파일 시간 측정용 내부 단기 검사로 UI 비대상이며 파생 기능 완료 PASS가 아니다.
+
+S10 3C-4 C401~418은 내부 opt-in 소비자 연결이며 신규 UI 비대상이다. 실제 producer 단기 PASS가 UI 풀테스트 PASS는 아니다.
+
+S10 3C-3C C341~356은 내부 원본 참조 저장이며 신규 UI 비대상이다. focused·복구 검증을 UI 전체 PASS로 확대하지 않는다.
+
+S10 3C-3B C321~336은 내부 writer/ready 결박이며 신규 UI 비대상이다. 실제 영상 단기 검증도 UI 전체 PASS가 아니다.
+
+S10 3C-3A C301~320은 내부 저장 결박이며 신규 UI 비대상이다. metadata 검증을 실제 writer/ready/UI PASS로 확대하지 않는다.
+
+S10 3C-2 C201~216은 내부 구간 해석이며 신규 UI 비대상이다. 실제 UI 결과를 대체하지 않는다.
+
+S10 3C-1 C101~112는 내부 원본·분석 연관이며 신규 UI 비대상이다. 단기 결과를 실제 UI PASS로 대체하지 않는다.
+
+
+S10 후속 3B B01~23: 신규 UI 비대상. 내부 단기 검증 결과는 중앙 기록에 보존한다.
+S10 후속 3A LOC01~14: 내부 위치 해석으로 UI 비대상. 실제 UI 실행 결과가 아니다.
+S10 후속 2번 INPUT01~10/WR01~09: 내부 기능으로 신규 UI 비대상. 단기 입력·writer 결과는
+중앙 기록에 남기고 이 UI 결과표의 PASS로 대신하지 않는다.
+
 이 템플릿은 인앱 브라우저 direct 실행 또는 `AGENTS.md` 7.6.3 Policy v4 qualifier를
 통과한 actual browser automation으로 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
 screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니다.
@@ -7,13 +29,64 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
-결과 행의 exact-ID 집합은 `test/fixtures/project_feature_implementation_evidence.json`의
+baseline 결과 행의 exact-ID 집합은 `test/fixtures/project_feature_implementation_evidence.json`의
 UI 테스트 영역 424개 `manualUiCaseId`이며, 각 행에 대응하는 `uiEvidence.screenRoute`와
 product UI anchor를 route/control/action evidence로 함께 기록합니다.
 
+## v4.1.0 녹화 8개 ID action별 결과
+
+현재 전체 대상은 기존 baseline 424개와 아래 녹화 8개 ID의 합집합인 432개입니다.
+기존 canonical/native manifest와 baseline 결과표를 보존합니다. 424 qualifier PASS는
+baseline만 뜻하며 아래 action 전수와 AGENTS 7.6.3 공통 조건을 메인이 별도 판정합니다.
+한 ID의 여러 action은 각각 기록하고 ID 수에 중복 가산하지 않습니다.
+아래 미실행은 준비 상태이며 실행 결과는 pass/fail로 기록합니다. 최종 실행하지 못한
+대상은 FAIL이며 승인된 제외만 별도 제외 기록으로 옮깁니다. 과거 PASS는 이월하지 않습니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| V410-S06-I27 | 정상 필터: 채널·시작·끝 입력 후 조회, 요청 범위와 목록 일치; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I27 | 빈값·빈 결과: 필수값 비움 거부와 데이터 없는 채널/범위의 빈 결과를 각각 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I27 | 역전 시간: 시작>종료 조회를 거부하고 올바른 시간 안내; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I27 | 페이지: 다음·이전 조작과 범위·개수·선택 상태 반영; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I28 | 이벤트 우선: 겹치는 event 기본 선택과 종류·시간·우선 badge 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I29 | 원본: 원본 보기 펼침·접기 및 continuous 선택, 해당 미디어와 원본 관계 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I30 | 재생: 네이티브 재생 조작 후 실제 영상 표시와 currentTime 진행; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I30 | 정지: 일시정지 조작 후 paused 상태와 시간 진행 중단; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I30 | 탐색: 실제 탐색 control 조작 후 시간·영상 반영 및 Range 응답 상관; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I31 | partial: completeness의 일부 구간 표시 및 재생 가능 여부 확인; 정확한 missingRanges 표출은 요구하지 않음. 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I31 | 삭제: 실제 삭제 fixture가 참조된 event의 공통 재생 불가 안내 및 재생 차단 확인; 삭제 segment 자체의 목록 표출은 요구하지 않음. 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지; 손상 fixture와 별도 확인 |
+| V410-S06-I31 | 손상: 실제 손상 fixture의 공통 재생 불가 안내 및 재생 차단 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지; 삭제 fixture와 별도 확인 |
+| V410-S06-I31 | 미완결 event: 실제 Pending link·미생성 media fixture의 안내 및 재생 차단 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | Writing segment 검증으로 대체하지 않음. Writing 재생 금지는 내부 안전성 V410-S06-I08 및 verify-v410-recording-timeline --read-model 참조 |
+| V410-S06-I31 | 공백: 녹화 공백 표시와 선택 영상 해제·오인 재생 방지; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I31 | 오류: 조회/서버 오류 안내와 stale 재생 상태 처리; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I32 | quota: continuous/event 용량·상한을 실제 조회 값과 대조; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I32 | 활성: 실제 녹화 활성·비활성 전이와 상태 카드 반영; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I32 | blocked: 실제 storage-blocked 상태와 안내 반영; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I33 | navigation: 기존 primary nav·테마·배치 유지, 녹화 범위에 신규 nav/자연어·vector 입력 추가 없음; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | admin: 실제 admin 로그인으로 녹화 화면·허용 자료 접근; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | operator scope: 실제 operator 허용 채널 접근 및 다른 채널 자료·직접 미디어 접근 거부; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | viewer·미인증: 각 실제 계정/세션 상태에서 녹화 화면 접근 제한 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | redaction: 내부 경로·source URL·raw debug·credential/session/hash 비노출; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 320 light: 실제 320px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 320 dark: 실제 320px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 390 light: 실제 390px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 390 dark: 실제 390px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 760 light: 실제 760px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 760 dark: 실제 760px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 1180 light: 실제 1180px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I34 | 1180 dark: 실제 1180px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+
+각 행에 requested/observed role·scope, viewport/theme, 전후 상태와 completion oracle,
+screenshot/trace/log 경로·hash·redaction·provenance를 연결합니다. auth-off 준비 fixture는
+역할 검증 증거가 아닙니다. 없는 상태를 정상 상태로 대체하거나 HTTP-only로 UI PASS하지 않습니다.
+최종 집계는 baseline 424의 pass/fail/notRun/unsupported와 추가 8개 ID 및 위 action별
+pass/fail/notRun/unsupported를 분리합니다. 전체 432개 PASS, 공통 visual/accessibility,
+unapproved error/warning 0, manual intervention 0, PID/port/temp cleanup 및 reviewRequired
+해소 전에는 whole-suite PASS를 선언하지 않습니다.
+
 ## 검수 메타데이터
 
-## v4.0.0 Release Evidence Index
+## v4.1.0 Release Evidence Index
 
 - run id:
 - 검수자:

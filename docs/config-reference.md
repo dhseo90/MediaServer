@@ -18,6 +18,7 @@
 | [Scenario env](#scenario-env) | scenario/rule 관련 설정 |
 | [Event POST env](#event-post-env) | Event POST 전송 |
 | [EventStorage env](#eventstorage-env) | EventRecord 저장 |
+| [Recording env](#recording-env) | v4.1.0 상시녹화 opt-in과 segment 저장 |
 | [WebRTC metadata env](#webrtc-metadata-env) | DataChannel metadata |
 | [Debug/Metrics env](#debugmetrics-env) | debug와 metrics |
 | [YouTube experimental env](#youtube-experimental-env) | lab-only YouTube 실험 |
@@ -347,6 +348,8 @@ Ops audit trail:
 | `./server.sh rc-artifact-archive --source-dir ... --destination-dir ...` | RC gate artifact를 외부 보관소 directory로 복사하고 checksum/index 생성 |
 | `MEDIA_SERVER_PORT_CANDIDATES` | script default | 대체 RTSP port 목록 |
 | `MEDIA_SERVER_START_MODE` | `nohup` | `nohup` 또는 macOS `launchd` 실행 방식 |
+| `MEDIA_SERVER_STATE_DIR` | 저장소 루트 | start/stop/status/diagnose가 공유하는 PID·주소·포트·로그·mode·launchd plist 전용 디렉터리. 지정할 때는 미리 만든 절대경로, 현재 사용자 소유, 비-symlink 디렉터리여야 함 |
+| `MEDIA_SERVER_LAUNCHD_LABEL` | `com.dhseo.mediaserver` | launchd job label. 영숫자로 시작하고 영숫자·`.`·`-`만 사용하며 최대 128자. 전용 상태에서 같은 exact label이 이미 등록됐으면 기존 job을 내리지 않고 start가 실패하므로 실행마다 고유 label 사용 |
 | `MEDIA_SERVER_SKIP_ENV_CHECK` | unset | pkg-config 등 환경 점검 생략 |
 | `HOMEBREW_PREFIX` | system default | Homebrew prefix override |
 
@@ -743,6 +746,218 @@ Zone Occupancy 상태:
 | `MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS` | `2000` | dedupe cooldown |
 
 POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JSON/API/POST payload 형식은 기존 형식을 유지합니다.
+
+## Recording env
+
+### 녹화 조회재생 API (v4.1.0 S06)
+
+기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`
+범위를 적용한다. viewer는 접근할 수 없으며 내부 파일 경로를 공개하지 않는다.
+
+| 요청 | 입력·결과 |
+| --- | --- |
+| `GET /ops/api/recordings/status` | 전역 enabled, catalogMode/degraded/recovery, 허용 channels의 enabled/active/storageBlocked 및 상시·이벤트 사용량/상한 |
+| `GET /ops/api/recordings/timeline` | 필수 channelId/startTimeMs/endTimeMs, 선택 offset(기본 0)/limit(기본 100, 1~1000). UTC epoch 밀리초 반개구간 조회. 시간 확인 items/total과 시간 귀속 미확인 unplacedItems/unplacedTotal에 같은 offset/limit를 각각 적용 |
+| `GET /ops/api/recordings/media/<opaqueId>` | 조회 결과의 playbackUrl로 접근. 전체 200 또는 단일 byte Range 206, 잘못된 범위 416 |
+| `HEAD /ops/api/recordings/media/<opaqueId>` | GET과 같은 미디어 길이·형식·Range 헤더, 본문 없음 |
+
+S10 관리 녹화의 시간 확인 목록은 정밀 UTC 시작 내림차순, displayPriority 내림차순,
+itemId 오름차순이다. 미확인 목록은 채널 전체의 시간 귀속 미확인 자료이며 요청한 시간 범위에
+속한다고 주장하지 않는다. 해당 목록은 안정된 itemId 오름차순이다. itemId는 표시 구간을,
+segmentId는 실제 파일을 식별하므로 같은 파일에 여러 항목이 있을 수 있다.
+
+`unplacedUnit`은 선택 입력이며 기본값 `mapping`은 위 계약을 유지한다. `file`을 명시하면
+미확인 목록만 동일 파일·작업의 컨테이너 단위로 반환한다. 이때 `unplacedTotal`과 offset/limit는
+그룹/출력 없는 상태 행 기준이다. 시간 확인 목록은 그대로다. 다른 값은400이며 권한 검사가 우선한다.
+`rangeBasis=file-group` 행의 `members`에는 기존 itemId, mappingId, mappingProvenance, uncertaintyNs,
+mediaRange와 sourceSegmentId/sourceMappingRange를 보존한다. reason은 공개 가능한 고정 코드 또는
+`unclassified`이며 저장된 임의 원문을 노출하지 않는다. 바깥 mediaRange는 파일 범위이지 구성원들의
+연속 구간 합집합이나 UTC 정확도 보증이 아니다. 미확정 끝은 null, UTC는 null, hideByEvent는 false다.
+재생 URL/complete·partial 판정은 변하지 않으며 원본·출력·작업 사이의 그룹 병합은 하지 않는다.
+이 옵션은 API 소비자의 명시 선택이며 현재 Ops 화면이 자동으로 파일 단위 표시로 바뀌는 것은 아니다.
+
+startTimeMs/endTimeMs는 십진 문자열 또는 null이다. 유효 UTC0은 날짜이며 null과 다르다.
+utcRange의 ns·mediaRange의 PTS/timebase·orderSequence도 십진 문자열이다. requestedRange는
+timeBasis(utc-ms 또는 media-pts-ms)를 명시하며 서로 다른 축을 날짜로 바꾸어 해석하면 안 된다.
+파생 출력 시각은 검증된 원본 매핑으로 대응할 수 있을 때 source-utc-mapping으로 표시하며
+mappingProvenance/uncertaintyNs를 함께 제공한다. 맞지 않는 시간축을 비율 보정하지 않는다.
+
+event 우선순위는200, continuous는100이다. 같은 원본 계보의 확인된 중첩만 eventOverlaps로
+안내하며, 행 전체가 현재 제공 가능한 이벤트로 충족된 경우에만 hideByEvent가 true다.
+supersededByEventIds 하나만으로 원본을 숨기지 않는다. 부분·미확인·파일 불가 이벤트는
+원본 전체를 숨기지 않으며 이 판정은 페이지를 자르기 전에 수행한다.
+jobState(작업), completeness(요청 충족), catalogState(등록 상태), playable(현재 파일 제공)은
+서로 다르며 브라우저 디코딩 성공을 뜻하지 않는다. 출력 없는 작업은 파일 ID·재생 URL 없이 미확인 목록에 남는다.
+playable=false 항목이나 삭제·미완성·손상·누락 파일을 정상 영상으로 제공하지 않는다.
+미디어를 사용할 수 없거나 채널 권한이 없으면 media API는 404로 처리한다.
+허용되지 않은 timeline 채널은 403, 잘못된 조회 인자는 400이다.
+관련 항목4096개 또는 조회 작업공간/응답64MiB 상한 초과·catalog 실패는503이다.
+무관한 과거 항목 수 때문에 짧은 조회를 거부하지 않으며 미확인 목록은 필요한 페이지까지만 선택한다.
+
+실제 파일을 열린 fd에 결박하고 최대 256KiB 단위로 전송한다. catalog 영상의 전송 중 hold는
+순환 삭제와 원자적으로 조정한다. 새 파생 Event 파일은 유일한 완료 작업·검증된 ready output·현재 파일 결박을
+확인한다. 영상 재생은 파일 시작부터이며 표시 시각을 파일 내 seek 위치로 사용하지 않는다.
+아래 fallback 설명은 유지 중인 legacy 경로의 계약이다. 새 관리 녹화의 미완성 출력이 자동 fallback된다는 뜻은 아니다.
+fallback은 내구 manifest와 실제 영상 파일을 검증하며
+manifest JSON 자체를 영상으로 반환하지 않는다.
+신규 녹화 연결의 fallback ID는 원본 stream/channel과 녹화 catalog의 source/channel을
+함께 결속한다. 조회 시 manifest와 내구 catalog의 연결을 검증하므로 현재 활성 녹화
+세션에 의존하지 않는다. 이 결속은 파일 서명이나 미디어 checksum을 뜻하지 않는다.
+기존 legacy ID는 기존의 직접 identity 검사를 유지한다. 과거에 원본 ID와 녹화 채널 ID가
+불일치한 legacy fallback은 자동 승격하지 않으며 재생 불가 상태를 유지한다.
+화면 사용법은 [UI 가이드](ui-guide.md#녹화-조회와-재생-v410-s06)를 따른다.
+
+상시녹화는 전역과 채널을 모두 명시적으로 켜야 시작합니다. source 자체가 disabled이면
+채널 recording policy가 enabled여도 recorder를 만들지 않습니다.
+
+| 환경변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `MEDIA_SERVER_RECORDING_ENABLED` | `0` | 전역 상시녹화 opt-in. `0`이면 파일과 Recorder subscriber를 만들지 않음 |
+| `MEDIA_SERVER_RECORDING_STORAGE_ROOT` | `.media_server/recordings` | JSONL 원장, SQLite catalog, 채널별 media segment의 전용 root |
+| `MEDIA_SERVER_RECORDING_DEFAULT_CHANNEL_QUOTA_BYTES` | `10737418240` | source policy에 값이 없을 때의 채널 기본 용량. 활성화 시 `0` 거부 |
+| `MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS` | `10` | 목표 segment 길이. 도달 즉시가 아니라 다음 video keyframe에서 분할 |
+| `MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS` | `7` | 기존 source policy와 새 등급별 최대 기간의 호환 기본값 |
+| `MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES` | `1073741824` | 새 segment를 열기 전에 store 전체에 남겨야 하는 최소 여유 공간 |
+| `MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS` | `5000` | supervisor의 policy reconcile과 주기 보존 정리 간격 |
+| `MEDIA_SERVER_RECORDING_OBSERVATION_INTERVAL_MS` | `1000` | S07 분석 대표 관측의 전역 저장 주기(ms), 양수. track 시작·종료·이벤트 관측은 주기와 무관하게 저장 대상으로 선정 |
+
+S07 분석 관측은 녹화와 분석이 함께 활성화된 채널에서 생성한다. 원본 frame 전체를 저장하는
+방식이 아니라 객체의 시작·주기 관측·이벤트·종료 요약을 별도 `AnalysisObservationV2`로
+저장한다. 기존 V1과 영상 형식은 바꾸지 않는다. SQLite projection은 JSONL 원장에서 재구축한다.
+이 설정은 전역 환경변수이며 source policy에 채널별 주기 필드를 추가하지 않는다.
+
+영상 위치는 최근 실제 녹화 수락 PTS 최대 256개의 목록과 epoch를 분석 입력 시점에 확보하고,
+범위 안이더라도 수락 목록에 없는 PTS는 연결하지 않는다. finalize 이후 catalog의
+파일·시간 범위와 대조한다. 입력 되감기 또는 같은 입력의 녹화 재시작으로 epoch가 모호하면
+위치를 추정하지 않고 `frameLocator=null`과 사유를 남긴다. 분석 기록은 남지만 해당 관측을
+재생 가능한 위치로 간주하지 않는다. 이후 검색 기능·자연어 질의 UI는 이번 단계에 포함하지 않는다.
+
+운영 source의 `recording` 객체는 다음 등급별 정책을 저장합니다.
+
+```json
+{
+  "recording": {
+    "enabled": false,
+    "continuousMaxBytes": 10737418240,
+    "continuousMaxAgeMs": 604800000,
+    "eventMaxBytes": 10737418240,
+    "eventMaxAgeMs": 604800000,
+    "storagePath": "",
+    "revision": 1
+  }
+}
+```
+
+`continuousMaxBytes`와 `eventMaxBytes`는 활성화 시 각각 `0`보다 커야 합니다.
+`continuousMaxAgeMs`와 `eventMaxAgeMs`의 `0`은 기간 제한 없음입니다. 이전 버전에서 저장한
+`quotaBytes`와 `retentionDays`는 읽을 때 상시/이벤트 양쪽 정책으로 이행하지만 새 저장에는
+등급별 필드를 사용합니다. 기존 Ops form의 용량·보존 일수 입력은 상시녹화 값을 편집하고,
+이미 별도 설정된 이벤트 값은 보존합니다. 이벤트 값을 독립 변경할 때는 source API의
+등급별 필드를 사용합니다. viewer-safe client view에는 용량·기간·storage path를 내보내지
+않습니다.
+
+quota는 채널과 retention class별로 독립 적용합니다. 상시녹화 quota 정리는 이벤트
+artifact를 선택하지 않고, 이벤트 quota 정리도 상시녹화를 대신 삭제하지 않습니다. 같은
+등급에서는 `(end_utc_ms, segment_id)`가 작은 finalized segment부터 삭제합니다. pinned 또는
+`hold_count > 0`인 항목은 자동 삭제 대상이 아닙니다. 새 segment는 예상 크기를
+continuous quota에 먼저 반영하며, 동시에 여러 채널이 쓰는 용량은 in-flight reserve로
+중복 사용하지 않습니다. 현재 앱의 기본 예상 segment 예약 하한은 64 MiB이며, 이전
+실측 크기나 writer의 최소 요청이 더 크면 그 값을 사용합니다. 상시 quota가 이 예약보다
+작으면 기존 파일을 삭제해도 새 녹화 admission은 차단됩니다. 실제 파일 크기만 보고
+quota를 예약 하한 아래로 설정하지 마십시오. quota가 예약 크기와 같아도 보존 여유는
+없습니다. 이 경우 녹화는 계속되지만 다음 segment 예약 시 방금 finalized된 파일까지
+삭제되어 조회 가능한 상시 파일이 남지 않을 수 있습니다. 완료된 녹화도 보존하려면
+다음 segment 예약과 보존할 완료 파일 용량을 함께 수용하도록 quota를 설정해야 합니다.
+partial 파일의 실제 쓰기량은 물리 free에 이미 반영된 만큼
+예약 잔량에서 차감해 이중 계산하지 않습니다. writer는 container overhead까지 예약하고
+상한에 도달하면 segment를 닫아 다음 keyframe에서 새 epoch로 재개합니다. EOS 뒤 실제
+파일이 예약보다 크면 catalog에 finalize하지 않고 파일을 제거한 뒤 실제 크기를 다음
+예약의 high-water로 반영합니다. 이 정리는 최종화 복구 티켓 작성 전의 미완결 출력에
+적용하며, 제거 실패 시 안전한 0 byte truncate를 시도합니다. 둘 다 실패하면 예약을
+반환하지 않아 해당 채널을 fail-closed 상태로 둡니다. EOS·fsync·SHA·V1 검증 후에는
+원래 ID와 파일 정보를 담은 ready 티켓을 내구 기록하고 기존 파일을 덮어쓰지 않는
+publish를 수행합니다. 티켓 기록 시도 이후 publish·catalog finalize·티켓 정리 중
+실패하면 완결 미디어와 복구 정보를 보존하고 재시작까지 새 admission을 차단합니다.
+이 경우 정상 영상을 삭제하거나 같은 프로세스에서 새 녹화로 덮어쓰지 않습니다.
+writer는 출력 파일 open 전에 storage root
+dirfd에 결박한 `openat(O_NOFOLLOW|O_EXCL)`로 `.cleanup-pending` 마커를 만들고 file과
+parent directory까지 fsync합니다. 새 v2 마커는 UUID가 붙은 `.partial.<uuid>` leaf를
+결박하며 writer는 해당 partial을 `O_EXCL`로 선점해 fd에 직접 씁니다. catalog finalize 또는
+cleanup 뒤 마커 안전 제거와 directory fsync까지 성공해야 예약을 반환합니다. 프로세스
+재시작 시 catalog는 추적 media와 ready 티켓에 결속된 완결 출력을 보존하고,
+그 밖의 v2 마커가 정확히 지목한 단일-link 일반 partial만 root dirfd 경계 안에서
+정리합니다. 앱은 recorder 시작 전에 삭제 대기·ready 복구·Finalized 검사를 순서대로
+수행합니다. 기존 v1 마커는 제거하되 소유권 불명 final/partial은
+삭제하지 않고 orphan 진단에 남기며, 형식·symlink·hardlink·I/O 안전 검사가 실패하면 catalog
+open을 fail-closed합니다.
+disk reserve가 부족하면 삭제 가능한
+상시녹화를 먼저 정리하며, 그래도 공간을 확보할 수 없으면 그 채널 writer만
+`storage-blocked`로 두고 live/VA 구독은 유지합니다. 공간이 회복되면 다음 video keyframe에서
+새 stream epoch로 녹화를 재개하고 finalize/실패 시 예약을 반환합니다.
+
+삭제 순서는 `deletion_requested` journal fsync → catalog `deletion_pending` → media unlink →
+`deletion_completed`/tombstone journal fsync → catalog `deleted`입니다. journal 선행 기록이
+실패하면 media를 지우지 않습니다. unlink가 실패하면 `deletion_pending`과 오류를 유지하고
+회수 byte를 `0`으로 계산합니다. 완료된 삭제는 tombstone을 남기되 내부 media locator와
+원본 파일은 제거합니다. unlink 성공 뒤 tombstone 기록이 실패한 pending은 다음
+retention tick에서 채널별로 재시도합니다. catalog replay에서 경로 containment를 확인하고
+실제 삭제는 recording root에서 연 dirfd와 하위 `O_NOFOLLOW` 디렉터리 fd에 결박한
+`unlinkat`으로 수행하므로 검사 뒤 경로가 바뀌어도 root 밖 파일은 자동 삭제하지 않습니다.
+
+녹화 root는 media source root와 같은 경로일 수 없고, 쓰기 불가·GStreamer 미포함 빌드는
+fail-closed로 해당 recorder를 시작하지 않습니다. H.264는 MP4, VP8은 WebM으로 기록하며
+final callback 전 nonce가 결박된 `.partial.<uuid>`만 사용합니다.
+
+storage root 아래 `recording-mutations.jsonl`은 durable source-of-truth이고
+`recording-catalog.sqlite3`은 재구축 가능한 projection입니다. SQLite 사용 빌드는
+`catalogMode=sqlite-primary`, 미사용 빌드 또는 초기화 불가 환경은
+`catalogMode=jsonl-fallback`으로 동작합니다. SQLite 손상 원본은 덮어쓰지 않고
+`.corrupt-<timestamp>`로 격리합니다. catalog에 없는 final MP4/MPEG-TS/WebM은 정상/손상
+orphan으로 구분하며 자동 보존 정리는 catalog의 finalized locator만 대상으로 합니다.
+cleanup marker만으로 final 소유권을 추정하지 않습니다. 재시작 복구는 v2 마커의 final
+basename과 정확한 UUID 규칙에 맞는 단일-link partial만 먼저 제거하고 마커를 제거합니다.
+v1 마커만 제거하고, 소유권 불명 final/partial은 orphan 진단에 보존합니다.
+실시간 mutation의 SQLite projection이 실패해도 이미 fsync된 journal과 in-memory 상태는
+유지하고 즉시 `jsonl-fallback`으로 전환합니다. 다음 시작에서는 journal 전체로 SQLite를
+다시 구성합니다.
+
+전역 녹화가 활성화되면 EventStorage와 녹화 catalog 사이의 이벤트 bridge도 외부 RTSP/HTTP
+ingress 시작 전에 등록됩니다. 이 bridge는 `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED`와 독립적으로
+동작하므로 EventRecord JSONL 저장이 꺼져 있어도 VA 이벤트의 녹화 연결은 계속됩니다.
+내부 media event는 `media-pts-ms`와 UTC/PTS anchor·stream epoch를 사용하고, 외부 event는
+`utc-ms` 또는 유효한 anchor를 명시해야 합니다. 시간축이 불명확하면 임의 wall clock으로
+연결하지 않고 별도 media PTS 범위의 `time-basis-ambiguous` pending으로 남깁니다. 같은
+epoch의 finalized segment에서 실제 PTS↔UTC mapping을 하나로 결정할 수 있으면 이후 같은
+link를 UTC 범위로 승격합니다.
+
+이벤트 구간은 기존 `MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS`와
+`MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS`를 사용합니다. 겹치는 finalized continuous
+segment가 같은 epoch/codec으로 전체 범위를 덮으면 별도 worker가 video 재인코딩 없이
+Event 등급 MPEG-TS clip으로 remux합니다. S05의 검증된 입력 codec은 video-only
+H.264/MP4이며,
+VP8/WebM continuous source는 재생 불가능한 파생물을 만들지 않도록 fail-closed하고 기존
+frame-buffer fallback을 사용합니다. 공백이나 불일치가 있으면 기존
+`MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED` bounded frame-buffer 결과를 fallback으로
+연결합니다. 이벤트 파생물은 source의 `eventMaxBytes/eventMaxAgeMs`와 store disk reserve를
+사용하며 continuous quota를 대신 소비하거나 정리하지 않습니다. 파생 중 원본 segment는
+process-lifetime hold로 자동 삭제에서 제외됩니다. 오래 걸리는 remux 구간에는 link admission
+직렬화 lock을 유지하지 않으므로 다른 event의 선행 durable link 기록을 막지 않습니다.
+source와 output은 `O_NOFOLLOW|O_EXCL` fd와 UUID v2 marker에 결박하고, 실제 packet
+timestamp로 keyframe 확대 범위를 측정합니다. marker 제거 뒤에도 terminal resource-release
+pending을 먼저 내구 기록하며 source/output hold와 Event reservation 해제가 모두 성공한
+뒤에만 link를 `complete`로 승격합니다. 해제 실패는 pending으로 재시도합니다.
+hold 해제와 complete 기록 사이에도 catalog는 terminal 미완료 link의 source/output 삭제
+요청을 거부합니다. 복구 중 같은 이벤트가 확장되면 기존 derived ID와 복구 단계를 덮어쓰지
+않고 `deferred_requested_range`에 UTC 합집합을 내구 기록해 자원 정리 뒤 처리합니다.
+anchor 없는 후속 PTS는 기존 epoch의 segment map으로 변환하며, 아직 map이 없으면
+`deferred_media_pts_range_ms`에 기존 UTC 요청과 분리해 저장합니다. 후행 segment를 찾으면
+같은 link의 확장 범위로 재파생합니다. 복구할 finalized 파생물이 없을 때는 보류 요청을
+먼저 소비하므로 실패·부분 완료 전이가 보류 필드 때문에 거부되지 않습니다.
+frame-buffer fallback 갱신도 marker/terminal 복구 단계를 보존합니다.
+EventRecord bounded queue에 넣기 전에 catalog link를 내구 기록하며, 파생 worker가 가득
+차도 durable pending link는 버리지 않고 완료 슬롯이 생길
+때 다시 흡수합니다. pending 단계의 frame-buffer fallback은 분석 buffer 만료 전에 증거를
+확보하기 위한 provisional locator이며, derived Event clip이 완료되면 항상 우선합니다.
 
 ## EventStorage env
 

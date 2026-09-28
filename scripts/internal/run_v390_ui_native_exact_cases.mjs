@@ -49,6 +49,7 @@ import {
 import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import {
   deduplicateScreenshotArtifactAgainstTree,
+  deduplicateFinalizerScreenshots,
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
   sha256File,
@@ -115,6 +116,8 @@ const caseChildContractFixtureModes = Object.freeze(new Set([
   "pass",
   "callback-capture-error",
   "lifecycle-duplicate-response",
+  "plain-primary-plus-lifecycle",
+  "missing-response-lifecycle-only",
   "dom-assertion-error",
   "api-assertion-error",
   "rejected-promise",
@@ -773,6 +776,7 @@ async function runCanonicalSuiteFinalizerChild() {
   let summary = null;
   try {
     const visualMatrixProbes = await executeVisualMatrix(adapter);
+    deduplicateFinalizerScreenshots(visualMatrixProbes, path.dirname(outputDir));
     summary = {
       schema: "media-server.v390-ui-suite-finalizer.v1",
       result: "PASS",
@@ -1246,6 +1250,21 @@ async function runContractCaseChildFixture(item) {
       item.caseId,
       options.contractCaseChildFixture,
     );
+    if (["plain-primary-plus-lifecycle", "missing-response-lifecycle-only"]
+      .includes(options.contractCaseChildFixture)) {
+      throw caseExecutionFailure(item.caseId, {
+        primaryFailure: options.contractCaseChildFixture === "plain-primary-plus-lifecycle"
+          ? new Error("review-json-password-value https://example.invalid/?token=review-query-token-value")
+          : null,
+        requestLifecycleFailure: structuredCaseChildFailure({
+          failureClass: "request-lifecycle-failure",
+          phase: "request-lifecycle-evaluation",
+          code: "REQUEST_LIFECYCLE_FAILED",
+          message: "contract lifecycle failed",
+        }),
+        requestLifecycleEvaluation,
+      });
+    }
     if (["serialized-secret-lifecycle-fallback", "serialized-secret-scanner-throws"]
       .includes(options.contractCaseChildFixture)) {
       requestLifecycleEvaluation = structuredClone(requestLifecycleEvaluation);
@@ -1421,7 +1440,7 @@ async function executeContractRequestLifecycleFixture(caseId, mode) {
     ledger.captureContext(),
   );
   ledger.registerCapturedRequest(envelope);
-  if (envelope) {
+  if (envelope && !["plain-primary-plus-lifecycle", "missing-response-lifecycle-only"].includes(mode)) {
     ledger.requestLifecycleRecorder.recordResponse(response);
     if (mode === "lifecycle-duplicate-response") {
       ledger.requestLifecycleRecorder.recordResponse(response);
@@ -3281,18 +3300,18 @@ function caseExecutionFailure(
     : null;
   error.failureClass = String(
     primaryFailure?.failureClass ||
-    requestLifecycleFailure?.failureClass ||
+    (!primaryFailure && requestLifecycleFailure?.failureClass) ||
     "case-execution-failure",
   );
   error.failurePhase = String(
     primaryFailure?.failurePhase ||
-    requestLifecycleFailure?.failurePhase ||
+    (!primaryFailure && requestLifecycleFailure?.failurePhase) ||
     failurePhase ||
     "case-execution",
   );
   error.failureCode = String(
     primaryFailure?.failureCode ||
-    requestLifecycleFailure?.failureCode ||
+    (!primaryFailure && requestLifecycleFailure?.failureCode) ||
     "CASE_EXECUTION_FAILED",
   );
   error.actualBrowserExecution = actualBrowserExecution === true;
@@ -3488,6 +3507,8 @@ async function executeVisualMatrix(adapter) {
       fs.writeFileSync(path.join(outputDir, "retained-secret.txt"),
         "round2-finalizer-secret-canary\n", { mode: 0o600 });
     }
+    const fixtureScreenshot = path.join(visualMatrixDir, "contract-probe.png");
+    fs.writeFileSync(fixtureScreenshot, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN9sAAAAASUVORK5CYII=", "base64"));
     return [{
       id: "contract-suite-finalizer-visual-probe",
       canonicalCaseId: "UI-001",
@@ -3499,7 +3520,7 @@ async function executeVisualMatrix(adapter) {
       height: 720,
       theme: "light",
       correlationId: "contract-suite-finalizer-visual-probe:navigation",
-      screenshotPath: "",
+      screenshotPath: fixtureScreenshot,
       measurement: { status: "PASS",
         ...(options.contractSuiteFinalizerFixture === "probe-secret"
           ? { contractDiagnostic: "round2-finalizer-secret-canary" } : {}) },

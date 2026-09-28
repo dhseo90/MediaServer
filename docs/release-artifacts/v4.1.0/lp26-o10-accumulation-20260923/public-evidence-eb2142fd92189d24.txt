@@ -1,0 +1,16 @@
+✔ LP26-O10-A01 4N 독립 규모와 최대 bound (0.540625ms)
+✔ O28-C01 2048 CLI·receipt 허용과 unknown case 거부가 정적으로 연결 (0.423333ms)
+✔ LP26-O10-B01 정확한 네 type·count·partial/backlog oracle (0.528458ms)
+✔ LP26-O10-B02 회전 후 fresh0·rotations1이상 oracle (0.051959ms)
+✔ LP26-O10-F01 복구·checkpoint별15초 독립 경계와 정확한 순서 (0.293375ms)
+✔ O28-M01 ownership 수명 단계는 별도 allowlist와 동일 15초 경계를 쓴다 (0.089917ms)
+✔ O28-M01/M02 ownership CLI·collector·receipt 연결은 최대8 reader와 내용 oracle을 고정한다 (0.210125ms)
+✔ O28-M02 31열 owner와 fresh-process fingerprint collector가 손실·불일치를 거부한다 (0.61675ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.472541

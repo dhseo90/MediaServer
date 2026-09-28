@@ -1,0 +1,19 @@
+[command] node scripts/internal/recording_current_root_storage.test.mjs
+[result] exit=0 passed=10 failed=0 elapsedMs=19
+[pass] B11-O04 첫 ENOENT 뒤 전체 root 재측정, media 17B/1개 정확 집계, transientTreeRetries=1
+[pass] B11-O04 지속 ENOENT 3회 뒤 root-snapshot-retry-exhausted
+[pass] B11-O04 EACCES 즉시 fail-closed
+[pass] 기존 448MiB inclusive cap, unsafe link, SQLite bounded observation, staged generation 구분 유지
+[cleanup] self-test root absent=true
+
+[command] bash scripts/internal/verify_recording_current_observer.sh --app-observe
+[result] exit=0 passed=73 failed=0 elapsedMs=47723 verifiedDurationMs=30189
+[pass] 두 채널 녹화·oldest-first 삭제·비활성 재기동·재활성 녹화
+[pass] stopped-copy native catalog recovery 3회, 원본 journal/manifest 불변
+[pass] status usage와 실제 파일 독립 대조
+[pass] 서버 3회 exit=0, forcedTermination=not-used, HTTP/RTSP/UDP closed
+[pass] ERROR=0 WARNING=0 storageBlocked=0
+[pass] final root=290408558 cap=469762048 capExceeded=false transientTreeRetries=0
+[cleanup] app root absent=true, recovery copy roots absent=true
+[scope] focused/short preparation only; recording 120-minute PASS=false
+[token] start/end/consumed unavailable; source=전용 집계 없음

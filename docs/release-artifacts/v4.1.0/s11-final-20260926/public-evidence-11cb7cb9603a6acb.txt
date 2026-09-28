@@ -1,0 +1,10 @@
+B11-C01 assertion: canonical receipt exact roundtrip
+B11-C01 assertion: unknown UTC remains non-excluding
+B11-C01 FAIL
+B02-S01 PASS
+B02-S02 PASS
+B02-S03 PASS
+B02-S04 PASS
+B02-T01 PASS
+B02-T02 PASS
+[cleanup] removed=true

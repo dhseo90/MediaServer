@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateS05Registration } from "./v410_s05_inventory.mjs";
 import {
   loadImplementationManifest,
   validateImplementationManifest,
@@ -57,9 +58,13 @@ const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
 const currentVersion = readText("VERSION").trim();
 const currentTag = `v${currentVersion}`;
-const latestPublishedTag = "v3.9.1";
+const latestPublishedTag = "v4.0.0";
 
 const checks = [];
+
+check("S05 개별 동작 등록 exact 연결 (실행 증거 아님)", () => {
+  validateS05Registration({ rootDir, inventoryText: inventory });
+});
 
 check("public docs index excludes internal feature inventory", () => {
   assert(!docsIndex.includes("project-feature-test-inventory.md"),

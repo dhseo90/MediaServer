@@ -2,6 +2,7 @@
 // 동작 요약: GStreamer 기반 source pipeline, descriptor discovery, packet 변환, URI pad 선택을 구현한다.
 // 동작 요약: 다양한 원본 source를 SharedStream으로 공급하는 핵심 factory다.
 #include "core/source_factory.h"
+#include "core/gst_decode_compatibility.h"
 
 #include <algorithm>
 #include <atomic>
@@ -31,6 +32,7 @@
 
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsink.h>
+#include "media/gstreamer_sample_observation.h"
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 #include <gst/rtsp/gstrtsptransport.h>
@@ -445,6 +447,7 @@ MediaSample BuildSampleFromGst(const GstSample* sample, const TrackInfo& track) 
 
     out.pts = GST_BUFFER_PTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_PTS(buffer)) : 0;
     out.dts = GST_BUFFER_DTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_DTS(buffer)) : out.pts;
+    out.observation = media::ReadGstreamerSampleObservation(sample);
     out.is_key_frame = track.kind != MediaKind::Video || !GST_BUFFER_FLAG_IS_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
 
     GstMapInfo map;
@@ -781,6 +784,8 @@ public:
 
         video_sink_ = gst_bin_get_by_name(GST_BIN(pipeline_), "video_sink");
         audio_sink_ = gst_bin_get_by_name(GST_BIN(pipeline_), "audio_sink");
+        media::InstallGstreamerSampleObservation(video_sink_);
+        media::InstallGstreamerSampleObservation(audio_sink_);
         if (video_sink_ == nullptr && audio_sink_ == nullptr) {
             if (error_message != nullptr) {
                 *error_message = "file source pipeline has no appsink";
@@ -1394,6 +1399,7 @@ private:
         }
 
         branch->sink = gst_element_factory_make("appsink", nullptr);
+        media::InstallGstreamerSampleObservation(branch->sink);
         if (branch->queue == nullptr || branch->depay == nullptr || branch->sink == nullptr ||
             ((branch->track.codec != CodecId::VP8 && branch->track.codec != CodecId::PCMU && branch->track.codec != CodecId::PCMALaw) &&
              branch->parser == nullptr)) {
@@ -1570,6 +1576,11 @@ public:
 
         // HTTP/HLS playable URI는 uridecodebin으로 raw pad를 얻고, 내부 표준 H264/AAC 패킷으로 재인코딩한다.
         gst_bin_add(GST_BIN(pipeline_), source_);
+        if (!core::InstallDecodeCompatibility(source_)) {
+            if (error_message != nullptr) *error_message = "URI decoder compatibility setup failed";
+            Stop();
+            return false;
+        }
         g_object_set(source_, "uri", source_spec_.uri.c_str(), nullptr);
         pad_added_handler_id_ =
             g_signal_connect(source_, "pad-added", G_CALLBACK(&UriSourceWorker::OnPadAdded), this);
@@ -1930,6 +1941,7 @@ private:
         branch->queue = gst_element_factory_make("queue", nullptr);
         branch->capsfilter = gst_element_factory_make("capsfilter", nullptr);
         branch->sink = gst_element_factory_make("appsink", nullptr);
+        media::InstallGstreamerSampleObservation(branch->sink);
         if (branch->queue == nullptr || branch->capsfilter == nullptr || branch->sink == nullptr) {
             return nullptr;
         }

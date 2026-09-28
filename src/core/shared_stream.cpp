@@ -40,6 +40,19 @@ bool SharedStream::AddAnalysisSubscriber(const std::string& subscriber_id, Subsc
     return AddSubscriberWithRole(subscriber_id, std::move(callback), SubscriberRole::Analysis);
 }
 
+bool SharedStream::AddRecordingSubscriber(const std::string& subscriber_id, SubscriberCallback callback) {
+    return AddSubscriberWithRole(subscriber_id, std::move(callback), SubscriberRole::Recorder);
+}
+
+const char* SubscriberRoleLabel(SharedStream::SubscriberRole role) {
+    switch (role) {
+        case SharedStream::SubscriberRole::Client: return "client";
+        case SharedStream::SubscriberRole::Analysis: return "analysis";
+        case SharedStream::SubscriberRole::Recorder: return "recorder";
+    }
+    return "unknown";
+}
+
 bool SharedStream::AddSubscriberWithRole(const std::string& subscriber_id,
                                          SubscriberCallback callback,
                                          SubscriberRole role) {
@@ -62,7 +75,7 @@ bool SharedStream::AddSubscriberWithRole(const std::string& subscriber_id,
         return false;
     }
     core::runtime_debug::RecordSharedStreamSubscriberAdded(
-        role == SubscriberRole::Analysis ? "analysis" : "client");
+        SubscriberRoleLabel(role));
 
     std::deque<media::Packet> cached_gop;
     std::optional<media::Packet> cached_audio;
@@ -93,7 +106,7 @@ void SharedStream::RemoveSubscriber(const std::string& session_id) {
         subscribers_.erase(it);
     }
     core::runtime_debug::RecordSharedStreamSubscriberRemoved(
-        state->role == SubscriberRole::Analysis ? "analysis" : "client");
+        SubscriberRoleLabel(state->role));
 
     {
         std::lock_guard lock(state->mu);
@@ -118,7 +131,7 @@ void SharedStream::StopAllSubscribers() {
     // map lock을 잡은 채 join하지 않는다. callback 내부에서 다시 stream API를 부를 가능성을 막기 위해서다.
     for (const auto& state : states) {
         core::runtime_debug::RecordSharedStreamSubscriberRemoved(
-            state->role == SubscriberRole::Analysis ? "analysis" : "client");
+            SubscriberRoleLabel(state->role));
         {
             std::lock_guard state_lock(state->mu);
             state->stop = true;
@@ -151,6 +164,15 @@ std::size_t SharedStream::AnalysisSubscriberCount() const {
         if (state->role == SubscriberRole::Analysis) {
             ++count;
         }
+    }
+    return count;
+}
+
+std::size_t SharedStream::RecordingSubscriberCount() const {
+    std::shared_lock lock(mu_);
+    std::size_t count = 0;
+    for (const auto& [_, state] : subscribers_) {
+        if (state->role == SubscriberRole::Recorder) ++count;
     }
     return count;
 }

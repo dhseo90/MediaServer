@@ -10,6 +10,8 @@ import {
   review4GenerationBoundaryDigest,
   review4InventoryDigest,
   buildReview4SemanticObligation,
+  buildReview4TrustBindings,
+  review4LocatorMatchesApprovedBody,
   parseVerifiedReview4Dispatch,
   review4SourceFlowDigest,
   stableStringify,
@@ -320,8 +322,10 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
       sha256(JSON.stringify(proof.approval)) !== proof.approvalDigest) {
     errors.push(`${row.id} REVIEW4 embedded approval drift`);
   }
-  for (const role of ["owner", "dispatch", "action", "state", "readback", "verifier"]) {
-    validateReview4DirectLocator(rootDir, row.id, role, proof.roles?.[role], errors);
+  const resolvedRoles = Object.create(null);
+  const roleNames = new Set(["owner", "dispatch", "action", "state", "readback", "verifier", ...Object.keys(proof.roles || {})]);
+  for (const role of roleNames) {
+    resolvedRoles[role] = validateReview4DirectLocator(rootDir, row.id, role, proof.roles?.[role], errors, proof.trustBindings?.roles?.[role]);
   }
   const trustItem = {
     id: row.id,
@@ -334,13 +338,38 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
     sharedContract: proof.sharedContract,
     semanticObligation: proof.semanticObligation,
     verifier: proof.verifier,
-    roles: proof.roles,
+    roles: resolvedRoles,
     edges: proof.edges,
     trustBindings: proof.trustBindings,
   };
   const review4Dispatch = parseVerifiedReview4Dispatch(rootDir);
-  errors.push(...validateReview4TrustBindings(rootDir, trustItem, review4Dispatch));
-  errors.push(...validateReview4SemanticProof({ item: trustItem, dispatchIndex: review4Dispatch, rootDir }).map(error => `${row.id} REVIEW4 ${error}`));
+  // 승인된 edge의 결속은 원본 위치로 검사한다. 현재 읽기 view에만 좌표를 옮기며
+  // 승인 proof/digest나 hard trust를 현행 값으로 덮어써서는 안 된다.
+  for (const [index, edge] of (proof.edges || []).entries()) {
+    for (const [field, role] of [["source", edge.from], ["target", edge.to]]) {
+      if (edge[field] && edge[field] !== `${proof.roles?.[role]?.file}:${proof.roles?.[role]?.line}`) {
+        errors.push(`${row.id} REVIEW4 edge-${index}:${field}-locator-unbound`);
+      }
+    }
+  }
+  if (Object.values(resolvedRoles).every(Boolean)) {
+    errors.push(...validateReview4TrustBindings(rootDir, trustItem, review4Dispatch));
+    try {
+      const currentBindings = buildReview4TrustBindings(rootDir, trustItem, review4Dispatch);
+      const currentItem = {
+        ...trustItem,
+        trustBindings: currentBindings,
+        edges: (proof.edges || []).map(edge => ({
+          ...edge,
+          ...(edge.source ? { source: `${resolvedRoles[edge.from]?.file}:${resolvedRoles[edge.from]?.line}` } : {}),
+          ...(edge.target ? { target: `${resolvedRoles[edge.to]?.file}:${resolvedRoles[edge.to]?.line}` } : {}),
+        })),
+      };
+      errors.push(...validateReview4SemanticProof({ item: currentItem, dispatchIndex: review4Dispatch, rootDir }).map(error => `${row.id} REVIEW4 ${error}`));
+    } catch (error) {
+      errors.push(`${row.id} REVIEW4 current source unavailable: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
   if (!/^[a-f0-9]{64}$/.test(String(proof.candidateDigest || ""))) {
     errors.push(`${row.id} REVIEW4 candidate digest missing from applied proof`);
   }
@@ -381,7 +410,7 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
   return errors;
 }
 
-function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
+function validateReview4DirectLocator(rootDir, id, role, locator, errors, approvedBinding) {
   if (!locator?.file || !locator?.anchor || !Number.isInteger(locator?.line) || !locator?.contextSha256) {
     errors.push(`${id} REVIEW4 ${role} locator missing`);
     return;
@@ -391,13 +420,11 @@ function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
   catch { errors.push(`${id} REVIEW4 ${role} file missing: ${locator.file}`); return; }
   const lineText = (source.lines[locator.line - 1] || "").trim();
   const anchor = String(locator.anchor).trim();
-  const exact = lineText === anchor &&
-    sha256(review3ContextAtLine(source.lines, locator.line)) === locator.contextSha256;
-  if (exact) return;
 
   // 줄 삽입/삭제만으로 동일한 승인 anchor가 이동한 경우에는 절대 line 번호를
   // semantic 변경으로 취급하지 않는다. anchor와 로컬 context가 함께 일치하는
-  // 위치가 단 하나일 때만 기존 승인을 유지하며, 중복 또는 내용 변경은 계속 FAIL한다.
+  // 위치가 단 하나이거나 승인 enclosing body로 구별되는 단 하나일 때만 해석한다.
+  // 승인 함수 자체의 복제/동일 함수 내부 중복은 위치를 추측하지 않고 FAIL한다.
   const relocatedLines = [];
   for (let index = 0; index < source.lines.length; index += 1) {
     if (source.lines[index].trim() !== anchor) continue;
@@ -405,7 +432,11 @@ function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
       relocatedLines.push(index + 1);
     }
   }
-  if (relocatedLines.length === 1) return;
+  if (relocatedLines.length === 1) return { ...locator, line: relocatedLines[0] };
+  if (relocatedLines.length > 1) {
+    const bound = relocatedLines.filter(line => review4LocatorMatchesApprovedBody(rootDir, { ...locator, line }, approvedBinding));
+    if (bound.length === 1) return { ...locator, line: bound[0] };
+  }
   if (lineText !== anchor) errors.push(`${id} REVIEW4 ${role} line drift`);
   errors.push(`${id} REVIEW4 ${role} context drift`);
 }
@@ -731,8 +762,8 @@ function review3CallChainDigest(row, chain) {
 
 function review3Source(rootDir, file) {
   const key = `${rootDir}:${file}`;
-  if (!review3SourceCache.has(key)) {
-    const text = fs.readFileSync(path.join(rootDir, file), "utf8");
+  const text = fs.readFileSync(path.join(rootDir, file), "utf8");
+  if (review3SourceCache.get(key)?.text !== text) {
     review3SourceCache.set(key, { text, lines: text.split(/\r?\n/) });
   }
   return review3SourceCache.get(key);

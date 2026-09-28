@@ -1,0 +1,12 @@
+PASS RP01 fixed loopback upstream and origin-form target only
+PASS RP01 same-origin POST preserves proxy Host and external Origin rejection
+PASS RP02 streaming preserves 206 bytes and Range headers
+PASS RP03 cookie forwarded but absent from observation
+PASS RP04 nonmedia and invalid metadata never expose payload
+PASS RP05 upstream failure records incomplete safely
+PASS RP06 client disconnect closes upstream and records incomplete
+PASS RP07 close drains or destroys sockets and releases port
+PASS RP08 private log mode0600 bounded failure is latched
+PASS RP09 harness proxy cleanup failure still runs owned server cleanup
+[cleanup] {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-G6uIWk","bytes":1720,"absent":true}
+{"pass":10,"fail":0,"elapsedMs":58,"actualUi":false}

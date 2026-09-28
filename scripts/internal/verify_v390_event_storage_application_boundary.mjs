@@ -13,8 +13,12 @@ if (hasHelpFlag(args)) printUsageAndExit(`V390 Event Storage application boundar
 
 Usage:
   ./server.sh verify-v390-event-storage-application-boundary
+  node scripts/internal/verify_v390_event_storage_application_boundary.mjs --application-only
+  node scripts/internal/verify_v390_event_storage_application_boundary.mjs --composition-self-test
 `);
-assertKnownOptions(args, ["h", "help"]);
+assertKnownOptions(args, ["h", "help", "application-only", "composition-self-test"]);
+const compositionSelfTest = args.includes("--composition-self-test");
+const applicationOnly = args.includes("--application-only") || compositionSelfTest;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 const headerPath = "include/ingress/event_storage_application_service.h";
@@ -22,6 +26,8 @@ const sourcePath = "src/ingress/event_storage_application_service.cpp";
 const incidentsPath = "src/ingress/webrtc_http_server_ops_incidents.cpp";
 const runtimePath = "src/ingress/webrtc_http_server_runtime.cpp";
 const detailPath = "src/ingress/webrtc_http_server_detail.h";
+const canonicalStoragePath = "src/analysis/event_storage.cpp";
+const eventClipDeriverPath = "src/recording/event_clip_deriver.cpp";
 const transportPaths = [
   "include/ingress/http_auth.h", "include/ingress/webrtc_http_runtime_config.h",
   "src/ingress/http_auth.cpp", "include/ingress/webrtc_http_server.h",
@@ -31,7 +37,10 @@ const transportPaths = [
 ];
 const checks = [];
 function assert(value, message) { if (!value) throw new Error(message); }
-function check(name, fn) { try { fn(); checks.push({name,status:"PASS"}); } catch (error) { checks.push({name,status:"FAIL",detail:error.message}); } }
+function check(name, fn) {
+  if (compositionSelfTest && !name.startsWith("D3B-16 ")) return;
+  try { fn(); checks.push({name,status:"PASS"}); } catch (error) { checks.push({name,status:"FAIL",detail:error.message}); }
+}
 function exactCount(text, pattern) { return (text.match(pattern) || []).length; }
 function compact(text) { return text.replace(/\/\/[^\n]*/g, "").replace(/\s+/g, " ").trim(); }
 function escapeRegex(text) { return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
@@ -62,7 +71,7 @@ function assertRejected(label, fn) { let rejected = false; try { fn(); } catch {
 
 const dtoManifests = {
   EventStorageApplicationBox: ["float x{0.0F};", "float y{0.0F};", "float width{0.0F};", "float height{0.0F};"],
-  EventStorageApplicationDispatchSource: ["std::string source_key;", "std::string profile_key;", "std::string source_kind{\"*\"};", "std::string route{\"*\"};", "std::string client_id;", "std::int64_t pts{0};"],
+  EventStorageApplicationDispatchSource: ["std::string source_key;", "std::string profile_key;", "std::string source_kind{\"*\"};", "std::string route{\"*\"};", "std::string client_id;", "std::int64_t pts{0};", "std::string time_basis;", "std::int64_t time_anchor_utc_ms{0};", "std::int64_t time_anchor_pts_ms{0};", "std::string stream_epoch_id;", "std::uint64_t frame_id{0};", "std::shared_ptr<const RecordingEvidenceCarrier> recording_evidence;"],
   EventStorageApplicationDispatchEvent: ["std::string event_id;", "std::string rule_id;", "std::string event_type;", "std::uint64_t track_id{0};", "int class_id{-1};", "std::string label;", "float score{0.0F};", "EventStorageApplicationBox box;", "std::string highlight_color{\"#ff0000\"};", "int highlight_duration_ms{1200};", "bool highlight_enabled{true};", "bool post_enabled{false};", "std::string post_url;", "std::string status;", "std::int64_t start_time_ms{0};", "std::int64_t update_time_ms{0};", "std::int64_t end_time_ms{0};", "std::string zone_id;", "std::string line_id;", "std::string scenario_name;", "std::string scenario_phase;", "std::string metadata_json;"],
   EventStorageApplicationDispatchRequest: ["EventStorageApplicationDispatchSource source;", "std::vector<EventStorageApplicationDispatchEvent> events;"],
   EventStorageApplicationSnapshot: ["bool enabled{false};", "std::string path;", "std::string active_path;", "std::uint64_t active_file_size_bytes{0};", "std::uint64_t archived_file_count{0};", "std::uint64_t total_archive_bytes{0};", "std::size_t queue_size{0};", "std::size_t max_queue_size{0};", "std::uint64_t enqueued_count{0};", "std::uint64_t stored_count{0};", "std::uint64_t failed_count{0};", "std::uint64_t write_failed_count{0};", "std::uint64_t dropped_count{0};", "std::uint64_t skipped_corrupt_lines{0};", "std::uint64_t partial_line_count{0};", "std::uint64_t last_recovery_time_ms{0};", "std::string last_recovery_status{\"not-run\"};", "std::uint64_t rotated_count{0};", "std::uint64_t rotation_failed_count{0};", "std::uint64_t retention_deleted_count{0};", "std::uint64_t retention_deleted_bytes{0};", "std::uint64_t retention_failed_count{0};", "bool snapshot_hook_enabled{false};", "bool clip_hook_enabled{false};", "std::string snapshot_dir;", "std::string clip_dir;", "int pre_event_ms{0};", "int post_event_ms{0};", "int clip_buffer_ms{0};", "std::uint64_t snapshot_hook_failed_count{0};", "std::uint64_t clip_hook_failed_count{0};", "std::string last_snapshot_error;", "std::string last_clip_error;", "std::string last_error;"],
@@ -94,6 +103,8 @@ function assertSourceContract(source) {
     const lhs = ["source_kind", "route", "client_id"].includes(field) ? `result.context.${field}` : `result.${field}`;
     exactFragment(dispatch, `${lhs} = request.source.${field};`, "dispatch source mapping");
   }
+  for (const field of ["time_basis", "time_anchor_utc_ms", "time_anchor_pts_ms", "stream_epoch_id"])
+    exactFragment(dispatch, `result.context.event_${field === "time_basis" ? "time_basis" : field === "stream_epoch_id" ? "stream_epoch_id" : field.replace("time_", "") } = request.source.${field};`, "dispatch recording time mapping");
   for (const field of dispatchEventMappings) exactFragment(dispatch, `event.${field} = input.${field};`, "dispatch event mapping");
   for (const field of ["x", "y", "width", "height"]) exactFragment(dispatch, `event.box.${field} = input.box.${field};`, "dispatch box mapping");
   assert(ordered(dispatch, ["analysis::AnalysisResult result", "std::vector<analysis::AnalysisEvent> events", "events.reserve", "for (const auto& input", "events.push_back", "analysis::DispatchEventRecords(result, events)"]), "dispatch build/call order drift");
@@ -135,6 +146,10 @@ function assertTransportContract(incidents, runtime, transport) {
     const rhs = ["source_kind", "route", "client_id"].includes(field) ? `result.context.${field}` : `result.${field}`;
     exactFragment(project, `request.source.${field} = ${rhs};`, "transport source projection");
   }
+  exactFragment(project, "request.source.time_basis = result.context.event_time_basis;", "transport recording time basis projection");
+  exactFragment(project, "request.source.time_anchor_utc_ms = result.context.event_anchor_utc_ms;", "transport recording UTC anchor projection");
+  exactFragment(project, "request.source.time_anchor_pts_ms = result.context.event_anchor_pts_ms;", "transport recording PTS anchor projection");
+  exactFragment(project, "request.source.stream_epoch_id = result.context.event_stream_epoch_id;", "transport recording epoch projection");
   for (const field of dispatchEventMappings) exactFragment(project, `output.${field} = event.${field};`, "transport event projection");
   for (const field of ["x", "y", "width", "height"]) exactFragment(project, `output.box.${field} = event.box.${field};`, "transport box projection");
   assert(ordered(project, ["EventStorageApplicationDispatchRequest request", "request.source.source_key", "request.events.reserve", "for (const auto& event", "request.events.push_back", "return request"]), "transport projection order drift");
@@ -146,7 +161,7 @@ function assertTransportContract(incidents, runtime, transport) {
 check("application header is standard-only with exact DTO/default manifests", () => {
   const header = read(headerPath);
   const includes = [...header.matchAll(/^\s*#\s*include\s*([<"][^>"]+[>"])/gm)].map(item => item[1]);
-  assert(JSON.stringify(includes) === JSON.stringify(["<cstddef>", "<cstdint>", "<string>", "<vector>"]), "application header include set drift");
+  assert(JSON.stringify(includes) === JSON.stringify(["<cstddef>", "<cstdint>", "<memory>", "<string>", "<vector>"]), "application header include set drift");
   assert(!/^\s*#\s*include\s*"/m.test(header) && !/\b(?:analysis|core|domain|media|detail|internal)::/.test(header), "internal namespace/type leaked into application contract");
   assert(!/\bvoid\s*\*|\bstd::(?:any|variant|function)\b|reinterpret_cast|typeid\s*\(/.test(header), "unsafe type erasure leaked into application contract");
   for (const [name, fields] of Object.entries(dtoManifests)) {
@@ -190,6 +205,41 @@ check("transport has zero canonical bypass and exact projection/call ordering", 
   }
 });
 
+check("recording link is durably admitted before the bounded storage queue can drop an event", () => {
+  const canonicalStorage = read(canonicalStoragePath);
+  const enqueue = body(canonicalStorage, "function", "Enqueue");
+  const assertAdmission = source => {
+    assert(source.includes("if (!config.analysis_event_storage_enabled && !recording_bridge)"),
+      "JSONL 비활성만으로 recording bridge 접수를 생략하면 안 됨");
+    assert(ordered(source, ["EventRecordingBridgeSnapshot()", "TryResolve(", "std::lock_guard lock(mu_)", "queue_.size()", "queue_.pop_front()", "queue_.push_back"]),
+      "recording bridge durable admission must precede bounded queue eviction");
+  };
+  assertAdmission(enqueue);
+  assertRejected("JSONL disabled recording bridge 우회 거부", () => assertAdmission(
+    replaceExact(enqueue, "if (!config.analysis_event_storage_enabled && !recording_bridge)",
+      "if (!config.analysis_event_storage_enabled)", "disabled guard mutation")));
+});
+
+check("event clip output remains fd-bound and measured before no-replace publication", () => {
+  const deriver = read(eventClipDeriverPath);
+  assert(!deriver.includes('filesink location='),
+    "event clip output path must not be reopened by filesink");
+  for (const token of [
+    "O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW",
+    "fdsink fd=",
+    "mpegtsmux alignment=7",
+    "ObserveTimeline",
+    "measured_start > request.requested_range.start_ms",
+    "::linkat(event_fd.value, partial_name.c_str()",
+  ]) assert(deriver.includes(token), `event clip fd/timeline publication guard missing: ${token}`);
+  assert(ordered(deriver, [
+    "::openat(event_fd.value, partial_name.c_str()",
+    "fdsink fd=",
+    "measured_start > request.requested_range.start_ms",
+    "::linkat(event_fd.value, partial_name.c_str()",
+  ]), "event clip open/write/measure/no-replace order drift");
+});
+
 function compileAndRunHarness(temp, sourceText, name, headerText = read(headerPath)) {
   const fakeDir = path.join(temp, name, "include", "analysis"); fs.mkdirSync(fakeDir, {recursive:true});
   const fakeHeader = `${String.raw`#pragma once
@@ -199,8 +249,13 @@ function compileAndRunHarness(temp, sourceText, name, headerText = read(headerPa
 #include <vector>
 namespace analysis {
 struct Box { float x{},y{},width{},height{}; };
-struct Context { std::string source_kind{"*"},route{"*"},client_id; };
-struct AnalysisResult { std::string source_key,profile_key; Context context; std::int64_t pts{}; };
+struct Context { std::string source_kind{"*"},route{"*"},client_id; std::string event_time_basis; std::int64_t event_anchor_utc_ms{},event_anchor_pts_ms{}; std::string event_stream_epoch_id; };
+struct DecodedIntervalSnapshot;
+enum class SourceAssociationQuality { TimestampMatch, Nearest, Ambiguous, Unavailable };
+struct OriginalSampleIdentity { std::string source_generation; std::uint64_t generation_order{},ordinal{}; std::string track_id; std::uint64_t pts_ns{}; };
+struct SourceAssociation { SourceAssociationQuality quality{SourceAssociationQuality::Unavailable}; std::optional<OriginalSampleIdentity> original; };
+struct AnalysisObservationContext { std::string source_id,channel_id,stream_epoch_id; std::string locator_reason{"missing-provenance"}; };
+struct AnalysisResult { std::string source_key,profile_key; Context context; std::int64_t pts{}; std::uint64_t frame_id{}; AnalysisObservationContext observation_context; std::string observation_namespace; SourceAssociation source_association; std::shared_ptr<const DecodedIntervalSnapshot> decoded_intervals; };
 struct AnalysisEvent { std::string event_id,rule_id,event_type; std::uint64_t track_id{}; int class_id{-1}; std::string label; float score{}; Box box; std::string highlight_color{"#ff0000"}; int highlight_duration_ms{1200}; bool highlight_enabled{true},post_enabled{false}; std::string post_url,status; std::int64_t start_time_ms{},update_time_ms{},end_time_ms{}; std::string zone_id,line_id,scenario_name,scenario_phase,metadata_json; };
 struct EventStorageSnapshot { bool enabled{}; std::string path,active_path; std::uint64_t active_file_size_bytes{},archived_file_count{},total_archive_bytes{}; std::size_t queue_size{},max_queue_size{}; std::uint64_t enqueued_count{},stored_count{},failed_count{},write_failed_count{},dropped_count{},skipped_corrupt_lines{},partial_line_count{},last_recovery_time_ms{}; std::string last_recovery_status{"not-run"}; std::uint64_t rotated_count{},rotation_failed_count{},retention_deleted_count{},retention_deleted_bytes{},retention_failed_count{}; bool snapshot_hook_enabled{},clip_hook_enabled{}; std::string snapshot_dir,clip_dir; int pre_event_ms{},post_event_ms{},clip_buffer_ms{}; std::uint64_t snapshot_hook_failed_count{},clip_hook_failed_count{}; std::string last_snapshot_error,last_clip_error,last_error; };
 struct EventRecordQueryOptions { std::string event_id,event_type,stream_id,channel_id; bool has_track_id{}; std::uint64_t track_id{}; std::string status,zone_id,line_id,scenario_name,scenario_phase,evidence; bool has_start_time_ms{}; std::int64_t start_time_ms{}; bool has_end_time_ms{}; std::int64_t end_time_ms{}; std::size_t offset{},limit{100}; bool include_archives{}; };
@@ -211,7 +266,9 @@ struct EventRecordCompactedFileListResult { EventStorageSnapshot storage; std::v
 struct EventRecordCompactedFileCleanupResult { EventStorageSnapshot storage; std::uint64_t deleted_count{},deleted_bytes{},kept_count{}; };
 void DispatchEventRecords(const AnalysisResult&,const std::vector<AnalysisEvent>&); EventStorageSnapshot GetEventStorageSnapshot(); bool QueryEventRecords(const EventRecordQueryOptions&,EventRecordQueryResult*,std::string*); bool CompactEventRecords(const EventRecordQueryOptions&,EventRecordCompactionResult*,std::string*); bool ListCompactedEventRecordFiles(EventRecordCompactedFileListResult*,std::string*); bool ResolveCompactedEventRecordFile(const std::string&,EventRecordCompactedFileInfo*,std::string*); bool DeleteCompactedEventRecordFile(const std::string&,EventRecordCompactedFileInfo*,std::string*); bool CleanupCompactedEventRecordFiles(std::size_t,EventRecordCompactedFileCleanupResult*,std::string*);
 }`}`;
-  fs.writeFileSync(path.join(fakeDir, "event_storage.h"), fakeHeader);
+  fs.writeFileSync(path.join(fakeDir, "event_storage.h"), '#include <memory>\n#include <optional>\n'+fakeHeader);
+  fs.writeFileSync(path.join(fakeDir, "analysis_types.h"), '#pragma once\n#include "analysis/event_storage.h"\n');
+  fs.writeFileSync(path.join(temp,name,"recording_evidence_application_mapping.h"), read("src/ingress/recording_evidence_application_mapping.h"));
   const ingressDir = path.join(temp, name, "include", "ingress"); fs.mkdirSync(ingressDir, {recursive:true});
   fs.writeFileSync(path.join(ingressDir, "event_storage_application_service.h"), headerText);
   const sourceFile = path.join(temp, name, "service.cpp"); fs.writeFileSync(sourceFile, sourceText);
@@ -229,8 +286,8 @@ using namespace ingress;
 bool Q(const analysis::EventRecordQueryOptions&o){return o.event_id=="id"&&o.event_type=="type"&&o.stream_id=="stream"&&o.channel_id=="channel"&&o.has_track_id&&o.track_id==9&&o.status=="status"&&o.zone_id=="zone"&&o.line_id=="line"&&o.scenario_name=="scenario"&&o.scenario_phase=="phase"&&o.evidence=="evidence"&&o.has_start_time_ms&&o.start_time_ms==10&&o.has_end_time_ms&&o.end_time_ms==20&&o.offset==3&&o.limit==4&&o.include_archives;}
 int main(){
  EventStorageApplicationDispatchRequest defaults;DispatchEventRecordsForApplication(defaults);if(analysis::dispatch_result.context.source_kind!="*"||analysis::dispatch_result.context.route!="*"||!analysis::dispatch_events.empty())return 13;
- EventStorageApplicationDispatchRequest d;d.source={"source","profile","kind","route","client",44}; EventStorageApplicationDispatchEvent e;e.event_id="id";e.rule_id="rule";e.event_type="type";e.track_id=9;e.class_id=8;e.label="label";e.score=.7F;e.box={1,2,3,4};e.highlight_color="color";e.highlight_duration_ms=5;e.highlight_enabled=false;e.post_enabled=true;e.post_url="url";e.status="status";e.start_time_ms=10;e.update_time_ms=11;e.end_time_ms=12;e.zone_id="zone";e.line_id="line";e.scenario_name="scenario";e.scenario_phase="phase";e.metadata_json="meta";d.events={e}; DispatchEventRecordsForApplication(d);
- const auto&r=analysis::dispatch_result;const auto&x=analysis::dispatch_events.at(0);if(r.source_key!="source"||r.profile_key!="profile"||r.context.source_kind!="kind"||r.context.route!="route"||r.context.client_id!="client"||r.pts!=44||x.event_id!="id"||x.rule_id!="rule"||x.event_type!="type"||x.track_id!=9||x.class_id!=8||x.label!="label"||x.score!=.7F||x.box.x!=1||x.box.y!=2||x.box.width!=3||x.box.height!=4||x.highlight_color!="color"||x.highlight_duration_ms!=5||x.highlight_enabled||!x.post_enabled||x.post_url!="url"||x.status!="status"||x.start_time_ms!=10||x.update_time_ms!=11||x.end_time_ms!=12||x.zone_id!="zone"||x.line_id!="line"||x.scenario_name!="scenario"||x.scenario_phase!="phase"||x.metadata_json!="meta")return 1;
+ EventStorageApplicationDispatchRequest d;d.source={"source","profile","kind","route","client",44,"utc-ms",101,202,"epoch-1"}; EventStorageApplicationDispatchEvent e;e.event_id="id";e.rule_id="rule";e.event_type="type";e.track_id=9;e.class_id=8;e.label="label";e.score=.7F;e.box={1,2,3,4};e.highlight_color="color";e.highlight_duration_ms=5;e.highlight_enabled=false;e.post_enabled=true;e.post_url="url";e.status="status";e.start_time_ms=10;e.update_time_ms=11;e.end_time_ms=12;e.zone_id="zone";e.line_id="line";e.scenario_name="scenario";e.scenario_phase="phase";e.metadata_json="meta";d.events={e}; DispatchEventRecordsForApplication(d);
+ const auto&r=analysis::dispatch_result;const auto&x=analysis::dispatch_events.at(0);if(r.source_key!="source"||r.profile_key!="profile"||r.context.source_kind!="kind"||r.context.route!="route"||r.context.client_id!="client"||r.pts!=44||r.context.event_time_basis!="utc-ms"||r.context.event_anchor_utc_ms!=101||r.context.event_anchor_pts_ms!=202||r.context.event_stream_epoch_id!="epoch-1"||x.event_id!="id"||x.rule_id!="rule"||x.event_type!="type"||x.track_id!=9||x.class_id!=8||x.label!="label"||x.score!=.7F||x.box.x!=1||x.box.y!=2||x.box.width!=3||x.box.height!=4||x.highlight_color!="color"||x.highlight_duration_ms!=5||x.highlight_enabled||!x.post_enabled||x.post_url!="url"||x.status!="status"||x.start_time_ms!=10||x.update_time_ms!=11||x.end_time_ms!=12||x.zone_id!="zone"||x.line_id!="line"||x.scenario_name!="scenario"||x.scenario_phase!="phase"||x.metadata_json!="meta")return 1;
  analysis::snapshot.enabled=true;analysis::snapshot.path="path";analysis::snapshot.active_path="active";analysis::snapshot.active_file_size_bytes=1;analysis::snapshot.archived_file_count=2;analysis::snapshot.total_archive_bytes=3;analysis::snapshot.queue_size=4;analysis::snapshot.max_queue_size=5;analysis::snapshot.enqueued_count=6;analysis::snapshot.stored_count=7;analysis::snapshot.failed_count=8;analysis::snapshot.write_failed_count=9;analysis::snapshot.dropped_count=10;analysis::snapshot.skipped_corrupt_lines=11;analysis::snapshot.partial_line_count=12;analysis::snapshot.last_recovery_time_ms=13;analysis::snapshot.last_recovery_status="recovered";analysis::snapshot.rotated_count=14;analysis::snapshot.rotation_failed_count=15;analysis::snapshot.retention_deleted_count=16;analysis::snapshot.retention_deleted_bytes=17;analysis::snapshot.retention_failed_count=18;analysis::snapshot.snapshot_hook_enabled=true;analysis::snapshot.clip_hook_enabled=true;analysis::snapshot.snapshot_dir="snap";analysis::snapshot.clip_dir="clip";analysis::snapshot.pre_event_ms=19;analysis::snapshot.post_event_ms=20;analysis::snapshot.clip_buffer_ms=21;analysis::snapshot.snapshot_hook_failed_count=22;analysis::snapshot.clip_hook_failed_count=23;analysis::snapshot.last_snapshot_error="se";analysis::snapshot.last_clip_error="ce";analysis::snapshot.last_error="le";
  auto s=ObserveEventStorageForApplication();if(!s.enabled||s.path!="path"||s.active_path!="active"||s.active_file_size_bytes!=1||s.archived_file_count!=2||s.total_archive_bytes!=3||s.queue_size!=4||s.max_queue_size!=5||s.enqueued_count!=6||s.stored_count!=7||s.failed_count!=8||s.write_failed_count!=9||s.dropped_count!=10||s.skipped_corrupt_lines!=11||s.partial_line_count!=12||s.last_recovery_time_ms!=13||s.last_recovery_status!="recovered"||s.rotated_count!=14||s.rotation_failed_count!=15||s.retention_deleted_count!=16||s.retention_deleted_bytes!=17||s.retention_failed_count!=18||!s.snapshot_hook_enabled||!s.clip_hook_enabled||s.snapshot_dir!="snap"||s.clip_dir!="clip"||s.pre_event_ms!=19||s.post_event_ms!=20||s.clip_buffer_ms!=21||s.snapshot_hook_failed_count!=22||s.clip_hook_failed_count!=23||s.last_snapshot_error!="se"||s.last_clip_error!="ce"||s.last_error!="le")return 2;
  EventStorageApplicationQueryOptions q;q.event_id="id";q.event_type="type";q.stream_id="stream";q.channel_id="channel";q.has_track_id=true;q.track_id=9;q.status="status";q.zone_id="zone";q.line_id="line";q.scenario_name="scenario";q.scenario_phase="phase";q.evidence="evidence";q.has_start_time_ms=true;q.start_time_ms=10;q.has_end_time_ms=true;q.end_time_ms=20;q.offset=3;q.limit=4;q.include_archives=true;
@@ -271,26 +328,76 @@ check("compiled fake canonical matrix preserves all fields failure/null outputs 
   } finally { fs.rmSync(temp, {recursive:true,force:true}); }
 });
 
-check("CMake dispatch and current graph bind exact Slice 28 successor", () => {
-  assert(exactCount(read("CMakeLists.txt"), /src\/ingress\/event_storage_application_service\.cpp/g) === 1, "CMake source count drift");
-  assert(exactCount(read("server.sh"), /verify-v390-event-storage-application-boundary/g) === 3, "server dispatch count drift");
-  const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
-  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 && classifier("application-service-interfaces")?.expectedFileCount === 41 && classifier("application-service-interfaces")?.expectedCppCount === 17 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 && edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 && edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 && edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 && edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 && edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
-    graph.observedModuleEdges.length === 17 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 && graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Analysis Session read application boundary"), "graph successor drift");
-});
+if (applicationOnly) {
+  // D02에서 승인된 조기 접수 차단/worker join을 검사한다. 이 source 검사는 runtime 증거가 아니다.
+  const app = compact(read("src/application/media_server_application.cpp"));
+  const bridge="event_recording_bridge->StopAndDrain();", recorder="recording_supervisor.Stop();";
+  const storage="analysis::StopEventStorage();", detach="analysis::SetEventRecordingBridge(nullptr);";
+  const observations="stop_observations();";
+  const drain=[bridge,recorder,"analysis_sessions.Shutdown();",storage,detach,observations];
+  const paths=[
+    {name:"supervisor 시작 실패",anchor:"if (!recording_supervisor.Start(&recording_error)) {",end:"return 1;",tokens:[bridge,detach,observations]},
+    {name:"RTSP 시작 실패",anchor:"if (!rtsp_server_started) {",end:"return 1;",tokens:drain},
+    {name:"HTTP 시작 실패",anchor:"if (!http_server_started) {",end:"return 1;",tokens:["gst_rtsp_server.Stop();",...drain]},
+    {name:"정상 종료",anchor:"webrtc_http_server.Stop();",end:"return 0;",tokens:["webrtc_http_server.Stop();","gst_rtsp_server.Stop();",...drain]},
+  ];
+  const calls=["webrtc_http_server.Stop();","gst_rtsp_server.Stop();",...drain];
+  function region(source, route){
+    const start=source.indexOf(route.anchor);assert(start>=0,`${route.name} 경로 누락`);
+    const end=source.indexOf(route.end,start);assert(end>=0,`${route.name} 종료 누락`);
+    return {start,end:end+route.end.length,text:source.slice(start,end+route.end.length)};
+  }
+  function validate(source,route){
+    const start=source.indexOf("analysis::SetEventRecordingBridge(event_recording_bridge);");
+    assert(start>=0&&start<source.indexOf("recording_supervisor.Start("),"bridge 등록이 생산자보다 늦음");
+    const block=region(source,route).text;
+    const actual=[...block.matchAll(new RegExp(calls.map(escapeRegex).join("|"),"g"))].map(match=>match[0]);
+    assert(JSON.stringify(actual)===JSON.stringify(route.tokens),`${route.name} 접수차단/수명 순서 불일치`);
+    assert(/if\s*\(event_recording_bridge\)\s*event_recording_bridge->StopAndDrain\(\);/.test(block),"nullable bridge guard 누락");
+  }
+  check("S05 구성은 생산자 전에 bridge를 등록하고 의존성 종료 전에 drain한다",()=>{
+    for(const route of paths)validate(app,route);
+  });
+  if(compositionSelfTest)for(const route of paths){
+    check(`D3B-16 ${route.name} 승인된 종료 순서`,()=>validate(app,route));
+    const mutations=[
+      ["bridge 미호출",text=>text.replace(bridge,"")],
+      ["early detach",text=>text.replace(detach,"").replace(bridge,detach+" "+bridge)],
+      ["경로 누락",text=>text.replace(route.anchor,"removed-route")],
+    ];
+    if(route.tokens.includes(recorder))mutations.push(
+      ["recorder 역전",text=>text.replace(recorder,"").replace(bridge,recorder+" "+bridge)],
+      ["storage 뒤 late drain",text=>text.replace(bridge,"").replace(storage,storage+" "+bridge)]);
+    for(const [name,mutate]of mutations)check(`D3B-16 ${route.name} ${name} 변형 거부`,()=>{
+      const area=region(app,route);const changed=app.slice(0,area.start)+mutate(area.text)+app.slice(area.end);
+      assertRejected(name,()=>validate(changed,route));
+    });
+  }
+}
 
-check("current structure gate accepts exact non-final successor", () => {
-  const output = execFileSync(path.join(root,"server.sh"), ["verify-v390-review4-structure-stabilization-execution"], {cwd:root,encoding:"utf8"});
-  assert(output.includes("summary: pass=15 fail=0"), "structure successor gate failed");
-});
+if (!applicationOnly) {
+  check("CMake dispatch and current graph bind exact Slice 28 successor", () => {
+    assert(exactCount(read("CMakeLists.txt"), /src\/ingress\/event_storage_application_service\.cpp/g) === 1, "CMake source count drift");
+    assert(exactCount(read("server.sh"), /verify-v390-event-storage-application-boundary/g) === 3, "server dispatch count drift");
+    const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
+    const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
+    const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
+    assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 && classifier("application-service-interfaces")?.expectedFileCount === 41 && classifier("application-service-interfaces")?.expectedCppCount === 17 &&
+      edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 && edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
+      edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 && edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
+      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 && edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
+      edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 && edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
+      edge("composition-root -> application-service-interfaces")?.witnessCount === 1 && edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+      graph.observedModuleEdges.length === 17 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 && graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Analysis Session read application boundary"), "graph successor drift");
+  });
 
+  check("current structure gate accepts exact non-final successor", () => {
+    const output = execFileSync(path.join(root,"server.sh"), ["verify-v390-review4-structure-stabilization-execution"], {cwd:root,encoding:"utf8"});
+    assert(output.includes("summary: pass=15 fail=0"), "structure successor gate failed");
+  });
+}
+
+if(compositionSelfTest&&checks.length!==22)checks.push({name:"D3B-16 exact22 실행 수량",status:"FAIL",detail:`actual=${checks.length}`});
 for (const item of checks) console.log(`- ${item.status}: ${item.name}${item.detail ? ` — ${item.detail}` : ""}`);
 const failed = checks.filter(item => item.status === "FAIL").length;
 console.log(`- summary: pass=${checks.length-failed} fail=${failed}`);

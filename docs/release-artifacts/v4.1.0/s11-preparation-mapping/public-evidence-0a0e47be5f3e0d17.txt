@@ -1,0 +1,73 @@
+[checkpoint-cost] stage=update count=0 bytes=0 us=79005
+[checkpoint-cost] stage=update count=1 bytes=0 us=292682
+[checkpoint-cost] stage=update count=2 bytes=0 us=371354
+[checkpoint-cost] stage=update count=3 bytes=0 us=360487
+[checkpoint-cost] stage=update count=0 bytes=0 us=79061
+[checkpoint-cost] stage=update count=1 bytes=0 us=294405
+[checkpoint-cost] stage=update count=2 bytes=0 us=372629
+[checkpoint-cost] stage=replay count=0 bytes=0 us=100
+[checkpoint-cost] stage=prepare count=18 bytes=0 us=156
+[checkpoint-cost] stage=original-apply count=18 bytes=1226817 us=724536
+[checkpoint-cost] stage=candidate-apply count=18 bytes=1226817 us=724879
+[checkpoint-cost] stage=signature count=0 bytes=0 us=89471
+[checkpoint-committed] count=1
+[checkpoint-cost] stage=commit count=18 bytes=0 us=879
+[checkpoint-cost] stage=update count=3 bytes=0 us=1903854
+[shape] state=1 bytes=183001 sources=1 samples=250 mappings=1 slices=45 aus=250 hash=78a4c8c840d8d73e54be221a38ea51bcb425c64fef04819d9238ff8a4821616c
+[record-cost] iteration=1 serialize_us=22177 parse_us=58211
+[record-cost] iteration=2 serialize_us=22163 parse_us=58308
+[record-cost] iteration=3 serialize_us=22310 parse_us=58714
+[shape] state=3 bytes=183016 sources=1 samples=250 mappings=1 slices=45 aus=250 hash=dc24855e3878c2a7aa16794795f4ba81d6ff3507481a4c56956d91461219f0d0
+[record-cost] iteration=1 serialize_us=22188 parse_us=58787
+[record-cost] iteration=2 serialize_us=22250 parse_us=58678
+[record-cost] iteration=3 serialize_us=22153 parse_us=58116
+[shape] state=1 bytes=183001 sources=1 samples=250 mappings=1 slices=45 aus=250 hash=f4efb66ea97e37ec09b42145ef9e55dba93e5693a1281b2bb0ed8222401b492f
+[record-cost] iteration=1 serialize_us=22338 parse_us=58388
+[record-cost] iteration=2 serialize_us=22384 parse_us=59896
+[record-cost] iteration=3 serialize_us=23029 parse_us=59483
+[shape] state=3 bytes=183016 sources=1 samples=250 mappings=1 slices=45 aus=250 hash=cfc7934987878b8ad23e00553001a1b374fba55fed000a485886f1a1b813cdf7
+[record-cost] iteration=1 serialize_us=22942 parse_us=58872
+[record-cost] iteration=2 serialize_us=22069 parse_us=58292
+[record-cost] iteration=3 serialize_us=22435 parse_us=58505
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs automatic checkpoint trace collected
+[checkpoint-cost] stage=update count=0 bytes=0 us=54241
+[checkpoint-cost] stage=update count=1 bytes=0 us=255344
+[checkpoint-cost] stage=update count=2 bytes=0 us=336891
+[checkpoint-cost] stage=update count=3 bytes=0 us=321055
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8333333333 end=8366666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8366666666 end=8400000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8400000000 end=8433333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8433333333 end=8466666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8466666666 end=8500000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8500000000 end=8533333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8533333333 end=8566666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8566666666 end=8600000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8600000000 end=8633333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8633333333 end=8666666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8666666666 end=8700000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8700000000 end=8733333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8733333333 end=8766666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8766666666 end=8800000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8800000000 end=8833333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8833333333 end=8866666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8866666666 end=8900000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8900000000 end=8933333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8933333333 end=8966666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8966666666 end=9000000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9000000000 end=9033333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9033333333 end=9066666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9066666666 end=9100000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9100000000 end=9133333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9133333333 end=9166666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9166666666 end=9200000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9200000000 end=9233333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9233333333 end=9266666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9266666666 end=9300000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9300000000 end=9316000000
+[partial-context] before_sources=1 after_sources=2 evidence_frames=300 wait_ms=3750
+[pass] CP03 bounded partial missing source then same evidence complete
+[summary] pass=3 fail=0
+[bounded] {"pid":71456,"code":0,"signal":null,"limit":false,"automaticCheckpoints":1}
+[cleanup] path=/private/tmp/media-server-checkpoint-reproduction.CpMpFa bytes=10024163 removed=true
+[elapsed] seconds=12 source=bash-SECONDS

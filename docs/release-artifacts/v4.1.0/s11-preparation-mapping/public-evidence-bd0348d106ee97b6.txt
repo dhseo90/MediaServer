@@ -1,0 +1,9 @@
+{"command":["./server.sh","verify-v390-review4-feature-semantic-source-approvals"],"source":"5e5f45d788b4a370e545ecf0a0a7d50a55dfb59f","started":"2026-09-21T14:53:12.883Z","platform":"darwin","release":"27.0.0","node":"v24.13.0","tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenReason":"전용 작업 집계 없음"}
+== V390 REVIEW4 independent source approvals ==
+- audit rows revalidated: 986
+- candidate digest: ef61a2337087aac2af1620d4deb6f099f0e86f7e83a6c28368d49f0cd2f3baa7
+- approvals verified: 986
+- approval ledger write: committed-fixture-verified
+- failures: 0
+
+{"exit":0,"signal":null,"elapsedMs":18732,"ended":"2026-09-21T14:53:31.615Z","outputBytes":255}

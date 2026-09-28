@@ -1,5 +1,175 @@
 # Release Evidence Index
 
+- [2026-09-28 B15 문서·실제 공개 절차](release-test-records.md#v410-b15-문서-및-실제-공개-절차-2026-09-28):
+  대표20개 직접 검수·8개 완결 영역 재촬영, release target/직전 공개 구분과 published
+  대상 보완. 현재 기록은 최종 tag에 담는 cut 동결 시점이며 실제 PR/CI/병합/서명/Release
+  결과는 GitHub의 외부 실행 기록이 우선한다. [전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md).
+
+- [2026-09-28 B14 공개 증거 정제·공개 준비](release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28):
+  원본960개와 관련361파일 정제·해시 영수증, 역사적 JPEG20개 제한 보존, history500·배포
+  정책·source-only 리허설·Actions/local 대응 검사를 마쳤다. 최초 실패와 실행 환경
+  차이를 보존한다. 현재 마감·정리·외부 승인 경계는
+  [현행 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)을 따른다.
+
+- [2026-09-28 B13 재감사 후 마감](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-재감사-후-마감):
+  인증 진단20·현행users72·inventory18 통과, 최종 제품 변경과 기존 UI/30분/120분 증거 연결.
+  과거 실패와 무기한 자원 보장 한계를 유지한다. 문서 정합은 통과했지만 실제 공개 검사에서
+  기존 자료1,301파일의 정책 불일치를 확인했다. history500 중단·배포/Actions 미실행·푸시
+  보류이며 [현재 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)을 따른다.
+
+- [2026-09-28 v4.1.0 S11 최종 로컬 게이트](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md):
+  최종30분 109개·UI432개·녹화120분 10,093개 증거에 이어 build, 현행 녹화158개,
+  auth19/72/146, GStreamer20, inventory986, 문서·버전·metadata·close-out dry-run을
+  현행 소스에서 통과했다. 최초 샌드박스 listen 실패와 auth 두 실패, UI-004 승인
+  readback 복원 이력을 보존한다. 이는 당시 제품 검증 범위이며 공개 준비까지 완료했다는
+  포괄 표현은 B13에서 정정했다. PR·CI·main
+  병합·서명 tag·GitHub Release·published 확인은 별도 승인 전 미실행이다. 승인된
+  `v4.1.0` 개발 branch push는 clean 확인 뒤 별도로 수행했다.
+
+- [2026-09-27 B11-G03 저장 상한 원인 보완](release-test-records.md#b11-g03-저장-상한-원인-보완):
+  append-only 세대 원장의 큰 bound/delete 행을 기존 가역 wrapper로 append하되 논리 상한·
+  ID·순서·projection·plain 원장 호환을 유지한다. 최초 RED와 reader 재기동 실패를 보존하고
+  최종 관련 809개 assertion·build를 통과했다. 녹화120분 전체 재검증 전이므로 장시간 PASS는 아니다.
+
+- [2026-09-27 B11 녹화120분 1차 실패](release-artifacts/v4.1.0/s11-final-20260926/b11-recording-120-attempt1.md):
+  약51분51초에 격리 root가448MiB를826,740B 초과해 FAIL했다. HTTP·증분 관측·순환 삭제와
+  정상 종료/정리는 통과했으나 봉인 active 원장119개·125.6MB가 누적됐다. 상한 완화나
+  cold 증거 삭제 없이 가역 물리 표현 보완 뒤 동일120분 전체 재검증이 필요하다.
+
+- [2026-09-27 B11 누적·실제 통합·코드 고정](release-artifacts/v4.1.0/s11-final-20260926/results.md):
+  삭제 이력2,049개의 timeline·관측·SQLite/JSONL 재개방·root/RSS 상한과 실제 앱
+  HTTP4초·두 기동의 완전 출력2개·hash·기존 보존·새 출력·정리를 통과했다.
+  [현행 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)은
+  최종 단기 gate와 증거 영향을 결속한다. 이후 최종30분·영향받는 녹화 UI8 ID/31 action·
+  녹화120분·S11 최종 로컬 마감까지 완료했으며 현재 판정은 위 B12를 따른다.
+
+- [2026-09-26 B10 녹화120분 중단·원인·정리](release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md):
+  약18분48초에 observer native3초 제한으로 FAIL. 현재 snapshot 전체 재처리·삭제 상세 중복
+  보관을 확인했다. 상태 HTTP225회200·최대1,548ms와 정상 종료·정리는 확인했으나120분·
+  자원/S11 마감은 미완료다. 현행 잔여·권한 경계는 [전수표](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)다.
+
+- [2026-09-26 B10 녹화 UI 전수·시각 적격](release-artifacts/v4.1.0/s11-final-20260926/b10-ui.md):
+  실제31 action·8 viewport/theme·역할·정리 PASS, 메인 hybrid 적격. 기존424를 포함한
+  UI432 ID 충족. 최초 준비/검증기 실패 보존, 녹화120분·S11 전체는 별도 미완료.
+
+- [2026-09-26 B10 녹화 UI 준비 보완](release-artifacts/v4.1.0/s11-final-20260926/b10-ui-prep.md):
+  메모리 계정 전달·취소·관측 경계 6개, 기존 인증/seed 21개·Range proxy 11개 PASS.
+  이전 인앱 renderer 충돌 이력은 보존하며 실제 I30/31 action·녹화120분은 별도다.
+
+- [2026-09-26 S11 최종 30분·UI·장시간 증거](release-artifacts/v4.1.0/s11-final-20260926/results.md):
+  현재 제품 소스의 30분은 최초 실행 권한·주석 gate 실패를 보존하고
+  최종 20회·109 PASS/0 FAIL로 통과했다. 실제 브라우저 공통 UI도
+  424/424 및 Policy v4 적격으로 통과했다. 최초 인앱 충돌 이력 뒤 녹화UI31 action도
+  native Chrome과 메인 시각 교차로 마감했다. 후속 녹화120분의 실패는 위 B10을 따른다.
+  공통120분은 불변 구성요소 한정 승계이며 현행 전체 프로세스의 장시간 PASS가 아니다.
+
+- [2026-09-25 B 기본 연결·누적 판정](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md):
+  요청1~7은 구현·검증·분할 커밋했다.8번의1/16/32·1,020/2,049 누적 수치는 통과했으나
+  이전snapshot 수명과 잠금진단 손실이 남아 전체 미완료다. 실제 HTTP/통합·9번은 보류한다.
+  아래 날짜별 결과는 각각 당시 범위의 이력이며 현행 전체 완료 상태가 아니다.
+
+- [2026-09-25 S11 B안 내부 저장 연결](release-test-records.md#v410-s11-b안-저장-구조-구현):
+  수용/cut 동등성·공개 읽기/SQL·증분 쓰기와 세대 회전을 순차 확인했다.
+  [회전 집중·영향 회귀](release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)는 최종1,463 assertion·빌드 PASS다.
+  형식 전환·실제 소비자·runtime 기본 활성화·누적/최종 검증 완료는 아니다.
+
+- [2026-09-24 S11 O29 저장 구조 선행 판정](release-test-records.md#v410-s11-o29-저장-처리-구조-선행-판정):
+  현 형식의 전체 원문 검증 비용과 strict scratch/SQLite 원자성 경계를 확인했다. 형식 내 비용 개선과
+  영속 구조 분리의 차이를 정리하고 사용자 선택을 요청했다. 제품 수정·새 성능 측정·S11 완료가 아니다.
+
+- [2026-09-24 S11 O28 근본 원인 분석](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md):
+  종료 진단·실패 자료 수명·누적 비용·소유 메모리 비교 도구를 보완했다. 전체 이력 재처리·cache 경계와 복구 중복
+  파싱을 직접 확인했으며 실제 앱의 최초 실패 사유/RSS 전체 귀속은 미확정이다. 검사 준비·정리의 최초 실패와
+  사후 보완을 보존한다. 제품 병목 해결·실제 앱/장시간 재검증·S11 전체 완료는 아니다.
+
+- [2026-09-24 S11 O25 현행 5단계 통합](release-test-records.md#s11-o25-실행-결과와-실패-이력):
+  전체 페이지의 최상위/구성원 경계와 준비 완료 이벤트의 렌더 순서를 보완했다. 최초 페이지 경계 실패와
+  첫 접수 작업의 후순위·종료 취소를 보존하고, 최종 현행 5단계 158개 검사·실제 두 기동·두 출력씩·HTTP/해시·
+  재기동·정리를 통과했다. [개별 162 assertion](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o25-results.md)은
+  fixture 준비 4행을 포함한다. 자원 추세와 최종 30분·영향 UI·녹화 120분, release action은 별도다.
+
+- [2026-09-24 v4.1.0 릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260924.md):
+  LP26-O23 한정 실제 앱 재검증까지 반영한 당시 잔여 대조다. 과거 두 번째 기동의 30초 초과 반환을 발견해
+  [중앙 테스트 기록](release-test-records.md#v410-s11-lp26-o14-누적-지연-원인-분리)에서 과거 5단계 통합 PASS 증거를 정정했다.
+  이후 당시 단기 27/27은 통과했으나 누적 체크포인트 4초 위험·현행 5단계 전체·녹화 전용 120분·새 녹화 UI 적격은 미완료였다. 현행 통합의 최신 결과는 위 O25를 따른다. 아래 과거 시점 기록을 현재 PASS로 승격하지 않는다.
+
+- [S11 녹화 장시간 저장량·입력 생성 진단](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md):
+  범주별 계측 자체검사 5/5·입력 진단 7/7·짧은 실제 앱 71/71을 확인했다.
+  120분 1차의 격리 root 상한 FAIL과 제품 저장 수명 계약 미해결은 그대로다.
+
+- [S11-I30 이벤트 MP4 수정 후 재검증](release-artifacts/v4.1.0/s11-recording-ui-20260923/i30-mp4-revalidation.md):
+  관리형 파생 녹화의 관련 단기·HTTP 인증/Range와 실제 브라우저 이벤트 우선 두 출력 재생을 확인했다.
+  수정 전 TS 실패는 아래 이력으로 보존한다. 새 화면 screenshot/trace 영속 파일이 없어 전체 UI Policy 적격·
+  릴리즈 PASS는 아직 아니다. 수정 후 30분은 별도 실제 실행으로 109 PASS·0 FAIL이며
+  [전수 결과](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-30-summary.json)를 보존했다.
+  [공통 120분 첫 실행 중단](release-artifacts/v4.1.0/s11-recording-ui-20260923/common-120-attempt1.md)은
+  통합 미디어 smoke의 무음 HTTP `/h264` RTSP probe 시간초과로 120분 반복에 들어가지 못한 별도 FAIL 이력이다.
+  [공통 120분 재실행·정리](release-artifacts/v4.1.0/s11-recording-ui-20260923/common-120-pass.md)와
+  [전수 요약](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-120-pass-summary.json)은
+  동일 기준에서 80회·409 PASS·0 FAIL·외부 TURN 1건 제외로 통과했다. 최초 시간초과 원인은 미확정이며
+  녹화 전용 120분과 새 화면 전체 적격을 대체하지 않는다.
+  [녹화 전용 120분 1차 실패](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt1.md)는
+  약 37분 38초에 격리 root 상한으로 중단됐다. 삭제·정리 성공과 120분 PASS는 구분한다.
+
+- [S11 수정 전 녹화 UI 직접 검증과 실패 이력](release-artifacts/v4.1.0/s11-recording-ui-20260923/README.md):
+  8개 ID·31개 action 중 30 PASS·1 FAIL. I31 공백 오인 재생은 수정 후 재검증했고,
+  이벤트 우선 선택 영상의 Chrome 실제 재생 I30이 FAIL이다. 별도 브라우저 미디어 8/8은
+  [구조화 요약](release-artifacts/v4.1.0/s11-recording-ui-20260923/browser-media-summary.json)에 보존했다.
+  공통·녹화 120분은 미실행이며 전체432 UI·S11·릴리즈 PASS가 아니다.
+
+- [LP31 최신 실제 UI 보존·개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp31-ui-final-items.md):
+  source8fa98a99의 baseline424/424·시각80·Policy 적격 PASS, 전체4,565파일 압축·복원 일치.
+  직전 Policy 실패는 별도 보존. 녹화UI8개/31조작·브라우저미디어·공통/녹화120분은 잔여다.
+  아래 LP30/LP29는 이전 실행 이력이다.
+
+- [현재 LP30 UI 준비 보완](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md): 보조 이동 보완 후424개 조작PASS, 최종참조 불일치FAIL. 참조 정합/사전검사217개·986/424 소스 결속PASS. 실제 최종UI·녹화UI·브라우저미디어 및 푸시는 미완료다. 아래 LP29는 과거 실행 결과다.
+
+- [현재 LP29 실제30분·UI 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md): 주석 보완 후30분108PASS/20반복·커밋, 실제UI423PASS/1FAIL(EVT-058)·원인미확정. 전체19MB 증거 승인 보존·정리 완료. visual/녹화UI/browser·120분 잔여, 외부 서비스/실기기 명시 제외. UI 실패 기록 미커밋·푸시 불가/미수행.
+- [LP28 위치 판정·CLOSE·PREP·단기 개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#s11-최종-단기-실행): 독립307/동등679 재결속 및 단기 빌드·인증·녹화156·환경·버전 결과. 공통 주석 검사 누락에 따른 전체 완료 표현 정정과 후속 보완은 LP29를 따른다. 아래는 기존 실행 이력이다.
+
+## 2026-09-21 LP27 HW 영향 보완·회귀
+
+- [최신 1~5 결과·릴리즈 잔여 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp27-15-승인-작업의-최신-전수-대조): 1/2 완료·커밋,3 기존검토결속FAIL로부분완료,4/5건너뜀. 아래 이전 중단기록과 구분.
+
+- [PREP 복합 경계·ENV12·최종 manifest](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#prep-01-결과): native8/실제환경94, 초기41요구 고정 연결. 장시간·UI 미실행.
+
+- [현재 승인·완료 표현 정정](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#현재-승인-진단-신뢰성부터-s11-단기-안정화까지-15): 실제 형식 대응·미재현 진행 기준부터 1~5 순차 실행. 아래는 이전 실행 이력이다.
+- [현재 HW03 마감](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-현재-회귀-마감-결과): codec67·ICE8·종료/정리 PASS. 과거 미재현 원인 해결 주장 아님.
+- [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과): CPD18/HWD4 통과·330e48ad 커밋.
+- [한정 비교 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#2번-판정-한정-비교-통과와-과거-원인-미확정): provider2/HTTP8/prefix28 PASS, 과거 원인 미확정·3~6 건너뜀. 정리 완료.
+
+- [중앙 기록](release-test-records.md#lp27-릴리즈-선행-14-순차-작업): HW01/02 커밋, HW03 실제 미디어 실패·정리.
+- [개별 결과·실패 이력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-실제-미디어-회귀-중단-판정).
+- [현재 릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp27-hw-03-중단-후-현재-전수-대조).
+- native 회귀 통과는 기존 codec/ICE·S11·릴리즈 완료가 아니다. PREP/CLOSE는 선수 미충족으로 건너뛰었다.
+
+## 2026-09-21 LP26 현행 검증 준비
+
+- [중앙 기록](release-test-records.md#lp26-현행-검증-준비): 관측·UI seed·관련 단기 결과와 실패 이력.
+- [실행 전 정의·개별 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md).
+- [기능별 현행 실행 연결](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md).
+- [릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#2026-09-21-lp26-최신-전수-대조).
+- 검증 준비는 S10 전체·S11 최종 안정화/30분/UI/120분·릴리즈 완료가 아니다. 과거 LP17 등의 실패는 당시 이력으로 보존한다.
+
+## 2026-09-19 LP17 누적 비용 원인 비교
+
+- [중앙 기록](release-test-records.md#2026-09-19-lp17-비교-도구-구현과-원인-측정): 비교 도구·최초 실패/수정·원본32와2-job 진단. 제품 자원/HTTP 해결과 구분.
+- [원출력 연결과 개별 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-results.md): 부분 phase와 실행 묶음 결과를 각각 보존.
+- 제품 구조 적용·실제 앱 통합·S11은 이 진단으로 완료되지 않는다.
+
+## 2026-09-16 녹화 3-B 구현·비용 경계
+
+- [중앙 실행 기록](release-test-records.md): 최소 중복 보완·최종FE193개·영향 회귀·build 완료. 운영지연 합격과 구분.
+- [최종 계측·개별 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md).
+- [초기 실패·비용 및 이후 oracle 무효 정정](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-report.md).
+- 4번 대기 구현·후속5번 소비·S11은 미실행이다. Git 수행 상태는 중앙 기록을 따른다.
+
+## 2026-09-16 녹화 3-A 실제 forward 결박
+
+- [종료점·원본 식별 계약](superpowers/specs/2026-09-15-recording-endpoint-contract.md): 원본 PTS와 파일 표시 구간 분리, 요청 포함 기준 유지.
+- [중앙 실행 기록](release-test-records.md): FW01~04 372AU와 FW05 33개, 최초 준비 실패·정리 포함. 제품3-B/4/5 PASS 아님.
+- [실제 계측 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/forward-probe-data/forward-probe-output.txt).
+
 이 문서는 v1.8.0 release trust hardening 이후 release close-out evidence를 한곳에서
 찾기 위한 색인입니다. README 첫 화면에는 세부 evidence 목록을 반복하지 않고,
 이 문서와 [release-policy.md](./release-policy.md), [development-backlog.md](./development-backlog.md)로
@@ -32,6 +202,18 @@
   입니다. Codex goal usage처럼 자동 집계값이 있으면 그 값을 우선하고, 없으면
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
+
+## v4.1.0 S08 단계 증거 연결 (2026-09-11)
+
+현행 S10 시간 구간 보강의 2026-09-15 상태는
+[릴리즈 잔여 감사](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260915.md)와
+[3번 선수 실패](release-artifacts/v4.1.0/s11-preparation-mapping/timing-profile-report.md)를 따른다.
+3번 미완료·4번 건너뜀이며 아래 S08 과거 PASS를 S10/S11 완료로 사용하지 않는다.
+
+S08의 구현 위치·현재 단계 상태는 [release-evidence-v410.md](./release-evidence-v410.md),
+개별 검사·최초 실패·수정·재검증·cleanup은 [release-test-records.md](./release-test-records.md)의
+S08 startup/finalize/B2b/B2a/B1/A 절을 따른다. 원장·손상·최종화·실제 시작 연결 증거를
+서로 구분하며, 이 색인 자체는 S09·버전 전체 완료·UI·장시간·릴리즈 실행 증거가 아니다.
 
 ## v4.0.0 release baseline 상태 (2026-09-02)
 

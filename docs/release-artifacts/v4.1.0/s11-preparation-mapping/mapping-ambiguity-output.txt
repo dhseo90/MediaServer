@@ -1,0 +1,14 @@
+command: node --test scripts/internal/recording_mapping_ambiguity.test.mjs
+exit: 0
+source: actual exec_command output; no product execution
+✔ MAP-A01 실제 tail50개는 서로 다른 rational 위상 두 개를 구분하지 못한다 (0.79875ms)
+✔ MAP-A02 같은 자료에 연속0과1/6ns 양수 간격 후보가 공존한다 (0.202083ms)
+✔ MAP-A03 PTS 후보 변환을 DTS 공통 변환으로 취급하지 않는다 (0.13375ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.9795

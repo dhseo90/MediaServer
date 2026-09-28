@@ -1,0 +1,91 @@
+{"kind":"start","utc":"2026-09-20T07:36:05.027Z","mode":"green","id":"lp24-thin-02","suite":"catalog-thin","source":[{"name":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"a4f8fbbcbd54e4598318dd5c3e4c9ac954da5cd485493c468714378358c34122"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"465856e8b6fc5eb805f6a16c2e52a0d8c144261fcbc445accfb2c977e0490c3a"},{"name":"scripts/internal/recording_catalog_thin_link_smoke.cpp","sha256":"5c99c034d39e982c4dfbef2bd64bdf1b3a4f4404b31b01a0b7cc8e9b73c72a96"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","catalog-thin"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d location_journal_instrumented_sha256=f4898ac228c769fcc413cda896a5cea6e41138e8f34bf48a7a3d52924e6721b9
+[instrument] location_declarations=1,1 location_header_sha256=44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5
+[instrument] catalog_sha256=bb53b1e6b0a7c6ced3cfdf20a0d4f65ed65bca0e980d829c1aa34f4640eba547 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"a4f8fbbcbd54e4598318dd5c3e4c9ac954da5cd485493c468714378358c34122"}
+[source] {"name":"scripts/internal/recording_catalog_thin_link_smoke.cpp","sha256":"5c99c034d39e982c4dfbef2bd64bdf1b3a4f4404b31b01a0b7cc8e9b73c72a96"}
+        2.50 real         2.28 user         0.16 sys
+           323158016  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               59573  page reclaims
+                 589  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  15  messages sent
+                   0  messages received
+                   3  signals received
+                  17  voluntary context switches
+                2437  involuntary context switches
+            80095198  instructions retired
+            37146717  cycles elapsed
+             2081176  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2520,"groupPeakRssBytes":334479360}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L26 thin-link baseline preserves complete canonical journal bytes
+[pass] LP18-L26 sealed view and thin-link capability exists
+[pass] LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation
+[pass] LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons
+[pass] LP18-L30 primed cold prefix reuses current read once with exact bytes and projection
+[pass] LP18-L26 same-read sealed view binds exact owned envelope
+[pass] LP18-L26 same-append sealed view binds exact new envelope
+[pass] LP18-L27 accepted live shadow and prefix release detailed envelope ownership
+[pass] LP18-L27 accepted cold acquisition preserves canonical and durable bytes
+[pass] LP18-L27 accepted cold acquisition remains transient
+[pass] LP18-L28 shadow reads through current attachment authority
+[pass] LP18-L27 prefix cold acquisition preserves full envelope
+[pass] LP18-L29 accepted duplicate retains full canonical collision rejection
+[pass] LP18-L30 prefix mismatch falls back to full replay without rejecting valid input
+[pass] LP18-L26 mismatched sealed view rejects before registration schema
+[pass] LP18-L26 mismatched sealed view rejects before registration type
+[pass] LP18-L26 mismatched sealed view rejects before registration id
+[pass] LP18-L26 mismatched sealed view rejects before registration entity
+[pass] LP18-L26 mismatched sealed view rejects before registration time
+[pass] LP18-L26 mismatched sealed view rejects before registration payload
+[pass] LP18-L26 raw Apply without view preserves resident fallback
+[pass] LP18-L28 foreign sealed authority cannot become fallback provenance
+[pass] LP18-L28 detached authority blocks cold read while owned reader survives
+[pass] LP18-L28 same-address reattach does not revive old authority
+[pass] LP18-L29 reopen preserves thin canonical ordinal and projection sqlite
+[pass] LP18-L29 SQLite rebuild keeps ordinal gate with thin links
+[pass] LP18-L29 SQLite rebuild keeps full canonical gate with thin links
+[pass] LP18-L29 reopen preserves thin canonical ordinal and projection fallback
+[pass] LP18-L26 receipt retry returns original without binding receipt view
+[pass] LP18-L30 cold thin-link corruption fails closed instead of cache fallback
+[summary] LP18 pass=30 fail=0
+        0.64 real         0.14 user         0.06 sys
+            37027840  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4576  page reclaims
+                  54  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 244  voluntary context switches
+                 186  involuntary context switches
+          4062262098  instructions retired
+           924907436  cycles elapsed
+             6210232  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":661,"groupPeakRssBytes":4227072}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":7978813,"removed":true}
+{"kind":"result","utc":"2026-09-20T07:36:08.227Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3205}

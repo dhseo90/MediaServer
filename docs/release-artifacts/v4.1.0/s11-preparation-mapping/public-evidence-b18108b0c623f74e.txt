@@ -1,0 +1,30 @@
+[info] starting auth bootstrap server: auth=auto http=8091 rtsp=8565
+[info] ICE 응답 검사는 setup 완료 뒤 수행
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] missing users root redirect: 302:/setup
+[pass] setup auth shell selectors
+[info] starting auth bootstrap server: auth=auto http=8091 rtsp=8565
+[info] ICE 응답 검사는 setup 완료 뒤 수행
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] existing users file with hashless admin redirects to setup: 302:/setup
+[pass] hashless admin login blocked by setup gate: 403
+[info] starting auth bootstrap server: auth=auto http=8091 rtsp=8565
+[info] ICE 응답 검사는 setup 완료 뒤 수행
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] weak admin password rejected: 400
+[pass] initial admin password setup: 302
+[pass] auth users file owner-only mode: 600
+[pass] setup blocked after completion: 302:/login
+[pass] unauthenticated root redirect: 302:/login
+[pass] login auth shell selectors
+[pass] client access request auth shell selectors
+[pass] passwordless admin login rejected: 401
+[pass] admin login landing: 302:/ops/home
+[pass] admin whoami username and role
+[pass] logout redirects to login landing: 302:/login
+[pass] logout invalidates session: 401
+
+== Auth bootstrap 검증 요약 ==
+- 통과: 19
+- 실패: 0
+[cleanup] path=/private/tmp/media-server-auth-bootstrap.rP0Or4 kib=2084 absent=true

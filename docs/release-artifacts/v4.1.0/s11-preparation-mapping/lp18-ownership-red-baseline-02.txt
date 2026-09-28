@@ -1,0 +1,39 @@
+{"kind":"start","utc":"2026-09-19T13:00:28.318Z","mode":"red","id":"baseline-02","source":[{"name":"include/recording/recording_catalog.h","sha256":"e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264"},{"name":"include/recording/recording_journal.h","sha256":"97c6bb6b91379b45d69fe3c40ee8e709f6b51ccd26c928f9e47110c4d60736fe"},{"name":"src/recording/recording_catalog.cpp","sha256":"09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb"},{"name":"src/recording/recording_journal.cpp","sha256":"66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"b15f23aa210bdcb2b13926fb19e7ce25027fe4c0eae132b73e9a2816ff7017ae"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"d3099895c51a62b8837b7e52e41eedaf205dff8ff50bc8cc49a71d9714687fe7"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"078c04bf01ea0d0e61fd25048a9e29cbd15dc1039ba05eee72f483c77a919186"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>"],"seconds":60}
+[source] {"name":"include/recording/recording_journal.h","sha256":"97c6bb6b91379b45d69fe3c40ee8e709f6b51ccd26c928f9e47110c4d60736fe"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"b15f23aa210bdcb2b13926fb19e7ce25027fe4c0eae132b73e9a2816ff7017ae"}
+In file included from <repo>/scripts/internal/recording_immutable_ownership_smoke.cpp:2:
+<repo>/scripts/internal/recording_media_test_fixture.h:44:9: error: unused function 'Encode' [-Werror,-Wunused-function]
+   44 | Encoded Encode(int frames, bool bframes, bool fractional,int width=160,int height=90,int fps=10,int key_interval=10,const std::string& stream_format="byte-stream") {
+      |         ^~~~~~
+<repo>/scripts/internal/recording_media_test_fixture.h:118:6: error: unused function 'Shift' [-Werror,-Wunused-function]
+  118 | void Shift(Encoded& input, std::uint64_t offset) {
+      |      ^~~~~
+2 errors generated.
+        2.12 real         1.87 user         0.13 sys
+           284983296  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               44888  page reclaims
+                 463  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 267  messages sent
+                   0  messages received
+                   3  signals received
+                  14  voluntary context switches
+                1340  involuntary context switches
+            73955975  instructions retired
+            37399307  cycles elapsed
+             1884568  peak memory footprint
+{"kind":"phase","label":"build","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2134,"groupPeakRssBytes":300400640}
+{"kind":"failure","code":"LP18_BUILD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":149344,"removed":true}
+{"kind":"result","utc":"2026-09-19T13:00:30.465Z","mode":"red","matched":false,"productPass":false,"elapsedMs":2147}

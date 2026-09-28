@@ -1,6 +1,12 @@
 {
   "schema": "media-server.public-repo-policy.v1",
   "maxTrackedFileBytes": 26214400,
+  "reviewedHistoricalAssets": {
+    "manifest": "docs/release-artifacts/v4.1.0/s11-final-20260926/b14-historical-ui-review.json",
+    "sha256": "2df576811c964166cd8bf912739d8ac1779d24eb0bfa6d43e38725610ec83cfb",
+    "count": 20,
+    "root": "docs/release-artifacts/v4.1.0/s09-recording-ui-21777"
+  },
   "deniedTrackedPathPatterns": [
     "^models/",
     "^third_party/",
@@ -111,6 +117,6 @@
     "Tracked video files are generated smoke fixtures, not production evidence or customer media.",
     "YOLO/VLM model binaries and optional layout models stay ignored under models/ and are fetched or prepared locally.",
     "Large imported media, local auth stores, logs, raw operational evidence media, third_party runtimes, and package-manager binaries are not public repo content.",
-    "Release UI screenshots are tracked only under sanitized in-app evidence paths or the exact v3.9.0 audit-only historical roots retained by evidence contracts."
+    "Release UI screenshots are tracked only under sanitized in-app evidence paths, the exact v3.9.0 audit-only historical roots, or SHA-bound reviewedHistoricalAssets."
   ]
 }

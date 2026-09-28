@@ -1,0 +1,16 @@
+✔ EP01 각 항 절삭 반례와 presentation 끝 단일 변환 (0.291834ms)
+✔ EP02 30000/1001 분수fps 끝점 (0.061584ms)
+✔ EP03 실제1ns와 sub-ns 누락은 양자화 전에 구분 (0.087083ms)
+✔ EP04 VFR은 각 sample duration 사용 (0.242625ms)
+✔ EP05 B-frame PTS 기준, DTS duration/다음 decode-order PTS 배제 (0.332041ms)
+✔ EP06 마지막 샘플: 실제파일duration과 입력 희망길이 분리 (0.0415ms)
+✔ EP07 무효 산술과 미지원 변환 거부 (0.175ms)
+✔ EP08 기존 ns 증거만 있거나 원본 시작 불일치면 승격 금지 (0.047209ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.721209

@@ -1,0 +1,293 @@
+{
+  "events": [
+    {
+      "event": "uri-sample-ready",
+      "kind": "audio",
+      "codec": "aac",
+      "observedElapsedMs": 3495
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 3497
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 2,
+      "elapsedMs": 830,
+      "observedElapsedMs": 4299
+    },
+    {
+      "event": "rtsp.egress.started",
+      "sessionOrdinal": 1,
+      "observedElapsedMs": 4299
+    },
+    {
+      "event": "rtsp.media.configured",
+      "sessionOrdinal": 1,
+      "observedElapsedMs": 4300
+    },
+    {
+      "event": "rtsp.media.unprepared",
+      "sessionOrdinal": 1,
+      "observedElapsedMs": 5278
+    },
+    {
+      "event": "rtsp.egress.stopped",
+      "sessionOrdinal": 1,
+      "observedElapsedMs": 5321
+    },
+    {
+      "event": "rtsp.egress.destroyed",
+      "sessionOrdinal": 1,
+      "observedElapsedMs": 5321
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "audio",
+      "codec": "aac",
+      "observedElapsedMs": 5421
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 5422
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 2,
+      "elapsedMs": 812,
+      "observedElapsedMs": 6221
+    },
+    {
+      "event": "rtsp.egress.started",
+      "sessionOrdinal": 2,
+      "observedElapsedMs": 6222
+    },
+    {
+      "event": "rtsp.media.configured",
+      "sessionOrdinal": 2,
+      "observedElapsedMs": 6222
+    },
+    {
+      "event": "rtsp.media.unprepared",
+      "sessionOrdinal": 2,
+      "observedElapsedMs": 7189
+    },
+    {
+      "event": "rtsp.egress.stopped",
+      "sessionOrdinal": 2,
+      "observedElapsedMs": 7249
+    },
+    {
+      "event": "rtsp.egress.destroyed",
+      "sessionOrdinal": 2,
+      "observedElapsedMs": 7249
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "audio",
+      "codec": "aac",
+      "observedElapsedMs": 7345
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 7347
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 2,
+      "elapsedMs": 821,
+      "observedElapsedMs": 8156
+    },
+    {
+      "event": "rtsp.egress.started",
+      "sessionOrdinal": 3,
+      "observedElapsedMs": 8156
+    },
+    {
+      "event": "rtsp.media.configured",
+      "sessionOrdinal": 3,
+      "observedElapsedMs": 8156
+    },
+    {
+      "event": "rtsp.media.unprepared",
+      "sessionOrdinal": 3,
+      "observedElapsedMs": 9136
+    },
+    {
+      "event": "rtsp.egress.stopped",
+      "sessionOrdinal": 3,
+      "observedElapsedMs": 9183
+    },
+    {
+      "event": "rtsp.egress.destroyed",
+      "sessionOrdinal": 3,
+      "observedElapsedMs": 9183
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "audio",
+      "codec": "aac",
+      "observedElapsedMs": 9201
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 9202
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 2,
+      "elapsedMs": 828,
+      "observedElapsedMs": 10011
+    },
+    {
+      "event": "nice-missing-component",
+      "observedElapsedMs": 10411
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 12201
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 1,
+      "elapsedMs": 2516,
+      "observedElapsedMs": 14705
+    },
+    {
+      "event": "rtsp.egress.started",
+      "sessionOrdinal": 4,
+      "observedElapsedMs": 14705
+    },
+    {
+      "event": "rtsp.media.configured",
+      "sessionOrdinal": 4,
+      "observedElapsedMs": 14706
+    },
+    {
+      "event": "rtsp.media.unprepared",
+      "sessionOrdinal": 4,
+      "observedElapsedMs": 15673
+    },
+    {
+      "event": "rtsp.egress.stopped",
+      "sessionOrdinal": 4,
+      "observedElapsedMs": 15874
+    },
+    {
+      "event": "rtsp.egress.destroyed",
+      "sessionOrdinal": 4,
+      "observedElapsedMs": 15874
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 15893
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 1,
+      "elapsedMs": 2524,
+      "observedElapsedMs": 18404
+    },
+    {
+      "event": "rtsp.egress.started",
+      "sessionOrdinal": 5,
+      "observedElapsedMs": 18404
+    },
+    {
+      "event": "rtsp.media.configured",
+      "sessionOrdinal": 5,
+      "observedElapsedMs": 18405
+    },
+    {
+      "event": "rtsp.media.unprepared",
+      "sessionOrdinal": 5,
+      "observedElapsedMs": 19373
+    },
+    {
+      "event": "rtsp.egress.stopped",
+      "sessionOrdinal": 5,
+      "observedElapsedMs": 19553
+    },
+    {
+      "event": "rtsp.egress.destroyed",
+      "sessionOrdinal": 5,
+      "observedElapsedMs": 19553
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 19574
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 1,
+      "elapsedMs": 2520,
+      "observedElapsedMs": 22084
+    },
+    {
+      "event": "rtsp.egress.started",
+      "sessionOrdinal": 6,
+      "observedElapsedMs": 22084
+    },
+    {
+      "event": "rtsp.media.configured",
+      "sessionOrdinal": 6,
+      "observedElapsedMs": 22084
+    },
+    {
+      "event": "rtsp.media.unprepared",
+      "sessionOrdinal": 6,
+      "observedElapsedMs": 22843
+    },
+    {
+      "event": "rtsp.egress.stopped",
+      "sessionOrdinal": 6,
+      "observedElapsedMs": 23036
+    },
+    {
+      "event": "rtsp.egress.destroyed",
+      "sessionOrdinal": 6,
+      "observedElapsedMs": 23036
+    },
+    {
+      "event": "uri-sample-ready",
+      "kind": "video",
+      "codec": "h264",
+      "observedElapsedMs": 23064
+    },
+    {
+      "event": "uri-ready",
+      "kind": "http",
+      "tracks": 1,
+      "elapsedMs": 2538,
+      "observedElapsedMs": 25575
+    },
+    {
+      "event": "nice-missing-component",
+      "observedElapsedMs": 25883
+    }
+  ],
+  "overflow": false,
+  "clock": "runner-monotonic-receipt",
+  "firstRtpObserved": false
+}

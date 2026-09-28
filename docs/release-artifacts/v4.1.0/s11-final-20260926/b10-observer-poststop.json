@@ -1,0 +1,19 @@
+{
+  "scope": "closed-root-observer-diagnostic-not-original-failure-input",
+  "timeoutMs": 3000,
+  "seen": 4422,
+  "elapsedMs": 2630.124167,
+  "childPid": 34597,
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "childDead": true,
+  "serverDead": true,
+  "stdoutBytes": 854866,
+  "stderrBytes": 0,
+  "stderrCode": "empty",
+  "binarySha256": "ccd3ed47dbb5fd2099e413058b802c53a624494c30c1b799a9ea1bc36c8e2284",
+  "before": {"bytes": 227202129, "count": 97, "sha256": "ee7a62bf75265093920b12537b7a3526f5dc2255126aaccb2d968bcc0e34eff6"},
+  "after": {"bytes": 227202129, "count": 97, "sha256": "ee7a62bf75265093920b12537b7a3526f5dc2255126aaccb2d968bcc0e34eff6"},
+  "unchanged": true
+}

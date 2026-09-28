@@ -4,6 +4,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import os from "node:os";
+import vm from "node:vm";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -48,7 +50,79 @@ Checks:
 `);
 }
 
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["h", "help", "recording-root-only"]);
+
+// RG01~04 사전 명세: 실제 spawn env의 녹화 root 누락/상속 탈출을 검출하고,
+// 기존 설정과 실제 파일 cleanup을 대조한다. 서버/브라우저 실행 증거는 아니다.
+if (rawArgs.includes("--recording-root-only")) {
+  await verifyRecordingRootIsolation();
+  process.exit(process.exitCode || 0);
+}
+
+async function verifyRecordingRootIsolation() {
+  const started = Date.now();
+  const source = fs.readFileSync(path.join(scriptDir, "v390_acceptance_ui_environment.mjs"), "utf8");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_ui-rg-"));
+  let passed = 0;
+  let failed = 0;
+  const check = (name, fn) => {
+    try { fn(); passed++; console.log(`[pass] ${name}`); }
+    catch (error) { failed++; console.log(`[fail] ${name}: ${error.message}`); }
+  };
+  try {
+    let captured;
+    const inherited = { PATH: "/fixture/bin", MEDIA_SERVER_RECORDING_ENABLED: "0" };
+    const context = vm.createContext({
+      fs: { ...fs, createWriteStream: () => ({ write() {} }) }, path, os,
+      secretStrippedProcessEnv: () => ({ ...inherited }),
+      spawn: (command, args, options) => {
+        captured = { command, args, ...options };
+        return { stdout: { on() {} }, stderr: { on() {} } };
+      },
+    });
+    vm.runInContext([
+      sourceBlock(source, "function spawnOwnedServer(", "export function secretStrippedProcessEnv"),
+      sourceBlock(source, "async function cleanupState(", "async function stopOwnedChild("),
+      sourceBlock(source, "function isAllowedTemporaryRoot(", "function listFiles("),
+    ].join("\n"), context);
+    const state = { temporaryRoot: root, rootDir, buildPath: "fixture-binary", usersPath: "fixture-users",
+      sourcesPath: "fixture-sources", viewsPath: "fixture-views", analysisPath: "fixture-analysis",
+      eventPath: "fixture-events", snapshotDir: "fixture-snapshots", clipDir: "fixture-clips",
+      serverLogPath: path.join(root, "server.log"), httpPort: 19080, rtspPort: 19554 };
+    context.spawnOwnedServer(state, 1);
+    const expected = path.join(root, "recordings");
+    check("RG01 spawn env owns recordings below temporary root", () => {
+      assert(captured.env.MEDIA_SERVER_RECORDING_STORAGE_ROOT === expected, "recording root missing or outside owned root");
+    });
+    inherited.MEDIA_SERVER_RECORDING_STORAGE_ROOT = "/unowned/recordings";
+    context.spawnOwnedServer(state, 2);
+    check("RG02 retry overrides inherited recording storage root", () => {
+      assert(captured.env.MEDIA_SERVER_RECORDING_STORAGE_ROOT === expected, "inherited recording root escaped isolation");
+    });
+    check("RG03 existing server argv auth event ports and recording policy unchanged", () => {
+      assert(captured.command === "./server.sh" && captured.args.join() === "foreground" && captured.cwd === rootDir &&
+        captured.env.MEDIA_SERVER_AUTH_MODE === "auto" && captured.env.MEDIA_SERVER_AUTH_USERS_FILE === "fixture-users" &&
+        captured.env.MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH === "fixture-events" &&
+        captured.env.MEDIA_SERVER_HTTP_LISTEN_PORT === "19080" && captured.env.MEDIA_SERVER_LISTEN_PORT === "19554" &&
+        captured.env.MEDIA_SERVER_RECORDING_ENABLED === "0", "existing environment contract changed");
+    });
+    fs.mkdirSync(expected);
+    fs.writeFileSync(path.join(expected, "owned-fixture"), "recording-fixture");
+    const cleanup = await context.cleanupState({ ...state, fixtureMode: true, httpPort: null, rtspPort: null },
+      { requireRuntimeMeasurement: false });
+    check("RG04 actual partial cleanup removes recordings with owned root", () => {
+      assert(cleanup.status === "PASS" && cleanup.temporaryArtifactsRemoved &&
+        cleanup.checks[1].bytesBefore === 17 && !fs.existsSync(root), "recordings cleanup incomplete");
+    });
+  } catch (error) {
+    failed++; console.log(`[fail] RG fixture: ${error.name}: ${error.message}`);
+  } finally {
+    if (fs.existsSync(root)) fs.rmSync(root, { recursive: true });
+    console.log(`[cleanup] ${root} absent=${!fs.existsSync(root)}`);
+  }
+  console.log(`[summary] pass=${passed} fail=${failed} elapsedMs=${Date.now() - started}`);
+  if (failed || passed !== 4) process.exitCode = 1;
+}
 
 const command = "verify-v390-test-acceptance-bundle";
 const contractCommand = "verify-v390-test-acceptance-bundle-contract";
@@ -552,14 +626,17 @@ check("canonical actual command owns the complete throwaway UI environment", () 
 check("published seed baseline is explicit, policy-bound, and rejects mismatched fixtures", () => {
   const outputDir = fixtureDir("published-seed-baseline");
   const fixturePath = path.join(rootDir, "test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
+  const expectedCurrent = `v${readText("VERSION").trim().replace(/^v/, "")}`;
+  const policy = readJson(path.join(rootDir, "config/docs_ui_assets.json"));
+  const expectedPublished = policy.baseline.publishedRelease;
   const defaultResult = spawnSync(path.join(rootDir, "server.sh"), [
     "prepare-manual-ui-fulltest-seed", "--dry-run", "--emit-plan", path.join(outputDir, "current-seed-plan.json"),
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(defaultResult.status === 0, `current-source seed preparation failed: ${defaultResult.stderr}`);
   const currentPlan = readJson(path.join(outputDir, "current-seed-plan.json"));
-  assert(currentPlan.releaseTarget === "v4.0.0" &&
-    currentPlan.fixtureReleaseTargets?.currentSource === "v4.0.0" &&
-    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === "v3.9.1",
+  assert(currentPlan.releaseTarget === expectedCurrent &&
+    currentPlan.fixtureReleaseTargets?.currentSource === expectedCurrent &&
+    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === expectedPublished,
   "default seed preparation is not bound to the current source and published baseline");
 
   const planPath = path.join(outputDir, "seed-plan.json");
@@ -570,7 +647,6 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(publishedResult.status === 0, `published seed preparation failed: ${publishedResult.stderr}`);
   const plan = readJson(planPath);
-  const policy = readJson(path.join(rootDir, "config/docs_ui_assets.json"));
   const fixture = readJson(fixturePath);
   assert(plan.releaseTarget === fixture.publishedReleaseTarget &&
     plan.releaseTarget === policy.baseline.publishedRelease,
@@ -615,7 +691,7 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
     "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline",
     "--fixture", mismatchedFixturePath,
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.9.1"),
+  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes(`seed fixture must pin ${expectedPublished}`),
     "published seed preparation accepted a current-source fixture outside the published baseline");
 });
 
@@ -1147,6 +1223,32 @@ check("docs and release evidence record R3 without overclaiming gated tests", ()
     "UI 풀테스트 직접 조작 PASS",
   ]) {
     assertIncludes(files.releaseEvidence, snippet, "R3 release evidence");
+  }
+});
+
+check("PF04 actual preflight rejects canonical drift before artifact setup or later stages", () => {
+  const source = readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs");
+  const start = source.indexOf('  if (stageId === "preflight") {');
+  const end = source.indexOf('  if (stageId === "build") {', start);
+  assert(start >= 0 && end > start, "actual preflight source boundary missing");
+  for (const errors of [[], ["canonical-case-manifest-implementation-controlAction-drift"],
+    ["canonical-implementation-evidence-projection-drift"], ["native-exact-manifest-case-order-mismatch"],
+    ["canonical-case-manifest-native-canonical-route-drift"]]) {
+    const stages = [], failures = [];
+    let validated = 0, artifacts = 0;
+    const context = vm.createContext({stageId: "preflight", rootDir: "/fixture", path,
+      fs: {existsSync: () => true}, executionMode: "actual-ui-only", outputDir: "/fixture/output",
+      canonicalUiOutputDir: "/fixture/output", canonicalReleaseOutputDir: "/fixture/release", runDir: "/fixture/output/run",
+      readJson: () => ({}), validateCanonicalCaseInputs: () => { validated++; return errors; },
+      recordFailure: (...args) => failures.push(args), assertPolicyV4ArtifactRoot: () => { artifacts++; },
+      fixtureMode: false, sourceProvenance: {sourceWorktreeClean: true}, stages,
+      passStage: () => ({status: "PASS"}), featureCommands: [], inheritedSecretDisposition: "discarded",
+      options: {run120: false}});
+    vm.runInContext(`(function(){${source.slice(start, end)}})()`, context);
+    assert(validated === 1, "canonical validation not called by actual preflight");
+    assert(errors.length ? failures.length === 1 && stages.length === 0 && artifacts === 0
+      : failures.length === 0 && stages.length === 1 && artifacts === 1,
+    "canonical preflight allowed drift or rejected valid input");
   }
 });
 

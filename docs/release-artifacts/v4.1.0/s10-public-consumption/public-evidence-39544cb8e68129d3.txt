@@ -1,0 +1,87 @@
+PASS normal selected metadata updates visible support
+PASS I31-R01 failed timeline clears previous support
+PASS I31-R01 empty timeline clears previous support
+PASS I31-R01 unplayable selection clears previous support
+PASS I31-R02 late metadata cannot contaminate unselected state
+PASS unselected error preserves selection prompt
+PASS selected media error shows failure notice
+FAIL D3C-01 UTC zero is a date, not unknown: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes(new Date(0).toLocaleString()))
+
+FAIL D3C-02 null times stay in separate unplaced list: Expected values to be strictly equal:
+
+0 !== 1
+
+FAIL D3C-03 number is not guessed as a date: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes('시간 미확인'))
+
+FAIL D3C-03 empty is not guessed as a date: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes('시간 미확인'))
+
+FAIL D3C-03 fraction is not guessed as a date: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes('시간 미확인'))
+
+FAIL D3C-03 date-range is not guessed as a date: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes('시간 미확인'))
+
+FAIL D3C-03 unsafe is not guessed as a date: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes('시간 미확인'))
+
+FAIL D3C-04 same file rows have independent selected item IDs: Expected values to be strictly equal:
+
+'true' !== 'false'
+
+FAIL D3C-05 partial overlap preserves original: Expected values to be strictly equal:
+
+1 !== 2
+
+FAIL D3C-06 off-page event still hides fully covered original: Expected values to be strictly equal:
+
+1 !== 0
+
+FAIL D3C-07 original view restores hidden rows: Expected values to be strictly equal:
+
+1 !== 0
+
+FAIL D3C-08 next page uses independent unknown total: Expected values to be strictly equal:
+
+true !== false
+
+FAIL D3C-09 request media axis is shown without date conversion: The expression evaluated to a falsy value:
+
+  assert(text.includes('원본 미디어'))
+
+FAIL D3C-10 estimated UTC preserves uncertainty label: The expression evaluated to a falsy value:
+
+  assert(labels(rows(f)).includes('추정 시각'))
+
+FAIL D3C-11 selection never seeks by UTC and ended never auto-advances: The expression evaluated to a falsy value:
+
+  assert(f.field('opsRecordingPlaybackStatus').textContent.includes('파일 시작'))
+
+PASS D3C-12 unsupported type is only a warning
+FAIL D3C-13 job completion and partial deleted output remain separate: The expression evaluated to a falsy value:
+
+  assert(text.includes('작업 완료'))
+
+PASS D3C-14 late response cannot replace newer selection
+FAIL D3C-15 unknown-only page remains selectable: Expected values to be strictly equal:
+
+0 !== 1
+
+FAIL D3C-16 invalid total -1 cannot enable paging: The expression evaluated to a falsy value:
+
+  assert(f.field('opsRecordingListStatus').textContent.includes('불러오지 못했습니다'))
+
+FAIL D3C-16 invalid total 9007199254740992 cannot enable paging: Expected values to be strictly equal:
+
+false !== true
+
+PASS D3C-17 unknown debug fields are not rendered
+{"pass":10,"fail":19,"elapsedMs":21,"actualBrowser":false,"tempArtifacts":0}

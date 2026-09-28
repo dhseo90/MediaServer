@@ -1,0 +1,4 @@
+[run] label=red2 root=<owned-temp>/media-server-file-evidence.G2Bfib
+[fail] FE01 expected file_evidence on actual writer binding (feature absent)
+[cleanup] path=<owned-temp>/media-server-file-evidence.G2Bfib bytes=4377050 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

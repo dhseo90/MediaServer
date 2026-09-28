@@ -1,0 +1,75 @@
+실패 재현용 과거 실행 코드. 빈 STUN을 비활성으로 오판한 준비 결함이 있으므로 그대로 재실행 금지.
+// S10 입력/writer 변경 후 기존 미디어 검증을 격리 실행한다. 테스트 결과 생성용 임시 runner.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawn} from 'node:child_process';
+import {reservePort,cleanupHarnessResources,assertPortClosed} from '../scripts/internal/verify_v410_recording_ui_contract.mjs';
+const repo=process.cwd(), output=path.join(repo,'.media_server.test/s10-media-regression');
+fs.mkdirSync(output,{recursive:true});
+const rtspPort=await reservePort(),httpPort=await reservePort();
+const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-s10-media-'));
+for(const name of ['data','tmp','gst','events','recordings'])fs.mkdirSync(path.join(root,name));
+const config=JSON.parse(fs.readFileSync(path.join(repo,'config/codec_test_sources.json'),'utf8'));
+const ownedLauncherPorts=[];
+const runPrefix='s10-'+path.basename(root);
+for(const source of config.sources) {
+ if(!source.enabled || source.requires_network) continue;
+ source.name=runPrefix+'-'+source.name;
+ if(source.launcher?.port) {
+  const oldPort=source.launcher.port, port=await reservePort();
+  source.launcher.port=port;
+  source.source=source.source.replace(':'+oldPort+'/',':'+port+'/');
+  ownedLauncherPorts.push(port);
+ }
+}
+const configFile=path.join(root,'codec-sources.json');
+fs.writeFileSync(configFile,JSON.stringify(config),{mode:0o600});
+const env={PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:path.join(root,'tmp'),
+ MEDIA_SERVER_SKIP_LOCAL_ENV:'1',MEDIA_SERVER_SKIP_BUILD:'1',MEDIA_SERVER_SKIP_ENV_CHECK:'1',
+ MEDIA_SERVER_ENABLE_AI:'1',MEDIA_SERVER_BIN_PATH:path.join(repo,'build-gst-onnx/media_server'),
+ MEDIA_SERVER_AUTH_MODE:'off',MEDIA_SERVER_ENABLE_OPS:'1',MEDIA_SERVER_ENABLE_CLIENT:'1',MEDIA_SERVER_ENABLE_LAB:'1',
+ MEDIA_SERVER_LISTEN_ADDRESS:'127.0.0.1',MEDIA_SERVER_HTTP_LISTEN_ADDRESS:'127.0.0.1',
+ MEDIA_SERVER_LISTEN_PORT:String(rtspPort),MEDIA_SERVER_HTTP_LISTEN_PORT:String(httpPort),
+ MEDIA_SERVER_FILE_ROOT:path.join(repo,'video'),MEDIA_SERVER_DEFAULT_FILE:path.join(repo,'video/sample_h264.mp4'),
+ MEDIA_SERVER_STATE_DIR:path.join(root,'data'),MEDIA_SERVER_AUTH_USERS_FILE:path.join(root,'data/users.json'),
+ MEDIA_SERVER_SOURCE_REGISTRY:path.join(root,'data/sources.json'),MEDIA_SERVER_PUBLISHED_VIEWS:path.join(root,'data/views.json'),
+ MEDIA_SERVER_ANALYSIS_REGISTRY:path.join(root,'data/analysis.json'),
+ MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED:'0',MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),
+ MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:'0',MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
+ MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED:'0',MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),
+ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED:'0',MEDIA_SERVER_RECORDING_ENABLED:'0',MEDIA_SERVER_RECORDING_STORAGE_ROOT:path.join(root,'recordings'),
+ MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless',
+ GST_REGISTRY:path.join(root,'gst-registry.bin'),GST_REGISTRY_1_0:path.join(root,'gst-registry.bin'),
+ MEDIA_SERVER_WEBRTC_STUN_SERVER:'',MEDIA_SERVER_WEBRTC_TURN_SERVER:'',MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL:'0',
+ MEDIA_SERVER_VERIFY_CONFIG:configFile,
+ MEDIA_SERVER_VERIFY_WEBRTC_ICE_HTTP_BASE:`http://127.0.0.1:${httpPort}`};
+let child;const results=[];const started=Date.now();
+try {
+ if(fs.existsSync(path.join(repo,'scripts/.media_server.env')))throw Error('로컬 env가 존재하여 격리 실행 중단');
+ const serverLog=fs.openSync(path.join(output,'server.log'),'wx',0o600);
+ child=spawn('./server.sh',['foreground'],{cwd:repo,env,stdio:['ignore',serverLog,serverLog]});fs.closeSync(serverLog);
+ let ready=false;
+ for(let i=0;i<100;i++){
+  if(child.exitCode!==null||child.signalCode!==null)throw Error('서버 준비 전 종료');
+  try{if((await fetch(`http://127.0.0.1:${httpPort}/health`,{signal:AbortSignal.timeout(500)})).ok){ready=true;break;}}catch{}
+  await new Promise(r=>setTimeout(r,100));
+ }
+ if(!ready)throw Error('서버 준비 제한 초과');
+ console.log(JSON.stringify({ready:true,pid:child.pid,rtspPort,httpPort,root,runPrefix,ownedLauncherPorts}));
+ for(const command of ['verify-codecs','verify-webrtc-ice','verify-webrtc-va-metadata']){
+  const args=[command];
+  if(command==='verify-webrtc-va-metadata')args.push('--http-base',`http://127.0.0.1:${httpPort}`,'--debug-port',String(await reservePort()),'--summary-file',path.join(output,'metadata-summary.json'),'--log-file',path.join(output,'chrome.log'));
+  const fd=fs.openSync(path.join(output,`${command}.log`),'wx',0o600);
+  console.log(`[시작] ./server.sh ${args.join(' ')}`);
+  const t=Date.now(),p=spawn('./server.sh',args,{cwd:repo,env,stdio:['ignore',fd,fd]});fs.closeSync(fd);
+  const result=await new Promise((resolve,reject)=>{p.once('error',reject);p.once('exit',(code,signal)=>resolve({command,code,signal,elapsedMs:Date.now()-t}));});
+  results.push(result);console.log(JSON.stringify(result));
+  if(result.code!==0)throw Error(`${command} 실패`);
+ }
+}catch(error){console.log(`[실패] ${error.message}`);process.exitCode=1;}
+finally{
+ try{const cleanup=await cleanupHarnessResources({child,root,rtspPort,httpPort});console.log(JSON.stringify({cleanup}));for(const port of ownedLauncherPorts){await assertPortClosed(port);console.log(JSON.stringify({launcherPort:port,closed:true}));}}
+ catch(error){console.log(`[정리 실패] ${error.message}`);process.exitCode=1;}
+ fs.writeFileSync(path.join(output,'execution.json'),JSON.stringify({started,elapsedMs:Date.now()-started,results,exitCode:process.exitCode??0},null,2));
+}

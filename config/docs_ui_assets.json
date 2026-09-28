@@ -1,21 +1,224 @@
 {
   "schema": "media-server.docs-ui-assets.v1",
   "baseline": {
-    "sourceVersion": "4.0.0",
-    "publishedRelease": "v3.9.1",
-    "publicReleaseStatus": "v4.0.0-source-v3.9.1-published",
+    "sourceVersion": "4.1.0",
+    "releaseTarget": "v4.1.0",
+    "publishedRelease": "v4.0.0",
+    "publicReleaseStatus": "v4.1.0-source-v4.0.0-published",
     "capturedAt": "2026-08-31",
     "theme": "dark",
     "sampleVideo": "va_four_scene_sample.mp4",
     "manualReviewRequired": true
   },
   "directReview": {
-    "reviewedAt": "2026-08-31",
-    "tool": "Google Chrome CDP + Grok PNG review",
+    "reviewedAt": "2026-09-28",
+    "tool": "Native Chrome + Codex PNG review",
     "assetCount": 20,
     "status": "PASS",
     "englishHangulResidue": 0,
-    "clientLeakCheck": "PASS"
+    "clientLeakCheck": "PASS",
+    "assets": [
+      {
+        "path": "docs/assets/ui/ops-home.png",
+        "sha256": "746e6a02174ea10806a99c1a981a8f90751e47ca7b922014fce5e74bb958d479",
+        "bytes": 72716,
+        "width": 1716,
+        "height": 713,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/ops-channels.png",
+        "sha256": "95f61669cb3c1117b37f9473d0bc1746fef8ad6522170186f9109031c07d7d30",
+        "bytes": 196374,
+        "width": 1716,
+        "height": 1183,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/ops-rules.png",
+        "sha256": "85504cc1b46fde47effd2f9c51649d2cf300ab489edefd825b998cb2855558d6",
+        "bytes": 68388,
+        "width": 1504,
+        "height": 491,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/ops-rules-preview.png",
+        "sha256": "62a2211f9aa86b5ff820a2f96f9fce05161d3fdfb5ced52b695e769fe74cea7e",
+        "bytes": 1691100,
+        "width": 1716,
+        "height": 1131,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/ops-users.png",
+        "sha256": "98e9541c44bd1cc2880cf82f3f9c2403f4b3fa601ff25a952b58145fa7805a05",
+        "bytes": 84396,
+        "width": 1504,
+        "height": 580,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/client-live.png",
+        "sha256": "ce76caa4f88c0531b981c3f4567c5f3b65d133e6c43d3d930824aa549262587b",
+        "bytes": 1917843,
+        "width": 1547,
+        "height": 1032,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/ops-dashboard.png",
+        "sha256": "f5d3d478a9bb920e84cc7f92fe9dc4c7e73a5f209ef196988706eb980ec80c84",
+        "bytes": 97942,
+        "width": 1716,
+        "height": 771,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/client-dashboard.png",
+        "sha256": "3c8c7255e108df9f910ff76e782de15b6f3a44d2b0051c21a516becc96478492",
+        "bytes": 49733,
+        "width": 1145,
+        "height": 473,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/auth-login.png",
+        "sha256": "a5a85820ba2f00be47cdfe14b895495b327f3a56957b64c641cb0f04974bca3b",
+        "bytes": 8252,
+        "width": 700,
+        "height": 420,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/ops-home.png",
+        "sha256": "1773f339884375f926150419468499edeb641f9c35ce973ea6a0a05f3790c1d0",
+        "bytes": 82632,
+        "width": 1716,
+        "height": 713,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/ops-channels.png",
+        "sha256": "743db6e0632358f18b64b9654546b230761142a7200a8b4cc6d27b13d33c3904",
+        "bytes": 194615,
+        "width": 1716,
+        "height": 1183,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/ops-rules.png",
+        "sha256": "0ff35536df6d0410e6db00a4d0659dd479f28a2440da5d7d97be5f030b764504",
+        "bytes": 75262,
+        "width": 1504,
+        "height": 508,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/ops-rules-preview.png",
+        "sha256": "397bca85ca10e48017ece37deee3669a7d32ea46000646ed70dc8c03e5cb1b21",
+        "bytes": 1716687,
+        "width": 1716,
+        "height": 1131,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/ops-users.png",
+        "sha256": "8c97af029a9fb0e5bf0b9a0089ff24fc037e6b5cdfe98cc550cbae2342cd5448",
+        "bytes": 83342,
+        "width": 1504,
+        "height": 596,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/client-live.png",
+        "sha256": "433ace30958bf87c1a36a91519ea3d6d9e19098e9bb499e536c203d881fbf205",
+        "bytes": 1966077,
+        "width": 1547,
+        "height": 1032,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/ops-dashboard.png",
+        "sha256": "fbe2e09d2322564dec5b9ebaa0c77bd3990726f175196645bfd76f088dde8b36",
+        "bytes": 109817,
+        "width": 1716,
+        "height": 821,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/client-dashboard.png",
+        "sha256": "104639f67b8113755085f8a77364ce41e66f265b52727f35ee203fd9fa115d95",
+        "bytes": 55283,
+        "width": 1145,
+        "height": 473,
+        "capturedAt": "2026-09-28",
+        "action": "recaptured",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/ui/en/auth-login.png",
+        "sha256": "ac3eb618189cfbba2646e06d87cd157e86fb99f0114651e00591882b7a9a1865",
+        "bytes": 8819,
+        "width": 700,
+        "height": 420,
+        "capturedAt": "2026-08-31",
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/va-four-scene-overlay-ko.jpg",
+        "sha256": "8ad0e6323b1aa87666fec0d9e6cabc1ae82d693befa35bcfb50c0312a71e08cf",
+        "bytes": 863853,
+        "width": 1280,
+        "height": 720,
+        "capturedAt": null,
+        "action": "retained",
+        "review": "PASS"
+      },
+      {
+        "path": "docs/assets/va-four-scene-sample.png",
+        "sha256": "cc19eca6b85ce2ea23d413273beec1d72fc7c0a8ce407d0182ac58cfa76fad76",
+        "bytes": 2706249,
+        "width": 1672,
+        "height": 941,
+        "capturedAt": null,
+        "action": "retained",
+        "review": "PASS"
+      }
+    ]
   },
   "captureScript": "scripts/internal/capture_docs_ui_assets.mjs",
   "verificationCommand": "./server.sh verify-docs-ui-assets",
@@ -32,21 +235,30 @@
       "captureTask": "ops-home",
       "readme": true,
       "uiGuide": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     },
     {
       "file": "ops-channels.png",
       "captureTask": "ops-channels",
       "readme": true,
       "uiGuide": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     },
     {
       "file": "ops-rules.png",
       "captureTask": "ops-rules",
       "readme": true,
       "uiGuide": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     },
     {
       "file": "ops-rules-preview.png",
@@ -54,14 +266,20 @@
       "readme": true,
       "uiGuide": true,
       "video": true,
-      "minimum": { "width": 1000, "height": 850 }
+      "minimum": {
+        "width": 1000,
+        "height": 850
+      }
     },
     {
       "file": "ops-users.png",
       "captureTask": "ops-users",
       "readme": true,
       "uiGuide": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     },
     {
       "file": "client-live.png",
@@ -70,14 +288,20 @@
       "uiGuide": true,
       "clientSafe": true,
       "video": true,
-      "minimum": { "width": 1000, "height": 900 }
+      "minimum": {
+        "width": 1000,
+        "height": 900
+      }
     },
     {
       "file": "ops-dashboard.png",
       "captureTask": "ops-dashboard",
       "readme": false,
       "uiGuide": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     },
     {
       "file": "client-dashboard.png",
@@ -85,14 +309,20 @@
       "readme": false,
       "uiGuide": true,
       "clientSafe": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     },
     {
       "file": "auth-login.png",
       "captureTask": "auth-login",
       "readme": false,
       "uiGuide": true,
-      "minimum": { "width": 700, "height": 400 }
+      "minimum": {
+        "width": 700,
+        "height": 400
+      }
     }
   ]
 }

@@ -1,0 +1,4 @@
+[info] starting auth bootstrap server: auth=auto http=8091 rtsp=8565
+[fail] 인증 준비 입력/실행 오류
+[fail] 인증 oracle 실패: caller=start_server
+[cleanup] path=/private/tmp/media-server-auth-bootstrap.fm2tsc kib=2076 absent=true

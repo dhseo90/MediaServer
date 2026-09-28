@@ -1,0 +1,5 @@
+- PASS: application header is standard-only, standalone, and has no repository dependency closure
+- PASS: application source owns canonical snapshot, opaque mapping, and keyed lifecycle
+- PASS: compiled fake canonical harness binds full mapping, null/exception semantics, and runtime identity
+- PASS: transport has zero canonical bypass and exact runtime/action lifecycle
+- summary: pass=4 fail=0

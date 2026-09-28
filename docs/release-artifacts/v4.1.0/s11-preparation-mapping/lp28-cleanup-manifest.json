@@ -1,0 +1,1779 @@
+{
+  "schema": "media-server.lp28-cleanup-manifest.v1",
+  "utc": "2026-09-21T15:42:30.202Z",
+  "root": "/private/tmp/media-server-lp28.K2YANY",
+  "uid": 501,
+  "mode": "700",
+  "bytes": 93498346,
+  "files": [
+    {
+      "path": "build-review-package.mjs",
+      "bytes": 2616,
+      "sha256": "d6c24e756f95bfe3910b310e93800924dab3e46ed730d66a85b04901748e38a7"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1563,
+      "sha256": "9ab52167eeb1307293275c1e65042dc029d1f75660fdefa5bf5eb4430c161fc2"
+    },
+    {
+      "path": "check-candidate.mjs",
+      "bytes": 1039,
+      "sha256": "f5dd0f1081862039552ca3c58bc2b5a740682a9331fd3bd57e98fcd6dbd65028"
+    },
+    {
+      "path": "current-candidate.json",
+      "bytes": 7492239,
+      "sha256": "9398461b8f675cbe61c745d1842cc02e2aa909541c6d9209680d8c0a417e0372"
+    },
+    {
+      "path": "final-assets-01.log",
+      "bytes": 1027,
+      "sha256": "476ce6dad38b3dda9a43befb9200d1dbde8acdc9353fac31403fa167cb893498"
+    },
+    {
+      "path": "final-auth-bootstrap-01.log",
+      "bytes": 1873,
+      "sha256": "0b6accee9a691de380fdcd92bc3176f8561408d30ccdf072bdb77adba3660b99"
+    },
+    {
+      "path": "final-auth-routes-01.log",
+      "bytes": 8657,
+      "sha256": "536e3892f90a72b13a8fdbc2b9e4e2460ba10751ac069d535e1ebd208830ed2d"
+    },
+    {
+      "path": "final-auth-users-01.log",
+      "bytes": 4229,
+      "sha256": "bcf11ad86e491a268bc5632c2499dfd00f8e767a5a639f083afc2791be95ab2d"
+    },
+    {
+      "path": "final-build-01.log",
+      "bytes": 1054,
+      "sha256": "6df389d064158df2c87ee342130dd0b9e25deae58c599352f5c740bc5428d13c"
+    },
+    {
+      "path": "final-candidate.json",
+      "bytes": 7715885,
+      "sha256": "32ddf19f0faab97b48280f37942b67afcbe82cef17a417a4d37bb67a1f2d067f"
+    },
+    {
+      "path": "final-check.json",
+      "bytes": 118901,
+      "sha256": "6ef83bbc53d9f31bcedeecda9b0877c0f4e160cbdcd97c24f2280c3852bf686b"
+    },
+    {
+      "path": "final-closeout-01.log",
+      "bytes": 1002,
+      "sha256": "4ebd24a332a08ef0134de3f3db6e9d70948c0397301c5869416e0ee05e4accc0"
+    },
+    {
+      "path": "final-closeout-02.log",
+      "bytes": 935,
+      "sha256": "4ca7032bfacdfefa2053fdf63965d27dcebc0919e05c71ac2187e1ac38019c2e"
+    },
+    {
+      "path": "final-diff-01.log",
+      "bytes": 374,
+      "sha256": "8a6feb146b8da40a248e3c89e229516a276b68fdfb0f3b32a91cb10c90a95cac"
+    },
+    {
+      "path": "final-docs-01.log",
+      "bytes": 574,
+      "sha256": "7511de57ee319d368debcb6fa5a16b2c5ee9cecb7e21b17e1096bee872464dcc"
+    },
+    {
+      "path": "final-entry-01.log",
+      "bytes": 1587,
+      "sha256": "44350f97e7db2c3ae5182c5f281b0ca534ade3f8b38fe4796b9a4f93bb6e56e6"
+    },
+    {
+      "path": "final-entry-02.log",
+      "bytes": 1588,
+      "sha256": "782272b865b2dc536e51dc4dd8f097069ba83ab607954bac63ea09840736185b"
+    },
+    {
+      "path": "final-env-fixture-01.log",
+      "bytes": 5656,
+      "sha256": "dec4ab4f9017546b2dbcdfe138ac284421d4cae6ed968302faed346b5046130e"
+    },
+    {
+      "path": "final-metadata-01.log",
+      "bytes": 1741,
+      "sha256": "5446c88cb78aadc8475d78bd5854766605dab6ca8c2799ef7ad6681ea2cf988a"
+    },
+    {
+      "path": "final-metadata-02.log",
+      "bytes": 1741,
+      "sha256": "ad823113e1f29b5ef68127e527944b6da7b82aae4d9fdc5c2fc2e8a018eb1c05"
+    },
+    {
+      "path": "final-recording-01.log",
+      "bytes": 621780,
+      "sha256": "d06e23a1cb26ad53cdbc6325f150313eb6f8c2217751ac75ab74977aff2edef1"
+    },
+    {
+      "path": "frozen-candidate.json",
+      "bytes": 7719590,
+      "sha256": "2e6dbce0ad2aa1e84a1db71e72239a55a9b872d1c99827c0c1cf774553a65d68"
+    },
+    {
+      "path": "independent-decisions-02.json",
+      "bytes": 527524,
+      "sha256": "7ff9f69f2daa03922001d8b331d18dc6d7c310a28c47737acb9150166bae9c5e"
+    },
+    {
+      "path": "independent-decisions.json",
+      "bytes": 497609,
+      "sha256": "cb0b32e9e6acc3813b8d11e940d328e92193d2c1e803f6130e8b03bbbe56e8e4"
+    },
+    {
+      "path": "independent-review-02.md",
+      "bytes": 276339,
+      "sha256": "016d89bb0fdfe6d56bf5eaf5db6f2c5ca08c18ea9c476b966de55f07425eb4d7"
+    },
+    {
+      "path": "independent-review.md",
+      "bytes": 128666,
+      "sha256": "741cb0641cff8a899a518756c0a8d6f75fefb15bcf4e653a3bac91438114877b"
+    },
+    {
+      "path": "located-candidate-02.json",
+      "bytes": 7719590,
+      "sha256": "2e6dbce0ad2aa1e84a1db71e72239a55a9b872d1c99827c0c1cf774553a65d68"
+    },
+    {
+      "path": "located-candidate.json",
+      "bytes": 7719723,
+      "sha256": "f66ab12f723b0400789f65d3ca66f605c47fe78dae1a6b30959467b56c1c86f6"
+    },
+    {
+      "path": "lp28-core-binding-review.json",
+      "bytes": 6899,
+      "sha256": "ba22e6e4be6ad04753499a46ce66d0b2178132db8f93d1179d2f602159bdb165"
+    },
+    {
+      "path": "lp28-core-binding-review.md",
+      "bytes": 1860,
+      "sha256": "0f6f2ecda10a602d16ad584faf60bec418b0455cc65080407723549589f3de06"
+    },
+    {
+      "path": "migration-evidence-02.json",
+      "bytes": 372115,
+      "sha256": "9f573bbe75b35ba135dde231ba97cd671329d9880f902f3a02fba616af5ddd99"
+    },
+    {
+      "path": "migration-evidence.json",
+      "bytes": 370275,
+      "sha256": "92f5f3ed9094f48f0527cd20e9b33af91c577c051b630bca47f882d726e4f2d6"
+    },
+    {
+      "path": "migration-report-02.json",
+      "bytes": 512603,
+      "sha256": "1571fb0c1eba2c42c429a0980288c041d8d3e30d16ec686fe293531c67f8de75"
+    },
+    {
+      "path": "migration-report.json",
+      "bytes": 510763,
+      "sha256": "a9cbd1023fae30f1ba025405816326cb068d3313d4c4111637efbc8953374c4a"
+    },
+    {
+      "path": "prep-approvals-01.log",
+      "bytes": 681,
+      "sha256": "41836aab6cc95b979c4865873d501dac5d859d54040a5e6d6d0311015bb56ccd"
+    },
+    {
+      "path": "prep-assets-01.log",
+      "bytes": 1027,
+      "sha256": "d6fa388ad37e26940c07c78eda27cfa66c78fd026a1b10c9527060b86049c95a"
+    },
+    {
+      "path": "prep-combined-01.log",
+      "bytes": 770,
+      "sha256": "6530023a98014f0b6e4c2ba950894cbbacba465017d1cb01fdecd783d5e14881"
+    },
+    {
+      "path": "prep-core-01.log",
+      "bytes": 2004,
+      "sha256": "3ed49310016c763d199415d15df84c5c1c80373f513021e4e5eb874060bf3324"
+    },
+    {
+      "path": "prep-diff-01.log",
+      "bytes": 375,
+      "sha256": "359a0ae80cbe7192905c85de0a2a355f4eb69edab2a566d03c9286f49d9e68fa"
+    },
+    {
+      "path": "prep-docs-01.log",
+      "bytes": 574,
+      "sha256": "08ae9bf182682142d5eae3d17b37efe60543f3dd5624c70c448e0f019f2f8244"
+    },
+    {
+      "path": "prep-feature-01.log",
+      "bytes": 1739,
+      "sha256": "f152bc25f61f243d0a2e7bdd288ed0793cc0f4b34bf7ffd46627802015333f18"
+    },
+    {
+      "path": "prep-feature-02.log",
+      "bytes": 1638,
+      "sha256": "58efad615b9d5047fd00f1c858200c05e39cda23577caceb09312d1174f14fd9"
+    },
+    {
+      "path": "prep-feature-report-02.json",
+      "bytes": 1670,
+      "sha256": "900f924fbe462b99490d15da1afa4afa23d471e5bde242d7a8660e8f25890d31"
+    },
+    {
+      "path": "prep-feature-report.json",
+      "bytes": 1781,
+      "sha256": "e0d8af960da299680f054665c43a17e73c5f98c84151aa4fb1bb001efebabeb8"
+    },
+    {
+      "path": "prep-gates.sh",
+      "bytes": 333,
+      "sha256": "e16237d625aef9ad24a57af02920cd153ccf9ac654fa6197dd5e6288cb157d96"
+    },
+    {
+      "path": "prep-inventory-01.log",
+      "bytes": 210650,
+      "sha256": "554262bbb8cf3e6770bdd2fe0e73670a26f5d2a7220d57425295bf68becde3f2"
+    },
+    {
+      "path": "prep-native-01.log",
+      "bytes": 1246,
+      "sha256": "16df5c47f61084e1d03c044f1d2d9d709680793309d70c7ebf4df283d33acade"
+    },
+    {
+      "path": "prep-native-02.log",
+      "bytes": 5786,
+      "sha256": "f3bd4c80a32555e260d4bfc677df6c20bd09dc55131d606ebf082bfa2fabc25d"
+    },
+    {
+      "path": "prep-producer-01.log",
+      "bytes": 3801,
+      "sha256": "16d6e677b2f7d79e13b986627e7d6382c6b1177604a1315f671e868d65447a73"
+    },
+    {
+      "path": "prep-scripts-01.log",
+      "bytes": 1270,
+      "sha256": "1b355c0e72a45b19e7bb9705872c5b3209969500c8963450a8118bc383434c45"
+    },
+    {
+      "path": "preserve-final.mjs",
+      "bytes": 7341,
+      "sha256": "a5cd1b1dbb3e73aa20cf61b2d128e57880154fe1517cac6f13211bb6e85d96f6"
+    },
+    {
+      "path": "prior-approvals.json",
+      "bytes": 1841461,
+      "sha256": "361e859d003d3941306e94a7be4ce316ad586a951ebbc01862334ab70acd69c9"
+    },
+    {
+      "path": "prior-audit.json",
+      "bytes": 10416637,
+      "sha256": "74f6a6f03746d2ecfdce49a9f8573479265cbda196216199f98caf003e12c61a"
+    },
+    {
+      "path": "reanchor-proofs.mjs",
+      "bytes": 5977,
+      "sha256": "eabb60026878086b981c9d58ca399c2b98387c43c871416c98c3754179aae8d4"
+    },
+    {
+      "path": "repaired-candidate-01.json",
+      "bytes": 7715694,
+      "sha256": "dfcff603f33006c34322a3c2c478b48cdc8a5b31a651833d353c7f91c1ede873"
+    },
+    {
+      "path": "repaired-candidate-02.json",
+      "bytes": 7715821,
+      "sha256": "0b9fd1412b81a1da83c5de7fae14d08239c050430c1432b9c106666c73c878c3"
+    },
+    {
+      "path": "repaired-check-01.json",
+      "bytes": 152424,
+      "sha256": "1c18311bc8590da09b22cf3492753e69fa0677e3c411577134514fd3c3c8f11e"
+    },
+    {
+      "path": "repaired-check-02.json",
+      "bytes": 118901,
+      "sha256": "69a4cbe4b822f4d595b4424bf2859dd5ddd94cc9bea2eb17aef183800653b982"
+    },
+    {
+      "path": "review-deltas-02.json",
+      "bytes": 11085043,
+      "sha256": "24a0229b5ef4cebc22b006bc6000c845a0b710ff745bd12f60d4efedd7c0ae6e"
+    },
+    {
+      "path": "review-deltas.json",
+      "bytes": 11092228,
+      "sha256": "d3b475681e7eed27bdc50d57d1d3f8aacb8a3c180e4dde02f706ecb903c44aab"
+    },
+    {
+      "path": "review-package-02.json",
+      "bytes": 109137,
+      "sha256": "0938aca357dae7d31451f702ab335f3d3ae59c38730bf5ad7cd9be10a4b45197"
+    },
+    {
+      "path": "review-package.json",
+      "bytes": 108900,
+      "sha256": "347aebc22ff6fed53c0656c6ded3220b245e8b430995d17e57b5c5761df68b8e"
+    },
+    {
+      "path": "review-snapshot.index",
+      "bytes": 487036,
+      "sha256": "ecd691d6d078248fd9af68d5791257f974dbd8ece1db6444dab59d59ff1c5f02"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "bytes": 41588,
+      "sha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43"
+    },
+    {
+      "path": "whep-final-review.log",
+      "bytes": 944,
+      "sha256": "0bda28ba6edfc3940fb8a1985c0d9e25666e97d099c20e3e859f83389837164c"
+    },
+    {
+      "path": "whep-local-01.log",
+      "bytes": 826,
+      "sha256": "3e17e9623da7c48cdba7d835aa0e3a97b8119028a806ad4d6b1fa4e562bd4ca7"
+    },
+    {
+      "path": "whep-local-02.log",
+      "bytes": 897,
+      "sha256": "4597a7ebbc0773404f20e07d701b1a16c1919598ae9eb501ddcc9656689c0d4b"
+    },
+    {
+      "path": "whep-local-03.log",
+      "bytes": 2309,
+      "sha256": "1f01cce6d6674e3fd67a911434831490ff19a07ba1def658c930fd50215f53af"
+    },
+    {
+      "path": "whep-local-04.log",
+      "bytes": 2309,
+      "sha256": "6e4b4122330600af4bd5f525f1cb325303909548dc564d74d4e27fc4b3c1d9bd"
+    },
+    {
+      "path": "whep-self-01.log",
+      "bytes": 349,
+      "sha256": "5e597ec53ab5763fd02b8279d0662266f1c7069a801df8e99ac790822b86955d"
+    },
+    {
+      "path": "whep-self-02.log",
+      "bytes": 1303,
+      "sha256": "d0ddbd3bbb3a9ac02326360933a7f8547bea539132ef3f95bfef8d220c786493"
+    },
+    {
+      "path": "whep-self-03.log",
+      "bytes": 1389,
+      "sha256": "cff41d0c7b721ed52f9eaffb60553f01ca24cc0a3ad99ab622c453c57596fce3"
+    },
+    {
+      "path": "whep-self-04.log",
+      "bytes": 1380,
+      "sha256": "bf4f8f2bf8be6157a71c1aad44eb54ee94de0b34b2148372e27e617d8417dc13"
+    },
+    {
+      "path": "whep-self-05.log",
+      "bytes": 1474,
+      "sha256": "098d37edb74bf5d99593cf998e2ef6c4ab46dcb2f68960d9c552a56f689f89c6"
+    },
+    {
+      "path": "whep_offer_probe.cpp",
+      "bytes": 2016,
+      "sha256": "60b7c061cc4af6b3b27fe180330b6fd971683a0d8649f47354fd0d1f471257d8"
+    }
+  ],
+  "linkCount": 277,
+  "links": [
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaccurip.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaccurip.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadaptivedemux2.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstadaptivedemux2.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadder.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstadder.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadpcmdec.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstadpcmdec.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstadpcmenc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstadpcmenc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaes.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaes.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaiff.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaiff.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstalaw.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstalaw.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstalpha.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstalpha.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstalphacolor.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstalphacolor.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstamrnb.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstamrnb.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstamrwbdec.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstamrwbdec.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstanalyticsoverlay.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstanalyticsoverlay.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaom.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaom.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstapetag.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstapetag.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstapp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstapp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstapplemedia.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstapplemedia.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstasf.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstasf.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstasfmux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstasfmux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstassrender.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstassrender.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiobuffersplit.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiobuffersplit.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudioconvert.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudioconvert.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiofx.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiofx.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiofxbad.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiofxbad.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiolatency.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiolatency.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiomixer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiomixer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiomixmatrix.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiomixmatrix.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudioparsers.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudioparsers.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiorate.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiorate.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudioresample.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudioresample.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiotestsrc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiotestsrc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaudiovisualizers.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaudiovisualizers.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstauparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstauparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstautoconvert.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstautoconvert.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstautodetect.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstautodetect.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstavi.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstavi.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstaws.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstaws.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstbasedebug.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstbasedebug.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstbayer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstbayer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstburn.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstburn.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstbz2.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstbz2.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcairo.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcairo.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcamerabin.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcamerabin.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcdg.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcdg.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstclaxon.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstclaxon.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstclosedcaption.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstclosedcaption.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcodec2json.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcodec2json.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcodecalpha.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcodecalpha.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcodectimestamper.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcodectimestamper.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcoloreffects.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcoloreffects.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcolormanagement.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcolormanagement.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcompositor.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcompositor.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcoreelements.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcoreelements.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcoretracers.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcoretracers.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcurl.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcurl.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstcutter.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstcutter.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdash.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdash.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdav1d.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdav1d.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdebug.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdebug.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdebugseimetainserter.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdebugseimetainserter.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdebugutilsbad.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdebugutilsbad.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdecklink.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdecklink.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdeepgram.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdeepgram.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdeinterlace.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdeinterlace.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdemucs.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdemucs.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdsd.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdsd.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdtls.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdtls.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdtmf.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdtmf.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvbsubenc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdvbsubenc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvbsuboverlay.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdvbsuboverlay.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvdlpcmdec.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdvdlpcmdec.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvdspu.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdvdspu.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstdvdsub.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstdvdsub.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsteffectv.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsteffectv.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstelevenlabs.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstelevenlabs.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstencoding.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstencoding.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstequalizer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstequalizer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfaac.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfaac.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfaad.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfaad.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfaceoverlay.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfaceoverlay.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfallbackswitch.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfallbackswitch.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfdkaac.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfdkaac.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfestival.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfestival.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstffv1.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstffv1.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfieldanalysis.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfieldanalysis.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstflac.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstflac.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstflv.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstflv.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstflxdec.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstflxdec.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfreeverb.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfreeverb.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstfrei0r.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstfrei0r.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgaudieffects.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgaudieffects.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgdkpixbuf.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgdkpixbuf.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgdp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgdp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgeometrictransform.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgeometrictransform.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstges.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstges.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgif.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgif.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgio.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgio.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgoom.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgoom.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgoom2k1.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgoom2k1.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstgopbuffer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgopbuffer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthls.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsthls.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthlsmultivariantsink.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsthlsmultivariantsink.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthlssink3.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsthlssink3.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsthsv.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsthsv.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsticecast.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsticecast.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsticydemux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsticydemux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstid3demux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstid3demux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstid3tag.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstid3tag.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstimagefreeze.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstimagefreeze.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinsertbin.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstinsertbin.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinter.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstinter.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinterlace.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstinterlace.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstinterleave.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstinterleave.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstipcpipeline.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstipcpipeline.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstisobmff.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstisobmff.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstisomp4.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstisomp4.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstivfparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstivfparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstivtc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstivtc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjack.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstjack.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjp2kdecimator.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstjp2kdecimator.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjpeg.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstjpeg.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjpegformat.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstjpegformat.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstjson.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstjson.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlame.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstlame.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlegacyrawparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstlegacyrawparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlevel.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstlevel.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlewton.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstlewton.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlibav.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstlibav.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstlivesync.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstlivesync.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmatroska.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmatroska.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmidi.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmidi.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmonoscope.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmonoscope.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegpsdemux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmpegpsdemux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegpsmux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmpegpsmux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegtsdemux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmpegtsdemux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegtslive.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmpegtslive.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpegtsmux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmpegtsmux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmpg123.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmpg123.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmulaw.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmulaw.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmultifile.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmultifile.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmultipart.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmultipart.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmusepack.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmusepack.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstmxf.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstmxf.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnavigationtest.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstnavigationtest.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstndi.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstndi.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnetsim.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstnetsim.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnice.dylib",
+      "target": "/opt/homebrew/Cellar/libnice-gstreamer/0.1.23/libexec/gstreamer-1.0/libgstnice.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstnle.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstnle.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstogg.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstogg.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopenexr.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstopenexr.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopengl.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstopengl.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopenjpeg.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstopenjpeg.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopus.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstopus.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstopusparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstopusparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstoriginalbuffer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstoriginalbuffer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstoss4.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstoss4.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstosxaudio.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstosxaudio.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstosxvideo.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstosxvideo.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstoverlaycomposition.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstoverlaycomposition.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpango.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstpango.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpbtypes.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstpbtypes.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpcapparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstpcapparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstplayback.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstplayback.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpng.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstpng.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstpnm.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstpnm.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstproxy.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstproxy.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstquinn.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstquinn.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstraptorq.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstraptorq.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrav1e.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrav1e.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrawparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrawparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrealmedia.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrealmedia.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstregex.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstregex.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstremovesilence.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstremovesilence.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstreplaygain.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstreplaygain.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstreqwest.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstreqwest.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrfbsrc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrfbsrc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrist.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrist.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsanalytics.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsanalytics.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsaudiofx.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsaudiofx.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsaudioparsers.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsaudioparsers.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsclosedcaption.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsclosedcaption.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsfile.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsfile.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsflv.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsflv.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsinter.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsinter.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsonvif.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsonvif.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrspng.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrspng.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsrtp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsrtp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsrtsp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsrtsp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrstracers.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrstracers.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsvg.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsvg.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrsvideofx.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrsvideofx.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrswebrtc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrswebrtc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtmp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtmp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtmp2.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtmp2.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtpmanager.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtpmanager.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtpmanagerbad.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtpmanagerbad.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtponvif.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtponvif.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtsp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtsp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstrtspclientsink.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstrtspclientsink.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsctp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsctp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsdpelem.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsdpelem.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsegmentclip.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsegmentclip.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstshapewipe.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstshapewipe.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstshm.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstshm.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstshout2.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstshout2.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsiren.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsiren.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstskia.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstskia.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsmooth.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsmooth.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsmoothstreaming.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsmoothstreaming.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsmpte.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsmpte.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsndfile.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsndfile.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsodium.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsodium.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsoup.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsoup.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspectrum.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstspectrum.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspeechmatics.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstspeechmatics.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspeed.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstspeed.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspeex.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstspeex.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstspotify.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstspotify.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsrt.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsrt.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsrtp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsrtp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgststreamgrouper.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgststreamgrouper.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsubenc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsubenc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsubparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsubparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstsvtav1.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstsvtav1.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstswitchbin.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstswitchbin.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttaglib.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttaglib.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttcp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttcp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttensordecoders.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttensordecoders.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttextaccumulate.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttextaccumulate.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttextahead.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttextahead.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttextwrap.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttextwrap.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttheora.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttheora.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstthreadshare.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstthreadshare.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttimecode.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttimecode.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttogglerecord.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttogglerecord.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttranscode.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttranscode.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstttmlsubs.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstttmlsubs.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsttypefindfunctions.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsttypefindfunctions.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstudp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstudp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstunixfd.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstunixfd.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsturiplaylistbin.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsturiplaylistbin.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvalidatetracer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvalidatetracer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideobox.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideobox.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideoconvertscale.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideoconvertscale.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideocrop.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideocrop.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideofilter.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideofilter.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideofiltersbad.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideofiltersbad.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideoframe_audiolevel.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideoframe_audiolevel.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideomixer.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideomixer.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideoparsersbad.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideoparsersbad.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideorate.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideorate.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideosignal.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideosignal.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvideotestsrc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideotestsrc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvmaf.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvmaf.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvmnc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvmnc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvolume.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvolume.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvorbis.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvorbis.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstvpx.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvpx.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwavenc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstwavenc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwavparse.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstwavparse.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwebp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstwebp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwebrtc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstwebrtc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwebrtchttp.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstwebrtchttp.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstwhisper.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstwhisper.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstx264.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstx264.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstx265.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstx265.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstximagesink.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstximagesink.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstximagesrc.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstximagesrc.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgstxingmux.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstxingmux.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/libgsty4m.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgsty4m.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstrsvalidate.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/validate/libgstrsvalidate.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstvalidatefaultinjection.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/validate/libgstvalidatefaultinjection.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstvalidategapplication.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/validate/libgstvalidategapplication.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000/validate/libgstvalidatessim.dylib",
+      "target": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/validate/libgstvalidatessim.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    },
+    {
+      "path": "s11-build-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0001/libgstnice.dylib",
+      "target": "/opt/homebrew/Cellar/libnice-gstreamer/0.1.23/libexec/gstreamer-1.0/libgstnice.dylib",
+      "action": "링크만 삭제·대상 추적 금지"
+    }
+  ],
+  "reason": "실행 소유 이관/후보/검토/빌드cache. 최종 판정·최초 실패·전체 검사 로그는 LP28 저장소 artifacts에 보존. 기존 audit/approval은5e5f45d7,최종 source/fixtures는fa5afd8d로 복원. 중간 후보/차분은 생성 부산물이며 hash만 보존.",
+  "openHandles": "lsof +D exit1/output없음; 해당 폴더 열린 핸들 없음",
+  "initialManifestAttempt": "예상치 않은 symlink 안전 거부(exit1). 삭제 전 readlink로 빌드cache의 GStreamer 링크277개임을 확인, 추적 없이 링크만 제거.",
+  "deletePlanned": true,
+  "deleted": true,
+  "deletionResult": "rm -rf 정확한 실행 소유 경로 exit0. root 부재 및 링크 외부 대상 파일 유지 확인 exit0. 운영/원본 미디어·시스템 GStreamer 패키지 삭제 없음."
+}

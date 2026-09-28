@@ -1,0 +1,13 @@
+command: node --test scripts/internal/recording_recovery_content.test.mjs
+exit: 0
+stderr: empty
+cleanup: no temporary fixture created
+✔ LP24-RH01 RED와 GREEN 판정 자체검사 (1.7045ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.294209

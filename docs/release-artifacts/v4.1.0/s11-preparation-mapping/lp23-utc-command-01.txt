@@ -1,0 +1,32 @@
+node --input-type=module - <<'JS'
+import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import crypto from 'node:crypto';import {execFileSync} from 'node:child_process';import {runBounded,treeBytes} from './scripts/internal/recording_catalog_comparison_guard.mjs';
+const repo=process.cwd(),parent=fs.realpathSync(os.tmpdir()),root=fs.realpathSync(fs.mkdtempSync(path.join(parent,'media-server-utc-diagnostic-')));fs.chmodSync(root,0o700);
+const rootStat=fs.lstatSync(root),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const names=['scripts/internal/recording_utc_observation_diagnostic.cpp','include/recording/recording_writer_time_state.h','include/media/gstreamer_sample_observation.h','src/core/source_factory.cpp','src/recording/gstreamer_segment_writer.cpp'];
+const manifest=()=>names.map(file=>({file,sha256:sha(fs.readFileSync(file))})),source=manifest();
+const fixture=path.join(repo,'video/imports/va_tracking_event_1280x720_30fps_h264.mp4'),inputSha256=sha(fs.readFileSync(fixture));
+if(inputSha256!=='02d046c3df9acd44b2dd5d2fd50db46b6b1f8c3b3b5b44c3dd710bdc50cff2fa')throw Error('input-fingerprint');
+const env={PATH:process.env.PATH,TMPDIR:root,LANG:'C',LC_ALL:'C',MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless',MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache')};
+const results=[],record={schema:'lp23-utc-run-v1',source,inputSha256,root,platform:process.platform,arch:process.arch,node:process.version,limits:{compileSeconds:60,runSeconds:15,rssBytes:1073741824,diskBytes:536870912,outputBytes:2097152},results,applicationPass:false};
+const flags=execFileSync('pkg-config',['--cflags','--libs','gstreamer-app-1.0'],{env,encoding:'utf8',timeout:5000}).trim().split(/\s+/);
+const binary=path.join(root,'utc-diagnostic'),compileArgs=['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+path.join(repo,'include'),names[0],...flags,'-o',binary];
+let ok=true,groupClean=true;
+try{
+ for(const [phase,command,args,seconds] of [
+  ['compile','c++',compileArgs,60],
+  ['synthetic',binary,['--synthetic'],15],
+  ['actual','/bin/bash',['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; shift; exec "$@"','utc-diagnostic',path.join(repo,'scripts/internal/env_common.sh'),binary,'--file',fixture],15]
+ ]){
+  const r=await runBounded({root,command,args,env,seconds});results.push({phase,command,args,...r});
+  groupClean=r.groupClean;ok=r.code===0&&!r.signal&&!r.stopReason&&groupClean;
+  if(phase==='compile'&&ok)record.binarySha256=sha(fs.readFileSync(binary));
+  if(phase==='synthetic')ok=ok&&r.stdout.includes('[summary] pass=8 fail=0')&&(r.stdout.match(/^\[pass\] /gm)||[]).length===8;
+  if(phase==='actual')ok=ok&&r.stdout.includes('[summary] pass=1 fail=0')&&(r.stdout.match(/^\[utc-observation\] /gm)||[]).length===250&&r.stdout.includes('"pipelineNull":true');
+  if(!ok)break;
+ }
+}catch{ok=false;record.error='diagnostic-preparation-or-execution';}
+record.sourceUnchanged=JSON.stringify(source)===JSON.stringify(manifest());record.inputUnchanged=sha(fs.readFileSync(fixture))===inputSha256;record.groupClean=groupClean;record.pass=ok&&record.sourceUnchanged&&record.inputUnchanged;
+record.cleanup={root,bytes:treeBytes(root),removed:false,identity:{dev:rootStat.dev,ino:rootStat.ino}};
+console.log(JSON.stringify(record));
+process.exitCode=record.pass?0:1;
+JS

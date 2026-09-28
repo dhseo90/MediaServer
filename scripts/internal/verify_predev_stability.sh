@@ -344,7 +344,7 @@ run_step() {
   local started_at="${SECONDS}"
   local next_heartbeat=$((SECONDS + HEARTBEAT_INTERVAL_S))
   log_info "${name} 시작"
-  (cd "${ROOT_DIR}" && bash -lc "${command}") >"${stdout_file}" 2>"${stderr_file}" &
+  (cd "${ROOT_DIR}" && env -u BASH_ENV bash -c "${command}") >"${stdout_file}" 2>"${stderr_file}" &
   local step_pid="$!"
   while kill -0 "${step_pid}" >/dev/null 2>&1; do
     if [[ "${HEARTBEAT_INTERVAL_S}" =~ ^[0-9]+$ ]] && (( HEARTBEAT_INTERVAL_S > 0 && SECONDS >= next_heartbeat )); then
@@ -847,10 +847,20 @@ run_failure_contract_fixture() {
   return 1
 }
 
+# 현재 실행 summary 한 개와 출력 경로를 bash 명령 문자열에서도 정확히 보존한다.
+summary_report_command() {
+  # summarizer의 Python glob 재해석도 리터럴로 제한한다. '['를 먼저 치환한다.
+  local summary_pattern="${SUMMARY_FILE//\[/[[]}"
+  summary_pattern="${summary_pattern//\*/[*]}"
+  summary_pattern="${summary_pattern//\?/[?]}"
+  printf '%q ' ./server.sh summarize-reports "${summary_pattern}" --output "${REPORT_FILE}" --html-output "${REPORT_HTML_FILE}"
+}
+
 refresh_summary_report() {
-  local command="./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}"
+  local command
+  command="$(summary_report_command)"
   local log_file="${WORK_DIR}/summary_report_refresh.log"
-  if (cd "${ROOT_DIR}" && bash -lc "${command}") >"${log_file}" 2>&1; then
+  if (cd "${ROOT_DIR}" && env -u BASH_ENV bash -c "${command}") >"${log_file}" 2>&1; then
     echo "[info] summary-report refreshed log=${log_file}"
     return 0
   fi
@@ -926,8 +936,10 @@ main() {
     if is_codex_in_app_browser_environment && [[ -z "${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-}" ]]; then
       rule_ui_option=""
     fi
+    local fail_fast_option=""
+    if [[ "${FAIL_FAST}" == "1" ]]; then fail_fast_option="--fail-fast"; fi
     run_step "integrated-smoke" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${external_client_option} --include-rules ${rule_ui_option} --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${fail_fast_option} ${external_client_option} --include-rules ${rule_ui_option} --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
     if ! fail_fast_triggered; then run_external_turn_gate || true; else append_not_run_step "external-turn-hard-gate" "./server.sh verify-webrtc-ice --external-turn" "integrated smoke failure"; fi
     if ! fail_fast_triggered; then run_soak_loop || true; else append_not_run_step "soak-case-loop" "duration soak case loop" "pre-soak failure"; fi
     if ! fail_fast_triggered; then assert_runtime_idle "main-runtime-idle" || true; else append_not_run_step "main-runtime-idle" "curl -fsS ${HTTP_BASE}/lab/runtime/status" "pre-runtime-idle failure"; fi
@@ -956,7 +968,7 @@ main() {
 
   write_summary "${started_at}" "${SECONDS}"
   run_step "summary-report" \
-    "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}" || true
+    "$(summary_report_command)" || true
   write_summary "${started_at}" "${SECONDS}"
   refresh_summary_report || true
   write_summary "${started_at}" "${SECONDS}"

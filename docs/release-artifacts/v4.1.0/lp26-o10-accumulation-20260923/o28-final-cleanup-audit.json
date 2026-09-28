@@ -1,0 +1,41 @@
+{
+  "roots": [
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.dLrVct",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.UhPDos",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.5Lv5bJ",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.kMisBJ",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.P7l0cw",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.d6kSJk",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.Pb7oMU",
+      "absent": true
+    },
+    {
+      "root": "<owned-temp>/media-server-catalog-cost.dTl83e",
+      "absent": true
+    }
+  ],
+  "processScan": {
+    "status": 0,
+    "exactSyntheticMatches": 0
+  },
+  "limitations": "사후 현재 부재 확인이며 최초 실패 시점의 PID/cleanup 증거를 소급 생성하지 않음"
+}

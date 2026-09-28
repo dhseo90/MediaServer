@@ -1,0 +1,79 @@
+[info] starting auth users server: auth=auto http=8091 rtsp=8565
+[info] ICE 응답 검사는 setup 완료 뒤 수행
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] weak admin password rejected: 400
+[pass] initial admin password setup: 302
+[pass] auth users file owner-only mode: 600
+[pass] setup blocked after completion: 302:/login
+[pass] admin login landing: 302:/ops/home
+[pass] admin whoami username and role
+[pass] ops users access request selectors
+[pass] permissive auth users file re-hardened: 600
+[pass] viewer view scope assigned
+[pass] viewer privileged scopes blocked
+[pass] user API hash redaction
+[pass] viewer custom privileged scope rejected: 400
+[pass] integrator live view scope rejected: 400
+[pass] viewer login: 302
+[pass] viewer ops forbidden: 403
+[pass] admin reset password: 200
+[pass] admin reset revokes existing viewer session: 401
+[pass] admin reset forces next-login password change
+[pass] mustChangePassword landing: 302:/password/change
+[pass] password change auth shell selectors
+[pass] password change to temporary password succeeds: 302
+[pass] temporary password login succeeds: 302
+[pass] password_history original password immediate history reuse rejected: 400
+[pass] password history count rotation succeeds: 302
+[pass] history rotation password login succeeds: 302
+[pass] original password restored after history count rotation: 302
+[pass] SaveUsersFile-backed password change lifecycle final login succeeds: 302
+[pass] admin disables viewer: 200
+[pass] disabled user login rejected: 401
+[pass] admin restores viewer: 200
+[pass] restored viewer login succeeds: 302
+[pass] last active admin disable rejected: 409
+[pass] last active admin role downgrade rejected: 409
+[pass] login lockout stored
+[pass] invite token issued once
+[pass] invite expiry and setup URL visible once
+[pass] invite list API exposes issued invite summary
+[pass] invite list API redacts token material
+[pass] users-only save after pending invite: 200
+[pass] pending invite preserved across users save
+[pass] invite setup HTTP response renders required form
+[pass] invite setup auth shell selectors
+[pass] invite password setup: 302
+[pass] invited viewer login: 302
+[pass] invite.used consumed/expired token runtime status split: 401:410
+[pass] existing invite target baseline login: 302
+[pass] existing invite baseline scope visible
+[pass] pending invite keeps existing session: 200
+[pass] pending invite does not change existing role/scope
+[pass] pending invite future scope not applied
+[pass] existing invite accepted: 302
+[pass] accepted invite revokes previous session: 401
+[pass] existing invite new password login: 302
+[pass] accepted invite applies role/scope
+[pass] duplicate pending access request rejected: 409
+[pass] access request unsafe viewId rejected: 400
+[pass] oversized access request body rejected: 413
+[pass] access request rate budget allows fourth counted attempt
+[pass] access request rate budget allows fifth counted attempt: 201
+[pass] access request per-peer rate limit enforced: 429
+[pass] ops users access request reject API: 200
+[pass] rejected access request visible in ops API
+[pass] pending access request form and pending-state copy
+[pass] pending form submission remains denied login before approval: 401
+[pass] approved request invite expiry visible once
+[pass] approved request keeps user pending until invite setup
+[pass] users-only save after approved request: 200
+[pass] approved request preserved across users save
+[pass] approved request invite preserved across users save
+[pass] approved request password setup: 302
+[pass] approved request viewer login: 302
+
+== Auth users 검증 요약 ==
+- 통과: 72
+- 실패: 0
+[cleanup] path=/private/tmp/media-server-auth-users.ftKnTc kib=2120 absent=true

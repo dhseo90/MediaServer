@@ -32,6 +32,22 @@
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 
+## 현재 v4.1.0 녹화 기반 verifier
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| V410-S00 | `./server.sh verify-v410-research-gate`, `./server.sh verify-v410-entry-baseline` | 공개 자료 provenance/IP clean-room 차단선과 source `4.1.0`/published `v4.0.0` 분리 기준. 녹화 구현 PASS가 아님 |
+| V410-S01 | `./server.sh verify-v410-recording-contracts` | 실제 C++로 opaque ID, UTC 반개구간, PTS/timebase, unknown optional field/lifecycle, segment/event link/observation/tombstone v1 JSONL round-trip과 tombstone ID 재사용 거부를 검증. 실제 recorder/store/catalog/retention/timeline/UI/장시간 테스트 PASS가 아님 |
+| V410-S05 종료 선행 운영 격리 | `python3 scripts/internal/server_state_isolation_test.py` | 실제 제품 서버를 띄우지 않고 전용 상태 namespace, 고유 launchd label, 기존 exact label 비간섭, scoped stop, 상태 leaf symlink 거부, launchd mode 보존을 13개 실행 기반 fixture로 확인. 실제 nohup/launchd 녹화·이벤트·재시작 PASS가 아님 |
+| V410-S08 원장·호환성 | `./server.sh verify-v410-recording-recovery`, `./server.sh verify-v410-recording-fixture-compatibility` | 원장 꼬리 복구와 기존 V1 golden digest·reader 의미를 확인. 영상 복구 전수나 장시간 실행을 대체하지 않음 |
+| V410-S08 손상 검사 | `./server.sh verify-v410-recording-corruption`, `./server.sh verify-v410-recording-media-inspector` | 알려진 자료의 상태 전이·재생 배제 및 실제 SHA/container 검사. inspector의 `--boundaries`, `--limits`는 별도 경계 검사이며 전체 codec decode가 아님 |
+| V410-S08 최종화 복구 | `./server.sh verify-v410-recording-finalize-recovery` | ready ticket·원래 ID·소유 경로의 복구. `--integration`은 실제 writer/event 연결, `--integration --root-only`는 root 안전성 검사 |
+| V410-S08 시작 복구 | `./server.sh verify-v410-recording-startup --unit`, `./server.sh verify-v410-recording-startup --app` | 동기 삭제 대기→ready→Finalized 검사, 실제 격리 앱의 정상/실패/재시작·녹화 활성·Range 및 종료·포트·임시 root 정리. UI 풀테스트·장시간·외부 실기기 실행이 아님 |
+| V410-S09 runtime 부분 통합 | `./server.sh verify-v410-recording-foundation-runtime`, `./server.sh verify-v410-recording-foundation-runtime --oracle-negative` | 실제 로컬 검출용 영상·YOLO·recorder·projector·catalog의 단일 source/녹화, 영상 위치, 종료 정리 확인. warmup 1회 뒤 3회 반복하며 스레드·FD·RSS를 기록한다. 이벤트·HTTP·인증·보존·재시작 전체 통합이나 UI·장시간 검사, S09 전체 완료를 대체하지 않는다 |
+| V410-S09 통합 실행 | `./server.sh verify-v410-recording-foundation --all` | 기본 인자 없음도 동일. 인증 환경변수5개 확인 후 runtime→인증 앱을 순차 실행하며 실패·완료 누락·cleanup 실패를 전파한다. 실제 통합 실행을 확인했으며, 성공 종료도 자원 추세·UI·장시간·버전 완료를 뜻하지 않는다 |
+| V410-S09 앱 부분 통합 | `./server.sh verify-v410-recording-foundation --app-nonauth`, `./server.sh verify-v410-recording-foundation --app-auth` | 실제 이벤트·fallback·파생 영상·Range·보존·재시작을 확인한다. 비인증과 인증 모드의 실행 증거를 구분하며 부분 모드만으로 전체 통합 PASS를 만들지 않는다 |
+| V410-S09 녹화 장시간 관측 | `./server.sh verify-v410-recording-longrun --duration-minutes 120` | 실행 경로 구현·순수 검증 완료, 실제 실행은 별도 승인 전 미검증이다. 두 채널의 녹화 지속·순환 삭제·복구와 PID별 자원 표본을 확인한다. 실행 시간 충족은 자원 안정성 PASS나 predev120·UI·버전 완료를 대체하지 않는다 |
+
 ## 과거 v2.5.0 verifier
 
 | Step | Command | Scope |
@@ -46,10 +62,10 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v4.0.0 verifier와 v3.9.1/v3.9.0 inherited verifier
+## 과거 v4.0.0 verifier와 v3.9.1/v3.9.0 inherited verifier
 ## 현재 v3.9.0 verifier
 
-현재 source는 `4.0.0`이다. 아래 v3.9.1/v3.9.0 행은 inherited historical gate이며
+현재 source는 `4.1.0`이다. 아래 v4.0.0/v3.9.1/v3.9.0 행은 inherited historical gate이며
 당시 표기를 보존한다. `## 현재 v3.9.0 verifier` 제목은 v390 entry-baseline이
 요구하므로 유지한다.
 
@@ -60,7 +76,7 @@ UI 풀테스트·30분·120분·published metadata 또는 release action evidenc
 
 | Step | Command | Scope |
 | --- | --- | --- |
-| v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.0.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
+| v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.1.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
 | v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | current source `4.0.0`, latest published `v4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization` 정렬. v4.0.0 2~8번, 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정하고 신규 기능을 `blocked-until-v400-complete`로 둡니다. 각 스텝 전용 verifier PASS, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424 유지, v390 verifier·contract·fixture 상한, v400 command allowlist, wrapper PASS와 실행 PASS 분리를 검사합니다. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
@@ -882,7 +898,7 @@ RC command set:
 - SSE/WS/Event POST 검증은 임시 tap·queue·listener를 제거하고, lifecycle 검증은 throwaway state dir과 포트를 정리합니다.
 - 브라우저 visual smoke는 실행별 Chrome userDataDir을 제거합니다.
 
-Auth verifier는 고정 기본 비밀번호를 문서나 스크립트에 두지 않습니다. 테스트 실행자가 아래 env를 모두 제공하지 않으면 auth 테스트를 시작하지 않고 실패로 기록합니다.
+격리 Auth verifier의 임시 비밀번호는 AGENTS.md 7.6에 따라 실행마다 생성하며 사용자에게 아래 값을 지정하도록 요구하지 않습니다. 아래 이름은 검증 내부 전달 계약입니다. 운영 계정에는 자동 생성값을 적용하지 않습니다. 고정값·이전 실행값 재사용과 원문 로그/명령행/Git 보존을 금지합니다. 안전한 생성·주입·정리를 보장할 수 없는 실행 경로는 선수조건 실패로 처리합니다.
 
 | Env | 용도 |
 | --- | --- |

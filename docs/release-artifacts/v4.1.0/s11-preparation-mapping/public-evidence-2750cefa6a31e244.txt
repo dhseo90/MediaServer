@@ -1,0 +1,4 @@
+== V390 REVIEW4 independent approval non-gate self-test ==
+- negative self-tests: 11
+- gateStatus: not-run
+- failures: 0

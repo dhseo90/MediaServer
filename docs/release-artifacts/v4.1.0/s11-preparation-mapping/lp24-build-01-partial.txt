@@ -1,0 +1,14 @@
+command: ./server.sh build
+exit: 0
+status: partial raw output preservation; not a complete warning audit
+reason: the middle tool response exceeded max_output_tokens=3000; tool reported 97 omitted tokens. Missing text was not reconstructed.
+observed final output:
+[ 98%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Building CXX object CMakeFiles/media_server.dir/src/main.cpp.o
+[100%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+following source changes: preserve exact binding-pool instrumentation anchor; invalidate recovery context when Rebuild replay differs in count/order/full fields
+replacement full build evidence: lp24-build-02.txt

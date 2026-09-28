@@ -1,0 +1,5 @@
+== V390 REVIEW4 independent approval non-gate self-test ==
+- negative self-tests: 11
+- gateStatus: not-run
+- failures: 0
+node   0.05s user 0.02s system 105% cpu 0.064 total

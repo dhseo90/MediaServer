@@ -1,0 +1,46 @@
+{
+  "schema": "media-server.lp28-s11-evidence-reuse.v1",
+  "utc": "2026-09-21T15:28:06.475Z",
+  "head": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+  "productFreezeHead": "13d82e4655370c222a8996edb6e2fd9c4b207a20",
+  "productDiff": "",
+  "files": [
+    {
+      "file": "build-gst-onnx/media_server",
+      "sha256": "2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7"
+    },
+    {
+      "file": "build-gst-onnx/libmedia_server_runtime.a",
+      "sha256": "de62559c57ea2ed918615990af970ef10cb5df29d8a9d7fe226b4eab5655f585"
+    },
+    {
+      "file": "scripts/internal/verify_recording_media_impact.mjs",
+      "sha256": "35b465717af3c021e1de73c0de6a6ceaa570fc87a3a04fe9f32418b60d11f4fb"
+    },
+    {
+      "file": "scripts/internal/verify_gst_environment_actual.sh",
+      "sha256": "e1b3f46747f0c4a3dae45da6cb3b62c89dfe298c2c4b23144e7904b48dbfa631"
+    },
+    {
+      "file": "scripts/internal/gst_environment_actual_probe.cpp",
+      "sha256": "ad5cca54f628f11ad9487f8ec4315bd91e3ffa55ad73224edadd12e31440827d"
+    },
+    {
+      "file": "video/sample_h264_video_only.mp4",
+      "sha256": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b"
+    }
+  ],
+  "node": "v24.13.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "gstreamer": "1.28.1",
+  "reuse": [
+    "lp27-hw03-media-02.log codec67/ICE8",
+    "lp27-env12-actual.log actual94"
+  ],
+  "notClaimed": [
+    "OS patch/compiler/PATH/plugin dylib full identity",
+    "browser/RTP total/longrun/external service PASS"
+  ],
+  "decision": "해당 소스·바이너리·검사 및 같은 로컬 의존성 버전의 한정 증거 유지. 알려진 환경 변경 없음; 완전 환경 동일성 보증 아님."
+}

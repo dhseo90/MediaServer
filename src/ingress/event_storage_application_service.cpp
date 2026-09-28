@@ -1,5 +1,6 @@
 // 파일 요약: dependency-free EventRecord 저장소 DTO와 canonical analysis 계약을 상호 투영한다.
 #include "ingress/event_storage_application_service.h"
+#include "recording_evidence_application_mapping.h"
 
 #include <utility>
 
@@ -90,7 +91,13 @@ void DispatchEventRecordsForApplication(const EventStorageApplicationDispatchReq
     result.context.source_kind = request.source.source_kind;
     result.context.route = request.source.route;
     result.context.client_id = request.source.client_id;
+    result.context.event_time_basis = request.source.time_basis;
+    result.context.event_anchor_utc_ms = request.source.time_anchor_utc_ms;
+    result.context.event_anchor_pts_ms = request.source.time_anchor_pts_ms;
+    result.context.event_stream_epoch_id = request.source.stream_epoch_id;
     result.pts = request.source.pts;
+    result.frame_id = request.source.frame_id;
+    RestoreRecordingEvidence(request.source.recording_evidence, result);
 
     std::vector<analysis::AnalysisEvent> events;
     events.reserve(request.events.size());

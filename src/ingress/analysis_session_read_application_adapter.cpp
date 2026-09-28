@@ -1,4 +1,5 @@
 #include "ingress/analysis_session_read_application_adapter.h"
+#include "recording_evidence_application_mapping.h"
 // 파일 용도: 분석 세션 read/query application adapter를 구현한다.
 #include <chrono>
 #include <utility>
@@ -13,6 +14,10 @@ AnalysisSessionApplicationContext FromCanonical(const analysis::AnalysisContext&
     output.client_id = input.client_id;
     output.va_rule_id = input.va_rule_id;
     output.va_rule_ids = input.va_rule_ids;
+    output.event_time_basis = input.event_time_basis;
+    output.event_anchor_utc_ms = input.event_anchor_utc_ms;
+    output.event_anchor_pts_ms = input.event_anchor_pts_ms;
+    output.event_stream_epoch_id = input.event_stream_epoch_id;
     return output;
 }
 
@@ -325,6 +330,7 @@ AnalysisSessionApplicationResult FromCanonical(const analysis::AnalysisResult& i
     output.context = FromCanonical(input.context);
     output.frame_id = input.frame_id;
     output.pts = input.pts;
+    output.recording_evidence = CaptureRecordingEvidence(input);
     output.frame_width = input.frame_width;
     output.frame_height = input.frame_height;
     output.detections.reserve(input.detections.size());
@@ -356,6 +362,10 @@ analysis::AnalysisContext ToCanonical(const AnalysisSessionApplicationContext& i
     output.client_id = input.client_id;
     output.va_rule_id = input.va_rule_id;
     output.va_rule_ids = input.va_rule_ids;
+    output.event_time_basis = input.event_time_basis;
+    output.event_anchor_utc_ms = input.event_anchor_utc_ms;
+    output.event_anchor_pts_ms = input.event_anchor_pts_ms;
+    output.event_stream_epoch_id = input.event_stream_epoch_id;
     return output;
 }
 
@@ -610,6 +620,7 @@ analysis::AnalysisResult ToCanonical(const AnalysisSessionApplicationResult& inp
     output.context = ToCanonical(input.context);
     output.frame_id = input.frame_id;
     output.pts = input.pts;
+    RestoreRecordingEvidence(input.recording_evidence, output);
     output.frame_width = input.frame_width;
     output.frame_height = input.frame_height;
     output.detections.reserve(input.detections.size());

@@ -5,6 +5,15 @@
 
 namespace core {
 
+StreamRegistry::~StreamRegistry() {
+    // 상위 소유자가 요청과 idle callback을 drain한 뒤 파괴한다.
+    // map 전체를 유지해야 sample callback이 마지막 소유자가 되어 자기 worker를
+    // 파괴하지 않는다. worker join 중에는 registry mutex를 잡지 않는다.
+    for (const auto& entry : streams_) {
+        entry.second->StopSource();
+    }
+}
+
 StreamRegistry::AcquireResult StreamRegistry::Acquire(const StreamKey& key, const media::SourceSpec& source_spec) {
     std::lock_guard lock(mu_);
     const auto it = streams_.find(key);
@@ -78,6 +87,14 @@ bool StreamRegistry::TryRemoveIfIdle(const StreamKey& key) {
 std::size_t StreamRegistry::ActiveStreamCount() const {
     std::lock_guard lock(mu_);
     return streams_.size();
+}
+
+std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> StreamRegistry::Snapshot() const {
+    std::lock_guard lock(mu_);
+    std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> snapshot;
+    snapshot.reserve(streams_.size());
+    for (const auto& entry : streams_) snapshot.push_back(entry);
+    return snapshot;
 }
 
 }  // namespace core

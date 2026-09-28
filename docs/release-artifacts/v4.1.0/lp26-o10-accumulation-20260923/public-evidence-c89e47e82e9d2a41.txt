@@ -1,0 +1,50 @@
+{"command":["node","--test","scripts/internal/recording_archive_diagnostic_profile.test.mjs","scripts/internal/recording_current_longrun_diagnostics.test.mjs"],"startedAt":"2026-09-24T11:12:43.816Z","tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"source":"exec-child","tokenReason":"전용 집계 없음"}
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":4206,"removed":true}
+[profile-selftest-cleanup] {"bytes":1954,"removed":true}
+[profile-selftest-cleanup] {"bytes":1967,"removed":true}
+[profile-selftest-cleanup] {"bytes":110,"removed":true}
+[profile-selftest-cleanup] {"bytes":4197,"removed":true}
+[profile-selftest-cleanup] {"bytes":1332,"removed":true}
+[profile-selftest-cleanup] {"bytes":1332,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (0.661666ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.149542ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (9.580834ms)
+✔ O28-D01 child termination classes and bounded metadata remain distinct (0.28025ms)
+✔ O28-D02 missing partial malformed loss and incomplete traces never synthesize completion (0.156833ms)
+✔ O28-R01 known failure와 timeout receipt를 원문 없이 immutable 선보존 (23.262166ms)
+✔ O28-R02 partial trace는 검증된 prefix/open phase만 receipt에 보존 (9.971792ms)
+✔ O28-R02 loss row는 고정형만 receipt에 보존 (8.855166ms)
+✔ O28-R03 source manifest symlink와 receipt schema 변조를 fail closed (1.56ms)
+✔ O28-R04 동일 입력 receipt 재실행 동등성과 cleanup proof 네 조건 (18.343ms)
+✔ O28-R04 accumulation receipt는 최초 실패·미종료 group·고정 진단을 결속 (8.907875ms)
+✔ O28-R04 parent drain 실패는 성공 child와 별도로 receipt에 보존 (7.885208ms)
+[profile-selftest-cleanup] {"bytes":6,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-native] {"compileExit":0,"runExit":0,"sourceSha256":"ba5448b720bb359358ab71258daaeec685769e654260b4a1131cd357d460a078","binarySha256":"b4771dcf6756427cd4b7ceb6d31812f009ac3100c4788e2e6cac0c6877b625f3"}
+[profile-selftest-cleanup] {"bytes":56503,"removed":true}
+✔ O28-R04 실제 synthetic child group의 열린 상태와 종료를 구분 (2.590125ms)
+✔ O28-R04 source manifest는 실행 전 snapshot과 동일 길이 사후 변조를 구분 (0.546834ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.204ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.675542ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (518.179667ms)
+✔ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.765167ms)
+✔ LP26-O09-A02 identity·clock·pid 불일치 (0.073583ms)
+✔ LP26-O09-A03 보존 attempt3의 초과5건 중 첫 간격에서 실패 (1.164958ms)
+✔ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.233166ms)
+✔ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.067542ms)
+✔ LP26-O09-C02 slow 숫자행·완료/미완료·비밀 거부 (0.208833ms)
+✔ O28-D04 snapshot 진단이 판정 전 출력되고 최초 오류가 cleanup 뒤 재전파된다 (0.119458ms)
+✔ O28-D05 snapshot의 기존 15초·16KiB 상한과 성공 검사 계약을 유지한다 (0.086792ms)
+✔ O28-R03 observer wrapper는 실패 또는 cleanup-blocked root를 보존한다 (0.075083ms)
+✔ O28-R04 accumulation runner와 EXIT는 사전 manifest·parent/child 실패·미종료 group을 보존한다 (0.144459ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 661.748292
+{"exit":0,"signal":null,"elapsedMs":688}

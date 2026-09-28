@@ -1,0 +1,7 @@
+{
+  "command": "./server.sh verify-feature-implementation-evidence",
+  "exit": 0,
+  "elapsedMs": 412176,
+  "stdout": "[pass] negative fixture missing-id\n[pass] negative fixture duplicate-id\n[pass] negative fixture wrong-section-prefix\n[pass] negative fixture missing-source-file\n[pass] negative fixture missing-source-anchor\n[pass] negative fixture missing-ui-control-anchor\n[pass] negative fixture missing-ui-screen-route\n[pass] negative fixture unknown-verifier-command\n[pass] negative fixture missing-verifier-assertion\n[pass] negative fixture legacy-longrun-command\n[pass] negative fixture inventory-hash-drift\n[pass] negative fixture missing-reviewed-call-chain\n[pass] negative fixture bulk-review-reason\n[pass] negative fixture safe-140-unrelated-owner\n[pass] negative fixture rule-017-generic-json-owner\n\n== Feature implementation evidence summary ==\n- expectedFeatureRows: 986\n- inventoryRows: 986\n- manifestRows: 986\n- sourceEvidenceRows: 986\n- uiEvidenceRows: 441\n- verifierEvidenceRows: 986\n- manualUiCaseRows: 424\n- semanticReviewedRows: 986\n- uniqueSemanticDigests: 986\n- reviewedCallChains: 986\n- uniqueReviewReasons: 986\n- validationErrors: 0\n- review4GlobalErrors: 0\n- negativeFixtures: 15/15\n- executionEvidenceStatus: not-execution-evidence\n",
+  "stderr": ""
+}

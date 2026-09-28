@@ -1,0 +1,77 @@
+{"kind":"start","utc":"2026-09-20T01:58:04.784Z","mode":"green","id":"01","suite":"snapshot-offload","source":[{"name":"include/recording/recording_catalog.h","sha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"a4f8fbbcbd54e4598318dd5c3e4c9ac954da5cd485493c468714378358c34122"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"465856e8b6fc5eb805f6a16c2e52a0d8c144261fcbc445accfb2c977e0490c3a"},{"name":"scripts/internal/recording_snapshot_offload_smoke.cpp","sha256":"eff61d5cf53c9ac2994bcaa677e869c6019dd29eed63ca57976d629d8ff51adf"},{"name":"scripts/internal/recording_snapshot_offload_counter.h","sha256":"d1186fa6cb95ddfd9f13c507e99163621260eab43311bc0b106778c4ad26e7e7"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","snapshot-offload"],"seconds":60}
+[instrument] snapshot_catalog_exact_insertions=3
+[instrument] catalog_sha256=098fd5dd22a4c51d00cf30e57f31f5bc32eff842f3a0fff261272ffdbdb0d3da binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+        3.53 real         3.07 user         0.21 sys
+           315572224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               71322  page reclaims
+                3858  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   8  messages sent
+                   0  messages received
+                   3  signals received
+                1002  voluntary context switches
+                4728  involuntary context switches
+            80806197  instructions retired
+            39394973  cycles elapsed
+             2081176  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3553,"groupPeakRssBytes":328318976}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP20-Q01 snapshot reaches actual cold binding parse barrier
+[pass] LP20-Q01 independent query completes while snapshot binding parse is paused
+[pass] LP20-Q01 complete snapshot preserves locked canonical projection and durable bytes
+[pass] LP20-Q01 public snapshot values remain independent across calls
+[pass] LP20-Q02 wait lease atomically protects the returned source snapshot
+[pass] LP20-Q02 acquisition exception clears output and returns uncertainty without throwing
+[pass] LP20-Q01 resident fallback retains binding validation and canonical value
+[pass] LP20-Q01 all relevant candidates preserve deterministic ordering
+[pass] LP20-Q02 resident binding mismatch is rejected by unchanged segment validation
+[pass] LP20-Q01 unrelated generation is filtered before cold materialization
+[pass] LP20-Q02 concurrent deletion falls back once to current lifecycle
+[pass] LP20-Q02 successful Apply invalidates prepared snapshot and falls back once
+[pass] LP20-Q02 failed Apply also invalidates prepared snapshot
+[pass] LP20-Q02 released wait token is rejected at final atomic publication
+[pass] LP20-Q02 concurrent wait lease cap is rechecked before registration
+[pass] LP20-Q02 wait input cap rejects before any detail parsing
+[pass] LP20-Q02 wait reference mismatch preserves original lease
+[pass] LP20-Q02 detached owner cannot publish prepared snapshot
+[pass] LP20-Q02 strict cold tamper clears output and marks uncertainty
+[pass] LP20-Q02 lost authority prevents prepared snapshot publication
+[pass] LP20-Q02 saturated revision permanently uses locked snapshot fallback
+[pass] LP20-Q02 full candidate cap rejects without partial output or poisoning
+[pass] LP20-Q02 source protection cap rejects without partial lease registration
+[summary] LP18 pass=23 fail=0
+        1.28 real         0.41 user         0.35 sys
+            40599552  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4514  page reclaims
+                 436  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                1467  voluntary context switches
+                 907  involuntary context switches
+         13568283780  instructions retired
+          3233174199  cycles elapsed
+             8700600  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":1298,"groupPeakRssBytes":41975808}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":11168599,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:58:09.668Z","mode":"green","matched":true,"productPass":true,"elapsedMs":4886}

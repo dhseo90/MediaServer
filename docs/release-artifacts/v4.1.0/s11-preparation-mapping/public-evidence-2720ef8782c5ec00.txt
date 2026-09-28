@@ -1,0 +1,9 @@
+== V390 REVIEW4 semantic migration contract ==
+- positive/negative bindings: 9
+- trust-only migration bindings: 6
+- semantic/native transaction bindings: 2
+- producer input-path bindings: 5
+- producer entrypoint negative smoke: 1
+- producer reviewedOn contract: 1
+- producer snapshot/trust preflight: 6
+- failures: 0
