@@ -81,6 +81,12 @@ acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 relea
 실제 acceptance는 실행하지 않는다. 예상 RED는 과거 원장 읽기이며, 누락·변조 반례와
 미실행 출력 보존을 격리된 읽기 대체로 검사한다. 총 27개 도구 자체검사다.
 
+`PUBLIC-DOC-01`~`12`는 공개 문서 준비 검사의 현행 metadata·색인·이미지 관리·검수
+경계와 명령 연결을 확인한다. 제목·촬영 일지·과거 PASS 원장은 입력이 아니다. 현행
+문서/ID/명령 누락, 버전/서명 변조, 미관리·잘못된 언어 이미지와 검수 정책 완화를
+거부한다. 기존 검사의 과거 제목 누락 FAIL은 예상 RED와 구분하여 보존한다.
+실제 이미지 검수·제품/브라우저 실행은 이 자체검사의 범위가 아니다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

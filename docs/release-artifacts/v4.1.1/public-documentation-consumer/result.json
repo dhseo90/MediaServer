@@ -1,0 +1,1271 @@
+{
+  "schema": "media-server.v411-documentation-consumer-refactor-result.v1",
+  "generatedAt": "2026-09-28T20:46:57.352Z",
+  "source": {
+    "branch": "v4.1.1",
+    "baselineCommit": "ea530cf378548f1ec5cd427666b7c1eca2a6be59",
+    "version": "4.1.0",
+    "environment": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "node": "v24.13.0"
+    },
+    "reviewSnapshotTree": "f59c37492dfb5ae9dc05ff1b49ccd1951e27f93d",
+    "files": [
+      {
+        "path": "docs/stream-verification.md",
+        "bytes": 206078,
+        "sha256": "00e4b691e843fad81da37ea415c5bd5de9a08d70777f6272e7c86f434e0450ce"
+      },
+      {
+        "path": "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+        "bytes": 54515,
+        "sha256": "97332317d53ed76e621ad27b6106a9704d762a094dfc9b233d7e22254ecbeaa3"
+      },
+      {
+        "path": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+        "bytes": 8402,
+        "sha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2"
+      },
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "bytes": 26188928,
+        "sha256": "384dabab67591ff21fcbd3818056d3265b9edaf7ac556d436c7f3fdb21da6180"
+      },
+      {
+        "path": "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "bytes": 1744258,
+        "sha256": "0b45cb713341bb830f72ff18b76499379d6e9e3b25113ab636209ca61c88ba60"
+      },
+      {
+        "path": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "bytes": 10407062,
+        "sha256": "412f80186b6249be13bea1a13a7074980e8517b6c14994fad9e254486b281919"
+      },
+      {
+        "path": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+        "bytes": 1719717,
+        "sha256": "e354c96c73713b86c68b541958d5ebde6490152504d9675e1e4cd5516c1bf72e"
+      },
+      {
+        "path": "AGENTS.md",
+        "bytes": 19426,
+        "sha256": "f5121d131012b16981abf7297759a91c600926d5e6d876dc014d38e223ededbd"
+      },
+      {
+        "path": "VERSION",
+        "bytes": 6,
+        "sha256": "3b10b6ad566eadbcacadb33c591f1ec629593d6adf47442e56e0f61996829ef7"
+      },
+      {
+        "path": "server.sh",
+        "bytes": 205249,
+        "sha256": "6a6a66623af4100d231c82458aa0d672c7505f64a13b2bd46d3d6fbd31ef3408"
+      },
+      {
+        "path": "README.md",
+        "bytes": 10001,
+        "sha256": "a2e9da115c903677736c70c1a2da7fd1aca440f6c2136c5c43000a03b5f4630e"
+      },
+      {
+        "path": "README.en.md",
+        "bytes": 8268,
+        "sha256": "6c8873438df6ee6b083954a653e941925494eced7f5cf722dcc38f074c5c19d0"
+      },
+      {
+        "path": "docs/README.md",
+        "bytes": 11072,
+        "sha256": "382d84c33e85e2d74d3c4c3e0c35e9fb21cdc1702956db2467d9bce4ebf29d62"
+      },
+      {
+        "path": "docs/en/README.md",
+        "bytes": 3430,
+        "sha256": "1294b6cf5a94195836dbee7c5032df6099e1e19025b636e7ecda688ba51a8b77"
+      },
+      {
+        "path": "docs/ui-guide.md",
+        "bytes": 91534,
+        "sha256": "ca0df35b828cb2862eb5c6d7b5d10c40f23136ca8d30c6c96a8b83be62e0264f"
+      },
+      {
+        "path": "docs/assets/ui/README.md",
+        "bytes": 12842,
+        "sha256": "2bbc56aa64970825428d9b2316458825e86591f6e146b2a724eabe63d6355c0d"
+      },
+      {
+        "path": "docs/versioning-policy.md",
+        "bytes": 17449,
+        "sha256": "a0d92cb3411ccd33492160ec6d6d5bd12206db8a5ec3faed49a533cc1c785dfe"
+      },
+      {
+        "path": "docs/release-policy.md",
+        "bytes": 61553,
+        "sha256": "8df86ee8c62b655d06ce5235779c14276041d37cea6ce3cf068d2fd315575b10"
+      },
+      {
+        "path": "docs/manual-ui-fulltest.md",
+        "bytes": 41125,
+        "sha256": "7d909b123975365a62db94dd788fc1e2bc4a3a7e6eb96b37c415795d73940e16"
+      },
+      {
+        "path": "config/docs_ui_assets.json",
+        "bytes": 9631,
+        "sha256": "601a66c308cfb4f9be41a16ad0e19b4a593fbae673665eb821f29e0556e831a1"
+      },
+      {
+        "path": "scripts/internal/verify_docs_ui_assets.mjs",
+        "bytes": 23441,
+        "sha256": "6a5bbcebc21f5a4bffaa8ddb1418ed67cd8d6ae4f55a42ba396c7a6fa8e101a3"
+      },
+      {
+        "path": "scripts/internal/documentation_contract_lib.mjs",
+        "bytes": 4419,
+        "sha256": "2f4de6a1dcdda30f8f429e5f41ace7fe94afb2eddc2d16cecd7c06a5b48086b4"
+      },
+      {
+        "path": "scripts/internal/release_documentation_contract.mjs",
+        "bytes": 6210,
+        "sha256": "72cc4215d1724b3cf28d30ae8ac480fc4ebef971a157b359022c5b4eafdc3ded"
+      },
+      {
+        "path": "test/fixtures/ui_fulltest_evidence_policy_v4.json",
+        "bytes": 4711,
+        "sha256": "cfabd2644b2cb18757fd82e2362294bfa0f919307391c060709651ea5c78db14"
+      },
+      {
+        "path": "test/fixtures/v390_ui_native_exact_cases.json",
+        "bytes": 14007819,
+        "sha256": "5f23a5d6cbf0d39a2b6f7346912d5185dbdd89d2562ac2cfd7ca5c4754153faa"
+      }
+    ]
+  },
+  "scope": "v290 공개 문서 준비 검사와 관련 자체검사·두 기능 근거만 보완. README 본문·이미지·제품 코드·정책 자체는 변경하지 않음.",
+  "reviewNotes": [
+    "메인이 기존 v290 verifier 전문·수정 diff·SAFE-078/OPS-048 역할 및 edge·현재 명령/문서 연결·독립 기대값을 검토했다. 후보 생성은 승인하지 않으며 이 결정은 메인 검토 결과이다.",
+    "현재 소스/기록된 공개 상태/Latest 링크/문서 색인/관리 이미지/영문 이미지와 현행 정책 검사를 남기고 과거 제목·Task7·캡처 날짜·중앙 원장·backlog 완료 문구 강제만 제거했다.",
+    "기존 9개 검사 중 역사 상태 2개는 현재 gate에서 분리, 공개 metadata/이미지/검수/정책/기능/dispatch 의미는 현행 5개 검사 및 기존 이미지/링크 companion으로 대조했다. companion 실행 자체와 시각 검수는 준비 검사 PASS에 포함하지 않는다.",
+    "기존 CLI는 과거 제목 2건 FAIL이었다. 예상 RED는 원장 접근 거부이며 신규 오류는 metadata dispatch 파일명 오기였고 실제 dispatch에 맞춰 수정했다. 최초/수정 후 출력을 각각 보존한다.",
+    "최초 candidate에서 두 edge를 과거 co-asserted-boundary로 잘못 기재하여 미해소였다. 현재 context→검사 오류 배열→판정 값의 실제 assignment-def-use로 수정하고 986개 resolved,984개 승계와2개 독립 검토를 확인했다. 미해소 candidate 단계의 migration 비교는 승인이나 적용이 아니다.",
+    "관련 자체검사147개·실제 준비 CLI5개 check·별도 이미지 관리10개 통과. 이미지 재촬영/시각 검수/실제 UI/제품 테스트/장시간/원격 릴리즈는 실행하지 않았다."
+  ],
+  "executionHistory": [
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/baseline.json",
+      "record": {
+        "command": [
+          "./server.sh",
+          "verify-v290-public-docs-assets-refresh"
+        ],
+        "exit": 1,
+        "stdout": "[pass] roadmap and stream verification expose V290-S07 public docs/assets refresh\n[fail] public entry docs preserve managed assets under the current source/published baseline: public docs missing shared snippet: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation\n[fail] asset docs keep representative screenshot boundary explicit: asset docs missing S07 boundary snippet: v3.9.0 source baseline alignment\n[pass] release and version policies keep the managed-asset gate separate from publication\n[pass] docs UI assets verifier still owns the managed image set\n[pass] feature inventory maps V290-S07 to OPS-048 and SAFE-078\n[pass] release records include S07 test item, RED failure, and not-run boundaries\n[pass] server exposes S07 public docs/assets command\n[pass] SAFE-078 canonical public docs asset boundary\n\n== v2.9.0 public docs/assets refresh summary ==\n- schema: media-server.v290-public-docs-assets-refresh.v1\n- publicDocs: README.md, README.en.md, docs/README.md, docs/en/README.md\n- uiGuide: docs/ui-guide.md\n- assetPolicy: docs/assets/ui/README.md\n- managedAssets: config/docs_ui_assets.json\n- recapture: not-run-by-this-command\n- directBrowserReview: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 7\n- fail: 2\n",
+        "stderr": "",
+        "source": "수정 전 exec_command 반환 출력(chunk 57b9f9); 도구 결과에서 복사, 시각·토큰 미집계",
+        "classification": "기존 문서 검사 FAIL: 과거 제목·캡처 문구 강제"
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/red.json",
+      "record": {
+        "command": [
+          "node",
+          "--test",
+          "--test-name-pattern=PUBLIC-DOC",
+          "scripts/internal/v310_v320_documentation_consumers.test.mjs"
+        ],
+        "startedAt": "2026-09-28T20:34:30.869Z",
+        "endedAt": "2026-09-28T20:34:31.628Z",
+        "elapsedMs": 759,
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "▶ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계\n  ✖ 01 과거 제목·원장 없이 정상 (25.812833ms)\n  ✖ 02 현행 정의 누락 SAFE-078 (24.149125ms)\n  ✖ 03 명령 연결 변조 SAFE-078 (21.75225ms)\n  ✖ 02 현행 정의 누락 OPS-048 (21.40275ms)\n  ✖ 03 명령 연결 변조 OPS-048 (20.818333ms)\n  ✖ 04 현행 문서 누락 README.md (22.162167ms)\n  ✖ 04 현행 문서 누락 README.en.md (21.43525ms)\n  ✖ 04 현행 문서 누락 docs/README.md (20.663292ms)\n  ✖ 04 현행 문서 누락 docs/en/README.md (21.331625ms)\n  ✖ 04 현행 문서 누락 docs/ui-guide.md (21.909875ms)\n  ✖ 04 현행 문서 누락 docs/assets/ui/README.md (21.45375ms)\n  ✖ 04 현행 문서 누락 docs/versioning-policy.md (21.246333ms)\n  ✖ 05 source metadata 변조 (21.616584ms)\n  ✖ 05 공개 release metadata 변조 (22.9305ms)\n  ✖ 06 실제 dispatch 누락 verify-v290-public-docs-assets-refresh (22.494333ms)\n  ✖ 07 검증 안내 누락 verify-v290-public-docs-assets-refresh (22.366625ms)\n  ✖ 06 실제 dispatch 누락 verify-docs-ui-assets (22.279834ms)\n  ✖ 07 검증 안내 누락 verify-docs-ui-assets (22.796334ms)\n  ✖ 06 실제 dispatch 누락 verify-docs-links (23.010209ms)\n  ✖ 07 검증 안내 누락 verify-docs-links (23.855916ms)\n  ✖ 08 미관리 이미지 (22.127083ms)\n  ✖ 08 영문 문서의 한국어 이미지 (22.287ms)\n  ✖ 08 UI guide 이미지 누락 (21.809542ms)\n  ✖ 09 직접 검수 요구 완화 (21.556667ms)\n  ✖ 10 UI 정책 완화 (21.719333ms)\n  ✖ 11 현행 검수 기준 연결 누락 (21.622291ms)\n  ✖ 12 허용되는 대표 화면 선택 축소 (22.272042ms)\n✖ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계 (686.075458ms)\nℹ tests 28\nℹ suites 0\nℹ pass 0\nℹ fail 28\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 727.387708\n\n✖ failing tests:\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:15:13\n✖ 01 과거 제목·원장 없이 정상 (25.812833ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:16:33)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:15:13)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:21:15\n✖ 02 현행 정의 누락 SAFE-078 (24.149125ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:21:47)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:21:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:22:15\n✖ 03 명령 연결 변조 SAFE-078 (21.75225ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:22:47)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:22:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:21:15\n✖ 02 현행 정의 누락 OPS-048 (21.40275ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:21:47)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:21:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:22:15\n✖ 03 명령 연결 변조 OPS-048 (20.818333ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:22:47)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:22:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 README.md (22.162167ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 README.en.md (21.43525ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 docs/README.md (20.663292ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 docs/en/README.md (21.331625ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 docs/ui-guide.md (21.909875ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 docs/assets/ui/README.md (21.45375ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15\n✖ 04 현행 문서 누락 docs/versioning-policy.md (21.246333ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:25:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:26:13\n✖ 05 source metadata 변조 (21.616584ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:26:49)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:26:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:27:13\n✖ 05 공개 release metadata 변조 (22.9305ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:27:53)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:27:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:29:15\n✖ 06 실제 dispatch 누락 verify-v290-public-docs-assets-refresh (22.494333ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:29:58)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:29:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:30:15\n✖ 07 검증 안내 누락 verify-v290-public-docs-assets-refresh (22.366625ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:30:52)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:30:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:29:15\n✖ 06 실제 dispatch 누락 verify-docs-ui-assets (22.279834ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:29:58)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:29:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:30:15\n✖ 07 검증 안내 누락 verify-docs-ui-assets (22.796334ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:30:52)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:30:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:29:15\n✖ 06 실제 dispatch 누락 verify-docs-links (23.010209ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:29:58)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:29:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:30:15\n✖ 07 검증 안내 누락 verify-docs-links (23.855916ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:30:52)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:30:15)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:32:13\n✖ 08 미관리 이미지 (22.127083ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:32:38)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:32:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:33:13\n✖ 08 영문 문서의 한국어 이미지 (22.287ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:33:45)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:33:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:34:13\n✖ 08 UI guide 이미지 누락 (21.809542ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:34:46)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:34:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:35:13\n✖ 09 직접 검수 요구 완화 (21.556667ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:35:42)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:35:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:36:13\n✖ 10 UI 정책 완화 (21.719333ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:36:39)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:36:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:37:13\n✖ 11 현행 검수 기준 연결 누락 (21.622291ms)\n  AssertionError [ERR_ASSERTION]: file:///Users/dhseo/Workspace/mediaServer/[eval1]:7\n        if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);\n                                                                                                                                                                                                 ^\n  \n  Error: 종료 기록/직접 색인 의존: docs/development-backlog.md\n      at fs.readFileSync (file:///Users/dhseo/Workspace/mediaServer/[eval1]:7:192)\n      at readText (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:229:13)\n      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41:17\n      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n      at async file:///Users/dhseo/Workspace/mediaServer/[eval1]:77:5\n  \n  Node.js v24.13.0\n  \n      at rejected (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:554:3)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:37:45)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:37:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:38:13\n✖ 12 허용되는 대표 화면 선택 축소 (22.272042ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:38:54)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:38:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/green.json",
+      "record": {
+        "command": [
+          "node",
+          "--test",
+          "--test-name-pattern=PUBLIC-DOC",
+          "scripts/internal/v310_v320_documentation_consumers.test.mjs"
+        ],
+        "startedAt": "2026-09-28T20:36:07.356Z",
+        "endedAt": "2026-09-28T20:36:11.884Z",
+        "elapsedMs": 4528,
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "▶ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계\n  ✖ 01 과거 제목·원장 없이 정상 (155.720083ms)\n  ✔ 02 현행 정의 누락 SAFE-078 (153.556583ms)\n  ✔ 03 명령 연결 변조 SAFE-078 (245.316042ms)\n  ✔ 02 현행 정의 누락 OPS-048 (155.082042ms)\n  ✔ 03 명령 연결 변조 OPS-048 (247.098459ms)\n  ✔ 04 현행 문서 누락 README.md (163.427125ms)\n  ✔ 04 현행 문서 누락 README.en.md (164.773208ms)\n  ✔ 04 현행 문서 누락 docs/README.md (158.51875ms)\n  ✔ 04 현행 문서 누락 docs/en/README.md (152.085417ms)\n  ✔ 04 현행 문서 누락 docs/ui-guide.md (151.573291ms)\n  ✔ 04 현행 문서 누락 docs/assets/ui/README.md (154.202459ms)\n  ✔ 04 현행 문서 누락 docs/versioning-policy.md (154.830792ms)\n  ✔ 05 source metadata 변조 (151.455791ms)\n  ✔ 05 공개 release metadata 변조 (153.129834ms)\n  ✔ 06 실제 dispatch 누락 verify-v290-public-docs-assets-refresh (158.523417ms)\n  ✔ 07 검증 안내 누락 verify-v290-public-docs-assets-refresh (152.394ms)\n  ✔ 06 실제 dispatch 누락 verify-docs-ui-assets (153.826583ms)\n  ✔ 07 검증 안내 누락 verify-docs-ui-assets (155.352792ms)\n  ✔ 06 실제 dispatch 누락 verify-docs-links (158.454542ms)\n  ✔ 07 검증 안내 누락 verify-docs-links (149.963125ms)\n  ✔ 08 미관리 이미지 (158.271959ms)\n  ✔ 08 영문 문서의 한국어 이미지 (156.913417ms)\n  ✔ 08 UI guide 이미지 누락 (152.600125ms)\n  ✔ 09 직접 검수 요구 완화 (157.562083ms)\n  ✔ 10 UI 정책 완화 (156.697917ms)\n  ✔ 11 현행 검수 기준 연결 누락 (153.129042ms)\n  ✖ 12 허용되는 대표 화면 선택 축소 (155.206791ms)\n✖ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계 (4465.0735ms)\nℹ tests 28\nℹ suites 0\nℹ pass 25\nℹ fail 3\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4502.8345\n\n✖ failing tests:\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:15:13\n✖ 01 과거 제목·원장 없이 정상 (155.720083ms)\n  AssertionError [ERR_ASSERTION]: [pass] 현행 기능 정의와 명령 연결\n  [pass] 현행 공개 문서와 관리 이미지 연결\n  [pass] 직접 검수와 정적 검사의 경계\n  [fail] 분리된 이미지·링크·metadata 검사 안내와 실제 dispatch: verify-release-metadata 안내/dispatch 누락·중복·불일치\n  [pass] 전수 기능 검증과 필수 ID 연결\n  \n  == v2.9.0 public docs/assets refresh summary ==\n  - schema: media-server.v290-public-docs-assets-refresh.v1\n  - publicDocs: README.md, README.en.md, docs/README.md, docs/en/README.md\n  - uiGuide: docs/ui-guide.md\n  - assetPolicy: docs/assets/ui/README.md\n  - managedAssets: config/docs_ui_assets.json\n  - recapture: not-run-by-this-command\n  - directBrowserReview: not-run-by-this-command\n  - publishedMetadata: not-run-by-this-command\n  - uiFulltest: not-run-by-this-command\n  - scope: current documentation wiring; image integrity and visual review are separate\n  - pass: 4\n  - fail: 1\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:16:33)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:15:13)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v310_v320_documentation_consumers.test.mjs:38:13\n✖ 12 허용되는 대표 화면 선택 축소 (155.206791ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:38:54)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v310_v320_documentation_consumers.test.mjs:38:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/green-corrected.json",
+      "record": {
+        "command": [
+          "node",
+          "--test",
+          "--test-name-pattern=PUBLIC-DOC",
+          "scripts/internal/v310_v320_documentation_consumers.test.mjs"
+        ],
+        "startedAt": "2026-09-28T20:36:45.369Z",
+        "endedAt": "2026-09-28T20:36:50.216Z",
+        "elapsedMs": 4847,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "▶ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계\n  ✔ 01 과거 제목·원장 없이 정상 (158.835625ms)\n  ✔ 02 현행 정의 누락 SAFE-078 (153.682541ms)\n  ✔ 03 명령 연결 변조 SAFE-078 (244.729875ms)\n  ✔ 02 현행 정의 누락 OPS-048 (156.248709ms)\n  ✔ 03 명령 연결 변조 OPS-048 (247.906583ms)\n  ✔ 04 현행 문서 누락 README.md (168.402334ms)\n  ✔ 04 현행 문서 누락 README.en.md (163.3435ms)\n  ✔ 04 현행 문서 누락 docs/README.md (156.21275ms)\n  ✔ 04 현행 문서 누락 docs/en/README.md (150.953542ms)\n  ✔ 04 현행 문서 누락 docs/ui-guide.md (150.522041ms)\n  ✔ 04 현행 문서 누락 docs/assets/ui/README.md (155.2175ms)\n  ✔ 04 현행 문서 누락 docs/versioning-policy.md (155.971083ms)\n  ✔ 05 source metadata 변조 (154.744125ms)\n  ✔ 05 공개 release metadata 변조 (156.159208ms)\n  ✔ 06 실제 dispatch 누락 verify-v290-public-docs-assets-refresh (157.479083ms)\n  ✔ 07 검증 안내 누락 verify-v290-public-docs-assets-refresh (153.296791ms)\n  ✔ 06 실제 dispatch 누락 verify-docs-ui-assets (153.305375ms)\n  ✔ 07 검증 안내 누락 verify-docs-ui-assets (160.960667ms)\n  ✔ 06 실제 dispatch 누락 verify-docs-links (152.760709ms)\n  ✔ 07 검증 안내 누락 verify-docs-links (151.636ms)\n  ✔ 06 실제 dispatch 누락 verify-release-metadata (158.335291ms)\n  ✔ 07 검증 안내 누락 verify-release-metadata (151.718417ms)\n  ✔ 08 미관리 이미지 (152.5275ms)\n  ✔ 08 영문 문서의 한국어 이미지 (158.442042ms)\n  ✔ 08 UI guide 이미지 누락 (155.966333ms)\n  ✔ 09 직접 검수 요구 완화 (154.651833ms)\n  ✔ 10 UI 정책 완화 (158.027791ms)\n  ✔ 11 현행 검수 기준 연결 누락 (156.879ms)\n  ✔ 12 허용되는 대표 화면 선택 축소 (157.164375ms)\n✔ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계 (4788.974875ms)\nℹ tests 30\nℹ suites 0\nℹ pass 30\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4824.837375\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/related.json",
+      "record": {
+        "command": [
+          "node",
+          "--test",
+          "--test-name-pattern=PUBLIC-DOC|V30-V39-READY|V31-V38-READY",
+          "scripts/internal/v310_v320_documentation_consumers.test.mjs"
+        ],
+        "startedAt": "2026-09-28T20:37:15.983Z",
+        "endedAt": "2026-09-28T20:37:40.822Z",
+        "elapsedMs": 24839,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "▶ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계\n  ✔ 01 과거 제목·원장 없이 정상 (203.116375ms)\n  ✔ 02 현행 정의 누락 SAFE-078 (159.821292ms)\n  ✔ 03 명령 연결 변조 SAFE-078 (241.941417ms)\n  ✔ 02 현행 정의 누락 OPS-048 (154.863042ms)\n  ✔ 03 명령 연결 변조 OPS-048 (242.361959ms)\n  ✔ 04 현행 문서 누락 README.md (163.614792ms)\n  ✔ 04 현행 문서 누락 README.en.md (157.440125ms)\n  ✔ 04 현행 문서 누락 docs/README.md (155.5805ms)\n  ✔ 04 현행 문서 누락 docs/en/README.md (151.450208ms)\n  ✔ 04 현행 문서 누락 docs/ui-guide.md (154.24075ms)\n  ✔ 04 현행 문서 누락 docs/assets/ui/README.md (155.278917ms)\n  ✔ 04 현행 문서 누락 docs/versioning-policy.md (153.248125ms)\n  ✔ 05 source metadata 변조 (153.45775ms)\n  ✔ 05 공개 release metadata 변조 (154.786666ms)\n  ✔ 06 실제 dispatch 누락 verify-v290-public-docs-assets-refresh (155.044041ms)\n  ✔ 07 검증 안내 누락 verify-v290-public-docs-assets-refresh (152.641ms)\n  ✔ 06 실제 dispatch 누락 verify-docs-ui-assets (155.075042ms)\n  ✔ 07 검증 안내 누락 verify-docs-ui-assets (156.003666ms)\n  ✔ 06 실제 dispatch 누락 verify-docs-links (155.064ms)\n  ✔ 07 검증 안내 누락 verify-docs-links (159.428084ms)\n  ✔ 06 실제 dispatch 누락 verify-release-metadata (155.915583ms)\n  ✔ 07 검증 안내 누락 verify-release-metadata (154.995625ms)\n  ✔ 08 미관리 이미지 (153.978709ms)\n  ✔ 08 영문 문서의 한국어 이미지 (155.602208ms)\n  ✔ 08 UI guide 이미지 누락 (153.083583ms)\n  ✔ 09 직접 검수 요구 완화 (158.413167ms)\n  ✔ 10 UI 정책 완화 (156.819167ms)\n  ✔ 11 현행 검수 기준 연결 누락 (156.37625ms)\n  ✔ 12 허용되는 대표 화면 선택 축소 (156.998875ms)\n✔ PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계 (4819.676167ms)\n▶ V30-V39-READY 현행 준비 안내와 독립 실행 연결\n  ✔ 01 종료 기록 없이 정상 300 (158.601916ms)\n  ✔ 02 현행 정의 누락 SAFE-092 (159.153083ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-092 (249.024958ms)\n  ✔ 02 현행 정의 누락 OPS-060 (155.0285ms)\n  ✔ 03 독립 명령 연결 변조 OPS-060 (240.02925ms)\n  ✔ 04 서명 metadata 변조 300 (156.467ms)\n  ✔ 05 UI 판정 완화 300 (151.342417ms)\n  ✔ 06 현행 UI 기준 누락 300 (158.280791ms)\n  ✔ 07 자체 dispatch 누락 300 (160.194416ms)\n  ✔ 08 companion dispatch 누락 300 (154.451958ms)\n  ✔ 09 companion 안내 누락 300 (156.831ms)\n  ✔ 01 종료 기록 없이 정상 390 (165.339708ms)\n  ✔ 02 현행 정의 누락 SAFE-212 (157.033833ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-212 (239.607917ms)\n  ✔ 02 현행 정의 누락 OPS-179 (161.323042ms)\n  ✔ 03 독립 명령 연결 변조 OPS-179 (238.483208ms)\n  ✔ 04 서명 metadata 변조 390 (161.146375ms)\n  ✔ 05 UI 판정 완화 390 (161.183084ms)\n  ✔ 06 현행 UI 기준 누락 390 (158.16175ms)\n  ✔ 07 자체 dispatch 누락 390 (162.607625ms)\n  ✔ 08 companion dispatch 누락 390 (164.252958ms)\n  ✔ 09 companion 안내 누락 390 (161.028334ms)\n  ✔ 10 독립 acceptance dispatch 누락 verify-v390-test-acceptance-bundle (162.14575ms)\n  ✔ 10 독립 acceptance dispatch 누락 verify-v390-test-acceptance-bundle-contract (162.417333ms)\n  ✔ 11 최종 실행 안내 누락 (161.288625ms)\n  ✔ 12 최종 launcher 모드 변조 (160.989917ms)\n✔ V30-V39-READY 현행 준비 안내와 독립 실행 연결 (4553.46825ms)\n▶ V31-V38-READY 현행 정책·실행 연결과 역사 분리\n  ✔ 01 과거 기록 없이 정상 v310_stabilization_release_readiness (156.699084ms)\n  ✔ 02 현행 정의 누락 SAFE-101 (158.471ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-101 (241.712792ms)\n  ✔ 02 현행 정의 누락 OPS-068 (153.68825ms)\n  ✔ 03 독립 명령 연결 변조 OPS-068 (243.266209ms)\n  ✔ 04 서명 metadata 변조 v310_stabilization_release_readiness (156.757125ms)\n  ✔ 05 UI 판정 완화 v310_stabilization_release_readiness (152.432208ms)\n  ✔ 06 현행 UI 계약 누락 v310_stabilization_release_readiness (159.101292ms)\n  ✔ 07 명령 dispatch 누락 v310_stabilization_release_readiness (155.991ms)\n  ✔ 08 companion dispatch 누락 v310_stabilization_release_readiness (155.40625ms)\n  ✔ 09 companion 안내 누락 v310_stabilization_release_readiness (158.3585ms)\n  ✔ 01 과거 기록 없이 정상 v320_stabilization_release_readiness (161.219542ms)\n  ✔ 02 현행 정의 누락 SAFE-112 (154.929ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-112 (243.929375ms)\n  ✔ 02 현행 정의 누락 OPS-079 (159.928583ms)\n  ✔ 03 독립 명령 연결 변조 OPS-079 (240.436042ms)\n  ✔ 04 서명 metadata 변조 v320_stabilization_release_readiness (158.62ms)\n  ✔ 05 UI 판정 완화 v320_stabilization_release_readiness (157.520125ms)\n  ✔ 06 현행 UI 계약 누락 v320_stabilization_release_readiness (158.449875ms)\n  ✔ 07 명령 dispatch 누락 v320_stabilization_release_readiness (159.755875ms)\n  ✔ 08 companion dispatch 누락 v320_stabilization_release_readiness (159.303917ms)\n  ✔ 09 companion 안내 누락 v320_stabilization_release_readiness (160.393375ms)\n  ✔ 01 과거 기록 없이 정상 v330_stabilization_release_readiness (162.593542ms)\n  ✔ 02 현행 정의 누락 SAFE-123 (160.317375ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-123 (242.228333ms)\n  ✔ 02 현행 정의 누락 OPS-090 (155.785167ms)\n  ✔ 03 독립 명령 연결 변조 OPS-090 (242.046625ms)\n  ✔ 04 서명 metadata 변조 v330_stabilization_release_readiness (156.129333ms)\n  ✔ 05 UI 판정 완화 v330_stabilization_release_readiness (159.299833ms)\n  ✔ 06 현행 UI 계약 누락 v330_stabilization_release_readiness (157.21625ms)\n  ✔ 07 명령 dispatch 누락 v330_stabilization_release_readiness (159.328042ms)\n  ✔ 08 companion dispatch 누락 v330_stabilization_release_readiness (160.60425ms)\n  ✔ 09 companion 안내 누락 v330_stabilization_release_readiness (156.346875ms)\n  ✔ 01 과거 기록 없이 정상 v340_stabilization_release_readiness (156.360417ms)\n  ✔ 02 현행 정의 누락 SAFE-134 (158.695292ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-134 (242.816333ms)\n  ✔ 02 현행 정의 누락 OPS-101 (160.032542ms)\n  ✔ 03 독립 명령 연결 변조 OPS-101 (247.080458ms)\n  ✔ 04 서명 metadata 변조 v340_stabilization_release_readiness (155.663125ms)\n  ✔ 05 UI 판정 완화 v340_stabilization_release_readiness (164.431291ms)\n  ✔ 06 현행 UI 계약 누락 v340_stabilization_release_readiness (159.579583ms)\n  ✔ 07 명령 dispatch 누락 v340_stabilization_release_readiness (155.359375ms)\n  ✔ 08 companion dispatch 누락 v340_stabilization_release_readiness (161.855458ms)\n  ✔ 09 companion 안내 누락 v340_stabilization_release_readiness (156.755416ms)\n  ✔ 01 과거 기록 없이 정상 v350_stabilization_release_readiness (156.057791ms)\n  ✔ 02 현행 정의 누락 SAFE-147 (160.280375ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-147 (247.326625ms)\n  ✔ 02 현행 정의 누락 OPS-114 (154.410375ms)\n  ✔ 03 독립 명령 연결 변조 OPS-114 (244.340875ms)\n  ✔ 04 서명 metadata 변조 v350_stabilization_release_readiness (154.515708ms)\n  ✔ 05 UI 판정 완화 v350_stabilization_release_readiness (157.61975ms)\n  ✔ 06 현행 UI 계약 누락 v350_stabilization_release_readiness (157.513459ms)\n  ✔ 07 명령 dispatch 누락 v350_stabilization_release_readiness (155.433958ms)\n  ✔ 08 companion dispatch 누락 v350_stabilization_release_readiness (160.953167ms)\n  ✔ 09 companion 안내 누락 v350_stabilization_release_readiness (162.298583ms)\n  ✔ 01 과거 기록 없이 정상 v360_stabilization_release_readiness (158.344ms)\n  ✔ 02 현행 정의 누락 SAFE-161 (155.941042ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-161 (244.943416ms)\n  ✔ 02 현행 정의 누락 OPS-128 (156.76675ms)\n  ✔ 03 독립 명령 연결 변조 OPS-128 (243.478125ms)\n  ✔ 04 서명 metadata 변조 v360_stabilization_release_readiness (156.107334ms)\n  ✔ 05 UI 판정 완화 v360_stabilization_release_readiness (154.451375ms)\n  ✔ 06 현행 UI 계약 누락 v360_stabilization_release_readiness (164.637917ms)\n  ✔ 07 명령 dispatch 누락 v360_stabilization_release_readiness (158.634ms)\n  ✔ 08 companion dispatch 누락 v360_stabilization_release_readiness (157.56775ms)\n  ✔ 09 companion 안내 누락 v360_stabilization_release_readiness (164.848459ms)\n  ✔ 01 과거 기록 없이 정상 v370_stabilization_release_readiness (161.508625ms)\n  ✔ 02 현행 정의 누락 SAFE-179 (156.112667ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-179 (244.855667ms)\n  ✔ 02 현행 정의 누락 OPS-146 (155.381291ms)\n  ✔ 03 독립 명령 연결 변조 OPS-146 (250.376167ms)\n  ✔ 04 서명 metadata 변조 v370_stabilization_release_readiness (157.413958ms)\n  ✔ 05 UI 판정 완화 v370_stabilization_release_readiness (157.311708ms)\n  ✔ 06 현행 UI 계약 누락 v370_stabilization_release_readiness (158.238292ms)\n  ✔ 07 명령 dispatch 누락 v370_stabilization_release_readiness (156.33125ms)\n  ✔ 08 companion dispatch 누락 v370_stabilization_release_readiness (158.646583ms)\n  ✔ 09 companion 안내 누락 v370_stabilization_release_readiness (160.228167ms)\n  ✔ 01 과거 기록 없이 정상 v380_stabilization_release_readiness (162.176375ms)\n  ✔ 02 현행 정의 누락 SAFE-195 (155.450416ms)\n  ✔ 03 독립 명령 연결 변조 SAFE-195 (241.558834ms)\n  ✔ 02 현행 정의 누락 OPS-162 (155.993209ms)\n  ✔ 03 독립 명령 연결 변조 OPS-162 (241.558542ms)\n  ✔ 04 서명 metadata 변조 v380_stabilization_release_readiness (156.039875ms)\n  ✔ 05 UI 판정 완화 v380_stabilization_release_readiness (155.821834ms)\n  ✔ 06 현행 UI 계약 누락 v380_stabilization_release_readiness (155.061875ms)\n  ✔ 07 명령 dispatch 누락 v380_stabilization_release_readiness (159.803833ms)\n  ✔ 08 companion dispatch 누락 v380_stabilization_release_readiness (157.451292ms)\n  ✔ 09 companion 안내 누락 v380_stabilization_release_readiness (160.110208ms)\n✔ V31-V38-READY 현행 정책·실행 연결과 역사 분리 (15363.701125ms)\n✔ V31-V38-READY-10 실제 입력·본문 결속과 중복 근거 거부 (29.543125ms)\nℹ tests 147\nℹ suites 0\nℹ pass 147\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 24810.66925\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/cli.json",
+      "record": {
+        "command": [
+          "./server.sh",
+          "verify-v290-public-docs-assets-refresh"
+        ],
+        "startedAt": "2026-09-28T20:38:04.542Z",
+        "endedAt": "2026-09-28T20:38:04.713Z",
+        "elapsedMs": 171,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "[pass] 현행 기능 정의와 명령 연결\n[pass] 현행 공개 문서와 관리 이미지 연결\n[pass] 직접 검수와 정적 검사의 경계\n[pass] 분리된 이미지·링크·metadata 검사 안내와 실제 dispatch\n[pass] 전수 기능 검증과 필수 ID 연결\n\n== v2.9.0 public docs/assets refresh summary ==\n- schema: media-server.v290-public-docs-assets-refresh.v1\n- publicDocs: README.md, README.en.md, docs/README.md, docs/en/README.md\n- uiGuide: docs/ui-guide.md\n- assetPolicy: docs/assets/ui/README.md\n- managedAssets: config/docs_ui_assets.json\n- recapture: not-run-by-this-command\n- directBrowserReview: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- scope: current documentation wiring; image integrity and visual review are separate\n- pass: 5\n- fail: 0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/assets.json",
+      "record": {
+        "command": [
+          "./server.sh",
+          "verify-docs-ui-assets"
+        ],
+        "startedAt": "2026-09-28T20:38:53.380Z",
+        "endedAt": "2026-09-28T20:38:53.737Z",
+        "elapsedMs": 357,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "[pass] README uses only representative product UI screenshots\n[pass] English README uses English UI screenshots\n[pass] UI guide keeps product screenshots in the shared asset set\n[pass] docs UI asset policy documents capture rules\n[pass] managed UI asset manifest stays complete\n[pass] capture script owns every documented UI asset\n[pass] docs capture covers current screenshots\n[pass] representative screenshot docs do not point at stale visual baselines\n[pass] docs UI asset directory contains managed PNG files\n[pass] VA documentation images keep full video frame bounds\n\n== Docs UI asset verification summary ==\n- pass: 10\n- fail: 0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/candidate-first.json",
+      "record": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+          "--emit-candidate",
+          "/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json"
+        ],
+        "startedAt": "2026-09-28T20:38:33.041Z",
+        "endedAt": "2026-09-28T20:38:54.689Z",
+        "elapsedMs": 21648,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "{\n  \"candidatePath\": \"/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json\",\n  \"candidateDigest\": \"f28a74305d4cffa86d6b86f4596a87501e856d5c7f9dd6adee27ffaabf8fbe4c\",\n  \"items\": 986\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/migration-command-first.json",
+      "record": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+          "--baseline",
+          "/private/tmp/media-server-public-docs.jqsUqc/prior-audit.json",
+          "--fresh",
+          "/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json",
+          "--report",
+          "/private/tmp/media-server-public-docs.jqsUqc/delta.json",
+          "--write-evidence",
+          "/private/tmp/media-server-public-docs.jqsUqc/migration.json"
+        ],
+        "startedAt": "2026-09-28T20:39:06.940Z",
+        "endedAt": "2026-09-28T20:39:07.344Z",
+        "elapsedMs": 403,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "== V390 REVIEW4 semantic migration contract ==\n- positive/negative bindings: 9\n- trust-only migration bindings: 6\n- semantic/native transaction bindings: 2\n- producer input-path bindings: 5\n- producer entrypoint negative smoke: 1\n- producer reviewedOn contract: 1\n- producer snapshot/trust preflight: 6\n- rows: 986\n- carryForwardEligible: 984\n- independentReviewRequired: 2\n- requiredIds: SAFE-078,OPS-048\n- report: /private/tmp/media-server-public-docs.jqsUqc/delta.json\n- evidence: /private/tmp/media-server-public-docs.jqsUqc/migration.json\n- failures: 0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/candidate.json",
+      "record": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+          "--emit-candidate",
+          "/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json"
+        ],
+        "startedAt": "2026-09-28T20:39:41.614Z",
+        "endedAt": "2026-09-28T20:40:03.214Z",
+        "elapsedMs": 21600,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "{\n  \"candidatePath\": \"/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json\",\n  \"candidateDigest\": \"3232c55e6f9494019aa976605e7946525d6564f2fef461b44d8fc322767b4e85\",\n  \"items\": 986\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/migration-command.json",
+      "record": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+          "--baseline",
+          "/private/tmp/media-server-public-docs.jqsUqc/prior-audit.json",
+          "--fresh",
+          "/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json",
+          "--report",
+          "/private/tmp/media-server-public-docs.jqsUqc/delta.json",
+          "--write-evidence",
+          "/private/tmp/media-server-public-docs.jqsUqc/migration.json"
+        ],
+        "startedAt": "2026-09-28T20:40:26.515Z",
+        "endedAt": "2026-09-28T20:40:26.927Z",
+        "elapsedMs": 412,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "== V390 REVIEW4 semantic migration contract ==\n- positive/negative bindings: 9\n- trust-only migration bindings: 6\n- semantic/native transaction bindings: 2\n- producer input-path bindings: 5\n- producer entrypoint negative smoke: 1\n- producer reviewedOn contract: 1\n- producer snapshot/trust preflight: 6\n- rows: 986\n- carryForwardEligible: 984\n- independentReviewRequired: 2\n- requiredIds: SAFE-078,OPS-048\n- report: /private/tmp/media-server-public-docs.jqsUqc/delta.json\n- evidence: /private/tmp/media-server-public-docs.jqsUqc/migration.json\n- failures: 0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/producer-command.json",
+      "record": {
+        "command": [
+          "node",
+          "scripts/internal/produce_v390_review4_migration_aware_approvals.mjs",
+          "--write-ledger",
+          "--prior-audit",
+          "/private/tmp/media-server-public-docs.jqsUqc/prior-audit.json",
+          "--prior-approvals",
+          "/private/tmp/media-server-public-docs.jqsUqc/prior-approvals.json",
+          "--migration-evidence",
+          "/private/tmp/media-server-public-docs.jqsUqc/migration.json",
+          "--decisions",
+          "/private/tmp/media-server-public-docs.jqsUqc/decisions.json",
+          "--review-package",
+          "/private/tmp/media-server-public-docs.jqsUqc/review-package.json"
+        ],
+        "startedAt": "2026-09-28T20:42:06.790Z",
+        "endedAt": "2026-09-28T20:43:25.241Z",
+        "elapsedMs": 78451,
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "== V390 REVIEW4 migration-aware approval producer ==\n- candidate digest: 3232c55e6f9494019aa976605e7946525d6564f2fef461b44d8fc322767b4e85\n- carry-forward: 984\n- independent-review: SAFE-078,OPS-048\n- atomic replacements: audit,approval,manifest,native\n- failures: 0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "originalArtifact": "/private/tmp/media-server-public-docs.jqsUqc/gates.json",
+      "record": [
+        {
+          "command": [
+            "./server.sh",
+            "verify-feature-inventory-coverage"
+          ],
+          "startedAt": "2026-09-28T20:43:49.277Z",
+          "endedAt": "2026-09-28T20:45:10.082Z",
+          "elapsedMs": 80805,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)\n[pass] inventory row count is stable\n[pass] inventory uses only the four approved test areas\n[pass] coverage docs and server command are wired\n[pass] exact implementation evidence manifest is valid\n[pass] all feature IDs have exact coverage targets\n[pass] negative missing-ID fixture fails\n[pass] SAFE-200 canonical coverage wording truthfulness boundary\n\n== Feature inventory coverage summary ==\n- featureRows: 986\n- covered: 986\n- missing: 0\n- pass: 8\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "./server.sh",
+            "verify-script-inventory"
+          ],
+          "startedAt": "2026-09-28T20:45:10.083Z",
+          "endedAt": "2026-09-28T20:46:15.534Z",
+          "elapsedMs": 65451,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] dispatch parser recognizes explicit bash and node interpreters\n[pass] server.sh dispatch targets exist and are executable\n[pass] documented server.sh commands resolve to dispatch table\n[pass] tracked scripts are classified and referenced\n[pass] project inventory delegates script file inventory to this verifier\n[pass] project inventory maps verifier families without duplicating dispatch details\n[pass] CMake does not define a separate untracked CTest registry\n[pass] test entry scripts are reachable from test_all\n[pass] auth verifier has no hardcoded test password defaults\n[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default\n[pass] critical verifier pass output avoids grouped feature-result wording\n[pass] user-facing JS option parsers reject unknown options\n\n== Script inventory verification summary ==\n- pass: 12\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "./server.sh",
+            "verify-docs-links"
+          ],
+          "startedAt": "2026-09-28T20:46:15.534Z",
+          "endedAt": "2026-09-28T20:46:15.895Z",
+          "elapsedMs": 361,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14816\n- local images: 22\n- local anchors: 226\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "./server.sh",
+            "verify-v390-review4-feature-semantic-source-audit"
+          ],
+          "startedAt": "2026-09-28T20:46:15.895Z",
+          "endedAt": "2026-09-28T20:46:48.250Z",
+          "elapsedMs": 32355,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] candidate covers the exact 986 inventory IDs without using REVIEW3 claims\n[pass] every row has an independently dispatched verifier\n[pass] all rows are source-resolved before REVIEW4 approval\n[pass] source proof roles and independent readback are exact\n[pass] known REVIEW3 false mappings are replaced by actual source owners\n[pass] UI-001 through UI-050 remain strict and VLM mutations use independent readback\n[pass] UI-051 through UI-100 remain strict on canonical functional verifiers\n[pass] stored approvals are external to candidate generation and cover all rows\n[pass] negative fixtures reject unrelated, shared, self-comparison, invented-edge, and generator approval\n[pass] outside-3-line function/blob mutation invalidates source-flow digest\n[pass] unrelated product file mutation outside bound body preserves source-flow digest\n[pass] require-only or basename-mention dispatch is rejected\n[pass] stored audit body tamper invalidates canonical candidate digest\n[pass] apply-time proof tamper is rejected by source-flow recomputation\n[pass] unrelated proof row swap is rejected by typed obligation\n[pass] fake def-use edge without shared symbol or variable is rejected\n[pass] comparison and arrow operators cannot impersonate assignment def-use\n[pass] generic canonical role labels cannot satisfy def-use sharing\n[pass] same-body assignment def-use rejects reverse source order\n[pass] reviewer symbols and consumer-only returned calls cannot impersonate directional def-use\n[pass] co-asserted boundary requires both ordered values in one canonical assertion\n[pass] static source-string assertion cannot satisfy mutation runtime readback\n[pass] static source-string assertion cannot satisfy non-mutation runtime-readback edge\n[pass] witness-only token and primary mutation response cannot satisfy independent readback\n[pass] explicit REVIEW4 proof-only scaffold cannot satisfy source semantics\n[pass] authored edge ranges and generated proof narratives are rejected before normalization\n[pass] typed requirement honors explicit deferral without corrupting positive mutations\n[pass] Python runtime assertions and case-normalized field identifiers preserve exact semantic binding\n[pass] typed negative boundaries recognize exact false field names\n[pass] comparison-only body cannot impersonate authoritative mutation\n[pass] generic condition cannot hide static source provenance in its enclosing body\n[pass] semantic readback labels bind their enclosing check callback instead of a later regex test call\n[pass] runtime artifact write then separate file read remains eligible readback\n[pass] default object argument brace resolves the real enclosing function body\n[pass] same-check token in a different assertion loop cannot satisfy readback\n[pass] generic snippet loop cannot satisfy a structural readback token\n[pass] whole-file anywhere assertion cannot satisfy structural product readback\n[pass] whole-file aliases cannot disguise an anywhere assertion\n[pass] literal objects and fixture files cannot impersonate runtime observations\n[pass] approval envelope rejects generator-shaped per-row approval claims\n[pass] same-route proof row swap cannot bypass strong outcome binding\n[pass] mixed positive UI keeps allow outcome and binds explicit negative boundaries\n[pass] negative boundary words in assertion messages cannot satisfy the condition oracle\n[pass] negative boundaries do not cross unrelated positive save clauses\n[pass] same negative condition with different messages is shared ambiguity\n[pass] outcome obligation cardinality is possible and stale ledger requires regeneration\n[pass] self-declared reports and fixture-derived outcomes are not product runtime readbacks\n[pass] auth wrapper fixed mode reaches only its selected workflow oracle\n[pass] multiline destructured arrow brace resolves the real enclosing function body\n[pass] positive oracle cannot approve deny or redact obligation\n[pass] token or adjacent-line changes cannot bypass canonical shared flow detection\n\n== V390 REVIEW4 feature semantic source audit ==\n- rows: 986\n- resolvedCandidates: 986\n- discoveredCandidates: 0\n- unresolvedCandidates: 0\n- resolvedIds: UI-001,UI-002,UI-003,UI-004,UI-005,UI-006,UI-007,UI-008,UI-009,UI-010,UI-011,UI-012,UI-013,UI-014,UI-015,UI-016,UI-017,UI-018,UI-019,UI-020,UI-021,UI-022,UI-023,UI-024,UI-025,UI-026,UI-027,UI-028,UI-029,UI-030,UI-031,UI-032,UI-033,UI-034,UI-035,UI-036,UI-037,UI-038,UI-039,UI-040,UI-041,UI-042,UI-043,UI-044,UI-045,UI-046,UI-047,UI-048,UI-049,UI-050,UI-051,UI-052,UI-053,UI-054,UI-055,UI-056,UI-057,UI-058,UI-059,UI-060,UI-061,UI-062,UI-063,UI-064,UI-065,UI-066,UI-067,UI-068,UI-069,UI-070,UI-071,UI-072,UI-073,UI-074,UI-075,UI-076,UI-077,UI-078,UI-079,UI-080,UI-081,UI-082,UI-083,UI-084,UI-085,UI-086,UI-087,UI-088,UI-089,UI-090,UI-091,UI-092,UI-093,UI-094,UI-095,UI-096,UI-097,UI-098,UI-099,UI-100,UI-101,UI-102,UI-103,UI-104,UI-105,UI-106,UI-107,UI-108,UI-109,UI-110,UI-111,UI-112,UI-113,UI-114,UI-115,AUTH-001,AUTH-002,AUTH-003,AUTH-004,AUTH-005,AUTH-006,AUTH-007,AUTH-008,AUTH-009,AUTH-010,AUTH-011,AUTH-012,AUTH-013,AUTH-014,AUTH-015,AUTH-016,AUTH-017,AUTH-018,AUTH-019,AUTH-020,AUTH-021,AUTH-022,AUTH-023,AUTH-024,AUTH-025,AUTH-026,AUTH-027,AUTH-028,AUTH-029,AUTH-030,AUTH-031,AUTH-032,AUTH-033,AUTH-034,AUTH-035,AUTH-036,AUTH-037,AUTH-038,AUTH-039,AUTH-040,AUTH-041,AUTH-042,SRC-001,SRC-002,SRC-003,SRC-004,SRC-005,SRC-006,SRC-007,SRC-008,SRC-009,SRC-010,SRC-011,SRC-012,SRC-013,SRC-014,SRC-015,SRC-016,SRC-017,SRC-018,SRC-019,SRC-020,SRC-021,SRC-022,SRC-023,SRC-024,SRC-025,SRC-026,SRC-027,SRC-028,SRC-029,SRC-030,SRC-031,SRC-032,SRC-033,SRC-034,SRC-035,SRC-036,SRC-037,SRC-038,SRC-039,SRC-040,SRC-041,SRC-042,SRC-043,SRC-044,SRC-045,SRC-046,SRC-047,SRC-048,SRC-049,SRC-050,SRC-051,SRC-052,SRC-053,SRC-054,SRC-055,SRC-056,SRC-057,SRC-058,SRC-059,SRC-060,SRC-061,SRC-062,SRC-063,SRC-064,SRC-065,SRC-066,SRC-067,SRC-068,RULE-001,RULE-002,RULE-003,RULE-004,RULE-005,RULE-006,RULE-007,RULE-008,RULE-009,RULE-010,RULE-011,RULE-012,RULE-013,RULE-014,RULE-015,RULE-016,RULE-017,RULE-018,RULE-019,RULE-020,RULE-021,RULE-022,RULE-023,RULE-024,RULE-025,RULE-026,RULE-027,RULE-028,RULE-029,RULE-030,RULE-031,RULE-032,RULE-033,RULE-034,RULE-035,RULE-036,RULE-037,RULE-038,RULE-039,RULE-040,RULE-041,RULE-042,RULE-043,RULE-044,RULE-045,RULE-046,RULE-047,RULE-048,RULE-049,RULE-050,RULE-051,RULE-052,RULE-053,RULE-054,RULE-055,RULE-056,RULE-057,RULE-058,RULE-059,RULE-060,RULE-061,RULE-062,RULE-063,RULE-064,RULE-065,RULE-066,RULE-067,RULE-068,RULE-069,RULE-070,RULE-071,RULE-072,RULE-073,RULE-074,RULE-075,RULE-076,RULE-077,RULE-078,RULE-079,RULE-080,RULE-081,RULE-082,RULE-083,RULE-084,RULE-085,RULE-086,RULE-087,RULE-088,RULE-089,RULE-090,RULE-091,RULE-092,RULE-093,RULE-094,RULE-095,RULE-096,RULE-097,RULE-098,RULE-099,RULE-100,RULE-101,RULE-102,RULE-103,RULE-104,RULE-105,RULE-106,RULE-107,RULE-108,RULE-109,RULE-110,RULE-111,RULE-112,EVT-001,EVT-002,EVT-003,EVT-004,EVT-005,EVT-006,EVT-007,EVT-008,EVT-009,EVT-010,EVT-011,EVT-012,EVT-013,EVT-014,EVT-015,EVT-016,EVT-017,EVT-018,EVT-019,EVT-020,EVT-021,EVT-022,EVT-023,EVT-024,EVT-025,EVT-026,EVT-027,EVT-028,EVT-029,EVT-030,EVT-031,EVT-032,EVT-033,EVT-034,EVT-035,EVT-036,EVT-037,EVT-038,EVT-039,EVT-040,EVT-041,EVT-042,EVT-043,EVT-044,EVT-045,EVT-046,EVT-047,EVT-048,EVT-049,EVT-050,EVT-051,EVT-052,EVT-053,EVT-054,EVT-055,EVT-056,EVT-057,EVT-058,EVT-059,EVT-060,EVT-061,EVT-062,EVT-063,EVT-064,EVT-065,EVT-066,EVT-067,EVT-068,EVT-069,EVT-070,EVT-071,EVT-072,EVT-073,EVT-074,EVT-075,EVT-076,EVT-077,EVT-078,EVT-079,EVT-080,EVT-081,EVT-082,EVT-083,EVT-084,EVT-085,EVT-086,EVT-087,CLIENT-001,CLIENT-002,CLIENT-003,CLIENT-004,CLIENT-005,CLIENT-006,CLIENT-007,CLIENT-008,CLIENT-009,CLIENT-010,CLIENT-011,CLIENT-012,CLIENT-013,CLIENT-014,CLIENT-015,CLIENT-016,CLIENT-017,CLIENT-018,CLIENT-019,CLIENT-020,CLIENT-021,CLIENT-022,CLIENT-023,CLIENT-024,CLIENT-025,CLIENT-026,CLIENT-027,CLIENT-028,CLIENT-029,CLIENT-030,CLIENT-031,CLIENT-032,CLIENT-033,CLIENT-034,CLIENT-035,CLIENT-036,CLIENT-037,CLIENT-038,CLIENT-039,CLIENT-040,CLIENT-041,CLIENT-042,MEDIA-001,MEDIA-002,MEDIA-003,MEDIA-004,MEDIA-005,MEDIA-006,MEDIA-007,MEDIA-008,MEDIA-009,MEDIA-010,MEDIA-011,MEDIA-012,MEDIA-013,MEDIA-014,MEDIA-015,MEDIA-016,MEDIA-017,MEDIA-018,MEDIA-019,MEDIA-020,MEDIA-021,MEDIA-022,MEDIA-023,MEDIA-024,MEDIA-025,MEDIA-026,MEDIA-027,LAB-001,LAB-002,LAB-003,LAB-004,LAB-005,LAB-006,LAB-007,LAB-008,LAB-009,LAB-010,LAB-011,LAB-012,LAB-013,LAB-014,LAB-015,LAB-016,LAB-017,LAB-018,LAB-019,LAB-020,LAB-021,LAB-022,LAB-023,LAB-024,LAB-025,LAB-026,LAB-027,LAB-028,LAB-029,LAB-030,LAB-031,LAB-032,LAB-033,LAB-034,LAB-035,LAB-036,LAB-037,LAB-038,LAB-039,LAB-040,LAB-041,LAB-042,LAB-043,LAB-044,LAB-045,LAB-046,LAB-047,LAB-048,LAB-049,LAB-050,LAB-051,LAB-052,LAB-053,LAB-054,LAB-055,LAB-056,LAB-057,LAB-058,LAB-059,LAB-060,LAB-061,LAB-062,LAB-063,LAB-064,LAB-065,LAB-066,LAB-067,LAB-068,LAB-069,LAB-070,LAB-071,LAB-072,LAB-073,LAB-074,LAB-075,LAB-076,LAB-077,LAB-078,LAB-079,LAB-080,LAB-081,LAB-082,LAB-083,LAB-084,LAB-085,LAB-086,LAB-087,LAB-088,LAB-089,LAB-090,LAB-091,LAB-092,LAB-093,LAB-094,LAB-095,LAB-096,LAB-097,LAB-098,LAB-099,LAB-100,LAB-101,LAB-102,LAB-103,LAB-104,LAB-105,LAB-106,LAB-107,LAB-108,LAB-109,LAB-110,LAB-111,LAB-112,LAB-113,LAB-114,LAB-115,LAB-116,LAB-117,LAB-118,LAB-119,LAB-120,LAB-121,LAB-122,LAB-123,LAB-124,LAB-125,LAB-126,SAFE-001,SAFE-002,SAFE-003,SAFE-004,SAFE-005,SAFE-006,SAFE-007,SAFE-008,SAFE-009,SAFE-010,SAFE-011,SAFE-012,SAFE-013,SAFE-014,SAFE-015,SAFE-016,SAFE-017,SAFE-018,SAFE-019,SAFE-020,SAFE-021,SAFE-022,SAFE-023,SAFE-024,SAFE-025,SAFE-026,SAFE-027,SAFE-028,SAFE-029,SAFE-030,SAFE-031,SAFE-032,SAFE-033,SAFE-034,SAFE-035,SAFE-036,SAFE-037,SAFE-038,SAFE-039,SAFE-040,SAFE-041,SAFE-042,SAFE-043,SAFE-044,SAFE-045,SAFE-046,SAFE-047,SAFE-048,SAFE-049,SAFE-050,SAFE-051,SAFE-052,SAFE-053,SAFE-054,SAFE-055,SAFE-056,SAFE-057,SAFE-058,SAFE-059,SAFE-060,SAFE-061,SAFE-062,SAFE-063,SAFE-064,SAFE-065,SAFE-066,SAFE-067,SAFE-068,SAFE-069,SAFE-070,SAFE-071,SAFE-072,SAFE-073,SAFE-074,SAFE-075,SAFE-076,SAFE-077,SAFE-078,SAFE-079,SAFE-080,SAFE-081,SAFE-082,SAFE-083,SAFE-084,SAFE-085,SAFE-086,SAFE-087,SAFE-088,SAFE-089,SAFE-090,SAFE-091,SAFE-092,SAFE-093,SAFE-094,SAFE-095,SAFE-096,SAFE-097,SAFE-098,SAFE-099,SAFE-100,SAFE-101,SAFE-102,SAFE-103,SAFE-104,SAFE-105,SAFE-106,SAFE-107,SAFE-108,SAFE-109,SAFE-110,SAFE-111,SAFE-112,SAFE-113,SAFE-114,SAFE-115,SAFE-116,SAFE-117,SAFE-118,SAFE-119,SAFE-120,SAFE-121,SAFE-122,SAFE-123,SAFE-124,SAFE-125,SAFE-126,SAFE-127,SAFE-128,SAFE-129,SAFE-130,SAFE-131,SAFE-132,SAFE-133,SAFE-134,SAFE-135,SAFE-136,SAFE-137,SAFE-138,SAFE-139,SAFE-140,SAFE-141,SAFE-142,SAFE-143,SAFE-144,SAFE-145,SAFE-146,SAFE-147,SAFE-148,SAFE-149,SAFE-150,SAFE-151,SAFE-152,SAFE-153,SAFE-154,SAFE-155,SAFE-156,SAFE-157,SAFE-158,SAFE-159,SAFE-160,SAFE-161,SAFE-162,SAFE-163,SAFE-164,SAFE-165,SAFE-166,SAFE-167,SAFE-168,SAFE-169,SAFE-170,SAFE-171,SAFE-172,SAFE-173,SAFE-174,SAFE-175,SAFE-176,SAFE-177,SAFE-178,SAFE-179,SAFE-180,SAFE-181,SAFE-182,SAFE-183,SAFE-184,SAFE-185,SAFE-186,SAFE-187,SAFE-188,SAFE-189,SAFE-190,SAFE-191,SAFE-192,SAFE-193,SAFE-194,SAFE-195,SAFE-196,SAFE-197,SAFE-198,SAFE-199,SAFE-200,SAFE-201,SAFE-202,SAFE-203,SAFE-204,SAFE-205,SAFE-206,SAFE-207,SAFE-208,SAFE-209,SAFE-210,SAFE-211,SAFE-212,SAFE-213,SAFE-214,SAFE-215,SAFE-216,SAFE-217,OPS-035,OPS-036,OPS-037,OPS-038,OPS-039,OPS-040,OPS-041,OPS-042,OPS-043,OPS-044,OPS-045,OPS-046,OPS-047,OPS-048,OPS-049,OPS-050,OPS-051,OPS-052,OPS-053,OPS-054,OPS-055,OPS-056,OPS-057,OPS-058,OPS-059,OPS-060,OPS-061,OPS-062,OPS-063,OPS-064,OPS-065,OPS-066,OPS-067,OPS-068,OPS-069,OPS-070,OPS-071,OPS-072,OPS-073,OPS-074,OPS-075,OPS-076,OPS-077,OPS-078,OPS-079,OPS-080,OPS-081,OPS-082,OPS-083,OPS-084,OPS-085,OPS-086,OPS-087,OPS-088,OPS-089,OPS-090,OPS-091,OPS-092,OPS-093,OPS-094,OPS-095,OPS-096,OPS-097,OPS-098,OPS-099,OPS-100,OPS-101,OPS-102,OPS-103,OPS-104,OPS-105,OPS-106,OPS-107,OPS-108,OPS-109,OPS-110,OPS-111,OPS-112,OPS-113,OPS-114,OPS-115,OPS-116,OPS-117,OPS-118,OPS-119,OPS-120,OPS-121,OPS-122,OPS-123,OPS-124,OPS-125,OPS-126,OPS-127,OPS-128,OPS-129,OPS-130,OPS-131,OPS-132,OPS-133,OPS-134,OPS-135,OPS-136,OPS-137,OPS-138,OPS-139,OPS-140,OPS-141,OPS-142,OPS-143,OPS-144,OPS-145,OPS-146,OPS-147,OPS-148,OPS-149,OPS-150,OPS-151,OPS-152,OPS-153,OPS-154,OPS-155,OPS-156,OPS-157,OPS-158,OPS-159,OPS-160,OPS-161,OPS-162,OPS-163,OPS-164,OPS-165,OPS-166,OPS-167,OPS-168,OPS-169,OPS-170,OPS-171,OPS-172,OPS-173,OPS-174,OPS-175,OPS-176,OPS-177,OPS-178,OPS-179,OPS-180,OPS-181,OPS-182,OPS-183,OPS-184\n- familyStatus: UI:115/0,AUTH:42/0,SRC:68/0,RULE:112/0,EVT:87/0,CLIENT:42/0,MEDIA:27/0,LAB:126/0,SAFE:217/0,OPS:150/0\n- unresolvedReasons: none\n- typedSemanticErrors: none\n- reviewedProofErrors: none\n- approvals: 986\n- pass: 51\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "git",
+            "diff",
+            "--check"
+          ],
+          "startedAt": "2026-09-28T20:46:48.251Z",
+          "endedAt": "2026-09-28T20:46:48.408Z",
+          "elapsedMs": 157,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "firstFailureAndRepair": [
+    {
+      "stage": "수정 전 실제 CLI",
+      "artifact": "baseline.json",
+      "exit": 1,
+      "classification": "기존 문서 검사 FAIL",
+      "reason": "현재 버전이 아닌 v3.9.0 제목과 source baseline alignment 문구를 강제하여 2건 실패.",
+      "recheck": "cli.json 현행 준비 검사5개 통과"
+    },
+    {
+      "stage": "사전 정의한 격리 반례",
+      "artifact": "red.json",
+      "exit": 1,
+      "classification": "예상 RED",
+      "reason": "종료 원장/backlog 접근 거부",
+      "recheck": "green-corrected.json 30개 통과"
+    },
+    {
+      "stage": "첫 구현 검증",
+      "artifact": "green.json",
+      "exit": 1,
+      "classification": "구현 오류",
+      "reason": "verify-release-metadata의 실제 대상 verify_release_metadata_consistency.mjs를 다른 파일명으로 잘못 연결했다.",
+      "repair": "실제 dispatch를 읽어 대상 수정, 해당 command 누락 반례2개 추가",
+      "recheck": "green-corrected.json"
+    },
+    {
+      "stage": "첫 소스 근거 후보",
+      "artifact": "candidate-first.json",
+      "commandExit": 0,
+      "classification": "후보 미해소 2개; 승인/PASS 아님",
+      "reason": "이전 co-asserted-boundary edge를 새 변수 전달 구조에 사용함",
+      "diagnostic": {
+        "digest": "f28a74305d4cffa86d6b86f4596a87501e856d5c7f9dd6adee27ffaabf8fbe4c",
+        "summary": {
+          "rows": 986,
+          "resolvedCandidates": 984,
+          "discoveredCandidates": 0,
+          "unresolvedCandidates": 2,
+          "fileScopeRoles": 0
+        },
+        "rows": [
+          {
+            "id": "SAFE-078",
+            "featureContractSha256": "beaf26410348ce1e59b13826b57e2aaaf32838fff1b4681305058d475963b325",
+            "flowKind": "read-model",
+            "requirement": {
+              "operation": "read",
+              "expectation": "allow",
+              "surface": "policy"
+            },
+            "status": "unresolved",
+            "failureReason": "typed-semantic-proof-invalid:edge-1:co-asserted-boundary-unproven",
+            "verifier": {
+              "command": "verify-v290-public-docs-assets-refresh",
+              "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs"
+            },
+            "evidenceMode": "actual-canonical-policy-safe-078",
+            "evidenceToken": "safe078BoundaryObserved",
+            "sharedContract": null,
+            "proofSource": {
+              "kind": "separate-reviewed-proof-spec",
+              "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+            },
+            "roles": {
+              "owner": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "symbol": "owner:SAFE-078",
+                "anchor": "check(\"직접 검수와 정적 검사의 경계\", () => {",
+                "line": 44,
+                "contextSha256": "b430b8f459ae51ba2327b433e59311a6363ac826e82c853a89a9da190bc031d0"
+              },
+              "dispatch": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "symbol": "dispatch:SAFE-078",
+                "anchor": "const context = readReleaseContext(readText(\"docs/release-policy.md\"));",
+                "line": 45,
+                "contextSha256": "e2f091fdb37fa56e214780de70b4d077d14b8aa1d4e87d56ba9ed69e59fcd423"
+              },
+              "action": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "symbol": "action:SAFE-078",
+                "anchor": "const policyErrors = validateReleaseContext(context, readText(\"VERSION\").trim());",
+                "line": 46,
+                "contextSha256": "2976acd63f9b3c987c480cd630aa4916f672b9d4676f5fdf510f4a0d14b89789"
+              },
+              "state": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "symbol": "state:SAFE-078",
+                "anchor": "const safe078BoundaryObserved = policyErrors.length === 0;",
+                "line": 52,
+                "contextSha256": "9b890ded6ab2e6ca5bb8452f5dcb9cd28ae4d5ff30064bc382b7a4b98f7640c7"
+              },
+              "readback": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "symbol": "readback:SAFE-078",
+                "anchor": "assert(safe078BoundaryObserved, \"SAFE-078: \" + policyErrors.join(\"; \"));",
+                "line": 53,
+                "contextSha256": "4cfa649e114d60b0a80219517fcfb2eb56d08f40f585070cbb2142ce8bd7b64d"
+              },
+              "verifier": {
+                "file": "server.sh",
+                "symbol": "server-dispatch:verify-v290-public-docs-assets-refresh",
+                "anchor": "verify-v290-public-docs-assets-refresh)",
+                "line": 2046,
+                "contextSha256": "f9957e708a4e386bf5c7d2aeb1d99a5facaadb21c120eabbf07e23b987626999"
+              }
+            },
+            "edges": [
+              {
+                "from": "owner",
+                "to": "dispatch",
+                "kind": "function-containment",
+                "witness": "SAFE-078 owner-dispatch",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:44",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:45"
+              },
+              {
+                "from": "dispatch",
+                "to": "action",
+                "kind": "co-asserted-boundary",
+                "witness": "SAFE-078 dispatch-action",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:45",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:46"
+              },
+              {
+                "from": "action",
+                "to": "state",
+                "kind": "assignment-def-use",
+                "witness": "SAFE-078 action-state",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:46",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:52"
+              },
+              {
+                "from": "state",
+                "to": "readback",
+                "kind": "structural-producer-assertion",
+                "witness": "SAFE-078 state-readback",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:52",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:53"
+              },
+              {
+                "from": "readback",
+                "to": "verifier",
+                "kind": "verifier-dispatch",
+                "witness": "verify-v290-public-docs-assets-refresh",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:53",
+                "target": "server.sh:2046"
+              }
+            ],
+            "semanticObligation": {
+              "schema": "media-server.review4-typed-semantic-obligation.v1",
+              "policyVersion": "review4-outcome-binding-v3",
+              "featureContractSha256": "beaf26410348ce1e59b13826b57e2aaaf32838fff1b4681305058d475963b325",
+              "requirement": {
+                "operation": "read",
+                "expectation": "allow",
+                "surface": "policy"
+              },
+              "sourceClass": "harness-source-eligible",
+              "routeTokens": [],
+              "schemaTokens": [],
+              "fieldTokens": [
+                "verify-v290-public-docs-assets-refresh"
+              ],
+              "outcomeTokens": [],
+              "negativeBoundaries": [],
+              "clauses": [
+                {
+                  "kind": "route",
+                  "tokens": [],
+                  "minimumExactMatches": 0
+                },
+                {
+                  "kind": "schema",
+                  "tokens": [],
+                  "minimumExactMatches": 0
+                },
+                {
+                  "kind": "field",
+                  "tokens": [
+                    "verify-v290-public-docs-assets-refresh"
+                  ],
+                  "minimumExactMatches": 1
+                },
+                {
+                  "kind": "outcome",
+                  "tokens": [],
+                  "minimumExactMatches": 0
+                }
+              ],
+              "requiredOutcome": {
+                "normalized": "`verify-v290-public-docs-assets-refresh`가 README/README.en/docs index/UI guide/docs asset policy/release-version policy와 managed asset set을 확인하되 대표 이미지 직접 재캡처, 직접 브라우저 검수 PASS, UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 대체하지 않음",
+                "sha256": "f12f1c5b5fd548fb5aced3c6fc611fb014cd6b2e069d728f8eded1e228c1f323"
+              }
+            },
+            "sourceFlowDigest": null,
+            "trustBindings": {
+              "schema": "media-server.review4-source-trust-bindings.v1",
+              "roles": {
+                "owner": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "owner:SAFE-078",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "62562fefa1b1bfc712110a1f9cf8cc114dc31b4be46b2cba224a238224d8414d",
+                  "enclosingBodyStartLine": 44,
+                  "enclosingBodyEndLine": 54,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "dispatch": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "dispatch:SAFE-078",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "62562fefa1b1bfc712110a1f9cf8cc114dc31b4be46b2cba224a238224d8414d",
+                  "enclosingBodyStartLine": 44,
+                  "enclosingBodyEndLine": 54,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "action": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "action:SAFE-078",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "62562fefa1b1bfc712110a1f9cf8cc114dc31b4be46b2cba224a238224d8414d",
+                  "enclosingBodyStartLine": 44,
+                  "enclosingBodyEndLine": 54,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "state": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "state:SAFE-078",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "62562fefa1b1bfc712110a1f9cf8cc114dc31b4be46b2cba224a238224d8414d",
+                  "enclosingBodyStartLine": 44,
+                  "enclosingBodyEndLine": 54,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "readback": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "readback:SAFE-078",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "62562fefa1b1bfc712110a1f9cf8cc114dc31b4be46b2cba224a238224d8414d",
+                  "enclosingBodyStartLine": 44,
+                  "enclosingBodyEndLine": 54,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "verifier": {
+                  "file": "server.sh",
+                  "symbol": "server-dispatch:verify-v290-public-docs-assets-refresh",
+                  "enclosingBodySha256": "67bd3693edaa360ef02525455b43e3b8712c3c47e6a0c9706b8be30d867bcaf9",
+                  "enclosingBodyStartLine": null,
+                  "enclosingBodyEndLine": null,
+                  "enclosingBodyScope": "exact-dispatch-arm"
+                }
+              },
+              "verifierFileSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+              "dispatch": {
+                "command": "verify-v290-public-docs-assets-refresh",
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "armSha256": "67bd3693edaa360ef02525455b43e3b8712c3c47e6a0c9706b8be30d867bcaf9",
+                "requireTarget": "verify_v290_public_docs_assets_refresh.mjs",
+                "execTarget": "verify_v290_public_docs_assets_refresh.mjs",
+                "connectedFiles": [],
+                "connectedExecSha256": null
+              }
+            },
+            "typedSemanticErrors": [
+              "edge-1:co-asserted-boundary-unproven"
+            ]
+          },
+          {
+            "id": "OPS-048",
+            "featureContractSha256": "093004e8924e9223ce5a1f9c3c8cc3461247ae1416186ef3b88af949e5b6ade7",
+            "flowKind": "read-model",
+            "requirement": {
+              "operation": "read",
+              "expectation": "allow",
+              "surface": "ops"
+            },
+            "status": "unresolved",
+            "failureReason": "typed-semantic-proof-invalid:edge-1:co-asserted-boundary-unproven",
+            "verifier": {
+              "command": "verify-v290-public-docs-assets-refresh",
+              "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs"
+            },
+            "evidenceMode": "canonical-functional-source-readback",
+            "evidenceToken": "publicDocsConnected",
+            "sharedContract": null,
+            "proofSource": {
+              "kind": "separate-reviewed-proof-spec",
+              "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+            },
+            "roles": {
+              "owner": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "line": 37,
+                "anchor": "check(\"현행 공개 문서와 관리 이미지 연결\", () => {",
+                "symbol": "owner:OPS-048",
+                "contextSha256": "c5dec21722f7410dc176c3a7e9b9f7a77759fc2cc22fcc0e6ee1b57c397dcc6b"
+              },
+              "dispatch": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "line": 38,
+                "anchor": "const context = readReleaseContext(readText(\"docs/release-policy.md\"));",
+                "symbol": "dispatch:OPS-048",
+                "contextSha256": "2e8ec76c174b895643d3629a859549c9535dfa35848358d6d0fedf51da992bad"
+              },
+              "action": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "line": 39,
+                "anchor": "const documentErrors = validatePublicDocuments(context, readText(\"VERSION\").trim());",
+                "symbol": "action:OPS-048",
+                "contextSha256": "c44d7d8176fb6d453a95e452f1c70cece4296286594fadfd3995600ebfe25dba"
+              },
+              "state": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "line": 40,
+                "anchor": "const publicDocsConnected = documentErrors.length === 0;",
+                "symbol": "state:OPS-048",
+                "contextSha256": "128f466da3fc393df0fce3ad7cdb18c7643e0c9ac334d4781348e0b5087bd306"
+              },
+              "readback": {
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "line": 41,
+                "anchor": "assert(publicDocsConnected, \"OPS-048: \" + documentErrors.join(\"; \"));",
+                "symbol": "readback:OPS-048",
+                "contextSha256": "9aa41f49d289febd7f3b2a09ccb221b37de75bb8f8650ce9de5cf10da6c1f135"
+              },
+              "verifier": {
+                "file": "server.sh",
+                "symbol": "server-dispatch:verify-v290-public-docs-assets-refresh",
+                "anchor": "verify-v290-public-docs-assets-refresh)",
+                "line": 2046,
+                "contextSha256": "f9957e708a4e386bf5c7d2aeb1d99a5facaadb21c120eabbf07e23b987626999"
+              }
+            },
+            "edges": [
+              {
+                "from": "owner",
+                "to": "dispatch",
+                "kind": "function-containment",
+                "witness": "OPS-048 owner-dispatch",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:37",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:38"
+              },
+              {
+                "from": "dispatch",
+                "to": "action",
+                "kind": "co-asserted-boundary",
+                "witness": "OPS-048 dispatch-action",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:38",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:39"
+              },
+              {
+                "from": "action",
+                "to": "state",
+                "kind": "co-asserted-boundary",
+                "witness": "OPS-048 action-state",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:39",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:40"
+              },
+              {
+                "from": "state",
+                "to": "readback",
+                "kind": "structural-producer-assertion",
+                "witness": "OPS-048 state-readback",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:40",
+                "target": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41"
+              },
+              {
+                "from": "readback",
+                "to": "verifier",
+                "kind": "verifier-dispatch",
+                "witness": "verify-v290-public-docs-assets-refresh",
+                "source": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs:41",
+                "target": "server.sh:2046"
+              }
+            ],
+            "semanticObligation": {
+              "schema": "media-server.review4-typed-semantic-obligation.v1",
+              "policyVersion": "review4-outcome-binding-v3",
+              "featureContractSha256": "093004e8924e9223ce5a1f9c3c8cc3461247ae1416186ef3b88af949e5b6ade7",
+              "requirement": {
+                "operation": "read",
+                "expectation": "allow",
+                "surface": "ops"
+              },
+              "sourceClass": "harness-source-eligible",
+              "routeTokens": [],
+              "schemaTokens": [],
+              "fieldTokens": [
+                "verify-v290-public-docs-assets-refresh",
+                "verify-docs-ui-assets",
+                "verify-docs-links"
+              ],
+              "outcomeTokens": [],
+              "negativeBoundaries": [],
+              "clauses": [
+                {
+                  "kind": "route",
+                  "tokens": [],
+                  "minimumExactMatches": 0
+                },
+                {
+                  "kind": "schema",
+                  "tokens": [],
+                  "minimumExactMatches": 0
+                },
+                {
+                  "kind": "field",
+                  "tokens": [
+                    "verify-v290-public-docs-assets-refresh",
+                    "verify-docs-ui-assets",
+                    "verify-docs-links"
+                  ],
+                  "minimumExactMatches": 1
+                },
+                {
+                  "kind": "outcome",
+                  "tokens": [],
+                  "minimumExactMatches": 0
+                }
+              ],
+              "requiredOutcome": {
+                "normalized": "`verify-v290-public-docs-assets-refresh`, `verify-docs-ui-assets`, `verify-docs-links`가 공개 첫 화면, docs index, UI guide, docs asset policy, release/version policy를 확인하되 image recapture, release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음",
+                "sha256": "9e2acb38ca626ca7315aede0d8e6a5e9c85a32e1b5dfebdc9b1727924023459d"
+              }
+            },
+            "sourceFlowDigest": null,
+            "trustBindings": {
+              "schema": "media-server.review4-source-trust-bindings.v1",
+              "roles": {
+                "owner": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "owner:OPS-048",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "234958b54e359a45004742ac91d9acc75b78b63b9e80ad3fb348fbdbf065d951",
+                  "enclosingBodyStartLine": 37,
+                  "enclosingBodyEndLine": 42,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "dispatch": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "dispatch:OPS-048",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "234958b54e359a45004742ac91d9acc75b78b63b9e80ad3fb348fbdbf065d951",
+                  "enclosingBodyStartLine": 37,
+                  "enclosingBodyEndLine": 42,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "action": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "action:OPS-048",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "234958b54e359a45004742ac91d9acc75b78b63b9e80ad3fb348fbdbf065d951",
+                  "enclosingBodyStartLine": 37,
+                  "enclosingBodyEndLine": 42,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "state": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "state:OPS-048",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "234958b54e359a45004742ac91d9acc75b78b63b9e80ad3fb348fbdbf065d951",
+                  "enclosingBodyStartLine": 37,
+                  "enclosingBodyEndLine": 42,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "readback": {
+                  "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                  "symbol": "readback:OPS-048",
+                  "trackedBlobSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+                  "enclosingBodySha256": "234958b54e359a45004742ac91d9acc75b78b63b9e80ad3fb348fbdbf065d951",
+                  "enclosingBodyStartLine": 37,
+                  "enclosingBodyEndLine": 42,
+                  "enclosingBodyScope": "semantic-enclosing-function"
+                },
+                "verifier": {
+                  "file": "server.sh",
+                  "symbol": "server-dispatch:verify-v290-public-docs-assets-refresh",
+                  "enclosingBodySha256": "67bd3693edaa360ef02525455b43e3b8712c3c47e6a0c9706b8be30d867bcaf9",
+                  "enclosingBodyStartLine": null,
+                  "enclosingBodyEndLine": null,
+                  "enclosingBodyScope": "exact-dispatch-arm"
+                }
+              },
+              "verifierFileSha256": "86bfcd8ceeef9672381ff310fd61e8e96410bdd3c280e52877eacba01c13dff2",
+              "dispatch": {
+                "command": "verify-v290-public-docs-assets-refresh",
+                "file": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+                "armSha256": "67bd3693edaa360ef02525455b43e3b8712c3c47e6a0c9706b8be30d867bcaf9",
+                "requireTarget": "verify_v290_public_docs_assets_refresh.mjs",
+                "execTarget": "verify_v290_public_docs_assets_refresh.mjs",
+                "connectedFiles": [],
+                "connectedExecSha256": null
+              }
+            },
+            "typedSemanticErrors": [
+              "edge-1:co-asserted-boundary-unproven"
+            ]
+          }
+        ],
+        "fullCandidateSha256": "59a8b67d009d44dd5c6f79ad4e58f5cfb69cfc77bdab52f2a823fa0504b855f1"
+      },
+      "repair": "실제 context→오류 배열→판정 값의 assignment-def-use로 교정. 기존 안전 검증 도구는 수정하지 않음.",
+      "recheck": "candidate.json 986개 resolved 및 마지막 source audit51개 통과"
+    }
+  ],
+  "review": {
+    "changedIds": [
+      "SAFE-078",
+      "OPS-048"
+    ],
+    "independentReviewed": 2,
+    "carryForward": 984,
+    "decisions": "decisions.json",
+    "reviewPackage": "review-package.json",
+    "migration": "migration.json"
+  },
+  "candidate": {
+    "digest": "3232c55e6f9494019aa976605e7946525d6564f2fef461b44d8fc322767b4e85",
+    "summary": {
+      "rows": 986,
+      "resolvedCandidates": 986,
+      "discoveredCandidates": 0,
+      "unresolvedCandidates": 0,
+      "fileScopeRoles": 0
+    },
+    "storedPath": "test/fixtures/v390_review4_feature_semantic_source_audit.json"
+  },
+  "results": {
+    "focused": 30,
+    "withRelated": 147,
+    "readinessCliChecks": 5,
+    "imageAssetChecks": 10,
+    "native": {
+      "cases": 424,
+      "unchanged": true,
+      "executed": false,
+      "sha256": "5f23a5d6cbf0d39a2b6f7346912d5185dbdd89d2562ac2cfd7ca5c4754153faa"
+    },
+    "boundary": "도구 자체검증과 정적 문서/이미지 관리 검사. 실제 이미지 시각 검수 또는 UI·제품 테스트 결과가 아니다."
+  },
+  "preservation": {
+    "priorArtifacts": {
+      "prior-audit": {
+        "commit": "ea530cf378548f1ec5cd427666b7c1eca2a6be59",
+        "path": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "bytes": 10407547,
+        "sha256": "da30314e21ef9fc7b2e0ee4a0c8a37720c96a99ca5140d9d92383dd9991a8e53"
+      },
+      "prior-approvals": {
+        "commit": "ea530cf378548f1ec5cd427666b7c1eca2a6be59",
+        "path": "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "bytes": 1744340,
+        "sha256": "bba99ce828512088a6fb106bd2d00d72972cdec2dbafdca4e049cd6c859ae98a"
+      },
+      "prior-native": {
+        "commit": "ea530cf378548f1ec5cd427666b7c1eca2a6be59",
+        "path": "test/fixtures/v390_ui_native_exact_cases.json",
+        "bytes": 14007819,
+        "sha256": "5f23a5d6cbf0d39a2b6f7346912d5185dbdd89d2562ac2cfd7ca5c4754153faa"
+      }
+    },
+    "rawOutputs": "executionHistory에 stdout/stderr 보존. baseline은 첫 exec 도구의 실제 반환 내용을 복사했으며 시각 미집계.",
+    "remote": "이번 변경 푸시 미수행; 로컬 보존 commit의 실제 바이트 확인",
+    "recordsDeletedNow": false
+  },
+  "notRun": [
+    "제품 빌드·동작 회귀",
+    "실제 UI·이미지 재촬영/시각 검수",
+    "30분·120분",
+    "외부 서비스·실기기",
+    "push/PR/merge/tag/release"
+  ],
+  "usage": {
+    "tokens": "실행별 미집계",
+    "elapsed": "각 실행 record의 실측. baseline은 도구 원출력만 보존",
+    "source": "로컬 exec 결과"
+  },
+  "toolNotes": [
+    "동일 파일 삭제+추가 patch가 거부되어 전체 내용 교체 patch로 적용했다. proof JSON patch는 마지막 쉼표 누락으로 적용 전에 거부되어 정확한 기존 항목 경계로 수정했다. 두 경우 모두 부분 파일 변경은 없었다.",
+    "일부 읽기 검색에서 존재하지 않는 shell glob이 거부됐다. 테스트 실패가 아니며 해당 경로가 있다고 보고하지 않았다.",
+    "미해소 candidate의 migration은 읽기 비교만 했고 승인·적용하지 않았다. 수정 후 candidate와 migration을 다시 생성하고 최종 결과에만 승인을 결속했다."
+  ],
+  "cleanup": {
+    "state": "PASS",
+    "ownedTemp": "/private/tmp/media-server-public-docs.jqsUqc",
+    "serverPorts": "제품 서버·브라우저·수신 포트 생성 없음. 명시한 검증 Node 명령의 terminal 결과 확인",
+    "entries": [
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/assets.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 904,
+        "sha256": "2981f76d7e505cb4e548a907238a8eff8924c5e0d48d72b6d1bf98fab999e8dc",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/baseline.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 1639,
+        "sha256": "b1917ccae17d532c63e18241756eda5743f780b70db03bf9c55b1286f9878397",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/candidate-first.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 598,
+        "sha256": "be5b48c4b675297b775d4d1c2459dbf80ab9032a225cfefd3c08c09556d70d22",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/candidate.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 598,
+        "sha256": "8a670d04bff840e823412490386297717aadfd762534d23c3534bf0ae42b9b81",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/cli.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 1129,
+        "sha256": "ea3ec01ce21e5696182c0fd4323551e20f83d6b8a460d7533d7276e259f043cb",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/decisions.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 3345,
+        "sha256": "50b5d4286d4bc6dfed1c2194a9343538dd1900d491e6493bc84677741be3c54c",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/delta-first.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 521714,
+        "sha256": "71b0ae54b09bd162a7c7dc984db5c9674e0fbdaa9fb430eb3a920690851df8da",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/delta.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 521872,
+        "sha256": "1c934c0af29c9152609b22215802b4f5cbda78c28d34287b5b901084c72f8563",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/fresh-audit-first.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 7709871,
+        "sha256": "59a8b67d009d44dd5c6f79ad4e58f5cfb69cfc77bdab52f2a823fa0504b855f1",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/fresh-audit.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 7709763,
+        "sha256": "c5ba8980545d9005e97e96db59621dbb82d870f03bd430f3a5d93716f642004e",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/gates.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 15868,
+        "sha256": "f716ca4f54db20e0824e870e9b399f9c162093c5a28a3b40d39ad375eb01bf91",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/green-corrected.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 2391,
+        "sha256": "8ede88ca9b2fb5a396f06d75d1d8cf5e75670e6fc9bdd6ad6a3d870ea5cf2f22",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/green.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 5437,
+        "sha256": "5501bbf88a3eccf7137ed060751596447d8c21b2958ab1fd1de509fc755a2d2d",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/migration-command-first.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 1208,
+        "sha256": "5dcd19771891f9d6fc6f8645079f3334a34ccc8623a4ad9029e8a6d7763416d3",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/migration-command.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 1208,
+        "sha256": "cb8fd96bfad823a060d95894013f51b8451f0b91d46b3d625e5b908dfd919284",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/migration-first.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 374958,
+        "sha256": "2e3a7f70f390786481630d742f213c9c598ad4f2246e3b54df8475924460bd0c",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/migration.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 375116,
+        "sha256": "b6ce17edc86dff7b4ad9de91f69f64248862b1dbfc3c17100d3ef9fb4dd92538",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/prior-approvals.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 1744340,
+        "sha256": "bba99ce828512088a6fb106bd2d00d72972cdec2dbafdca4e049cd6c859ae98a",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/prior-audit.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 10407547,
+        "sha256": "da30314e21ef9fc7b2e0ee4a0c8a37720c96a99ca5140d9d92383dd9991a8e53",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/prior-inputs.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 784,
+        "sha256": "1ca0327978e51610440a9630ec8a513b0cc26efa1d1a6432364d35ec9bc6ccd9",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/prior-native.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 14007819,
+        "sha256": "5f23a5d6cbf0d39a2b6f7346912d5185dbdd89d2562ac2cfd7ca5c4754153faa",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/producer-command.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 1054,
+        "sha256": "7ec06b98e6f6c81b78399b46540675e93859de5986acdab899891143f438a651",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/red.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 63175,
+        "sha256": "5aaed19e9062ef19a838ddabe5e77ddd2559defaf1922d840bd701776b0d0f3c",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/related.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 10916,
+        "sha256": "753d4ed21c0ad489eb76dba202e24d4f286f120a777818444949e3cd96f1736b",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/review-package.json",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 3104,
+        "sha256": "f379678812b0a6aa464906dbee19d7c0cbc8b3f82bb01adc24d4bbd874aa7ceb",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      },
+      {
+        "path": "/private/tmp/media-server-public-docs.jqsUqc/review.index",
+        "kind": "검증 소유 임시 파일",
+        "bytes": 733598,
+        "sha256": "2cdf28d662fb4ed53b4041a24a8d0f1fa024b3072fc0f79d4dec95e3c92acca8",
+        "action": "보존 대조 후 삭제",
+        "result": "삭제 확인"
+      }
+    ],
+    "totalBytes": 44219956,
+    "preservation": "원출력은 result.executionHistory, 검토 자료3개는 동일 바이트 복사, 이전 fixture는 명시된 Git commit과 대조. 첫 candidate의 실패2행은 result에 보존했으며 나머지984행은 최종 candidate와 동일 확인. 최종 candidate는 현재 fixture, 이전 delta/migration은 비교 진단과 최종 전수 분류로 연결. 임시 index는 작업 소유 생성물.",
+    "checkedAt": "2026-09-28T20:47:38.910Z"
+  }
+}

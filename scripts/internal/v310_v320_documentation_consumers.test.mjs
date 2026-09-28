@@ -8,6 +8,36 @@ import {fileURLToPath} from 'node:url';
 import {buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4CanonicalFlowKey, validateReview4SharedFlows} from './feature_semantic_review4_trust_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+test('PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계', async t => {
+  const before = snapshot();
+  const run = mutation => invoke('v290_public_docs_assets_refresh', {readinessOnly: true, publicDocs: true, renameLabels: true, ...mutation});
+  try {
+    await t.test('01 과거 제목·원장 없이 정상', () => {
+      const r = run({}); assert.equal(r.status, 0, r.stdout + r.stderr);
+      assert(r.stdout.includes('- schema: media-server.v290-public-docs-assets-refresh.v1'));
+      for (const key of ['recapture', 'directBrowserReview', 'publishedMetadata']) assert(r.stdout.includes(key + ': not-run-by-this-command'));
+    });
+    for (const id of ['SAFE-078', 'OPS-048']) {
+      await t.test('02 현행 정의 누락 ' + id, () => rejected(run({removeId: id}), id));
+      await t.test('03 명령 연결 변조 ' + id, () => rejected(run({mapping: id}), id));
+    }
+    for (const name of ['README.md','README.en.md','docs/README.md','docs/en/README.md','docs/ui-guide.md','docs/assets/ui/README.md','docs/versioning-policy.md'])
+      await t.test('04 현행 문서 누락 ' + name, () => rejected(run({publicBlank: name}), name));
+    await t.test('05 source metadata 변조', () => rejected(run({publicSource: true}), 'source'));
+    await t.test('05 공개 release metadata 변조', () => rejected(run({releaseMetadata: true}), 'tag'));
+    for (const command of ['verify-v290-public-docs-assets-refresh','verify-docs-ui-assets','verify-docs-links','verify-release-metadata']) {
+      await t.test('06 실제 dispatch 누락 ' + command, () => rejected(run({dispatch: command}), 'dispatch'));
+      await t.test('07 검증 안내 누락 ' + command, () => rejected(run({catalogCommand: command}), command));
+    }
+    await t.test('08 미관리 이미지', () => rejected(run({publicAsset: 'unmanaged'}), 'unmanaged.png'));
+    await t.test('08 영문 문서의 한국어 이미지', () => rejected(run({publicAsset: 'language'}), 'README.en.md'));
+    await t.test('08 UI guide 이미지 누락', () => rejected(run({publicAsset: 'guide'}), 'docs/ui-guide.md'));
+    await t.test('09 직접 검수 요구 완화', () => rejected(run({publicAsset: 'review'}), 'manualReviewRequired'));
+    await t.test('10 UI 정책 완화', () => rejected(run({uiPolicy: true}), 'suite zero count'));
+    await t.test('11 현행 검수 기준 연결 누락', () => rejected(run({currentDocIdentifier: 'reviewRequired'}), 'reviewRequired'));
+    await t.test('12 허용되는 대표 화면 선택 축소', () => assert.equal(run({publicAsset: 'subset'}).status, 0));
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
 test('V30-V39-READY 현행 준비 안내와 독립 실행 연결', async t => {
   const before = snapshot();
   try {
@@ -442,9 +472,17 @@ function invoke(name, mutation = {}) {
     const original = fs.readFileSync;
     fs.readFileSync = function(file, options) {
       const relative = path.relative(root, String(file));
-      if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md','docs/README.md'].includes(relative)) throw new Error('종료 기록/직접 색인 의존: ' + relative);
+      if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);
       let value = original.call(this, file, options);
       if (typeof value !== 'string') return value;
+      if (mutation.publicDocs && (relative.endsWith('.md'))) value = value.replaceAll('v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation', '과거 제목 제거').replaceAll('v3.9.0 source baseline alignment', '과거 제목 제거').replaceAll('2026-05-23', '과거 날짜 제거').replaceAll('이번 Task 7에서는 이미지 파일을 새로 교체하지 않았습니다.', '과거 작업 일지 제거');
+      if (mutation.publicBlank === relative) value = '';
+      if (mutation.publicSource && relative === 'README.md') value = value.replaceAll(original.call(this, path.join(root, 'VERSION'), 'utf8').trim(), '999.0.0');
+      if (mutation.publicAsset === 'unmanaged' && relative === 'README.md') value = value.replaceAll('docs/assets/ui/ops-home.png', 'docs/assets/ui/unmanaged.png');
+      if (mutation.publicAsset === 'language' && relative === 'README.en.md') value = value.replaceAll('docs/assets/ui/en/ops-home.png', 'docs/assets/ui/ops-home.png');
+      if (mutation.publicAsset === 'guide' && relative === 'docs/ui-guide.md') value = value.replaceAll('assets/ui/ops-home.png', 'assets/ui/missing.png');
+      if (mutation.publicAsset === 'review' && relative === 'config/docs_ui_assets.json') { const parsed = JSON.parse(value); parsed.baseline.manualReviewRequired = false; value = JSON.stringify(parsed); }
+      if (mutation.publicAsset === 'subset' && ['README.md', 'README.en.md'].includes(relative)) value = value.split('\n').filter(line => !/assets\/ui\/(?:en\/)?(?:ops-channels|ops-rules|ops-rules-preview|ops-users|client-live)\.png/.test(line)).join('\n');
       if (relative.startsWith('docs/') && relative.endsWith('.md')) value = value.replace(/^#{1,6} .*$/gm, '# 변경 가능한 제목');
       if (mutation.schema && (relative.startsWith('src/') || relative.startsWith('include/'))) value = value.replaceAll(mutation.schema, 'missing-contract-schema');
       if (mutation.removeId && relative === 'docs/project-feature-test-inventory.md') value = value.split('\n').filter(line => !line.startsWith('| ' + mutation.removeId + ' |')).join('\n');
