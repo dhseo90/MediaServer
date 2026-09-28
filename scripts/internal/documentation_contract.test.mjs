@@ -179,6 +179,59 @@ test('DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 �
   });
 });
 
+test('DOC-SHELL-COPY 현행 예제·문구 소비자의 제목 변경 허용과 누락 거부', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const shell = 'verify_product_shell_examples.mjs', copy = 'verify_ui_copy_matrix.mjs';
+  const examples = 'docs/product-shell-component-examples.md', matrix = 'docs/ui-empty-loading-error-copy-matrix.md';
+  const cases = [
+    ['한글 제목·다른 문장 shell 안내', shell, {rewriteHeadings:true}, 0, ''],
+    ['한글 제목·다른 문장 상태 안내', copy, {rewriteHeadings:true}, 0, ''],
+    ...['media-server.product-shell-component-examples.v1', 'ProductUiCss()', 'ProductSharedUiScript()',
+      'ClientShellCss()', 'ProductDesignTokensCss()'].map(remove => [remove + ' 누락', shell, {path:examples,remove}, 1, 'examples doc missing']),
+    ...['/ops/events', 'source URL', 'Developer URL', 'raw JSON', 'rule/profile', 'session'].map(remove => [remove + ' 경계 누락', shell, {path:examples,remove}, 1, 'examples boundary missing']),
+    ...['app-chrome', 'chip warn', 'tile-stage', 'aria-live="polite"'].map(remove => [remove + ' 예제 누락', shell, {path:examples,remove}, 1, 'examples class snippet missing']),
+    ['문구 schema 누락', copy, {path:matrix,remove:'media-server.ui-copy-matrix.v1'}, 1, 'copy matrix doc is missing'],
+    ['문구 route 누락', copy, {path:matrix,remove:'/client/live'}, 1, 'copy matrix doc is missing'],
+    ['현행 Client 구현 문구 누락', copy, {path:'src/ingress/product_ui_client_scripts.cpp',remove:'Live view가 없습니다'}, 1, 'client copy snippet is missing'],
+    ['Ops 구현 문구 누락', copy, {path:'src/ingress/product_ui_page_scripts.cpp',remove:'VA 런타임 디버그를 불러오지 못했습니다.'}, 1, 'ops copy snippet is missing'],
+    ['번역 표만 남고 초기 화면 문구 누락', copy, {path:'src/ingress/product_ui_server_pages.cpp',remove:'런타임 상태를 불러오는 중입니다.'}, 1, 'ops copy snippet is missing'],
+    ...[[shell,'verify-product-shell-examples'],[copy,'verify-ui-copy-matrix']].flatMap(([verifier,command])=>[
+      [command + ' 실행 대상 오연결',verifier,{dispatch:command},1,'dispatch'],
+      [command + ' 등록 누락',verifier,{path:'server.sh',remove:command},1,'server.sh'],
+    ]),
+  ];
+  for (const [name, verifier, mutation, exit, reason] of cases) await t.test(name, () => {
+    const originalHash = mutation.path ? crypto.createHash('sha256').update(read(mutation.path)).digest('hex') : null;
+    const source = `
+      import fs from 'node:fs'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)},mutation=${JSON.stringify(mutation)},original=fs.readFileSync;
+      fs.readFileSync=function(file,options){
+        const relative=path.relative(root,String(file));
+        if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(relative)) throw new Error('종료 기록 읽기 금지');
+        const raw=original.call(this,file,options); let text=String(raw);
+        if(mutation.rewriteHeadings && [${JSON.stringify(examples)},${JSON.stringify(matrix)}].includes(relative)) {
+          text=text.replace(/^#{1,6}.*$/gm,'# 한글 제목').replace('는 primary nav가 아니라 Dashboard 내부 섹션 또는 직접 route로 취급합니다.','는 기본 탐색에서 제외하고 진단 경로로 설명합니다.');
+        }
+        if(relative===mutation.path) text=text.replaceAll(mutation.remove,'');
+        if(relative==='server.sh' && mutation.dispatch) {
+          const start=text.indexOf('  '+mutation.dispatch+')'),end=text.indexOf('    ;;',start);
+          if(start<0||end<0)throw new Error('반례 dispatch 위치 없음');
+          text=text.slice(0,start)+text.slice(start,end).replaceAll(/verify_[a-z0-9_]+\\.mjs/g,'verify_other.mjs')+text.slice(end);
+        }
+        return Buffer.isBuffer(raw)?Buffer.from(text):text;
+      };
+      for(const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[key]=()=>{throw new Error('검사에서 파일 변경 금지');};
+      await import(pathToFileURL(path.join(root,'scripts/internal',${JSON.stringify(verifier)})).href);
+    `;
+    const result=spawnSync(process.execPath,['--input-type=module','--eval',source],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024});
+    assert.equal(result.error,undefined); assert.equal(result.signal,null);
+    assert.equal(result.status,exit,result.stdout+result.stderr);
+    if(reason)assert((result.stdout+result.stderr).includes(reason),result.stdout+result.stderr);
+    assert(result.stdout.includes('actual UI not-run'),result.stdout);
+    if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),originalHash);
+  });
+});
+
 test('DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결', () => {
   assert.deepEqual(validateArchitectureContractDocumentation(read('docs/media-server-architecture.md')), []);
 });

@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -33,13 +34,14 @@ check("copy matrix document defines product states", () => {
   const doc = readText("docs/ui-empty-loading-error-copy-matrix.md");
   const required = [
     "media-server.ui-copy-matrix.v1",
-    "`/client/live`",
-    "`/client/dashboard`",
-    "`/ops/dashboard`",
-    "`/ops/rules`",
-    "`/ops/events`",
-    "Ops audit panels",
-    "source URL, raw JSON, debug counter, Developer URL",
+    "/client/live",
+    "/client/dashboard",
+    "/client/events",
+    "/ops/dashboard",
+    "/ops/rules",
+    "/ops/events",
+    "ops-audit-panel",
+    "source URL", "raw JSON", "debug counter", "Developer URL",
     "./server.sh verify-ui-copy-matrix",
   ];
   for (const snippet of required) {
@@ -48,7 +50,7 @@ check("copy matrix document defines product states", () => {
 });
 
 check("client empty loading error copy remains wired", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "emptyState",
     "Live view가 없습니다",
@@ -67,7 +69,7 @@ check("client empty loading error copy remains wired", () => {
 
 check("ops empty loading error copy remains wired", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
-  const shared = readText("src/ingress/product_ui_js.cpp");
+  const pages = readText("src/ingress/product_ui_server_pages.cpp");
   const required = [
     "최근 인시던트 없음",
     "활성 시나리오 인스턴스가 없습니다.",
@@ -80,15 +82,17 @@ check("ops empty loading error copy remains wired", () => {
     "bundle token 발급 실패",
   ];
   for (const snippet of required) {
-    assert(script.includes(snippet) || shared.includes(snippet), `ops copy snippet is missing: ${snippet}`);
+    // 번역 표의 문자열만 남아 있어도 실제 렌더러가 연결됐다고 판정하지 않는다.
+    assert(script.includes(snippet) || pages.includes(snippet), `ops copy snippet is missing: ${snippet}`);
   }
 });
 
 check("server entrypoint exposes copy matrix verifier", () => {
   const server = readText("server.sh");
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  assert(server.includes("verify-ui-copy-matrix"), "server.sh is missing verify-ui-copy-matrix");
-  assert(server.includes("verify_ui_copy_matrix.mjs"), "server.sh is missing verifier script reference");
+  const targets = parseServerDispatches(server).filter(item => item.command === "verify-ui-copy-matrix");
+  assert(targets.length === 1 && targets[0].script === "verify_ui_copy_matrix.mjs",
+    "server.sh missing or mismatched UI copy matrix dispatch");
   assert(inventory.includes("verify_ui_copy_matrix.mjs"), "script inventory is missing verify_ui_copy_matrix.mjs");
 });
 
@@ -107,6 +111,7 @@ console.log("");
 console.log("== UI copy matrix verification summary ==");
 console.log(`- pass: ${checks.length - failCount}`);
 console.log(`- fail: ${failCount}`);
+console.log("- scope: static documentation/source wiring; actual UI not-run");
 
 if (failCount > 0) {
   process.exit(1);

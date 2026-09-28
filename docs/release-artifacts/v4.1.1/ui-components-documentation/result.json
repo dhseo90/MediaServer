@@ -1,0 +1,219 @@
+{
+  "schema": "media-server.v411-documentation-run.v1",
+  "scope": "UI 컴포넌트·상태 문구 안내와 현행 정적 소비자. 제품/UI 실행 아님",
+  "baseCommit": "cd2122459e030e3cb9ba7204eb24c1000b7950ea",
+  "planned": [
+    "구형 문서 제목 pin 거부 반례를 실행 전 등록",
+    "잘못된 Client 소스 참조의 기존 실패 1회 확인",
+    "현재 문서·구현 연결과 정상/누락/오연결 반례",
+    "문서 링크·원본 보존·정리·분할 커밋"
+  ],
+  "commands": [
+    {
+      "phase": "기존 소비자의 파일 참조 불일치 확인. 예상 RED 아님",
+      "command": "./server.sh",
+      "args": [
+        "verify-ui-copy-matrix"
+      ],
+      "startedAt": "2026-09-28T22:58:24.826Z",
+      "elapsedMs": 384,
+      "exit": 1,
+      "signal": null,
+      "stdout": "[pass] copy matrix document defines product states\n[pass] ops empty loading error copy remains wired\n[pass] server entrypoint exposes copy matrix verifier\n\n== UI copy matrix verification summary ==\n- pass: 3\n- fail: 1\n",
+      "stderr": "[fail] client empty loading error copy remains wired: client copy snippet is missing: emptyState\n"
+    },
+    {
+      "phase": "정의 등록 후 초안 RED/기존 결함 확인",
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-name-pattern=DOC-SHELL-COPY",
+        "scripts/internal/documentation_contract.test.mjs"
+      ],
+      "startedAt": "2026-09-28T22:59:30.351Z",
+      "elapsedMs": 672,
+      "exit": 1,
+      "signal": null,
+      "stdout": "▶ DOC-SHELL-COPY 현행 예제·문구 소비자의 제목 변경 허용과 누락 거부\n  ✖ 한글 제목·다른 문장 shell 안내 (23.749208ms)\n  ✖ 한글 제목·다른 문장 상태 안내 (23.393125ms)\n  ✔ media-server.product-shell-component-examples.v1 누락 (21.054042ms)\n  ✔ ProductUiCss() 누락 (21.926292ms)\n  ✔ ProductSharedUiScript() 누락 (21.586458ms)\n  ✔ ClientShellCss() 누락 (20.581375ms)\n  ✔ ProductDesignTokensCss() 누락 (21.830709ms)\n  ✔ /ops/events 경계 누락 (20.955209ms)\n  ✔ source URL 경계 누락 (21.8715ms)\n  ✔ Developer URL 경계 누락 (20.946ms)\n  ✔ raw JSON 경계 누락 (21.458708ms)\n  ✔ rule/profile 경계 누락 (21.095083ms)\n  ✔ session 경계 누락 (21.375167ms)\n  ✔ app-chrome 예제 누락 (21.846042ms)\n  ✔ tile-stage 예제 누락 (21.669542ms)\n  ✖ aria-live=\"polite\" 예제 누락 (21.7255ms)\n  ✖ 문구 schema 누락 (22.579625ms)\n  ✖ 문구 route 누락 (22.811667ms)\n  ✖ 현행 Client 구현 문구 누락 (22.995041ms)\n  ✖ Ops 구현 문구 누락 (25.259541ms)\n  ✖ verify-product-shell-examples 실행 대상 오연결 (22.558791ms)\n  ✔ verify-product-shell-examples 등록 누락 (22.437833ms)\n  ✖ verify-ui-copy-matrix 실행 대상 오연결 (23.55825ms)\n  ✖ verify-ui-copy-matrix 등록 누락 (23.881708ms)\n✖ DOC-SHELL-COPY 현행 예제·문구 소비자의 제목 변경 허용과 누락 거부 (534.66875ms)\nℹ tests 25\nℹ suites 0\nℹ pass 14\nℹ fail 11\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 647.671958\n\n✖ failing tests:\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ 한글 제목·다른 문장 shell 안내 (23.749208ms)\n  AssertionError [ERR_ASSERTION]: [pass] examples document includes stable class examples\n  [pass] UI guide references product shell examples verifier\n  [pass] server entrypoint exposes product shell examples verifier\n  \n  == Product shell examples verification summary ==\n  - pass: 3\n  - fail: 2\n  - scope: static documentation/source wiring; actual UI not-run\n  [fail] examples document defines product shell component contract: examples doc missing snippet: Product Shell\n  [fail] examples document keeps route boundaries explicit: examples boundary missing snippet: `/ops/events`는 primary nav가 아니라 Dashboard 내부 섹션 또는 직접 route로 취급합니다.\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:227:12)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ 한글 제목·다른 문장 상태 안내 (23.393125ms)\n  AssertionError [ERR_ASSERTION]: [pass] copy matrix document defines product states\n  [pass] ops empty loading error copy remains wired\n  [pass] server entrypoint exposes copy matrix verifier\n  \n  == UI copy matrix verification summary ==\n  - pass: 3\n  - fail: 1\n  [fail] client empty loading error copy remains wired: client copy snippet is missing: emptyState\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:227:12)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ aria-live=\"polite\" 예제 누락 (21.7255ms)\n  AssertionError [ERR_ASSERTION]: [pass] examples document defines product shell component contract\n  [pass] examples document keeps route boundaries explicit\n  [pass] examples document includes stable class examples\n  [pass] UI guide references product shell examples verifier\n  [pass] server entrypoint exposes product shell examples verifier\n  \n  == Product shell examples verification summary ==\n  - pass: 5\n  - fail: 0\n  - scope: static documentation/source wiring; actual UI not-run\n  \n  \n  0 !== 1\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:227:12)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 0,\n    expected: 1,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ 문구 schema 누락 (22.579625ms)\n  AssertionError [ERR_ASSERTION]: [pass] ops empty loading error copy remains wired\n  [pass] server entrypoint exposes copy matrix verifier\n  \n  == UI copy matrix verification summary ==\n  - pass: 2\n  - fail: 2\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:229:5)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ 문구 route 누락 (22.811667ms)\n  AssertionError [ERR_ASSERTION]: [pass] ops empty loading error copy remains wired\n  [pass] server entrypoint exposes copy matrix verifier\n  \n  == UI copy matrix verification summary ==\n  - pass: 2\n  - fail: 2\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:229:5)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ 현행 Client 구현 문구 누락 (22.995041ms)\n  AssertionError [ERR_ASSERTION]: [pass] copy matrix document defines product states\n  [pass] ops empty loading error copy remains wired\n  [pass] server entrypoint exposes copy matrix verifier\n  \n  == UI copy matrix verification summary ==\n  - pass: 3\n  - fail: 1\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:229:5)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ Ops 구현 문구 누락 (25.259541ms)\n  AssertionError [ERR_ASSERTION]: [pass] copy matrix document defines product states\n  [pass] server entrypoint exposes copy matrix verifier\n  \n  == UI copy matrix verification summary ==\n  - pass: 2\n  - fail: 2\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:229:5)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ verify-product-shell-examples 실행 대상 오연결 (22.558791ms)\n  AssertionError [ERR_ASSERTION]: [pass] examples document defines product shell component contract\n  [pass] examples document keeps route boundaries explicit\n  [pass] examples document includes stable class examples\n  [pass] UI guide references product shell examples verifier\n  \n  == Product shell examples verification summary ==\n  - pass: 4\n  - fail: 1\n  - scope: static documentation/source wiring; actual UI not-run\n  [fail] server entrypoint exposes product shell examples verifier: server.sh missing verifier script reference\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:228:15)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ verify-ui-copy-matrix 실행 대상 오연결 (23.55825ms)\n  AssertionError [ERR_ASSERTION]: [pass] copy matrix document defines product states\n  [pass] ops empty loading error copy remains wired\n  \n  == UI copy matrix verification summary ==\n  - pass: 2\n  - fail: 2\n  [fail] client empty loading error copy remains wired: client copy snippet is missing: emptyState\n  [fail] server entrypoint exposes copy matrix verifier: server.sh is missing verifier script reference\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:228:15)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/documentation_contract.test.mjs:202:73\n✖ verify-ui-copy-matrix 등록 누락 (23.881708ms)\n  AssertionError [ERR_ASSERTION]: [pass] copy matrix document defines product states\n  [pass] ops empty loading error copy remains wired\n  \n  == UI copy matrix verification summary ==\n  - pass: 2\n  - fail: 2\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:229:5)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:202:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "node",
+      "args": [
+        "--test",
+        "scripts/internal/documentation_contract.test.mjs"
+      ],
+      "startedAt": "2026-09-28T23:06:38.838Z",
+      "elapsedMs": 1690,
+      "exit": 0,
+      "signal": null,
+      "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.87275ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.415125ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.198ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.319542ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.0875ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.466916ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.167334ms)\n✔ DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용 (0.43625ms)\n✔ DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패 (0.601833ms)\n▶ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파\n  ✔ 현행 화면·JS·CSS·문서 (38.2665ms)\n  ✔ 화면 marker 누락: data-testid=\"ops-rule-scenario-review-loop\" (33.02175ms)\n  ✔ 화면 marker 누락: data-review-loop=\"expected-event-type-conflict-missing-reference-preset-eventrecord-coverage\" (33.705542ms)\n  ✔ 화면 marker 누락: id=\"opsRulesReviewEventRecordLink\" (33.706667ms)\n  ✔ 화면 marker 누락: data-event-record-coverage-link=\"/ops/events\" (33.30125ms)\n  ✔ JS 연결 누락 (34.989333ms)\n  ✔ CSS 연결 누락 (36.203792ms)\n  ✔ 문서의 검사 범위 누락 (35.296542ms)\n✔ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파 (281.488958ms)\n▶ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부\n  ✔ 과거 backlog 없이 현행 shell 검사 (23.403042ms)\n  ✔ 과거 backlog 없이 현행 token 검사 (22.002541ms)\n  ✔ Client CSS 누락 (22.769ms)\n  ✔ Client JS 누락 (23.097666ms)\n  ✔ 공통 CSS 누락 (23.513ms)\n  ✔ shell 문서 연결 누락 (22.908791ms)\n  ✔ shell 명령 등록 누락 (23.232958ms)\n  ✔ token 검사 등록 누락 (24.694417ms)\n  ✔ token 문서 연결 누락 (24.066833ms)\n  ✔ raw 색상 반례 (23.816292ms)\n  ✔ 분리된 Client raw 색상 반례 (23.861583ms)\n  ✔ 분리된 Client token hook 누락 (22.435208ms)\n✔ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부 (280.434958ms)\n▶ DOC-SHELL-COPY 현행 예제·문구 소비자의 제목 변경 허용과 누락 거부\n  ✔ 한글 제목·다른 문장 shell 안내 (24.53375ms)\n  ✔ 한글 제목·다른 문장 상태 안내 (24.124709ms)\n  ✔ media-server.product-shell-component-examples.v1 누락 (22.589584ms)\n  ✔ ProductUiCss() 누락 (23.078959ms)\n  ✔ ProductSharedUiScript() 누락 (23.415292ms)\n  ✔ ClientShellCss() 누락 (23.608542ms)\n  ✔ ProductDesignTokensCss() 누락 (23.708792ms)\n  ✔ /ops/events 경계 누락 (23.044125ms)\n  ✔ source URL 경계 누락 (23.174334ms)\n  ✔ Developer URL 경계 누락 (23.120333ms)\n  ✔ raw JSON 경계 누락 (24.269875ms)\n  ✔ rule/profile 경계 누락 (23.156583ms)\n  ✔ session 경계 누락 (24.57175ms)\n  ✔ app-chrome 예제 누락 (24.873959ms)\n  ✔ chip warn 예제 누락 (24.160709ms)\n  ✔ tile-stage 예제 누락 (23.182084ms)\n  ✔ aria-live=\"polite\" 예제 누락 (22.377667ms)\n  ✔ 문구 schema 누락 (26.740875ms)\n  ✔ 문구 route 누락 (25.403667ms)\n  ✔ 현행 Client 구현 문구 누락 (25.714625ms)\n  ✔ Ops 구현 문구 누락 (27.977459ms)\n  ✔ 번역 표만 남고 초기 화면 문구 누락 (24.712791ms)\n  ✔ verify-product-shell-examples 실행 대상 오연결 (24.155208ms)\n  ✔ verify-product-shell-examples 등록 누락 (24.887583ms)\n  ✔ verify-ui-copy-matrix 실행 대상 오연결 (23.700625ms)\n  ✔ verify-ui-copy-matrix 등록 누락 (24.366792ms)\n✔ DOC-SHELL-COPY 현행 예제·문구 소비자의 제목 변경 허용과 누락 거부 (630.066666ms)\n✔ DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결 (0.2005ms)\n✔ DOC-ARCH-02 제목·배치·녹화 설명은 과거 파일 해시로 고정하지 않음 (0.202542ms)\n✔ DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패 (0.261792ms)\n✔ DOC-METADATA-01 현행 소비 계약 유지·제목과 문장 변경 허용 (0.099708ms)\n✔ DOC-METADATA-02 문서·권한·좌표·동기화·예제 연결 누락 거부 (0.166625ms)\n▶ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파\n  ✔ 문서 제목·녹화 설명 변경 (29.740042ms)\n  ✔ 필수 권한 설명 제거 (28.759792ms)\n  ✔ 역사 감사에서도 현행 권한 설명 검사 (29.787667ms)\n  ✔ 현행 문서 부재 (28.767208ms)\n  ✔ 현재 제품 파일 부재 (29.75475ms)\n  ✔ 연동 안내 명령 제거 (28.94625ms)\n  ✔ metadata 문서 부재 (29.022167ms)\n  ✔ metadata 권한 설명 제거 (29.438125ms)\n  ✔ 역사 감사에서도 metadata 좌표 설명 검사 (29.790583ms)\n  ✔ 역사 감사의 metadata 문서 pin 변경 (29.896875ms)\n  ✔ 역사 감사의 인증 코드 pin 변경 (28.689ms)\n  ✔ 실제 sample pin 변경 (27.679042ms)\n✔ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파 (351.224708ms)\nℹ tests 76\nℹ suites 0\nℹ pass 76\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1667.005833\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "./server.sh",
+      "args": [
+        "verify-product-shell-examples"
+      ],
+      "startedAt": "2026-09-28T23:06:40.529Z",
+      "elapsedMs": 36,
+      "exit": 0,
+      "signal": null,
+      "stdout": "[pass] examples document defines product shell component contract\n[pass] examples document keeps route boundaries explicit\n[pass] examples document includes stable class examples\n[pass] UI guide references product shell examples verifier\n[pass] server entrypoint exposes product shell examples verifier\n\n== Product shell examples verification summary ==\n- pass: 5\n- fail: 0\n- scope: static documentation/source wiring; actual UI not-run\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "./server.sh",
+      "args": [
+        "verify-ui-copy-matrix"
+      ],
+      "startedAt": "2026-09-28T23:06:40.566Z",
+      "elapsedMs": 35,
+      "exit": 0,
+      "signal": null,
+      "stdout": "[pass] copy matrix document defines product states\n[pass] client empty loading error copy remains wired\n[pass] ops empty loading error copy remains wired\n[pass] server entrypoint exposes copy matrix verifier\n\n== UI copy matrix verification summary ==\n- pass: 4\n- fail: 0\n- scope: static documentation/source wiring; actual UI not-run\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "./server.sh",
+      "args": [
+        "verify-ui-copy-i18n-parity"
+      ],
+      "startedAt": "2026-09-28T23:06:40.602Z",
+      "elapsedMs": 363,
+      "exit": 0,
+      "signal": null,
+      "stdout": "[pass] product translation map includes recent UI copy\n[pass] English screenshot-visible copy QA is pinned\n[pass] v3.9.1 docs screenshot-visible copy is mapped\n[pass] product translation patterns include repeated live tile labels\n[pass] client live tile a11y i18n snapshot is pinned\n[pass] copy matrix references i18n parity verifier\n[pass] server entrypoint exposes i18n parity verifier\n\n== UI copy i18n parity verification summary ==\n- pass: 7\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "./server.sh",
+      "args": [
+        "verify-product-ui-token-drift"
+      ],
+      "startedAt": "2026-09-28T23:06:40.965Z",
+      "elapsedMs": 37,
+      "exit": 0,
+      "signal": null,
+      "stdout": "[pass] semantic token --color-bg has theme definitions\n[pass] semantic token --color-surface has theme definitions\n[pass] semantic token --color-text has theme definitions\n[pass] semantic token --color-primary has theme definitions\n[pass] semantic token --color-warning has theme definitions\n[pass] semantic token --color-danger has theme definitions\n[pass] semantic token --color-selection-ring has theme definitions\n[pass] semantic token --color-modal-backdrop has theme definitions\n[pass] semantic token --color-media-bg has theme definitions\n[pass] design token --radius-sm is centralized\n[pass] design token --radius-md is centralized\n[pass] design token --radius-lg is centralized\n[pass] design token --space-1 is centralized\n[pass] design token --space-2 is centralized\n[pass] design token --space-3 is centralized\n[pass] design token --space-4 is centralized\n[pass] design token --space-6 is centralized\n[pass] design token --shadow-sm is centralized\n[pass] design token --shadow-md is centralized\n[pass] design token --overlay-stage-gloss-shadow is centralized\n[pass] design token --overlay-point-shadow is centralized\n[pass] design token --overlay-badge-stroke is centralized\n[pass] product CSS body does not introduce raw hex or rgb colors\n[pass] tokenized CSS hook exists for box-shadow: 0 0 0 2px var(--color-selection-ring)\n[pass] tokenized CSS hook exists for background: var(--color-modal-backdrop)\n[pass] tokenized CSS hook exists for box-shadow: var(--overlay-stage-gloss-shadow)\n[pass] tokenized CSS hook exists for filter: var(--overlay-point-shadow)\n[pass] tokenized CSS hook exists for stroke: var(--overlay-badge-stroke)\n[pass] tokenized CSS hook exists for background: var(--color-media-bg)\n[pass] server.sh mentions token drift verification\n[pass] docs/ui-guide.md mentions token drift verification\n[pass] server dispatch keeps token drift verification\n\n== Product UI token drift verification summary ==\n- pass: 32\n- fail: 0\n- scope: static documentation/source wiring; actual UI not-run\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "./server.sh",
+      "args": [
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T23:06:41.002Z",
+      "elapsedMs": 348,
+      "exit": 0,
+      "signal": null,
+      "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14935\n- local images: 14\n- local anchors: 279\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+      "stderr": ""
+    },
+    {
+      "phase": "문서 고정 후 자체/영향 정적 검사",
+      "command": "git",
+      "args": [
+        "diff",
+        "--check"
+      ],
+      "startedAt": "2026-09-28T23:06:41.350Z",
+      "elapsedMs": 14,
+      "exit": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "notRun": [
+    "제품 실행·실제 UI·브라우저·30분·120분·외부 서비스"
+  ],
+  "cleanup": {
+    "status": "완료",
+    "ownedRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-ui-docs.JLgFVFYdjU",
+    "files": [
+      {
+        "name": "result.json",
+        "bytes": 28402
+      }
+    ],
+    "processes": "테스트 자식 프로세스 전부 종료. 서버/브라우저/포트 사용 없음.",
+    "removedRootAbsent": true
+  },
+  "initialFailure": {
+    "expectedReadFinding": "Client 구현이 product_ui_client_scripts.cpp로 분리됐지만 검증기가 product_ui_page_scripts.cpp를 읽음",
+    "observed": true,
+    "correctionScope": "실제 파일 위치로 연결. 필요한 문구/assertion 유지."
+  },
+  "expectedRed": {
+    "command": "node --test --test-name-pattern=DOC-SHELL-COPY scripts/internal/documentation_contract.test.mjs",
+    "reason": "기존 shell의 과거 제목/문장 pin, dispatch 오연결 검출 부재, copy의 기존 Client 파일 참조 불일치. 이 중 제목 허용 사례만 예상 RED이며 기존 파일 참조는 별도 기존 결함."
+  },
+  "preservation": [
+    {
+      "path": "docs/product-shell-component-examples.md",
+      "commit": "cd2122459e030e3cb9ba7204eb24c1000b7950ea",
+      "originalSha256": "3eeed45fdabd347ddbead26d2e88aab15a5a7973ca0df1f70f9f0b15bd653dd5",
+      "currentSha256": "cdd726e9c8769a0ccea6f8339f939169f78a150294752b0e7f3304230c848d9d",
+      "beforeBytes": 7612,
+      "afterBytes": 12731,
+      "beforeLines": 182,
+      "afterLines": 217,
+      "originalBlobVerified": true
+    },
+    {
+      "path": "docs/ui-empty-loading-error-copy-matrix.md",
+      "commit": "cd2122459e030e3cb9ba7204eb24c1000b7950ea",
+      "originalSha256": "72fad947891a676c2fd55f799c3d702c846f9ebdbc8f1f6dcd137db012c8d803",
+      "currentSha256": "2f3dbd162f1bbb9a53b53d6ce2f164be4fc8a51749d0fb8596f18e610579672b",
+      "beforeBytes": 3360,
+      "afterBytes": 6584,
+      "beforeLines": 38,
+      "afterLines": 73,
+      "originalBlobVerified": true
+    }
+  ],
+  "review": {
+    "author": "기존 단일 담당자가 두 문서 전문과 소유 구현을 대조, 메인이 두 문서 전문·원본 diff와 변경된 verifier/자체검사를 검토",
+    "corrected": [
+      "옛 v1.8.0 현재형과 영문 제목/문장 pin 제거",
+      "실제 helper/token/class와 관리자 nav 조건, tile-stage/head/actions 및 숨김 mode select 분리",
+      "Live 상세 오류와 Dashboard/Events 오류, 초기 loading·audit 캐시 흐름 구분",
+      "Client 소스의 잘못된 경로 수정, 번역 표 문자열만으로 Ops 연결 통과하지 않음",
+      "정확 dispatch 대상과 원본 불변·실패 전파 반례"
+    ],
+    "sourcePaths": [
+      "src/ingress/product_ui_server_pages.cpp",
+      "src/ingress/product_ui_auth_pages.cpp",
+      "src/ingress/product_ui_components.cpp",
+      "src/ingress/product_ui_css.cpp",
+      "src/ingress/product_ui_client_css.cpp",
+      "src/ingress/product_ui_client_scripts.cpp",
+      "src/ingress/product_ui_page_scripts.cpp",
+      "src/ingress/product_ui_js.cpp",
+      "src/ingress/webrtc_http_server.cpp"
+    ],
+    "sourceReviewBoundary": "관련 helper/renderer/CSS 구간 검토. 제품 소스 전체 전수 리뷰나 실제 UI 실행 아님.",
+    "preserved": [
+      "schema·CLI·API·Auth/정보 비노출·제품 코드",
+      "실제 UI 424개 및 다른 fixture·현재 이미지 바이트"
+    ],
+    "featureConsumers": [],
+    "semanticRebind": "변경 verifier 파일을 소비하는 현재 986 manifest 항목 없음. fixture 재생성 불필요."
+  },
+  "measurement": {
+    "tokenStart": null,
+    "tokenEnd": null,
+    "tokenConsumed": null,
+    "reason": "이 묶음의 독립 토큰 집계 없음.",
+    "elapsed": "개별 commands.elapsedMs",
+    "source": "실제 child process 출력·시각·Git blob 대조"
+  },
+  "status": "문서·도구 자체/관련 정적 검사 통과. 제품/UI·릴리즈 전체 PASS 아님"
+}
