@@ -28,7 +28,7 @@ function fixture(run){
 }
 function cli(c,root,args=[]){return spawnSync(process.execPath,[fileURLToPath(new URL('./verify_'+c.command.slice(7).replaceAll('-','_')+'.mjs',import.meta.url)),'--root',root,...args],{encoding:'utf8'});}
 
-test('ENTRY-DOC-01 과거 실행 기록·Git 없이 현행 문서와 다섯 회귀 입력 연결',()=>fixture(({root})=>{
+test('ENTRY-DOC-01 과거 실행 기록·Git 없이 현행 문서와 등록된 회귀 입력 연결',()=>fixture(({root})=>{
   for(const c of sample.cases){const x=loadEntryInputs(root,c.command);assert.deepEqual(x.errors,[]);assert.deepEqual(validateBoundaryCase(x.fixture,x.baseline,c),[]);}
 }));
 test('ENTRY-DOC-02 버전 순서와 잘못된 버전 거부',()=>{
@@ -58,7 +58,7 @@ test('ENTRY-DOC-07 회귀 입력 누락/중복·외부 symlink 거부',()=>fixtu
   put('test/fixtures/entry_baseline_cases.json',{...sample,cases:[c,c]});assert.throws(()=>loadEntryInputs(root,c.command));
   const target=path.join(root,'test/fixtures/entry_baseline_cases.json');fs.unlinkSync(target);fs.symlinkSync('/etc/passwd',target);assert.throws(()=>loadEntryInputs(root,c.command),/경로 이탈/);
 }));
-test('ENTRY-DOC-08 기존 CLI 다섯 개를 종료 기록 없는 소스에서 실행',()=>fixture(({root})=>{
+test('ENTRY-DOC-08 등록된 기존 CLI를 종료 기록 없는 소스에서 실행',()=>fixture(({root})=>{
   for(const c of sample.cases){const r=cli(c,root);assert.equal(r.status,0,r.stdout+r.stderr);assert(r.stdout.includes('- fail: 0'));assert(r.stdout.includes('- featureImplementation: not-run-by-this-command'));assert(r.stdout.includes('- uiFulltest: not-run-by-this-command'));}
 }));
 test('ENTRY-DOC-09 CLI 실제 실패 exit와 옵션 오류 전파',()=>fixture(({root,put})=>{
@@ -69,3 +69,17 @@ test('ENTRY-DOC-09 CLI 실제 실패 exit와 옵션 오류 전파',()=>fixture((
 test('ENTRY-DOC-10 CLI 회귀 fixture 변조·실행 승격 거부',()=>fixture(({root,put})=>{
   for(const c of sample.cases){put('test/fixtures/entry_baseline_cases.json',{...sample,executionEvidence:true});assert.equal(cli(c,root).status,1);}
 }));
+
+test('ENTRY-DOC-11 과거 선택·fallback·제외·제약의 변조와 현행 정책 승격 거부',()=>{
+  const decision={scope:'historical-not-current-policy',selected:'과거 선택',fallback:'과거 대안',excluded:['당시 비범위'],constraints:['당시 제약']};
+  const expected={...sample.cases[0],decision};
+  assert.deepEqual(validateBoundaryCase(sample,expected,expected),[]);
+  for(const patch of [{decision:undefined},{decision:{...decision,scope:'current'}},{decision:{...decision,selected:'변조'}},{decision:{...decision,fallback:''}},{decision:{...decision,excluded:[]}},{decision:{...decision,constraints:[]}}])assert(validateBoundaryCase(sample,{...expected,...patch},expected).length>0);
+  assert(validateBoundaryCase({...sample,provenance:{...sample.provenance,decisionSource:undefined}},expected,expected).length>0);
+  fixture(({root,put})=>{
+    for(const c of sample.cases.filter(c=>c.decision)){
+      put('test/fixtures/entry_baseline_cases.json',{...sample,cases:sample.cases.map(x=>x.command===c.command?{...x,decision:{...x.decision,scope:'current'}}:x)});
+      assert.equal(cli(c,root).status,1);
+    }
+  });
+});

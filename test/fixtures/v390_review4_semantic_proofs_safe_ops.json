@@ -1826,9 +1826,9 @@
     {
       "id": "OPS-051",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "20650b1a86dd3ee3a7f3f03cdb3e23a50ed56fe83f6b75595bf1748587ece7ba",
+      "featureContractSha256": "68d31aeddcaf9439b77c749328af359838a2b87cd184261bc9e37bd9ed8d5fd6",
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "safe081BoundaryObserved",
+      "evidenceToken": "ops051GateObserved",
       "verifier": {
         "command": "verify-v300-entry-baseline",
         "file": "scripts/internal/verify_v300_entry_baseline.mjs"
@@ -1836,44 +1836,44 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
-          "line": 142,
-          "anchor": "check(\"SAFE-081 canonical V300 source-of-truth boundary\", () => {",
+          "line": 39,
+          "anchor": "check(\"OPS-051 canonical V300 historical baseline gate\", () => {",
           "symbol": "canonical-owner:OPS-051",
-          "contextSha256": "8a8adb97b52f06a504a292574b2d5e5c02e8c580d86efda8b1c4e48477f4b585"
+          "contextSha256": "db5ce204d50584c176d428ef540806c8d1dc411d2d9265adf2612c04c849b942"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
-          "line": 143,
-          "anchor": "const baselineCommandDocumented = files.server.includes(\"verify-v300-entry-baseline\");",
+          "line": 42,
+          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
           "symbol": "flow:OPS-051",
-          "contextSha256": "bab14775aada4771a5a5d27523deb3023f45905baa1c02129f0d92d1701e1508"
+          "contextSha256": "89eb108ce4f047d263f73698c2233e65f8dcbf530aeb201f8715a0d54dd4c549"
         },
         "action": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
-          "line": 144,
-          "anchor": "const v300SourceTruthAligned = version === \"3.9.0\" && files.backlog.includes(\"## v3.0.0 S00 개발 기록\") && files.releaseRecords.includes(\"V300 source-of-truth split\");",
+          "line": 43,
+          "anchor": "const excludedCompletionAbsent = fixture.executionEvidence === false &&",
           "symbol": "flow:OPS-051",
-          "contextSha256": "60072b3790f5024a214e7f57d31b1fc71ca8b6b57cec320c4bbbe2115a3f8fac"
+          "contextSha256": "ed91834d6abf4d14544789ff8a0423c02766cc8e2be66f8ffc67e0da41b6e5c7"
         },
         "state": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
-          "line": 145,
-          "anchor": "const safe081BoundaryObserved = baselineCommandDocumented && v300SourceTruthAligned;",
+          "line": 45,
+          "anchor": "const ops051GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&",
           "symbol": "flow:OPS-051:asserted-state",
-          "contextSha256": "e4984ab674b927b5016c77d96679383f6079cffd47bb4202280242aa6f071462"
+          "contextSha256": "575e4c04ef0432ebefbfba78b998c4e225dd7f40ef01c3d1c377be0722f5d859"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
-          "line": 146,
-          "anchor": "assert(safe081BoundaryObserved && (baselineCommandDocumented && v300SourceTruthAligned),",
+          "line": 47,
+          "anchor": "assert(ops051GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,",
           "symbol": "canonical-readback:verify-v300-entry-baseline",
-          "contextSha256": "66f23cc06b9e981eeb40ff853a262b6c1ac9217ef35ed92b18e46f61ba84e67d"
+          "contextSha256": "06e742794388f66a66a1d053b8b1a0ae1979ffef617707b95af96e2b797c1594"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v300-entry-baseline",
           "anchor": "verify-v300-entry-baseline)",
-          "line": 1889,
+          "line": 2050,
           "contextSha256": "b4b1f51553305ee243886a203539bd3e74a9dc638dc63c568edbdb3ce872c531"
         }
       },
@@ -1883,43 +1883,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-051 owner-dispatch",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:142",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:143"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:39",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:42"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "OPS-051 dispatch-action",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:143",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:144"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:42",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:43"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-051 action-state",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:144",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:145"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:43",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:45"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-051 state-readback",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:145",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:146"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:45",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-entry-baseline",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:146",
-          "target": "server.sh:1889"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:47",
+          "target": "server.sh:2050"
         }
       ],
-      "rationale": "OPS-051 exact reviewed source flow.",
+      "rationale": "OPS-051 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
       "failureReason": ""
     },
     {
@@ -2824,9 +2824,9 @@
     {
       "id": "OPS-061",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "f18a71dad68ee98e5377e37648f198b420aa262197e544f845becae964c261b3",
+      "featureContractSha256": "f9fddbdc9be87e214305535be33e5d0797618d8e23344131449cddc3d6d913e6",
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "safe093BoundaryObserved",
+      "evidenceToken": "ops061GateObserved",
       "verifier": {
         "command": "verify-v310-entry-baseline",
         "file": "scripts/internal/verify_v310_entry_baseline.mjs"
@@ -2834,44 +2834,44 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
-          "line": 143,
-          "anchor": "check(\"SAFE-093 canonical V310 source-of-truth boundary\", () => {",
+          "line": 39,
+          "anchor": "check(\"OPS-061 canonical V310 historical baseline gate\", () => {",
           "symbol": "canonical-owner:OPS-061",
-          "contextSha256": "eaf722693a36b33049c783df64604cf17fe19e7f9db8a3847bd1b9da2ef06cbf"
+          "contextSha256": "ab8957a3ea610e916a1ab3d21bb90b9c27a9789589b754b8be69afad73727fb0"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
-          "line": 144,
-          "anchor": "const baselineCommandDocumented = files.server.includes(\"verify-v310-entry-baseline\");",
+          "line": 42,
+          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
           "symbol": "flow:OPS-061",
-          "contextSha256": "46c52f69eac9376f9c790606ffeb5c620c6f190651ddc7e7aa72b70d446f3cec"
+          "contextSha256": "0dec1a0e38ff350bf80343e248ffd1f9dc2eb4a1839bc813e1d44fa657b02444"
         },
         "action": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
-          "line": 145,
-          "anchor": "const v310SourceTruthAligned = version === \"3.9.0\" && files.backlog.includes(\"## v3.1.0 S00 개발 기록\") && files.releaseRecords.includes(\"V310 source-of-truth split\");",
+          "line": 43,
+          "anchor": "const excludedCompletionAbsent = fixture.executionEvidence === false &&",
           "symbol": "flow:OPS-061",
-          "contextSha256": "1b883ba1ca031e47dfaab1525a58fc91b1a78e42fd8ccd970a8fad55724fb120"
+          "contextSha256": "ed91834d6abf4d14544789ff8a0423c02766cc8e2be66f8ffc67e0da41b6e5c7"
         },
         "state": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
-          "line": 146,
-          "anchor": "const safe093BoundaryObserved = baselineCommandDocumented && v310SourceTruthAligned;",
+          "line": 45,
+          "anchor": "const ops061GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&",
           "symbol": "flow:OPS-061:asserted-state",
-          "contextSha256": "591548d89249a9d02880da9d5fdec0f2679cf4f4fd74f6ca184de992f5e80a92"
+          "contextSha256": "b71d5ae856d4aed4ac1fd47103debb1de02250a598b5f26a0c51740fc0d5179d"
         },
         "readback": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
-          "line": 147,
-          "anchor": "assert(safe093BoundaryObserved && (baselineCommandDocumented && v310SourceTruthAligned),",
+          "line": 47,
+          "anchor": "assert(ops061GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,",
           "symbol": "canonical-readback:verify-v310-entry-baseline",
-          "contextSha256": "578be6b1eb9b3f5009ee36fcb33f265eb74a2c2bff657bea79c4dbb432b5f5ad"
+          "contextSha256": "2280b4bd4676dc71933967fd7f506b4888ae104b62f61737f3aea2bb213e6d6e"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v310-entry-baseline",
           "anchor": "verify-v310-entry-baseline)",
-          "line": 1929,
+          "line": 2090,
           "contextSha256": "92dd83a7dc3ed32abe3f2e8af2b7cf1d6ca016c534e1dbef0fa6d6fd5a0e3991"
         }
       },
@@ -2881,43 +2881,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-061 owner-dispatch",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:143",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:144"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:39",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:42"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "OPS-061 dispatch-action",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:144",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:145"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:42",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:43"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-061 action-state",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:145",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:146"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:43",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:45"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-061 state-readback",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:146",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:147"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:45",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v310-entry-baseline",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:147",
-          "target": "server.sh:1929"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:47",
+          "target": "server.sh:2090"
         }
       ],
-      "rationale": "OPS-061 exact reviewed source flow.",
+      "rationale": "OPS-061 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
       "failureReason": ""
     },
     {
@@ -3621,7 +3621,7 @@
     {
       "id": "OPS-069",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "c451ab62ff5d5907ecc106717ab052a32f56e716026a53cddbae141ff3970cde",
+      "featureContractSha256": "6d8eb71880aa352e689881f7d1dc7327514ce3af71cc7adca60cd3a4b3592364",
       "evidenceMode": "canonical-functional-source-assertion",
       "evidenceToken": "ops069GateObserved",
       "verifier": {
@@ -3633,43 +3633,43 @@
         "owner": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "check:OPS-069 canonical V320 baseline gate",
-          "anchor": "check(\"OPS-069 canonical V320 baseline gate\", () => {",
-          "line": 173,
-          "contextSha256": "eb6269fb5258d18ab3b9e6e39880c9396a828f6d4389c152d113f2340c40dacf"
+          "anchor": "check(\"OPS-069 canonical V320 historical baseline gate\", () => {",
+          "line": 39,
+          "contextSha256": "821c70fcacbecee64794300df58444bd29a1575618b28c0f7e4887812c5d5a8f"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "check:OPS-069 canonical V320 baseline gate",
-          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) &&",
-          "line": 176,
-          "contextSha256": "1dbdb6788412c329eb778a20b424eb8507a0fbc6b940d89af2e06c163ad949b2"
+          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 42,
+          "contextSha256": "28a2af5fcda18016076cf19812f02cd813f7a6a8dfcf31e774044cd5ff68c7a2"
         },
         "action": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "check:OPS-069 canonical V320 baseline gate",
-          "anchor": "const historicalStepRecorded = files.releaseRecords.includes(\"v320 Step 1 entry baseline final\") && files.featureInventory.includes(\"OPS-069\");",
-          "line": 178,
-          "contextSha256": "0c0e55024666461ad14540d39c0a8e447af033222949f9a52f699a90b7a3d326"
+          "anchor": "const excludedCompletionAbsent = fixture.executionEvidence === false &&",
+          "line": 43,
+          "contextSha256": "ed91834d6abf4d14544789ff8a0423c02766cc8e2be66f8ffc67e0da41b6e5c7"
         },
         "state": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "check:OPS-069 canonical V320 baseline gate",
-          "anchor": "const ops069GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && historicalStepRecorded &&",
-          "line": 179,
-          "contextSha256": "8e0f614f9172a4719ab2112edb5abda534240e6dc044dfced05013e70003f613"
+          "anchor": "const ops069GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&",
+          "line": 45,
+          "contextSha256": "ece8bf50f05d1857b113b1a642b7290c68ccef589d86de19fcdc9d5babf86c81"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "check:OPS-069 canonical V320 baseline gate",
-          "anchor": "assert(ops069GateObserved && currentSourceNotRegressed && historicalStepRecorded,",
-          "line": 181,
-          "contextSha256": "b0a96739395e09b6fcea34da1ebbd82ff78d1af37f9caa602c5f4b98dd58e057"
+          "anchor": "assert(ops069GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,",
+          "line": 47,
+          "contextSha256": "166f6d35879fc0c5754dfd4e15f46a8b2c9a9e3cd37b9423f2dc7d5cc3a4bceb"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-entry-baseline",
           "anchor": "verify-v320-entry-baseline)",
-          "line": 1965,
+          "line": 2126,
           "contextSha256": "a8bf4989b26939f4f91323ffad51ab2eff834dd4b75ab8648893767405ab4b1d"
         }
       },
@@ -3679,43 +3679,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-069 owner-dispatch",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:173",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:176"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:39",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:42"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "OPS-069 dispatch-action",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:176",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:178"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:42",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:43"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-069 action-state",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:178",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:179"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:43",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:45"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-069 state-readback",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:179",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:181"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:45",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v320-entry-baseline",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:181",
-          "target": "server.sh:1965"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:47",
+          "target": "server.sh:2126"
         }
       ],
-      "rationale": "OPS-069 exact reviewed source flow.",
+      "rationale": "OPS-069 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
       "failureReason": ""
     },
     {
@@ -4716,9 +4716,9 @@
     {
       "id": "OPS-080",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "5ae8ac3431eb031cd660fb13d6d1e2878309cf2d3ffe737322bd5c1e9fbfb177",
+      "featureContractSha256": "99988784c68440e356567f03f57b6923ef6d807312d080485c7e5a1bb3b78937",
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "safe113BoundaryObserved",
+      "evidenceToken": "ops080GateObserved",
       "verifier": {
         "command": "verify-v330-entry-baseline",
         "file": "scripts/internal/verify_v330_entry_baseline.mjs",
@@ -4728,43 +4728,43 @@
         "owner": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "canonical-owner:OPS-080",
-          "anchor": "check(\"SAFE-113 canonical V330 source-of-truth boundary\", () => {",
-          "line": 166,
-          "contextSha256": "a1cfa2d79d1816b0c74e6c81045108da065047917572124c12535009b3a2f826"
+          "anchor": "check(\"OPS-080 canonical V330 historical baseline gate\", () => {",
+          "line": 39,
+          "contextSha256": "240d70c091790bc1800b370cd3afda613afe7663dd4c37555e9a31174336accd"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "flow:OPS-080",
-          "anchor": "const baselineCommandDocumented = files.server.includes(\"verify-v330-entry-baseline)\");",
-          "line": 167,
-          "contextSha256": "f202ed912f40f82f761d968fceefe5ed2d7d2f77ef9f1cb22cf0f57f0debd008"
+          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 42,
+          "contextSha256": "28a2af5fcda18016076cf19812f02cd813f7a6a8dfcf31e774044cd5ff68c7a2"
         },
         "action": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "flow:OPS-080",
-          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);",
-          "line": 168,
-          "contextSha256": "7060266a658af1244d01faff46422e59ebf7e06b01bc413f8632d6550acb30e0"
+          "anchor": "const excludedCompletionAbsent = fixture.executionEvidence === false &&",
+          "line": 43,
+          "contextSha256": "ed91834d6abf4d14544789ff8a0423c02766cc8e2be66f8ffc67e0da41b6e5c7"
         },
         "state": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "flow:OPS-080",
-          "anchor": "const safe113BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
-          "line": 170,
-          "contextSha256": "0f204f53018a6997baf78785a5e513b100cec1475f0a09f9dbd55b3bc8c346da"
+          "anchor": "const ops080GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&",
+          "line": 45,
+          "contextSha256": "20cc6217e01dc9cabdd8cc4d7e3d9b16678dd4d21c7fecfc5d3b4410cec92faf"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "flow:OPS-080",
-          "anchor": "assert(safe113BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
-          "line": 171,
-          "contextSha256": "ebc2c51926a061e7217b50fdef5869cf8f1371a0299d1a1119c3955cce58372e"
+          "anchor": "assert(ops080GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,",
+          "line": 47,
+          "contextSha256": "f8d5d67cc0dce0bc90e3e1667af2a01a739c626fdb7046e0f438c991351e6880"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v330-entry-baseline",
           "anchor": "verify-v330-entry-baseline)",
-          "line": 2013,
+          "line": 2174,
           "contextSha256": "bed4b4b92f372742979aad2e0fee9469c8a2c286a5fc72a33a16e89e9afce3b4"
         }
       },
@@ -4774,43 +4774,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-080 owner-dispatch",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:166",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:167"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:39",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:42"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "OPS-080 dispatch-action",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:167",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:168"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:42",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:43"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-080 action-state",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:168",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:170"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:43",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:45"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-080 state-readback",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:170",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:171"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:45",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v330-entry-baseline",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:171",
-          "target": "server.sh:2013"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:47",
+          "target": "server.sh:2174"
         }
       ],
-      "rationale": "OPS-080 exact reviewed source flow.",
+      "rationale": "OPS-080 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
       "failureReason": ""
     },
     {
@@ -23138,7 +23138,7 @@
     {
       "id": "SAFE-081",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "f68eac7d82e6c13f3c35e71cd0d3a3db936b7bd37d8ca790c9288518aee7cf22",
+      "featureContractSha256": "8a98c2f6424da9e00bde995dc11523b06102421fbfaba9d889e74415d5ac397e",
       "evidenceMode": "canonical-functional-source-assertion",
       "evidenceToken": "safe081BoundaryObserved",
       "verifier": {
@@ -23151,42 +23151,42 @@
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
           "symbol": "check:SAFE-081 canonical V300 source-of-truth boundary",
           "anchor": "check(\"SAFE-081 canonical V300 source-of-truth boundary\", () => {",
-          "line": 142,
-          "contextSha256": "8a8adb97b52f06a504a292574b2d5e5c02e8c580d86efda8b1c4e48477f4b585"
+          "line": 30,
+          "contextSha256": "39b78e7fab94061bb388feeba468d06905a889542928e7d031f59961a102c7ff"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
           "symbol": "check:SAFE-081 canonical V300 source-of-truth boundary",
-          "anchor": "const baselineCommandDocumented = files.server.includes(\"verify-v300-entry-baseline\");",
-          "line": 143,
-          "contextSha256": "bab14775aada4771a5a5d27523deb3023f45905baa1c02129f0d92d1701e1508"
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v300-entry-baseline)\");",
+          "line": 31,
+          "contextSha256": "08f11bdf62c2ae2c6a98e20116d7926e9e53d33ec34f9fce27a354d703aba09d"
         },
         "action": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
           "symbol": "check:SAFE-081 canonical V300 source-of-truth boundary",
-          "anchor": "const v300SourceTruthAligned = version === \"3.9.0\" && files.backlog.includes(\"## v3.0.0 S00 개발 기록\") && files.releaseRecords.includes(\"V300 source-of-truth split\");",
-          "line": 144,
-          "contextSha256": "60072b3790f5024a214e7f57d31b1fc71ca8b6b57cec320c4bbbe2115a3f8fac"
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 32,
+          "contextSha256": "0ea37d0b4503bea9ae293b96a1af659ed7ec60035c5358c89a8cf7af093e1718"
         },
         "state": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
           "symbol": "check:SAFE-081 canonical V300 source-of-truth boundary",
-          "anchor": "const safe081BoundaryObserved = baselineCommandDocumented && v300SourceTruthAligned;",
-          "line": 145,
-          "contextSha256": "e4984ab674b927b5016c77d96679383f6079cffd47bb4202280242aa6f071462"
+          "anchor": "const safe081BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
+          "line": 34,
+          "contextSha256": "8092a2c7e1cf0cd93cdbdff7f62f621a0d08748c9b0f0a1865c346c05de9f626"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_entry_baseline.mjs",
           "symbol": "check:SAFE-081 canonical V300 source-of-truth boundary",
-          "anchor": "assert(safe081BoundaryObserved && (baselineCommandDocumented && v300SourceTruthAligned),",
-          "line": 146,
-          "contextSha256": "66f23cc06b9e981eeb40ff853a262b6c1ac9217ef35ed92b18e46f61ba84e67d"
+          "anchor": "assert(safe081BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
+          "line": 35,
+          "contextSha256": "5b68450eb1a7148840fa7235b3362c5cb96d291e4bf160e59d04ef81686bbfc7"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v300-entry-baseline",
           "anchor": "verify-v300-entry-baseline)",
-          "line": 1889,
+          "line": 2050,
           "contextSha256": "b4b1f51553305ee243886a203539bd3e74a9dc638dc63c568edbdb3ce872c531"
         }
       },
@@ -23196,43 +23196,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-081 owner-dispatch",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:142",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:143"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:31"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-081 dispatch-action",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:143",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:144"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:31",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:32"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-081 action-state",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:144",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:145"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:34"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-081 state-readback",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:145",
-          "target": "scripts/internal/verify_v300_entry_baseline.mjs:146"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:34",
+          "target": "scripts/internal/verify_v300_entry_baseline.mjs:35"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-entry-baseline",
-          "source": "scripts/internal/verify_v300_entry_baseline.mjs:146",
-          "target": "server.sh:1889"
+          "source": "scripts/internal/verify_v300_entry_baseline.mjs:35",
+          "target": "server.sh:2050"
         }
       ],
-      "rationale": "SAFE-081 exact reviewed source flow.",
+      "rationale": "SAFE-081 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
       "failureReason": ""
     },
     {
@@ -24324,7 +24324,7 @@
     {
       "id": "SAFE-093",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "10d747c95b6091b8a64e4d645731c30585e7a311c412e4de61db6dc5c92a9a43",
+      "featureContractSha256": "47e506cac8ac3b99ee346bb726c9d9a4a9ba655b44a87a1b532e201c3fb2235e",
       "evidenceMode": "canonical-functional-source-assertion",
       "evidenceToken": "safe093BoundaryObserved",
       "verifier": {
@@ -24336,42 +24336,42 @@
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
           "symbol": "check:SAFE-093 canonical V310 source-of-truth boundary",
           "anchor": "check(\"SAFE-093 canonical V310 source-of-truth boundary\", () => {",
-          "line": 143,
-          "contextSha256": "eaf722693a36b33049c783df64604cf17fe19e7f9db8a3847bd1b9da2ef06cbf"
+          "line": 30,
+          "contextSha256": "60b4cfc609858f4c883fd9e7b7e24c2054fb9c874a3771e049f9a53b42fd900e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
           "symbol": "check:SAFE-093 canonical V310 source-of-truth boundary",
-          "anchor": "const baselineCommandDocumented = files.server.includes(\"verify-v310-entry-baseline\");",
-          "line": 144,
-          "contextSha256": "46c52f69eac9376f9c790606ffeb5c620c6f190651ddc7e7aa72b70d446f3cec"
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v310-entry-baseline)\");",
+          "line": 31,
+          "contextSha256": "179a99f828e8e9d7892d70bb45c65b6462e8dd7259b372c2f1d8cdace0b67487"
         },
         "action": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
           "symbol": "check:SAFE-093 canonical V310 source-of-truth boundary",
-          "anchor": "const v310SourceTruthAligned = version === \"3.9.0\" && files.backlog.includes(\"## v3.1.0 S00 개발 기록\") && files.releaseRecords.includes(\"V310 source-of-truth split\");",
-          "line": 145,
-          "contextSha256": "1b883ba1ca031e47dfaab1525a58fc91b1a78e42fd8ccd970a8fad55724fb120"
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 32,
+          "contextSha256": "5764db05b837cdf78066493fc0ae99e98417ae60b243fad0de5fa5e987e50f7a"
         },
         "state": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
           "symbol": "check:SAFE-093 canonical V310 source-of-truth boundary",
-          "anchor": "const safe093BoundaryObserved = baselineCommandDocumented && v310SourceTruthAligned;",
-          "line": 146,
-          "contextSha256": "591548d89249a9d02880da9d5fdec0f2679cf4f4fd74f6ca184de992f5e80a92"
+          "anchor": "const safe093BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
+          "line": 34,
+          "contextSha256": "d8e502827ad718341056e78829670e993f791434c99a834357f853737a9f716e"
         },
         "readback": {
           "file": "scripts/internal/verify_v310_entry_baseline.mjs",
           "symbol": "check:SAFE-093 canonical V310 source-of-truth boundary",
-          "anchor": "assert(safe093BoundaryObserved && (baselineCommandDocumented && v310SourceTruthAligned),",
-          "line": 147,
-          "contextSha256": "578be6b1eb9b3f5009ee36fcb33f265eb74a2c2bff657bea79c4dbb432b5f5ad"
+          "anchor": "assert(safe093BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
+          "line": 35,
+          "contextSha256": "388396abb128486a5ea3d33e93e160c2387b452513d93e97aabd6f77db6370af"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v310-entry-baseline",
           "anchor": "verify-v310-entry-baseline)",
-          "line": 1929,
+          "line": 2090,
           "contextSha256": "92dd83a7dc3ed32abe3f2e8af2b7cf1d6ca016c534e1dbef0fa6d6fd5a0e3991"
         }
       },
@@ -24381,43 +24381,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-093 owner-dispatch",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:143",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:144"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:31"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-093 dispatch-action",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:144",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:145"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:31",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:32"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-093 action-state",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:145",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:146"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:34"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-093 state-readback",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:146",
-          "target": "scripts/internal/verify_v310_entry_baseline.mjs:147"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:34",
+          "target": "scripts/internal/verify_v310_entry_baseline.mjs:35"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v310-entry-baseline",
-          "source": "scripts/internal/verify_v310_entry_baseline.mjs:147",
-          "target": "server.sh:1929"
+          "source": "scripts/internal/verify_v310_entry_baseline.mjs:35",
+          "target": "server.sh:2090"
         }
       ],
-      "rationale": "SAFE-093 exact reviewed source flow.",
+      "rationale": "SAFE-093 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
       "failureReason": ""
     },
     {
@@ -25220,42 +25220,42 @@
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "canonical-safe-102-boundary",
           "anchor": "check(\"SAFE-102 canonical V320 source-of-truth boundary\", () => {",
-          "line": 163,
-          "contextSha256": "1ec1dc8cbee12fca9ef2756915d1daf0eb876ee6946676b3bdce12dc8f614c66"
+          "line": 30,
+          "contextSha256": "53e6f6d6345296a8de40004367578970ca55f8c2cc31f635e60150514354ea3a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "canonical-safe-102-boundary",
-          "anchor": "const baselineCommandDocumented = files.server.includes(\"verify-v320-entry-baseline)\");",
-          "line": 164,
-          "contextSha256": "3228e3fd8f74049b21c262eb1a97ab45c3f54697d5741d97a1ca4e8bcf52eb07"
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v320-entry-baseline)\");",
+          "line": 31,
+          "contextSha256": "bddea9edc22c2385689fda312e6d695ff3395a6e4bee19a0a4e24a79885f8e53"
         },
         "action": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "canonical-safe-102-boundary",
-          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);",
-          "line": 165,
-          "contextSha256": "f5869c5b89f7df1e9ec9122c59e13b6df899aba949b4efde9921cb09f657f264"
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 32,
+          "contextSha256": "5389cd6bbc3731f79fdbf29a286c3c7c08d193d99c3c53c957fc78b405ef143a"
         },
         "state": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "canonical-safe-102-boundary",
-          "anchor": "const safe102BoundaryObserved = baselineCommandDocumented && currentSourceAligned && v320HistoricalBaselinePreserved && featureCompletionClaimed === false;",
-          "line": 168,
-          "contextSha256": "bc503c4df4af635e08dd1796cfa1d7a11a94999c2fdfef3236f99f04a73bd50b"
+          "anchor": "const safe102BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
+          "line": 34,
+          "contextSha256": "2b7b9fbc53b425f60e6cf994ffe560baff5734fc7d96f02ee1697b7726bbfe56"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_entry_baseline.mjs",
           "symbol": "canonical-safe-102-boundary",
-          "anchor": "assert(safe102BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && v320HistoricalBaselinePreserved && featureCompletionClaimed === false) && featureCompletionClaimed === false,",
-          "line": 169,
-          "contextSha256": "4e9001104f5e5df9f4eb17293dad5cdc0a793b9c07b752c1390af1968a98255e"
+          "anchor": "assert(safe102BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
+          "line": 35,
+          "contextSha256": "9d310794307014100b24e06d255c42c3f7296a093ca304cb20a150c4effb815a"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-entry-baseline",
           "anchor": "verify-v320-entry-baseline)",
-          "line": 1965,
+          "line": 2126,
           "contextSha256": "a8bf4989b26939f4f91323ffad51ab2eff834dd4b75ab8648893767405ab4b1d"
         }
       },
@@ -25265,44 +25265,44 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-102 owner-dispatch",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:163",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:164"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:31"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-102 dispatch-action",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:164",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:165"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:31",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:32"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-102 action-state",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:165",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:168"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:34"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-102 state-readback",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:168",
-          "target": "scripts/internal/verify_v320_entry_baseline.mjs:169"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:34",
+          "target": "scripts/internal/verify_v320_entry_baseline.mjs:35"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v320-entry-baseline",
-          "source": "scripts/internal/verify_v320_entry_baseline.mjs:169",
-          "target": "server.sh:1965"
+          "source": "scripts/internal/verify_v320_entry_baseline.mjs:35",
+          "target": "server.sh:2126"
         }
       ],
-      "rationale": "SAFE-102 exact reviewed source flow.",
-      "featureContractSha256": "409f587457a642bd373785a2137426de0db0877169bab924acdf34d8e48651ef"
+      "rationale": "SAFE-102 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
+      "featureContractSha256": "d666279ce12a29cb3f15e7cc46863a2bc838b7e37a3edb25835e44bcfc136a6e"
     },
     {
       "id": "SAFE-103",
@@ -26298,42 +26298,42 @@
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "check:SAFE-113 canonical V330 source-of-truth boundary",
           "anchor": "check(\"SAFE-113 canonical V330 source-of-truth boundary\", () => {",
-          "line": 166,
-          "contextSha256": "a1cfa2d79d1816b0c74e6c81045108da065047917572124c12535009b3a2f826"
+          "line": 30,
+          "contextSha256": "7e089048d7f62a99c9ececc1a27faa8884f1bcb24f2270366debe7be4e3b1cb8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "check:SAFE-113 canonical V330 source-of-truth boundary",
-          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);",
-          "line": 168,
-          "contextSha256": "7060266a658af1244d01faff46422e59ebf7e06b01bc413f8632d6550acb30e0"
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v330-entry-baseline)\");",
+          "line": 31,
+          "contextSha256": "e6c0ad6d74136102cd9d762a29ccfe270e782dc0312a7de9db12f6e54dd6494e"
         },
         "action": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "check:SAFE-113 canonical V330 source-of-truth boundary",
-          "anchor": "const historicalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes(\"v330 Step 1 entry baseline final\") && files.featureInventory.includes(\"SAFE-113\");",
-          "line": 169,
-          "contextSha256": "cada0a20538de27e565de802c89c0149f420131a8193ce190db5f83e06ab6ce2"
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 32,
+          "contextSha256": "3051318235339c08e6d863a24900fc7bc016ac9efaadad4b96c79e5fe68584f4"
         },
         "state": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "check:SAFE-113 canonical V330 source-of-truth boundary",
           "anchor": "const safe113BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
-          "line": 170,
-          "contextSha256": "0f204f53018a6997baf78785a5e513b100cec1475f0a09f9dbd55b3bc8c346da"
+          "line": 34,
+          "contextSha256": "85f339b2358217ce72d75fefb9fa1a76fae110349e48204d7423bf7d3f553db3"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_entry_baseline.mjs",
           "symbol": "check:SAFE-113 canonical V330 source-of-truth boundary",
           "anchor": "assert(safe113BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
-          "line": 171,
-          "contextSha256": "ebc2c51926a061e7217b50fdef5869cf8f1371a0299d1a1119c3955cce58372e"
+          "line": 35,
+          "contextSha256": "b7cd691de1670a750caa0f73cda93eb6e04d177f9a8688d321f598e31e4e2abb"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v330-entry-baseline",
           "anchor": "verify-v330-entry-baseline)",
-          "line": 2013,
+          "line": 2174,
           "contextSha256": "bed4b4b92f372742979aad2e0fee9469c8a2c286a5fc72a33a16e89e9afce3b4"
         }
       },
@@ -26343,44 +26343,44 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-113 owner-dispatch",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:166",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:168"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:31"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-113 dispatch-action",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:168",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:169"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:31",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:32"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-113 action-state",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:169",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:170"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:34"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-113 state-readback",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:170",
-          "target": "scripts/internal/verify_v330_entry_baseline.mjs:171"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:34",
+          "target": "scripts/internal/verify_v330_entry_baseline.mjs:35"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v330-entry-baseline",
-          "source": "scripts/internal/verify_v330_entry_baseline.mjs:171",
-          "target": "server.sh:2013"
+          "source": "scripts/internal/verify_v330_entry_baseline.mjs:35",
+          "target": "server.sh:2174"
         }
       ],
-      "rationale": "SAFE-113 exact reviewed source flow.",
-      "featureContractSha256": "bf068aa8168b2317b19aab3d9ff2864a37c8871a26c82f62f085441fadaa9a81"
+      "rationale": "SAFE-113 메인 직접 검토: 과거 완료 문구·중앙 원장 대신 현행 source/CMake/README·정의·dispatch와 출처 있는 당시 선택/fallback/제외/제약 입력을 대조한다. 과거 상시녹화 제외를 현재 정책으로 승격하지 않고 제품·UI·장시간 실행 주장 금지와 실패 전파를 유지한다.",
+      "featureContractSha256": "7ba448890a6626b31b687ce3e80bb0a64a43e4da52fbaeb9fa5eb2d8352fd4fb"
     },
     {
       "id": "SAFE-114",

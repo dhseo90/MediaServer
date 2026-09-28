@@ -1,6 +1,7 @@
 // 파일 용도: 과거 진입 검증기의 현행 문서·명령 연결과 회귀 입력을 검사한다. 실행 이력은 읽지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
+import {isDeepStrictEqual} from 'node:util';
 import {readReleaseContext, validateReleaseContext, validateLocalReleaseDocuments} from './release_documentation_contract.mjs';
 
 const versionPattern=/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
@@ -30,6 +31,10 @@ export function validateBoundaryCase(fixture,baseline,expected) {
   if(!baseline||typeof baseline!=='object')return [...errors,'선택된 회귀 입력 없음'];
   for(const key of ['command','sourceVersion','publishedTag','roadmap'])if(baseline[key]!==expected[key])errors.push(`회귀 입력 ${key} 불일치`);
   if(JSON.stringify(baseline.featureIds)!==JSON.stringify(expected.featureIds))errors.push('회귀 입력 기능 ID 불일치');
+  if(expected.decision!==undefined||baseline.decision!==undefined) {
+    if(expected.decision?.scope!=='historical-not-current-policy'||!isDeepStrictEqual(baseline.decision,expected.decision))errors.push('과거 선택·대안·제외·제약 불일치 또는 현행 정책 승격');
+    if(!/^[a-f0-9]{40}$/.test(fixture.provenance?.decisionSource?.commit??'')||fixture.provenance?.decisionSource?.path!=='docs/development-backlog.md')errors.push('과거 선택 근거 출처 없음');
+  }
   for(const key of ['featureImplementation','uiFulltest','longrun30Or120','publishedMetadata'])if(baseline.claims?.[key]!=='not-run-by-this-command')errors.push(`${key} 실행 승격 금지`);
   return errors;
 }

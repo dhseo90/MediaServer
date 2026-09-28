@@ -1,0 +1,254 @@
+[
+  {
+    "id": "decision-red",
+    "command": "node",
+    "args": [
+      "--test",
+      "--test-name-pattern",
+      "ENTRY-DOC-11",
+      "scripts/internal/entry_baseline_documentation.test.mjs"
+    ],
+    "startedAt": "2026-09-28T14:43:58.645Z",
+    "endedAt": "2026-09-28T14:43:58.710Z",
+    "elapsedSeconds": 0.06426899999999999,
+    "exit": 1,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "835ba223f486f103ea1527ac87f63730e61a5177331b6bdd4bed0a3fc5bfca62",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "entry-unit",
+    "command": "node",
+    "args": [
+      "--test",
+      "scripts/internal/entry_baseline_documentation.test.mjs"
+    ],
+    "startedAt": "2026-09-28T14:46:08.322Z",
+    "endedAt": "2026-09-28T14:46:09.264Z",
+    "elapsedSeconds": 0.941692125,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "c12a2531910e31345246b96c34610de6a59b78dfc484e0f3bb9ac5002c83be39",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "entry-unit-final",
+    "command": "node",
+    "args": [
+      "--test",
+      "scripts/internal/entry_baseline_documentation.test.mjs"
+    ],
+    "startedAt": "2026-09-28T14:47:20.048Z",
+    "endedAt": "2026-09-28T14:47:21.159Z",
+    "elapsedSeconds": 1.1114229580000001,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "8f41d35eb7fef8201f053c0cdeabeb0fb32c38f7e9c0468dfdc8d60f5c08b430",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "candidate",
+    "command": "node",
+    "args": [
+      "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+      "--emit-candidate",
+      "<run-temp>/fresh.json"
+    ],
+    "startedAt": "2026-09-28T14:47:21.187Z",
+    "endedAt": "2026-09-28T14:47:43.308Z",
+    "elapsedSeconds": 22.12082075,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "56b88a086f8ae231d02ec029c96292c46d422a2dd5c60de394255eafb0cb57d8",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "migration",
+    "command": "node",
+    "args": [
+      "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+      "--baseline",
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+      "--fresh",
+      "<run-temp>/fresh.json",
+      "--report",
+      "<run-temp>/delta.json",
+      "--write-evidence",
+      "<run-temp>/migration-evidence.json"
+    ],
+    "startedAt": "2026-09-28T14:48:04.530Z",
+    "endedAt": "2026-09-28T14:48:04.951Z",
+    "elapsedSeconds": 0.42155850000000006,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "5d19a6532634219579d239b64dda39fa900ae1f7ff8205c6229c70d909646d91",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "entry-300",
+    "command": "./server.sh",
+    "args": [
+      "verify-v300-entry-baseline"
+    ],
+    "startedAt": "2026-09-28T14:48:04.976Z",
+    "endedAt": "2026-09-28T14:48:05.406Z",
+    "elapsedSeconds": 0.43035954200000004,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "2901b5062c31b51b480e7d5d83b772be21d33e2705095b3587efa7b3f995c568",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "entry-310",
+    "command": "./server.sh",
+    "args": [
+      "verify-v310-entry-baseline"
+    ],
+    "startedAt": "2026-09-28T14:48:05.434Z",
+    "endedAt": "2026-09-28T14:48:05.776Z",
+    "elapsedSeconds": 0.34185066700000005,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "8130a5d581db149912b7e4d38281f792eb28017db9af8c47638a0913d66b2eb0",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "entry-320",
+    "command": "./server.sh",
+    "args": [
+      "verify-v320-entry-baseline"
+    ],
+    "startedAt": "2026-09-28T14:48:05.803Z",
+    "endedAt": "2026-09-28T14:48:06.155Z",
+    "elapsedSeconds": 0.351536834,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "1f8cb5df1b277df5b4b6cf19968bd1a021a914cc29b6b9339c0c17cd211516c8",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "entry-330",
+    "command": "./server.sh",
+    "args": [
+      "verify-v330-entry-baseline"
+    ],
+    "startedAt": "2026-09-28T14:48:06.184Z",
+    "endedAt": "2026-09-28T14:48:06.552Z",
+    "elapsedSeconds": 0.36751599999999995,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "82c16415d2524ce69ef56a56a6208717f668fefda54af5f4df4f2fda0e2dfba2",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "producer",
+    "command": "node",
+    "args": [
+      "scripts/internal/produce_v390_review4_migration_aware_approvals.mjs",
+      "--write-ledger",
+      "--prior-audit",
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+      "--prior-approvals",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+      "--migration-evidence",
+      "<run-temp>/migration-evidence.json",
+      "--decisions",
+      "<run-temp>/decisions.json",
+      "--review-package",
+      "<run-temp>/review-package.json"
+    ],
+    "startedAt": "2026-09-28T14:49:09.740Z",
+    "endedAt": "2026-09-28T14:50:29.841Z",
+    "elapsedSeconds": 80.10129975000001,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "37eed61cf523f854683e6ca5288b2d4431c2751a45135e5f0095fd7fa865feae",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "inventory",
+    "command": "./server.sh",
+    "args": [
+      "verify-project-inventory"
+    ],
+    "startedAt": "2026-09-28T14:50:54.904Z",
+    "endedAt": "2026-09-28T14:51:36.410Z",
+    "elapsedSeconds": 41.50574875,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "script-inventory",
+    "command": "./server.sh",
+    "args": [
+      "verify-script-inventory"
+    ],
+    "startedAt": "2026-09-28T14:51:36.435Z",
+    "endedAt": "2026-09-28T14:52:39.436Z",
+    "elapsedSeconds": 63.000353208,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "c4e0a9eb6467fa3d156d038eafd3be9ce3afb953aae43271b71b41ec692a3871",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "ui-policy",
+    "command": "./server.sh",
+    "args": [
+      "verify-ui-fulltest-evidence-policy-v4"
+    ],
+    "startedAt": "2026-09-28T14:52:39.459Z",
+    "endedAt": "2026-09-28T14:52:39.771Z",
+    "elapsedSeconds": 0.31217225000000004,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "0e4d453dfc3d42acf97f510f1817ea6b1e1fa6a937e888477414a60ae35d9e31",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "docs-links",
+    "command": "./server.sh",
+    "args": [
+      "verify-docs-links"
+    ],
+    "startedAt": "2026-09-28T14:52:39.794Z",
+    "endedAt": "2026-09-28T14:52:40.157Z",
+    "elapsedSeconds": 0.36349370799999997,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "2a64a042e1300aee8888c100dc6a7363b95a0737f7a337f6abd4a22a53decd1d",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "diff-check",
+    "command": "git",
+    "args": [
+      "diff",
+      "--check"
+    ],
+    "startedAt": "2026-09-28T14:52:40.181Z",
+    "endedAt": "2026-09-28T14:52:40.338Z",
+    "elapsedSeconds": 0.15659883300000002,
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

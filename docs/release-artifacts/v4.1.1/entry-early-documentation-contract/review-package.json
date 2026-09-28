@@ -1,0 +1,86 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "996cc47e09d56821f6688eb7720a960b2fcf814340d91b124db04c01d27525a5",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "SAFE-081",
+      "SAFE-093",
+      "SAFE-102",
+      "SAFE-113",
+      "OPS-051",
+      "OPS-061",
+      "OPS-069",
+      "OPS-080"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "ad43ed23d5ce2fe77f1bf455c51bd7d59b271567",
+    "trackedWorktreeDiffSha256": "7c724959a8db59b69fee8cbf1e00cf6a5bb34e7d76aa5d88a696142fa648dfb5",
+    "changedFiles": [
+      "docs/project-feature-test-inventory.md",
+      "docs/stream-verification.md",
+      "scripts/internal/entry_baseline_documentation.mjs",
+      "scripts/internal/entry_baseline_documentation.test.mjs",
+      "scripts/internal/verify_v300_entry_baseline.mjs",
+      "scripts/internal/verify_v310_entry_baseline.mjs",
+      "scripts/internal/verify_v320_entry_baseline.mjs",
+      "scripts/internal/verify_v330_entry_baseline.mjs",
+      "test/fixtures/entry_baseline_cases.json",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "SAFE-081",
+      "featureContractSha256": "8a98c2f6424da9e00bde995dc11523b06102421fbfaba9d889e74415d5ac397e",
+      "sourceFlowDigest": "b608e3bdce17391f36d61a6872ef86f2cb5a9cc27e6add31e4db025b6c5fddb5",
+      "currentTrustBindingsSha256": "d7bfa350d4604922a28e5269910c95106f44ac4be92c4c438b43a54e2772d9bd"
+    },
+    {
+      "id": "SAFE-093",
+      "featureContractSha256": "47e506cac8ac3b99ee346bb726c9d9a4a9ba655b44a87a1b532e201c3fb2235e",
+      "sourceFlowDigest": "62ba5d6f855a68620799fc5054387a2392b66cc9e45bb649aab6d3001b3dba5c",
+      "currentTrustBindingsSha256": "57dc9c47effa47c32856f86ad6d33b07bf923f82b0f464e00de990c52e1a63a3"
+    },
+    {
+      "id": "SAFE-102",
+      "featureContractSha256": "d666279ce12a29cb3f15e7cc46863a2bc838b7e37a3edb25835e44bcfc136a6e",
+      "sourceFlowDigest": "08d256ba1c40a6626e8f6305ab7a636bb34f963eb926ea61f752f90b90413c8f",
+      "currentTrustBindingsSha256": "d770dad46847477790ec8ebe285a24ec52a110d4a70a181cdef90a93bfbbfd53"
+    },
+    {
+      "id": "SAFE-113",
+      "featureContractSha256": "7ba448890a6626b31b687ce3e80bb0a64a43e4da52fbaeb9fa5eb2d8352fd4fb",
+      "sourceFlowDigest": "8fe73be40239ce03a7ace8a1e47fac113d606efd8eb8d7b3352eea72e9fd6506",
+      "currentTrustBindingsSha256": "ea928e9465e7cfe3112a01849308e7d074b37eefd9318040cd7ae4ef2ee37c55"
+    },
+    {
+      "id": "OPS-051",
+      "featureContractSha256": "68d31aeddcaf9439b77c749328af359838a2b87cd184261bc9e37bd9ed8d5fd6",
+      "sourceFlowDigest": "4c4d4c72501db255f84ca1e26e73575177208d42b4d6271c564938807b3b5ffd",
+      "currentTrustBindingsSha256": "4a5c9902f67330eada54c92aaf16fcf67d3b8944688fc11ba067912afe0f0065"
+    },
+    {
+      "id": "OPS-061",
+      "featureContractSha256": "f9fddbdc9be87e214305535be33e5d0797618d8e23344131449cddc3d6d913e6",
+      "sourceFlowDigest": "2c48086e47c9e39172d1075d183d8bd7b6639e2d1e10182279e90bc5fe45e05e",
+      "currentTrustBindingsSha256": "08fd292792178f9afd64f3ced8c9c169da3e9e6a7ba8f17b7f7a16cf20ac0b0d"
+    },
+    {
+      "id": "OPS-069",
+      "featureContractSha256": "6d8eb71880aa352e689881f7d1dc7327514ce3af71cc7adca60cd3a4b3592364",
+      "sourceFlowDigest": "7b6915b1b4398611aa32f4362f92be88283df17d0717bc83c4ce232a4d47c1d3",
+      "currentTrustBindingsSha256": "af128c9bde66ac051bdc5c25b0b551c28cdafea3f564d8dc3667384afd4ff0de"
+    },
+    {
+      "id": "OPS-080",
+      "featureContractSha256": "99988784c68440e356567f03f57b6923ef6d807312d080485c7e5a1bb3b78937",
+      "sourceFlowDigest": "14e7d654c4eb48347c69c2d9c4db2a2b1a920b5fc4cf0d2c5310f9f108e438fd",
+      "currentTrustBindingsSha256": "8c5e0739decc2d12d43dafe47dc81cfb0f7811b95a4932210cd4b2913de19804"
+    }
+  ]
+}
