@@ -56,6 +56,7 @@ jobs:
       - name: Docs links
         shell: bash
         run: |
+          node --test scripts/internal/verify_docs_links.test.mjs
           ./server.sh verify-docs-links
 
       - name: Docs UI assets

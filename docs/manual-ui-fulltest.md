@@ -31,6 +31,10 @@ Policy v4에 따라 direct-browser, qualified-native-automation, hybrid 중 하�
 
 ## Policy v4 증거 적격 기준
 
+유지보수 참고: [시각 기준 승인 템플릿](ui-visual-release-baseline-approval-template.md),
+[정확한 UI ID의 자동화 연결표](v390-ui-automation-coverage-matrix.md).
+연결표의 준비/과거 상태는 이번 실제 UI 실행 결과가 아니다.
+
 Policy v4는 UI 영역 안의 `direct-browser`, `qualified-native-automation`, `hybrid` 구분이다.
 도구 이름이 아니라 실제 evidence로 판단한다. 개별 자동화 대체는 아래 조건을 모두 만족해야 한다.
 

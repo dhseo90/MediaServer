@@ -15,6 +15,15 @@
 
 ## 검증 정책
 
+실행 준비에 사용하는 [장시간 결과 템플릿](runtime-dashboard-longrun-evidence-template.md)과
+[VLM 격리 리허설 정의](vlm-test-rehearsal.md)는 현재 명령의 범위·예상값을 확인하는 자료다.
+템플릿이나 fixture 검사의 통과를 실제 장시간·제품 UI·외부 provider 성공으로 사용하지 않는다.
+
+문서 검증기 자체검사는 `node --test scripts/internal/verify_docs_links.test.mjs`다.
+`DOC-01`~`DOC-11`의 개별 기대값은 해당 테스트에 정의하며, 다단계 색인·Git 없는 소스·유지보수
+문서 연결·깨진 링크/앵커/이미지·버전 접두사·코드 예제·미추적 파일·경로 이탈·symlink·CLI 오류를
+격리 디렉터리에서 검사한다. 실제 제품 기능·UI·장시간 검증은 실행하지 않는다.
+
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
 

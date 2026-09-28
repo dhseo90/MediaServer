@@ -1,0 +1,75 @@
+{
+  "schema": "media-server.documentation-tool-result.v1",
+  "scope": "v4.1.1/04 문서 링크·목적별 색인 검증기. 제품·UI·장시간·릴리즈 검증 아님",
+  "baseCommit": "75803f7145be860278873d0dc856ffa4dff04cba",
+  "source": "baseCommit + 아래 수정 파일의 SHA-256. 기록 파일 자신은 해시 대상에서 제외",
+  "files": {
+    "scripts/internal/verify_docs_links.mjs": "769063c131cfbd3bc875b493c7fd6cc9d542322b0ddbf333f5ba4e0815e5f82f",
+    "scripts/internal/verify_docs_links.test.mjs": "c9b8091ce0c21c1a9706e45e75d83576811718c340122956d4b851a0d34c1cbd",
+    ".github/workflows/preflight.yml": "c0d18aa3d2bb0463c23ea1d49b266124de3367c6aa684fd7b1e951d091ec5a3e",
+    "docs/stream-verification.md": "8e35cb301adb2e30c32d43fec3dd60100d108846864a14c8124c1bed06d29886",
+    "docs/manual-ui-fulltest.md": "7d909b123975365a62db94dd788fc1e2bc4a3a7e6eb96b37c415795d73940e16"
+  },
+  "attempts": [
+    {
+      "command": "node --test --test-name-pattern='DOC-01' scripts/internal/verify_docs_links.test.mjs",
+      "exit": 1,
+      "classification": "예상 RED",
+      "observation": "미구현 --root 옵션으로 child exit 2; 기대 exit 0 assertion 실패. 제품/환경 실패가 아님."
+    },
+    {
+      "command": "./server.sh verify-docs-links",
+      "exit": 1,
+      "classification": "실제 문서 도달성 실패",
+      "observation": "색인에서 도달할 수 없는 문서 19개. 링크/앵커 오류 없음.",
+      "correction": "현행 템플릿·검증 정의 네 문서에 유지보수 링크 추가. 본문에서 확인한 과거 설계·종료 산출물은 정확한 목록으로만 색인 역할 구분. 내부 링크 검사는 유지하고 버전 접두사 전체 제외는 제거."
+    }
+  ],
+  "results": [
+    {
+      "command": "node --test scripts/internal/verify_docs_links.test.mjs",
+      "exit": 0,
+      "stdoutAndStderr": "✔ DOC-01 source archive에서도 목적별 색인의 두 단계 연결을 인정 (28.778ms)\n✔ DOC-02 현행 문서의 끊어진 링크와 앵커는 실패 (49.548167ms)\n✔ DOC-03 파일명에 과거 버전이 있어도 미연결 현행 계약은 실패 (26.476708ms)\n✔ DOC-04 AGENTS에서 연결한 유지보수 문서는 공개 색인 중복 불필요 (47.864ms)\n✔ DOC-05 참조형 링크와 HTML 앵커·이미지도 검사 (47.373292ms)\n✔ DOC-06 코드 예제의 링크·제목은 실제 문서 링크·앵커가 아님 (46.673417ms)\n✔ DOC-07 Git 저장소에서는 추적·미추적 현재 문서를 함께 검사 (84.003125ms)\n✔ DOC-08 경로 이탈과 외부 symlink를 읽지 않고 거부 (46.796125ms)\n✔ DOC-09 문서 색인 부재·잘못된 CLI는 성공 아님 (42.793917ms)\n✔ DOC-10 내부 기록도 깨진 링크는 실패하고 현행 문서 도달성을 대체하지 못함 (49.032333ms)\n✔ DOC-11 끊어진 symlink·옵션 누락·중복도 성공으로 숨기지 않음 (64.435333ms)\nℹ tests 11\nℹ suites 0\nℹ pass 11\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 566.706042\n",
+      "elapsedSeconds": 0.472582209
+    },
+    {
+      "command": "./server.sh verify-docs-links",
+      "exit": 0,
+      "stdoutAndStderr": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14813\n- local images: 22\n- local anchors: 225\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+      "elapsedSeconds": 0.230532083
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "stdoutAndStderr": "",
+      "elapsedSeconds": 0.000006667
+    }
+  ],
+  "relatedChecks": [
+    {
+      "command": "python3 -B scripts/internal/gst_environment_test.py EnvironmentTests.test_cli_no_gst_side_effects",
+      "exit": 0,
+      "pass": 1,
+      "cleanup": "격리 디렉터리 files=16 bytes=239479 removed=true. 경로 원문은 재실행 입력이 아니므로 생략."
+    },
+    {
+      "command": "./server.sh verify-ci-local-gate-parity",
+      "exit": 0,
+      "pass": 6,
+      "fail": 0
+    }
+  ],
+  "cleanup": "자체검사 소유 mkdtemp 디렉터리를 finally에서 제거하고 부재를 assert. 제품 서버·포트 사용 없음.",
+  "tokenUsage": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "reason": "이 검사 묶음 단독 토큰 사용량 미집계. 테스트 실행 시간은 개별 출력에 있음."
+  },
+  "limitations": [
+    "압축 Markdown은 이번 링크 검사 대상이 아님; 종료 기록 보존 단계에서 별도 대조",
+    "UI 이미지의 가독성·실제 화면 일치는 미검증",
+    "AGENTS 문구·역사 원장에 의존하는 다른 소비자는 04 후속 작업",
+    "분류는 삭제 승인이 아니며 유효 계약 추출 전 자료를 삭제하지 않음"
+  ]
+}
