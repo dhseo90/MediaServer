@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -27,12 +28,11 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const cssPath = path.join(rootDir, "src/ingress/product_ui_css.cpp");
 const uiGuidePath = path.join(rootDir, "docs/ui-guide.md");
-const backlogPath = path.join(rootDir, "docs/development-backlog.md");
 const serverPath = path.join(rootDir, "server.sh");
 
 const css = fs.readFileSync(cssPath, "utf8");
+const clientCss = fs.readFileSync(path.join(rootDir, "src/ingress/product_ui_client_css.cpp"), "utf8");
 const uiGuide = fs.readFileSync(uiGuidePath, "utf8");
-const backlog = fs.readFileSync(backlogPath, "utf8");
 const server = fs.readFileSync(serverPath, "utf8");
 
 const tokenStart = css.indexOf("std::string ProductDesignTokensCss()");
@@ -41,7 +41,8 @@ if (tokenStart < 0 || tokenEnd < 0 || tokenEnd <= tokenStart) {
   throw new Error("failed to locate ProductDesignTokensCss/ProductUiCss boundaries");
 }
 const tokenCss = css.slice(tokenStart, tokenEnd);
-const productCssBody = css.slice(tokenEnd);
+// Client shell 분리 전후 같은 UI 스타일 범위를 검사한다. 공통 token 정의만 제외한다.
+const productCssBody = [css.slice(tokenEnd), clientCss].join("\n");
 
 const checksRun = [];
 
@@ -104,12 +105,17 @@ for (const snippet of [
 for (const [label, text] of [
   ["server.sh", server],
   ["docs/ui-guide.md", uiGuide],
-  ["docs/development-backlog.md", backlog],
 ]) {
   check(`${label} mentions token drift verification`, () => {
     assert(text.includes("verify-product-ui-token-drift"), `${label} must mention verify-product-ui-token-drift`);
   });
 }
+
+check("server dispatch keeps token drift verification", () => {
+  const targets = parseServerDispatches(server).filter(item => item.command === "verify-product-ui-token-drift");
+  assert(targets.length === 1 && targets[0].script === "verify_product_ui_token_drift.mjs",
+    "server dispatch missing or mismatched token drift verifier");
+});
 
 let failCount = 0;
 for (const item of checksRun) {
@@ -127,6 +133,7 @@ console.log("");
 console.log("== Product UI token drift verification summary ==");
 console.log(`- pass: ${checksRun.length - failCount}`);
 console.log(`- fail: ${failCount}`);
+console.log("- scope: static documentation/source wiring; actual UI not-run");
 
 if (failCount > 0) process.exit(1);
 

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation} from './documentation_contract_lib.mjs';
+import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation} from './documentation_contract_lib.mjs';
 import {validatePolicy, evaluateEvidence} from './ui_fulltest_evidence_policy_v4_lib.mjs';
 
 const read = (p) => fs.readFileSync(new URL('../../' + p, import.meta.url), 'utf8');
@@ -57,6 +57,126 @@ test('DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거�
     mutate(copy);
     assert(validatePolicy(copy).length > 0);
   }
+});
+
+test('DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용', () => {
+  const guide = read('docs/ui-guide.md');
+  assert.deepEqual(validateVisualArtifactGuideDocumentation(guide), []);
+  const rewritten = guide.replace(/^#{1,6}.*$/gm, '# 새 한글 제목')
+    .replaceAll('release baseline artifact role', '')
+    .replace(/\[[^\]\n]+\]\((\.\/)?ui-visual-release-baseline-approval-template\.md\)/g,
+      '[다른 제목의 승인 기준](ui-visual-release-baseline-approval-template.md)');
+  assert.deepEqual(validateVisualArtifactGuideDocumentation(rewritten), []);
+});
+test('DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패', () => {
+  const guide = read('docs/ui-guide.md');
+  assert(validateVisualArtifactGuideDocumentation(undefined).length > 0);
+  assert(validateVisualArtifactGuideDocumentation(guide.replaceAll('ui-visual-release-baseline-approval-template.md', '다른문서.md'))
+    .some(error => error.includes('승인 기준 링크')));
+  for (const identifier of ['visual-regression-manifest.json', 'media-server.ui-visual-artifact-index.v1',
+    'media-server.ui-visual-artifact-retention.v1', 'compare-ui-visual-baseline', 'reviewRequired']) {
+    assert(validateVisualArtifactGuideDocumentation(guide.replaceAll(identifier, '')).some(error => error.includes(identifier)), identifier);
+  }
+});
+
+test('DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const page = 'src/ingress/product_ui_server_pages.cpp';
+  const script = 'src/ingress/product_ui_page_scripts.cpp';
+  const css = 'src/ingress/product_ui_css.cpp';
+  const guide = 'docs/ui-guide.md';
+  const digest = p => crypto.createHash('sha256').update(read(p)).digest('hex');
+  const before = Object.fromEntries([page, script, css, guide].map(p => [p, digest(p)]));
+  const cases = [
+    ['현행 화면·JS·CSS·문서', null, 0, ''],
+    ...[
+      'data-testid="ops-rule-scenario-review-loop"',
+      'data-review-loop="expected-event-type-conflict-missing-reference-preset-eventrecord-coverage"',
+      'id="opsRulesReviewEventRecordLink"',
+      'data-event-record-coverage-link="/ops/events"',
+    ].map(remove => ['화면 marker 누락: ' + remove, {path: page, remove}, 1, 'rules page missing']),
+    ['JS 연결 누락', {path: script, remove: 'opsRulesUpdateReviewLoop'}, 1, 'rules script missing'],
+    ['CSS 연결 누락', {path: css, remove: '.ops-rule-review-loop'}, 1, 'rules CSS missing'],
+    ['문서의 검사 범위 누락', {path: guide, remove: 'source mismatch'}, 1, 'docs missing'],
+  ];
+  for (const [name, mutation, exit, reason] of cases) await t.test(name, () => {
+    const source = `
+      import fs from 'node:fs'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+      const root = ${JSON.stringify(root)}, mutation = ${JSON.stringify(mutation)};
+      const read = fs.readFileSync;
+      fs.readFileSync = function(file, options) {
+        const raw = read.call(this, file, options);
+        if (path.relative(root, String(file)) !== mutation?.path) return raw;
+        const text = String(raw).replaceAll(mutation.remove, '');
+        return Buffer.isBuffer(raw) ? Buffer.from(text) : text;
+      };
+      for (const key of ['writeFileSync', 'appendFileSync', 'unlinkSync', 'rmSync', 'renameSync', 'mkdirSync']) {
+        fs[key] = () => { throw new Error('정적 검사에서 파일 쓰기 금지'); };
+      }
+      await import(pathToFileURL(path.join(root, 'scripts/internal/verify_ops_rule_validation_matrix.mjs')).href);
+    `;
+    const result = spawnSync(process.execPath, ['--input-type=module', '--eval', source], {
+      cwd: root, encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024,
+    });
+    assert.equal(result.error, undefined);
+    assert.equal(result.signal, null);
+    assert.equal(result.status, exit, result.stderr + result.stdout);
+    assert(result.stdout.includes('- fixtures: 13'), result.stdout);
+    if (reason) assert(result.stdout.includes(reason), result.stderr + result.stdout);
+    for (const [p, hash] of Object.entries(before)) assert.equal(digest(p), hash, p + ': 원본 불변');
+  });
+});
+
+test('DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const shell = 'verify_product_shell_examples.mjs', token = 'verify_product_ui_token_drift.mjs';
+  const cases = [
+    ['과거 backlog 없이 현행 shell 검사', shell, null, 0, ''],
+    ['과거 backlog 없이 현행 token 검사', token, null, 0, ''],
+    ['Client CSS 누락', shell, {path:'src/ingress/product_ui_client_css.cpp',remove:'.tile-stage'}, 1, 'client CSS missing'],
+    ['Client JS 누락', shell, {path:'src/ingress/product_ui_client_scripts.cpp',remove:'class="tile'}, 1, 'client live script missing'],
+    ['공통 CSS 누락', shell, {path:'src/ingress/product_ui_css.cpp',remove:'.app-chrome'}, 1, 'product CSS missing'],
+    ['shell 문서 연결 누락', shell, {path:'docs/ui-guide.md',remove:'./product-shell-component-examples.md'}, 1, 'UI guide missing examples link'],
+    ['shell 명령 등록 누락', shell, {path:'server.sh',remove:'verify-product-shell-examples'}, 1, 'server.sh missing'],
+    ['token 검사 등록 누락', token, {path:'server.sh',remove:'verify_product_ui_token_drift.mjs'}, 1, 'server dispatch missing'],
+    ['token 문서 연결 누락', token, {path:'docs/ui-guide.md',remove:'verify-product-ui-token-drift'}, 1, 'must mention'],
+    ['raw 색상 반례', token, {path:'src/ingress/product_ui_css.cpp',append:'\n.example {color: #fff;}\n'}, 1, 'raw color values outside'],
+    ['분리된 Client raw 색상 반례', token, {path:'src/ingress/product_ui_client_css.cpp',append:'\n.example {color: #fff;}\n'}, 1, 'raw color values outside'],
+    ['분리된 Client token hook 누락', token, {path:'src/ingress/product_ui_client_css.cpp',remove:'box-shadow: 0 0 0 2px var(--color-selection-ring)'}, 1, 'product CSS body missing token hook'],
+  ];
+  for (const [name, verifier, mutation, exit, reason] of cases) await t.test(name, () => {
+    const originalHash = mutation ? crypto.createHash('sha256').update(read(mutation.path)).digest('hex') : null;
+    const source = `
+      import fs from 'node:fs'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+      const root = ${JSON.stringify(root)}, mutation = ${JSON.stringify(mutation)};
+      const read = fs.readFileSync;
+      fs.readFileSync = function(file, options) {
+        const relative = path.relative(root, String(file));
+        if (['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(relative)) {
+          throw new Error('과거 완료/실행 기록 없이 현행 검사 가능해야 함');
+        }
+        const raw = read.call(this, file, options);
+        if (relative !== mutation?.path) return raw;
+        let text = String(raw);
+        if (mutation.remove) text = text.replaceAll(mutation.remove, '');
+        if (mutation.append) text += mutation.append;
+        return Buffer.isBuffer(raw) ? Buffer.from(text) : text;
+      };
+      for (const key of ['writeFileSync', 'appendFileSync', 'unlinkSync', 'rmSync', 'renameSync', 'mkdirSync']) {
+        fs[key] = () => { throw new Error('정적 검사에서 파일 쓰기 금지'); };
+      }
+      await import(pathToFileURL(path.join(root, 'scripts/internal', ${JSON.stringify(verifier)})).href);
+    `;
+    const result = spawnSync(process.execPath, ['--input-type=module', '--eval', source], {
+      cwd: root, encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024,
+    });
+    assert.equal(result.error, undefined);
+    assert.equal(result.signal, null);
+    assert.equal(result.status, exit, result.stderr + result.stdout);
+    if (reason) assert((result.stderr + result.stdout).includes(reason), result.stderr + result.stdout);
+    assert(result.stdout.includes('actual UI not-run'), result.stdout);
+    if (mutation) assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'), originalHash);
+  });
 });
 
 test('DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결', () => {

@@ -1,0 +1,824 @@
+{
+  "schema": "media-server.v411-documentation-checks.v1",
+  "scope": "UI 사용자 안내 및 직접 문서 소비자/시각 산출 도구 자체검증. 제품 UI·인증·녹화 동작 실행 아님.",
+  "baseCommit": "aa5aed269b38f1712c1450e1385c6172283acbae",
+  "source": {
+    "docs/ui-guide.md": "8625a2dba6019f560e01b4ef9ebe5904b846188b04b8e733719840d5ae373543",
+    "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+    "scripts/internal/documentation_contract.test.mjs": "b93e91fe9341e3116b42231a6735340c24999e142595ccd40ca381a0fa99a747",
+    "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211"
+  },
+  "environment": {
+    "node": "v24.13.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "expected": "정적 소비자 exit0. 문장/제목 변경 허용, 승인 링크·schema·명령 누락 거부. 실제 UI PASS 주장 없음.",
+  "planned": [
+    [
+      "node",
+      [
+        "--test",
+        "scripts/internal/documentation_contract.test.mjs"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-docs-links"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-v260-scenario-cross-zone-reentry"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-ops-rule-validation-matrix"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-ops-audit-persistence"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-product-shell-examples"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-product-ui-token-drift"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-v300-ops-events-ui"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-v290-public-docs-assets-refresh"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-ui-release-baseline-approval-log"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-v391-documentation-truth"
+      ]
+    ],
+    [
+      "./server.sh",
+      [
+        "verify-docs-ui-assets"
+      ]
+    ]
+  ],
+  "commands": [
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "scripts/internal/documentation_contract.test.mjs"
+      ],
+      "startedAt": "2026-09-28T21:59:16.756Z",
+      "endedAt": "2026-09-28T21:59:17.181Z",
+      "elapsedMs": 423.88174999999995,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (1.98825ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.796791ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.460667ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.441542ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.10475ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.913083ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.196792ms)\n✔ DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용 (1.215583ms)\n✔ DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패 (0.720167ms)\n✔ DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결 (0.379667ms)\n✔ DOC-ARCH-02 제목·배치·녹화 설명은 과거 파일 해시로 고정하지 않음 (0.298542ms)\n✔ DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패 (0.337209ms)\n▶ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파\n  ✔ 문서 제목·녹화 설명 변경 (29.89225ms)\n  ✔ 필수 권한 설명 제거 (27.801166ms)\n  ✔ 역사 감사에서도 현행 권한 설명 검사 (28.756041ms)\n  ✔ 현행 문서 부재 (28.176667ms)\n  ✔ 현재 제품 파일 부재 (27.75325ms)\n  ✔ 연동 안내 명령 제거 (27.685166ms)\n  ✔ 역사 감사의 인증 코드 pin 변경 (29.517333ms)\n  ✔ 실제 sample pin 변경 (27.268375ms)\n✔ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파 (227.686166ms)\nℹ tests 21\nℹ suites 0\nℹ pass 21\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 397.245625\n",
+      "stderr": ""
+    },
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T21:59:17.182Z",
+      "endedAt": "2026-09-28T21:59:17.531Z",
+      "elapsedMs": 348.93104200000005,
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[fail] 문서 로컬 링크/이미지 참조 오류\n  - docs/ui-guide.md: 존재하지 않는 anchor: ./stream-verification.md#ui-visual--release-artifact-commands\n\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14915\n- local images: 14\n- local anchors: 281\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 1\n",
+      "stderr": ""
+    }
+  ],
+  "preservation": {
+    "commit": "aa5aed269b38f1712c1450e1385c6172283acbae",
+    "path": "docs/ui-guide.md",
+    "sha256": "ca0df35b828cb2862eb5c6d7b5d10c40f23136ca8d30c6c96a8b83be62e0264f",
+    "originalBlobVerified": true,
+    "remote": "이번 실행 원격 미확인"
+  },
+  "review": {
+    "agent": "Astra/xhigh 단일 담당자. 기존1578행 전문·현재소스·직접소비자 대조, ui-guide만 편집.",
+    "main": "새UI가이드 전문/실제diff·녹화/metadata 기술기준 대조. 문구 의존1건을 명시적 승인양식 연결로 보완."
+  },
+  "notRun": [
+    "실제 브라우저·UI 풀테스트·스크린샷 재촬영",
+    "제품 Auth·미디어·저장·30분·120분",
+    "v330 runbook의 구형 완료/원장 문구 전수 판정: UI guide 연결4개만 읽기 대조",
+    "외부·원격 작업"
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "temporaryFiles": "없음: 시각 fixture 검사 전 중단",
+    "processesAndPorts": "동기 정적 자식 명령 종료. 서버·포트 생성 없음"
+  },
+  "usage": {
+    "tokens": "실행별 토큰 집계 없음"
+  },
+  "sourceUnchanged": true,
+  "followups": [
+    {
+      "reason": "기존 UI 가이드 링크 오류 1건 수정 후 동일 링크 검사부터 재개",
+      "source": {
+        "docs/ui-guide.md": "a7c0037567f07639aa7997da61502862cd9fa0c85718744ff0141d8be7ee0e03",
+        "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+        "scripts/internal/documentation_contract.test.mjs": "b93e91fe9341e3116b42231a6735340c24999e142595ccd40ca381a0fa99a747",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211"
+      },
+      "commands": [
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-docs-links"
+          ],
+          "startedAt": "2026-09-28T22:02:16.223Z",
+          "endedAt": "2026-09-28T22:02:16.589Z",
+          "elapsedMs": 364.02058400000004,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14915\n- local images: 14\n- local anchors: 281\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-v260-scenario-cross-zone-reentry"
+          ],
+          "startedAt": "2026-09-28T22:02:16.590Z",
+          "endedAt": "2026-09-28T22:02:16.700Z",
+          "elapsedMs": 110.07599999999996,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "\n[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command\n== v2.6.0 S05 scenario cross-zone re-entry 통과 ==\n[summary] analysis_state=required va_replay=required ui_rule_marker=present schema_media_boundary=unchanged\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-ops-rule-validation-matrix"
+          ],
+          "startedAt": "2026-09-28T22:02:16.700Z",
+          "endedAt": "2026-09-28T22:02:17.100Z",
+          "elapsedMs": 400.49300000000005,
+          "exit": 1,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] rule validation matrix has required fixtures\n[pass] UI validation covers every matrix fixture\n[fail] UI exposes S05 rule/scenario review loop before save: rules page missing S05 review loop snippet: data-testid=\"ops-rule-scenario-review-loop\"\n[pass] server validation covers server-owned fixtures\n[pass] docs list rule validation matrix scenarios\n\n== Ops rule validation matrix summary ==\n- fixtures: 13\n- pass: 4\n- fail: 1\n",
+          "stderr": ""
+        }
+      ],
+      "cleanup": {
+        "status": "PASS",
+        "temporaryPaths": [],
+        "reason": "정적 문서/소비자 검사. 서버·포트·브라우저·임시 fixture 생성 없음"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "reason": "룰 검증기의 마크업 소유 경로 정정. 정상/HTML4종·JS·CSS·문서 누락 반례 후 실패했던 소비자부터 재개",
+      "source": {
+        "docs/ui-guide.md": "a7c0037567f07639aa7997da61502862cd9fa0c85718744ff0141d8be7ee0e03",
+        "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+        "scripts/internal/documentation_contract.test.mjs": "c2d980849d4dd57968f706d31ab8656752cdd8ead6761992341e0e0eaca47cdf",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211",
+        "scripts/internal/verify_ops_rule_validation_matrix.mjs": "4c9b155ed8fb97b12b1b7a1e2454bd17caad0d2a4c9944bb5e273abf687fb412"
+      },
+      "commands": [
+        {
+          "command": "node",
+          "args": [
+            "--test",
+            "scripts/internal/documentation_contract.test.mjs"
+          ],
+          "startedAt": "2026-09-28T22:03:42.056Z",
+          "endedAt": "2026-09-28T22:03:42.707Z",
+          "elapsedMs": 650.5307499999999,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.64375ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.36875ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.175625ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.286ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.086292ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.42475ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.167167ms)\n✔ DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용 (0.396042ms)\n✔ DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패 (0.539125ms)\n▶ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파\n  ✔ 현행 화면·JS·CSS·문서 (38.673375ms)\n  ✔ 화면 marker 누락: data-testid=\"ops-rule-scenario-review-loop\" (33.68075ms)\n  ✔ 화면 marker 누락: data-review-loop=\"expected-event-type-conflict-missing-reference-preset-eventrecord-coverage\" (33.239875ms)\n  ✔ 화면 marker 누락: id=\"opsRulesReviewEventRecordLink\" (34.2125ms)\n  ✔ 화면 marker 누락: data-event-record-coverage-link=\"/ops/events\" (34.257125ms)\n  ✔ JS 연결 누락 (35.069375ms)\n  ✔ CSS 연결 누락 (35.817708ms)\n  ✔ 문서의 검사 범위 누락 (34.036375ms)\n✔ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파 (281.942792ms)\n✔ DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결 (0.201708ms)\n✔ DOC-ARCH-02 제목·배치·녹화 설명은 과거 파일 해시로 고정하지 않음 (0.218042ms)\n✔ DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패 (0.268417ms)\n▶ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파\n  ✔ 문서 제목·녹화 설명 변경 (29.198833ms)\n  ✔ 필수 권한 설명 제거 (27.494208ms)\n  ✔ 역사 감사에서도 현행 권한 설명 검사 (29.74225ms)\n  ✔ 현행 문서 부재 (28.536625ms)\n  ✔ 현재 제품 파일 부재 (27.444708ms)\n  ✔ 연동 안내 명령 제거 (27.285625ms)\n  ✔ 역사 감사의 인증 코드 pin 변경 (28.392084ms)\n  ✔ 실제 sample pin 변경 (28.136333ms)\n✔ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파 (226.931125ms)\nℹ tests 30\nℹ suites 0\nℹ pass 30\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 627.532667\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-ops-rule-validation-matrix"
+          ],
+          "startedAt": "2026-09-28T22:03:42.708Z",
+          "endedAt": "2026-09-28T22:03:42.756Z",
+          "elapsedMs": 47.325000000000045,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] rule validation matrix has required fixtures\n[pass] UI validation covers every matrix fixture\n[pass] UI exposes S05 rule/scenario review loop before save\n[pass] server validation covers server-owned fixtures\n[pass] docs list rule validation matrix scenarios\n\n== Ops rule validation matrix summary ==\n- fixtures: 13\n- pass: 5\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-ops-audit-persistence"
+          ],
+          "startedAt": "2026-09-28T22:03:42.756Z",
+          "endedAt": "2026-09-28T22:03:43.125Z",
+          "elapsedMs": 369.3292089999999,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] server exposes persistent ops audit API\n[pass] shared UI writes audit records with local fallback\n[pass] audit persistence has visible source label styling\n[pass] docs describe persistent audit scope\n\n== Ops audit persistence verification summary ==\n- pass: 4\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-product-shell-examples"
+          ],
+          "startedAt": "2026-09-28T22:03:43.126Z",
+          "endedAt": "2026-09-28T22:03:43.437Z",
+          "elapsedMs": 311.702,
+          "exit": 1,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] examples document defines product shell component contract\n[pass] examples document keeps route boundaries explicit\n[pass] server entrypoint exposes product shell examples verifier\n\n== Product shell examples verification summary ==\n- pass: 3\n- fail: 2\n",
+          "stderr": "[fail] examples document includes stable class examples: product CSS missing documented class: tile-stage\n[fail] UI guide references product shell examples verifier: backlog missing examples closure\n"
+        }
+      ],
+      "cleanup": {
+        "status": "PASS",
+        "temporaryPaths": [],
+        "reason": "메모리 주입·읽기 전용 정적 검사. 원본 제품 변경·서버·포트·브라우저 실행 없음"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "reason": "공통 화면 문서 소비자의 분리된 Client CSS/JS 경로 반영. 과거 backlog 완료 문구 대신 현행 명령·소스·안내 검사. 이전 실패 보존, 정상·누락·raw 색상 반례 검사 후 실패 명령부터 재개",
+      "source": {
+        "docs/ui-guide.md": "a7c0037567f07639aa7997da61502862cd9fa0c85718744ff0141d8be7ee0e03",
+        "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+        "scripts/internal/documentation_contract.test.mjs": "81b5803173a31d4b57325ed259ba65b641e7d0573919ab3762b2a53c7ee948d8",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211",
+        "scripts/internal/verify_ops_rule_validation_matrix.mjs": "4c9b155ed8fb97b12b1b7a1e2454bd17caad0d2a4c9944bb5e273abf687fb412",
+        "scripts/internal/verify_product_shell_examples.mjs": "750e59f90245bc43f897cd087c2753674d623d9bf1ab9c2fb75dd9ca14afc598",
+        "scripts/internal/verify_product_ui_token_drift.mjs": "e1b51aa0488003a250e876cc4a70839fdad70842d9c16df2b678d8284ef3b260"
+      },
+      "commands": [
+        {
+          "command": "node",
+          "args": [
+            "--test",
+            "scripts/internal/documentation_contract.test.mjs"
+          ],
+          "startedAt": "2026-09-28T22:06:12.838Z",
+          "endedAt": "2026-09-28T22:06:13.714Z",
+          "elapsedMs": 875.457959,
+          "exit": 1,
+          "signal": null,
+          "error": null,
+          "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.641167ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.402833ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.185ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.327375ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.091292ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.515375ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.188792ms)\n✔ DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용 (0.426625ms)\n✔ DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패 (0.552709ms)\n▶ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파\n  ✔ 현행 화면·JS·CSS·문서 (36.678375ms)\n  ✔ 화면 marker 누락: data-testid=\"ops-rule-scenario-review-loop\" (32.90925ms)\n  ✔ 화면 marker 누락: data-review-loop=\"expected-event-type-conflict-missing-reference-preset-eventrecord-coverage\" (34.649042ms)\n  ✔ 화면 marker 누락: id=\"opsRulesReviewEventRecordLink\" (34.334584ms)\n  ✔ 화면 marker 누락: data-event-record-coverage-link=\"/ops/events\" (33.638625ms)\n  ✔ JS 연결 누락 (34.875334ms)\n  ✔ CSS 연결 누락 (35.326083ms)\n  ✔ 문서의 검사 범위 누락 (34.901375ms)\n✔ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파 (280.1145ms)\n▶ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부\n  ✔ 과거 backlog 없이 현행 shell 검사 (21.53ms)\n  ✖ 과거 backlog 없이 현행 token 검사 (22.379209ms)\n  ✔ Client CSS 누락 (21.838083ms)\n  ✔ Client JS 누락 (21.336459ms)\n  ✔ 공통 CSS 누락 (21.227ms)\n  ✔ shell 문서 연결 누락 (21.601375ms)\n  ✔ shell 명령 등록 누락 (23.315042ms)\n  ✔ token 검사 등록 누락 (23.137042ms)\n  ✔ token 문서 연결 누락 (22.692ms)\n  ✔ raw 색상 반례 (24.093083ms)\n✖ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부 (223.710959ms)\n✔ DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결 (0.197708ms)\n✔ DOC-ARCH-02 제목·배치·녹화 설명은 과거 파일 해시로 고정하지 않음 (0.212458ms)\n✔ DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패 (0.260708ms)\n▶ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파\n  ✔ 문서 제목·녹화 설명 변경 (29.292667ms)\n  ✔ 필수 권한 설명 제거 (27.921708ms)\n  ✔ 역사 감사에서도 현행 권한 설명 검사 (30.7065ms)\n  ✔ 현행 문서 부재 (27.713708ms)\n  ✔ 현재 제품 파일 부재 (29.509833ms)\n  ✔ 연동 안내 명령 제거 (28.846625ms)\n  ✔ 역사 감사의 인증 코드 pin 변경 (29.255542ms)\n  ✔ 실제 sample pin 변경 (27.619833ms)\n✔ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파 (231.562125ms)\nℹ tests 41\nℹ suites 0\nℹ pass 39\nℹ fail 2\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 854.095333\n\n✖ failing tests:\n\ntest at scripts/internal/documentation_contract.test.mjs:145:73\n✖ 과거 backlog 없이 현행 token 검사 (22.379209ms)\n  AssertionError [ERR_ASSERTION]: [pass] semantic token --color-bg has theme definitions\n  [pass] semantic token --color-surface has theme definitions\n  [pass] semantic token --color-text has theme definitions\n  [pass] semantic token --color-primary has theme definitions\n  [pass] semantic token --color-warning has theme definitions\n  [pass] semantic token --color-danger has theme definitions\n  [pass] semantic token --color-selection-ring has theme definitions\n  [pass] semantic token --color-modal-backdrop has theme definitions\n  [pass] semantic token --color-media-bg has theme definitions\n  [pass] design token --radius-sm is centralized\n  [pass] design token --radius-md is centralized\n  [pass] design token --radius-lg is centralized\n  [pass] design token --space-1 is centralized\n  [pass] design token --space-2 is centralized\n  [pass] design token --space-3 is centralized\n  [pass] design token --space-4 is centralized\n  [pass] design token --space-6 is centralized\n  [pass] design token --shadow-sm is centralized\n  [pass] design token --shadow-md is centralized\n  [pass] design token --overlay-stage-gloss-shadow is centralized\n  [pass] design token --overlay-point-shadow is centralized\n  [pass] design token --overlay-badge-stroke is centralized\n  [pass] product CSS body does not introduce raw hex or rgb colors\n  [fail] tokenized CSS hook exists for box-shadow: 0 0 0 2px var(--color-selection-ring): product CSS body missing token hook: box-shadow: 0 0 0 2px var(--color-selection-ring)\n  [pass] tokenized CSS hook exists for background: var(--color-modal-backdrop)\n  [pass] tokenized CSS hook exists for box-shadow: var(--overlay-stage-gloss-shadow)\n  [pass] tokenized CSS hook exists for filter: var(--overlay-point-shadow)\n  [pass] tokenized CSS hook exists for stroke: var(--overlay-badge-stroke)\n  [fail] tokenized CSS hook exists for background: var(--color-media-bg): product CSS body missing token hook: background: var(--color-media-bg)\n  [pass] server.sh mentions token drift verification\n  [pass] docs/ui-guide.md mentions token drift verification\n  [pass] server dispatch keeps token drift verification\n  \n  == Product UI token drift verification summary ==\n  - pass: 30\n  - fail: 2\n  - scope: static documentation/source wiring; actual UI not-run\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:173:12)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/documentation_contract.test.mjs:145:73)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+          "stderr": ""
+        }
+      ],
+      "cleanup": {
+        "status": "PASS",
+        "temporaryPaths": [],
+        "reason": "메모리 주입·읽기 전용 정적 검사. 제품 실행 없음"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "reason": "token 소비자도 분리된 Client CSS를 포함하도록 원래 검사 범위 복원. Client raw 색상·token hook 누락 반례 추가. 실패한 자체검사부터 재개",
+      "source": {
+        "docs/ui-guide.md": "a7c0037567f07639aa7997da61502862cd9fa0c85718744ff0141d8be7ee0e03",
+        "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+        "scripts/internal/documentation_contract.test.mjs": "2c8dab387d5e0c7395fd7769425f3f65650921bc1b8cacf6d53098d1995c274c",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211",
+        "scripts/internal/verify_ops_rule_validation_matrix.mjs": "4c9b155ed8fb97b12b1b7a1e2454bd17caad0d2a4c9944bb5e273abf687fb412",
+        "scripts/internal/verify_product_shell_examples.mjs": "750e59f90245bc43f897cd087c2753674d623d9bf1ab9c2fb75dd9ca14afc598",
+        "scripts/internal/verify_product_ui_token_drift.mjs": "38a5ecb378b24419fc456f45b52ed5f36dd6118357eeb959567015059629f581"
+      },
+      "commands": [
+        {
+          "command": "node",
+          "args": [
+            "--test",
+            "scripts/internal/documentation_contract.test.mjs"
+          ],
+          "startedAt": "2026-09-28T22:06:56.846Z",
+          "endedAt": "2026-09-28T22:06:57.770Z",
+          "elapsedMs": 922.6943329999999,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.7185ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.463709ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.204167ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.298791ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.100792ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.539792ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.163125ms)\n✔ DOC-UI-GUIDE-01 현재 출력 계약·승인 기준 연결과 한글 문장 허용 (0.4065ms)\n✔ DOC-UI-GUIDE-02 승인 링크·출력 계약 누락은 실패 (0.519208ms)\n▶ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파\n  ✔ 현행 화면·JS·CSS·문서 (35.926208ms)\n  ✔ 화면 marker 누락: data-testid=\"ops-rule-scenario-review-loop\" (33.700875ms)\n  ✔ 화면 marker 누락: data-review-loop=\"expected-event-type-conflict-missing-reference-preset-eventrecord-coverage\" (34.983ms)\n  ✔ 화면 marker 누락: id=\"opsRulesReviewEventRecordLink\" (33.705542ms)\n  ✔ 화면 marker 누락: data-event-record-coverage-link=\"/ops/events\" (34.304ms)\n  ✔ JS 연결 누락 (33.810167ms)\n  ✔ CSS 연결 누락 (35.531125ms)\n  ✔ 문서의 검사 범위 누락 (35.246542ms)\n✔ DOC-UI-GUIDE-03 룰 문서 소비자의 현행 화면 연결·누락 실패 전파 (280.315041ms)\n▶ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부\n  ✔ 과거 backlog 없이 현행 shell 검사 (20.8975ms)\n  ✔ 과거 backlog 없이 현행 token 검사 (21.661792ms)\n  ✔ Client CSS 누락 (21.724ms)\n  ✔ Client JS 누락 (22.395708ms)\n  ✔ 공통 CSS 누락 (21.668208ms)\n  ✔ shell 문서 연결 누락 (22.30175ms)\n  ✔ shell 명령 등록 누락 (22.537167ms)\n  ✔ token 검사 등록 누락 (23.861167ms)\n  ✔ token 문서 연결 누락 (23.458833ms)\n  ✔ raw 색상 반례 (23.519875ms)\n  ✔ 분리된 Client raw 색상 반례 (22.904583ms)\n  ✔ 분리된 Client token hook 누락 (23.198917ms)\n✔ DOC-UI-GUIDE-04 공통 화면 소비자의 현행 구현·등록·문서 누락 거부 (270.751917ms)\n✔ DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결 (0.186666ms)\n✔ DOC-ARCH-02 제목·배치·녹화 설명은 과거 파일 해시로 고정하지 않음 (0.20575ms)\n✔ DOC-ARCH-03 문서·권한·공개 소비 경로 누락은 실패 (0.263ms)\n▶ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파\n  ✔ 문서 제목·녹화 설명 변경 (31.048875ms)\n  ✔ 필수 권한 설명 제거 (29.116208ms)\n  ✔ 역사 감사에서도 현행 권한 설명 검사 (30.396333ms)\n  ✔ 현행 문서 부재 (29.483041ms)\n  ✔ 현재 제품 파일 부재 (28.98325ms)\n  ✔ 연동 안내 명령 제거 (28.305708ms)\n  ✔ 역사 감사의 인증 코드 pin 변경 (28.763917ms)\n  ✔ 실제 sample pin 변경 (28.982208ms)\n✔ DOC-ARCH-04 실제 정적 명령의 문서 변경 허용·안전 반례 실패 전파 (235.808625ms)\nℹ tests 43\nℹ suites 0\nℹ pass 43\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 903.095833\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-product-shell-examples"
+          ],
+          "startedAt": "2026-09-28T22:06:57.771Z",
+          "endedAt": "2026-09-28T22:06:57.805Z",
+          "elapsedMs": 34.15583300000003,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] examples document defines product shell component contract\n[pass] examples document keeps route boundaries explicit\n[pass] examples document includes stable class examples\n[pass] UI guide references product shell examples verifier\n[pass] server entrypoint exposes product shell examples verifier\n\n== Product shell examples verification summary ==\n- pass: 5\n- fail: 0\n- scope: static documentation/source wiring; actual UI not-run\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-product-ui-token-drift"
+          ],
+          "startedAt": "2026-09-28T22:06:57.805Z",
+          "endedAt": "2026-09-28T22:06:58.132Z",
+          "elapsedMs": 327.07679200000007,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] semantic token --color-bg has theme definitions\n[pass] semantic token --color-surface has theme definitions\n[pass] semantic token --color-text has theme definitions\n[pass] semantic token --color-primary has theme definitions\n[pass] semantic token --color-warning has theme definitions\n[pass] semantic token --color-danger has theme definitions\n[pass] semantic token --color-selection-ring has theme definitions\n[pass] semantic token --color-modal-backdrop has theme definitions\n[pass] semantic token --color-media-bg has theme definitions\n[pass] design token --radius-sm is centralized\n[pass] design token --radius-md is centralized\n[pass] design token --radius-lg is centralized\n[pass] design token --space-1 is centralized\n[pass] design token --space-2 is centralized\n[pass] design token --space-3 is centralized\n[pass] design token --space-4 is centralized\n[pass] design token --space-6 is centralized\n[pass] design token --shadow-sm is centralized\n[pass] design token --shadow-md is centralized\n[pass] design token --overlay-stage-gloss-shadow is centralized\n[pass] design token --overlay-point-shadow is centralized\n[pass] design token --overlay-badge-stroke is centralized\n[pass] product CSS body does not introduce raw hex or rgb colors\n[pass] tokenized CSS hook exists for box-shadow: 0 0 0 2px var(--color-selection-ring)\n[pass] tokenized CSS hook exists for background: var(--color-modal-backdrop)\n[pass] tokenized CSS hook exists for box-shadow: var(--overlay-stage-gloss-shadow)\n[pass] tokenized CSS hook exists for filter: var(--overlay-point-shadow)\n[pass] tokenized CSS hook exists for stroke: var(--overlay-badge-stroke)\n[pass] tokenized CSS hook exists for background: var(--color-media-bg)\n[pass] server.sh mentions token drift verification\n[pass] docs/ui-guide.md mentions token drift verification\n[pass] server dispatch keeps token drift verification\n\n== Product UI token drift verification summary ==\n- pass: 32\n- fail: 0\n- scope: static documentation/source wiring; actual UI not-run\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-v300-ops-events-ui"
+          ],
+          "startedAt": "2026-09-28T22:06:58.133Z",
+          "endedAt": "2026-09-28T22:06:58.359Z",
+          "elapsedMs": 226.24266699999998,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] ops events page exposes V300 event evidence search UI shell\n[pass] ops review API returns V300 local-only event evidence search view model\n[pass] product UI script wires V300 filters and renders detail cards\n[pass] V300 UI has responsive card, timeline, feature reason, and retention styling\n[pass] ops static smoke tracks V300 markers\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S08 command\n[pass] SAFE-090 canonical Ops events UI boundary\n\n== v3.0.0 ops events UI summary ==\n- schema: media-server.ops.v300-event-evidence-search-ui.v1\n- step: V300-S08\n- route: /ops/events\n- searchSurface: EventRecord, FeatureSet, EvidenceManifest, operator review state\n- providerRuntimeCall: not-run-by-this-command\n- vectorSearch: not-run-by-this-command\n- retentionCleanupExecution: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 8\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-v290-public-docs-assets-refresh"
+          ],
+          "startedAt": "2026-09-28T22:06:58.359Z",
+          "endedAt": "2026-09-28T22:06:58.517Z",
+          "elapsedMs": 158.25091700000007,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] 현행 기능 정의와 명령 연결\n[pass] 현행 공개 문서와 관리 이미지 연결\n[pass] 직접 검수와 정적 검사의 경계\n[pass] 분리된 이미지·링크·metadata 검사 안내와 실제 dispatch\n[pass] 전수 기능 검증과 필수 ID 연결\n\n== v2.9.0 public docs/assets refresh summary ==\n- schema: media-server.v290-public-docs-assets-refresh.v1\n- publicDocs: README.md, README.en.md, docs/README.md, docs/en/README.md\n- uiGuide: docs/ui-guide.md\n- assetPolicy: docs/assets/ui/README.md\n- managedAssets: config/docs_ui_assets.json\n- recapture: not-run-by-this-command\n- directBrowserReview: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- scope: current documentation wiring; image integrity and visual review are separate\n- pass: 5\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-ui-release-baseline-approval-log"
+          ],
+          "startedAt": "2026-09-28T22:06:58.518Z",
+          "endedAt": "2026-09-28T22:06:58.803Z",
+          "elapsedMs": 285.60291700000016,
+          "exit": 1,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] release baseline approval template has required fields\n[pass] release baseline approval sample fixture is complete\n[pass] PR docs require approval log evidence\n[fail] release docs require approval log evidence: release baseline docs missing snippet: ./server.sh verify-ui-release-baseline-approval-log\n[pass] preflight runs release baseline approval log presence check\n[pass] server entrypoint exposes release baseline approval log verifier\n\n== UI release baseline approval log verification summary ==\n- pass: 5\n- fail: 1\n",
+          "stderr": ""
+        }
+      ],
+      "cleanup": {
+        "status": "PASS",
+        "temporaryPaths": [],
+        "reason": "메모리 주입·정적 검사, 제품 실행 없음"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "reason": "승인 양식 검사 명령을 실행 가능한 ./server.sh 표기로 보완. 실패했던 문서 연결 검사부터 재개",
+      "source": {
+        "docs/ui-guide.md": "5e49ae8262b75247fe8ed5dc2ce838b9342b29a0607d8d94acf8118cf564c0d4",
+        "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+        "scripts/internal/documentation_contract.test.mjs": "2c8dab387d5e0c7395fd7769425f3f65650921bc1b8cacf6d53098d1995c274c",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211",
+        "scripts/internal/verify_ops_rule_validation_matrix.mjs": "4c9b155ed8fb97b12b1b7a1e2454bd17caad0d2a4c9944bb5e273abf687fb412",
+        "scripts/internal/verify_product_shell_examples.mjs": "750e59f90245bc43f897cd087c2753674d623d9bf1ab9c2fb75dd9ca14afc598",
+        "scripts/internal/verify_product_ui_token_drift.mjs": "38a5ecb378b24419fc456f45b52ed5f36dd6118357eeb959567015059629f581"
+      },
+      "commands": [
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-ui-release-baseline-approval-log"
+          ],
+          "startedAt": "2026-09-28T22:07:28.477Z",
+          "endedAt": "2026-09-28T22:07:28.509Z",
+          "elapsedMs": 31.014208,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] release baseline approval template has required fields\n[pass] release baseline approval sample fixture is complete\n[pass] PR docs require approval log evidence\n[pass] release docs require approval log evidence\n[pass] preflight runs release baseline approval log presence check\n[pass] server entrypoint exposes release baseline approval log verifier\n\n== UI release baseline approval log verification summary ==\n- pass: 6\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-v391-documentation-truth"
+          ],
+          "startedAt": "2026-09-28T22:07:28.510Z",
+          "endedAt": "2026-09-28T22:07:28.620Z",
+          "elapsedMs": 110.50695900000001,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] 공개 권한 안내는 admin 전용 사용자 관리와 operator 제한을 유지\n[pass] GStreamer API namespace and minimum supported version are distinct\n[pass] 공개 색인에서 상세 실행 기록과 내부 계획 분리\n[pass] 현행 source와 기록된 공개 metadata 일치\n[pass] 현행 UI·단기·장시간 판정 기준 연결\n\n== v3.9.1 documentation truth summary ==\n- scope: current documentation; no product, UI or published execution\n- pass: 5\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-docs-ui-assets"
+          ],
+          "startedAt": "2026-09-28T22:07:28.621Z",
+          "endedAt": "2026-09-28T22:07:28.669Z",
+          "elapsedMs": 48.204958000000005,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] README uses only representative product UI screenshots\n[pass] English README uses English UI screenshots\n[pass] UI guide keeps product screenshots in the shared asset set\n[pass] docs UI asset policy documents capture rules\n[pass] managed UI asset manifest stays complete\n[pass] capture script owns every documented UI asset\n[pass] docs capture covers current screenshots\n[pass] representative screenshot docs do not point at stale visual baselines\n[pass] docs UI asset directory contains managed PNG files\n[pass] VA documentation images keep full video frame bounds\n\n== Docs UI asset verification summary ==\n- pass: 10\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-docs-links"
+          ],
+          "startedAt": "2026-09-28T22:07:28.669Z",
+          "endedAt": "2026-09-28T22:07:29.020Z",
+          "elapsedMs": 350.8787920000001,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14915\n- local images: 14\n- local anchors: 281\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+          "stderr": ""
+        }
+      ],
+      "cleanup": {
+        "status": "PASS",
+        "temporaryPaths": [],
+        "reason": "읽기 전용 정적 검사"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "reason": "시각 산출물·보존 도구의 자체 fixture 검사. 제품 브라우저·실제 이미지 비교 아님",
+      "source": {
+        "docs/ui-guide.md": "5e49ae8262b75247fe8ed5dc2ce838b9342b29a0607d8d94acf8118cf564c0d4",
+        "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+        "scripts/internal/documentation_contract.test.mjs": "2c8dab387d5e0c7395fd7769425f3f65650921bc1b8cacf6d53098d1995c274c",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211",
+        "scripts/internal/verify_ops_rule_validation_matrix.mjs": "4c9b155ed8fb97b12b1b7a1e2454bd17caad0d2a4c9944bb5e273abf687fb412",
+        "scripts/internal/verify_product_shell_examples.mjs": "750e59f90245bc43f897cd087c2753674d623d9bf1ab9c2fb75dd9ca14afc598",
+        "scripts/internal/verify_product_ui_token_drift.mjs": "38a5ecb378b24419fc456f45b52ed5f36dd6118357eeb959567015059629f581"
+      },
+      "planned": [
+        "./server.sh",
+        "verify-ui-visual-artifact-index",
+        "--output-dir",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv"
+      ],
+      "commands": [
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-ui-visual-artifact-index",
+            "--output-dir",
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv"
+          ],
+          "startedAt": "2026-09-28T22:07:59.928Z",
+          "endedAt": "2026-09-28T22:08:00.330Z",
+          "elapsedMs": 400.249834,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/index.md\n[pass] visual artifact manifest schema is valid\n[pass] markdown index links every screenshot\n[pass] docs mention visual artifact index outputs\n[pass] PR template requires visual review artifact evidence\n[pass] release baseline approval template captures acceptance evidence\n[pass] visual QA issue template captures artifact evidence\n[pass] auth screenshot smoke writes indexed visual artifacts\n[pass] visual baseline diff tooling is wired\n[pass] visual QA issue link helper is wired\n[pass] visual baseline comment helper is wired\n[pass] visual baseline diff preflight artifact is wired\n[pass] visual artifact maintenance command is wired\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/baseline/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/baseline/index.md\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/candidate/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/candidate/index.md\n[pass] visual baseline diff report fixture\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/policy-baseline/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/policy-baseline/index.md\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/policy-candidate/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/policy-candidate/index.md\n[pass] visual baseline candidate policy fixture\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/maintenance-root/fresh-artifact/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/maintenance-root/fresh-artifact/index.md\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/maintenance-root/expired-artifact/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/maintenance-root/expired-artifact/index.md\n[pass] visual artifact manifest: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/maintenance-root/expired-artifact/visual-regression-manifest.json\n[pass] visual artifact index: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv/maintenance-root/expired-artifact/index.md\n[pass] visual artifact maintenance fixture\n\n== UI visual artifact index verification summary ==\n- pass: 15\n- fail: 0\n- fixture: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv\n",
+          "stderr": ""
+        }
+      ],
+      "cleanup": {
+        "status": "PASS",
+        "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v411-ui-guide-fixture-ycRgGv",
+        "ownership": "이 실행에서 mkdtemp로 생성, 운영/사용자 자료 없음",
+        "bytesBefore": 41465,
+        "absent": true
+      },
+      "fixtureFiles": [
+        {
+          "path": "baseline/index.md",
+          "bytes": 496,
+          "sha256": "1edaa6c0c2ba1d9678f617cebbdf2a9021c3d55650a7bf389266aaac1762155c"
+        },
+        {
+          "path": "baseline/ops-home-320.png",
+          "bytes": 27,
+          "sha256": "425191e17fd92e69973f3acdf6dc3811b0bd061742301a6bfb1bc5e196c0bfd6"
+        },
+        {
+          "path": "baseline/visual-regression-manifest.json",
+          "bytes": 957,
+          "sha256": "d0449bb1aefc99b6bd06edefd613446b2ed7e90713a831932bf0dbe4a1bdc84f"
+        },
+        {
+          "path": "baseline-diff/visual-baseline-diff.json",
+          "bytes": 2988,
+          "sha256": "a5874f38bcd483cc37b6bbfedfd9ce9b094e0a6f1e138b5ca8709b83957d01a0"
+        },
+        {
+          "path": "baseline-diff/visual-baseline-diff.md",
+          "bytes": 774,
+          "sha256": "84bf499f3731770ac4cb3f36f881dffcb9e54f1bd033f580caef84f3c4e0dac5"
+        },
+        {
+          "path": "candidate/index.md",
+          "bytes": 496,
+          "sha256": "3db91701085dcd7384a8dc7c0545134db5b2c3b5f4f9055e15e675eb599ff47c"
+        },
+        {
+          "path": "candidate/ops-home-320.png",
+          "bytes": 27,
+          "sha256": "425191e17fd92e69973f3acdf6dc3811b0bd061742301a6bfb1bc5e196c0bfd6"
+        },
+        {
+          "path": "candidate/visual-regression-manifest.json",
+          "bytes": 957,
+          "sha256": "604447d0b36f6c8d8315ff44db1cb649554f07c35e9f1bc128293e189cbf1504"
+        },
+        {
+          "path": "client-live-760.png",
+          "bytes": 28,
+          "sha256": "50716ff3f9937e56bc4f67917177411122c65dcddfb581fdf76fc6b2c6875dd4"
+        },
+        {
+          "path": "index.md",
+          "bytes": 912,
+          "sha256": "c8c6bebfc3942ebcc9061e8cfa8ceb77ec28fcb7715e0ba52be6c85879b2eadd"
+        },
+        {
+          "path": "maintenance-archive/expired-artifact/index.md",
+          "bytes": 495,
+          "sha256": "62b06f875975bef9970d665420574b4ee0312dacfa7ee5ed4d23b743982260d0"
+        },
+        {
+          "path": "maintenance-archive/expired-artifact/ops-home-320.png",
+          "bytes": 8,
+          "sha256": "1656d715206d46b500d758d70ec43d05ebad709dca39e52008cac8c7586d6763"
+        },
+        {
+          "path": "maintenance-archive/expired-artifact/visual-regression-manifest.json",
+          "bytes": 936,
+          "sha256": "f493dffb4f763523d12239f404f02200371d4eda8c13917464d5d4c6639a61d9"
+        },
+        {
+          "path": "maintenance-archive/expired-artifact-2/index.md",
+          "bytes": 496,
+          "sha256": "40f857f1bdd4058c9dcb3ebcfdf8c0b8e2ad525587f2b4854721d7736b12249d"
+        },
+        {
+          "path": "maintenance-archive/expired-artifact-2/ops-home-320.png",
+          "bytes": 14,
+          "sha256": "b3ab549a787fde5d1008c5f296ac1288a2485f92095c16f01fe73bf8d72ff4de"
+        },
+        {
+          "path": "maintenance-archive/expired-artifact-2/visual-regression-manifest.json",
+          "bytes": 947,
+          "sha256": "64f4e3f4d2cd6928c39ee00554c4395fe35b81d5449bdd8756d296636cac3576"
+        },
+        {
+          "path": "maintenance-archive/ui-visual-artifact-archive-index.json",
+          "bytes": 3373,
+          "sha256": "57c61a061f47d8e26b877a0136e1b387f7a1e6956910d874f0541b02f38a0d7b"
+        },
+        {
+          "path": "maintenance-archive/ui-visual-artifact-archive-index.md",
+          "bytes": 988,
+          "sha256": "3a6a61057b7ded3a13cf49e42eb524d893bffe14e47d257b58bf5cd5e113757b"
+        },
+        {
+          "path": "maintenance-dry-run-report.md",
+          "bytes": 1125,
+          "sha256": "1c80f7fb91ca93bab2b45329377b41f8514fea73c2cea6480929c24e83c1ebaa"
+        },
+        {
+          "path": "maintenance-duplicate-report.json",
+          "bytes": 2734,
+          "sha256": "20831aae8ac00b78f0abf38839f385fca1395b7ec498ec97f7a96d0151efb1bb"
+        },
+        {
+          "path": "maintenance-duplicate-report.md",
+          "bytes": 1236,
+          "sha256": "46978fe312a61a56867fbf08ede2656e1b35cb58e4ac3e6f888558346289a738"
+        },
+        {
+          "path": "maintenance-report.json",
+          "bytes": 2694,
+          "sha256": "174f36e3a40ced3aa9f3bbb6415c2497d291f854f3fb700386e1cbea80713138"
+        },
+        {
+          "path": "maintenance-report.md",
+          "bytes": 1236,
+          "sha256": "a59f04a41c0da7ca3fba46b892fa93f72690821ea4627a379c23d52688691137"
+        },
+        {
+          "path": "maintenance-root/fresh-artifact/index.md",
+          "bytes": 495,
+          "sha256": "b4b0a31d016bd731b4251a1e3a16a0242d7eb37552dec292e6341ddd6c203d01"
+        },
+        {
+          "path": "maintenance-root/fresh-artifact/ops-home-320.png",
+          "bytes": 6,
+          "sha256": "02db0d2659c9d48bc15f81a388594fc0e3cf4c780fdc27ea21e0671afc37de19"
+        },
+        {
+          "path": "maintenance-root/fresh-artifact/visual-regression-manifest.json",
+          "bytes": 936,
+          "sha256": "654981e617ee00991399e77d09297027f01482a832ab3c6020fde61ad5e9768b"
+        },
+        {
+          "path": "ops-dashboard-390.png",
+          "bytes": 30,
+          "sha256": "49e4e2573cebccac52d61d20196bae00a03b72805a565a69a899c7198df2d636"
+        },
+        {
+          "path": "ops-home-1180.png",
+          "bytes": 26,
+          "sha256": "3dc123124228fac861b91c2d907ce2bec6ee48e472d1d7a269342a753572b1a3"
+        },
+        {
+          "path": "ops-home-320.png",
+          "bytes": 25,
+          "sha256": "249ecacebed2048aa42d9ac8f25be5aa8beb409b5294343803d27f5bb6454c59"
+        },
+        {
+          "path": "ops-sources-onvif-preview-tool-390.png",
+          "bytes": 47,
+          "sha256": "dbdaa2540bd2548c1a714772025d6ed0076be189177603d3ab7e0309ae01cb77"
+        },
+        {
+          "path": "policy-baseline/index.md",
+          "bytes": 496,
+          "sha256": "26aa5b29bb55637781793bdb44268b5ca98b50095633628c77bf26169c81a2fb"
+        },
+        {
+          "path": "policy-baseline/ops-home-320.png",
+          "bytes": 27,
+          "sha256": "425191e17fd92e69973f3acdf6dc3811b0bd061742301a6bfb1bc5e196c0bfd6"
+        },
+        {
+          "path": "policy-baseline/visual-regression-manifest.json",
+          "bytes": 937,
+          "sha256": "530ba72b07cc96385edba1d1112931ff4a254b0b0d3b2a165911bdab7524abea"
+        },
+        {
+          "path": "policy-candidate/client-live-320.png",
+          "bytes": 26,
+          "sha256": "803099098582c1f467efd931e06ce484562da906fb72e1e36131d012e6ab6013"
+        },
+        {
+          "path": "policy-candidate/index.md",
+          "bytes": 585,
+          "sha256": "2b0d4b4076ac194c4941a5feefbf130930be0b146404c99b03788919d7590688"
+        },
+        {
+          "path": "policy-candidate/ops-home-320.png",
+          "bytes": 27,
+          "sha256": "425191e17fd92e69973f3acdf6dc3811b0bd061742301a6bfb1bc5e196c0bfd6"
+        },
+        {
+          "path": "policy-candidate/visual-regression-manifest.json",
+          "bytes": 1228,
+          "sha256": "1241df6132ee4cc0d4938c67aa71c9ea89de774f888386ea6a46f972e7021ecd"
+        },
+        {
+          "path": "policy-fail-diff/visual-baseline-diff.json",
+          "bytes": 3293,
+          "sha256": "7f7a5b4d64bbff171c6419c123e9e9c2667225a3f4b85105c4da5df106f570f1"
+        },
+        {
+          "path": "policy-fail-diff/visual-baseline-diff.md",
+          "bytes": 910,
+          "sha256": "4b7e988c743d9652072fe9680a0ed2f7c3d95c8cf5523e80804b48795c1bb63f"
+        },
+        {
+          "path": "policy-review-comment.md",
+          "bytes": 860,
+          "sha256": "9b12584012a05cc4291fbbbfd43770a41e86f3c804826e0113524c79e85d6a15"
+        },
+        {
+          "path": "policy-review-diff/visual-baseline-diff.json",
+          "bytes": 3370,
+          "sha256": "ddd43126b39ab41b86378f8758c22abb5599f1bc3dba6b5493f0e92937f2ccc4"
+        },
+        {
+          "path": "policy-review-diff/visual-baseline-diff.md",
+          "bytes": 921,
+          "sha256": "b9de9e765ad36bae70cb7f10723fdad5507d1b98d2d0c2db30fb4186d7e83776"
+        },
+        {
+          "path": "ui-visual-qa-issue-links.md",
+          "bytes": 1138,
+          "sha256": "eef314ffaeab343bd36814cd1f80dc9da08de2f3e71c0186ace6956c1ab78f87"
+        },
+        {
+          "path": "visual-regression-manifest.json",
+          "bytes": 2138,
+          "sha256": "bc7adfc8133f3875ee94f341b0333460ab21d8838d4f09c14b2746acdc1d6786"
+        }
+      ],
+      "sourceUnchanged": true
+    }
+  ],
+  "finalSource": {
+    "docs/ui-guide.md": "5e49ae8262b75247fe8ed5dc2ce838b9342b29a0607d8d94acf8118cf564c0d4",
+    "scripts/internal/documentation_contract_lib.mjs": "c442e06b74710c8752068762d6c7c258aca8a6a4207e07ee61f64c564afd5e2f",
+    "scripts/internal/documentation_contract.test.mjs": "2c8dab387d5e0c7395fd7769425f3f65650921bc1b8cacf6d53098d1995c274c",
+    "scripts/internal/verify_ui_visual_artifact_index.mjs": "0011facb68cf6ff2ac2163dbec70e025d5c4a1378cab81ecb19f1a8d80fd6211",
+    "scripts/internal/verify_ops_rule_validation_matrix.mjs": "4c9b155ed8fb97b12b1b7a1e2454bd17caad0d2a4c9944bb5e273abf687fb412",
+    "scripts/internal/verify_product_shell_examples.mjs": "750e59f90245bc43f897cd087c2753674d623d9bf1ab9c2fb75dd9ca14afc598",
+    "scripts/internal/verify_product_ui_token_drift.mjs": "38a5ecb378b24419fc456f45b52ed5f36dd6118357eeb959567015059629f581"
+  },
+  "conclusion": {
+    "scope": "UI 가이드와 직접 문서 소비자의 정적 연결·도구 자체검증 마감. v4.1.1 전체 완료 아님",
+    "guide": {
+      "previousLines": 1578,
+      "currentLines": 925,
+      "managedImagesRetained": 9,
+      "legacyRecordingAnchorRetained": true
+    },
+    "passed": {
+      "documentationSelfTests": 43,
+      "visualFixtureChecks": 15,
+      "docsAssets": 10
+    },
+    "failureHistory": "앵커 1건, 구형 서버/Client 소스 경로, backlog 완료 문구 의존, token 분리 CSS 누락, 승인 검사 명령 표기 누락은 각각 최초 출력과 재검증 연결에 보존",
+    "reuse": "승인 검사 명령의 ./server.sh 표기 보완은 앞서 통과한 코드/반례의 식별자·의미를 변경하지 않음. 최종 링크/visual fixture/직접 소비자는 후속 검사로 확인",
+    "productChanges": false,
+    "actualUi": false,
+    "longrun": false,
+    "push": false
+  },
+  "measurement": {
+    "tokens": "이 실행 단위 토큰 계측 API 없음; 추정하지 않음",
+    "elapsed": "개별 commands의 실제 elapsedMs",
+    "source": "명령/파일 SHA와 도구 출력"
+  },
+  "finalChecks": [
+    {
+      "command": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "docs/ui-guide.md",
+        "scripts/internal/documentation_contract_lib.mjs",
+        "scripts/internal/documentation_contract.test.mjs",
+        "scripts/internal/verify_ui_visual_artifact_index.mjs",
+        "scripts/internal/verify_ops_rule_validation_matrix.mjs",
+        "scripts/internal/verify_product_shell_examples.mjs",
+        "scripts/internal/verify_product_ui_token_drift.mjs"
+      ],
+      "startedAt": "2026-09-28T22:08:28.450Z",
+      "endedAt": "2026-09-28T22:08:28.462Z",
+      "elapsedMs": 11.262917,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

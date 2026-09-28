@@ -31,6 +31,21 @@ export function hasDocumentLink(text, target) {
     .some((match) => match[1].split('#')[0].replace(/^\.\//, '') === target);
 }
 
+// 사용자 안내는 출력 계약과 승인 기준으로 연결한다. 옛 영문 제목/설명 문장을 요구하지 않는다.
+// 승인 양식의 필수 항목·실제 승인·시각 품질 판정은 각각의 독립 검사/검토 범위다.
+export function validateVisualArtifactGuideDocumentation(guide) {
+  const errors = [];
+  const text = typeof guide === 'string' ? guide : '';
+  for (const identifier of ['visual-regression-manifest.json', 'media-server.ui-visual-artifact-index.v1',
+    'media-server.ui-visual-artifact-retention.v1', 'compare-ui-visual-baseline', 'reviewRequired']) {
+    if (!text.includes(identifier)) errors.push('UI 안내의 시각 자료 계약 식별자 누락: ' + identifier);
+  }
+  if (!hasDocumentLink(text, 'ui-visual-release-baseline-approval-template.md')) {
+    errors.push('UI 안내의 baseline 승인 기준 링크 누락');
+  }
+  return errors;
+}
+
 // 구조 문서 전체의 옛 SHA는 녹화 등 별개 기능 설명까지 동결한다. 현행 문서에서는
 // 권한·공개 소비 경로의 식별자 연결을 확인하고, 의미는 코드 리뷰/인증 회귀로 판정한다.
 // 이것은 Auth 동작이나 과거 freeze 시점의 파일 바이트를 검증하는 함수가 아니다.

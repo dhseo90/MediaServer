@@ -13,6 +13,7 @@ import { compareVisualBaseline } from "./compare_ui_visual_baseline.mjs";
 import { manageUiVisualArtifacts } from "./manage_ui_visual_artifacts.mjs";
 import { buildUiVisualBaselineComment } from "./write_ui_visual_baseline_comment.mjs";
 import { writeVisualArtifactIndex } from "./ui_visual_smoke_lib.mjs";
+import { validateVisualArtifactGuideDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -62,9 +63,10 @@ const manifestPath = path.join(outputDir, "visual-regression-manifest.json");
 const indexPath = path.join(outputDir, "index.md");
 const parsed = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 const markdown = fs.readFileSync(indexPath, "utf8");
+const uiGuide = fs.readFileSync(path.join(rootDir, "docs/ui-guide.md"), "utf8");
 const docs = [
   fs.readFileSync(path.join(rootDir, "docs/stream-verification.md"), "utf8"),
-  fs.readFileSync(path.join(rootDir, "docs/ui-guide.md"), "utf8"),
+  uiGuide,
   fs.readFileSync(path.join(rootDir, "docs/release-policy.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, ".github/ISSUE_TEMPLATE/ui_visual_qa.yml"), "utf8"),
@@ -97,6 +99,8 @@ check("markdown index links every screenshot", () => {
 });
 
 check("docs mention visual artifact index outputs", () => {
+  const guideErrors = validateVisualArtifactGuideDocumentation(uiGuide);
+  assert(guideErrors.length === 0, guideErrors.join("; "));
   for (const snippet of [
     "visual-regression-manifest.json",
     "index.md",
@@ -104,7 +108,6 @@ check("docs mention visual artifact index outputs", () => {
     "media-server.ui-visual-artifact-retention.v1",
     "14 days",
     "45 days",
-    "release baseline artifact role",
     "approved comparator",
     "not a public release asset",
     "accepted baseline run",
