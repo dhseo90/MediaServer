@@ -243,7 +243,7 @@
     {
       "file": "ops-channels.png",
       "captureTask": "ops-channels",
-      "readme": true,
+      "readme": false,
       "uiGuide": true,
       "minimum": {
         "width": 700,
@@ -253,7 +253,7 @@
     {
       "file": "ops-rules.png",
       "captureTask": "ops-rules",
-      "readme": true,
+      "readme": false,
       "uiGuide": true,
       "minimum": {
         "width": 700,
@@ -263,7 +263,7 @@
     {
       "file": "ops-rules-preview.png",
       "captureTask": "ops-rules-preview",
-      "readme": true,
+      "readme": false,
       "uiGuide": true,
       "video": true,
       "minimum": {
@@ -274,7 +274,7 @@
     {
       "file": "ops-users.png",
       "captureTask": "ops-users",
-      "readme": true,
+      "readme": false,
       "uiGuide": true,
       "minimum": {
         "width": 700,

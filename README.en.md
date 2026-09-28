@@ -2,58 +2,36 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release Target](https://img.shields.io/badge/release%20target-v4.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
 ![Source Version](https://img.shields.io/badge/source-4.1.0-informational)
 
-Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
-video analytics overlays and rule/scenario live events when analytics are enabled.
+A C++17 media server for macOS and Linux with RTSP/WebRTC relaying, YOLO/ONNX
+video analytics, and continuous/event recording. Manage channels and analysis
+rules in a browser, watch live streams, and review recorded video.
 
-The v4.1.0 release target adds **continuous/event recording, circular retention,
-and timeline/playback foundations** to the v4.0.0 live-source and VA boundary.
-S11 product validation and B14 public-readiness work are complete. External state—
-PR, merge, signed tag, GitHub Release, and published verification—is reported only
-from actual execution. This is not a complete VMS/NVR, natural-language archive
-search, or runtime/model bundle distribution.
+[한국어](README.md) · [Documentation](docs/en/README.md) ·
+[Latest release](https://github.com/dhseo90/MediaServer/releases/latest) ·
+[v4.1.0 release notes](docs/release-notes-v4.1.0.md)
 
-- Korean documentation: [README.md](README.md)
-- Documentation index: [docs/README.md](docs/README.md)
-- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
-- Current release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
-- Current source version: `4.1.0`
-- Current source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 status: S01-S08 implementation, S10 hardening, S11 product validation, and B14 public readiness are complete. External release actions remain separately evidence-based.
-- Prior published baseline: v4.0.0 Local Operations Policy and Stabilization
-- Earlier published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
+## Features
 
-## At a Glance
+- Streaming: relay file, RTSP, WHEP, WHIP, and HTTP/HLS inputs to RTSP and WebRTC/WHEP outputs.
+- Analytics: object-detection overlays, saved rules and scenarios, event delivery, and analysis metadata.
+- Recording: per-channel continuous and event-linked recording, capacity-bounded circular retention,
+  event-priority timelines, and playback.
+- Operations: manage channels, rules, users, and diagnostics in `/ops`;
+  watch authorized live streams in `/client`.
+- Event review: browse event records, incident timelines, and recordings in `/ops/events`.
 
-- **Live relay**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS
-  sources through RTSP and WebRTC/WHEP outputs.
-- **Product UI**: `/ops` is the operator console, `/client` is the viewer live
-  surface, and `/lab/analysis/*` is for verification/integration APIs.
-- **Video analytics**: supports `va=1` overlays, saved rules through
-  `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime metadata.
-- **Incident memory**: the current source tree projects EventRecord, audit, source
-  health, and alert dry-run data into `/ops/events` search, timelines, explainable
-  briefs, and similar-incident lookup.
-- **Recording**: per-channel opt-in continuous/event recording, capacity-bounded
-  circular retention, event-priority timelines, and permission-scoped playback.
-- **Out of scope**: a complete VMS/NVR, guaranteed indefinite archive operation, broad archive search, VLM
-  default-on, model/runtime bundle distribution, and guaranteed real-device or
-  external-provider success are not included in the default public release.
-
-## Runtime Requirements
-
-| Area | Requirement |
-| --- | --- |
-| OS | macOS or Linux |
-| Build | C++17, CMake 3.16+ |
-| Media runtime | GStreamer 1.28+, gst-rtsp-server, WebRTC-related GStreamer plugins |
-| Optional AI | ONNX Runtime, YOLO ONNX model, label file |
-| Helper tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
-| Defaults | RTSP route `dhseo`, file root `video/` |
+Natural-language search across recordings is part of the
+[future roadmap](docs/v410-v49-recording-search-roadmap.md), not the current feature set.
+This is not a complete VMS/NVR or a guarantee of indefinite video retention.
+The default distribution is source-only; AI models and media-runtime binaries are not included.
 
 ## Quick Start
+
+Use macOS or Linux with a C++17 compiler, CMake 3.16+, and GStreamer 1.28+.
+Video analytics also requires ONNX Runtime, a YOLO ONNX model, and labels.
+See the [development guide](docs/development-guide.md) for platform dependencies and optional features.
 
 ```bash
 ./server.sh install
@@ -63,157 +41,76 @@ search, or runtime/model bundle distribution.
 ./server.sh urls
 ```
 
-Open:
+Open `http://127.0.0.1:8080/` in your browser.
+If you changed the port, use the address shown by `./server.sh urls`.
+Authentication defaults to `auto`; on first run, set the administrator password at `/setup`.
+There is no default administrator password.
 
-```text
-http://127.0.0.1:8080/
-```
+Use `./server.sh stop` to stop the server or `./server.sh foreground` for foreground development.
 
-Stop:
+## From Recording Setup to Playback
 
-```bash
-./server.sh stop
-```
+1. Enable recording: set `MEDIA_SERVER_RECORDING_ENABLED=1` for the server and enable
+   recording on the operating channel. A disabled channel does not record.
+   See [recording settings](docs/config-reference.md#recording-env) for storage location,
+   capacity, and retention.
+2. Check storage: the recording section of `/ops/events` shows channel activity,
+   continuous/event usage, and storage-blocked status.
+   The two retention budgets are separate; eligible older data is removed when limits are exceeded.
+   Recording may be blocked if pin/hold protection prevents deletion or disk reserve is insufficient.
+3. Browse the timeline: select a channel and time range.
+   Event recordings take priority where overlap with the same source is confirmed.
+   Partial or time-unconfirmed records remain distinct from complete recordings, and originals can be shown.
+4. Play a recording: select an item, then use the play, pause, and seek controls.
+   Playback starts at the beginning of the file. Selecting a time does not automatically seek,
+   and the next file does not play automatically. The browser must support the video format.
 
-For foreground logs:
+See the [recording and playback guide](docs/ui-guide.md#녹화-조회와-재생-v410-s06) for
+event integration and screen details, and the
+[recording API](docs/config-reference.md#녹화-조회재생-api-v410-s06) for API and authorization rules.
 
-```bash
-./server.sh foreground
-```
+## Roles
 
-If you only need the streaming path without AI:
+- `admin`: manages channels, rules, users, and diagnostics. User management is admin-only.
+- `operator`: operates channels, rules, and diagnostics, but cannot access user management.
+- `viewer`: uses assigned Client screens only. Source URLs and internal diagnostics are not exposed.
+- `integrator`: uses APIs within the granted scope.
 
-```bash
-MEDIA_SERVER_ENABLE_AI=0 ./server.sh build
-```
-
-The default auth mode is `MEDIA_SERVER_AUTH_MODE=auto`. If no users file or
-`admin.passwordHash` exists, the first browser visit redirects to `/setup`.
-There is no default production admin password.
-
-## Sample and Asset Scope
-
-Tracked `video/*.mp4` files and the allowlisted
-`video/imports/va_tracking_event_1280x720_30fps_h264.mp4` are generated
-verification fixtures. Customer media, operations evidence, YOLO model binaries,
-FFmpeg/GStreamer runtime binaries, logs, and auth stores are not public
-repository content.
-
-See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for
-fixture provenance and public-release decisions. English readers should start
-from the consolidated [docs/en/README.md](docs/en/README.md).
-
-## Documentation Guide
-
-This README is the product overview. Detailed policies and internal verification
-records live in dedicated docs.
-
-- Full index: [docs/README.md](docs/README.md)
-- Setup, build, and run: [docs/development-guide.md](docs/development-guide.md)
-- Ops and Client UI: [docs/ui-guide.md](docs/ui-guide.md)
-- RTSP/WebRTC/VA architecture:
-  [docs/media-server-architecture.md](docs/media-server-architecture.md)
-- Video analytics and scenarios: [docs/video-analysis.md](docs/video-analysis.md)
-- Verification commands: [docs/stream-verification.md](docs/stream-verification.md)
-- Release/version policy: [docs/release-policy.md](docs/release-policy.md),
-  [docs/versioning-policy.md](docs/versioning-policy.md)
-- Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Current release-note source: [v4.1.0](docs/release-notes-v4.1.0.md)
+Recording queries and playback also enforce role and channel permissions.
+See the [UI guide](docs/ui-guide.md) for screen and permission details.
 
 ## UI Preview
 
-These images are documentation previews recaptured on 2026-08-31 from source
-`4.0.0` against published `v3.9.1`. Composition follows the v3.8.0 full-element
-shots, so tables, video viewports, controls, and cards are not cropped. They
-are not UI fulltest or GitHub Release evidence. Details live in
-[docs/ui-guide.md](docs/ui-guide.md) and
-[docs/assets/ui/README.md](docs/assets/ui/README.md).
-
-**Ops Home**
+Ops Home
 
 ![Ops home](docs/assets/ui/en/ops-home.png)
 
-**Ops Channels**
-
-![Ops channels](docs/assets/ui/en/ops-channels.png)
-
-**Ops Rules**
-
-![Ops rules](docs/assets/ui/en/ops-rules.png)
-
-Complete configuration-type selector and rule list, rather than a scaled-down full editor page.
-
-**Rule Preview Editor**
-
-![Rule preview editor](docs/assets/ui/en/ops-rules-preview.png)
-
-**Ops Users**
-
-![Ops users](docs/assets/ui/en/ops-users.png)
-
-Complete user-list card. Invitations and detail editing are covered in the UI guide.
-
-**Client Live**
+Client Live with video analytics
 
 ![Client live](docs/assets/ui/en/client-live.png)
 
-Complete video workspace and toolbar, including the four-scene frame, VA overlay, and playback
-controls. The separate navigation dock is outside this composition.
+See the [UI guide](docs/ui-guide.md) for channel, rule, and user-management screens.
 
-## Account Views
+## Documentation and Development
 
-- First run, or an empty account store, opens the admin password setup view.
-- `admin` users see Ops screens for channels, rules, users, and diagnostics. User management is admin-only.
-- `operator` users see Ops screens for channels, rules, and diagnostics, but cannot access user management.
-- `viewer` users see only assigned Client screens. Raw source URLs, internal diagnostic JSON, and rule/profile editors are not exposed.
-- `integrator` is intended for scoped API integration rather than daily UI operation.
+Most detailed guides are maintained in Korean; start with the [English index](docs/en/README.md).
 
-## Testing Summary
+| Purpose | Guide |
+| --- | --- |
+| Install, build, run | [Development guide](docs/development-guide.md) |
+| Operate and configure | [UI guide](docs/ui-guide.md), [Configuration reference](docs/config-reference.md) |
+| Architecture and analytics | [Server architecture](docs/media-server-architecture.md), [Video analytics](docs/video-analysis.md) |
+| Verify and contribute | [Verification commands](docs/stream-verification.md), [Contributing](CONTRIBUTING.md) |
+| Future development | [Recording/search roadmap](docs/v410-v49-recording-search-roadmap.md), [Open work](docs/development-backlog.md) |
+| All documentation | [Topic index](docs/README.md) |
 
-Broad default regression:
+Public sample videos are generated verification fixtures.
+Do not add production/customer media or credentials to the repository.
+See [sample provenance](docs/sample-fixture-provenance.md) for their origin and scope.
 
-```bash
-./server.sh test
-```
+## License
 
-For documentation or release metadata changes, start with the fast checks:
-
-```bash
-git diff --check
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-```
-
-After publishing a GitHub Release, run `./server.sh verify-release-metadata --published`
-to check GitHub Latest Release and the remote tag.
-
-Release-local baseline:
-
-```bash
-./server.sh test --full
-```
-
-See [docs/stream-verification.md](docs/stream-verification.md) for UI/Auth/VA,
-longrun, and release gate commands. Do not put real customer URLs, credentials,
-or operation media paths into docs or artifacts.
-
-## Pipeline
-
-```text
-File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
-        -> Media Server
-        -> RTSP Output / WebRTC Output
-        -> optional VA overlay / rule events / scenario events / runtime metadata
-```
-
-VA flow:
-
-```text
-YOLO Detection
-  -> Direction-Based Tracker
-  -> TrackStateManager
-  -> SceneContextBuilder
-  -> RuleEventEngine / ScenarioEngine
-  -> EventManager
-  -> Overlay / Runtime Metadata / Event POST / EventRecord
-```
+Original code and documentation are licensed under [Apache License 2.0](LICENSE).
+See [NOTICE](NOTICE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for separate
+dependency/model terms and the [distribution policy](docs/distribution-policy.md) for packaging scope.
+For security reports, follow [SECURITY.md](SECURITY.md).
