@@ -74,7 +74,7 @@ test('REL-DOC-10 CLI 소스 archive 실행과 실패 exit·보고서 전파',()=
   assert(data.checks.some(x=>x.status==='fail'));assert.equal(data.publishedEvidence.status,'external-not-checked');
 }));
 test('REL-DOC-11 기존 entry 명령은 같은 판정·실패를 전달',()=>fixture(({root,put})=>{
-  for(const [runtime,file] of [['bash','verify_v410_entry_baseline.sh'],[process.execPath,'verify_v400_entry_baseline.mjs']]){
+  for(const [runtime,file] of [['bash','verify_v410_entry_baseline.sh'],[process.execPath,'verify_v400_entry_baseline.mjs'],...['roadmap_contract','user_review_gate','release_readiness'].map(name=>[process.execPath,`verify_v400_${name}.mjs`])]){
     put('CMakeLists.txt','project(media_server VERSION 4.1.1 LANGUAGES CXX)');
     const cli=fileURLToPath(new URL('./'+file,import.meta.url));
     const run=extra=>spawnSync(runtime,[cli,'--root',root,...extra],{encoding:'utf8'});
@@ -108,5 +108,22 @@ test('REL-DOC-13 과거 사례 입력의 경계 훼손·실행 증거 위장 거
     const data=JSON.parse(fs.readFileSync(report,'utf8'));
     assert(data.checks.some(item=>item.name.startsWith('historical v2.9')&&item.status==='fail'));
     assert.equal(data.publishedEvidence.status,'external-not-checked');
+  }
+}));
+
+test('REL-DOC-14 v4.0 승인·완료 기록은 현재 승인/실행 결과나 문서 오류의 대체 근거가 아님',()=>fixture(({root,put})=>{
+  for(const name of ['roadmap_contract','user_review_gate','release_readiness']){
+    const script=fileURLToPath(new URL(`./verify_v400_${name}.mjs`,import.meta.url));
+    const run=extra=>spawnSync(process.execPath,[script,'--root',root,...extra],{encoding:'utf8',timeout:10000});
+    put('CMakeLists.txt','project(media_server VERSION 4.1.1 LANGUAGES CXX)');
+    let r=run([]);assert.equal(r.status,0,r.stdout+r.stderr);
+    assert(r.stdout.includes('승인·출시 가능 판정이 아닙니다'));
+    assert(!r.stdout.includes('fresh-executed-pass'));
+    assert(!r.stdout.includes('approved-through-recorded-user-goals'));
+    for(const file of ['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'])put(file,'과거 기록: fresh-executed-pass approved-through-recorded-user-goals');
+    put('CMakeLists.txt','project(media_server VERSION 0.0.0 LANGUAGES CXX)');
+    r=run([]);assert.equal(r.status,1);assert(r.stdout.includes('CMake'));
+    for(const args of [['--published'],['--help','--published'],['--root'],['--root',root,'--root',root]])assert.notEqual(run(args).status,0);
+    for(const file of ['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'])fs.unlinkSync(path.join(root,file));
   }
 }));

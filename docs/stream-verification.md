@@ -63,6 +63,16 @@ v2.2 도구의 incident redaction/fallback 정적 경계와 경로 이탈을 검
 | `verify-v220-entry-boundary` | `media-server.v220-entry-boundary-report.v1` |
 | `verify-v230-entry-baseline` | `media-server.v230-entry-baseline-report.v1` |
 
+`verify-v400-roadmap-contract`, `verify-v400-user-review-gate`,
+`verify-v400-release-readiness`는 종료된 v4.0 승인·완료 문구를 현행 gate로 검사하지 않는
+호환 명령이다. `verify-release-metadata`의 **로컬 문서 검사만** 실행하며 현재 승인·출시 가능,
+실제 30분/UI/120분·원격 공개 PASS를 판정하지 않는다. 신규 호출은 `verify-release-metadata`를 쓴다.
+세 구명령은 v4.1.1의 소비자 이관 기간에 유지하고 4/4 소비자 전수 확인 때 제거 가능성을 판정한다.
+기존 과거 fixture는 다른 소비자가 남아 있는 동안 보존하며 현재 승인이나 실행 기대값으로 복사하지 않는다.
+`node --test scripts/internal/release_documentation_contract.test.mjs`의 `REL-DOC-11`은
+호환 명령의 동일 판정·실패 전파를, `REL-DOC-14`는 과거 PASS/승인 자료 없이 실행 가능하고
+그 자료가 있어도 현재 문서 오류를 덮지 못하는 경계를 확인한다. 제품 동작 검사가 아니다.
+
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
 
@@ -251,15 +261,15 @@ UI 풀테스트·30분·120분·published metadata 또는 release action evidenc
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.1.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
-| v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | current source `4.0.0`, latest published `v4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization` 정렬. v4.0.0 2~8번, 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정하고 신규 기능을 `blocked-until-v400-complete`로 둡니다. 각 스텝 전용 verifier PASS, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+| v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | 현행 `VERSION`·release context·README와 문서 연결을 확인하는 로컬 문서 검사입니다. 현재 source를 과거 4.0.0으로 고정하지 않으며 제품/UI/장시간/원격 공개 실행 증거가 아닙니다. |
+| v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 현행 로컬 문서 검사로 연결하는 호환 명령입니다. 과거 사용자 승인·완료 기록을 요구하거나 현재 작업 승인으로 재사용하지 않습니다. 신규 호출은 `verify-release-metadata`를 사용합니다. |
 | v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424 유지, v390 verifier·contract·fixture 상한, v400 command allowlist, wrapper PASS와 실행 PASS 분리를 검사합니다. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (4) | `./server.sh verify-v400-local-ops-policy-freeze` | v3.9 defer 5개를 4.0 `policy-frozen` / `not-implemented-write-paths`로 유지하고 field smoke는 별도 `conditional-not-run`입니다. 기존 v390 deferral/signoff verifier는 재사용만 합니다. write 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (5) | `./server.sh verify-v400-incident-os-policy` | 기존 `/ops/events` 검색/timeline/resolution을 Ops-only `policy-frozen` 면으로 유지하고 primary nav 승격과 새 event type을 금지합니다. Incident OS 제품 승격, Event POST schema 변경, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (6) | `./server.sh verify-v400-evidence-ops-policy` | EventRecord/clip/retention을 `policy-frozen` opt-in·비-VMS로 유지하고 default-on 저장은 v4.1.0입니다. Evidence default-on 제품화, VMS/NVR archive API, 24/7 상시녹화, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (7) | `./server.sh verify-v400-local-ops-stabilization` | 역사적 v390 verifier 118개를 `keep-118-not-deleted`로 유지하고, stream-verification 현재 source `4.0.0`과 inherited 3.9 행을 구분하며, v320 page-owner/bundle drift를 `recorded-not-fixed`로 남깁니다. 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (8) | `./server.sh verify-v400-release-readiness` | concrete release-note candidate와 네 테스트 영역 판정을 확인합니다. 동일 clean source `b96f74ab`의 fresh 30분/UI는 `fresh-executed-pass`, 120분은 `conditional-not-run`입니다. readiness PASS는 tag/GitHub Release, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 roadmap contract | `./server.sh verify-v400-roadmap-contract` | v4.0.0 Local Operations Policy and Stabilization 로드맵이 정책/안정화와 v4.1.0 신규 기능을 분리하고, 모든 스텝에 테스트 스크립트 반영 필수를 심었는지 확인합니다. v4.0.0 2~8번 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+| v4.0.0 (8) | `./server.sh verify-v400-release-readiness` | 현행 로컬 문서 검사로 연결하는 호환 명령입니다. 당시 30분/UI PASS를 현재 출력·기대값으로 사용하지 않으며, 실제 테스트 증거와 출시 가능 판정은 별도입니다. |
+| v4.0.0 roadmap contract | `./server.sh verify-v400-roadmap-contract` | 현행 release context의 roadmap 문서 연결을 검사하는 호환 명령입니다. 종료된 v4.0 스텝·옛 v4.1 후보 목록을 현재 계획에 강제하지 않으며 실제 구현·사용자 승인·릴리즈 PASS가 아닙니다. |
 | v3.9.0 (1) | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬. v3.9 기능 discovery/dev, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (2) | `./server.sh verify-v390-feature-completion-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계를 확인합니다. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (3) | `./server.sh verify-v390-user-review-gate` | initial historical review-ready snapshot의 승인 전 개발 중단 경계와 후속 사용자 goal 이후 current `approved-through-recorded-user-goals`/`closed-with-evidence` 상태를 함께 검증합니다. current review closure도 UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
