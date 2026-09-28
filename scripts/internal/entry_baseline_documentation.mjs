@@ -54,6 +54,12 @@ export function loadEntryInputs(root,command) {
   const baseline=selected[0];
   const implementation=JSON.parse(read(root,'test/fixtures/project_feature_implementation_evidence.json'));
   const errors=[...validateReleaseContext(context,version),...validateLocalReleaseDocuments(root,context,version)];
+  if(command==='verify-v390-entry-baseline') {
+    const acceptance=read(root,'scripts/internal/verify_v390_test_acceptance_bundle.mjs');
+    if(!/["']verify-v390-entry-baseline["']\s*,/.test(acceptance))errors.push('실제 acceptance 명령 연결 누락');
+    const contractArm=files.serverSh.split('\n  verify-v390-entry-baseline-contract)')[1]?.split(';;')[0];
+    if(!contractArm?.includes('verify_v390_entry_baseline_contract.mjs'))errors.push('parser contract dispatch 누락');
+  }
   const branchStart=files.serverSh.indexOf(`\n  ${command})`);
   const branchEnd=files.serverSh.indexOf(';;',branchStart);
   const script=`verify_${command.slice('verify-'.length).replaceAll('-','_')}.mjs`;

@@ -1,0 +1,51 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-scoped-decisions.v1",
+  "reviewerIsCandidateGenerator": false,
+  "verdict": "approved",
+  "reviewer": "codex-main-source-review",
+  "reviewedAt": "2026-09-28T15:08:27.270Z",
+  "reviewPackage": {
+    "sha256": "3908017d1447c5b66aae90faff4a5f60c4300f712c3f6c787afe7de918b429fd"
+  },
+  "candidate": {
+    "candidateDigest": "df431a22e386a67c87870bde268bef4ac4ef7aac74d4a7b7b0abbb5494274d65",
+    "stagedEquivalentTreeOid": "119951daa1a1a3bfc675e432ab2be91a11998301",
+    "trackedWorktreeDiffSha256": "ac6a10ece721cc235d81d323402183daa48a5bc623ed15320cdee28e7c628894"
+  },
+  "reviewScope": {
+    "ids": [
+      "SAFE-196",
+      "OPS-163"
+    ]
+  },
+  "decisions": [
+    {
+      "id": "SAFE-196",
+      "decision": "approved",
+      "featureContractSha256": "11fd2105e595b50f8c61675566ee8a1d1e976f9ab4e855666842453c0bac714f",
+      "sourceFlowDigest": "4ec5265db19dced5661ccea3c68b24771475763df7568e7c8b21331835d57937",
+      "verifierCommand": "verify-v390-entry-baseline",
+      "verifierFile": "scripts/internal/verify_v390_entry_baseline.mjs",
+      "dispatchArmSha256": "fa5c6d283472852ed92c8dc646470bc5a3164b76480471567389b8e2d7a438ba",
+      "evidenceToken": "safe196BoundaryObserved",
+      "actionSymbol": "canonical-safe-196-boundary",
+      "stateSymbol": "canonical-safe-196-boundary",
+      "justification": "SAFE-196 메인 직접 검토: 기존 두 기능 ID와 독립 SAFE/OPS 판정을 유지했다. 현재 source/CMake/문서/dispatch와 과거 3.9 source·3.8 published 입력을 분리하고 종료 원장·완료 표·옛 제목 의존만 제거했다. 상태 parser는 출처와 hash가 결속된 최소 역사 입력으로 정상/누락/중복/필수 내용 반례를 유지한다. 25개 자체검사와 실제 3개 명령이 통과했으며 제품/UI/장시간/공개 완료로 승격하지 않는다. 별도 사람·서브에이전트 검토가 아니라 메인 소스 검토이며 후보 생성기는 기존 스크립트다.",
+      "justificationSha256": "06095bb6ca9f56536fbdfe1ed0c0880ced5e2dc30b7743e5b8aa08728f304839"
+    },
+    {
+      "id": "OPS-163",
+      "decision": "approved",
+      "featureContractSha256": "42ba9f75d6587e87ecc5a342a3d2865318b8790ec760a4d957538fde81729cf2",
+      "sourceFlowDigest": "ee7dcfa3fcdc0136aaa44138c641fb18add60d515616842ee8948998af900c2e",
+      "verifierCommand": "verify-v390-entry-baseline",
+      "verifierFile": "scripts/internal/verify_v390_entry_baseline.mjs",
+      "dispatchArmSha256": "fa5c6d283472852ed92c8dc646470bc5a3164b76480471567389b8e2d7a438ba",
+      "evidenceToken": "ops163BaselineObserved",
+      "actionSymbol": "check:OPS-163 canonical V390 historical baseline gate",
+      "stateSymbol": "check:OPS-163 canonical V390 historical baseline gate",
+      "justification": "OPS-163 메인 직접 검토: 기존 두 기능 ID와 독립 SAFE/OPS 판정을 유지했다. 현재 source/CMake/문서/dispatch와 과거 3.9 source·3.8 published 입력을 분리하고 종료 원장·완료 표·옛 제목 의존만 제거했다. 상태 parser는 출처와 hash가 결속된 최소 역사 입력으로 정상/누락/중복/필수 내용 반례를 유지한다. 25개 자체검사와 실제 3개 명령이 통과했으며 제품/UI/장시간/공개 완료로 승격하지 않는다. 별도 사람·서브에이전트 검토가 아니라 메인 소스 검토이며 후보 생성기는 기존 스크립트다.",
+      "justificationSha256": "80c0cd28325aa396a1a6daebe117a213487e51bf6591dfe1bbf61012dcb3a86d"
+    }
+  ]
+}

@@ -1,16 +1,20 @@
-// 파일 용도: v3.9 backlog 진행 상태 표를 구조적으로 parse하고 단일 expected-state fixture와 대조한다.
+// 파일 용도: 출처가 있는 과거 표 입력의 parser 회귀. 현행 backlog/실행 결과를 요구하지 않는다.
 
 import fs from "node:fs";
 import path from "node:path";
+import {createHash} from "node:crypto";
 
 export const V390_ENTRY_BASELINE_EXPECTATION_PATH =
   "test/fixtures/v390_entry_baseline_steps.json";
 
 export function loadV390EntryBaselineExpectation(rootDir) {
-  return JSON.parse(fs.readFileSync(
-    path.join(rootDir, V390_ENTRY_BASELINE_EXPECTATION_PATH),
-    "utf8",
-  ));
+  const base=fs.realpathSync(rootDir),file=fs.realpathSync(path.join(base,V390_ENTRY_BASELINE_EXPECTATION_PATH));
+  if(!file.startsWith(base+path.sep)||!fs.statSync(file).isFile())throw new Error('fixture 경로 이탈');
+  const fixture=JSON.parse(fs.readFileSync(file,'utf8'));
+  if(fixture.executionEvidence!==false)throw new Error('회귀 입력을 실행 증거로 사용할 수 없음');
+  if(!/^[a-f0-9]{40}$/.test(fixture.provenance?.commit??'')||fixture.provenance?.path!=='docs/development-backlog.md')throw new Error('회귀 입력 출처 없음');
+  if(typeof fixture.markdown!=='string'||createHash('sha256').update(fixture.markdown).digest('hex')!==fixture.provenance?.sha256)throw new Error('회귀 입력 내용/hash 불일치');
+  return fixture;
 }
 
 export function parseV390ProgressTable(markdown, tableHeading) {

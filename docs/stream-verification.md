@@ -33,16 +33,20 @@
 버전·서명/배포 정책·링크 오류 거부, Git 없는 소스 실행, 파일 누락·경로 이탈, 실패 exit·보고서를 확인한다.
 과거 OPS-041 사례는 `test/fixtures/release_metadata_boundary.json`의 테스트 입력이며 실행 증거가 아니다.
 입력의 source/공개 기준을 합치거나 실행 증거로 위장한 경우에도 CLI 실패가 유지되어야 한다.
-`verify-v410-entry-baseline`은 CLI 호환을 위해 현행 `verify-release-metadata`에 연결한다.
-과거 v4.1.0 단계 완료를 재판정하거나 당시 로그를 복원하지 않으며, 잘못된 옵션과 실패 exit를 그대로 전달한다.
+`verify-v400-entry-baseline`과 `verify-v410-entry-baseline`은 CLI 호환을 위해 현행 `verify-release-metadata`에 연결한다.
+과거 단계 완료를 재판정하거나 당시 로그를 복원하지 않으며, 잘못된 옵션과 실패 exit를 전달한다.
+v4.0 진입 호환 명령은 로컬 문서 검사만 허용하며 외부 공개 확인은 `verify-release-metadata --published`의 별도 범위다.
 
 진입 문서 회귀 자체검사는 `node --test scripts/internal/entry_baseline_documentation.test.mjs`다.
-`ENTRY-DOC-01`~`ENTRY-DOC-11`은 v3.0~v3.8 기존 명령·기능 ID를 유지하면서 현행 문서 정합성,
+`ENTRY-DOC-01`~`ENTRY-DOC-12`는 v3.0~v3.9 기존 명령·기능 ID를 유지하면서 현행 문서 정합성,
 과거 버전 경계 입력, 실행 증거 승격 거부, 정확한 dispatch/정의 연결, Git·종료 기록 없는 실행,
 입력 누락·변조·symlink 이탈·실패 exit를 확인한다. 과거 제목/완료 표/중앙 실행 기록의 존재 검사는
 현재 gate에서 분리한다. UI 자산 무결성은 전용 `verify-docs-ui-assets`가 담당하고 이 검사로 대체하지 않는다.
 `ENTRY-DOC-11`은 과거 선택·fallback·제외·제약 입력의 누락/변조와 현행 정책으로의 오인 표시를
 거부한다. 과거의 상시녹화 비범위를 현재 v4.1 녹화 지원 범위로 적용하지 않는다.
+`ENTRY-DOC-12`는 출처 있는 상태 parser fixture로 정상·누락·중복·상태/필수 내용 변조와 경로 이탈을 검사한다.
+`verify-v390-entry-baseline-contract`는 이 회귀 입력을 검사하며 현재 backlog에 과거 완료 표를 요구하지 않는다.
+기능 discovery 정의와 UI 자산의 실제 검사는 각각 전용 inventory·자산 명령에서 유지한다.
 
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.

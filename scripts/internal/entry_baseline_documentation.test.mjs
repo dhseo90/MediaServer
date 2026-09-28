@@ -7,6 +7,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {loadEntryInputs,validateBoundaryCase,semverAtLeast,parseEntryRoot} from './entry_baseline_documentation.mjs';
+import {loadV390EntryBaselineExpectation} from './v390_entry_baseline_state_lib.mjs';
 
 const sample=JSON.parse(fs.readFileSync(new URL('../../test/fixtures/entry_baseline_cases.json',import.meta.url)));
 const sourceVersion='4.1.1';
@@ -20,7 +21,8 @@ function fixture(run){
     put('README.md',readme);put('README.en.md',readme);put('docs/README.md','# 분야별 문서');
     put('docs/release-policy.md','<!-- release-metadata -->\n```json\n'+JSON.stringify(context)+'\n```\n');
     put(context.roadmap,'# 미래 계획');put(context.releaseNotes,'# 변경 사항');
-    put('server.sh',sample.cases.map(c=>'\n  '+c.command+')\n    exec verify_'+c.command.slice(7).replaceAll('-','_')+'.mjs\n    ;;\n').join(''));
+    put('server.sh',sample.cases.map(c=>'\n  '+c.command+')\n    exec verify_'+c.command.slice(7).replaceAll('-','_')+'.mjs\n    ;;\n').join('')+'\n  verify-v390-entry-baseline-contract)\n exec verify_v390_entry_baseline_contract.mjs\n ;;\n');
+    put('scripts/internal/verify_v390_test_acceptance_bundle.mjs','const commands=["verify-v390-entry-baseline",];');
     put('docs/project-feature-test-inventory.md',sample.cases.flatMap(c=>c.featureIds.map(id=>`| ${id} | ${c.command} | 테스트 정의 |`)).join('\n'));
     put('test/fixtures/project_feature_implementation_evidence.json',{items:sample.cases.flatMap(c=>c.featureIds.map(id=>({id,verifierEvidence:{command:c.command}})))});
     put('test/fixtures/entry_baseline_cases.json',sample);return run({root,put});
@@ -35,6 +37,25 @@ test('ENTRY-DOC-02 버전 순서와 잘못된 버전 거부',()=>{
   assert(semverAtLeast('4.1.1','3.8.0'));assert(semverAtLeast('3.8.0','3.8.0'));
   for(const current of ['3.7.9','bad','03.8.0','3.8'])assert(!semverAtLeast(current,'3.8.0'));
 });
+
+test('ENTRY-DOC-12 v3.9 상태 parser 입력은 출처 있는 fixture이며 과거 원장이 필요 없음',()=>fixture(({root,put})=>{
+  const file='test/fixtures/v390_entry_baseline_steps.json';
+  const source=JSON.parse(fs.readFileSync(new URL('../../'+file,import.meta.url)));
+  put(file,{...source,executionEvidence:true});
+  assert.throws(()=>loadV390EntryBaselineExpectation(root),/실행 증거/);
+  put(file,source);
+  const cli=fileURLToPath(new URL('./verify_v390_entry_baseline_contract.mjs',import.meta.url));
+  const run=args=>spawnSync(process.execPath,[cli,'--root',root,...args],{encoding:'utf8'});
+  let result=run([]);assert.equal(result.status,0,result.stdout+result.stderr);
+  assert(result.stdout.includes('fixture-positive'));assert(result.stdout.includes('- fail: 0'));
+  assert.notEqual(run(['--published']).status,0);
+  for(const patch of [{executionEvidence:true},{provenance:{}},{markdown:'변조된 입력'}]){
+    put(file,{...source,...patch});assert.throws(()=>loadV390EntryBaselineExpectation(root));assert.equal(run([]).status,1);
+  }
+  fs.unlinkSync(path.join(root,file));fs.symlinkSync('/etc/passwd',path.join(root,file));assert.throws(()=>loadV390EntryBaselineExpectation(root),/경로 이탈/);
+  put('scripts/internal/verify_v390_test_acceptance_bundle.mjs','const commands=[];');
+  assert(loadEntryInputs(root,'verify-v390-entry-baseline').errors.some(x=>x.includes('acceptance')));
+}));
 test('ENTRY-DOC-03 과거 source·published·roadmap·ID 변조 거부',()=>{
   for(const c of sample.cases)for(const patch of [{sourceVersion:'0.0.0'},{publishedTag:'v0.0.0'},{roadmap:'다른 계획'},{featureIds:[]},{command:'unknown'}])assert(validateBoundaryCase(sample,{...c,...patch},c).length>0);
 });

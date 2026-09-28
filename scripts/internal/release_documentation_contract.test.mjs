@@ -74,11 +74,15 @@ test('REL-DOC-10 CLI 소스 archive 실행과 실패 exit·보고서 전파',()=
   assert(data.checks.some(x=>x.status==='fail'));assert.equal(data.publishedEvidence.status,'external-not-checked');
 }));
 test('REL-DOC-11 기존 entry 명령은 같은 판정·실패를 전달',()=>fixture(({root,put})=>{
-  const cli=fileURLToPath(new URL('./verify_v410_entry_baseline.sh',import.meta.url));
-  const run=()=>spawnSync('bash',[cli,'--root',root],{encoding:'utf8'});
-  let result=run();assert.equal(result.status,0,result.stderr+result.stdout);assert(result.stdout.includes('과거 실행 증거가 아닙니다'));
-  put('CMakeLists.txt','project(media_server VERSION 4.0.0 LANGUAGES CXX)');
-  result=run();assert.equal(result.status,1);assert(result.stdout.includes('CMake'));
+  for(const [runtime,file] of [['bash','verify_v410_entry_baseline.sh'],[process.execPath,'verify_v400_entry_baseline.mjs']]){
+    put('CMakeLists.txt','project(media_server VERSION 4.1.1 LANGUAGES CXX)');
+    const cli=fileURLToPath(new URL('./'+file,import.meta.url));
+    const run=extra=>spawnSync(runtime,[cli,'--root',root,...extra],{encoding:'utf8'});
+    let result=run([]);assert.equal(result.status,0,result.stderr+result.stdout);assert(result.stdout.includes('과거 실행 증거가 아닙니다'));
+    put('CMakeLists.txt','project(media_server VERSION 4.0.0 LANGUAGES CXX)');
+    result=run([]);assert.equal(result.status,1);assert(result.stdout.includes('CMake'));
+    for(const extra of [['--unknown'],['--published']])assert.notEqual(run(extra).status,0);
+  }
 }));
 test('REL-DOC-12 root 누락·unknown 옵션·격리 root의 published 모드는 거부',()=>fixture(({root})=>{
   const cli=fileURLToPath(new URL('./verify_release_metadata_consistency.mjs',import.meta.url));

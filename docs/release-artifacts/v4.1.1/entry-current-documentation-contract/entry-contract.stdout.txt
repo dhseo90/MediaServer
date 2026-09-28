@@ -1,0 +1,11 @@
+[pass] fixture-positive
+[pass] historical-exact-wording-negative
+[pass] missing-step-negative
+[pass] required-detail-negative
+[pass] duplicate-step-negative
+[pass] current-source-historical-baseline-boundary
+
+== v3.9.0 entry baseline contract summary ==
+- schema: media-server.v390-entry-baseline-steps.v1
+- pass: 6
+- fail: 0

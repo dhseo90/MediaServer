@@ -1,0 +1,6 @@
+== V390 REVIEW4 migration-aware approval producer ==
+- candidate digest: df431a22e386a67c87870bde268bef4ac4ef7aac74d4a7b7b0abbb5494274d65
+- carry-forward: 984
+- independent-review: SAFE-196,OPS-163
+- atomic replacements: audit,approval,manifest,native
+- failures: 0

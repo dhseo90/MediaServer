@@ -5,7 +5,7 @@
   "provenance": {
     "commit": "fdcf5455a86929219af333ca62b2d44817e542e1",
     "path": "docs/project-feature-test-inventory.md",
-    "basis": "명시된 10개 테스트 정의의 독립 기대값. 과거 중앙 실행 결과를 읽지 않는다.",
+    "basis": "명시된 테스트 정의의 독립 기대값. 과거 중앙 실행 결과를 읽지 않는다.",
     "decisionSource": {
       "commit": "5456680cae74130fa1a4656f0f9f2a9c4db97817",
       "path": "docs/development-backlog.md",
@@ -228,6 +228,22 @@
       "featureIds": [
         "OPS-147",
         "SAFE-180"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    },
+    {
+      "command": "verify-v390-entry-baseline",
+      "sourceVersion": "3.9.0",
+      "publishedTag": "v3.8.0",
+      "roadmap": "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation",
+      "featureIds": [
+        "OPS-163",
+        "SAFE-196"
       ],
       "claims": {
         "featureImplementation": "not-run-by-this-command",

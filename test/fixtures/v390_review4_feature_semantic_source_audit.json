@@ -194732,7 +194732,7 @@
     },
     {
       "id": "SAFE-196",
-      "featureContractSha256": "9f16b985bbf733d28385f24f83fc680a86f5bd953bb312098ed32a47367918b6",
+      "featureContractSha256": "11fd2105e595b50f8c61675566ee8a1d1e976f9ab4e855666842453c0bac714f",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -194745,12 +194745,9 @@
         "command": "verify-v390-entry-baseline",
         "file": "scripts/internal/verify_v390_entry_baseline.mjs"
       },
-      "evidenceMode": "canonical-functional-source-assertion",
-      "evidenceToken": "ops163BaselineObserved",
-      "sharedContract": {
-        "id": "media-server.actual-contract.ops-163-safe-196",
-        "facet": "safety-invariant"
-      },
+      "evidenceMode": "actual-product-canonical-safe-196",
+      "evidenceToken": "safe196BoundaryObserved",
+      "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
         "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
@@ -194758,38 +194755,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 246,
-          "anchor": "check(\"SAFE-196 canonical source baseline no-overclaim boundary\", () => {",
-          "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-          "contextSha256": "57d804afe23fee45c456b6baafcbd41c20ae446b5e97ca3db9bf9325a115a427"
+          "symbol": "canonical-safe-196-boundary",
+          "anchor": "check(\"SAFE-196 canonical V390 historical baseline boundary\", () => {",
+          "line": 30,
+          "contextSha256": "5c464b9a1a86a8e9b9dba462bf8460bfcc0605079f5b7cdaabc9063450315e21"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 247,
-          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) &&",
-          "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-          "contextSha256": "3eb7ce9bba8bec3a4fa4274356811abc97781c6993c1e86a99193f0ae65cd3ce"
+          "symbol": "canonical-safe-196-boundary",
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v390-entry-baseline)\");",
+          "line": 31,
+          "contextSha256": "0e4def3cb87372b1bc410607c139d240a5c4b2ef219f3d0e23d73b207d6a739a"
         },
         "action": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 253,
-          "anchor": "const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes(\"SAFE-196\");",
-          "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-          "contextSha256": "d3a38248143a2d45415df81f079b267e7b8b0594a02d6b37ca72b8b3d7be1176"
+          "symbol": "canonical-safe-196-boundary",
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 32,
+          "contextSha256": "e82331af51afa086d2dd3ebb11f2920eb0a9798b0873c41301794e98c27bb76a"
         },
         "state": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 254,
-          "anchor": "const ops163BaselineObserved = safe196BoundaryObserved;",
-          "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-          "contextSha256": "df86c25e1267d88c4ab8222dec63e0b28f0e4cf0d055a5beb2cacfe6583a505d"
+          "symbol": "canonical-safe-196-boundary",
+          "anchor": "const safe196BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
+          "line": 34,
+          "contextSha256": "4c46ac9fa913b82e183ad5573a033b6913d0fa389018dd110bb6caa87de022f1"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 255,
-          "anchor": "assert(ops163BaselineObserved && safe196BoundaryObserved && executionPassClaimed === false,",
-          "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-          "contextSha256": "882f18f911ff130c42406fdb4a805e9661aeba1d677da10734a098f436ed0309"
+          "symbol": "canonical-safe-196-readback",
+          "anchor": "assert(safe196BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
+          "line": 35,
+          "contextSha256": "ee143682bb938ebf7a15d721df86c6b42f8a325b65c0c67d0743711390379ac6"
         },
         "verifier": {
           "file": "server.sh",
@@ -194805,46 +194802,46 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-196 owner-dispatch",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:246",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:247"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:31"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "assignment-def-use",
+          "kind": "co-asserted-boundary",
           "witness": "SAFE-196 dispatch-action",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:247",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:253"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:31",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:32"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-196 action-state",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:253",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:254"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:34"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-196 state-readback",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:254",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:255"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:34",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:35"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-entry-baseline",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:255",
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:35",
           "target": "server.sh:2378"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "9f16b985bbf733d28385f24f83fc680a86f5bd953bb312098ed32a47367918b6",
+        "featureContractSha256": "11fd2105e595b50f8c61675566ee8a1d1e976f9ab4e855666842453c0bac714f",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -194855,10 +194852,8 @@
         "schemaTokens": [],
         "fieldTokens": [
           "verify-v390-entry-baseline",
-          "verify-release-metadata",
           "3.9.0",
-          "v3.8.0",
-          "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation"
+          "v3.8.0"
         ],
         "outcomeTokens": [],
         "negativeBoundaries": [],
@@ -194877,10 +194872,8 @@
             "kind": "field",
             "tokens": [
               "verify-v390-entry-baseline",
-              "verify-release-metadata",
               "3.9.0",
-              "v3.8.0",
-              "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation"
+              "v3.8.0"
             ],
             "minimumExactMatches": 1
           },
@@ -194891,57 +194884,57 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v390-entry-baseline`과 `verify-release-metadata`가 source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`, stream verification, release records/evidence, project inventory, script inventory 연결을 확인하되 feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, release action PASS로 대체하지 않음",
-          "sha256": "d7f492b049181e25b584c039deee0647a8c94d6a9d6a9e9745d3d3e740b783a5"
+          "normalized": "`verify-v390-entry-baseline`이 현행 VERSION/CMake·릴리즈 문서·dispatch·정의 연결과 출처 있는 과거 source `3.9.0` / published `v3.8.0` / roadmap 입력을 구분한다. 종료 원장·완료 표를 요구하지 않으며 feature discovery/dev·UI·장시간·공개 실행 PASS로 승격하지 않는다",
+          "sha256": "7a8cc5e408b2cb45436d049320a75d51dae25dec6c99f2dbf2c7dfde59287dcd"
         }
       },
-      "sourceFlowDigest": "9d0c9e8c1dbffddacb9405b630b43121ee24f241f2344baae39d84bb95ca7c1b",
+      "sourceFlowDigest": "4ec5265db19dced5661ccea3c68b24771475763df7568e7c8b21331835d57937",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "canonical-safe-196-boundary",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "1fbb053917301236487bace2a52857f16808e7aa18217c3008637014dadb88db",
+            "enclosingBodyStartLine": 30,
+            "enclosingBodyEndLine": 37,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "canonical-safe-196-boundary",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "1fbb053917301236487bace2a52857f16808e7aa18217c3008637014dadb88db",
+            "enclosingBodyStartLine": 30,
+            "enclosingBodyEndLine": 37,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "canonical-safe-196-boundary",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "1fbb053917301236487bace2a52857f16808e7aa18217c3008637014dadb88db",
+            "enclosingBodyStartLine": 30,
+            "enclosingBodyEndLine": 37,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "canonical-safe-196-boundary",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "1fbb053917301236487bace2a52857f16808e7aa18217c3008637014dadb88db",
+            "enclosingBodyStartLine": 30,
+            "enclosingBodyEndLine": 37,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "canonical-safe-196-readback",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "1fbb053917301236487bace2a52857f16808e7aa18217c3008637014dadb88db",
+            "enclosingBodyStartLine": 30,
+            "enclosingBodyEndLine": 37,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -194953,7 +194946,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
+        "verifierFileSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
         "dispatch": {
           "command": "verify-v390-entry-baseline",
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
@@ -230099,7 +230092,7 @@
     },
     {
       "id": "OPS-163",
-      "featureContractSha256": "a5f4a8d651180a4df124d3af315a9754e4fb1d2c38822c8a03e7f00ffcdbf20e",
+      "featureContractSha256": "42ba9f75d6587e87ecc5a342a3d2865318b8790ec760a4d957538fde81729cf2",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -230113,12 +230106,9 @@
         "file": "scripts/internal/verify_v390_entry_baseline.mjs",
         "dispatchFile": "server.sh"
       },
-      "evidenceMode": "canonical-bounded-gate-assertion",
-      "evidenceToken": "safe196BoundaryObserved",
-      "sharedContract": {
-        "id": "media-server.actual-contract.ops-163-safe-196",
-        "facet": "ops-gate"
-      },
+      "evidenceMode": "canonical-functional-source-assertion",
+      "evidenceToken": "ops163BaselineObserved",
+      "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
         "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
@@ -230126,38 +230116,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "symbol": "canonical-owner:OPS-163",
-          "anchor": "check(\"SAFE-196 canonical source baseline no-overclaim boundary\", () => {",
-          "line": 246,
-          "contextSha256": "57d804afe23fee45c456b6baafcbd41c20ae446b5e97ca3db9bf9325a115a427"
+          "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+          "anchor": "check(\"OPS-163 canonical V390 historical baseline gate\", () => {",
+          "line": 39,
+          "contextSha256": "5e5aaec52234163cb420622e79b599af0bfb204906b986b67844ed4bd2760dfe"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "symbol": "canonical-dispatch:OPS-163",
-          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) &&",
-          "line": 247,
-          "contextSha256": "3eb7ce9bba8bec3a4fa4274356811abc97781c6993c1e86a99193f0ae65cd3ce"
+          "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 42,
+          "contextSha256": "a6c07a2081ba293862de537339cc36eefdd8982fcb5403318534f7615d0a9d3b"
         },
         "action": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "symbol": "canonical-action:OPS-163",
-          "anchor": "const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes(\"SAFE-196\");",
-          "line": 253,
-          "contextSha256": "d3a38248143a2d45415df81f079b267e7b8b0594a02d6b37ca72b8b3d7be1176"
+          "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+          "anchor": "const excludedCompletionAbsent = fixture.executionEvidence === false &&",
+          "line": 43,
+          "contextSha256": "ed91834d6abf4d14544789ff8a0423c02766cc8e2be66f8ffc67e0da41b6e5c7"
         },
         "state": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "symbol": "canonical-state:OPS-163",
-          "anchor": "const ops163BaselineObserved = safe196BoundaryObserved;",
-          "line": 254,
-          "contextSha256": "df86c25e1267d88c4ab8222dec63e0b28f0e4cf0d055a5beb2cacfe6583a505d"
+          "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+          "anchor": "const ops163BaselineObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&",
+          "line": 45,
+          "contextSha256": "780d7262b3de7bdbe58d84a89312ef95cb0523417c1b4982ec38147f0f2bf48b"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "symbol": "canonical-readback:OPS-163",
-          "anchor": "assert(ops163BaselineObserved && safe196BoundaryObserved && executionPassClaimed === false,",
-          "line": 255,
-          "contextSha256": "882f18f911ff130c42406fdb4a805e9661aeba1d677da10734a098f436ed0309"
+          "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+          "anchor": "assert(ops163BaselineObserved && currentSourceNotRegressed && excludedCompletionAbsent,",
+          "line": 47,
+          "contextSha256": "0bb9e92995c7af38859cc60e993d8d81f8af7caa6c1f8ff5fcf9328886c32963"
         },
         "verifier": {
           "file": "server.sh",
@@ -230173,46 +230163,46 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-163 owner-dispatch",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:246",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:247"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:39",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:42"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "assignment-def-use",
+          "kind": "co-asserted-boundary",
           "witness": "OPS-163 dispatch-action",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:247",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:253"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:42",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:43"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-163 action-state",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:253",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:254"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:43",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:45"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-163 state-readback",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:254",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:255"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:45",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-entry-baseline",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:255",
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:47",
           "target": "server.sh:2378"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "a5f4a8d651180a4df124d3af315a9754e4fb1d2c38822c8a03e7f00ffcdbf20e",
+        "featureContractSha256": "42ba9f75d6587e87ecc5a342a3d2865318b8790ec760a4d957538fde81729cf2",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -230263,57 +230253,57 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v390-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 v3.9 source baseline과 v3.8 latest published baseline 경계를 연결하되 feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음",
-          "sha256": "da32621218a0a0da23b96b242422ad257368b8ef1ed94f1ccbf10feb329c957d"
+          "normalized": "`verify-v390-entry-baseline`이 현행 문서 정합성과 v3.9 source / v3.8 published 회귀 입력·기능 ID·실제 명령 연결을 확인한다. `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`의 개별 검사 책임을 유지하며 discovery/dev·UI·장시간·공개 실행을 대체하지 않는다",
+          "sha256": "493b2dfd2e072ca6b5b60ec5e4ec118c31c8464db65a878fe0d9939feab89e87"
         }
       },
-      "sourceFlowDigest": "3b7f7dff30f85d74c182ed4388522a60d6c5623a886fc816919dd013cb4c1807",
+      "sourceFlowDigest": "ee7dcfa3fcdc0136aaa44138c641fb18add60d515616842ee8948998af900c2e",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "canonical-owner:OPS-163",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "fd09bc91d598c5925eae133b631156cf77bd3e31dd157caf3677fa43a0a67378",
+            "enclosingBodyStartLine": 39,
+            "enclosingBodyEndLine": 49,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "canonical-dispatch:OPS-163",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "fd09bc91d598c5925eae133b631156cf77bd3e31dd157caf3677fa43a0a67378",
+            "enclosingBodyStartLine": 39,
+            "enclosingBodyEndLine": 49,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "canonical-action:OPS-163",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "fd09bc91d598c5925eae133b631156cf77bd3e31dd157caf3677fa43a0a67378",
+            "enclosingBodyStartLine": 39,
+            "enclosingBodyEndLine": 49,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "canonical-state:OPS-163",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "fd09bc91d598c5925eae133b631156cf77bd3e31dd157caf3677fa43a0a67378",
+            "enclosingBodyStartLine": 39,
+            "enclosingBodyEndLine": 49,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-            "symbol": "canonical-readback:OPS-163",
-            "trackedBlobSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
-            "enclosingBodySha256": "a3757e85ae95e2595e98175f94ccb4cd2fcacf6dbf3ca2162872e2fca442ff7d",
-            "enclosingBodyStartLine": 246,
-            "enclosingBodyEndLine": 257,
+            "symbol": "check:OPS-163 canonical V390 historical baseline gate",
+            "trackedBlobSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
+            "enclosingBodySha256": "fd09bc91d598c5925eae133b631156cf77bd3e31dd157caf3677fa43a0a67378",
+            "enclosingBodyStartLine": 39,
+            "enclosingBodyEndLine": 49,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -230325,7 +230315,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
+        "verifierFileSha256": "5f3d16f8a934f01f4e88e75fe07fbde557cd5c42273e722b4f2283546d073d01",
         "dispatch": {
           "command": "verify-v390-entry-baseline",
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
@@ -235289,5 +235279,5 @@
       }
     }
   ],
-  "candidateDigest": "996cc47e09d56821f6688eb7720a960b2fcf814340d91b124db04c01d27525a5"
+  "candidateDigest": "df431a22e386a67c87870bde268bef4ac4ef7aac74d4a7b7b0abbb5494274d65"
 }

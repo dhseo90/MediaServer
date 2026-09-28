@@ -1,0 +1,46 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "df431a22e386a67c87870bde268bef4ac4ef7aac74d4a7b7b0abbb5494274d65",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "SAFE-196",
+      "OPS-163"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "119951daa1a1a3bfc675e432ab2be91a11998301",
+    "trackedWorktreeDiffSha256": "ac6a10ece721cc235d81d323402183daa48a5bc623ed15320cdee28e7c628894",
+    "changedFiles": [
+      "docs/project-feature-test-inventory.md",
+      "docs/stream-verification.md",
+      "scripts/internal/entry_baseline_documentation.mjs",
+      "scripts/internal/entry_baseline_documentation.test.mjs",
+      "scripts/internal/release_documentation_contract.test.mjs",
+      "scripts/internal/v390_entry_baseline_state_lib.mjs",
+      "scripts/internal/verify_v390_entry_baseline.mjs",
+      "scripts/internal/verify_v390_entry_baseline_contract.mjs",
+      "scripts/internal/verify_v400_entry_baseline.mjs",
+      "test/fixtures/entry_baseline_cases.json",
+      "test/fixtures/v390_entry_baseline_steps.json",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "SAFE-196",
+      "featureContractSha256": "11fd2105e595b50f8c61675566ee8a1d1e976f9ab4e855666842453c0bac714f",
+      "sourceFlowDigest": "4ec5265db19dced5661ccea3c68b24771475763df7568e7c8b21331835d57937",
+      "currentTrustBindingsSha256": "a8471137cc77f0f88ede30cd9a15966b3fc9d535cb5c9b50d1cdfb5de1bcd371"
+    },
+    {
+      "id": "OPS-163",
+      "featureContractSha256": "42ba9f75d6587e87ecc5a342a3d2865318b8790ec760a4d957538fde81729cf2",
+      "sourceFlowDigest": "ee7dcfa3fcdc0136aaa44138c641fb18add60d515616842ee8948998af900c2e",
+      "currentTrustBindingsSha256": "a8fdd9ee59966a701c9d0083093884566ff75228332411e141fa626d66eea7d1"
+    }
+  ]
+}

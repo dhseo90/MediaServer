@@ -1,0 +1,33 @@
+✔ ENTRY-DOC-01 과거 실행 기록·Git 없이 현행 문서와 등록된 회귀 입력 연결 (15.741125ms)
+✔ ENTRY-DOC-02 버전 순서와 잘못된 버전 거부 (0.078833ms)
+✔ ENTRY-DOC-12 v3.9 상태 parser 입력은 출처 있는 fixture이며 과거 원장이 필요 없음 (149.081042ms)
+✔ ENTRY-DOC-03 과거 source·published·roadmap·ID 변조 거부 (0.1965ms)
+✔ ENTRY-DOC-04 과거 PASS를 현재 실행 증거로 사용하거나 출처 제거하면 거부 (0.217291ms)
+✔ ENTRY-DOC-05 source/CMake·문서 링크 오류와 현행 문서 누락 유지 (5.928875ms)
+✔ ENTRY-DOC-06 다른 branch에만 있는 dispatch·누락/중복 ID·명령 불일치 거부 (6.836708ms)
+✔ ENTRY-DOC-07 회귀 입력 누락/중복·외부 symlink 거부 (4.293125ms)
+✔ ENTRY-DOC-08 등록된 기존 CLI를 종료 기록 없는 소스에서 실행 (278.960291ms)
+✔ ENTRY-DOC-09 CLI 실제 실패 exit와 옵션 오류 전파 (516.770167ms)
+✔ ENTRY-DOC-10 CLI 회귀 fixture 변조·실행 승격 거부 (252.756458ms)
+✔ ENTRY-DOC-11 과거 선택·fallback·제외·제약의 변조와 현행 정책 승격 거부 (98.759208ms)
+✔ REL-DOC-01 제목·완료 문장 없이 명시 metadata 읽기 (0.981917ms)
+✔ REL-DOC-02 누락·중복·잘못된 JSON은 실패 (0.1825ms)
+✔ REL-DOC-03 source/target·공개 tag·서명·배포 정책 불일치 거부 (0.146792ms)
+✔ REL-DOC-04 README 표현 변경·옛 단계명 삭제 허용 (0.613584ms)
+✔ REL-DOC-05 틀린 source·target·공개 주장과 필수 링크 누락 거부 (0.154875ms)
+✔ REL-DOC-06 Git·과거 실행 기록 없는 소스에서도 현행 문서 검사 (4.479792ms)
+✔ REL-DOC-07 CMake 불일치·현행 문서 누락 실패 (2.906625ms)
+✔ REL-DOC-08 metadata 문서 경로 이탈·외부 symlink 거부 (3.161666ms)
+✔ REL-DOC-09 예제 코드의 metadata 주장은 실제 README가 아님 (0.331083ms)
+✔ REL-DOC-10 CLI 소스 archive 실행과 실패 exit·보고서 전파 (78.650542ms)
+✔ REL-DOC-11 기존 entry 명령은 같은 판정·실패를 전달 (283.263791ms)
+✔ REL-DOC-12 root 누락·unknown 옵션·격리 root의 published 모드는 거부 (71.835625ms)
+✔ REL-DOC-13 과거 사례 입력의 경계 훼손·실행 증거 위장 거부 (183.633417ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1367.402958
