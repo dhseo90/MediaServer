@@ -19,6 +19,15 @@
 | V31-V32-DOC-06 | pin 보호·신원 embedding 반례와 전체 입력 hash | 기존 안전 검사가 실패하고 실제 제품·fixture 파일은 불변 |
 | V31-V32-DOC-07 | 분리된 UI 소스의 control 삭제·구형 ID anchor·assertion 중복 | 실제 파일을 읽는 검증기가 누락·오래된 연결·중복 위치를 거부 |
 
+동일 자체검사에 `V33-V34-DOC-01`~`04`를 사전 정의한다. v330·v340의 정적 기능 검증기
+15개에서 종료 원장/backlog/직접 색인 없이 실행, 현재 ID 누락, 제품 schema 누락,
+현행 문서의 route/schema 식별자 누락을 각각 확인한다. 첫 조건은 정상 종료, 나머지는
+누락 근거와 exit 1이 예상 결과다. 해당 여섯 UI 체크리스트 누락도 기존 실패를 유지한다.
+실제 외부 장치·브라우저·운영 복구·장시간 검증은 실행하지 않는다. runbook/backup 안내,
+staging 복구 자체검사와 버전 마감 판정이 섞인 검증기는 이 묶음에 포함하지 않는다.
+`V33-V34-DOC-05`는 SRC-033~039/043의 `verify-ops-source-registry-api` 결속을 훼손하면
+정적 동반 검사도 실패하는 반례다. 이 연결 확인을 해당 API 런타임 검사의 실행 PASS로 대체하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

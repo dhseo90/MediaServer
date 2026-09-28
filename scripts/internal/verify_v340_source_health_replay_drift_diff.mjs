@@ -3,6 +3,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.4.0 Step 5 Source Health Replay and Drift Diff 구현, 문서, inventory 연결을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/source-registry/source-health-replay-drift-diff exposes an Ops-only read-only drift diff model
   - the model compares handoff source health with a fresh source health snapshot and summarizes stale/offline/reconnect/warning drift
   - the output does not write SourceRegistry/PublishedView/Ops audit, perform recovery, expose raw locators, or alter media/schema contracts
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -35,13 +36,12 @@ const schema = "media-server.ops.v340-source-health-replay-drift-diff.v1";
 const route = "/ops/api/source-registry/source-health-replay-drift-diff";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -156,53 +156,19 @@ check("Ops API exposes the source health replay drift diff route as guarded no-s
   assert(!block.includes("require_source_write_principal"), "source health replay drift diff route must not require source writes");
 });
 
-check("roadmap records v3.4 Step 5 without overclaiming Ops UI or recovery", () => {
-  for (const snippet of [
-    "| 5 | v3.4.0 (5) Source Health Replay and Drift Diff | P1 | 완료 |",
-    "handoff 당시 source health와 fresh source health를 비교해 stale/offline/reconnect/warning drift를 요약",
-    "## v3.4.0 Step 5 개발 기록",
-    route,
-    "OpsV340SourceHealthReplayDriftDiffJson",
-    `\`./server.sh ${command}\``,
-    "Ops Continuity Drill Workspace UI 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 5");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["SRC-042","SAFE-128","OPS-095"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/source-health-replay-drift-diff"],
+    command, script: "verify_v340_source_health_replay_drift_diff.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 5 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (5) | \`./server.sh ${command}\` | Source Health Replay and Drift Diff.`,
-    route,
-    "handoff source health",
-    "fresh source health",
-    "stale/offline/reconnect/warning drift",
-    "source registry write, PublishedView write, Ops audit write, automatic recovery",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 5");
-  }
-});
 
-check("feature inventory and release records map v3.4 Step 5", () => {
-  for (const snippet of [
-    `v3.4.0 (5) Source Health Replay and Drift Diff | \`SRC-042\`, \`SAFE-128\`, \`OPS-095\` | \`${command}\``,
-    "SRC-042 | V340 Step 5 source health replay drift diff read model",
-    "SAFE-128 | V340 Step 5 source health replay drift diff boundary",
-    "OPS-095 | V340 Step 5 Source Health Replay and Drift Diff 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 5");
-  }
-  for (const snippet of [
-    "V340 Source Health Replay and Drift Diff",
-    `\`./server.sh ${command}\``,
-    "v340 Step 5 RED source health replay drift diff gate",
-    "v340 Step 5 source health replay drift diff final",
-    "v340 Step 5 UI 풀테스트",
-    "v340 Step 5 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 5");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.4 Step 5 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -25,7 +26,7 @@ Checks:
   - /ops/sources renders an Ops-only read-only continuity drill workspace
   - the UI shows drill package, validation status, blocked/ready state, and source health drift status
   - client/viewer scripts and ClientPublishedView JSON do not expose drill package, raw locator, raw JSON, debug, or credential material
-  - backlog, stream verification, release records, manual UI checklist, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -40,13 +41,12 @@ const files = {
   css: readText("src/ingress/product_ui_css.cpp"),
   registry: readText("src/ingress/source_view_registry.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -147,58 +147,26 @@ check("client/viewer surfaces do not expose continuity drill package material", 
   }
 });
 
-check("roadmap records v3.4 Step 6 without overclaiming approval or client digest", () => {
-  for (const snippet of [
-    "| 6 | v3.4.0 (6) Ops Continuity Drill Workspace UI | P1 | 완료 |",
-    "## v3.4.0 Step 6 개발 기록",
-    "renderOpsContinuityDrillWorkspace",
-    "source-continuity-drill-status",
-    `\`./server.sh ${command}\``,
-    "Approval-Gated Recovery Checklist and Audit 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 6");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-075","SAFE-129","OPS-096"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v340-continuity-drill-workspace-ui.v1"],
+    command, script: "verify_v340_ops_continuity_drill_workspace_ui.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 6 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (6) | \`./server.sh ${command}\` | Ops Continuity Drill Workspace UI.`,
-    "/ops/sources",
-    "drill package, validation status, blocked/ready 상태",
-    "source URL/raw locator/raw JSON/debug/credential material",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 6");
-  }
-});
 
-check("feature inventory, manual UI, and release records map v3.4 Step 6", () => {
-  for (const snippet of [
-    `v3.4.0 (6) Ops Continuity Drill Workspace UI | \`UI-075\`, \`SAFE-129\`, \`OPS-096\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-075 | V340 Step 6 Ops Continuity Drill Workspace UI",
-    "SAFE-129 | V340 Step 6 Ops continuity drill UI boundary",
-    "OPS-096 | V340 Step 6 Ops Continuity Drill Workspace UI 게이트",
-    "`UI-001`~`UI-115`",
-    "`SAFE-001`~`SAFE-216`",
-    "`OPS-035`~`OPS-184`",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 6");
-  }
+check("실제 UI 체크리스트 정의 연결", () => {
   for (const snippet of [
     "| V340 Step 6 Ops Continuity Drill Workspace UI | `UI-075`, `SAFE-129`, `OPS-096` | `/ops/sources` |",
     "Ops Continuity Drill Workspace",
     schema,
   ]) {
     assertIncludes(files.manualUi, snippet, "manual UI v3.4 Step 6");
-  }
-  for (const snippet of [
-    "V340 Ops Continuity Drill Workspace UI",
-    `\`./server.sh ${command}\``,
-    "v340 Step 6 RED ops continuity drill workspace UI gate",
-    "v340 Step 6 ops continuity drill workspace UI final",
-    "v340 Step 6 UI 풀테스트",
-    "v340 Step 6 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 6");
   }
 });
 

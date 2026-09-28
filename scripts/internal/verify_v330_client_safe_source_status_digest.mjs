@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +27,7 @@ Checks:
   - client live/dashboard/events render only viewer-safe source status and connection health fields
   - the digest hides source URL, raw locator, raw JSON, debug, credential, operator-only material, rule editor, and action controls
   - the digest does not mutate SourceRegistry, PublishedView, EventRecord/Event POST, media, metadata schemas, Rule/Profile payload, or search/metrics
-  - backlog, stream verification, release records, feature inventory, manual UI checklist, ops/client smoke, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -39,13 +40,12 @@ const files = {
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -180,61 +180,32 @@ check("client digest styling and ops/client smoke track Step 7 markers", () => {
   }
 });
 
-check("roadmap records v3.3 Step 7 as implemented without overclaiming outside this step", () => {
-  for (const snippet of [
-    "| 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 완료 |",
-    "## v3.3.0 Step 7 개발 기록",
-    "ClientSourceStatusDigestJson",
-    `\`./server.sh ${command}\``,
-    "viewer/client에 허용되는 source status summary와 connection health digest",
-    "이번 Step 7 범위 밖 기능 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 7");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-072","CLIENT-028","SRC-038","SAFE-119","OPS-086"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.client.source-status-digest.v1"],
+    command, script: "verify_v330_client_safe_source_status_digest.mjs", featureIds: featureIds.filter(id => !["SRC-038"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.client.source-status-digest.v1"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-038"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 7 command and boundary", () => {
-  for (const snippet of [
-    `| v3.3.0 (7) | \`./server.sh ${command}\` |`,
-    "Client-safe Source Status Digest",
-    "/client/api/views/{id}/events",
-    "sourceStatusDigest",
-    "sourceStatus",
-    "connectionStatus",
-    "source URL/raw locator/raw JSON/debug/credential/operator material",
-    "source registry write, PublishedView write, EventRecord/Event POST/API/schema/media 변경",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 7");
-  }
-});
 
-check("feature inventory, manual UI checklist, and release records map v3.3 Step 7", () => {
-  for (const snippet of [
-    `v3.3.0 (7) Client-safe Source Status Digest | \`UI-072\`, \`CLIENT-028\`, \`SRC-038\`, \`SAFE-119\`, \`OPS-086\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-072 | V330 Step 7 Client-safe Source Status Digest UI",
-    "CLIENT-028 | V330 Step 7 Client-safe source status digest API/UI",
-    "SRC-038 | V330 Step 7 client-safe source status context",
-    "SAFE-119 | V330 Step 7 client-safe source status digest boundary",
-    "OPS-086 | V330 Step 7 Client-safe Source Status Digest 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 7");
-  }
+check("실제 UI 체크리스트 정의 연결", () => {
   for (const snippet of [
     "| V330 Step 7 Client-safe Source Status Digest | `UI-072`, `CLIENT-028`, `SRC-038`, `SAFE-119`, `OPS-086` | `/client/live`, `/client/dashboard`, `/client/events` |",
     "Client-safe Source Status Digest card",
     schema,
   ]) {
     assertIncludes(files.manualUi, snippet, "manual UI v3.3 Step 7");
-  }
-  for (const snippet of [
-    "V330 Client-safe Source Status Digest",
-    `\`./server.sh ${command}\``,
-    "v330 Step 7 RED client-safe source status digest gate",
-    "v330 Step 7 client-safe source status digest final",
-    "v330 Step 7 UI 풀테스트",
-    "v330 Step 7 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 7");
   }
 });
 

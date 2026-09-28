@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +27,7 @@ Checks:
   - the read model derives failed-only recheck, retry candidate, recovery checklist, dry-run status, and operator note linkage from existing source/review context
   - /ops/events renders the recovery queue without source URL/raw JSON/debug/client exposure
   - the queue does not mutate SourceRegistry, PublishedView, EventRecord/Event POST, media, metadata, Rule/Profile, client digest, search/metrics, or release state
-  - backlog, stream verification, release records, feature inventory, ops smoke, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -41,13 +42,12 @@ const files = {
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
@@ -218,57 +218,25 @@ check("ops static smoke tracks Step 6 operator recheck recovery markers", () => 
   }
 });
 
-check("roadmap records v3.3 Step 6 as implemented without overclaiming outside this step", () => {
-  for (const snippet of [
-    "| 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 완료 |",
-    "## v3.3.0 Step 6 개발 기록",
-    "OpsV330OperatorRecheckRecoveryQueueJson",
-    "`./server.sh verify-v330-operator-recheck-recovery-queue`",
-    "failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결",
-    "이번 Step 6 범위 밖 기능 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 6");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-071","SRC-037","EVT-072","SAFE-118","OPS-085"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v330-operator-recheck-recovery-queue.v1"],
+    command, script: "verify_v330_operator_recheck_recovery_queue.mjs", featureIds: featureIds.filter(id => !["SRC-037"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v330-operator-recheck-recovery-queue.v1"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-037"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 6 command and boundary", () => {
-  for (const snippet of [
-    "| v3.3.0 (6) | `./server.sh verify-v330-operator-recheck-recovery-queue` |",
-    "Operator Recheck and Recovery Queue",
-    "/ops/api/events/reviews",
-    "operatorRecheckRecoveryQueue",
-    "failed-only recheck",
-    "retry candidate",
-    "recovery checklist",
-    "dry-run",
-    "operator note",
-    "source registry write, PublishedView write, viewer/client 노출, EventRecord/Event POST/API/schema/media 변경",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 6");
-  }
-});
 
-check("feature inventory and release records map v3.3 Step 6", () => {
-  for (const snippet of [
-    `v3.3.0 (6) Operator Recheck and Recovery Queue | \`UI-071\`, \`SRC-037\`, \`EVT-072\`, \`SAFE-118\`, \`OPS-085\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-071 | V330 Step 6 Operator Recheck and Recovery Queue UI",
-    "SRC-037 | V330 Step 6 Operator Recheck and Recovery source context",
-    "EVT-072 | V330 Step 6 operator recheck recovery queue view model",
-    "SAFE-118 | V330 Step 6 operator recheck recovery boundary",
-    "OPS-085 | V330 Step 6 Operator Recheck and Recovery Queue 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 6");
-  }
-  for (const snippet of [
-    "V330 Operator Recheck and Recovery Queue",
-    `\`./server.sh ${command}\``,
-    "v330 Step 6 RED operator recheck recovery queue gate",
-    "v330 Step 6 UI 풀테스트",
-    "v330 Step 6 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 6");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.3 Step 6 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

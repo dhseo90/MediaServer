@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -25,7 +26,7 @@ Checks:
   - Ops-only read model exposes operator note, ready/blocked/field-smoke-needed/not-run status, dry-run result, and audit linkage
   - /ops/sources renders the checklist read-only and does not perform automatic recovery
   - client/viewer scripts do not expose checklist internals, source locator, raw JSON, debug, or credential material
-  - backlog, stream verification, release records, manual UI checklist, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -41,13 +42,12 @@ const files = {
   css: readText("src/ingress/product_ui_css.cpp"),
   registry: readText("src/ingress/source_view_registry.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -166,59 +166,26 @@ check("client/viewer surfaces do not expose approval-gated recovery checklist ma
   }
 });
 
-check("roadmap records v3.4 Step 7 without overclaiming digest or export", () => {
-  for (const snippet of [
-    "| 7 | v3.4.0 (7) Approval-Gated Recovery Checklist and Audit | P1 | 완료 |",
-    "## v3.4.0 Step 7 개발 기록",
-    "OpsV340ApprovalGatedRecoveryChecklistJson",
-    "renderApprovalGatedRecoveryChecklistAudit",
-    `\`./server.sh ${command}\``,
-    "Client-safe Maintenance Digest 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 7");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-076","SAFE-130","OPS-097"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/approval-gated-recovery-checklist"],
+    command, script: "verify_v340_approval_gated_recovery_checklist_audit.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 7 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (7) | \`./server.sh ${command}\` | Approval-Gated Recovery Checklist and Audit.`,
-    "/ops/sources",
-    "operator note, ready/blocked/field-smoke-needed/not-run 상태",
-    "automatic recovery",
-    "source URL/raw locator/raw JSON/debug/credential material",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 7");
-  }
-});
 
-check("feature inventory, manual UI, and release records map v3.4 Step 7", () => {
-  for (const snippet of [
-    `v3.4.0 (7) Approval-Gated Recovery Checklist and Audit | \`UI-076\`, \`SAFE-130\`, \`OPS-097\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-076 | V340 Step 7 Approval-Gated Recovery Checklist and Audit UI",
-    "SAFE-130 | V340 Step 7 approval-gated recovery no-auto boundary",
-    "OPS-097 | V340 Step 7 Approval-Gated Recovery Checklist and Audit 게이트",
-    "`UI-001`~`UI-115`",
-    "`SAFE-001`~`SAFE-216`",
-    "`OPS-035`~`OPS-184`",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 7");
-  }
+check("실제 UI 체크리스트 정의 연결", () => {
   for (const snippet of [
     "| V340 Step 7 Approval-Gated Recovery Checklist and Audit | `UI-076`, `SAFE-130`, `OPS-097` | `/ops/sources` |",
     "Approval-Gated Recovery Checklist",
     schema,
   ]) {
     assertIncludes(files.manualUi, snippet, "manual UI v3.4 Step 7");
-  }
-  for (const snippet of [
-    "V340 Approval-Gated Recovery Checklist and Audit",
-    `\`./server.sh ${command}\``,
-    "v340 Step 7 RED approval-gated recovery checklist audit gate",
-    "v340 Step 7 approval-gated recovery checklist audit final",
-    "v340 Step 7 UI 풀테스트",
-    "v340 Step 7 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 7");
   }
 });
 

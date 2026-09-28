@@ -24,6 +24,21 @@ const cases = [
   ['v320_action_readiness_checklist', 'UI-067', 'media-server.ops.v320-action-readiness-checklist.v1'],
   ['v320_client_safe_resolution_digest', 'CLIENT-027', 'media-server.client.resolution-digest.v1'],
   ['v320_resolution_search_metrics', 'UI-069', 'media-server.ops.v320-resolution-search-metrics.v1'],
+  ["v330_client_safe_source_status_digest","UI-072","media-server.client.source-status-digest.v1","media-server.client.source-status-digest.v1"],
+  ["v330_incident_source_correlation_layer","UI-070","media-server.ops.v330-incident-source-correlation.v1","media-server.ops.v330-incident-source-correlation.v1"],
+  ["v330_operator_recheck_recovery_queue","UI-071","media-server.ops.v330-operator-recheck-recovery-queue.v1","media-server.ops.v330-operator-recheck-recovery-queue.v1"],
+  ["v330_reliability_timeline_health_history","SRC-035","media-server.ops.v330-reliability-timeline-health-history.v1","/ops/api/source-registry/reliability-timeline"],
+  ["v330_source_onboarding_quality_summary","SRC-034","media-server.ops.v330-source-onboarding-quality-summary.v1","/ops/api/source-registry/onboarding-quality"],
+  ["v330_source_registry_snapshot_identity","SRC-033","media-server.ops.v330-source-registry-snapshot-identity.v1","/ops/api/source-registry/snapshot"],
+  ["v330_source_reliability_search_metrics","UI-073","media-server.ops.v330-source-reliability-search-metrics.v1","/ops/api/source-registry/reliability-search-metrics"],
+  ["v340_approval_gated_recovery_checklist_audit","UI-076","media-server.ops.v340-approval-gated-recovery-checklist.v1","/ops/api/source-registry/approval-gated-recovery-checklist"],
+  ["v340_client_safe_maintenance_digest","UI-077","media-server.client.v340-maintenance-digest.v1","media-server.client.v340-maintenance-digest.v1"],
+  ["v340_continuity_drill_contract","SAFE-125","media-server.ops.v340-continuity-drill-contract.v1","/ops/api/source-registry/continuity-drill/contract"],
+  ["v340_drill_evidence_export_cleanup_manifest","UI-078","media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1","/ops/api/source-registry/drill-evidence-export-cleanup-manifest"],
+  ["v340_field_bridge_condition_gates","UI-079","media-server.ops.v340-field-bridge-condition-gates.v1","/ops/api/source-registry/field-bridge-condition-gates"],
+  ["v340_ops_continuity_drill_workspace_ui","UI-075","media-server.ops.v340-continuity-drill-workspace-ui.v1","media-server.ops.v340-continuity-drill-workspace-ui.v1"],
+  ["v340_recovery_candidate_package","SRC-041","media-server.ops.v340-recovery-candidate-package.v1","/ops/api/source-registry/recovery-candidate-package"],
+  ["v340_source_health_replay_drift_diff","SRC-042","media-server.ops.v340-source-health-replay-drift-diff.v1","/ops/api/source-registry/source-health-replay-drift-diff"],
 ];
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 function snapshot() {
@@ -45,6 +60,7 @@ function invoke(name, mutation = {}) {
       if (mutation.schema && (relative.startsWith('src/') || relative.startsWith('include/'))) value = value.replaceAll(mutation.schema, 'missing-contract-schema');
       if (mutation.removeId && relative === 'docs/project-feature-test-inventory.md') value = value.split('\n').filter(line => !line.startsWith('| ' + mutation.removeId + ' |')).join('\n');
       if (mutation.manual && relative === 'docs/manual-ui-checklist.md') value = '';
+      if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');
       if (mutation.mapping && relative === 'test/fixtures/project_feature_implementation_evidence.json') {
         const parsed = JSON.parse(value); parsed.items.find(item => item.id === mutation.mapping).verifierEvidence.command = 'verify-wrong-command'; value = JSON.stringify(parsed);
       }
@@ -71,10 +87,10 @@ function rejected(result, reason) {
   const output = result.stdout + result.stderr;
   assert(output.includes('[fail]') && output.includes(reason), output);
 }
-test('V31-V32-DOC 기능 문서 소비자', async t => {
+test('V31-V34-DOC 기능 문서 소비자', async t => {
   const before = snapshot();
   try {
-    for (const [name, id, schema] of cases) {
+    for (const [name, id, schema, identifier] of cases) {
       await t.test('01 종료 기록 없이 정상 ' + name, () => {
         const result = invoke(name); assert.equal(result.status, 0, result.stderr + result.stdout);
         assert(result.stdout.includes('uiFulltest: not-run-by-this-command'));
@@ -82,11 +98,28 @@ test('V31-V32-DOC 기능 문서 소비자', async t => {
       });
       await t.test('02 현재 정의 누락 거부 ' + id, () => rejected(invoke(name, {removeId: id}), id));
       await t.test('03 기존 제품 계약 검사 실패 전파 ' + name, () => rejected(invoke(name, {schema}), schema));
+      if (identifier) await t.test('08 현행 문서 계약 식별자 누락 거부 ' + name, () => rejected(invoke(name, {identifier}), identifier));
     }
-    for (const name of ['v310_client_safe_event_digest','v310_operator_feature_correction','v320_client_safe_resolution_digest']) {
+    for (const name of ['v310_client_safe_event_digest','v310_operator_feature_correction','v320_client_safe_resolution_digest',
+      'v330_client_safe_source_status_digest',
+      'v340_approval_gated_recovery_checklist_audit',
+      'v340_client_safe_maintenance_digest',
+      'v340_drill_evidence_export_cleanup_manifest',
+      'v340_field_bridge_condition_gates',
+      'v340_ops_continuity_drill_workspace_ui',
+    ]) {
       await t.test('04 실제 UI 정의 연결 유지 ' + name, () => rejected(invoke(name, {manual: true}), 'manual UI'));
     }
-    for (const [name, id] of [['v310_replay_timeline_ui','SAFE-095'], ['v310_operator_feature_correction','SAFE-098'], ['v320_source_reliability_context','EVT-066']]) {
+    for (const [name, id] of [['v310_replay_timeline_ui','SAFE-095'], ['v310_operator_feature_correction','SAFE-098'], ['v320_source_reliability_context','EVT-066'],
+      ["v330_client_safe_source_status_digest","SRC-038"],
+      ["v330_incident_source_correlation_layer","SRC-036"],
+      ["v330_operator_recheck_recovery_queue","SRC-037"],
+      ["v330_reliability_timeline_health_history","SRC-035"],
+      ["v330_source_onboarding_quality_summary","SRC-034"],
+      ["v330_source_registry_snapshot_identity","SRC-033"],
+      ["v330_source_reliability_search_metrics","SRC-039"],
+      ["v340_field_bridge_condition_gates","SRC-043"],
+    ]) {
       await t.test('05 독립 인증/런타임 연결 유지 ' + id, () => rejected(invoke(name, {mapping: id}), id));
     }
     await t.test('06 pin 보호 반례', () => rejected(invoke('v310_retention_export_hardening', {pin: true}), 'pinned'));

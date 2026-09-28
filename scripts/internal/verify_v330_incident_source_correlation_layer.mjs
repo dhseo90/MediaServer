@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +27,7 @@ Checks:
   - the layer correlates v3.2 resolution state with source health/recent failure/audit handoff context
   - /ops/events renders source cause, closure impact, and source audit/recheck handoff without source URL/raw JSON/debug/client exposure
   - the layer does not mutate SourceRegistry, PublishedView, EventRecord/Event POST, media, metadata, Rule/Profile, recovery queue, client digest, search/metrics, or release state
-  - backlog, stream verification, release records, feature inventory, ops smoke, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -41,13 +42,12 @@ const files = {
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
@@ -209,53 +209,25 @@ check("ops static smoke tracks Step 5 incident-to-source correlation markers", (
   }
 });
 
-check("roadmap records v3.3 Step 5 as implemented without overclaiming later steps", () => {
-  for (const snippet of [
-    "| 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 완료 |",
-    "## v3.3.0 Step 5 개발 기록",
-    "OpsV330IncidentSourceCorrelationJson",
-    "`./server.sh verify-v330-incident-source-correlation-layer`",
-    "v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시",
-    "이번 Step 5 범위 밖 기능 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 5");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-070","SRC-036","EVT-071","SAFE-117","OPS-084"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v330-incident-source-correlation.v1"],
+    command, script: "verify_v330_incident_source_correlation_layer.mjs", featureIds: featureIds.filter(id => !["SRC-036"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v330-incident-source-correlation.v1"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-036"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 5 command and boundary", () => {
-  for (const snippet of [
-    "| v3.3.0 (5) | `./server.sh verify-v330-incident-source-correlation-layer` |",
-    "Incident-to-Source Correlation Layer",
-    "/ops/api/events/reviews",
-    "incidentSourceCorrelation",
-    "source reliability 원인/context",
-    "source registry write, PublishedView write, viewer/client 노출, EventRecord/Event POST/API/schema/media 변경",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 5");
-  }
-});
 
-check("feature inventory and release records map v3.3 Step 5", () => {
-  for (const snippet of [
-    `v3.3.0 (5) Incident-to-Source Correlation Layer | \`UI-070\`, \`SRC-036\`, \`EVT-071\`, \`SAFE-117\`, \`OPS-084\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-070 | V330 Step 5 Incident-to-Source Correlation UI",
-    "SRC-036 | V330 Step 5 Incident-to-Source Correlation source context",
-    "EVT-071 | V330 Step 5 incident source correlation view model",
-    "SAFE-117 | V330 Step 5 incident source correlation boundary",
-    "OPS-084 | V330 Step 5 Incident-to-Source Correlation Layer 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 5");
-  }
-  for (const snippet of [
-    "V330 Incident-to-Source Correlation Layer",
-    `\`./server.sh ${command}\``,
-    "v330 Step 5 RED incident source correlation gate",
-    "v330 Step 5 UI 풀테스트",
-    "v330 Step 5 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 5");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.3 Step 5 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
@@ -266,7 +238,8 @@ check("server entrypoint and inventory verifiers include v3.3 Step 5 command", (
   }
   for (const id of ["SRC-036", "EVT-071", "SAFE-117", "OPS-084"]) {
     const item = implementationManifest.items.find(candidate => candidate.id === id);
-    assert(item?.verifierEvidence?.command === command, `${id} manifest canonical verifier command drift`);
+    const expectedCommand = id === "SRC-036" ? "verify-ops-source-registry-api" : command;
+    assert(item?.verifierEvidence?.command === expectedCommand, `${id} manifest canonical verifier command drift`);
   }
   assertIncludes(files.scriptInventory, "verify_v330_incident_source_correlation_layer.mjs", "script inventory");
 });

@@ -3,6 +3,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 // 파일 용도: v3.3.0 Step 4 Reliability Timeline and Health History 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/source-registry/reliability-timeline exposes an Ops-only read-only timeline
   - the timeline combines current source health, live/stale/offline/reconnect/source warning state, and Ops audit history
   - /ops/sources renders Reliability Timeline and Health History without source writes or client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -39,13 +40,12 @@ const files = {
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   registry: readText("src/ingress/source_view_registry.cpp"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -169,52 +169,25 @@ check("/ops/sources renders reliability timeline and health history without clie
   }
 });
 
-check("roadmap records v3.3 Step 4 as implemented without overclaiming later steps", () => {
-  for (const snippet of [
-    "| 4 | v3.3.0 (4) Reliability Timeline and Health History | P0 | 완료 |",
-    "## v3.3.0 Step 4 개발 기록",
-    route,
-    "OpsV330ReliabilityTimelineHealthHistoryJson",
-    "live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결",
-    "`./server.sh verify-v330-reliability-timeline-health-history`",
-    "이번 Step 4 범위 밖 기능 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 4");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["SRC-035","SAFE-116","OPS-083"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/reliability-timeline"],
+    command, script: "verify_v330_reliability_timeline_health_history.mjs", featureIds: featureIds.filter(id => !["SRC-035"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/reliability-timeline"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-035"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 4 command and boundary", () => {
-  for (const snippet of [
-    "| v3.3.0 (4) | `./server.sh verify-v330-reliability-timeline-health-history` |",
-    "Reliability Timeline and Health History",
-    route,
-    "live/stale/offline/reconnect/source warning",
-    "Ops audit",
-    "source registry write, PublishedView write, viewer/client 노출, API/schema/media 변경",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 4");
-  }
-});
 
-check("feature inventory and release records map v3.3 Step 4", () => {
-  for (const snippet of [
-    `v3.3.0 (4) Reliability Timeline and Health History | \`SRC-035\`, \`SAFE-116\`, \`OPS-083\` | \`${command}\``,
-    "SRC-035 | V330 Step 4 Reliability Timeline and Health History",
-    "SAFE-116 | V330 Step 4 reliability timeline boundary",
-    "OPS-083 | V330 Step 4 Reliability Timeline and Health History 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 4");
-  }
-  for (const snippet of [
-    "V330 Reliability Timeline and Health History",
-    `\`./server.sh ${command}\``,
-    "v330 Step 4 RED reliability timeline health history gate",
-    "v330 Step 4 UI 풀테스트",
-    "v330 Step 4 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 4");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.3 Step 4 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

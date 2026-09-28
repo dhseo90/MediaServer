@@ -3,6 +3,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 // 파일 용도: v3.4.0 Step 2 Continuity Drill Contract 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -23,7 +24,7 @@ Usage:
 Checks:
   - /ops/api/source-registry/continuity-drill/contract exposes an Ops-only read-only recovery drill contract
   - the contract links v3.3 backup/recovery handoff inputs without writing SourceRegistry, PublishedView, EventRecord, or media paths
-  - backlog, stream verification, release records, feature inventory, coverage verifier, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -34,13 +35,12 @@ const schema = "media-server.ops.v340-continuity-drill-contract.v1";
 const route = "/ops/api/source-registry/continuity-drill/contract";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -147,51 +147,19 @@ check("Ops API exposes the continuity drill contract route as guarded no-store J
   assert(!block.includes("require_source_write_principal"), "continuity drill contract route must not require source writes");
 });
 
-check("roadmap records v3.4 Step 2 without overclaiming later steps", () => {
-  for (const snippet of [
-    "| 2 | v3.4.0 (2) Continuity Drill Contract | P0 | 완료 |",
-    "recovery drill schema, v3.3 handoff 입력, read-only/no-write/no-secret/no-media-path-change 경계 정의",
-    "## v3.4.0 Step 2 개발 기록",
-    route,
-    "OpsV340ContinuityDrillContractJson",
-    "`./server.sh verify-v340-continuity-drill-contract`",
-    "Recovery Candidate Package Read Model, Staging Restore Validation Harness 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 2");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["SAFE-125","OPS-092"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/continuity-drill/contract"],
+    command, script: "verify_v340_continuity_drill_contract.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 2 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (2) | \`./server.sh ${command}\` | Continuity Drill Contract.`,
-    route,
-    "recovery drill schema",
-    "v3.3 handoff 입력",
-    "read-only/no-write/no-secret/no-media-path-change",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 2");
-  }
-});
 
-check("feature inventory and release records map v3.4 Step 2", () => {
-  for (const snippet of [
-    `v3.4.0 (2) Continuity Drill Contract | \`SAFE-125\`, \`OPS-092\` | \`${command}\``,
-    "SAFE-125 | V340 Step 2 continuity drill contract boundary",
-    "OPS-092 | V340 Step 2 Continuity Drill Contract 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 2");
-  }
-  for (const snippet of [
-    "V340 Continuity Drill Contract",
-    `\`./server.sh ${command}\``,
-    "v340 Step 2 RED continuity drill contract gate",
-    "v340 Step 2 continuity drill contract final",
-    "v340 Step 2 UI 풀테스트",
-    "v340 Step 2 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 2");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.4 Step 2 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

@@ -3,6 +3,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.4.0 Step 3 Recovery Candidate Package read model 구현, 문서, inventory 연결을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/source-registry/recovery-candidate-package exposes an Ops-only redacted candidate package read model
   - the model combines SourceRegistry snapshot, PublishedView, source health, EventRecord, and Ops audit context
   - package output does not expose source locator, credential, raw audit body, media path, or client/viewer material
-  - backlog, stream verification, release records, feature inventory, coverage verifier, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -36,13 +37,12 @@ const route = "/ops/api/source-registry/recovery-candidate-package";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
   eventStorageApplication: readText("src/ingress/event_storage_application_service.cpp"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -186,53 +186,19 @@ check("Ops API exposes the recovery candidate package route as guarded no-store 
   assert(!block.includes("require_source_write_principal"), "recovery candidate package route must not require source writes");
 });
 
-check("roadmap records v3.4 Step 3 without overclaiming staging restore validation", () => {
-  for (const snippet of [
-    "| 3 | v3.4.0 (3) Recovery Candidate Package Read Model | P0 | 완료 |",
-    "source registry snapshot, PublishedView, source health, EventRecord/audit context를 redacted 복구 후보 package로 조합",
-    "## v3.4.0 Step 3 개발 기록",
-    route,
-    "OpsV340RecoveryCandidatePackageJson",
-    "`./server.sh verify-v340-recovery-candidate-package`",
-    "Staging Restore Validation Harness 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 3");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["SRC-041","EVT-073","SAFE-126","OPS-093"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/recovery-candidate-package"],
+    command, script: "verify_v340_recovery_candidate_package.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 3 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (3) | \`./server.sh ${command}\` | Recovery Candidate Package Read Model.`,
-    route,
-    "SourceRegistry snapshot, PublishedView, source health, EventRecord/audit context",
-    "redacted recovery candidate package",
-    "source locator/credential/raw audit body/media path 비노출",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 3");
-  }
-});
 
-check("feature inventory and release records map v3.4 Step 3", () => {
-  for (const snippet of [
-    `v3.4.0 (3) Recovery Candidate Package Read Model | \`SRC-041\`, \`EVT-073\`, \`SAFE-126\`, \`OPS-093\` | \`${command}\``,
-    "SRC-041 | V340 Step 3 recovery candidate package read model",
-    "EVT-073 | V340 Step 3 EventRecord/audit context projection",
-    "SAFE-126 | V340 Step 3 recovery candidate redaction boundary",
-    "OPS-093 | V340 Step 3 Recovery Candidate Package 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 3");
-  }
-  for (const snippet of [
-    "V340 Recovery Candidate Package Read Model",
-    `\`./server.sh ${command}\``,
-    "v340 Step 3 RED recovery candidate package gate",
-    "v340 Step 3 recovery candidate package final",
-    "v340 Step 3 UI 풀테스트",
-    "v340 Step 3 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 3");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.4 Step 3 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

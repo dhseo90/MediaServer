@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +27,7 @@ Checks:
   - the view model exposes source health filters, saved reliability view presets, and reconnect/stale/offline metric summary
   - /ops/sources renders filter summary, saved views, metrics, and boundary flags
   - the context does not write saved views, mutate SourceRegistry/PublishedView, expose client/viewer material, or change EventRecord/Event POST/media schemas
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -41,13 +42,12 @@ const files = {
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   registry: readText("src/ingress/source_view_registry.cpp"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -221,59 +221,25 @@ check("/ops/sources renders Step 9 search filters, saved views, metrics, and bou
   }
 });
 
-check("roadmap records v3.3 Step 9 as implemented without overclaiming Step 10 or release gates", () => {
-  for (const snippet of [
-    "| 9 | v3.3.0 (9) Source Reliability Search and Metrics | P2 | 완료 |",
-    "source health filter, saved reliability view, reconnect/stale/offline metric summary",
-    "## v3.3.0 Step 9 개발 기록",
-    route,
-    "OpsV330SourceReliabilitySearchMetricsJson",
-    "`./server.sh verify-v330-source-reliability-search-metrics`",
-    "이번 Step 9는 Source Reliability Search and Metrics read model/API/UI/verifier 연결입니다",
-    "Ops Backup and Recovery Source Handoff 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 9");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-073","SRC-039","SAFE-121","OPS-088"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/reliability-search-metrics"],
+    command, script: "verify_v330_source_reliability_search_metrics.mjs", featureIds: featureIds.filter(id => !["SRC-039"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/reliability-search-metrics"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-039"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 9 command and boundary", () => {
-  for (const snippet of [
-    `| v3.3.0 (9) | \`./server.sh ${command}\` | Source Reliability Search and Metrics.`,
-    route,
-    "source health filters",
-    "saved reliability view presets",
-    "reconnect/stale/offline metric summary",
-    "source registry write, PublishedView write, saved view write, viewer/client 노출, API/schema/media 변경",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 9");
-  }
-});
 
-check("feature inventory and release records map v3.3 Step 9", () => {
-  for (const snippet of [
-    `v3.3.0 (9) Source Reliability Search and Metrics | \`UI-073\`, \`SRC-039\`, \`SAFE-121\`, \`OPS-088\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-073 | V330 Step 9 Source Reliability Search and Metrics UI",
-    "SRC-039 | V330 Step 9 source reliability search metrics view model",
-    "SAFE-121 | V330 Step 9 source reliability search metrics boundary",
-    "OPS-088 | V330 Step 9 Source Reliability Search and Metrics 게이트",
-    "`UI-001`~`UI-115`",
-    "`SRC-001`~`SRC-068`",
-    "`SAFE-001`~`SAFE-216`",
-    "`OPS-035`~`OPS-184`",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 9");
-  }
-  for (const snippet of [
-    "V330 Source Reliability Search and Metrics",
-    `\`./server.sh ${command}\``,
-    "v330 Step 9 RED source reliability search metrics gate",
-    "v330 Step 9 source reliability search metrics implementation checkpoint",
-    "v330 Step 9 UI 풀테스트",
-    "v330 Step 9 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 9");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.3 Step 9 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
