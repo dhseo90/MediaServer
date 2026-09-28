@@ -1,0 +1,185 @@
+{
+  "schema": "media-server.v411-documentation-checks.v1",
+  "scope": "설치·기여 가이드와 서버 구조·연동 소비자 변경의 최종 정적 연결 검사. 설치/제품 동작 검증 아님.",
+  "baseCommit": "263d586b4b3851bc92fc49a9af7a8dd02935817d",
+  "source": {
+    "CONTRIBUTING.md": "497ae66361b951a55b57e6269ba527c04f4a74fe9115e0359e3f1ceb4364cfac",
+    "docs/development-guide.md": "3dcd1e53669651e8b5ee5fa3aa9b362945bd3e675c62579ad6d0c162678d827c",
+    "docs/media-server-architecture.md": "64eb9e0551e6adb9d2ea32f426f60a7d33b045be8c1b192ca2c5665599ef36e0",
+    "docs/integrator-contract-artifact.md": "3387844ac58ecede5f5e0679cdbd029b4e2db8b768e203f99adfdc247517ad7e",
+    "scripts/internal/documentation_contract_lib.mjs": "817140abba8069fd86215492c78d4f43ecd5c5d340ca5b4bff0f229e1a6aaef6",
+    "scripts/internal/documentation_contract.test.mjs": "15f82373cfd1f62d2ca45e12be4007c302f14244c1440f980299ae87135051b9",
+    "scripts/internal/verify_integrator_contract_artifact.mjs": "e82607ee4ea0ccfbcd7c21fa3ab2549ce4157d77261d746890ead95479f86c79",
+    "docs/config-reference.md": "bc464af555f443c96879ddf0913984afb8340a884f2b3d60563571cdc0354b70",
+    "docs/README.md": "54e679e6bbc87887828f8d9c148b093e644d64b7a7393d7d38b9d68f1b90e476",
+    "AGENTS.md": "f5121d131012b16981abf7297759a91c600926d5e6d876dc014d38e223ededbd"
+  },
+  "environment": {
+    "node": "v24.13.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "expected": "각 명령 exit 0, 로컬 링크/앵커/명령 연결 실패 0",
+  "commands": [
+    {
+      "command": "./server.sh",
+      "args": [
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T21:39:21.982Z",
+      "endedAt": "2026-09-28T21:39:22.339Z",
+      "elapsedMs": 357.004292,
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[fail] 문서 로컬 링크/이미지 참조 오류\n  - docs/development-guide.md: 존재하지 않는 anchor: ui-guide.md#2-login--session\n  - docs/development-guide.md: 존재하지 않는 anchor: stream-verification.md#영향별-2-ui--auth--ops--client-변경\n\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14881\n- local images: 14\n- local anchors: 262\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 2\n",
+      "stderr": ""
+    }
+  ],
+  "review": {
+    "developmentGuide": "담당자 전문 읽기·두 파일 diff 자체검토; 메인 전체 diff 및 install/build/run/test dispatch·WHEP 실제 처리 대조",
+    "architecture": "메인 전문 읽기, 녹화 조립·독립 구독·보존·조회 경로 대조. Auth/Rule 전체 기능 감사 아님"
+  },
+  "notRun": [
+    "실제 설치·빌드·인증·WHEP·녹화 복구 실행",
+    "실제 UI·30분·120분 검증",
+    "원격 작업"
+  ],
+  "cleanup": {
+    "temporaryFiles": "없음",
+    "processesAndPorts": "동기 정적 자식 명령 종료; 서버·미디어·계정·포트 미생성"
+  },
+  "usage": {
+    "tokens": "실행별 토큰 미집계: 독립 사용량 도구 없음"
+  },
+  "sourceUnchanged": true,
+  "followups": [
+    {
+      "correction": "최초 링크 검사에서 새 앵커 2개가 문서 앵커와 불일치. 기존 페이지/검증 정책 진입점으로 연결 수정; 검사 기준 변경 없음.",
+      "source": {
+        "CONTRIBUTING.md": "497ae66361b951a55b57e6269ba527c04f4a74fe9115e0359e3f1ceb4364cfac",
+        "docs/development-guide.md": "04bb06528c726220de3a3d1abbe0a64a8ff3e1c8ac6b108befd0c63874de0d02",
+        "docs/media-server-architecture.md": "64eb9e0551e6adb9d2ea32f426f60a7d33b045be8c1b192ca2c5665599ef36e0",
+        "docs/integrator-contract-artifact.md": "3387844ac58ecede5f5e0679cdbd029b4e2db8b768e203f99adfdc247517ad7e",
+        "scripts/internal/documentation_contract_lib.mjs": "817140abba8069fd86215492c78d4f43ecd5c5d340ca5b4bff0f229e1a6aaef6",
+        "scripts/internal/documentation_contract.test.mjs": "15f82373cfd1f62d2ca45e12be4007c302f14244c1440f980299ae87135051b9",
+        "scripts/internal/verify_integrator_contract_artifact.mjs": "e82607ee4ea0ccfbcd7c21fa3ab2549ce4157d77261d746890ead95479f86c79",
+        "docs/config-reference.md": "bc464af555f443c96879ddf0913984afb8340a884f2b3d60563571cdc0354b70",
+        "docs/README.md": "54e679e6bbc87887828f8d9c148b093e644d64b7a7393d7d38b9d68f1b90e476",
+        "AGENTS.md": "f5121d131012b16981abf7297759a91c600926d5e6d876dc014d38e223ededbd"
+      },
+      "commands": [
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-docs-links"
+          ],
+          "startedAt": "2026-09-28T21:40:04.885Z",
+          "endedAt": "2026-09-28T21:40:05.249Z",
+          "elapsedMs": 363.32912500000003,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14881\n- local images: 14\n- local anchors: 261\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-v391-documentation-truth"
+          ],
+          "startedAt": "2026-09-28T21:40:05.249Z",
+          "endedAt": "2026-09-28T21:40:05.367Z",
+          "elapsedMs": 117.16216700000001,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] 공개 권한 안내는 admin 전용 사용자 관리와 operator 제한을 유지\n[pass] GStreamer API namespace and minimum supported version are distinct\n[pass] 공개 색인에서 상세 실행 기록과 내부 계획 분리\n[pass] 현행 source와 기록된 공개 metadata 일치\n[pass] 현행 UI·단기·장시간 판정 기준 연결\n\n== v3.9.1 documentation truth summary ==\n- scope: current documentation; no product, UI or published execution\n- pass: 5\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-script-inventory"
+          ],
+          "startedAt": "2026-09-28T21:40:05.367Z",
+          "endedAt": "2026-09-28T21:41:05.383Z",
+          "elapsedMs": 60015.767167,
+          "exit": null,
+          "signal": "SIGTERM",
+          "error": "spawnSync ./server.sh ETIMEDOUT",
+          "stdout": "[pass] dispatch parser recognizes explicit bash and node interpreters\n[pass] server.sh dispatch targets exist and are executable\n[pass] documented server.sh commands resolve to dispatch table\n[pass] tracked scripts are classified and referenced\n[pass] project inventory delegates script file inventory to this verifier\n[pass] project inventory maps verifier families without duplicating dispatch details\n[pass] CMake does not define a separate untracked CTest registry\n[pass] test entry scripts are reachable from test_all\n[pass] auth verifier has no hardcoded test password defaults\n[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default\n",
+          "stderr": ""
+        }
+      ],
+      "sourceUnchanged": true
+    },
+    {
+      "correction": "기존 동일 정적 명령의 성공 elapsed 63.417/65.322/66.306초 확인. 실행자가 임의 추가한 60초 spawn 제한을 제거하고 도구 세션으로 비동기 수집. 검증기·검사 조건·제품 timeout 변경 없음.",
+      "basis": [
+        "docs/release-artifacts/v4.1.1/final-readiness-documentation-consumers/result.json",
+        "docs/release-artifacts/v4.1.1/readiness-documentation-consumers/result.json",
+        "docs/release-artifacts/v4.1.1/manifest-write-boundary/result.json"
+      ],
+      "source": {
+        "CONTRIBUTING.md": "497ae66361b951a55b57e6269ba527c04f4a74fe9115e0359e3f1ceb4364cfac",
+        "docs/development-guide.md": "04bb06528c726220de3a3d1abbe0a64a8ff3e1c8ac6b108befd0c63874de0d02",
+        "docs/media-server-architecture.md": "64eb9e0551e6adb9d2ea32f426f60a7d33b045be8c1b192ca2c5665599ef36e0",
+        "docs/integrator-contract-artifact.md": "3387844ac58ecede5f5e0679cdbd029b4e2db8b768e203f99adfdc247517ad7e",
+        "scripts/internal/documentation_contract_lib.mjs": "817140abba8069fd86215492c78d4f43ecd5c5d340ca5b4bff0f229e1a6aaef6",
+        "scripts/internal/documentation_contract.test.mjs": "15f82373cfd1f62d2ca45e12be4007c302f14244c1440f980299ae87135051b9",
+        "scripts/internal/verify_integrator_contract_artifact.mjs": "e82607ee4ea0ccfbcd7c21fa3ab2549ce4157d77261d746890ead95479f86c79",
+        "docs/config-reference.md": "bc464af555f443c96879ddf0913984afb8340a884f2b3d60563571cdc0354b70",
+        "docs/README.md": "54e679e6bbc87887828f8d9c148b093e644d64b7a7393d7d38b9d68f1b90e476",
+        "AGENTS.md": "f5121d131012b16981abf7297759a91c600926d5e6d876dc014d38e223ededbd",
+        "docs/live-event-metadata-contracts.md": "ae3e14dc50571fe4cc0528698bb1386ba73015af3db4c29b15bce6d7dc10a6e4"
+      },
+      "commands": [
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-script-inventory"
+          ],
+          "startedAt": "2026-09-28T21:42:21.080Z",
+          "endedAt": "2026-09-28T21:43:25.660Z",
+          "elapsedMs": 64580.057042,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "[pass] dispatch parser recognizes explicit bash and node interpreters\n[pass] server.sh dispatch targets exist and are executable\n[pass] documented server.sh commands resolve to dispatch table\n[pass] tracked scripts are classified and referenced\n[pass] project inventory delegates script file inventory to this verifier\n[pass] project inventory maps verifier families without duplicating dispatch details\n[pass] CMake does not define a separate untracked CTest registry\n[pass] test entry scripts are reachable from test_all\n[pass] auth verifier has no hardcoded test password defaults\n[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default\n[pass] critical verifier pass output avoids grouped feature-result wording\n[pass] user-facing JS option parsers reject unknown options\n\n== Script inventory verification summary ==\n- pass: 12\n- fail: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "./server.sh",
+          "args": [
+            "verify-docs-links"
+          ],
+          "startedAt": "2026-09-28T21:43:25.661Z",
+          "endedAt": "2026-09-28T21:43:26.025Z",
+          "elapsedMs": 364.1480420000007,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14882\n- local images: 14\n- local anchors: 262\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": "git",
+          "args": [
+            "diff",
+            "--check"
+          ],
+          "startedAt": "2026-09-28T21:43:26.025Z",
+          "endedAt": "2026-09-28T21:43:26.039Z",
+          "elapsedMs": 13.821167000001878,
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "",
+          "stderr": ""
+        }
+      ],
+      "sourceUnchanged": true
+    }
+  ]
+}
