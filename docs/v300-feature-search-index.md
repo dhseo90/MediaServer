@@ -72,9 +72,8 @@ The index records these invariants:
 ./server.sh verify-analysis-state
 ```
 
-`verify-v300-feature-search-index` checks the fixture, C++ module,
-analysis-state smoke, docs, backlog, stream verification, release records,
-feature inventory, script inventory, CMake, and `server.sh` dispatch.
+`verify-v300-feature-search-index`는 fixture·C++ 모듈·smoke 검사 소스와 빌드 연결을 정적으로 확인합니다.
+현행 계약 식별자·기능 정의·검증 안내·스크립트 분류·명령 실행 연결을 검사하며 과거 실행 기록의 존재나 완료 문구는 요구하지 않습니다.
 
 This verifier PASS is limited to V300-S07 Feature/Search Index evidence. It is
 not `/ops/events` UI evidence, not vector search evidence, not semantic provider

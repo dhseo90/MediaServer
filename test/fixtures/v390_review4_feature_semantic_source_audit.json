@@ -13740,7 +13740,7 @@
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "canonical-assertion:eventEvidenceSearch",
           "anchor": "assertIncludes(extractNamedFunctionBlock(files.pageScript, \"renderV300EventEvidenceSearchUi\"), \"eventEvidenceSearch\", \"UI-059 block-scoped canonical product state\");",
-          "line": 112,
+          "line": 113,
           "contextSha256": "64e52729289f59a5e99717e73a87f17f7d4d12fe3e1754dd6f5c6076d5107337"
         },
         "verifier": {
@@ -13782,14 +13782,14 @@
           "kind": "structural-producer-assertion",
           "witness": "eventEvidenceSearch is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:4588",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:112"
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:113"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-ops-events-ui",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:112",
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:113",
           "target": "server.sh:2078"
         }
       ],
@@ -13872,7 +13872,7 @@
           "sha256": "df8a076fca5b722835031c7274ea287a67d01feea49b48e8ad8990ed854bfaf3"
         }
       },
-      "sourceFlowDigest": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2",
+      "sourceFlowDigest": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -13915,10 +13915,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "canonical-assertion:eventEvidenceSearch",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "527f24f84f8008d2bc3c90bf55d07815b61f909e83f0e9e69ebbe092361d7e37",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 119,
+            "enclosingBodyStartLine": 95,
+            "enclosingBodyEndLine": 120,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -13930,7 +13930,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+        "verifierFileSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
         "dispatch": {
           "command": "verify-v300-ops-events-ui",
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
@@ -93592,7 +93592,7 @@
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-functional-assertion:EVT-060",
           "anchor": "assert(evt060FrameBundleBlock.includes(\"FrameBundlePhase(index, event_frame_index)\"), \"EVT-060 block-scoped canonical frame bundle flow\");",
-          "line": 54,
+          "line": 53,
           "contextSha256": "b9ecf7f86c060d4a1a8630f69ac730b6d1eaf286b679551d0d699197c0eec3f3"
         },
         "verifier": {
@@ -93634,14 +93634,14 @@
           "kind": "structural-producer-assertion",
           "witness": "FrameBundlePhase is asserted in the canonical functional verifier against the exact production function block",
           "source": "src/analysis/event_storage.cpp:2001",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:54"
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:53"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-event-evidence-contract",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:54",
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:53",
           "target": "server.sh:2054"
         }
       ],
@@ -93713,7 +93713,7 @@
           "sha256": "c8f28a52eba4e81a72a23efe46e487c725089a1ed27549ba81af8340a3541c8c"
         }
       },
-      "sourceFlowDigest": "195ca4a386afbb88eb593731a84bf9e243cd90cb04a8ec1a33c74b7b6ed0bbda",
+      "sourceFlowDigest": "8ed276e354e3ee1107b6da47f0c496a7296a47149c9c53d9c3b757e853e658f7",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -93756,10 +93756,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-functional-assertion:EVT-060",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "141615ad2a8a3e07068f5d98252a42d132817f1b99bbfb53e9fe62654c8131c9",
-            "enclosingBodyStartLine": 49,
-            "enclosingBodyEndLine": 61,
+            "enclosingBodyStartLine": 48,
+            "enclosingBodyEndLine": 60,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -93771,7 +93771,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+        "verifierFileSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
         "dispatch": {
           "command": "verify-v300-event-evidence-contract",
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
@@ -135578,7 +135578,7 @@
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "LAB-083:exact-oracle",
           "anchor": "assert(featureSetBlock.includes(\"media-server.event-feature-set.v1\") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, \"LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls\");",
-          "line": 56,
+          "line": 55,
           "contextSha256": "8d7a9bb84cf4dd60bf23071ffbc7fa1a23800de91ca4460a8eac6a819c2caaba"
         },
         "verifier": {
@@ -135620,14 +135620,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.event-feature-set.v1 from the computed source flow.",
           "source": "src/analysis/vlm_feature_queue.cpp:184",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:56"
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:55"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-schema-privacy",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:56",
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:55",
           "target": "server.sh:2058"
         }
       ],
@@ -135700,7 +135700,7 @@
           "sha256": "e8977f074f97a2e58a2e335029c43712361730e92ea89e224d78b0b1f7774431"
         }
       },
-      "sourceFlowDigest": "34663aefc131752b0316b854cf757ad19e14c39bd22189dc2fc32160d96d0fa3",
+      "sourceFlowDigest": "cee9b0ae071688b966990fafdae1a086c52fb7c5879a564e8b81ba4c1c3f7f0c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -135743,10 +135743,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "LAB-083:exact-oracle",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 51,
+            "enclosingBodyEndLine": 66,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -135758,7 +135758,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+        "verifierFileSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
         "dispatch": {
           "command": "verify-v300-feature-schema-privacy",
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
@@ -135826,7 +135826,7 @@
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
           "symbol": "LAB-084:exact-oracle",
           "anchor": "assert(completeTaskBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && providerCallPerformed === false, \"LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls\");",
-          "line": 84,
+          "line": 83,
           "contextSha256": "830b48807d7b640483991a9cca4e2a6646a25ec77a4a123868fa49f26bad6359"
         },
         "verifier": {
@@ -135868,14 +135868,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts feature_set_stored from the computed source flow.",
           "source": "src/analysis/vlm_feature_queue.cpp:114",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:84"
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:83"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-vlm-feature-queue",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:84",
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:83",
           "target": "server.sh:2062"
         }
       ],
@@ -135944,7 +135944,7 @@
           "sha256": "51b5dea1cb29dde5edc04b387d7e6db9201c57f0cd6a37a5bfdc0d8b091729c8"
         }
       },
-      "sourceFlowDigest": "13acf5e409ca99c3ba24981dcb36dec7832c604bbdc1b99d40dc9294e11780c9",
+      "sourceFlowDigest": "28595c1943bac84194eef5949cff6bf7d2d1bb147b315cdbbbb5935763fadbc7",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -135987,10 +135987,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "LAB-084:exact-oracle",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 116,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 115,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -136002,7 +136002,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+        "verifierFileSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
         "dispatch": {
           "command": "verify-v300-vlm-feature-queue",
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
@@ -136070,7 +136070,7 @@
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "LAB-085:exact-oracle",
           "anchor": "assert(storeRevisionBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && rawMaterialStored === false, \"LAB-085 feature retention must reject raw material without adding /ops/events UI\");",
-          "line": 93,
+          "line": 92,
           "contextSha256": "36ecd1853fda8216f7be663fc2b671955edb3e1c1063f8919adc6e8e7970dce5"
         },
         "verifier": {
@@ -136112,14 +136112,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts feature_set_stored from the computed source flow.",
           "source": "src/analysis/vlm_feature_retention.cpp:220",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:93"
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:92"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-only-retention",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:93",
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:92",
           "target": "server.sh:2066"
         }
       ],
@@ -136175,7 +136175,7 @@
           "sha256": "a58faa869f97556fe34f3ba28f9ed509227319313275b93e0a14a6ac3ec1a9d3"
         }
       },
-      "sourceFlowDigest": "7edfa9fb54e351327d89f38641ede5adeddec47837d8481ecae88c6f3f5da833",
+      "sourceFlowDigest": "6a3c6b064164e45dd3334d4aa02a9845ee865737c518b9aea9a9de8862bd1b36",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -136218,10 +136218,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "LAB-085:exact-oracle",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
-            "enclosingBodyStartLine": 89,
-            "enclosingBodyEndLine": 123,
+            "enclosingBodyStartLine": 88,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -136233,7 +136233,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+        "verifierFileSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
         "dispatch": {
           "command": "verify-v300-feature-only-retention",
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
@@ -136301,7 +136301,7 @@
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "LAB-086:exact-oracle",
           "anchor": "assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\");",
-          "line": 83,
+          "line": 82,
           "contextSha256": "619dfa0bf82aeb358a581635af4aa1a37ed68555e7a970967a3bac3ff74f53da"
         },
         "verifier": {
@@ -136343,14 +136343,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts identity-search-disallowed from the computed source flow.",
           "source": "src/analysis/event_search_query.cpp:325",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:83"
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-search-dsl-query-convert",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:83",
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82",
           "target": "server.sh:2070"
         }
       ],
@@ -136406,7 +136406,7 @@
           "sha256": "731736fca67da62f41a86011894cb3964c65b6d3fb04b8e203be8d93107e6db3"
         }
       },
-      "sourceFlowDigest": "377dc8872c1c6f25f1d47c8db9ab0d09d73151825e60dcd2363ac9c7cdc0fbb1",
+      "sourceFlowDigest": "51d2b5f089d4aa45c6b8ac325016f915523fcf51af5999d57169244ff84b102c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -136449,10 +136449,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "LAB-086:exact-oracle",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 107,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -136464,7 +136464,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+        "verifierFileSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
         "dispatch": {
           "command": "verify-v300-search-dsl-query-convert",
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
@@ -136532,7 +136532,7 @@
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
           "symbol": "LAB-087:exact-oracle",
           "anchor": "assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\");",
-          "line": 83,
+          "line": 82,
           "contextSha256": "8f8542d0a0e7ad9deee7c05531b754169e0b61b0c9d0094081184e64456f13d8"
         },
         "verifier": {
@@ -136574,14 +136574,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts indexed_entries from the computed source flow.",
           "source": "src/analysis/event_feature_search_index.cpp:380",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:83"
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:82"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-search-index",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:83",
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:82",
           "target": "server.sh:2074"
         }
       ],
@@ -136637,7 +136637,7 @@
           "sha256": "25676fde36e9cc3e4e8155cd7911b8fc29ab2fc708a3ddd3e3131ad715d6872b"
         }
       },
-      "sourceFlowDigest": "45a20f584856cf14b3b76123d74d4a36670423029e738c26cb9fd71e58b91c6c",
+      "sourceFlowDigest": "f3cbd7ec62d51fa369e792197b32a80ac0e380be6bc4b4bd6e7cf4adc1be4dca",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -136680,10 +136680,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "LAB-087:exact-oracle",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -136695,7 +136695,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+        "verifierFileSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
         "dispatch": {
           "command": "verify-v300-feature-search-index",
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
@@ -136763,7 +136763,7 @@
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "LAB-088:exact-oracle",
           "anchor": "assert(cleanupPlanBlock.includes(\"actions.push_back\"), \"LAB-088 retention cleanup actions.push_back block readback mismatch\");",
-          "line": 81,
+          "line": 80,
           "contextSha256": "c4630330fad716dae85a20762693b74dae52f0aede26c263f41505aa1ce50317"
         },
         "verifier": {
@@ -136805,14 +136805,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts actions.push_back from the computed source flow.",
           "source": "src/analysis/event_retention_cleanup.cpp:169",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:81"
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:80"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-retention-pin-cleanup",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:81",
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:80",
           "target": "server.sh:2082"
         }
       ],
@@ -136864,7 +136864,7 @@
           "sha256": "d9e6e18428d603550ebc08c5caf76439a2633999211c682c5ce5a0651fd2cd75"
         }
       },
-      "sourceFlowDigest": "5634d0734b45406ea1b5a499103fd426b337c514e953a0aec8cde35863f9b7a1",
+      "sourceFlowDigest": "382d0a376936c85d75ac7c4e443788bbac6ab9b678ee187f0d5dd4a7a523a242",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -136907,10 +136907,10 @@
           "readback": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "LAB-088:exact-oracle",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "29ea2e0aa9a7ccd3cae2bf084d942f7aecb8c0973b5d865229f288160ad50fa8",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -136922,7 +136922,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+        "verifierFileSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
         "dispatch": {
           "command": "verify-v300-retention-pin-cleanup",
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
@@ -165506,35 +165506,35 @@
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-safe-082-boundary",
           "anchor": "check(\"SAFE-082 canonical evidence contract boundary\", () => {",
-          "line": 211,
+          "line": 158,
           "contextSha256": "80bb01af1843f99e4d8d6465bece36cfeafba9c5b3ba8f9fd08402bdc811c5a2"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-safe-082-boundary",
           "anchor": "const evidenceContractCommandDocumented = files.server.includes(\"verify-v300-event-evidence-contract\");",
-          "line": 212,
+          "line": 159,
           "contextSha256": "cf49a1a415b7d8844c91139c4602327c62cc5ada1da3b3a09cc746279db68a74"
         },
         "action": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-safe-082-boundary",
           "anchor": "const evidenceContractInputsObserved = evidenceContractCommandDocumented && rawMaterialStored === false;",
-          "line": 214,
+          "line": 161,
           "contextSha256": "ff9b7a29a657df2d01d79846a6ae8b69e8462188558f6066aa1a3bc400c39988"
         },
         "state": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-safe-082-boundary",
           "anchor": "const safe082BoundaryObserved = evidenceContractInputsObserved &&",
-          "line": 215,
+          "line": 162,
           "contextSha256": "560fa0ec41042788b1e4a03c4f93d1f7c3f265aee7c9bfdf8db5c6e6acacf008"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-safe-082-boundary",
           "anchor": "assert(safe082BoundaryObserved && rawMaterialStored === false,",
-          "line": 217,
+          "line": 164,
           "contextSha256": "9ec44ff8a43cb8cfe67edc2e5a9bb5c78bacad7f01b62f8198ce9e5ec7e2d754"
         },
         "verifier": {
@@ -165551,39 +165551,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-082 owner-dispatch",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:211",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:212"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:158",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:159"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-082 dispatch-action",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:212",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:214"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:159",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:161"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-082 action-state",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:214",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:215"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:161",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:162"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-082 state-readback",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:215",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:217"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:162",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:164"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-event-evidence-contract",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:217",
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:164",
           "target": "server.sh:2054"
         }
       ],
@@ -165647,53 +165647,53 @@
           "sha256": "ebd56d95074d3973c98d6c51fc2aa984d882e7440c92051650ab769f973dc48c"
         }
       },
-      "sourceFlowDigest": "d9da3408729d628f16e5a00c65dba1120724b0a84786acaf6484e6e114f68ce0",
+      "sourceFlowDigest": "f3b0dfa2754cd90bbf6fc8df771c3b1b74bbe5b7c06808b2963f55eb2a24896a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-safe-082-boundary",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-safe-082-boundary",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-safe-082-boundary",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-safe-082-boundary",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-safe-082-boundary",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -165705,7 +165705,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+        "verifierFileSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
         "dispatch": {
           "command": "verify-v300-event-evidence-contract",
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
@@ -166253,35 +166253,35 @@
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "canonical-safe-085-boundary",
           "anchor": "check(\"SAFE-085 canonical feature privacy boundary\", () => {",
-          "line": 214,
+          "line": 162,
           "contextSha256": "eea5df28974d2d6929508f2849633851eb15c34048f7b49e6c1f6ea0f7586b4b"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "canonical-safe-085-boundary",
           "anchor": "const privacyCommandDocumented = files.server.includes(\"verify-v300-feature-schema-privacy\");",
-          "line": 215,
+          "line": 163,
           "contextSha256": "11a1f207825755b8ad3da952ebf4b12455cc9973ec8399f8c381ed370218d8f8"
         },
         "action": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "canonical-safe-085-boundary",
           "anchor": "const featurePrivacyInputsObserved = privacyCommandDocumented && schemaMutationPerformed === false;",
-          "line": 218,
+          "line": 166,
           "contextSha256": "edda52e1a967a3ffd5921ac8a288867b824e4e019e97551cf5393636a09a2e67"
         },
         "state": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "canonical-safe-085-boundary",
           "anchor": "const safe085BoundaryObserved = featurePrivacyInputsObserved &&",
-          "line": 219,
+          "line": 167,
           "contextSha256": "6ae9883aa63977e94c3dc159b0c3fb91bde102aaf9f8975ae2428f2965e913eb"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "canonical-safe-085-boundary",
           "anchor": "assert(safe085BoundaryObserved && schemaMutationPerformed === false,",
-          "line": 221,
+          "line": 169,
           "contextSha256": "fb337f64e949ce63c07e93b07a91f10e69d3b2caf0e12e0ea3bf565c30a60b10"
         },
         "verifier": {
@@ -166298,39 +166298,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-085 owner-dispatch",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:214",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:215"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:162",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:163"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-085 dispatch-action",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:215",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:218"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:163",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:166"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-085 action-state",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:218",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:219"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:166",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:167"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-085 state-readback",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:219",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:221"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:167",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:169"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-schema-privacy",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:221",
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:169",
           "target": "server.sh:2058"
         }
       ],
@@ -166395,53 +166395,53 @@
           "sha256": "0fa4284e38c57cbd6faefc8fcc6e7a6da53957ed39fbf43884984ab6ce4cf6ea"
         }
       },
-      "sourceFlowDigest": "bd8f4df87aa47fc96750cbeef204340ccfe4fc83734230a400603390934ede49",
+      "sourceFlowDigest": "532a1bfe50b19a81330d8bf6fb8fba57a37e5ec2423f2dfa55a4f53dee8ad915",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "canonical-safe-085-boundary",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2",
-            "enclosingBodyStartLine": 214,
-            "enclosingBodyEndLine": 223,
+            "enclosingBodyStartLine": 162,
+            "enclosingBodyEndLine": 171,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "canonical-safe-085-boundary",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2",
-            "enclosingBodyStartLine": 214,
-            "enclosingBodyEndLine": 223,
+            "enclosingBodyStartLine": 162,
+            "enclosingBodyEndLine": 171,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "canonical-safe-085-boundary",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2",
-            "enclosingBodyStartLine": 214,
-            "enclosingBodyEndLine": 223,
+            "enclosingBodyStartLine": 162,
+            "enclosingBodyEndLine": 171,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "canonical-safe-085-boundary",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2",
-            "enclosingBodyStartLine": 214,
-            "enclosingBodyEndLine": 223,
+            "enclosingBodyStartLine": 162,
+            "enclosingBodyEndLine": 171,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "canonical-safe-085-boundary",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2",
-            "enclosingBodyStartLine": 214,
-            "enclosingBodyEndLine": 223,
+            "enclosingBodyStartLine": 162,
+            "enclosingBodyEndLine": 171,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -166453,7 +166453,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+        "verifierFileSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
         "dispatch": {
           "command": "verify-v300-feature-schema-privacy",
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
@@ -166492,35 +166492,35 @@
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
           "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
           "anchor": "check(\"SAFE-086 canonical VLM queue isolation boundary\", () => {",
-          "line": 201,
+          "line": 160,
           "contextSha256": "1c0ca73b765639d72921cf7b2117e05f8e2b225ae2bf2fa1ca954dd809172465"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
           "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
           "anchor": "const invalidOutputDiscarded = files.source.includes(\"discard-invalid-output\");",
-          "line": 202,
+          "line": 161,
           "contextSha256": "301331b257f007ef76dc3f931316aec4e162f5d4e2f295404c44eba25ac99eb2"
         },
         "action": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
           "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
           "anchor": "const vlmQueueIsolationInputsObserved = invalidOutputDiscarded && rawMaterialStored === false;",
-          "line": 204,
+          "line": 163,
           "contextSha256": "6e570dbae23e23931bf558c98d243a7762ca2f4369c6caf2ad0106566c7eb032"
         },
         "state": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
           "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
           "anchor": "const safe086BoundaryObserved = vlmQueueIsolationInputsObserved && files.source.includes(\"webrtc_data_channel_schema_changed = false\");",
-          "line": 205,
+          "line": 164,
           "contextSha256": "7cdea7c2c5e54ec153063db80f454630efb226ef4253404640f0e59bb374b0d4"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
           "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
           "anchor": "assert(safe086BoundaryObserved && rawMaterialStored === false,",
-          "line": 206,
+          "line": 165,
           "contextSha256": "c095c64eb2d62cfd12569fb6e1ea89721e3ba4cd40c2531793ae714ca291786e"
         },
         "verifier": {
@@ -166537,39 +166537,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-086 owner-dispatch",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:201",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:202"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:160",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:161"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-086 dispatch-action",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:202",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:204"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:161",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:163"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-086 action-state",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:204",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:205"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:163",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:164"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-086 state-readback",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:205",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:206"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:164",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:165"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-vlm-feature-queue",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:206",
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:165",
           "target": "server.sh:2062"
         }
       ],
@@ -166635,53 +166635,53 @@
           "sha256": "fe869d7858aa02eb00d6db5a2895f1be6e2daf07a4e62176d19519f58c66426f"
         }
       },
-      "sourceFlowDigest": "c516641ce99fd48f5f63159c80670bdbf8e2e3ba20ef0cf76c7688cd98b6eb16",
+      "sourceFlowDigest": "83ddc35b675a6157c11e5c7e63154c4b44aa9ce80e68eea753d4bf536a3873cb",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53",
-            "enclosingBodyStartLine": 201,
-            "enclosingBodyEndLine": 208,
+            "enclosingBodyStartLine": 160,
+            "enclosingBodyEndLine": 167,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53",
-            "enclosingBodyStartLine": 201,
-            "enclosingBodyEndLine": 208,
+            "enclosingBodyStartLine": 160,
+            "enclosingBodyEndLine": 167,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53",
-            "enclosingBodyStartLine": 201,
-            "enclosingBodyEndLine": 208,
+            "enclosingBodyStartLine": 160,
+            "enclosingBodyEndLine": 167,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53",
-            "enclosingBodyStartLine": 201,
-            "enclosingBodyEndLine": 208,
+            "enclosingBodyStartLine": 160,
+            "enclosingBodyEndLine": 167,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "check:SAFE-086 canonical VLM queue isolation boundary",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53",
-            "enclosingBodyStartLine": 201,
-            "enclosingBodyEndLine": 208,
+            "enclosingBodyStartLine": 160,
+            "enclosingBodyEndLine": 167,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -166693,7 +166693,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+        "verifierFileSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
         "dispatch": {
           "command": "verify-v300-vlm-feature-queue",
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
@@ -166732,35 +166732,35 @@
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "check:SAFE-087 canonical feature-only retention boundary",
           "anchor": "check(\"SAFE-087 canonical feature-only retention boundary\", () => {",
-          "line": 208,
+          "line": 166,
           "contextSha256": "c24c0a7fbd5de93e7efa8fb36b0f429c7b567e64f214aef83e7c95530db8c6d4"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "check:SAFE-087 canonical feature-only retention boundary",
           "anchor": "const credentialStored = files.source.includes(\"credential_stored = true\");",
-          "line": 211,
+          "line": 169,
           "contextSha256": "72ad97f90f8c6365886d802c41a7d43866dd1791e81c03f9389ef0a45698f0e4"
         },
         "action": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "check:SAFE-087 canonical feature-only retention boundary",
           "anchor": "const schemaMutationPerformed = files.source.includes(\"event_post_payload_changed = true\") || files.source.includes(\"webrtc_data_channel_schema_changed = true\");",
-          "line": 212,
+          "line": 170,
           "contextSha256": "26ab14d60522522a23a050fb9c6b010b938d08ab06232e185b5ab94eb7dff0e2"
         },
         "state": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "check:SAFE-087 canonical feature-only retention boundary",
           "anchor": "const safe087BoundaryObserved = files.source.includes(\"reject-raw-provider-material\") && schemaMutationPerformed === false;",
-          "line": 213,
+          "line": 171,
           "contextSha256": "e570bf0554958c7b3c1226d84b57e7a54d5cd098e58c70bf2f81669a7dd79c1d"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "check:SAFE-087 canonical feature-only retention boundary",
           "anchor": "assert(safe087BoundaryObserved && rawMaterialStored === false && sourceUrlStored === false && credentialStored === false && schemaMutationPerformed === false,",
-          "line": 214,
+          "line": 172,
           "contextSha256": "48f5665df56959659732691efc9e6ce7596af455b3a687e5a1e8c52b4c87ccd0"
         },
         "verifier": {
@@ -166777,39 +166777,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-087 owner-dispatch",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:208",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:211"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:166",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:169"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-087 dispatch-action",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:211",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:212"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:169",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:170"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-087 action-state",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:212",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:213"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:170",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:171"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-087 state-readback",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:213",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:214"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:171",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:172"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-only-retention",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:214",
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:172",
           "target": "server.sh:2066"
         }
       ],
@@ -166898,53 +166898,53 @@
           "sha256": "d6fb8f49a4d641fb9d3abeb6461c93ff0474ffe787eb76fa4b9c73095c6f8e54"
         }
       },
-      "sourceFlowDigest": "fd5b0ec44eff3d72a165407af947424bc86ada986291e254a61f3fce088a3333",
+      "sourceFlowDigest": "e71a6a796e73c2f0a87ef77b05c742bab4388f07daa06b36c803003630e99fb6",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "check:SAFE-087 canonical feature-only retention boundary",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464",
-            "enclosingBodyStartLine": 208,
-            "enclosingBodyEndLine": 216,
+            "enclosingBodyStartLine": 166,
+            "enclosingBodyEndLine": 174,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "check:SAFE-087 canonical feature-only retention boundary",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464",
-            "enclosingBodyStartLine": 208,
-            "enclosingBodyEndLine": 216,
+            "enclosingBodyStartLine": 166,
+            "enclosingBodyEndLine": 174,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "check:SAFE-087 canonical feature-only retention boundary",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464",
-            "enclosingBodyStartLine": 208,
-            "enclosingBodyEndLine": 216,
+            "enclosingBodyStartLine": 166,
+            "enclosingBodyEndLine": 174,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "check:SAFE-087 canonical feature-only retention boundary",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464",
-            "enclosingBodyStartLine": 208,
-            "enclosingBodyEndLine": 216,
+            "enclosingBodyStartLine": 166,
+            "enclosingBodyEndLine": 174,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "check:SAFE-087 canonical feature-only retention boundary",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464",
-            "enclosingBodyStartLine": 208,
-            "enclosingBodyEndLine": 216,
+            "enclosingBodyStartLine": 166,
+            "enclosingBodyEndLine": 174,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -166956,7 +166956,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+        "verifierFileSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
         "dispatch": {
           "command": "verify-v300-feature-only-retention",
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
@@ -166995,35 +166995,35 @@
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "check:SAFE-088 canonical query conversion boundary",
           "anchor": "check(\"SAFE-088 canonical query conversion boundary\", () => {",
-          "line": 191,
+          "line": 147,
           "contextSha256": "81420a09d54d91568f5524f0d0d8d6a47008b781d4eec11d0789db01c92d58bd"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "check:SAFE-088 canonical query conversion boundary",
           "anchor": "const providerCallPerformed = files.source.includes(\"runtime_provider_call_performed = true\");",
-          "line": 193,
+          "line": 149,
           "contextSha256": "d8730ef604156be34f74b6c9b6b79a734fb17ebf45b9810094e7e5485adfb719"
         },
         "action": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "check:SAFE-088 canonical query conversion boundary",
           "anchor": "const schemaMutationPerformed = files.source.includes(\"event_post_payload_changed = true\") || files.source.includes(\"rtsp_webrtc_media_path_changed = true\");",
-          "line": 194,
+          "line": 150,
           "contextSha256": "26733190a1f85e370ef6003770240fee58b5a45afeb5d2bd4e195dedcbafb790"
         },
         "state": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "check:SAFE-088 canonical query conversion boundary",
           "anchor": "const safe088BoundaryObserved = files.source.includes(\"identity-search-disallowed\") && providerCallPerformed === false;",
-          "line": 195,
+          "line": 151,
           "contextSha256": "6c60a6a3e12c082e940826f86e26878cfc7f08ab21674eb4831a29d91196ff1a"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "check:SAFE-088 canonical query conversion boundary",
           "anchor": "assert(safe088BoundaryObserved && rawMaterialStored === false && providerCallPerformed === false && schemaMutationPerformed === false,",
-          "line": 196,
+          "line": 152,
           "contextSha256": "2343f2e6cc9258cd9651675eccffe0b7ad7fb5c3235501e8c57f7acb974b8cee"
         },
         "verifier": {
@@ -167040,39 +167040,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-088 owner-dispatch",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:191",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:193"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:147",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:149"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-088 dispatch-action",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:193",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:194"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:149",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:150"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-088 action-state",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:194",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:195"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:150",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:151"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-088 state-readback",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:195",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:196"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:151",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:152"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-search-dsl-query-convert",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:196",
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:152",
           "target": "server.sh:2070"
         }
       ],
@@ -167156,53 +167156,53 @@
           "sha256": "32a53c5452f341328aaf0ff2a438cccdbd7e9e4c24c175d015377a7860e920b9"
         }
       },
-      "sourceFlowDigest": "aa049b4ca45d8d64ec39a1559d8363c74fd1f8822a64174e3d647e757c87293b",
+      "sourceFlowDigest": "fcbfacda69d204a232b4f8bda5e44bb10ba2246ca6f18d04db8531456aac1f39",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "check:SAFE-088 canonical query conversion boundary",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 147,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "check:SAFE-088 canonical query conversion boundary",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 147,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "check:SAFE-088 canonical query conversion boundary",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 147,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "check:SAFE-088 canonical query conversion boundary",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 147,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "check:SAFE-088 canonical query conversion boundary",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 147,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -167214,7 +167214,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+        "verifierFileSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
         "dispatch": {
           "command": "verify-v300-search-dsl-query-convert",
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
@@ -167251,35 +167251,35 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
-          "line": 192,
+          "line": 149,
           "anchor": "check(\"SAFE-089 canonical feature search index boundary\", () => {",
           "symbol": "check:SAFE-089 canonical feature search index boundary",
           "contextSha256": "6835b4cbe11e7851716b67845118e9214a3b4f1e385f3e7f487c32e849a65ef3"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
-          "line": 193,
+          "line": 150,
           "anchor": "const providerCallPerformed = files.source.includes(\"runtime_provider_call_performed = true\");",
           "symbol": "check:SAFE-089 canonical feature search index boundary",
           "contextSha256": "606cba021dfa4bdd113a97fb11c4cff6d5d1a8334a5e0ff07d347fcd96b63463"
         },
         "action": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
-          "line": 194,
+          "line": 151,
           "anchor": "const schemaMutationPerformed = files.source.includes(\"event_post_payload_changed = true\") || files.source.includes(\"rtsp_webrtc_media_path_changed = true\");",
           "symbol": "check:SAFE-089 canonical feature search index boundary",
           "contextSha256": "5d8a41bce7805c148b42decb55a8ba7812dca744eb943748a3774df2a5857913"
         },
         "state": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
-          "line": 196,
+          "line": 153,
           "anchor": "const safe089BoundaryObserved = privacyRejected && providerCallPerformed === false;",
           "symbol": "check:SAFE-089 canonical feature search index boundary",
           "contextSha256": "2833aa1ad41cabca4b04d343a0712fac86abf98ad16203279abc21a7236e98c3"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
-          "line": 197,
+          "line": 154,
           "anchor": "assert(safe089BoundaryObserved && providerCallPerformed === false && schemaMutationPerformed === false,",
           "symbol": "check:SAFE-089 canonical feature search index boundary",
           "contextSha256": "eb5f2e79ea2a50615768b94e5b27b07d21e22cbc14a53cea5c929f6d5da08b30"
@@ -167298,39 +167298,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-089 owner-dispatch",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:192",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:193"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:149",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-089 dispatch-action",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:193",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:194"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:150",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:151"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-089 action-state",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:194",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:196"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:151",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:153"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-089 state-readback",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:196",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:197"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:153",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:154"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-search-index",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:197",
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:154",
           "target": "server.sh:2074"
         }
       ],
@@ -167405,53 +167405,53 @@
           "sha256": "3e7db199292ae9754548c2ebea6979f83f6f99c6adb2b119b72df87e501cf609"
         }
       },
-      "sourceFlowDigest": "6763fab3042499aac4ada211e8055a663f7adf439bea31fd59ed365b3688d29b",
+      "sourceFlowDigest": "eeb0eb726b5a13abe9f89e4a79ef2da6872c38ab039047798c1322a8de4274c7",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "check:SAFE-089 canonical feature search index boundary",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964",
-            "enclosingBodyStartLine": 192,
-            "enclosingBodyEndLine": 199,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "check:SAFE-089 canonical feature search index boundary",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964",
-            "enclosingBodyStartLine": 192,
-            "enclosingBodyEndLine": 199,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "check:SAFE-089 canonical feature search index boundary",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964",
-            "enclosingBodyStartLine": 192,
-            "enclosingBodyEndLine": 199,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "check:SAFE-089 canonical feature search index boundary",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964",
-            "enclosingBodyStartLine": 192,
-            "enclosingBodyEndLine": 199,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "check:SAFE-089 canonical feature search index boundary",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964",
-            "enclosingBodyStartLine": 192,
-            "enclosingBodyEndLine": 199,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -167463,7 +167463,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+        "verifierFileSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
         "dispatch": {
           "command": "verify-v300-feature-search-index",
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
@@ -167502,35 +167502,35 @@
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "check:SAFE-090 canonical Ops events UI boundary",
           "anchor": "check(\"SAFE-090 canonical Ops events UI boundary\", () => {",
-          "line": 198,
+          "line": 171,
           "contextSha256": "9e0bd11807eb80c693b56d41f69b50cb88cfa30689df926e2090bc7fb8ed247f"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "check:SAFE-090 canonical Ops events UI boundary",
           "anchor": "const opsEventsViewBlock = extractCppFunctionBlock(files.server, \"std::string OpsV300EventEvidenceSearchUiJson(\");",
-          "line": 199,
+          "line": 172,
           "contextSha256": "5b6c79eda2c87813ec4ab24d64f5e4db238e9b38f1989d38747d09eda5bf9a99"
         },
         "action": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "check:SAFE-090 canonical Ops events UI boundary",
           "anchor": "const schemaMutationPerformed = opsEventsViewBlock.includes(\"\\\\\\\"eventPostPayloadChanged\\\\\\\":true\");",
-          "line": 200,
+          "line": 173,
           "contextSha256": "885a24bd00fd0cec0d654e122fff7f907e8b3dfa8fb9b70be3cb6ebc9bb19826"
         },
         "state": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "check:SAFE-090 canonical Ops events UI boundary",
           "anchor": "const safe090BoundaryObserved = opsEventsViewBlock.includes(\"media-server.ops.v300-event-evidence-search-ui.v1\") &&",
-          "line": 201,
+          "line": 174,
           "contextSha256": "2bafc1ba3cb19f05e52ba4323f57bbfaa5345e9e41d64f984936cc74d9fccbf3"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "check:SAFE-090 canonical Ops events UI boundary",
           "anchor": "assert(safe090BoundaryObserved && schemaMutationPerformed === false,",
-          "line": 205,
+          "line": 178,
           "contextSha256": "031daad7b0e9bd56ec6a7a6cafb89fdeb8e7f2eaff6270d1dfcec0b68cb84224"
         },
         "verifier": {
@@ -167547,39 +167547,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-090 owner-dispatch",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:198",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:199"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:171",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:172"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-090 dispatch-action",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:199",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:200"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:172",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:173"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-090 action-state",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:200",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:201"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:173",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:174"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-090 state-readback",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:201",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:205"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:174",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:178"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-ops-events-ui",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:205",
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:178",
           "target": "server.sh:2078"
         }
       ],
@@ -167648,53 +167648,53 @@
           "sha256": "4eaf218e59cb474533a17c77c9a37fb9f3e6935cb89384f85126a3962ec3d054"
         }
       },
-      "sourceFlowDigest": "545069627bf5e8905699dde2c7a90227c54e9082fca8fcd665e89ff4f88d7ad2",
+      "sourceFlowDigest": "1c992ba447283eda588e539902a6377f82ef2f475dc3a046adba104d98cab856",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "check:SAFE-090 canonical Ops events UI boundary",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "check:SAFE-090 canonical Ops events UI boundary",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "check:SAFE-090 canonical Ops events UI boundary",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "check:SAFE-090 canonical Ops events UI boundary",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "check:SAFE-090 canonical Ops events UI boundary",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -167706,7 +167706,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+        "verifierFileSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
         "dispatch": {
           "command": "verify-v300-ops-events-ui",
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
@@ -167748,35 +167748,35 @@
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "check:SAFE-091 canonical retention cleanup boundary",
           "anchor": "check(\"SAFE-091 canonical retention cleanup boundary\", () => {",
-          "line": 191,
+          "line": 149,
           "contextSha256": "ef2a46997e2a5bf4cf57d500a3ff4da5cd7b104087cc05a352c28f86e5873d86"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "check:SAFE-091 canonical retention cleanup boundary",
           "anchor": "const pinnedCleanupIncluded = files.source.includes(\"retain-pinned\");",
-          "line": 192,
+          "line": 150,
           "contextSha256": "fe30f32ada6402bd7fc612f2aadafbafb0e6b08291e9d648e5b649549a00be2e"
         },
         "action": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "check:SAFE-091 canonical retention cleanup boundary",
           "anchor": "const retentionCleanupInputsObserved = pinnedCleanupIncluded && schemaMutationPerformed === false;",
-          "line": 194,
+          "line": 152,
           "contextSha256": "22e6a33303e93c4ed3b331a8d55b384dda3be4c9cfef5eff3744f022f15e0c26"
         },
         "state": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "check:SAFE-091 canonical retention cleanup boundary",
           "anchor": "const safe091BoundaryObserved = retentionCleanupInputsObserved && files.source.includes(\"BuildEventRetentionCleanupPlan\");",
-          "line": 195,
+          "line": 153,
           "contextSha256": "a081a03bb685914f2a67f472524bfab579307e958000786405b74c8bbd1dfa4e"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "check:SAFE-091 canonical retention cleanup boundary",
           "anchor": "assert(safe091BoundaryObserved && schemaMutationPerformed === false,",
-          "line": 196,
+          "line": 154,
           "contextSha256": "8783469d5a9e32c81b0cbf0a7f1de35854d0ffb16baecfa2fd6ce1278a4091e1"
         },
         "verifier": {
@@ -167793,39 +167793,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-091 owner-dispatch",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:191",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:192"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:149",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-091 dispatch-action",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:192",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:194"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:150",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:152"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-091 action-state",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:194",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:195"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:152",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:153"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-091 state-readback",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:195",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:196"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:153",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:154"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-retention-pin-cleanup",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:196",
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:154",
           "target": "server.sh:2082"
         }
       ],
@@ -167881,53 +167881,53 @@
           "sha256": "9ad478454cf6ff06aad48d41cbdc8209680d1ee971aba42cdfcee4c24105220e"
         }
       },
-      "sourceFlowDigest": "1c9201574bf86c2530273dd0a8e80dbba6a5ffbb7f9de6f86c67d092c527506a",
+      "sourceFlowDigest": "f80a216aa7aebf59fbb86ac86cebd09495942b35deef2807237c2fb8938fecd2",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "check:SAFE-091 canonical retention cleanup boundary",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "check:SAFE-091 canonical retention cleanup boundary",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "check:SAFE-091 canonical retention cleanup boundary",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "check:SAFE-091 canonical retention cleanup boundary",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "check:SAFE-091 canonical retention cleanup boundary",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -167939,7 +167939,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+        "verifierFileSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
         "dispatch": {
           "command": "verify-v300-retention-pin-cleanup",
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
@@ -203977,35 +203977,35 @@
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-owner:OPS-052",
           "anchor": "check(\"SAFE-082 canonical evidence contract boundary\", () => {",
-          "line": 211,
+          "line": 158,
           "contextSha256": "80bb01af1843f99e4d8d6465bece36cfeafba9c5b3ba8f9fd08402bdc811c5a2"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-owner:OPS-052",
           "anchor": "const evidenceContractCommandDocumented = files.server.includes(\"verify-v300-event-evidence-contract\");",
-          "line": 212,
+          "line": 159,
           "contextSha256": "cf49a1a415b7d8844c91139c4602327c62cc5ada1da3b3a09cc746279db68a74"
         },
         "action": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-owner:OPS-052",
           "anchor": "const evidenceContractInputsObserved = evidenceContractCommandDocumented && rawMaterialStored === false;",
-          "line": 214,
+          "line": 161,
           "contextSha256": "ff9b7a29a657df2d01d79846a6ae8b69e8462188558f6066aa1a3bc400c39988"
         },
         "state": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-owner:OPS-052",
           "anchor": "const safe082BoundaryObserved = evidenceContractInputsObserved &&",
-          "line": 215,
+          "line": 162,
           "contextSha256": "560fa0ec41042788b1e4a03c4f93d1f7c3f265aee7c9bfdf8db5c6e6acacf008"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
           "symbol": "canonical-owner:OPS-052",
           "anchor": "assert(safe082BoundaryObserved && rawMaterialStored === false,",
-          "line": 217,
+          "line": 164,
           "contextSha256": "9ec44ff8a43cb8cfe67edc2e5a9bb5c78bacad7f01b62f8198ce9e5ec7e2d754"
         },
         "verifier": {
@@ -204022,39 +204022,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-052 owner-dispatch",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:211",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:212"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:158",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:159"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-052 dispatch-action",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:212",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:214"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:159",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:161"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-052 action-state",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:214",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:215"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:161",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:162"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-052 state-readback",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:215",
-          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:217"
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:162",
+          "target": "scripts/internal/verify_v300_event_evidence_contract.mjs:164"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-event-evidence-contract",
-          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:217",
+          "source": "scripts/internal/verify_v300_event_evidence_contract.mjs:164",
           "target": "server.sh:2054"
         }
       ],
@@ -204108,53 +204108,53 @@
           "sha256": "b52fd530684e83f3d8215ddcd43cab9a3f769f73508837d0f08674873d85ea80"
         }
       },
-      "sourceFlowDigest": "bd7e13062ba9a0fd8b995945459d32c14c896d52cdf8e1f72c8282b4e1fd052b",
+      "sourceFlowDigest": "b3a5076c909b5ff099e4fed0852f15c4dcca4b605a40a3d3dfa7c0ce9d7dfaac",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-owner:OPS-052",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-owner:OPS-052",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-owner:OPS-052",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-owner:OPS-052",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
             "symbol": "canonical-owner:OPS-052",
-            "trackedBlobSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+            "trackedBlobSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
             "enclosingBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
-            "enclosingBodyStartLine": 211,
-            "enclosingBodyEndLine": 219,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -204166,7 +204166,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a7777a8601d4dbb4f55c57cd75dbdd01ceacfdd8e52566912ac1cfa04c75b220",
+        "verifierFileSha256": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
         "dispatch": {
           "command": "verify-v300-event-evidence-contract",
           "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
@@ -204205,35 +204205,35 @@
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "canonical-owner:OPS-053",
           "anchor": "check(\"product FeatureSet projection owns the schema and privacy boundary\", () => {",
-          "line": 52,
+          "line": 51,
           "contextSha256": "e7dd2696f914dc8d594a0aca25f0f6619f81ae8c7a959f49a569e354a6dd8ff6"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "flow:OPS-053",
           "anchor": "const featureSetBlock = extractCppFunctionBlock(files.featureSource, \"std::string BuildVlmFeatureSetFixtureJson(\");",
-          "line": 53,
+          "line": 52,
           "contextSha256": "f2a1ad9fda79f753b9434fdc4bb4214c69b579d4978e90e68d79e9678493b451"
         },
         "action": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "flow:OPS-053",
           "anchor": "const opsEventsUiAdded = featureSetBlock.includes(\"/ops/events\");",
-          "line": 54,
+          "line": 53,
           "contextSha256": "e48fce6c8f963aedc48a926cd5fd69e3857d586988fb6b49da3dffb9dc502c31"
         },
         "state": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "flow:OPS-053",
           "anchor": "const runtimeProviderCallPerformed = exactBooleanFlagValue(featureSetBlock, \"runtimeProviderCallPerformed\");",
-          "line": 55,
+          "line": 54,
           "contextSha256": "2d9a102e325b049192576cc7e4ea410a881bddb26b479f077952375ec3235ede"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
           "symbol": "flow:OPS-053",
           "anchor": "assert(featureSetBlock.includes(\"media-server.event-feature-set.v1\") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, \"LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls\");",
-          "line": 56,
+          "line": 55,
           "contextSha256": "8d7a9bb84cf4dd60bf23071ffbc7fa1a23800de91ca4460a8eac6a819c2caaba"
         },
         "verifier": {
@@ -204250,39 +204250,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-053 owner-dispatch",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:52",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:53"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:51",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:52"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-053 dispatch-action",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:53",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:54"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:52",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:53"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "OPS-053 action-state",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:54",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:55"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:53",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:54"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-053 state-readback",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:55",
-          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:56"
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:54",
+          "target": "scripts/internal/verify_v300_feature_schema_privacy.mjs:55"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-schema-privacy",
-          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:56",
+          "source": "scripts/internal/verify_v300_feature_schema_privacy.mjs:55",
           "target": "server.sh:2058"
         }
       ],
@@ -204338,53 +204338,53 @@
           "sha256": "d8b933a082725c577d12ce4e45fac7455afc81fcdce6f4a80f0d3829ae8049b5"
         }
       },
-      "sourceFlowDigest": "1dd1152ce7d8d053410f753d191141715850c5d43a20e985fdb879096da94d31",
+      "sourceFlowDigest": "030ecb25767ead8770c322f6d7b3bcb9a1116a0732a5fc1bdd714e0780f08c38",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "canonical-owner:OPS-053",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 51,
+            "enclosingBodyEndLine": 66,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "flow:OPS-053",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 51,
+            "enclosingBodyEndLine": 66,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "flow:OPS-053",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 51,
+            "enclosingBodyEndLine": 66,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "flow:OPS-053",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 51,
+            "enclosingBodyEndLine": 66,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
             "symbol": "flow:OPS-053",
-            "trackedBlobSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+            "trackedBlobSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
             "enclosingBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 51,
+            "enclosingBodyEndLine": 66,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -204396,7 +204396,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "2c3ace896f9e61eda0f2111dda9d906c12d1780796f8ca0e8a7b384bcb80c516",
+        "verifierFileSha256": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
         "dispatch": {
           "command": "verify-v300-feature-schema-privacy",
           "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
@@ -204433,35 +204433,35 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
-          "line": 79,
+          "line": 78,
           "anchor": "check(\"analysis module exposes bounded background and lazy queue contract\", () => {",
           "symbol": "canonical-owner:OPS-054",
           "contextSha256": "21e6e9f4c5ca3eb855212394e9a226f9e695413d218d0b5b133f6ae86ba3c508"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
-          "line": 80,
+          "line": 79,
           "anchor": "const completeTaskBlock = extractCppFunctionBlock(files.source, \"VlmFeatureQueueOutcome CompleteTask(\");",
           "symbol": "flow:OPS-054",
           "contextSha256": "40fe40522b9b6cfa7f5e20eafb35567349a617143f6329f2945b1965eeffc014"
         },
         "action": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
-          "line": 82,
+          "line": 81,
           "anchor": "const opsEventsUiAdded = completeTaskBlock.includes(\"/ops/events\");",
           "symbol": "flow:OPS-054",
           "contextSha256": "6883961ff2a609473da0f107b76496019ee64bb24733f126ee524561276060de"
         },
         "state": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
-          "line": 83,
+          "line": 82,
           "anchor": "const providerCallPerformed = makeOutcomeBlock.includes(\"providerCallPerformed\");",
           "symbol": "flow:OPS-054",
           "contextSha256": "965bbf909f6bbdc4d5330b41d783d7d03eba2f977e01e7f5dd98d05af484b566"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
-          "line": 84,
+          "line": 83,
           "anchor": "assert(completeTaskBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && providerCallPerformed === false, \"LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls\");",
           "symbol": "flow:OPS-054",
           "contextSha256": "830b48807d7b640483991a9cca4e2a6646a25ec77a4a123868fa49f26bad6359"
@@ -204480,39 +204480,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-054 owner-dispatch",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:79",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:80"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:78",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:79"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "co-asserted-boundary",
           "witness": "OPS-054 dispatch-action",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:80",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:82"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:79",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:81"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "OPS-054 action-state",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:82",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:83"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:81",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:82"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-054 state-readback",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:83",
-          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:84"
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:82",
+          "target": "scripts/internal/verify_v300_vlm_feature_queue.mjs:83"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-vlm-feature-queue",
-          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:84",
+          "source": "scripts/internal/verify_v300_vlm_feature_queue.mjs:83",
           "target": "server.sh:2062"
         }
       ],
@@ -204568,53 +204568,53 @@
           "sha256": "ced6d7ddc0c159dc42815fe95c73372101827887c9d3b0c6fd13b857f18c0548"
         }
       },
-      "sourceFlowDigest": "ee5cc49a565c46729de7ae90e70cfb3874be164160b14394c84d8156e411f853",
+      "sourceFlowDigest": "804d72c9c54eea4fef6b90998a1ad40fc3dfbca6e65b1569c9beee7a8dbe245f",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "canonical-owner:OPS-054",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 116,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 115,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "flow:OPS-054",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 116,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 115,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "flow:OPS-054",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 116,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 115,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "flow:OPS-054",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 116,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 115,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
             "symbol": "flow:OPS-054",
-            "trackedBlobSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+            "trackedBlobSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
             "enclosingBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
-            "enclosingBodyStartLine": 79,
-            "enclosingBodyEndLine": 116,
+            "enclosingBodyStartLine": 78,
+            "enclosingBodyEndLine": 115,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -204626,7 +204626,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "74ca480909c3cf82b111f60f35c9781a9c245489532e0be6c7afaab2aaf6d176",
+        "verifierFileSha256": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
         "dispatch": {
           "command": "verify-v300-vlm-feature-queue",
           "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
@@ -204665,35 +204665,35 @@
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "owner:OPS-055",
           "anchor": "check(\"analysis module exposes feature revision store and raw-material guard\", () => {",
-          "line": 89,
+          "line": 88,
           "contextSha256": "a82f5cc4645ca96a32ca4bfb1d2240fe71a3dc2e91284433ca9cfdbdd773f367"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "flow:OPS-055",
           "anchor": "const storeRevisionBlock = extractCppFunctionBlock(files.source, \"VlmFeatureRetentionOutcome VlmFeatureRetentionStore::StoreRevision(\");",
-          "line": 90,
+          "line": 89,
           "contextSha256": "8d4f95a4e031243c7d74cac3ecdbf7386c491eca4c08ec52886396895ea8323b"
         },
         "action": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "flow:OPS-055",
           "anchor": "const opsEventsUiAdded = storeRevisionBlock.includes(\"/ops/events\");",
-          "line": 91,
+          "line": 90,
           "contextSha256": "5c131709ea12443a03e617f3f5d6f7f4dd036aa03fedf4c88b493fc93ae79028"
         },
         "state": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "flow:OPS-055",
           "anchor": "const rawMaterialStored = !storeRevisionBlock.includes(\"HasRawRetentionMaterial\");",
-          "line": 92,
+          "line": 91,
           "contextSha256": "c633d3d0c79c3ea1051e6f2658c76ca65d1f5081ae209f5a6cdfd2a41b06a68f"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
           "symbol": "flow:OPS-055",
           "anchor": "assert(storeRevisionBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && rawMaterialStored === false, \"LAB-085 feature retention must reject raw material without adding /ops/events UI\");",
-          "line": 93,
+          "line": 92,
           "contextSha256": "36ecd1853fda8216f7be663fc2b671955edb3e1c1063f8919adc6e8e7970dce5"
         },
         "verifier": {
@@ -204710,39 +204710,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-055 owner-dispatch",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:89",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:90"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:88",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:89"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-055 dispatch-action",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:90",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:91"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:89",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:90"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "OPS-055 action-state",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:91",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:92"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:90",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:91"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-055 state-readback",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:92",
-          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:93"
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:91",
+          "target": "scripts/internal/verify_v300_feature_only_retention.mjs:92"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-only-retention",
-          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:93",
+          "source": "scripts/internal/verify_v300_feature_only_retention.mjs:92",
           "target": "server.sh:2066"
         }
       ],
@@ -204796,53 +204796,53 @@
           "sha256": "5236141fd8eaede5fe62d5efdad7c31478ec411ece2d074355d7b6e3fb086819"
         }
       },
-      "sourceFlowDigest": "9707cc538ab10057631c237b9cf4f993911a10b615711639725e39e66c6442d3",
+      "sourceFlowDigest": "20bd69aaddf884c89e686349a579f459fc50cfd7e3736369d29538aac8f14ba8",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "owner:OPS-055",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
-            "enclosingBodyStartLine": 89,
-            "enclosingBodyEndLine": 123,
+            "enclosingBodyStartLine": 88,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "flow:OPS-055",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
-            "enclosingBodyStartLine": 89,
-            "enclosingBodyEndLine": 123,
+            "enclosingBodyStartLine": 88,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "flow:OPS-055",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
-            "enclosingBodyStartLine": 89,
-            "enclosingBodyEndLine": 123,
+            "enclosingBodyStartLine": 88,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "flow:OPS-055",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
-            "enclosingBodyStartLine": 89,
-            "enclosingBodyEndLine": 123,
+            "enclosingBodyStartLine": 88,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
             "symbol": "flow:OPS-055",
-            "trackedBlobSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+            "trackedBlobSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
             "enclosingBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
-            "enclosingBodyStartLine": 89,
-            "enclosingBodyEndLine": 123,
+            "enclosingBodyStartLine": 88,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -204854,7 +204854,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ccd3851f7a4433bd4ae5465a4a281acc49e4f0f4495338d1b36d3c1a8f8f6ae3",
+        "verifierFileSha256": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
         "dispatch": {
           "command": "verify-v300-feature-only-retention",
           "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
@@ -204893,35 +204893,35 @@
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "canonical-owner:OPS-056",
           "anchor": "check(\"analysis module exposes constrained DSL conversion and text/tags/filter search\", () => {",
-          "line": 80,
+          "line": 79,
           "contextSha256": "a320460faa157ec629002f23632f22f5e142ba30368cf1aa862a81453c6893ba"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "flow:OPS-056",
           "anchor": "const queryConvertBlock = extractCppFunctionBlock(files.source, \"EventSearchDsl ConvertEventSearchQueryToDsl(\");",
-          "line": 81,
+          "line": 80,
           "contextSha256": "a8fef04a6142eaa1f39559c37f8ab8ca523f7a6fb9cf20f82104d4a1f75f0f99"
         },
         "action": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "flow:OPS-056",
           "anchor": "const opsEventsUiAdded = queryConvertBlock.includes(\"/ops/events\");",
-          "line": 82,
+          "line": 81,
           "contextSha256": "428e71a6b1ff8e7d5887b49861f8de292b8dd8faf60d0a2cafea1f49be49c469"
         },
         "state": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "flow:OPS-056",
           "anchor": "assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\");",
-          "line": 83,
+          "line": 82,
           "contextSha256": "619dfa0bf82aeb358a581635af4aa1a37ed68555e7a970967a3bac3ff74f53da"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
           "symbol": "flow:OPS-056",
           "anchor": "assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\");",
-          "line": 83,
+          "line": 82,
           "contextSha256": "619dfa0bf82aeb358a581635af4aa1a37ed68555e7a970967a3bac3ff74f53da"
         },
         "verifier": {
@@ -204938,39 +204938,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-056 owner-dispatch",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:80",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:81"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:79",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:80"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-056 dispatch-action",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:81",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:80",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:81"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-056 action-state",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:83"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:81",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-056 state-readback",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:83",
-          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:83"
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82",
+          "target": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-search-dsl-query-convert",
-          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:83",
+          "source": "scripts/internal/verify_v300_search_dsl_query_convert.mjs:82",
           "target": "server.sh:2070"
         }
       ],
@@ -205024,53 +205024,53 @@
           "sha256": "c11b4e9c281d21a681ebe0f77d8645b4ecceec31ef16e12f6d692049817b2c7d"
         }
       },
-      "sourceFlowDigest": "a518540619706d32e0ccf350ea5d5a2059dfa7d7a0cab2b0a94f3fb06e730b12",
+      "sourceFlowDigest": "d5c695c1b940e44161692b98363f03710756459d0b6470d8f7c40de955bef085",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "canonical-owner:OPS-056",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 107,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "flow:OPS-056",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 107,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "flow:OPS-056",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 107,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "flow:OPS-056",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 107,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
             "symbol": "flow:OPS-056",
-            "trackedBlobSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+            "trackedBlobSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
             "enclosingBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 108,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 107,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -205082,7 +205082,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "278f745f31ef6dbd0988b13876dfc9f211f3839e5b9d423d1edf7140c781ade5",
+        "verifierFileSha256": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
         "dispatch": {
           "command": "verify-v300-search-dsl-query-convert",
           "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
@@ -205121,35 +205121,35 @@
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
           "symbol": "canonical-owner:OPS-057",
           "anchor": "check(\"analysis module exposes local index projection, report, and stale guard\", () => {",
-          "line": 80,
+          "line": 79,
           "contextSha256": "2a9d3223a510fef996631e2e5e763794d0947610d1b711371dcdc3047835fc6a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
           "symbol": "flow:OPS-057",
           "anchor": "const rebuildBlock = extractCppFunctionBlock(files.source, \"EventSearchIndexReport EventFeatureSearchIndex::Rebuild(\");",
-          "line": 81,
+          "line": 80,
           "contextSha256": "5651b9315006dab722d82e1897a3423ebdf31237c0b3aa92b5dc287c9789ead9"
         },
         "action": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
           "symbol": "flow:OPS-057",
           "anchor": "const opsEventsUiAdded = rebuildBlock.includes(\"/ops/events\");",
-          "line": 82,
+          "line": 81,
           "contextSha256": "dabce596d716de43cc52492c9fcc56bf9e82731117f0612fc0cd8ab26ec238e5"
         },
         "state": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
           "symbol": "flow:OPS-057",
           "anchor": "assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\");",
-          "line": 83,
+          "line": 82,
           "contextSha256": "8f8542d0a0e7ad9deee7c05531b754169e0b61b0c9d0094081184e64456f13d8"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
           "symbol": "flow:OPS-057",
           "anchor": "assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\");",
-          "line": 83,
+          "line": 82,
           "contextSha256": "8f8542d0a0e7ad9deee7c05531b754169e0b61b0c9d0094081184e64456f13d8"
         },
         "verifier": {
@@ -205166,39 +205166,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-057 owner-dispatch",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:80",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:81"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:79",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:80"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-057 dispatch-action",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:81",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:82"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:80",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:81"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-057 action-state",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:82",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:83"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:81",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:82"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-057 state-readback",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:83",
-          "target": "scripts/internal/verify_v300_feature_search_index.mjs:83"
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:82",
+          "target": "scripts/internal/verify_v300_feature_search_index.mjs:82"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-feature-search-index",
-          "source": "scripts/internal/verify_v300_feature_search_index.mjs:83",
+          "source": "scripts/internal/verify_v300_feature_search_index.mjs:82",
           "target": "server.sh:2074"
         }
       ],
@@ -205252,53 +205252,53 @@
           "sha256": "5d99858e51c3fb29fa1a981b40c6383d8c350de8635fe3152d65fe94a5e28c0d"
         }
       },
-      "sourceFlowDigest": "675f9e806e0f1a51560d86aa1d344c04a24edea644615d52f3d28b83e0513d3f",
+      "sourceFlowDigest": "bf0e0318f75738e5e0343bd3c2d322995a7ed2e075ebfaaa0c66c4098ee9b040",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "canonical-owner:OPS-057",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "flow:OPS-057",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "flow:OPS-057",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "flow:OPS-057",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_feature_search_index.mjs",
             "symbol": "flow:OPS-057",
-            "trackedBlobSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+            "trackedBlobSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
             "enclosingBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
-            "enclosingBodyStartLine": 80,
-            "enclosingBodyEndLine": 109,
+            "enclosingBodyStartLine": 79,
+            "enclosingBodyEndLine": 108,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -205310,7 +205310,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "236712bde94933b715dddbfea5eb9b17f5fd47c2d427223ed51655b893b95708",
+        "verifierFileSha256": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
         "dispatch": {
           "command": "verify-v300-feature-search-index",
           "file": "scripts/internal/verify_v300_feature_search_index.mjs",
@@ -205349,35 +205349,35 @@
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "canonical-owner:OPS-058",
           "anchor": "check(\"SAFE-090 canonical Ops events UI boundary\", () => {",
-          "line": 198,
+          "line": 171,
           "contextSha256": "9e0bd11807eb80c693b56d41f69b50cb88cfa30689df926e2090bc7fb8ed247f"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "flow:OPS-058",
           "anchor": "const opsEventsViewBlock = extractCppFunctionBlock(files.server, \"std::string OpsV300EventEvidenceSearchUiJson(\");",
-          "line": 199,
+          "line": 172,
           "contextSha256": "5b6c79eda2c87813ec4ab24d64f5e4db238e9b38f1989d38747d09eda5bf9a99"
         },
         "action": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "flow:OPS-058",
           "anchor": "const schemaMutationPerformed = opsEventsViewBlock.includes(\"\\\\\\\"eventPostPayloadChanged\\\\\\\":true\");",
-          "line": 200,
+          "line": 173,
           "contextSha256": "885a24bd00fd0cec0d654e122fff7f907e8b3dfa8fb9b70be3cb6ebc9bb19826"
         },
         "state": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "flow:OPS-058:asserted-state",
           "anchor": "assert(safe090BoundaryObserved && schemaMutationPerformed === false,",
-          "line": 205,
+          "line": 178,
           "contextSha256": "031daad7b0e9bd56ec6a7a6cafb89fdeb8e7f2eaff6270d1dfcec0b68cb84224"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
           "symbol": "flow:OPS-058",
           "anchor": "assert(safe090BoundaryObserved && schemaMutationPerformed === false,",
-          "line": 205,
+          "line": 178,
           "contextSha256": "031daad7b0e9bd56ec6a7a6cafb89fdeb8e7f2eaff6270d1dfcec0b68cb84224"
         },
         "verifier": {
@@ -205394,39 +205394,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-058 owner-dispatch",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:198",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:199"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:171",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:172"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-058 dispatch-action",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:199",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:200"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:172",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:173"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-058 action-state",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:200",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:205"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:173",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:178"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-058 state-readback",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:205",
-          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:205"
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:178",
+          "target": "scripts/internal/verify_v300_ops_events_ui.mjs:178"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-ops-events-ui",
-          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:205",
+          "source": "scripts/internal/verify_v300_ops_events_ui.mjs:178",
           "target": "server.sh:2078"
         }
       ],
@@ -205486,53 +205486,53 @@
           "sha256": "126d5a0b794a37cd544f16e171c39fbe1f04a0d42d2797a67743aacaad16a6c6"
         }
       },
-      "sourceFlowDigest": "74628cfd5ea50b3c051bab7a00d544a46737545675806a7290dcffa17e2b15f4",
+      "sourceFlowDigest": "3a32fe36de5118ac232aef0120a9f49910aab37b5e78a3c0dc86a352ed0129c1",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "canonical-owner:OPS-058",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "flow:OPS-058",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "flow:OPS-058",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "flow:OPS-058:asserted-state",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
             "symbol": "flow:OPS-058",
-            "trackedBlobSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+            "trackedBlobSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
             "enclosingBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
-            "enclosingBodyStartLine": 198,
-            "enclosingBodyEndLine": 207,
+            "enclosingBodyStartLine": 171,
+            "enclosingBodyEndLine": 180,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -205544,7 +205544,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "d8765a2248647ee9f1d559f6628e9141b1f306f25fc415c171406d6805ddaaa5",
+        "verifierFileSha256": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
         "dispatch": {
           "command": "verify-v300-ops-events-ui",
           "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
@@ -205586,35 +205586,35 @@
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "canonical-owner:OPS-059",
           "anchor": "check(\"SAFE-091 canonical retention cleanup boundary\", () => {",
-          "line": 191,
+          "line": 149,
           "contextSha256": "ef2a46997e2a5bf4cf57d500a3ff4da5cd7b104087cc05a352c28f86e5873d86"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "canonical-owner:OPS-059",
           "anchor": "const pinnedCleanupIncluded = files.source.includes(\"retain-pinned\");",
-          "line": 192,
+          "line": 150,
           "contextSha256": "fe30f32ada6402bd7fc612f2aadafbafb0e6b08291e9d648e5b649549a00be2e"
         },
         "action": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "canonical-owner:OPS-059",
           "anchor": "const retentionCleanupInputsObserved = pinnedCleanupIncluded && schemaMutationPerformed === false;",
-          "line": 194,
+          "line": 152,
           "contextSha256": "22e6a33303e93c4ed3b331a8d55b384dda3be4c9cfef5eff3744f022f15e0c26"
         },
         "state": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "canonical-owner:OPS-059",
           "anchor": "const safe091BoundaryObserved = retentionCleanupInputsObserved && files.source.includes(\"BuildEventRetentionCleanupPlan\");",
-          "line": 195,
+          "line": 153,
           "contextSha256": "a081a03bb685914f2a67f472524bfab579307e958000786405b74c8bbd1dfa4e"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
           "symbol": "canonical-owner:OPS-059",
           "anchor": "assert(safe091BoundaryObserved && schemaMutationPerformed === false,",
-          "line": 196,
+          "line": 154,
           "contextSha256": "8783469d5a9e32c81b0cbf0a7f1de35854d0ffb16baecfa2fd6ce1278a4091e1"
         },
         "verifier": {
@@ -205631,39 +205631,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-059 owner-dispatch",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:191",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:192"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:149",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-059 dispatch-action",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:192",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:194"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:150",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:152"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-059 action-state",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:194",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:195"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:152",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:153"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-059 state-readback",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:195",
-          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:196"
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:153",
+          "target": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:154"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-retention-pin-cleanup",
-          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:196",
+          "source": "scripts/internal/verify_v300_retention_pin_cleanup.mjs:154",
           "target": "server.sh:2082"
         }
       ],
@@ -205713,53 +205713,53 @@
           "sha256": "a5e5227bbb22bf580bddb66268030dbf715212a3b3e2e6c3e117cb5369d3c7d3"
         }
       },
-      "sourceFlowDigest": "a317a8a8442e82f0d74072646cc733f4c3145085af60b1185d8710bc453b9c19",
+      "sourceFlowDigest": "33f6e09829dc4779f14043b1b9f3ad2f7f553adf2c249df7fb0a3c79729e20fc",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "canonical-owner:OPS-059",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "canonical-owner:OPS-059",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "canonical-owner:OPS-059",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "canonical-owner:OPS-059",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
             "symbol": "canonical-owner:OPS-059",
-            "trackedBlobSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+            "trackedBlobSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
             "enclosingBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
-            "enclosingBodyStartLine": 191,
-            "enclosingBodyEndLine": 198,
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 156,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -205771,7 +205771,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "beedea1d476623242b0c399e955f97bd4b5cbd36d8202c02e38a7b4f21bf3c6a",
+        "verifierFileSha256": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
         "dispatch": {
           "command": "verify-v300-retention-pin-cleanup",
           "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
@@ -235279,5 +235279,5 @@
       }
     }
   ],
-  "candidateDigest": "df431a22e386a67c87870bde268bef4ac4ef7aac74d4a7b7b0abbb5494274d65"
+  "candidateDigest": "92574f1a7d97ae0dc7ee41b4998e0a8bf2d6a711beb6a311344d4a46d00ebf9c"
 }

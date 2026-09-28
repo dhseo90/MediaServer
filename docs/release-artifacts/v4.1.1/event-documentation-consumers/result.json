@@ -1,0 +1,1034 @@
+{
+  "schema": "media-server.documentation-tool-result.v1",
+  "scope": "v4.1.1/04 일부: v300 이벤트·개인정보·큐·검색·보존·Ops 문서 소비자 8개. 제품 동작·전체 문서 정리 완료 아님",
+  "baseCommit": "4195f89388d7867cefbdefd73b7d719c02ee507b",
+  "branch": "v4.1.1",
+  "sourceVersion": "4.1.0",
+  "sourceFiles": {
+    "docs/event-feature-schema-privacy.md": "5906bba7e2cda26f4b6319f03b46645ab987c2f36e0122b0c74af4ae4cf6a50b",
+    "docs/stream-verification.md": "062b857922bb5ac7cbefdc6592a0f0df9eb75fa2619b1246648ebefc0fed86aa",
+    "docs/v300-feature-only-retention.md": "52b4c5084cd9a9aee8b3f4fb2891e6183fbb27981d721d79e1f07289fe12e8f0",
+    "docs/v300-feature-search-index.md": "23548ff854e95005c1b2854f19ed8d5a5470e70c75222e83c07869a16bedb772",
+    "docs/v300-retention-pin-cleanup.md": "163b0a89944dd921066fedcf497847dd3ebf77e781a5df1d845073fbb9628bc1",
+    "docs/v300-search-dsl-query-convert.md": "c2d229d3f70980849a4d3808d9240e4a475635803693874dfd70c49e8376deee",
+    "docs/v300-vlm-feature-queue.md": "11f1580aa5597d0cc757aa8f46335e7873e59f532b7c39fcf1fe0c3ff615c255",
+    "scripts/internal/documentation_contract_lib.mjs": "2f4de6a1dcdda30f8f429e5f41ace7fe94afb2eddc2d16cecd7c06a5b48086b4",
+    "scripts/internal/v300_documentation_consumers.test.mjs": "4f5ce7f121d1963fa87c7150fdb7c3b785414b45c56d32d5b0f5f2619f13ef78",
+    "scripts/internal/verify_v300_event_evidence_contract.mjs": "9d3b6c41347a55332d579a7f33477b26e6a0efafb54faf99390068d43766d195",
+    "scripts/internal/verify_v300_feature_only_retention.mjs": "09cb8def59db2f35e54ada33d1c3a1e305a10404c3e1626f2f1c773c6023582e",
+    "scripts/internal/verify_v300_feature_schema_privacy.mjs": "1d65f40da2b73d2d3e2a65c8c8cd6530d1eb17781d558818836028fbb712b985",
+    "scripts/internal/verify_v300_feature_search_index.mjs": "0380dfc82f1c68f2839f4ed23658a425e842edc6c85339d1e9834928a96f378a",
+    "scripts/internal/verify_v300_ops_events_ui.mjs": "b6098f7fc8381a793ceee79fce49491991dec2642a09a89e3eaf69e29d95365b",
+    "scripts/internal/verify_v300_retention_pin_cleanup.mjs": "ed0d798bd33354054ecd740c5ba7b2d45c389a6373a9069ac7430471e3769005",
+    "scripts/internal/verify_v300_search_dsl_query_convert.mjs": "489c91d9a6dddb5db35a889538752293cd046765d6e8358544fe3bddec6cad07",
+    "scripts/internal/verify_v300_vlm_feature_queue.mjs": "10590ef5e1f721a016044e524a3ec3c9cb0ce3acd19e52ad2c9a490adc8bde60",
+    "test/fixtures/project_feature_implementation_evidence.json": "eaa8d05f627a57f3e462c096e5172ae339590d47b27dfcb7b4e1a04482a79ffd",
+    "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "5044df5dce50893178c0da92d6bb4d926be9f852bee15f55ca3cf84c61ce8187",
+    "test/fixtures/v390_review4_feature_semantic_source_audit.json": "2a383710b75a6e2918bd09a9eab9047ad5405ac62f9019a5ae0451a06f505f9b",
+    "test/fixtures/v390_ui_native_exact_cases.json": "8c1efd84eef14a0b08914fbe5f3cf2057bd55d6798058310c28decde8548bd71"
+  },
+  "changes": [
+    "과거 완료 표·옛 제목·중앙 실행 원장·직접 README 색인 강제를 제거하고 현행 계약 식별자/기능 ID/명령 dispatch 검사로 교체",
+    "기존 검사 42개 본문 바이트 보존, 기존 승인 매핑과 모순되던 검증 연결 2개 정정. 기능 ID·제품 코드·실행 CLI 유지",
+    "명령이 표에 없는 UI 정의만 exact manifest 연결 사용. 명시된 잘못된 명령은 fallback으로 덮어쓰지 않음",
+    "연관 계약 문서 6개의 검증 범위 설명을 실제 정적 검사에 맞춤"
+  ],
+  "comparison": {
+    "baseCommit": "4195f89388d7867cefbdefd73b7d719c02ee507b",
+    "candidateDigest": "92574f1a7d97ae0dc7ee41b4998e0a8bf2d6a711beb6a311344d4a46d00ebf9c",
+    "changed": [
+      {
+        "id": "UI-059",
+        "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
+        "featureContractSha256": "bd2b909ec89f3d13623271c5462a60ef37e4ac230ddee8e86838be700f004865",
+        "sourceFlowDigest": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480",
+        "readback": "assertIncludes(extractNamedFunctionBlock(files.pageScript, \"renderV300EventEvidenceSearchUi\"), \"eventEvidenceSearch\", \"UI-059 block-scoped canonical product state\");",
+        "readbackBodySha256": "527f24f84f8008d2bc3c90bf55d07815b61f909e83f0e9e69ebbe092361d7e37",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "EVT-060",
+        "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
+        "featureContractSha256": "a7eb2123c251ac1c0745452fae1ccfcf72880207713b7f2df99b794f20317ddb",
+        "sourceFlowDigest": "8ed276e354e3ee1107b6da47f0c496a7296a47149c9c53d9c3b757e853e658f7",
+        "readback": "assert(evt060FrameBundleBlock.includes(\"FrameBundlePhase(index, event_frame_index)\"), \"EVT-060 block-scoped canonical frame bundle flow\");",
+        "readbackBodySha256": "141615ad2a8a3e07068f5d98252a42d132817f1b99bbfb53e9fe62654c8131c9",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "LAB-083",
+        "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
+        "featureContractSha256": "6cb02c93c42a78ca957dd6210f03122dbc9e4cf1b11e7cf26f862c2df728bf4e",
+        "sourceFlowDigest": "cee9b0ae071688b966990fafdae1a086c52fb7c5879a564e8b81ba4c1c3f7f0c",
+        "readback": "assert(featureSetBlock.includes(\"media-server.event-feature-set.v1\") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, \"LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls\");",
+        "readbackBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "LAB-084",
+        "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
+        "featureContractSha256": "6403360671d20bc0495ed0943ab8f1be28fa067b07d167c40d90ea7034d63eba",
+        "sourceFlowDigest": "28595c1943bac84194eef5949cff6bf7d2d1bb147b315cdbbbb5935763fadbc7",
+        "readback": "assert(completeTaskBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && providerCallPerformed === false, \"LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls\");",
+        "readbackBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "LAB-085",
+        "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
+        "featureContractSha256": "d28ba3d1f429832750540d30c9e784574de1b6636d79b4f8f9f1a8fe300aa133",
+        "sourceFlowDigest": "6a3c6b064164e45dd3334d4aa02a9845ee865737c518b9aea9a9de8862bd1b36",
+        "readback": "assert(storeRevisionBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && rawMaterialStored === false, \"LAB-085 feature retention must reject raw material without adding /ops/events UI\");",
+        "readbackBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "LAB-086",
+        "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
+        "featureContractSha256": "57a198534324cb24db61250c6b6ac179116967775c4c16fd3c88cb9489783e74",
+        "sourceFlowDigest": "51d2b5f089d4aa45c6b8ac325016f915523fcf51af5999d57169244ff84b102c",
+        "readback": "assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\");",
+        "readbackBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "LAB-087",
+        "file": "scripts/internal/verify_v300_feature_search_index.mjs",
+        "featureContractSha256": "aa4dd8baff56ea75f1916e781a5fc7d425ae5cda5b50dfb79003eafd9d0f0e4d",
+        "sourceFlowDigest": "f3cbd7ec62d51fa369e792197b32a80ac0e380be6bc4b4bd6e7cf4adc1be4dca",
+        "readback": "assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\");",
+        "readbackBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "LAB-088",
+        "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
+        "featureContractSha256": "ae86227327d365c93f50f98c56603e836662441c19af5b521caf169c62ffc25e",
+        "sourceFlowDigest": "382d0a376936c85d75ac7c4e443788bbac6ab9b678ee187f0d5dd4a7a523a242",
+        "readback": "assert(cleanupPlanBlock.includes(\"actions.push_back\"), \"LAB-088 retention cleanup actions.push_back block readback mismatch\");",
+        "readbackBodySha256": "29ea2e0aa9a7ccd3cae2bf084d942f7aecb8c0973b5d865229f288160ad50fa8",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-082",
+        "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
+        "featureContractSha256": "96af97b747c7d8625844ef8dbbdaa8d3e192b4ad9ac8aaf4f1ad3995fd742615",
+        "sourceFlowDigest": "f3b0dfa2754cd90bbf6fc8df771c3b1b74bbe5b7c06808b2963f55eb2a24896a",
+        "readback": "assert(safe082BoundaryObserved && rawMaterialStored === false,",
+        "readbackBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-085",
+        "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
+        "featureContractSha256": "ec40f763bdf27a5bd6de9e560f01c231f2dcb36e653268f2e884b334d2260feb",
+        "sourceFlowDigest": "532a1bfe50b19a81330d8bf6fb8fba57a37e5ec2423f2dfa55a4f53dee8ad915",
+        "readback": "assert(safe085BoundaryObserved && schemaMutationPerformed === false,",
+        "readbackBodySha256": "77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-086",
+        "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
+        "featureContractSha256": "68bbe6be9e5fc82880ac9251ef9625258f66232dc692239f97818e97a2f3cd63",
+        "sourceFlowDigest": "83ddc35b675a6157c11e5c7e63154c4b44aa9ce80e68eea753d4bf536a3873cb",
+        "readback": "assert(safe086BoundaryObserved && rawMaterialStored === false,",
+        "readbackBodySha256": "3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-087",
+        "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
+        "featureContractSha256": "3f0b6d961bac96897567014e1f3011b73ee2baa615c334d94f294c3db1c89d69",
+        "sourceFlowDigest": "e71a6a796e73c2f0a87ef77b05c742bab4388f07daa06b36c803003630e99fb6",
+        "readback": "assert(safe087BoundaryObserved && rawMaterialStored === false && sourceUrlStored === false && credentialStored === false && schemaMutationPerformed === false,",
+        "readbackBodySha256": "d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-088",
+        "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
+        "featureContractSha256": "401e5798fb36e7dfffb78cd95ead6df0fb7cffb243f892878a749ea7e88ca316",
+        "sourceFlowDigest": "fcbfacda69d204a232b4f8bda5e44bb10ba2246ca6f18d04db8531456aac1f39",
+        "readback": "assert(safe088BoundaryObserved && rawMaterialStored === false && providerCallPerformed === false && schemaMutationPerformed === false,",
+        "readbackBodySha256": "11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-089",
+        "file": "scripts/internal/verify_v300_feature_search_index.mjs",
+        "featureContractSha256": "b364e95317766df5e5be441fc8032c686e943679688cbb61668f88cb9375134f",
+        "sourceFlowDigest": "eeb0eb726b5a13abe9f89e4a79ef2da6872c38ab039047798c1322a8de4274c7",
+        "readback": "assert(safe089BoundaryObserved && providerCallPerformed === false && schemaMutationPerformed === false,",
+        "readbackBodySha256": "9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-090",
+        "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
+        "featureContractSha256": "1ef0833991a7c153fedfef9dc6f995e759606a23d6b1f4fe239688830dff1c65",
+        "sourceFlowDigest": "1c992ba447283eda588e539902a6377f82ef2f475dc3a046adba104d98cab856",
+        "readback": "assert(safe090BoundaryObserved && schemaMutationPerformed === false,",
+        "readbackBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "SAFE-091",
+        "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
+        "featureContractSha256": "212c909ac134c5ceadf7f7530a133f3a265b1caaa6d768b7904fb3fad4a16928",
+        "sourceFlowDigest": "f80a216aa7aebf59fbb86ac86cebd09495942b35deef2807237c2fb8938fecd2",
+        "readback": "assert(safe091BoundaryObserved && schemaMutationPerformed === false,",
+        "readbackBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-052",
+        "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
+        "featureContractSha256": "0752732c02f7b2326d020f2c294fe959439c17779d290bb55e71d19a21606000",
+        "sourceFlowDigest": "b3a5076c909b5ff099e4fed0852f15c4dcca4b605a40a3d3dfa7c0ce9d7dfaac",
+        "readback": "assert(safe082BoundaryObserved && rawMaterialStored === false,",
+        "readbackBodySha256": "5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-053",
+        "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
+        "featureContractSha256": "2d1c9b551bf287af11d88f24b1864e4402eb5ca32ec1d6b224ea5477500def75",
+        "sourceFlowDigest": "030ecb25767ead8770c322f6d7b3bcb9a1116a0732a5fc1bdd714e0780f08c38",
+        "readback": "assert(featureSetBlock.includes(\"media-server.event-feature-set.v1\") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, \"LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls\");",
+        "readbackBodySha256": "7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-054",
+        "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
+        "featureContractSha256": "b85805d2e3f3e3fa1bbaa5114d5f039a5f693b6f4444300dc15f9df4b60f2c1e",
+        "sourceFlowDigest": "804d72c9c54eea4fef6b90998a1ad40fc3dfbca6e65b1569c9beee7a8dbe245f",
+        "readback": "assert(completeTaskBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && providerCallPerformed === false, \"LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls\");",
+        "readbackBodySha256": "90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-055",
+        "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
+        "featureContractSha256": "eead316f3bcc9acb29af590ffaf78c457ed8dd047e5d3f653c20258389a77acd",
+        "sourceFlowDigest": "20bd69aaddf884c89e686349a579f459fc50cfd7e3736369d29538aac8f14ba8",
+        "readback": "assert(storeRevisionBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && rawMaterialStored === false, \"LAB-085 feature retention must reject raw material without adding /ops/events UI\");",
+        "readbackBodySha256": "222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-056",
+        "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
+        "featureContractSha256": "4d760d74b476f60aeafc05c4da86413a9b2b84113617090fd79afd2f911c2f55",
+        "sourceFlowDigest": "d5c695c1b940e44161692b98363f03710756459d0b6470d8f7c40de955bef085",
+        "readback": "assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\");",
+        "readbackBodySha256": "0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-057",
+        "file": "scripts/internal/verify_v300_feature_search_index.mjs",
+        "featureContractSha256": "0a28c53d1c10993b50d72791bcc0a7d5fc19737780c4a37c6656f441351e28a3",
+        "sourceFlowDigest": "bf0e0318f75738e5e0343bd3c2d322995a7ed2e075ebfaaa0c66c4098ee9b040",
+        "readback": "assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\");",
+        "readbackBodySha256": "58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-058",
+        "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
+        "featureContractSha256": "77c2381d768f030e4463b03e5b0956df448c9be566d8563d9d1d3b81cc9153d0",
+        "sourceFlowDigest": "3a32fe36de5118ac232aef0120a9f49910aab37b5e78a3c0dc86a352ed0129c1",
+        "readback": "assert(safe090BoundaryObserved && schemaMutationPerformed === false,",
+        "readbackBodySha256": "86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290",
+        "allRoleBodiesByteIdentical": true
+      },
+      {
+        "id": "OPS-059",
+        "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
+        "featureContractSha256": "10353e5de70573ebb734d29f3be6f52798a8037f0a0c0cac2aafc7ff85a64049",
+        "sourceFlowDigest": "33f6e09829dc4779f14043b1b9f3ad2f7f553adf2c249df7fb0a3c79729e20fc",
+        "readback": "assert(safe091BoundaryObserved && schemaMutationPerformed === false,",
+        "readbackBodySha256": "1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780",
+        "allRoleBodiesByteIdentical": true
+      }
+    ],
+    "comparisons": [
+      {
+        "file": "scripts/internal/verify_v300_event_evidence_contract.mjs",
+        "retainedChecks": [
+          "frame bundle writer source owns the extraction sidecar contract",
+          "FrameRef document and fixture expose required source/time identity",
+          "EvidenceManifest fixture captures required and optional artifact roles",
+          "retention, privacy, and non-VMS fixture guards are explicit",
+          "server entrypoint and inventory verifiers include V300-S01 command",
+          "SAFE-082 canonical evidence contract boundary"
+        ],
+        "replacedDocumentChecks": [
+          "contract document defines V300-S01 evidence boundary",
+          "docs index, roadmap, and stream verification expose V300-S01 contract gate",
+          "feature inventory and release records map V300-S01 to OPS-052 and SAFE-082"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "frame bundle writer source owns the extraction sidecar contract",
+          "FrameRef document and fixture expose required source/time identity",
+          "EvidenceManifest fixture captures required and optional artifact roles",
+          "retention, privacy, and non-VMS fixture guards are explicit",
+          "server entrypoint and inventory verifiers include V300-S01 command",
+          "SAFE-082 canonical evidence contract boundary"
+        ],
+        "correctedMappingChecks": []
+      },
+      {
+        "file": "scripts/internal/verify_v300_feature_schema_privacy.mjs",
+        "retainedChecks": [
+          "product FeatureSet projection owns the schema and privacy boundary",
+          "fixture exposes stable feature envelope and evidence provenance",
+          "allowed feature namespaces stay non-identifying",
+          "disallowed identity matrix is explicit and enforced by the fixture",
+          "server entrypoint and inventory verifiers include V300-S03 command",
+          "SAFE-085 canonical feature privacy boundary"
+        ],
+        "replacedDocumentChecks": [
+          "policy document defines V300-S03 feature and privacy boundary",
+          "docs index, roadmap, and stream verification expose V300-S03 schema/privacy gate",
+          "feature inventory and release records map V300-S03 to LAB-083, SAFE-085, and OPS-053"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "product FeatureSet projection owns the schema and privacy boundary",
+          "fixture exposes stable feature envelope and evidence provenance",
+          "allowed feature namespaces stay non-identifying",
+          "disallowed identity matrix is explicit and enforced by the fixture",
+          "SAFE-085 canonical feature privacy boundary"
+        ],
+        "correctedMappingChecks": [
+          "server entrypoint and inventory verifiers include V300-S03 command"
+        ]
+      },
+      {
+        "file": "scripts/internal/verify_v300_vlm_feature_queue.mjs",
+        "retainedChecks": [
+          "fixture covers V300-S04 feature queue outcome matrix",
+          "analysis module exposes bounded background and lazy queue contract",
+          "analysis-state smoke verifies S04 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S04 command",
+          "SAFE-086 canonical VLM queue isolation boundary"
+        ],
+        "replacedDocumentChecks": [
+          "docs and roadmap expose V300-S04 feature queue scope without overclaim",
+          "feature inventory and release records map V300-S04 to LAB-084, SAFE-086, and OPS-054"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "fixture covers V300-S04 feature queue outcome matrix",
+          "analysis module exposes bounded background and lazy queue contract",
+          "analysis-state smoke verifies S04 behavior and build links module",
+          "SAFE-086 canonical VLM queue isolation boundary"
+        ],
+        "correctedMappingChecks": [
+          "server entrypoint and inventory verifiers include V300-S04 command"
+        ]
+      },
+      {
+        "file": "scripts/internal/verify_v300_feature_only_retention.mjs",
+        "retainedChecks": [
+          "fixture covers V300-S05 feature-only retention matrix",
+          "analysis module exposes feature revision store and raw-material guard",
+          "analysis-state smoke verifies S05 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S05 command",
+          "SAFE-087 canonical feature-only retention boundary"
+        ],
+        "replacedDocumentChecks": [
+          "docs and roadmap expose V300-S05 feature-only retention scope without overclaim",
+          "feature inventory and release records map V300-S05 to LAB-085, SAFE-087, and OPS-055"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "fixture covers V300-S05 feature-only retention matrix",
+          "analysis module exposes feature revision store and raw-material guard",
+          "analysis-state smoke verifies S05 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S05 command",
+          "SAFE-087 canonical feature-only retention boundary"
+        ],
+        "correctedMappingChecks": []
+      },
+      {
+        "file": "scripts/internal/verify_v300_search_dsl_query_convert.mjs",
+        "retainedChecks": [
+          "fixture covers V300-S06 query convert and search matrix",
+          "analysis module exposes constrained DSL conversion and text/tags/filter search",
+          "analysis-state smoke verifies S06 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S06 command",
+          "SAFE-088 canonical query conversion boundary"
+        ],
+        "replacedDocumentChecks": [
+          "docs and roadmap expose V300-S06 scope without overclaim",
+          "feature inventory and release records map V300-S06 to LAB-086, SAFE-088, and OPS-056"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "fixture covers V300-S06 query convert and search matrix",
+          "analysis module exposes constrained DSL conversion and text/tags/filter search",
+          "analysis-state smoke verifies S06 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S06 command",
+          "SAFE-088 canonical query conversion boundary"
+        ],
+        "correctedMappingChecks": []
+      },
+      {
+        "file": "scripts/internal/verify_v300_feature_search_index.mjs",
+        "retainedChecks": [
+          "fixture covers V300-S07 feature/search index matrix",
+          "analysis module exposes local index projection, report, and stale guard",
+          "analysis-state smoke verifies S07 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S07 command",
+          "SAFE-089 canonical feature search index boundary"
+        ],
+        "replacedDocumentChecks": [
+          "docs and roadmap expose V300-S07 scope without overclaim",
+          "feature inventory and release records map V300-S07 to LAB-087, SAFE-089, and OPS-057"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "fixture covers V300-S07 feature/search index matrix",
+          "analysis module exposes local index projection, report, and stale guard",
+          "analysis-state smoke verifies S07 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S07 command",
+          "SAFE-089 canonical feature search index boundary"
+        ],
+        "correctedMappingChecks": []
+      },
+      {
+        "file": "scripts/internal/verify_v300_retention_pin_cleanup.mjs",
+        "retainedChecks": [
+          "fixture covers V300-S09 retention/pin/cleanup matrix",
+          "analysis module exposes cleanup policy, lifecycle actions, audit, and invariants",
+          "analysis-state smoke verifies S09 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S09 command",
+          "SAFE-091 canonical retention cleanup boundary"
+        ],
+        "replacedDocumentChecks": [
+          "docs and roadmap expose V300-S09 scope without overclaim",
+          "feature inventory and release records map V300-S09 to LAB-088, SAFE-091, and OPS-059"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "fixture covers V300-S09 retention/pin/cleanup matrix",
+          "analysis module exposes cleanup policy, lifecycle actions, audit, and invariants",
+          "analysis-state smoke verifies S09 behavior and build links module",
+          "server entrypoint and inventory verifiers include V300-S09 command",
+          "SAFE-091 canonical retention cleanup boundary"
+        ],
+        "correctedMappingChecks": []
+      },
+      {
+        "file": "scripts/internal/verify_v300_ops_events_ui.mjs",
+        "retainedChecks": [
+          "ops events page exposes V300 event evidence search UI shell",
+          "ops review API returns V300 local-only event evidence search view model",
+          "product UI script wires V300 filters and renders detail cards",
+          "V300 UI has responsive card, timeline, feature reason, and retention styling",
+          "ops static smoke tracks V300 markers",
+          "server entrypoint and inventory verifiers include V300-S08 command",
+          "SAFE-090 canonical Ops events UI boundary"
+        ],
+        "replacedDocumentChecks": [
+          "docs and roadmap expose V300-S08 scope without overclaim",
+          "feature inventory and release records map V300-S08 to UI-059, SAFE-090, and OPS-058"
+        ],
+        "newCheck": "현재 계약 문서와 기능별 검증 연결",
+        "unchangedChecks": [
+          "ops events page exposes V300 event evidence search UI shell",
+          "ops review API returns V300 local-only event evidence search view model",
+          "product UI script wires V300 filters and renders detail cards",
+          "V300 UI has responsive card, timeline, feature reason, and retention styling",
+          "ops static smoke tracks V300 markers",
+          "server entrypoint and inventory verifiers include V300-S08 command",
+          "SAFE-090 canonical Ops events UI boundary"
+        ],
+        "correctedMappingChecks": []
+      }
+    ],
+    "counts": {
+      "unchangedRoleBodies": 24,
+      "identicalChecks": 42,
+      "correctedMappingChecks": 2,
+      "retiredHistoricalChecks": 18,
+      "replacementCurrentDocumentationChecks": 8
+    }
+  },
+  "nativeComparison": {
+    "nativeCaseDefinitionsAndActionsUnchanged": 424,
+    "onlyDigestChanges": [
+      {
+        "path": "/sourceBindings/implementationProjectionSha256",
+        "before": "721e5624d209c62ac8d961646b6becd270b5bbc05ac8d996634dc7af945736a2",
+        "after": "eec36fc3c4ef9b2f76df0bc1f9fab980bf8707e43381c0e58d1794abc4cee56b"
+      },
+      {
+        "path": "/sourceBindings/runtimeOracleCatalogSha256",
+        "before": "de884bf9402c6b5f4ccb829cad8d69a8074dcf67f8b9293e38a4201273e6f7b7",
+        "after": "9798d06f677b4f8ee39d5d803a7b4120eacef24faec56959a1efabbe5400e887"
+      },
+      {
+        "path": "/cases/57/workflow/setup/1/semanticCallChainSha256",
+        "before": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2",
+        "after": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480"
+      },
+      {
+        "path": "/cases/57/workflow/independentReadback/assertedSemanticDigest",
+        "before": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2",
+        "after": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480"
+      },
+      {
+        "path": "/cases/57/workflow/exactRuntimeOracle/specSha256",
+        "before": "f784f1b90bd9b854b54fd41f9142091295300a586d47df4ddecb18e8be5b6531",
+        "after": "2b7b7d3d520369ef4e5430d8034dcbc0b4a7f894292c3a70e5f4c9f34e8aa0f0"
+      },
+      {
+        "path": "/cases/57/workflow/cleanup/0/semanticCallChainSha256",
+        "before": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2",
+        "after": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480"
+      }
+    ]
+  },
+  "review": {
+    "method": "기존 후보 생성 스크립트와 분리한 메인 직접 diff·본문 검토. 서브에이전트 검토 아님",
+    "strictEquivalent": 962,
+    "reviewedChangedIds": [
+      "UI-059",
+      "EVT-060",
+      "LAB-083",
+      "LAB-084",
+      "LAB-085",
+      "LAB-086",
+      "LAB-087",
+      "LAB-088",
+      "SAFE-082",
+      "SAFE-085",
+      "SAFE-086",
+      "SAFE-087",
+      "SAFE-088",
+      "SAFE-089",
+      "SAFE-090",
+      "SAFE-091",
+      "OPS-052",
+      "OPS-053",
+      "OPS-054",
+      "OPS-055",
+      "OPS-056",
+      "OPS-057",
+      "OPS-058",
+      "OPS-059"
+    ],
+    "featureDefinitionsAndMappingsUnchanged": 986,
+    "uiCaseDefinitionsAndActionsUnchanged": 424,
+    "meaning": "현행 검토 연결 갱신이며 실제 UI나 제품 테스트 PASS의 신규 생성이 아님"
+  },
+  "attempts": {
+    "runs": [
+      {
+        "command": "node --test scripts/internal/v300_documentation_consumers.test.mjs",
+        "phase": "expected-red",
+        "chunk_id": "2b608e",
+        "wall_time_seconds": 0.000006833,
+        "exit_code": 1,
+        "original_token_count": 259,
+        "output": "✖ V300-DOC 문서 소비자와 실제 안전 검사 구분 (0.525291ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 31\n\n✖ failing tests:\n\ntest at scripts/internal/v300_documentation_consumers.test.mjs:48:1\n✖ V300-DOC 문서 소비자와 실제 안전 검사 구분 (0.525291ms)\n  AssertionError [ERR_ASSERTION]: 현행 기능 문서 검사 함수 필요\n  + actual - expected\n  \n  + 'undefined'\n  - 'function'\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:49:10)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'undefined',\n    expected: 'function',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+      },
+      {
+        "command": "node --test scripts/internal/v300_documentation_consumers.test.mjs scripts/internal/documentation_contract.test.mjs",
+        "phase": "implemented",
+        "chunk_id": "4b62a8",
+        "wall_time_seconds": 1.4237117910000001,
+        "exit_code": 1,
+        "original_token_count": 2113,
+        "output": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.637042ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.407334ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.184208ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.290875ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.076208ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.421708ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.152166ms)\n▶ V300-DOC 문서 소비자와 실제 안전 검사 구분\n  ✔ 01 현재 식별자와 기능별 명령 연결 (1.084583ms)\n  ✔ 02 문서·식별자·정의·dispatch 누락/중복은 실패 (0.258792ms)\n  ✔ 03 과거 기록 없는 정상 event_evidence_contract (36.776416ms)\n  ✔ 04 기존 안전 반례 event_evidence_contract (37.524167ms)\n  ✖ 03 과거 기록 없는 정상 feature_schema_privacy (87.965667ms)\n  ✔ 04 기존 안전 반례 feature_schema_privacy (80.785375ms)\n  ✖ 03 과거 기록 없는 정상 vlm_feature_queue (78.577958ms)\n  ✔ 04 기존 안전 반례 vlm_feature_queue (79.069708ms)\n  ✔ 03 과거 기록 없는 정상 feature_only_retention (81.89975ms)\n  ✔ 04 기존 안전 반례 feature_only_retention (81.942416ms)\n  ✔ 03 과거 기록 없는 정상 search_dsl_query_convert (83.602333ms)\n  ✔ 04 기존 안전 반례 search_dsl_query_convert (82.8645ms)\n  ✔ 03 과거 기록 없는 정상 feature_search_index (82.164667ms)\n  ✔ 04 기존 안전 반례 feature_search_index (80.200166ms)\n  ✔ 03 과거 기록 없는 정상 retention_pin_cleanup (82.087834ms)\n  ✔ 04 기존 안전 반례 retention_pin_cleanup (82.664417ms)\n  ✖ 03 과거 기록 없는 정상 ops_events_ui (209.700875ms)\n  ✔ 04 기존 안전 반례 ops_events_ui (206.000625ms)\n✖ V300-DOC 문서 소비자와 실제 안전 검사 구분 (1476.786ms)\nℹ tests 26\nℹ suites 0\nℹ pass 22\nℹ fail 4\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1516.885708\n\n✖ failing tests:\n\ntest at scripts/internal/v300_documentation_consumers.test.mjs:70:13\n✖ 03 과거 기록 없는 정상 feature_schema_privacy (87.965667ms)\n  AssertionError [ERR_ASSERTION]: [pass] product FeatureSet projection owns the schema and privacy boundary\n  [pass] 현재 계약 문서와 기능별 검증 연결\n  [pass] fixture exposes stable feature envelope and evidence provenance\n  [pass] allowed feature namespaces stay non-identifying\n  [pass] disallowed identity matrix is explicit and enforced by the fixture\n  [fail] server entrypoint and inventory verifiers include V300-S03 command: SAFE-064 manifest verifier command drift\n  [pass] SAFE-085 canonical feature privacy boundary\n  \n  == v3.0.0 feature schema privacy summary ==\n  - schema: media-server.event-feature-set.v1\n  - step: V300-S03\n  - fixture: test/fixtures/event_feature_schema_privacy/feature_set_sample.json\n  - rawPromptStored: false\n  - rawProviderResponseStored: false\n  - identityFeaturesAllowed: false\n  - featureRetention: structured-non-identifying-feature-only\n  - vlmRuntimeProviderCall: not-run-by-this-command\n  - searchDslOrOpsEventsUi: not-run-by-this-command\n  - uiFulltest: not-run-by-this-command\n  - longrun30Or120: not-run-by-this-command\n  - publishedMetadata: not-run-by-this-command\n  - pass: 6\n  - fail: 1\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:71:43)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:70:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v300_documentation_consumers.test.mjs:70:13\n✖ 03 과거 기록 없는 정상 vlm_feature_queue (78.577958ms)\n  AssertionError [ERR_ASSERTION]: [pass] fixture covers V300-S04 feature queue outcome matrix\n  [pass] analysis module exposes bounded background and lazy queue contract\n  [pass] analysis-state smoke verifies S04 behavior and build links module\n  [pass] 현재 계약 문서와 기능별 검증 연결\n  [fail] server entrypoint and inventory verifiers include V300-S04 command: LAB-002 manifest verifier command drift\n  [pass] SAFE-086 canonical VLM queue isolation boundary\n  \n  == v3.0.0 VLM feature queue summary ==\n  - schema: media-server.v300-vlm-feature-queue-fixtures.v1\n  - step: V300-S04\n  - fixture: test/fixtures/v300_vlm_feature_queue/cases.json\n  - backgroundQueue: fixture-and-analysis-smoke\n  - lazyTrigger: fixture-and-analysis-smoke\n  - missingRuntime: vlm-only-failure\n  - queueTimeout: drop-vlm-task\n  - invalidOutput: discard-invalid-output\n  - providerRuntimeCall: not-run-by-this-command\n  - searchDslOrOpsEventsUi: not-run-by-this-command\n  - uiFulltest: not-run-by-this-command\n  - longrun30Or120: not-run-by-this-command\n  - publishedMetadata: not-run-by-this-command\n  - pass: 5\n  - fail: 1\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:71:43)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:70:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/v300_documentation_consumers.test.mjs:70:13\n✖ 03 과거 기록 없는 정상 ops_events_ui (209.700875ms)\n  AssertionError [ERR_ASSERTION]: [pass] ops events page exposes V300 event evidence search UI shell\n  [pass] ops review API returns V300 local-only event evidence search view model\n  [pass] product UI script wires V300 filters and renders detail cards\n  [pass] V300 UI has responsive card, timeline, feature reason, and retention styling\n  [pass] ops static smoke tracks V300 markers\n  [fail] 현재 계약 문서와 기능별 검증 연결: UI-059 현행 기능 정의/명령 연결 누락 또는 중복\n  [pass] server entrypoint and inventory verifiers include V300-S08 command\n  [pass] SAFE-090 canonical Ops events UI boundary\n  \n  == v3.0.0 ops events UI summary ==\n  - schema: media-server.ops.v300-event-evidence-search-ui.v1\n  - step: V300-S08\n  - route: /ops/events\n  - searchSurface: EventRecord, FeatureSet, EvidenceManifest, operator review state\n  - providerRuntimeCall: not-run-by-this-command\n  - vectorSearch: not-run-by-this-command\n  - retentionCleanupExecution: not-run-by-this-command\n  - uiFulltest: not-run-by-this-command\n  - longrun30Or120: not-run-by-this-command\n  - publishedMetadata: not-run-by-this-command\n  - pass: 7\n  - fail: 1\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:71:43)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at TestContext.test (node:internal/test_runner/test:378:20)\n      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v300_documentation_consumers.test.mjs:70:13)\n      at async Test.run (node:internal/test_runner/test:1113:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+      },
+      {
+        "phase": "수정 후 GREEN",
+        "command": "node --test scripts/internal/v300_documentation_consumers.test.mjs scripts/internal/documentation_contract.test.mjs",
+        "startedAt": "2026-09-28T16:57:08.927Z",
+        "endedAt": "2026-09-28T16:57:10.796Z",
+        "chunk_id": "83a7a2",
+        "wall_time_seconds": 1.701367625,
+        "exit_code": 0,
+        "original_token_count": 591,
+        "output": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.684667ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.399208ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.18025ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.346375ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.141166ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.450792ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.163541ms)\n▶ V300-DOC 문서 소비자와 실제 안전 검사 구분\n  ✔ 01 현재 식별자와 기능별 명령 연결 (0.954959ms)\n  ✔ 02 문서·식별자·정의·dispatch 누락/중복은 실패 (0.213125ms)\n  ✔ 02 명령 없는 정의는 exact manifest만 사용하고 명시 오류는 덮어쓰지 않음 (0.107708ms)\n  ✔ 03 과거 기록 없는 정상 event_evidence_contract (32.485375ms)\n  ✔ 04 기존 안전 반례 event_evidence_contract (31.92675ms)\n  ✔ 03 과거 기록 없는 정상 feature_schema_privacy (87.303833ms)\n  ✔ 04 기존 안전 반례 feature_schema_privacy (82.010792ms)\n  ✔ 03 과거 기록 없는 정상 vlm_feature_queue (83.614958ms)\n  ✔ 04 기존 안전 반례 vlm_feature_queue (81.53ms)\n  ✔ 03 과거 기록 없는 정상 feature_only_retention (80.080208ms)\n  ✔ 04 기존 안전 반례 feature_only_retention (81.482041ms)\n  ✔ 03 과거 기록 없는 정상 search_dsl_query_convert (80.972709ms)\n  ✔ 04 기존 안전 반례 search_dsl_query_convert (83.370083ms)\n  ✔ 03 과거 기록 없는 정상 feature_search_index (83.088125ms)\n  ✔ 04 기존 안전 반례 feature_search_index (81.453291ms)\n  ✔ 03 과거 기록 없는 정상 retention_pin_cleanup (85.679667ms)\n  ✔ 04 기존 안전 반례 retention_pin_cleanup (79.605541ms)\n  ✔ 03 과거 기록 없는 정상 ops_events_ui (214.198417ms)\n  ✔ 04 기존 안전 반례 ops_events_ui (209.645375ms)\n  ✔ 04 기존 독립 검사 연결 훼손 거부 SAFE-064 (142.086541ms)\n  ✔ 04 기존 독립 검사 연결 훼손 거부 LAB-002 (144.242375ms)\n✔ V300-DOC 문서 소비자와 실제 안전 검사 구분 (1767.644875ms)\nℹ tests 29\nℹ suites 0\nℹ pass 29\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1803.774458\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-event-evidence-contract",
+        "startedAt": "2026-09-28T16:58:12.631Z",
+        "endedAt": "2026-09-28T16:58:12.735Z",
+        "chunk_id": "4a0bb8",
+        "wall_time_seconds": 0.000007542,
+        "exit_code": 0,
+        "original_token_count": 250,
+        "output": "[pass] frame bundle writer source owns the extraction sidecar contract\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] FrameRef document and fixture expose required source/time identity\n[pass] EvidenceManifest fixture captures required and optional artifact roles\n[pass] retention, privacy, and non-VMS fixture guards are explicit\n[pass] server entrypoint and inventory verifiers include V300-S01 command\n[pass] SAFE-082 canonical evidence contract boundary\n\n== v3.0.0 event evidence contract summary ==\n- schema: media-server.event-evidence-contract.v1\n- step: V300-S01\n- fixture: test/fixtures/event_evidence_contract/evidence_manifest_sample.json\n- eventFrame: required\n- representativeImage: optional\n- bboxCrop: optional\n- frameBundle: contract-only-in-this-step\n- retentionDefaultDays: 7\n- encodedClipPlayback: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 7\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-feature-schema-privacy",
+        "startedAt": "2026-09-28T16:58:12.735Z",
+        "endedAt": "2026-09-28T16:58:13.253Z",
+        "chunk_id": "8abff4",
+        "wall_time_seconds": 0.35381475,
+        "exit_code": 0,
+        "original_token_count": 259,
+        "output": "[pass] product FeatureSet projection owns the schema and privacy boundary\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] fixture exposes stable feature envelope and evidence provenance\n[pass] allowed feature namespaces stay non-identifying\n[pass] disallowed identity matrix is explicit and enforced by the fixture\n[pass] server entrypoint and inventory verifiers include V300-S03 command\n[pass] SAFE-085 canonical feature privacy boundary\n\n== v3.0.0 feature schema privacy summary ==\n- schema: media-server.event-feature-set.v1\n- step: V300-S03\n- fixture: test/fixtures/event_feature_schema_privacy/feature_set_sample.json\n- rawPromptStored: false\n- rawProviderResponseStored: false\n- identityFeaturesAllowed: false\n- featureRetention: structured-non-identifying-feature-only\n- vlmRuntimeProviderCall: not-run-by-this-command\n- searchDslOrOpsEventsUi: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 7\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-vlm-feature-queue",
+        "startedAt": "2026-09-28T16:58:13.254Z",
+        "endedAt": "2026-09-28T16:58:13.656Z",
+        "chunk_id": "4cb939",
+        "wall_time_seconds": 0.234886709,
+        "exit_code": 0,
+        "original_token_count": 250,
+        "output": "[pass] fixture covers V300-S04 feature queue outcome matrix\n[pass] analysis module exposes bounded background and lazy queue contract\n[pass] analysis-state smoke verifies S04 behavior and build links module\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S04 command\n[pass] SAFE-086 canonical VLM queue isolation boundary\n\n== v3.0.0 VLM feature queue summary ==\n- schema: media-server.v300-vlm-feature-queue-fixtures.v1\n- step: V300-S04\n- fixture: test/fixtures/v300_vlm_feature_queue/cases.json\n- backgroundQueue: fixture-and-analysis-smoke\n- lazyTrigger: fixture-and-analysis-smoke\n- missingRuntime: vlm-only-failure\n- queueTimeout: drop-vlm-task\n- invalidOutput: discard-invalid-output\n- providerRuntimeCall: not-run-by-this-command\n- searchDslOrOpsEventsUi: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 6\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-feature-only-retention",
+        "startedAt": "2026-09-28T16:58:13.656Z",
+        "endedAt": "2026-09-28T16:58:14.053Z",
+        "chunk_id": "da079e",
+        "wall_time_seconds": 0.234394709,
+        "exit_code": 0,
+        "original_token_count": 258,
+        "output": "[pass] fixture covers V300-S05 feature-only retention matrix\n[pass] analysis module exposes feature revision store and raw-material guard\n[pass] analysis-state smoke verifies S05 behavior and build links module\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S05 command\n[pass] SAFE-087 canonical feature-only retention boundary\n\n== v3.0.0 feature-only retention summary ==\n- schema: media-server.v300-feature-only-retention-fixtures.v1\n- step: V300-S05\n- fixture: test/fixtures/v300_feature_only_retention/cases.json\n- featureRevisionStore: fixture-and-analysis-smoke\n- rawPromptResponseRetention: rejected\n- reanalysisPolicy: new-revision-without-provider-replay\n- providerRuntimeCall: not-run-by-this-command\n- searchDslOrOpsEventsUi: not-run-by-this-command\n- retentionCleanupLifecycle: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 6\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-search-dsl-query-convert",
+        "startedAt": "2026-09-28T16:58:14.053Z",
+        "endedAt": "2026-09-28T16:58:14.457Z",
+        "chunk_id": "968578",
+        "wall_time_seconds": 0.238533625,
+        "exit_code": 0,
+        "original_token_count": 280,
+        "output": "[pass] fixture covers V300-S06 query convert and search matrix\n[pass] analysis module exposes constrained DSL conversion and text/tags/filter search\n[pass] analysis-state smoke verifies S06 behavior and build links module\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S06 command\n[pass] SAFE-088 canonical query conversion boundary\n\n== v3.0.0 search DSL/query convert summary ==\n- schema: media-server.v300-search-dsl-query-convert-fixtures.v1\n- step: V300-S06\n- fixture: test/fixtures/v300_search_dsl_query_convert/cases.json\n- naturalLanguageConvert: fixture-and-analysis-smoke\n- strictSearchDsl: media-server.event-search-dsl.v1\n- textTagsFilterSearch: fixture-and-analysis-smoke\n- identityQueryRejection: identity-search-disallowed\n- providerRuntimeCall: not-run-by-this-command\n- vectorSearch: not-run-by-this-command\n- searchIndex: not-run-by-this-command\n- opsEventsUi: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 6\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-feature-search-index",
+        "startedAt": "2026-09-28T16:58:14.457Z",
+        "endedAt": "2026-09-28T16:58:14.858Z",
+        "chunk_id": "b2d1d9",
+        "wall_time_seconds": 0.234167542,
+        "exit_code": 0,
+        "original_token_count": 258,
+        "output": "[pass] fixture covers V300-S07 feature/search index matrix\n[pass] analysis module exposes local index projection, report, and stale guard\n[pass] analysis-state smoke verifies S07 behavior and build links module\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S07 command\n[pass] SAFE-089 canonical feature search index boundary\n\n== v3.0.0 feature/search index summary ==\n- schema: media-server.v300-feature-search-index-fixtures.v1\n- step: V300-S07\n- fixture: test/fixtures/v300_feature_search_index/cases.json\n- projectionSources: EventRecord, FeatureSet, EvidenceManifest, operatorReviewState\n- searchDsl: media-server.event-search-dsl.v1\n- staleResultGuard: rebuild-clears-previous-entries\n- providerRuntimeCall: not-run-by-this-command\n- vectorSearch: not-run-by-this-command\n- opsEventsUi: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 6\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-retention-pin-cleanup",
+        "startedAt": "2026-09-28T16:58:14.858Z",
+        "endedAt": "2026-09-28T16:58:15.262Z",
+        "chunk_id": "dfba1f",
+        "wall_time_seconds": 0.237103083,
+        "exit_code": 0,
+        "original_token_count": 249,
+        "output": "[pass] fixture covers V300-S09 retention/pin/cleanup matrix\n[pass] analysis module exposes cleanup policy, lifecycle actions, audit, and invariants\n[pass] analysis-state smoke verifies S09 behavior and build links module\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S09 command\n[pass] SAFE-091 canonical retention cleanup boundary\n\n== v3.0.0 retention/pin/cleanup summary ==\n- schema: media-server.v300-retention-pin-cleanup-fixtures.v1\n- step: V300-S09\n- fixture: test/fixtures/v300_retention_pin_cleanup/cases.json\n- cleanupPolicy: default 7 days with source/rule overrides\n- pinPolicy: pinned events excluded from automatic cleanup\n- lifecycle: EventRecord, EvidenceManifest, FeatureSet revisions, SearchIndex entries\n- destructiveOperationalCleanup: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 6\n- fail: 0\n"
+      },
+      {
+        "phase": "실제 정적 CLI",
+        "command": "./server.sh verify-v300-ops-events-ui",
+        "startedAt": "2026-09-28T16:58:15.263Z",
+        "endedAt": "2026-09-28T16:58:15.792Z",
+        "chunk_id": "76898a",
+        "wall_time_seconds": 0.364169833,
+        "exit_code": 0,
+        "original_token_count": 256,
+        "output": "[pass] ops events page exposes V300 event evidence search UI shell\n[pass] ops review API returns V300 local-only event evidence search view model\n[pass] product UI script wires V300 filters and renders detail cards\n[pass] V300 UI has responsive card, timeline, feature reason, and retention styling\n[pass] ops static smoke tracks V300 markers\n[pass] 현재 계약 문서와 기능별 검증 연결\n[pass] server entrypoint and inventory verifiers include V300-S08 command\n[pass] SAFE-090 canonical Ops events UI boundary\n\n== v3.0.0 ops events UI summary ==\n- schema: media-server.ops.v300-event-evidence-search-ui.v1\n- step: V300-S08\n- route: /ops/events\n- searchSurface: EventRecord, FeatureSet, EvidenceManifest, operator review state\n- providerRuntimeCall: not-run-by-this-command\n- vectorSearch: not-run-by-this-command\n- retentionCleanupExecution: not-run-by-this-command\n- uiFulltest: not-run-by-this-command\n- longrun30Or120: not-run-by-this-command\n- publishedMetadata: not-run-by-this-command\n- pass: 8\n- fail: 0\n"
+      },
+      {
+        "phase": "최종 자체검사 — 가상 명령을 실제 사용 명령 표기와 구분",
+        "command": "node --test scripts/internal/v300_documentation_consumers.test.mjs scripts/internal/documentation_contract.test.mjs",
+        "startedAt": "2026-09-28T17:08:34.281Z",
+        "endedAt": "2026-09-28T17:08:36.294Z",
+        "chunk_id": "ca95ff",
+        "wall_time_seconds": 1.846885167,
+        "exit_code": 0,
+        "original_token_count": 590,
+        "output": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (1.1325ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.653208ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.273625ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.412708ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.089542ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.724458ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.374125ms)\n▶ V300-DOC 문서 소비자와 실제 안전 검사 구분\n  ✔ 01 현재 식별자와 기능별 명령 연결 (0.855292ms)\n  ✔ 02 문서·식별자·정의·dispatch 누락/중복은 실패 (0.204292ms)\n  ✔ 02 명령 없는 정의는 exact manifest만 사용하고 명시 오류는 덮어쓰지 않음 (0.100416ms)\n  ✔ 03 과거 기록 없는 정상 event_evidence_contract (34.174875ms)\n  ✔ 04 기존 안전 반례 event_evidence_contract (33.637ms)\n  ✔ 03 과거 기록 없는 정상 feature_schema_privacy (145.875625ms)\n  ✔ 04 기존 안전 반례 feature_schema_privacy (88.436458ms)\n  ✔ 03 과거 기록 없는 정상 vlm_feature_queue (89.404459ms)\n  ✔ 04 기존 안전 반례 vlm_feature_queue (87.196084ms)\n  ✔ 03 과거 기록 없는 정상 feature_only_retention (86.631583ms)\n  ✔ 04 기존 안전 반례 feature_only_retention (85.003458ms)\n  ✔ 03 과거 기록 없는 정상 search_dsl_query_convert (89.1305ms)\n  ✔ 04 기존 안전 반례 search_dsl_query_convert (86.572541ms)\n  ✔ 03 과거 기록 없는 정상 feature_search_index (88.503125ms)\n  ✔ 04 기존 안전 반례 feature_search_index (87.169125ms)\n  ✔ 03 과거 기록 없는 정상 retention_pin_cleanup (88.047667ms)\n  ✔ 04 기존 안전 반례 retention_pin_cleanup (86.992958ms)\n  ✔ 03 과거 기록 없는 정상 ops_events_ui (217.609541ms)\n  ✔ 04 기존 안전 반례 ops_events_ui (217.196958ms)\n  ✔ 04 기존 독립 검사 연결 훼손 거부 SAFE-064 (149.952125ms)\n  ✔ 04 기존 독립 검사 연결 훼손 거부 LAB-002 (153.751ms)\n✔ V300-DOC 문서 소비자와 실제 안전 검사 구분 (1918.153958ms)\nℹ tests 29\nℹ suites 0\nℹ pass 29\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1955.870375\n"
+      }
+    ],
+    "extra": [
+      {
+        "name": "v300DocSemanticRun",
+        "command": "node --input-type=module <<'NODE'\nimport fs from 'node:fs';\nimport assert from 'node:assert/strict';\nimport {parseFeatureRows, validateImplementationManifestStructure, validateImplementationManifestEntries} from './scripts/internal/feature_implementation_manifest_lib.mjs';\nimport {validateReview4AppliedManifest} from './scripts/internal/feature_semantic_evidence_lib.mjs';\nconst rootDir = process.cwd();\nconst inventoryText = fs.readFileSync('docs/project-feature-test-inventory.md','utf8');\nconst rows = parseFeatureRows(inventoryText);\nconst manifest = JSON.parse(fs.readFileSync('test/fixtures/project_feature_implementation_evidence.json','utf8'));\nconst names = ['event_evidence_contract','feature_schema_privacy','vlm_feature_queue','feature_only_retention','search_dsl_query_convert','feature_search_index','retention_pin_cleanup','ops_events_ui'].map(name => 'verify_v300_' + name + '.mjs');\nconst extraIds = new Set(['SAFE-064','LAB-002','LAB-006','LAB-017','LAB-018','LAB-019','LAB-025']);\nconst items = manifest.items.filter(item => extraIds.has(item.id) || names.some(name => JSON.stringify(item).includes(name)));\nassert(items.length > 0);\nconst checks = [\n ['전체 986개 구조·정의 digest', validateImplementationManifestStructure({inventoryText, rows, manifest})],\n ['기존 독립 승인 envelope', validateReview4AppliedManifest({rows, manifest})],\n ['변경 파일·연결 정정 영향 exact 소스', validateImplementationManifestEntries({rootDir, rows, items})],\n];\nfor (const [label, errors] of checks) { console.log(label + ': ' + (errors.length ? 'FAIL' : 'PASS')); for(const error of errors) console.log(error); }\nconsole.log('검토 ID: ' + items.map(item => item.id).join(', '));\nassert(checks.every(([,errors]) => errors.length === 0));\nconsole.log('신규 승인·manifest 변경·제품 실행 없음');\nNODE",
+        "startedAt": "2026-09-28T16:58:35.004Z",
+        "chunk_id": "f1a74f",
+        "wall_time_seconds": 1.002343417,
+        "session_id": 89024,
+        "original_token_count": 0,
+        "output": "전체 986개 구조·정의 digest: PASS\n기존 독립 승인 envelope: PASS\n변경 파일·연결 정정 영향 exact 소스: FAIL\nUI-059 REVIEW4 verifier file trust binding drift\nEVT-060 REVIEW4 verifier file trust binding drift\nLAB-083 REVIEW4 verifier file trust binding drift\nLAB-084 REVIEW4 verifier file trust binding drift\nLAB-085 REVIEW4 verifier file trust binding drift\nLAB-086 REVIEW4 verifier file trust binding drift\nLAB-087 REVIEW4 verifier file trust binding drift\nLAB-088 REVIEW4 verifier file trust binding drift\nSAFE-082 REVIEW4 verifier file trust binding drift\nSAFE-085 REVIEW4 verifier file trust binding drift\nSAFE-086 REVIEW4 verifier file trust binding drift\nSAFE-087 REVIEW4 verifier file trust binding drift\nSAFE-088 REVIEW4 verifier file trust binding drift\nSAFE-089 REVIEW4 verifier file trust binding drift\nSAFE-090 REVIEW4 verifier file trust binding drift\nSAFE-091 REVIEW4 verifier file trust binding drift\nOPS-052 REVIEW4 verifier file trust binding drift\nOPS-053 REVIEW4 verifier file trust binding drift\nOPS-054 REVIEW4 verifier file trust binding drift\nOPS-055 REVIEW4 verifier file trust binding drift\nOPS-056 REVIEW4 verifier file trust binding drift\nOPS-057 REVIEW4 verifier file trust binding drift\nOPS-058 REVIEW4 verifier file trust binding drift\nOPS-059 REVIEW4 verifier file trust binding drift\n검토 ID: UI-059, EVT-060, LAB-002, LAB-006, LAB-017, LAB-018, LAB-019, LAB-025, LAB-083, LAB-084, LAB-085, LAB-086, LAB-087, LAB-088, SAFE-064, SAFE-082, SAFE-085, SAFE-086, SAFE-087, SAFE-088, SAFE-089, SAFE-090, SAFE-091, OPS-052, OPS-053, OPS-054, OPS-055, OPS-056, OPS-057, OPS-058, OPS-059\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(checks.every(([,errors]) => errors.length === 0))\n\n    at file:///Users/dhseo/Workspace/mediaServer/[eval1]:20:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:268:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:265:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.13.0\n",
+        "exit_code": 1,
+        "endedAt": "2026-09-28T16:58:57.404Z"
+      },
+      {
+        "name": "v300DocCandidateRun",
+        "command": "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --emit-candidate /private/tmp/media-server-v300-doc-review.80D6Zd/fresh-audit.json",
+        "startedAt": "2026-09-28T17:00:08.668Z",
+        "chunk_id": "f36fc3",
+        "wall_time_seconds": 1.002415916,
+        "session_id": 26678,
+        "original_token_count": 0,
+        "output": "{\n  \"candidatePath\": \"/private/tmp/media-server-v300-doc-review.80D6Zd/fresh-audit.json\",\n  \"candidateDigest\": \"92574f1a7d97ae0dc7ee41b4998e0a8bf2d6a711beb6a311344d4a46d00ebf9c\",\n  \"items\": 986\n}\n",
+        "exit_code": 0,
+        "endedAt": "2026-09-28T17:00:30.871Z"
+      },
+      {
+        "name": "v300DocComparisonRun",
+        "command": "node --input-type=module <<'NODE'\nimport fs from 'node:fs';\nimport assert from 'node:assert/strict';\nimport {execFileSync} from 'node:child_process';\nimport {review4HardCandidateItems,review4HardTrustBindings,stableStringify,sha256} from './scripts/internal/feature_semantic_review4_trust_lib.mjs';\nconst temp='/private/tmp/media-server-v300-doc-review.80D6Zd';\nconst get=file=>execFileSync('git',['show','HEAD:'+file],{maxBuffer:100*1024*1024,encoding:'utf8'});\nfor(const [name,file] of [['prior-audit.json','test/fixtures/v390_review4_feature_semantic_source_audit.json'],['prior-approvals.json','test/fixtures/v390_review4_feature_semantic_source_approvals.json']])fs.writeFileSync(temp+'/'+name,get(file));\nconst prior=JSON.parse(fs.readFileSync(temp+'/prior-audit.json','utf8')),fresh=JSON.parse(fs.readFileSync(temp+'/fresh-audit.json','utf8'));\nconst oldHard=review4HardCandidateItems(prior.items),newHard=review4HardCandidateItems(fresh.items);\nconst changed=[];\nfor(let i=0;i<986;i++){\n const a=prior.items[i],b=fresh.items[i];assert.equal(a.id,b.id);assert.equal(b.status,'source-resolved-candidate');\n if(stableStringify(oldHard[i])===stableStringify(newHard[i]))continue;\n assert.deepEqual(Object.keys({...oldHard[i],...newHard[i]}).filter(k=>stableStringify(oldHard[i][k])!==stableStringify(newHard[i][k])).sort(),['sourceFlowDigest','trustBindings']);\n const at=review4HardTrustBindings(a.trustBindings),bt=review4HardTrustBindings(b.trustBindings);\n assert.deepEqual(Object.keys({...at,...bt}).filter(k=>stableStringify(at[k])!==stableStringify(bt[k])),['verifierFileSha256']);\n for(const [role,binding] of Object.entries(b.trustBindings.roles)){\n   if(role==='verifier')continue;\n   const al=a.trustBindings.roles[role],bl=b.trustBindings.roles[role];\n   const oldBody=get(al.file).split(/\\r?\\n/).slice(al.enclosingBodyStartLine-1,al.enclosingBodyEndLine).join('\\n');\n   const newBody=fs.readFileSync(bl.file,'utf8').split(/\\r?\\n/).slice(bl.enclosingBodyStartLine-1,bl.enclosingBodyEndLine).join('\\n');\n   assert.equal(oldBody,newBody,b.id+':'+role+' body'); assert.equal(sha256(newBody),bl.enclosingBodySha256);\n }\n changed.push({id:b.id,file:b.verifier.file,featureContractSha256:b.featureContractSha256,sourceFlowDigest:b.sourceFlowDigest,readback:b.roles.readback.anchor,readbackBodySha256:b.trustBindings.roles.readback.enclosingBodySha256,allRoleBodiesByteIdentical:true});\n}\nassert.equal(changed.length,24);\nconst blocks=text=>new Map([...text.matchAll(/^check\\(\"([^\"\\n]+)\", \\(\\) => \\{\\n[\\s\\S]*?^\\}\\);/gm)].map(m=>[m[1],m[0]]));\nconst comparisons=[{\"file\":\"scripts/internal/verify_v300_event_evidence_contract.mjs\",\"retainedChecks\":[\"frame bundle writer source owns the extraction sidecar contract\",\"FrameRef document and fixture expose required source/time identity\",\"EvidenceManifest fixture captures required and optional artifact roles\",\"retention, privacy, and non-VMS fixture guards are explicit\",\"server entrypoint and inventory verifiers include V300-S01 command\",\"SAFE-082 canonical evidence contract boundary\"],\"replacedDocumentChecks\":[\"contract document defines V300-S01 evidence boundary\",\"docs index, roadmap, and stream verification expose V300-S01 contract gate\",\"feature inventory and release records map V300-S01 to OPS-052 and SAFE-082\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_feature_schema_privacy.mjs\",\"retainedChecks\":[\"product FeatureSet projection owns the schema and privacy boundary\",\"fixture exposes stable feature envelope and evidence provenance\",\"allowed feature namespaces stay non-identifying\",\"disallowed identity matrix is explicit and enforced by the fixture\",\"server entrypoint and inventory verifiers include V300-S03 command\",\"SAFE-085 canonical feature privacy boundary\"],\"replacedDocumentChecks\":[\"policy document defines V300-S03 feature and privacy boundary\",\"docs index, roadmap, and stream verification expose V300-S03 schema/privacy gate\",\"feature inventory and release records map V300-S03 to LAB-083, SAFE-085, and OPS-053\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_vlm_feature_queue.mjs\",\"retainedChecks\":[\"fixture covers V300-S04 feature queue outcome matrix\",\"analysis module exposes bounded background and lazy queue contract\",\"analysis-state smoke verifies S04 behavior and build links module\",\"server entrypoint and inventory verifiers include V300-S04 command\",\"SAFE-086 canonical VLM queue isolation boundary\"],\"replacedDocumentChecks\":[\"docs and roadmap expose V300-S04 feature queue scope without overclaim\",\"feature inventory and release records map V300-S04 to LAB-084, SAFE-086, and OPS-054\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_feature_only_retention.mjs\",\"retainedChecks\":[\"fixture covers V300-S05 feature-only retention matrix\",\"analysis module exposes feature revision store and raw-material guard\",\"analysis-state smoke verifies S05 behavior and build links module\",\"server entrypoint and inventory verifiers include V300-S05 command\",\"SAFE-087 canonical feature-only retention boundary\"],\"replacedDocumentChecks\":[\"docs and roadmap expose V300-S05 feature-only retention scope without overclaim\",\"feature inventory and release records map V300-S05 to LAB-085, SAFE-087, and OPS-055\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_search_dsl_query_convert.mjs\",\"retainedChecks\":[\"fixture covers V300-S06 query convert and search matrix\",\"analysis module exposes constrained DSL conversion and text/tags/filter search\",\"analysis-state smoke verifies S06 behavior and build links module\",\"server entrypoint and inventory verifiers include V300-S06 command\",\"SAFE-088 canonical query conversion boundary\"],\"replacedDocumentChecks\":[\"docs and roadmap expose V300-S06 scope without overclaim\",\"feature inventory and release records map V300-S06 to LAB-086, SAFE-088, and OPS-056\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_feature_search_index.mjs\",\"retainedChecks\":[\"fixture covers V300-S07 feature/search index matrix\",\"analysis module exposes local index projection, report, and stale guard\",\"analysis-state smoke verifies S07 behavior and build links module\",\"server entrypoint and inventory verifiers include V300-S07 command\",\"SAFE-089 canonical feature search index boundary\"],\"replacedDocumentChecks\":[\"docs and roadmap expose V300-S07 scope without overclaim\",\"feature inventory and release records map V300-S07 to LAB-087, SAFE-089, and OPS-057\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_retention_pin_cleanup.mjs\",\"retainedChecks\":[\"fixture covers V300-S09 retention/pin/cleanup matrix\",\"analysis module exposes cleanup policy, lifecycle actions, audit, and invariants\",\"analysis-state smoke verifies S09 behavior and build links module\",\"server entrypoint and inventory verifiers include V300-S09 command\",\"SAFE-091 canonical retention cleanup boundary\"],\"replacedDocumentChecks\":[\"docs and roadmap expose V300-S09 scope without overclaim\",\"feature inventory and release records map V300-S09 to LAB-088, SAFE-091, and OPS-059\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true},{\"file\":\"scripts/internal/verify_v300_ops_events_ui.mjs\",\"retainedChecks\":[\"ops events page exposes V300 event evidence search UI shell\",\"ops review API returns V300 local-only event evidence search view model\",\"product UI script wires V300 filters and renders detail cards\",\"V300 UI has responsive card, timeline, feature reason, and retention styling\",\"ops static smoke tracks V300 markers\",\"server entrypoint and inventory verifiers include V300-S08 command\",\"SAFE-090 canonical Ops events UI boundary\"],\"replacedDocumentChecks\":[\"docs and roadmap expose V300-S08 scope without overclaim\",\"feature inventory and release records map V300-S08 to UI-059, SAFE-090, and OPS-058\"],\"newCheck\":\"현재 계약 문서와 기능별 검증 연결\",\"nonDocumentCheckBytesUnchanged\":true}];\nlet identical=0,corrected=0;\nfor(const row of comparisons){const a=blocks(get(row.file)),b=blocks(fs.readFileSync(row.file,'utf8'));\n row.unchangedChecks=[];row.correctedMappingChecks=[];\n for(const name of row.retainedChecks){assert(a.has(name)&&b.has(name));if(a.get(name)===b.get(name)){identical++;row.unchangedChecks.push(name);}else{assert(row.file.endsWith('verify_v300_feature_schema_privacy.mjs')||row.file.endsWith('verify_v300_vlm_feature_queue.mjs'));assert(name.startsWith('server entrypoint and inventory verifiers'));corrected++;row.correctedMappingChecks.push(name);}}\n delete row.nonDocumentCheckBytesUnchanged;\n}\nassert.equal(identical,42);assert.equal(corrected,2);\nconst review={baseCommit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),candidateDigest:fresh.candidateDigest,changed,comparisons,counts:{unchangedRoleBodies:24,identicalChecks:identical,correctedMappingChecks:corrected,retiredHistoricalChecks:18,replacementCurrentDocumentationChecks:8}};\nfs.writeFileSync(temp+'/source-comparison.json',JSON.stringify(review,null,2)+'\\n');\nconsole.log(JSON.stringify(review.counts));for(const r of changed)console.log(r.id+' '+r.readback+' 동일 본문 '+r.readbackBodySha256);\nNODE",
+        "chunk_id": "65813c",
+        "wall_time_seconds": 1.037272667,
+        "exit_code": 0,
+        "original_token_count": 1384,
+        "output": "{\"unchangedRoleBodies\":24,\"identicalChecks\":42,\"correctedMappingChecks\":2,\"retiredHistoricalChecks\":18,\"replacementCurrentDocumentationChecks\":8}\nUI-059 assertIncludes(extractNamedFunctionBlock(files.pageScript, \"renderV300EventEvidenceSearchUi\"), \"eventEvidenceSearch\", \"UI-059 block-scoped canonical product state\"); 동일 본문 527f24f84f8008d2bc3c90bf55d07815b61f909e83f0e9e69ebbe092361d7e37\nEVT-060 assert(evt060FrameBundleBlock.includes(\"FrameBundlePhase(index, event_frame_index)\"), \"EVT-060 block-scoped canonical frame bundle flow\"); 동일 본문 141615ad2a8a3e07068f5d98252a42d132817f1b99bbfb53e9fe62654c8131c9\nLAB-083 assert(featureSetBlock.includes(\"media-server.event-feature-set.v1\") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, \"LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls\"); 동일 본문 7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612\nLAB-084 assert(completeTaskBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && providerCallPerformed === false, \"LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls\"); 동일 본문 90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472\nLAB-085 assert(storeRevisionBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && rawMaterialStored === false, \"LAB-085 feature retention must reject raw material without adding /ops/events UI\"); 동일 본문 222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74\nLAB-086 assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\"); 동일 본문 0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b\nLAB-087 assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\"); 동일 본문 58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3\nLAB-088 assert(cleanupPlanBlock.includes(\"actions.push_back\"), \"LAB-088 retention cleanup actions.push_back block readback mismatch\"); 동일 본문 29ea2e0aa9a7ccd3cae2bf084d942f7aecb8c0973b5d865229f288160ad50fa8\nSAFE-082 assert(safe082BoundaryObserved && rawMaterialStored === false, 동일 본문 5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf\nSAFE-085 assert(safe085BoundaryObserved && schemaMutationPerformed === false, 동일 본문 77cf24a70b33def5b8a540f873e77a0b2badc7884c7c95b5ae52e6a20affcef2\nSAFE-086 assert(safe086BoundaryObserved && rawMaterialStored === false, 동일 본문 3456db16ff06dcc716d73429d2e6a4e185e0c273fb84d54da3d5762e0f73ae53\nSAFE-087 assert(safe087BoundaryObserved && rawMaterialStored === false && sourceUrlStored === false && credentialStored === false && schemaMutationPerformed === false, 동일 본문 d23745350551526ba3d8fd64b35d2a206230d1a3061e3400fd84aae270860464\nSAFE-088 assert(safe088BoundaryObserved && rawMaterialStored === false && providerCallPerformed === false && schemaMutationPerformed === false, 동일 본문 11be84a6d73f031e55d3eefd4d9978b42793a4f4534639dc2a1b7b90958dd2ab\nSAFE-089 assert(safe089BoundaryObserved && providerCallPerformed === false && schemaMutationPerformed === false, 동일 본문 9b3ef5b78dc0f70a97575ddd33850f9b77a26b0c9d45299373b7a477d173b964\nSAFE-090 assert(safe090BoundaryObserved && schemaMutationPerformed === false, 동일 본문 86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290\nSAFE-091 assert(safe091BoundaryObserved && schemaMutationPerformed === false, 동일 본문 1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780\nOPS-052 assert(safe082BoundaryObserved && rawMaterialStored === false, 동일 본문 5c51dae5f1b5a7de414dd1f00b26350768e315300c670c3b7111c55c70c950bf\nOPS-053 assert(featureSetBlock.includes(\"media-server.event-feature-set.v1\") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, \"LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls\"); 동일 본문 7a98954c2d2ac79cef86cdcd4c5285b81995827020e46a6503fcb8fb9cad4612\nOPS-054 assert(completeTaskBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && providerCallPerformed === false, \"LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls\"); 동일 본문 90947f8dcc3ace0703cf68268016c4a4b6bf0cceb25acb5e13a67c11ab90c472\nOPS-055 assert(storeRevisionBlock.includes(\"feature_set_stored\") && opsEventsUiAdded === false && rawMaterialStored === false, \"LAB-085 feature retention must reject raw material without adding /ops/events UI\"); 동일 본문 222126d7f1f3568487d974ae0c13615be8e6112d5a99f16f53f0f887c26dac74\nOPS-056 assert(queryConvertBlock.includes(\"identity-search-disallowed\") && opsEventsUiAdded === false, \"LAB-086 identity-search-disallowed query conversion must not add /ops/events UI\"); 동일 본문 0354bcd4048846dd8c66ec19deba6da5f55cf00474f2894e2825c44e4a16232b\nOPS-057 assert(rebuildBlock.includes(\"indexed_entries\") && opsEventsUiAdded === false, \"LAB-087 feature search indexed_entries must not add /ops/events UI\"); 동일 본문 58a27025105a72c1a6f3c62e60ca4e8f55c101a9e282ee8a8a9fc8dc6d2cbdb3\nOPS-058 assert(safe090BoundaryObserved && schemaMutationPerformed === false, 동일 본문 86725c30cd873ee10c4fbafc74b65cdf581aadf6148dd1d0ee58f77a87829290\nOPS-059 assert(safe091BoundaryObserved && schemaMutationPerformed === false, 동일 본문 1bc34817ae9c5d2f50c1390c531d5a7719539b5d35d00579d425033f3a3f9780\n"
+      },
+      {
+        "name": "v300DocMigrationRun",
+        "command": "node scripts/internal/verify_v390_review4_semantic_migration_contract.mjs --baseline /private/tmp/media-server-v300-doc-review.80D6Zd/prior-audit.json --fresh /private/tmp/media-server-v300-doc-review.80D6Zd/fresh-audit.json --report /private/tmp/media-server-v300-doc-review.80D6Zd/delta.json --write-evidence /private/tmp/media-server-v300-doc-review.80D6Zd/migration.json",
+        "startedAt": "2026-09-28T17:01:43.354Z",
+        "chunk_id": "8a2965",
+        "wall_time_seconds": 0.3007275,
+        "exit_code": 0,
+        "original_token_count": 188,
+        "output": "== V390 REVIEW4 semantic migration contract ==\n- positive/negative bindings: 9\n- trust-only migration bindings: 6\n- semantic/native transaction bindings: 2\n- producer input-path bindings: 5\n- producer entrypoint negative smoke: 1\n- producer reviewedOn contract: 1\n- producer snapshot/trust preflight: 6\n- rows: 986\n- carryForwardEligible: 962\n- independentReviewRequired: 24\n- requiredIds: UI-059,EVT-060,LAB-083,LAB-084,LAB-085,LAB-086,LAB-087,LAB-088,SAFE-082,SAFE-085,SAFE-086,SAFE-087,SAFE-088,SAFE-089,SAFE-090,SAFE-091,OPS-052,OPS-053,OPS-054,OPS-055,OPS-056,OPS-057,OPS-058,OPS-059\n- report: /private/tmp/media-server-v300-doc-review.80D6Zd/delta.json\n- evidence: /private/tmp/media-server-v300-doc-review.80D6Zd/migration.json\n- failures: 0\n"
+      },
+      {
+        "name": "v300DocProducerRun",
+        "command": "node scripts/internal/produce_v390_review4_migration_aware_approvals.mjs --write-ledger --prior-audit /private/tmp/media-server-v300-doc-review.80D6Zd/prior-audit.json --prior-approvals /private/tmp/media-server-v300-doc-review.80D6Zd/prior-approvals.json --migration-evidence /private/tmp/media-server-v300-doc-review.80D6Zd/migration.json --decisions /private/tmp/media-server-v300-doc-review.80D6Zd/decisions.json --review-package /private/tmp/media-server-v300-doc-review.80D6Zd/review-package.json",
+        "startedAt": "2026-09-28T17:03:08.041Z",
+        "chunk_id": "edc75d",
+        "wall_time_seconds": 1.003507166,
+        "session_id": 67454,
+        "original_token_count": 0,
+        "output": "== V390 REVIEW4 migration-aware approval producer ==\n- candidate digest: 92574f1a7d97ae0dc7ee41b4998e0a8bf2d6a711beb6a311344d4a46d00ebf9c\n- carry-forward: 962\n- independent-review: UI-059,EVT-060,LAB-083,LAB-084,LAB-085,LAB-086,LAB-087,LAB-088,SAFE-082,SAFE-085,SAFE-086,SAFE-087,SAFE-088,SAFE-089,SAFE-090,SAFE-091,OPS-052,OPS-053,OPS-054,OPS-055,OPS-056,OPS-057,OPS-058,OPS-059\n- atomic replacements: audit,approval,manifest,native\n- failures: 0\n",
+        "endedAt": "2026-09-28T17:04:38.769Z",
+        "exit_code": 0
+      },
+      {
+        "name": "v300DocImmutableRun",
+        "command": "node --input-type=module <<'NODE'\nimport fs from 'node:fs'; import assert from 'node:assert/strict'; import {execFileSync} from 'node:child_process'; import {isDeepStrictEqual} from 'node:util';\nconst read=f=>JSON.parse(fs.readFileSync(f,'utf8'));\nconst old=f=>JSON.parse(execFileSync('git',['show','HEAD:'+f],{maxBuffer:100*1024*1024}));\nconst file='test/fixtures/project_feature_implementation_evidence.json',a=old(file),b=read(file);\nassert.equal(a.items.length,986);assert.equal(b.items.length,986);\nconst unchangedFields=['id','section','surfaceKind','feature','uiNeed','testNeed','testAreas','sourceEvidence','uiEvidence','verifierEvidence','manualUiCaseId','longrunEvidence','status'];\nfor(let i=0;i<986;i++)for(const key of unchangedFields)assert(isDeepStrictEqual(a.items[i][key],b.items[i][key]),b.items[i].id+':'+key);\nconst nf='test/fixtures/v390_ui_native_exact_cases.json',n0=old(nf),n1=read(nf);\nassert.equal(n0.cases.length,424);assert.equal(n1.cases.length,424);assert.deepEqual(n0.counts,n1.counts);assert.deepEqual(n0.evidenceBoundary,n1.evidenceBoundary);\nconst changed=[];\nfor(let i=0;i<424;i++) if(!isDeepStrictEqual(n0.cases[i],n1.cases[i])) changed.push({id:n1.cases[i].id||n1.cases[i].testId,fields:Object.keys({...n0.cases[i],...n1.cases[i]}).filter(k=>!isDeepStrictEqual(n0.cases[i][k],n1.cases[i][k]))});\nconsole.log(JSON.stringify({featureDefinitionsAndMappingsUnchanged:986,nativeCaseCount:424,nativeChanged:changed,sourceBindingsChanged:Object.keys(n1.sourceBindings).filter(k=>!isDeepStrictEqual(n0.sourceBindings[k],n1.sourceBindings[k]))},null,2));\nNODE",
+        "chunk_id": "e76b65",
+        "wall_time_seconds": 0.105471875,
+        "exit_code": 0,
+        "original_token_count": 67,
+        "output": "{\n  \"featureDefinitionsAndMappingsUnchanged\": 986,\n  \"nativeCaseCount\": 424,\n  \"nativeChanged\": [\n    {\n      \"fields\": [\n        \"workflow\"\n      ]\n    }\n  ],\n  \"sourceBindingsChanged\": [\n    \"implementationProjectionSha256\",\n    \"runtimeOracleCatalogSha256\"\n  ]\n}\n"
+      }
+    ],
+    "limitations": [
+      "도구 API 앞선 출력은 stdout/stderr가 합쳐진 상태다. checks.json에 연결된 명령은 두 출력을 분리 보존한다.",
+      "write_stdin으로 끝을 관측한 시각은 프로세스 실제 종료 시각이 아니다. tool wall_time_seconds는 전체 실행 소요가 아니다.",
+      "후보 상세 검토 중 24개 전체 role 정보를 한 번 출력한 결과는 도구 한도로 잘렸다. 이후 바이트 대조 결과와 24개 exact assertion 요약 및 안전 검사 본문을 별도로 읽어 확인했다."
+    ]
+  },
+  "finalChecks": [
+    {
+      "name": "unit",
+      "command": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+      "args": [
+        "--test",
+        "scripts/internal/v300_documentation_consumers.test.mjs",
+        "scripts/internal/documentation_contract.test.mjs"
+      ],
+      "startedAt": "2026-09-28T17:04:54.595Z",
+      "endedAt": "2026-09-28T17:04:56.494Z",
+      "elapsedMs": 1897.1478749999999,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ DOC-POL-01 현재 진입점과 상세 정책 연결 (0.642ms)\n✔ DOC-POL-02 제목·절 번호·옛 완료 문구는 정책 계약이 아님 (0.413083ms)\n✔ DOC-POL-03 정책 진입점 제거·환경변수 누락은 실패 (0.229334ms)\n✔ DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패 (0.334417ms)\n✔ DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사 (0.103833ms)\n✔ DOC-POL-06 실제 UI 없이 문서·정책만 통과해도 UI PASS 불가 (0.5235ms)\n✔ DOC-POL-07 UI 반례·완료 조건 완화는 기존 기계 정책이 거부 (0.172917ms)\n▶ V300-DOC 문서 소비자와 실제 안전 검사 구분\n  ✔ 01 현재 식별자와 기능별 명령 연결 (1.062084ms)\n  ✔ 02 문서·식별자·정의·dispatch 누락/중복은 실패 (0.215083ms)\n  ✔ 02 명령 없는 정의는 exact manifest만 사용하고 명시 오류는 덮어쓰지 않음 (0.111375ms)\n  ✔ 03 과거 기록 없는 정상 event_evidence_contract (32.502375ms)\n  ✔ 04 기존 안전 반례 event_evidence_contract (32.750709ms)\n  ✔ 03 과거 기록 없는 정상 feature_schema_privacy (87.674459ms)\n  ✔ 04 기존 안전 반례 feature_schema_privacy (85.695625ms)\n  ✔ 03 과거 기록 없는 정상 vlm_feature_queue (83.9305ms)\n  ✔ 04 기존 안전 반례 vlm_feature_queue (82.58675ms)\n  ✔ 03 과거 기록 없는 정상 feature_only_retention (82.034791ms)\n  ✔ 04 기존 안전 반례 feature_only_retention (82.566125ms)\n  ✔ 03 과거 기록 없는 정상 search_dsl_query_convert (86.071667ms)\n  ✔ 04 기존 안전 반례 search_dsl_query_convert (84.203083ms)\n  ✔ 03 과거 기록 없는 정상 feature_search_index (85.063ms)\n  ✔ 04 기존 안전 반례 feature_search_index (84.096541ms)\n  ✔ 03 과거 기록 없는 정상 retention_pin_cleanup (84.154375ms)\n  ✔ 04 기존 안전 반례 retention_pin_cleanup (87.588959ms)\n  ✔ 03 과거 기록 없는 정상 ops_events_ui (229.04575ms)\n  ✔ 04 기존 안전 반례 ops_events_ui (220.012083ms)\n  ✔ 04 기존 독립 검사 연결 훼손 거부 SAFE-064 (154.823458ms)\n  ✔ 04 기존 독립 검사 연결 훼손 거부 LAB-002 (149.667542ms)\n✔ V300-DOC 문서 소비자와 실제 안전 검사 구분 (1837.449625ms)\nℹ tests 29\nℹ suites 0\nℹ pass 29\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1872.512625\n",
+      "stderr": ""
+    },
+    {
+      "name": "coverage",
+      "command": "./server.sh",
+      "args": [
+        "verify-feature-inventory-coverage"
+      ],
+      "startedAt": "2026-09-28T17:04:56.494Z",
+      "endedAt": "2026-09-28T17:05:56.516Z",
+      "elapsedMs": 60021.669375,
+      "exit": null,
+      "signal": "SIGTERM",
+      "error": "spawnSync ./server.sh ETIMEDOUT",
+      "stdout": "[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)\n[pass] inventory row count is stable\n[pass] inventory uses only the four approved test areas\n[pass] coverage docs and server command are wired\n[pass] exact implementation evidence manifest is valid\n[pass] all feature IDs have exact coverage targets\n",
+      "stderr": ""
+    },
+    {
+      "name": "coverage-retry",
+      "command": "./server.sh",
+      "args": [
+        "verify-feature-inventory-coverage"
+      ],
+      "startedAt": "2026-09-28T17:06:42.389Z",
+      "endedAt": "2026-09-28T17:08:03.057Z",
+      "elapsedMs": 80665.41070800001,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)\n[pass] inventory row count is stable\n[pass] inventory uses only the four approved test areas\n[pass] coverage docs and server command are wired\n[pass] exact implementation evidence manifest is valid\n[pass] all feature IDs have exact coverage targets\n[pass] negative missing-ID fixture fails\n[pass] SAFE-200 canonical coverage wording truthfulness boundary\n\n== Feature inventory coverage summary ==\n- featureRows: 986\n- covered: 986\n- missing: 0\n- pass: 8\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "scripts",
+      "command": "./server.sh",
+      "args": [
+        "verify-script-inventory"
+      ],
+      "startedAt": "2026-09-28T17:08:03.058Z",
+      "endedAt": "2026-09-28T17:09:06.909Z",
+      "elapsedMs": 63850.83687499999,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[pass] dispatch parser recognizes explicit bash and node interpreters\n[pass] server.sh dispatch targets exist and are executable\n[pass] documented server.sh commands resolve to dispatch table\n[pass] tracked scripts are classified and referenced\n[pass] project inventory delegates script file inventory to this verifier\n[pass] project inventory maps verifier families without duplicating dispatch details\n[pass] CMake does not define a separate untracked CTest registry\n[pass] test entry scripts are reachable from test_all\n[pass] auth verifier has no hardcoded test password defaults\n[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default\n[pass] critical verifier pass output avoids grouped feature-result wording\n[pass] user-facing JS option parsers reject unknown options\n\n== Script inventory verification summary ==\n- pass: 12\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "docs",
+      "command": "./server.sh",
+      "args": [
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-09-28T17:09:06.909Z",
+      "endedAt": "2026-09-28T17:09:07.272Z",
+      "elapsedMs": 362.9407080000092,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 14814\n- local images: 22\n- local anchors: 226\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "diff",
+      "command": "git",
+      "args": [
+        "diff",
+        "--check"
+      ],
+      "startedAt": "2026-09-28T17:09:07.272Z",
+      "endedAt": "2026-09-28T17:09:07.467Z",
+      "elapsedMs": 194.42949999999837,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "failureDisposition": [
+    {
+      "phase": "예상 RED",
+      "result": "문서 검사 helper 부재 assertion, 구현 후 GREEN"
+    },
+    {
+      "phase": "초안 자체검사",
+      "result": "기존 SAFE-064/Lab API 6개 명령 연결 오류 및 새 helper의 UI 행 명령 가정 오류. 기존 실제 매핑을 확인해 수정 후 29개 통과"
+    },
+    {
+      "phase": "기존 검토 결속 확인",
+      "result": "24개 전체 verifier 해시 drift. role 본문 바이트 동일성 확인과 메인 검토, 962개 엄격 승계 후 기존 원자 producer로 재결속. 후속 전체 coverage 통과"
+    },
+    {
+      "phase": "coverage 실행 래퍼",
+      "result": "새 임시 래퍼가 근거 없는 60초 상한을 추가해 SIGTERM으로 중단. 최초 출력·신호를 보존하고 원래 CLI 실행 방식으로 재검증해 8개 전체 통과. 제품 timeout이나 합격 기준 변경 없음"
+    }
+  ],
+  "preservedArtifacts": {
+    "migration.json": {
+      "bytes": 374655,
+      "sha256": "2388d7e4173c8e509217408534cfc2be6b764f99b04865bb9f1b580112139160"
+    },
+    "review-package.json": {
+      "bytes": 10315,
+      "sha256": "c5c698e3d6f4ba722a55e6b9fd4959f331cc30b4f8ba68976c5304377d71b891"
+    },
+    "decisions.json": {
+      "bytes": 34688,
+      "sha256": "b3ac051f7dfcad96ffa3740d514aed45ebade026d46f3d7ab369346669ef1f39"
+    }
+  },
+  "measurement": {
+    "tokenStart": null,
+    "tokenEnd": null,
+    "tokenConsumed": null,
+    "reason": "이 실행 묶음만의 모델 토큰 집계 없음. 자동 goal 누적값을 개별 테스트 소비량으로 간주하지 않음",
+    "source": "tools.exec_command/write_stdin 출력과 checks.json의 performance.now 계측. 원시 출력 및 실행/종료 시각의 차이는 attempts.limitations 참고"
+  },
+  "notRun": [
+    "제품 build/Auth/API/media/녹화 실행",
+    "실제 UI·브라우저 시각 확인·30분·120분",
+    "원격 갱신·push·PR·merge·tag·Release"
+  ],
+  "evidenceImpact": "현재 단계의 정적 정의/검사 연결만 확인. 과거 30분/UI/120분 실행 결과를 새 PASS로 만들지 않았고 최종 릴리즈의 증거 승계 판정은 별도다.",
+  "cleanup": {
+    "status": "완료",
+    "path": "/private/tmp/media-server-v300-doc-review.80D6Zd",
+    "server": "기동하지 않음",
+    "ports": "열지 않음",
+    "processes": "실행 도구 종료 코드와 중단 래퍼 잔여 없음 확인",
+    "removedFileCount": 28,
+    "removedBytes": 21689503,
+    "inventory": [
+      {
+        "name": "attempts-final.json",
+        "bytes": 53753,
+        "sha256": "c074d64f9726119b3cd11a9a5b8367be8cd0ca5a8ebea27528529a45422c0c98"
+      },
+      {
+        "name": "attempts.json",
+        "bytes": 50642,
+        "sha256": "c0ada25d1268220135ac8b89c06608e2475831ebeed9b9cedadff7885addb8b4"
+      },
+      {
+        "name": "checks.json",
+        "bytes": 2365,
+        "sha256": "29f3997b264877b35d3ffaba6be83cc717427a85b116029bc1729019f85cb639"
+      },
+      {
+        "name": "coverage-retry.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "coverage-retry.stdout.txt",
+        "bytes": 532,
+        "sha256": "fa968412b5d12919a0ddfe45a6ec26be6931a13369b0cc0ae8e3504ab8b85a94"
+      },
+      {
+        "name": "coverage.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "coverage.stdout.txt",
+        "bytes": 317,
+        "sha256": "66e8ba1b5c6075130d1444c2ff63df5235767a26fca203fdc050a07a40b256ab"
+      },
+      {
+        "name": "decisions.json",
+        "bytes": 34688,
+        "sha256": "b3ac051f7dfcad96ffa3740d514aed45ebade026d46f3d7ab369346669ef1f39"
+      },
+      {
+        "name": "delta.json",
+        "bytes": 520987,
+        "sha256": "316702808363e193e0db4d42a512d30edf13eef03b82fa89b9224af5e5378ff0"
+      },
+      {
+        "name": "diff.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "diff.stdout.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "docs.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "docs.stdout.txt",
+        "bytes": 187,
+        "sha256": "5c6e8c348ebfb7feb09ce135bd21e52a96ec9bf08a8be87eb3e6eb3dbd67c375"
+      },
+      {
+        "name": "fresh-audit.json",
+        "bytes": 7714750,
+        "sha256": "b7dc560c868322e5b1a23b7464abb7eabc9b36f84bc1540659e24dfa24b398c1"
+      },
+      {
+        "name": "migration.json",
+        "bytes": 374655,
+        "sha256": "2388d7e4173c8e509217408534cfc2be6b764f99b04865bb9f1b580112139160"
+      },
+      {
+        "name": "native-comparison.json",
+        "bytes": 1564,
+        "sha256": "146dac18c1c6761b71ec28c9006334f962e662a41527a57cc09e7bf9ce975bcd"
+      },
+      {
+        "name": "prepare-review.mjs",
+        "bytes": 5622,
+        "sha256": "80217c61955be3c3abc5936ebb1f37f7021dcaf3e86c9a6039e6c55a23437245"
+      },
+      {
+        "name": "preserve-result.mjs",
+        "bytes": 5721,
+        "sha256": "954c7240647f9806a0a589a3daefaeaa31b9134313c9d91c05c54d50bacd69d2"
+      },
+      {
+        "name": "prior-approvals.json",
+        "bytes": 1744047,
+        "sha256": "d179858e6adfb28e525a902f2b4c059b3cff9ee623e7012689a5130239c67398"
+      },
+      {
+        "name": "prior-audit.json",
+        "bytes": 10412013,
+        "sha256": "68a57a3298d91fe942fd6f2151cfeab044ad5cab42510feda94be2eb21ea4609"
+      },
+      {
+        "name": "review-package.json",
+        "bytes": 10315,
+        "sha256": "c5c698e3d6f4ba722a55e6b9fd4959f331cc30b4f8ba68976c5304377d71b891"
+      },
+      {
+        "name": "review-snapshot.index",
+        "bytes": 727664,
+        "sha256": "3aec5f45903f6cad641dc5a7a0dff76f32154164ad1ea7bf84520921c2ad136f"
+      },
+      {
+        "name": "run-checks.mjs",
+        "bytes": 1442,
+        "sha256": "2b5430fea77c038a99941aed383149f6ebb202ab0e06fa924e36981c4a90c740"
+      },
+      {
+        "name": "scripts.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "scripts.stdout.txt",
+        "bytes": 874,
+        "sha256": "c4e0a9eb6467fa3d156d038eafd3be9ce3afb953aae43271b71b41ec692a3871"
+      },
+      {
+        "name": "source-comparison.json",
+        "bytes": 25008,
+        "sha256": "b78d3ee3b0b87fe7200413c3f370e19350c3da3df7e9c1005a30dfe09a97efc4"
+      },
+      {
+        "name": "unit.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "unit.stdout.txt",
+        "bytes": 2357,
+        "sha256": "3a5343fe3e62eb6e1bbd41ddf3981ef239d129fdde530168b927325c59bc09e7"
+      }
+    ],
+    "confirmedAbsent": true,
+    "preservation": "원출력은 result.json, 결속 입력 3개는 동일 바이트로 보존. 이전 audit/approval은 baseCommit 원본과 byte 대조. fresh 후보는 현재 fixture와 JSON 내용 동일하며 임시 직렬화 바이트는 별도 보존하지 않음. 임시 driver·Git index·중복 delta는 재생성 가능 작업 부산물."
+  },
+  "remaining": [
+    "다른 버전·readiness 검증기의 종료 기록/문구 의존 분리",
+    "결과 생산자·버전 마감 절차 정리",
+    "README 포함 전체 현행 문서 재구성·계약/미래 계획 보호",
+    "Git 보존 확인 후 릴리즈 전 실행 기록 삭제 커밋·작은 이력 색인",
+    "최종 문서/도구 검증·임시 보고서 삭제·푸시 판정"
+  ]
+}

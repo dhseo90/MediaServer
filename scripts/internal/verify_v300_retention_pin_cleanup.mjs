@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -23,7 +25,7 @@ Checks:
   - V300-S09 fixture covers default retention, source/rule overrides, pinned exclusion, dry-run/apply, audit
   - analysis/event_retention_cleanup exposes cleanup policy, lifecycle action, audit, and boundary invariants
   - analysis-state smoke includes S09 dry-run, pin exclusion, lifecycle delete/de-index, and boundary checks
-  - docs/backlog/stream verification/release records/feature inventory/server dispatch are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to V300-S09 local cleanup contract and does not imply destructive operational cleanup, UI 풀테스트, 30분/120분, or release publication
 `);
 }
@@ -38,15 +40,12 @@ const files = {
   smoke: readText("scripts/internal/analysis_state_smoke.cpp"),
   smokeBuild: readText("scripts/internal/verify_analysis_state_smoke.sh"),
   policy: readText("docs/v300-retention-pin-cleanup.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
   cmake: readText("CMakeLists.txt"),
 };
@@ -123,57 +122,16 @@ check("analysis-state smoke verifies S09 behavior and build links module", () =>
   assert(files.cmake.includes("src/analysis/event_retention_cleanup.cpp"), "CMake missing event_retention_cleanup.cpp");
 });
 
-check("docs and roadmap expose V300-S09 scope without overclaim", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S09 Retention/Pin/Cleanup`",
-    "media-server.v300-retention-cleanup-report.v1",
-    "defaultRetentionDays",
-    "pinnedExcludesAutomaticCleanup",
-    "cleanup dry-run",
-    "lifecycle delete",
-    "audit trail",
-    "destructive 운영 cleanup 실행 evidence가 아님",
-  ]) {
-    assert(files.policy.includes(snippet), `policy doc missing snippet: ${snippet}`);
-  }
-  assert(files.docsIndex.includes("[v300-retention-pin-cleanup.md](v300-retention-pin-cleanup.md)"), "docs index missing S09 doc");
-  for (const snippet of [
-    "| 9 | V300-S09 | P1 | 완료 | Retention/Pin/Cleanup |",
-    "7일 기본 retention, pin 제외, 설정 가능 cleanup, dry-run/audit",
-    "docs/v300-retention-pin-cleanup.md",
-    "`./server.sh verify-v300-retention-pin-cleanup`",
-    "destructive cleanup 실행은 별도 승인과 evidence 필요",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S09 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S09 | `./server.sh verify-v300-retention-pin-cleanup` |",
-    "Configurable retention, pin exclusion, dry-run/apply lifecycle cleanup, and audit trail",
-    "destructive operational cleanup, UI 풀테스트, 30분/120분, published metadata evidence가 아님",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing V300-S09 snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.policy, identifiers: ["media-server.v300-retention-cleanup-report.v1","defaultRetentionDays","pinnedExcludesAutomaticCleanup","retention-cleanup-dry-run","retention-cleanup-apply","retain-pinned","would-delete"],
+    command, script: "verify_v300_retention_pin_cleanup.mjs", featureIds: ["LAB-088","SAFE-091","OPS-059"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V300-S09 to LAB-088, SAFE-091, and OPS-059", () => {
-  for (const snippet of [
-    "V300-S09 Retention/Pin/Cleanup | `LAB-088`, `SAFE-091`, `OPS-059` | `verify-v300-retention-pin-cleanup`, `verify-analysis-state`",
-    "LAB-088 | V300-S09 retention/pin/cleanup fixture",
-    "SAFE-091 | V300-S09 retention cleanup boundary",
-    "OPS-059 | V300-S09 retention/pin/cleanup 게이트",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 Retention/Pin/Cleanup",
-    "`./server.sh verify-v300-retention-pin-cleanup`",
-    "v300 S09 RED retention/pin/cleanup analysis-state gate",
-    "v300 S09 RED retention/pin/cleanup static gate",
-    "v300 S09 UI/longrun/published/destructive cleanup",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S09 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S09 command");

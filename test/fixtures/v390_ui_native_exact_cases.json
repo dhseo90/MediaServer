@@ -5,9 +5,9 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "721e5624d209c62ac8d961646b6becd270b5bbc05ac8d996634dc7af945736a2",
+    "implementationProjectionSha256": "eec36fc3c4ef9b2f76df0bc1f9fab980bf8707e43381c0e58d1794abc4cee56b",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "de884bf9402c6b5f4ccb829cad8d69a8074dcf67f8b9293e38a4201273e6f7b7",
+    "runtimeOracleCatalogSha256": "9798d06f677b4f8ee39d5d803a7b4120eacef24faec56959a1efabbe5400e887",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -38098,7 +38098,7 @@
             "setupId": "UI-059:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2",
+            "semanticCallChainSha256": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480",
             "persistedMutation": false,
             "fixtureId": "ui-059-review4-fixture",
             "beforeSnapshotRef": null
@@ -38180,7 +38180,7 @@
             "contextSha256": "64e52729289f59a5e99717e73a87f17f7d4d12fe3e1754dd6f5c6076d5107337"
           },
           "verifierCommand": "verify-v300-ops-events-ui",
-          "assertedSemanticDigest": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2"
+          "assertedSemanticDigest": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -38192,7 +38192,7 @@
             "text": "`/ops/events`가 V300 Feature/Search Index 기반의 search/detail UI를 Ops-only로 표시하고 evidence timeline, feature reasons, retry action, pin status, retention status를 source URL/raw provider/debug/client exposure 없이 보여줌",
             "sha256": "24e483ac5e5883b6588e5dafa5d2d9ab772dfa878f7197461405a288f01efb4e"
           },
-          "specSha256": "f784f1b90bd9b854b54fd41f9142091295300a586d47df4ddecb18e8be5b6531",
+          "specSha256": "2b7b7d3d520369ef4e5430d8034dcbc0b4a7f894292c3a70e5f4c9f34e8aa0f0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -38447,7 +38447,7 @@
             "cleanupId": "UI-059:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "97faccd01f0ac1bf8e0e7de7a1c2cfdf96840315e520ad75818017cdf2a6c3c2"
+            "semanticCallChainSha256": "f0ad7f530f4d39543183df8922cb5404c9be6ba8476ca4aa66134bfe101f2480"
           }
         ]
       },

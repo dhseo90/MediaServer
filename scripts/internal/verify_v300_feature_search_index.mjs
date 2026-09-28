@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -23,7 +25,7 @@ Checks:
   - V300-S07 fixture covers EventRecord, FeatureSet, EvidenceManifest, and operator review projection
   - analysis/event_feature_search_index builds a local index report without provider/vector/UI side effects
   - analysis-state smoke includes S07 projection, latest revision, orphan/privacy guard, and rebuild stale result guard
-  - docs/backlog/stream verification/release records/feature inventory/server dispatch are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to V300-S07 Feature/Search Index evidence and does not imply /ops/events UI, vector search, longrun, or release publication
 `);
 }
@@ -38,15 +40,12 @@ const files = {
   smoke: readText("scripts/internal/analysis_state_smoke.cpp"),
   smokeBuild: readText("scripts/internal/verify_analysis_state_smoke.sh"),
   policy: readText("docs/v300-feature-search-index.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
   cmake: readText("CMakeLists.txt"),
 };
@@ -123,58 +122,16 @@ check("analysis-state smoke verifies S07 behavior and build links module", () =>
   assert(files.cmake.includes("src/analysis/event_feature_search_index.cpp"), "CMake missing event_feature_search_index.cpp");
 });
 
-check("docs and roadmap expose V300-S07 scope without overclaim", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S07 Feature/Search Index`",
-    "media-server.v300-feature-search-index-report.v1",
-    "EventRecord",
-    "FeatureSet revision",
-    "EvidenceManifest",
-    "operator review state",
-    "stale result guard",
-    "`/ops/events` UI",
-    "vector search",
-  ]) {
-    assert(files.policy.includes(snippet), `policy doc missing snippet: ${snippet}`);
-  }
-  assert(files.docsIndex.includes("[v300-feature-search-index.md](v300-feature-search-index.md)"), "docs index missing S07 doc");
-  for (const snippet of [
-    "| 7 | V300-S07 | P1 | 완료 | Feature/Search Index |",
-    "EventRecord, FeatureSet, EvidenceManifest, operator review state 검색",
-    "docs/v300-feature-search-index.md",
-    "`./server.sh verify-v300-feature-search-index`",
-    "`/ops/events` UI나 vector search evidence가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S07 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S07 | `./server.sh verify-v300-feature-search-index` |",
-    "Search across EventRecord, FeatureSet, EvidenceManifest, and operator review state",
-    "`/ops/events` UI, vector search, semantic provider rerank",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing V300-S07 snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.policy, identifiers: ["media-server.v300-feature-search-index-report.v1","EventRecord","FeatureSet","EvidenceManifest","rawPromptStored=false","runtimeProviderCallPerformed=false","vectorSearchPerformed=false"],
+    command, script: "verify_v300_feature_search_index.mjs", featureIds: ["LAB-087","SAFE-089","OPS-057"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V300-S07 to LAB-087, SAFE-089, and OPS-057", () => {
-  for (const snippet of [
-    "V300-S07 Feature/Search Index | `LAB-087`, `SAFE-089`, `OPS-057` | `verify-v300-feature-search-index`, `verify-analysis-state`",
-    "LAB-087 | V300-S07 feature/search index fixture",
-    "SAFE-089 | V300-S07 search index privacy and boundary",
-    "OPS-057 | V300-S07 feature/search index 게이트",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 Feature/Search Index",
-    "`./server.sh verify-v300-feature-search-index`",
-    "v300 S07 RED feature/search index gate",
-    "v300 S07 feature/search index final",
-    "v300 S07 UI/vector/longrun/published",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S07 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S07 command");

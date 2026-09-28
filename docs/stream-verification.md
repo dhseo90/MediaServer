@@ -121,6 +121,23 @@ v400 정책 호환 명령의 현행 안전 경계는 `v400_current_policy.mjs`�
 | V400-CURRENT-07 | 전체 inventory 집합·독립 REVIEW4 승인과 지정 6개 소스 proof 대조, 승인/소스 훼손 거부 |
 | V400-CURRENT-08 | 986/424/50/7 정의 및 wrapper/coverage의 실행 증거 분리 유지 |
 
+v300 이벤트 증거·개인정보·큐·검색·보존·Ops 정적 검사는 현행 계약의 식별자와
+기능 ID별 명령 연결을 확인하며 과거 완료 표·중앙 실행 원장을 읽지 않는다.
+분야별 색인 도달성·링크·이미지·앵커는 `verify-docs-links`가 별도로 검사한다.
+제목·절 번호·전체 문장을 고정하거나 docs/README의 직접 링크만 강제하지 않는다.
+`node --test scripts/internal/v300_documentation_consumers.test.mjs`의 도구 자체검사:
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| V300-DOC-01 | 공통 문서 검사: 필수 식별자·정확한 기능 ID/명령·dispatch 유지, 옛 제목·완료 표 불필요 |
+| V300-DOC-02 | 식별자·문서·ID·명령 누락/중복 및 잘못된 dispatch는 계속 실패. 표에 명령이 없는 정의만 exact manifest 연결을 사용하며 명시 오류는 덮어쓰지 않음 |
+| V300-DOC-03 | 정적 검사 8개가 과거 기록·직접 문서 색인 없이 실행. 실제 소스는 읽기만 하며 제목 변경은 허용 |
+| V300-DOC-04 | 8개 검사의 개인정보·media/provider 경계·실제 UI 소스 반례와 SAFE-064/LAB-002 독립 명령 연결 훼손이 실패로 전파 |
+| V300-DOC-05 | 기존 986개 정의·승인과 변경 파일의 exact 소스 본문을 대조. 변경된 전체 파일 해시는 현행 소스 검토·기존 승인 이관 절차 후 재결속하며 제품/실제 UI 실행 PASS로 승격하지 않음 |
+
+반례는 자식 프로세스의 읽기 결과만 메모리에서 변경하며 저장소·운영 자료는 수정하지 않는다.
+실제 제품/UI 실행은 아니며 최초 예상 RED는 공통 문서 검사 함수 부재다.
+
 ### 영향별 1 문서 전용 변경
 
 최소 `git diff --check`. 허용 범위에서 `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`를 추가한다.

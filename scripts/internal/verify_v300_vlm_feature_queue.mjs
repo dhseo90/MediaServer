@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -23,7 +25,7 @@ Checks:
   - V300-S04 fixture covers background queue, lazy trigger, missing-runtime, timeout, and invalid-output cases
   - analysis/vlm_feature_queue implements bounded queue outcomes and FeatureSet revision output without raw prompt/response retention
   - analysis-state smoke includes the S04 queue behavior
-  - docs/backlog/stream verification/release records/feature inventory/server dispatch are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to V300-S04 queue contract evidence and does not imply real provider success, search UI, longrun, or release publication
 `);
 }
@@ -38,15 +40,12 @@ const files = {
   smoke: readText("scripts/internal/analysis_state_smoke.cpp"),
   smokeBuild: readText("scripts/internal/verify_analysis_state_smoke.sh"),
   policy: readText("docs/v300-vlm-feature-queue.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
   cmake: readText("CMakeLists.txt"),
 };
@@ -131,65 +130,25 @@ check("analysis-state smoke verifies S04 behavior and build links module", () =>
   assert(files.cmake.includes("src/analysis/vlm_feature_queue.cpp"), "CMake missing vlm_feature_queue.cpp");
 });
 
-check("docs and roadmap expose V300-S04 feature queue scope without overclaim", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S04 VLM Feature Queue`",
-    "background queue",
-    "lazy trigger",
-    "missing-runtime",
-    "queue-timeout",
-    "invalid-output",
-    "VLM-only failure",
-    "raw prompt",
-    "raw provider response",
-    "real VLM runtime/provider 호출은 수행하지 않습니다",
-  ]) {
-    assert(files.policy.includes(snippet), `policy doc missing snippet: ${snippet}`);
-  }
-  assert(files.docsIndex.includes("[v300-vlm-feature-queue.md](v300-vlm-feature-queue.md)"), "docs index missing S04 doc");
-  for (const snippet of [
-    "| 4 | V300-S04 | P0 | 완료 | VLM Feature Queue |",
-    "background queue, lazy trigger, timeout/invalid-output/missing-runtime 상태 분리",
-    "docs/v300-vlm-feature-queue.md",
-    "`./server.sh verify-v300-vlm-feature-queue`",
-    "real provider success나 default-on evidence가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S04 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S04 | `./server.sh verify-v300-vlm-feature-queue` |",
-    "Background feature queue, lazy trigger, missing-runtime/timeout/invalid-output VLM-only failure",
-    "real provider success, Search DSL, `/ops/events` UI",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing V300-S04 snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.policy, identifiers: ["VlmFeatureQueue","background","lazy","missing-runtime","queue-timeout","invalid-output","media-server.vlm-feature-queue-outcome.v1","mediaPathBlocked","rawPromptStored","runtimeProviderCallPerformed"],
+    command, script: "verify_v300_vlm_feature_queue.mjs", featureIds: ["LAB-084","SAFE-086","OPS-054"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V300-S04 to LAB-084, SAFE-086, and OPS-054", () => {
-  for (const snippet of [
-    "V300-S04 VLM Feature Queue | `LAB-084`, `SAFE-086`, `OPS-054` | `verify-v300-vlm-feature-queue`, `verify-analysis-state`",
-    "LAB-084 | V300-S04 VLM feature queue fixture",
-    "SAFE-086 | V300-S04 VLM feature queue isolation boundary",
-    "OPS-054 | V300-S04 VLM feature queue 게이트",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 VLM Feature Queue",
-    "`./server.sh verify-v300-vlm-feature-queue`",
-    "v300 S04 RED VLM feature queue smoke",
-    "v300 S04 VLM feature queue final",
-    "v300 S04 provider/search/UI/longrun/published",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S04 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S04 command");
   assert(files.server.includes("verify_v300_vlm_feature_queue.mjs"), "server.sh missing V300-S04 script dispatch");
   for (const id of ["LAB-002", "LAB-006", "LAB-017", "LAB-018", "LAB-019", "LAB-025", "LAB-084", "SAFE-086", "OPS-054"]) {
-    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+    // 기존 Lab API 항목은 독립 API 검증, 큐 자체의 세 항목은 이 명령에 연결된다.
+    const expected = ["LAB-084", "SAFE-086", "OPS-054"].includes(id) ? command : "verify-v390-review4-lab-core-api";
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expected, `${id} manifest verifier command drift`);
   }
   assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-084") &&
