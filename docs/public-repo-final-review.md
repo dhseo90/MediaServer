@@ -98,7 +98,7 @@ annotation 상태를 확인하지 않았으면 release gate PASS로 대체하지
 | 항목 | 상태 기준 |
 | --- | --- |
 | working tree | `git status --short --branch`가 의도한 변경만 표시 |
-| secret scan | secret, token, password, auth store, 개인 local path가 문서/코드/history에 없음 |
+| secret scan | 현재 추적 텍스트의 금지 경로·고신뢰 비밀 패턴과 기본 최근500 commit의 고신뢰 비밀 패턴 검사를 구분해 기록. 임의 비밀번호·모든 archive·전체 이력 부재로 확대하지 않음 |
 | README 첫 화면 | 제품 경계, 최신 공개 릴리즈, 현재 소스 버전, 빠른 시작이 한눈에 보임 |
 | 영문 문서 | README.en과 docs/en/README가 한국어 문서와 같은 상태를 설명 |
 | VERSION/CMake | `VERSION`과 `CMakeLists.txt` 버전 일치 |
@@ -108,3 +108,7 @@ annotation 상태를 확인하지 않았으면 release gate PASS로 대체하지
 
 각 항목은 실제 확인한 날짜와 명령/화면 근거가 있을 때만 PASS로 기록합니다. 이 문서는
 과거 체크박스를 현재 PASS로 재사용하지 않습니다.
+정제 전 원본 증거의 개인/임시 경로는 현재 파일에서 제거하되 원본 commit과 해시를
+역사적 복구 근거로 보존합니다. 따라서 현재 자료 정제와 Git 전체 이력의 경로 삭제는
+다릅니다. 이력 재작성이나 비밀 원문의 공개 허용을 뜻하지 않으며, 별도 이력 삭제는
+사용자 결정이 필요합니다.

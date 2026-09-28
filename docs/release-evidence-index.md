@@ -1,5 +1,11 @@
 # Release Evidence Index
 
+- [2026-09-28 B14 공개 증거 정제·공개 준비](release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28):
+  원본960개와 관련361파일 정제·해시 영수증, 역사적 JPEG20개 제한 보존, history500·배포
+  정책·source-only 리허설·Actions/local 대응 검사를 마쳤다. 최초 실패와 실행 환경
+  차이를 보존한다. 현재 마감·정리·외부 승인 경계는
+  [현행 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)을 따른다.
+
 - [2026-09-28 B13 재감사 후 마감](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-재감사-후-마감):
   인증 진단20·현행users72·inventory18 통과, 최종 제품 변경과 기존 UI/30분/120분 증거 연결.
   과거 실패와 무기한 자원 보장 한계를 유지한다. 문서 정합은 통과했지만 실제 공개 검사에서

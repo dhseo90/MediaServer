@@ -1,3 +1,4 @@
+// 파일 용도: B14 공개 증거의 경로만 정제하고 원본 판정과 수치를 보존한다.
 import {createHash} from "node:crypto";
 import path from "node:path";
 

@@ -1,4 +1,4 @@
-// B14 읽기 전용 원본 전수 대조. 저장소 내용은 쓰지 않는다.
+// 파일 용도: B14 원본을 읽기 전용으로 전수 대조한다. 저장소 내용은 쓰지 않는다.
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import {spawnSync} from 'node:child_process';

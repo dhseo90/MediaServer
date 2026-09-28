@@ -4,9 +4,92 @@
 정책 source-of-truth는 `AGENTS.md`다. 이 문서는 2026-09-26의 직접 관측과
 후속 제안을 분리하며, 미완료 단계를 PASS로 만들지 않는다.
 
-## 2026-09-28 B13 현행 마감 판정
+## 2026-09-28 B14 공개 증거 정제·공개 준비
 
-이 절이 현재 판정이다. B12 제품 검증 PASS는 유지하지만 공개 준비까지 모두 완료했다는
+현재 판정은 이 절이다. 아래 B13은 당시 실패 이력이며 덮어쓰지 않는다. 사용자 승인
+1~4번과 릴리즈 잔여를 대조한다. 원본/정제본 관계는 [변환 영수증](b14-migration-receipt.json.gz),
+단계별 실행은 [중앙 B14 기록](../../../release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28)을 따른다.
+
+### B14 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 보존 방식·JPEG20 결정 | 완료·커밋 | 원본 해시/실패 보존·평문 정제, 정확한20개 시각/metadata·SHA 확인 | `c7f9f577`, [검토](b14-historical-ui-review.json) |
+| 2 | 자료 정제·참조 보완 | 완료·커밋 | 원본960개 이행·관련361파일, 단위30·관측11·inventory986·현재 공개 검사 통과 | `393f2eea`, [원출력](b14-step2-results.json.gz) |
+| 3 | 공개·배포·Actions 검사 | 검증 통과·기록 마감 중 | history500 8/8, 의존성 조회5/5·source tree·source-only/위험 후보4종·Actions/대응·정적 검사 통과 | [원출력](b14-step3-results.json.gz)·[전수207행](b14-step3-items.md.gz) |
+| 4 | 분할 커밋·가능 시 푸시 | 일부 수행 | 1·2번 및 원본 대조 보완 커밋, 최종 문서·정리·증분 이력 확인 후 푸시 | Git 상태·AGENTS5 |
+| 5 | 종합보고·릴리즈 잔여 | 갱신 중 | 아래 완료/미실행/승인 경계를 실제 결과와 대조 | 이 절 |
+
+### B14 기준 대조
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 버전 | branch v4.1.0·VERSION/CMake4.1.0 | 일치, 제품 마지막 `c4735579` 이후 src/include 변경0 | Git diff·VERSION·CMake |
+| 원격·공개 | 원격 v4.1.0/main·태그 | 실제 조회 v4.1.0=`534a8dfa`, main=`431397d9`, v4.1.0 tag 없음. published 문서 기준v4.0.0, release action 없음 | Git 원격 조회·release policy |
+| 공개 범위 | source-only | 제품/runtime/model binary 번들 제외 | release/distribution policy |
+| CHANGELOG/NEWS | 루트 제품 문서 존재 시 반영 | 없음, fixture는 비대상 | 기존 B13 직접 확인·추가 생성 없음 |
+
+### B14 roadmap 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S10·S11 제품/최종 검증 | 제품·빌드/인증/녹화·30분/UI/120분 완료 | 제품 변경0, 유효한 기존 증거 유지 | 없음. 새 전수 실행으로 표기하지 않음 | B13-E02·B12·B11 |
+| 공개 준비 | B13 정책 위반·미완료 | 자료 정제·기본 history500·배포/Actions 대응 통과, 당시 실패 보존 | B14 결과로 현재 상태 갱신 | B14-02/03 |
+| 외부 릴리즈 | 미실행·별도 승인 | 이번은 개발 branch push까지 | 없음 | AGENTS4 |
+
+### B14 실제 구현·소비자
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 정제 | b14-evidence-sanitizer·b14-migrate-evidence | root만 치환·원본 fingerprint·목적지 충돌·JSON·영수증·원본 정리, secret 정책 불변 | 단위30·1321개 이행 지문 확인 |
+| 이미지 | public_repo_readiness_lib::loadReviewedHistoricalAssets | SHA 고정 manifest와 exact path/bytes/SHA만 허용. 새 파일·변조·중복·탈출·symlink 거부 | B14-A01~09 |
+| 녹화 관측 반례 | recording_current_longrun_diagnostics.test.mjs A03 | 새 평문 경로만 변경. 초과5개와 첫 실패 assertion 유지 | 관측11 PASS |
+| 문서/과거 manifest | Markdown 실제 링크·변환 영수증 | 현재 링크는 정제본, raw/source 해시는 역사적 원본 의미 유지 | docs-links·B14-M05/M07 |
+| 공개/배포 | public readiness·licensing guardrails·source-only rehearsal | history8/8, source tree4736파일 hit0, 실제 bundle 위험3개 거부, source-only16파일·위험 후보4종 거부. Actions3개 오류0·CI/local6/6 | B14-03 실제 결과. GitHub CI/배포 아님 |
+
+### B14 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| 보존·정제 범위 | 사용자 승인+프로젝트 직접 확인 | B13 1301파일·20개 시각 검토·현재 소비자 | 범위 밖 제품/이력 rewrite 없음 |
+| 기존 제품 증거 유지 | 직접 확인+메인 영향 판정 | 제품 diff0·원래 assertion 불변·focused 회귀 | 30분/UI/120분 자동 재실행 안 함 |
+| 커밋/푸시 조건 | AGENTS 직접 규칙 | 3·5·7.8 | 전체 승인 범위 PASS·정리 뒤 푸시 |
+| PR/CI/서명/공개 | AGENTS 직접 규칙+프로젝트 정책 | AGENTS4·public-repo-final-review | 별도 승인·실제 외부 확인 필요 |
+
+### B14 테스트 필요성
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 정제·공개·배포·Actions 대응 | 진행 대상 | 이번 변경과 B13 실패 | B14-01~04·OPS-163/SAFE-196 | 승인·실제 통과. 최종 기록·정리 진행 |
+| 새 빌드·30분·UI·공통/녹화120분 | 미진행 | 제품·판정·실행 경로 불변, 기존 유효 결과 유지 | B13-E02·B14 A03 | 새 실행 없음 |
+| 실제 GitHub CI·annotation | 조건부 진행 | PR/main 트리거·required checks | workflows·AGENTS4.5 | PR 승인 뒤 |
+| 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | 현행 릴리즈 범위 | 제외, 재추가하지 않음 |
+
+### B14 릴리즈 잔여 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | 최종 증거·정리 | 통과한 history500 이후 증분 커밋과 현재 파일 대조, 문서·소유 임시 자료 정리 | 로컬 기록·정리 | B14 직접 범위 | 전 |
+| 2 | 마감 | 개발 branch 동기화 | 승인 범위 전체 PASS 후 clean·원격 비교·누적 커밋 push | 승인된 외부 변경 | 사용자 지시·AGENTS5 | 전 |
+| 3 | P0 | PR·GitHub 설정·실제 CI | 별도 PR 승인, owner 설정/required checks·최신 CI·annotation 확인 | 외부 검증·수동 확인 | AGENTS4·public review | 병합 전 |
+| 4 | P0 | main 병합·서명 태그 | 별도 승인 후 최신 main·정확한 hash·서명 key 확인, signed annotated tag 전후 검증 | 외부 릴리즈 | AGENTS4.6~8 | 승인 후 |
+| 5 | P0 | source-only Release·published 확인 | 별도 승인 후 tag 기반 Release·Latest URL/remote tag/hash 확인 | 외부 릴리즈 | AGENTS4.9 | 승인 후 |
+
+### B14 미해소·한계
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| history500·후속 배포 | 완료 | 실제840.352초·500개SHA 보존, 배포/source-only·Actions 대응 통과 | 해당 로컬 검사 범위만 가능 | 후속 커밋은 증분 대조 |
+| 의존성 제한 환경 timeout | 최초 실패 보존·최종 조회 통과 | 제한 환경5개 timeout, 승인된 로컬 권한·새 registry·동일5초 상한에서5/5 ok. 정확한 OS 대기 원인은 미확정 | 로컬 실제 관측에만 사용 | 제한 환경 보편 지원으로 확대하지 않음 |
+| 비밀 검사 전체 보장 | 보장하지 않음 | 현재 고신뢰5패턴·최근500이 정책 검사 범위. 임의 비밀번호·모든 archive/전체 Git 이력을 전수 감사한 결과 아님 | 설정된 범위에만 사용 | 공개/승인 판단에서 범위 확대 주장 금지 |
+| 역사적 개인/임시 경로 | 현재 파일은 정제, 과거 commit은 보존 | 원본 증거 복구·기존 실패 보존 계약, history rewrite 미승인 | 현재 자료 정제 증거로 사용, 전체 이력 경로 삭제 증거 아님 | 이력 재작성은 별도 사용자 결정 |
+| 과거 인증 실패 원인·무기한 RSS | 미확정/보장 불가 | 이전 진단 부재·120분 관측 한계 | 현행72 PASS·120분 결과와 분리 | 재발 시 진단·설명 과장 금지 |
+| 실행 root 정리 | 대기 | 동일 소유 root로3번까지 로그 보존 | 정리 전 전체 마감 불가 | 필요 증거 이관 뒤 정확한 root 삭제·부재 확인 |
+| PR/merge/tag/Release/published | 미실행·미승인 | branch push와 별도 | 불가 | 단계별 승인 |
+
+## 2026-09-28 B13 당시 마감 판정
+
+이 절은 B13 당시 판정이다. B12 제품 검증 PASS는 유지하지만 공개 준비까지 모두 완료했다는
 포괄 결론은 정정한다. [B13 단계별 직접 결과](b12-s11-final-local-gate.md#b13-재감사-후-마감)를
 근거로 하며 새로운 제품·장시간/UI 실행을 임의로 추가하지 않는다.
 

@@ -11,6 +11,7 @@
   "sourceTreeExcludes": [
     ".git",
     ".media_server.test",
+    ".media_server.gstreamer",
     "build",
     "build-gst",
     "build-gst-onnx",

@@ -1,3 +1,4 @@
+// 파일 용도: B14 경로 정제와 비밀 거부·판정 불변 경계를 검사한다.
 import assert from "node:assert/strict";
 import test from "node:test";
 

@@ -1,4 +1,4 @@
-// B14 한정 기계적 정제 도구. 제품·Git 이력은 수정하지 않는다.
+// 파일 용도: B14 한정 증거 정제를 수행한다. 제품·Git 이력은 수정하지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';

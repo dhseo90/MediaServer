@@ -39,6 +39,9 @@ AGENTS.md가 정책이며, 사용자 승인 1~4번은 보존 결정 → 정제/�
 | B14-02-A | 제한 이미지 허용 검증 | exact path/bytes/hash·manifest hash 일치만 허용, 새 파일/변조/경로 escape/중복/임의 wildcard 거부 | v4.1.0 |
 | B14-02-M | 자료 정제·참조 검사 | B13 목록과 실제 대상 대조, 원본/정제본 digest·허용 치환 외 불변, JSON 유효·현재 링크 유효, A03 포함 focused 회귀·inventory | v4.1.0 |
 | B14-03 | 공개·배포·CI 대응 | notice→현재 public 검사→기본 history500 포함 전체 public→dependency snapshot→bundle policy→source offer→source-only dry-run→Actions/security·local parity. 각 exit·개별 결과 기록 | v4.1.0 |
+| B14-03-B | source tree와 실제 bundle 경계 | Git 비추적·ignored인 기존 `.media_server.gstreamer`를 source tree에서만 제외. 같은 이름의 명시 bundle은 여전히 위험 dylib를 거부, 공개 추적 금지도 유지. 새 반례의 해당 assertion만 예상 RED | v4.1.0 |
+| B14-03-E | 의존성 조회 실행 환경 | 최초5개 timeout과 분리해 기존 headless 공통 환경·양쪽 registry 변수를 소유 root에 적용. 동일 detector/5초 상한·새 cache 유지, 설치/삭제/제품 변경 없음 | v4.1.0 |
+| B14-03-S | 공개 준비 정적 연결 | 현재 script/feature coverage·code comments·문서/metadata·공백 검사. 제품 장시간 검증으로 확대하지 않음 | v4.1.0 |
 | B14-04 | 마감 | 문서/공백·정리·Git 범위·원격 차이 확인, 전체 승인 범위 통과 뒤 최종 커밋/푸시 | v4.1.0 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
@@ -96,6 +99,47 @@ trailing-slash 패턴에는 잡히지 않은 `resume-results.json`의 두 home-r
 [독립 감사 도구](release-artifacts/v4.1.0/s11-final-20260926/b14-audit-migration.mjs)와
 [최초/최종 결과](release-artifacts/v4.1.0/s11-final-20260926/b14-step2-audit.json.gz)를 보존한다.
 이 보완은 새 제품 변경이나 PASS/FAIL·수치 수정이 아니다.
+
+3번 최초 결과: 기본 history500은 실제840.352초·8/8로 통과했다. 이어 dependency writer는
+exit0이지만 GStreamer 조회5개가 각각 timeout이어서 플러그인 관측 완료로 인정하지 않는다.
+default bundle 검사는 Git 비추적·ignored 로컬 headless 캐시의 경로3/연결9개를 배포물로
+집계해 exit1로 실패했다. 뒤 source offer/rehearsal/Actions는 실행하지 않았다. 캐시를
+삭제하거나 위험 runtime을 실제 bundle에서 허용하지 않고, 기존 source-only 계약의
+source-tree 전용 제외와 명시 bundle 거부를 함께 검증한다. dependency는 기존 공통
+headless 환경을 격리 root에 적용한 동일 명령으로 확인한다. 이력 검사 전체를 재실행하지
+않고 이후 커밋은 실제 검사500개와 대조해 부족한 범위만 보완한다.
+
+### B14-03 공개·배포 검사 마감
+
+- source-tree 전용 제외에 정확한 `.media_server.gstreamer`만 추가했다. Git 비추적과
+  기존 ignore를 확인했으며, 실제 `--bundle-dir`의 동일 이름 위험 plugin3개는 기본
+  linked-library 검사를 켠 상태에서도 exit1로 차단한다. 공개 추적 거부도 유지했다.
+  경계 검사3/3, 실제 source-tree 검사4,736파일·path0/linked0으로 통과했다.
+- 의존성 조회의 제한 환경 두 실행에서는 plugin5개가 timeout이었다. 승인된 로컬 권한에서
+  동일 headless 환경·새 registry·기존 detector5초 상한을 사용하자5/5가 실제 ok였다
+  (writer 전체 약1.748초). 제한 환경 내부의 정확한 OS 대기 원인은 미확정이며 제품
+  회귀로 단정하지 않는다. 라이브러리/제품/timeout 변경·설치·캐시 삭제는 하지 않았다.
+- source-only 리허설16파일·runtime hit0, 위험 후보4종 거부를 확인했다. 실제 릴리즈
+  압축파일 생성/업로드가 아니라 기존 리허설 fixture다. source offer 생성은 배포
+  runtime 없음 범위의 checklist이며 바이너리 배포 법률 검토 완료를 뜻하지 않는다.
+- Actions 설정3개는 오류0, CI/local parity6/6이다. 실제 GitHub CI 실행·annotation은
+  PR 승인 전 미실행이며 이를 로컬 검사 PASS로 대체하지 않는다.
+
+[3번 전수 결과](release-artifacts/v4.1.0/s11-final-20260926/b14-step3-items.md.gz)와
+[명령·원출력·실패/환경 구분·실제500개 SHA](release-artifacts/v4.1.0/s11-final-20260926/b14-step3-results.json.gz)를
+보존한다. 원본 plugin debug 본문은 이관하지 않고 exit·elapsed·크기/SHA와 안전한
+plugin 관측 필드만 남긴다. 최종 정적 검사·정리 및 푸시 결과는 다음 마감 기록을 따른다.
+
+### B14-04 최종 정적 검사·마감
+
+script inventory12/12, feature coverage8/8·986/986을 통과했다. 최초 code-comments는
+이번 보조 스크립트6개의 상단 용도 주석 형식 누락으로 exit1이었다. 해당 주석만
+보완한 뒤1265파일·누락0·영문 단독0으로 exit0을 확인했다. 제품/검사 로직 변경은 없다.
+공개 검토 문서의 포괄적인 “전체 history 경로/비밀 없음” 문구도 실제 제한 검사와
+원본 commit 보존 계약으로 맞췄다. 이는 검사 생략·비밀 공개 허용이 아니다.
+
+token start/end/consumed는 작업별 실제 사용량 계측 도구가 없어 미집계다. elapsed와
+source는 각 원출력의 실행 metadata를 보존하며 새 제품·30분·UI·120분을 실행하지 않았다.
 
 ## v4.1.0 S11 B13 재감사 후 마감 (2026-09-28)
 

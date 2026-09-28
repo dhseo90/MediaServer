@@ -1,4 +1,4 @@
-// B14 이행 경계 검증. 모든 파일은 격리된 테스트 소유 root에만 만든다.
+// 파일 용도: B14 이행 경계를 검증한다. 파일은 격리된 테스트 소유 root에만 만든다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
