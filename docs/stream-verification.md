@@ -59,6 +59,21 @@ UI 정의·릴리즈 metadata·UI 증거 정책 누락/변조는 실패해야 �
 
 릴리즈 준비 companion인 `./server.sh verify-release-evidence-index`는 증적 색인의 별도 검사다.
 준비 명령의 등록 확인은 이 명령의 실제 실행이나 릴리즈 검증 결과를 뜻하지 않는다.
+`./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`은 기존 one-shot
+정리 계획 검사 진입점이며, 이 명령의 등록 확인도 실제 정리·릴리즈 실행을 의미하지 않는다.
+`./server.sh verify-script-inventory`는 검증 스크립트의 역할 분류와 `server.sh` 실행 연결을 확인한다.
+이 검사도 등록된 개별 명령의 제품·UI·장시간 실행 결과를 대신하지 않는다.
+
+`V31-V38-READY-01`~`09`는 v3.1~v3.8 준비 명령 8개의 같은 경계를 확인한다.
+과거 기록 없이 통과하되 현행 SAFE/OPS 정의·독립 명령·서명 metadata·UI 판정·
+companion 안내와 실제 dispatch 누락은 거부해야 한다. 기존 CLI summary/schema와
+UI·장시간·published·외부 릴리즈/field 미실행 표시는 유지한다. 예상 RED는 종료 기록
+읽기 의존이며 이후 같은 89개 자체검사로 확인한다. 추가 `V31-V38-READY-10`은 실제
+동반 명령 입력·본문이 다른 16개 근거를 구분하되 ID·token·줄 번호만 바꾼 동일 근거는
+계속 거부해야 한다. 합계 90개 자체검사이며 실제 제품 실행을 대체하지 않는다.
+소스 감사의 기존 `known REVIEW3 false mappings` 검사에서는 `SRC-009`의 현행 form payload
+`displayName`과 저장 후 API의 `displayName/zone` 확인 지점을 대조한다. 다른 기능의 readback을
+대입한 반례는 거부해야 한다. 이는 소스 연결 자체검사이며 실제 채널 수정 UI를 실행한 결과가 아니다.
 
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.

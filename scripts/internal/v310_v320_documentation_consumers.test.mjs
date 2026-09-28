@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4CanonicalFlowKey, validateReview4SharedFlows} from './feature_semantic_review4_trust_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cases = [
@@ -93,6 +94,64 @@ const cases = [
   ["v380_rule_draft_action_package","LAB-118","media-server.ops.v380-rule-draft-action-package.v1","/ops/api/actions/rule-draft-package"],
   ["v380_source_recheck_action_pilot","LAB-116","media-server.ops.v380-source-recheck-action-pilot.v1","/ops/api/actions/source-recheck-pilot"],
 ];
+const stabilizationReadinessCases = [
+  ["v310_stabilization_release_readiness", ["SAFE-101","OPS-068"]],
+  ["v320_stabilization_release_readiness", ["SAFE-112","OPS-079"]],
+  ["v330_stabilization_release_readiness", ["SAFE-123","OPS-090"]],
+  ["v340_stabilization_release_readiness", ["SAFE-134","OPS-101"]],
+  ["v350_stabilization_release_readiness", ["SAFE-147","OPS-114"]],
+  ["v360_stabilization_release_readiness", ["SAFE-161","OPS-128"]],
+  ["v370_stabilization_release_readiness", ["SAFE-179","OPS-146"]],
+  ["v380_stabilization_release_readiness", ["SAFE-195","OPS-162"]],
+];
+test('V31-V38-READY 현행 정책·실행 연결과 역사 분리', async t => {
+  const before = snapshot();
+  try {
+    for (const [name, ids] of stabilizationReadinessCases) {
+      const command = 'verify-' + name.replaceAll('_', '-');
+      const companion = 'verify-' + name.slice(0, 4) + '-entry-baseline';
+      const run = mutation => invoke(name, {readinessOnly: true, renameLabels: true, ...mutation});
+      await t.test('01 과거 기록 없이 정상 ' + name, () => {
+        const r = run({}); assert.equal(r.status, 0, r.stdout + r.stderr);
+        const version = name.slice(1, 4).split('').join('.');
+        assert(r.stdout.includes('== v' + version + ' stabilization/release readiness summary =='));
+        assert(r.stdout.includes('- schema: media-server.' + name.slice(0, 4) + '-stabilization-release-readiness.v1'));
+        for (const key of ['uiFulltest','longrun30m120m','publishedMetadata','releaseActions','fieldSmoke'])
+          assert(r.stdout.includes(key + ': not-run-by-this-command'));
+      });
+      for (const id of ids) {
+        await t.test('02 현행 정의 누락 ' + id, () => rejected(run({removeId: id}), id));
+        await t.test('03 독립 명령 연결 변조 ' + id, () => rejected(run({mapping: id}), id));
+      }
+      await t.test('04 서명 metadata 변조 ' + name, () => rejected(run({releaseMetadata: true}), 'tag'));
+      await t.test('05 UI 판정 완화 ' + name, () => rejected(run({uiPolicy: true}), 'suite zero count'));
+      await t.test('06 현행 UI 계약 누락 ' + name, () => rejected(run({currentDocIdentifier: 'uiFulltestPass'}), 'uiFulltestPass'));
+      await t.test('07 명령 dispatch 누락 ' + name, () => rejected(run({dispatch: command}), 'dispatch'));
+      await t.test('08 companion dispatch 누락 ' + name, () => rejected(run({dispatch: companion}), companion));
+      await t.test('09 companion 안내 누락 ' + name, () => rejected(run({catalogCommand: companion}), companion));
+    }
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
+test('V31-V38-READY-10 실제 입력·본문 결속과 중복 근거 거부', () => {
+  const dispatch = parseVerifiedReview4Dispatch(root, fs.readFileSync(root + 'server.sh', 'utf8'));
+  const proofs = JSON.parse(fs.readFileSync(root + 'test/fixtures/v390_review4_semantic_proofs_safe_ops.json', 'utf8')).items;
+  const ids = stabilizationReadinessCases.flatMap(([, values]) => values);
+  const items = ids.map(id => {
+    const proof = proofs.find(item => item.id === id);
+    assert(proof, id);
+    return {...proof, status: 'source-resolved-candidate', trustBindings: buildReview4TrustBindings(root, proof, dispatch)};
+  });
+  assert.equal(new Set(items.map(review4CanonicalFlowKey)).size, ids.length,
+    '서로 다른 동반 명령 입력·정책 본문을 같은 근거로 합치면 안 됨');
+  assert.deepEqual(validateReview4SharedFlows(items), []);
+  const repeated = structuredClone(items[0]);
+  repeated.id += '-COPY';
+  repeated.evidenceToken += '-renamed';
+  repeated.roles.readback.line += 1;
+  assert.equal(review4CanonicalFlowKey(repeated), review4CanonicalFlowKey(items[0]));
+  assert(validateReview4SharedFlows([items[0], repeated]).some(error => error.reason === 'ambiguous-shared-contract-facet'),
+    'ID·token·줄 번호만 바꾼 동일 근거는 계속 거부');
+});
 const readinessCases = [
   {
     "name": "v260_owner_release_readiness",
@@ -366,6 +425,7 @@ function invoke(name, mutation = {}) {
         const parsed = JSON.parse(value); parsed.suiteClosure.requiredZeroCounts = []; value = JSON.stringify(parsed);
       }
       if (mutation.dispatch && relative === 'server.sh') value = value.replaceAll(mutation.dispatch + ')', 'removed-dispatch)');
+      if (mutation.catalogCommand && relative === 'docs/stream-verification.md') value = value.replaceAll(mutation.catalogCommand, 'missing-companion-command');
       if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');
       if (mutation.currentDocIdentifier && relative.startsWith('docs/') && relative !== 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.currentDocIdentifier, 'missing-current-contract');
       if (mutation.fixturePath === relative) {
