@@ -142,7 +142,7 @@ check("redaction doc points at the gate procedure", () => {
 
 check("live support doc points at the gate procedure", () => {
   assertContains(liveSupportDoc, "./onvif-field-smoke-gate.md", "live support doc missing gate doc link");
-  assertContains(liveSupportDoc, "verify-onvif-field-smoke-gate", "live support doc missing gate verifier command");
+  assertContains(gateDoc, "verify-onvif-field-smoke-gate", "linked gate doc missing verifier command");
 });
 
 check("no-device doc points at the gate procedure", () => {
@@ -201,7 +201,7 @@ check("sample report includes gate review status", () => {
 check("no-device suite includes the gate verifier without claiming real device success", () => {
   assertContains(suiteScript, "verify-onvif-field-smoke-gate", "suite missing gate verifier");
   assertContains(noDeviceDoc, "no-device suite 통과는 field smoke gate pass가 아닙니다", "no-device doc missing field gate caveat");
-  assertContains(liveSupportDoc, "field smoke gate 결과와 분리합니다", "live support doc missing field gate separation wording");
+  assertContains(liveSupportDoc, "미확인", "live support doc missing unverified field boundary");
 });
 
 let pass = 0;

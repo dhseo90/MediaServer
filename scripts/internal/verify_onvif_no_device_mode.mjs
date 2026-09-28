@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -107,28 +108,11 @@ check("no-device command list keeps sanitized failure probes", () => {
 });
 
 check("live support document links no-device mode without claiming field success", () => {
-  assertContains(liveSupportDoc, "./onvif-no-device-verification.md", "live support doc does not link no-device doc");
-  assertContains(liveSupportDoc, "verify-onvif-no-device-suite", "live support verification missing no-device suite command");
-  assertContains(liveSupportDoc, "verify-onvif-no-device-suite --json-output", "live support verification missing no-device suite JSON command");
-  assertContains(liveSupportDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "live support doc missing failure summary fixture path");
-  assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
-  assertContains(liveSupportDoc, "verify-onvif-no-device-completion", "live support verification missing no-device completion command");
-  assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
-  assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture", "live support doc missing HTTPS TLS fixture command");
-  assertContains(liveSupportDoc, "verify-onvif-auth-injection-loopback", "live support doc missing auth injection loopback command");
-  assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
-  assertContains(liveSupportDoc, "verify-onvif-synthetic-vendor-fixtures", "live support verification missing synthetic vendor fixture command");
-  assertContains(liveSupportDoc, "test/fixtures/onvif_synthetic_vendor_fixture_pack.json", "live support doc missing synthetic vendor fixture path");
-  assertContains(liveSupportDoc, "verify-onvif-local-simulator", "live support verification missing local simulator command");
-  assertContains(liveSupportDoc, "verify-onvif-soap-fault-matrix", "live support verification missing SOAP fault matrix command");
-  assertContains(liveSupportDoc, "Media fallback, Media-only, non-RTSP GetStreamUri 실패", "live support doc missing local simulator variant wording");
-  assertContains(liveSupportDoc, "verify-onvif-field-smoke-gate", "live support doc missing field smoke gate command");
-  assertContains(liveSupportDoc, "field smoke gate 결과와 분리합니다", "live support doc missing field gate separation wording");
-  assertContains(liveSupportDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "live support doc missing missing-endpoint command");
-  assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
-  assertContains(liveSupportDoc, "verify-onvif-closed-loopback-failure-matrix", "live support doc missing closed loopback matrix command");
-  assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc missing explicit unverified endpoint success wording");
-  assertContains(liveSupportDoc, "test/fixtures/onvif_no_device_suite_success_summary.json", "live support doc missing success summary fixture path");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-no-device-verification.md"), "live support doc does not link no-device doc");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-field-smoke-gate.md"), "live support doc does not link field gate");
+  assertContains(liveSupportDoc, "미확인", "live support doc missing unverified field boundary");
+  // 명령·옵션·summary·실패 전파는 위/아래 검사에서 현행 no-device 정의와 실제 runner/fixture를 대조한다.
+  // 운영 안내에 같은 실행 목록을 다시 복제하도록 요구하지 않는다.
 });
 
 check("no-device suite runner can write summary JSON", () => {
@@ -158,8 +142,6 @@ check("no-device summary schema version drift guard is pinned", () => {
   assert(failureSummaryFixture.schema === runnerSchema, "failure summary fixture schema drifted from runner");
   assertContains(noDeviceDoc, `"schema": "${runnerSchema}"`, "no-device doc JSON example schema mismatch");
   assertContains(noDeviceDoc, "runner 상수, 성공 예시, 성공 fixture, 실패 fixture", "no-device doc missing schema guard participants");
-  assertContains(liveSupportDoc, "schema version drift guard", "live support doc missing schema drift guard wording");
-  assertContains(liveSupportDoc, expectedSummarySchema, "live support doc missing summary schema");
 });
 
 check("no-device success summary fixture preserves completed command state", () => {

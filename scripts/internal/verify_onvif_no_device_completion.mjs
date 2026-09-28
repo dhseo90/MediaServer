@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink, validateOnvifSupportMatrixDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -41,7 +42,6 @@ const checks = [];
 
 check("no-device completion criteria are documented", () => {
   for (const term of [
-    "## 종료 판정",
     "실장비 제외 조건의 잔여 필수 이슈 없음",
     "실장비 endpoint 성공은 계속 미확인",
     "local simulator variant",
@@ -64,15 +64,14 @@ check("separate follow-up scope is not counted as no-device residual work", () =
   ]) {
     assertContains(noDeviceDoc, term, `no-device doc missing separate follow-up term: ${term}`);
   }
-  assertContains(matrixDoc, "HTTPS/TLS ONVIF SOAP endpoint | OpenSSL 빌드 제한 지원", "matrix must keep HTTPS SOAP OpenSSL scope");
-  assertContains(matrixDoc, "Credential reference / HTTP Basic auth | v1.8.0 reference/redaction 정책 지원", "matrix must keep credential reference scope");
-  assertContains(matrixDoc, "ONVIF WS-Discovery | 비지원", "matrix must keep WS-Discovery unsupported");
-  assertContains(matrixDoc, "ONVIF Profile G / Recording / Replay | 비지원", "matrix must keep Profile G unsupported");
+  const errors = validateOnvifSupportMatrixDocumentation(matrixDoc);
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("live support verification includes no-device completion guard", () => {
-  assertContains(liveSupportDoc, "verify-onvif-no-device-completion", "live support doc missing no-device completion command");
-  assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc must keep real device success unverified");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-no-device-verification.md"), "live support doc missing no-device link");
+  assertContains(noDeviceDoc, "verify-onvif-no-device-completion", "no-device guide missing completion command");
+  assertContains(liveSupportDoc, "미확인", "live support doc must keep real device success unverified");
 });
 
 check("no-device suite includes completion guard", () => {

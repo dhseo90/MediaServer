@@ -242,12 +242,14 @@ check("fixture pack excludes non scope materials", () => {
 });
 
 check("docs reference synthetic vendor fixture verification without claiming field success", () => {
-  for (const doc of [liveSupportDoc, noDeviceDoc]) {
+  // 운영 안내는 정의 문서로 연결하고, 개별 fixture/명령 정의는 한 곳에서 유지한다.
+  assertContains(liveSupportDoc, "./onvif-no-device-verification.md", "live support doc missing no-device guide link");
+  for (const doc of [noDeviceDoc]) {
     assertContains(doc, "test/fixtures/onvif_synthetic_vendor_fixture_pack.json", "doc missing vendor fixture path");
     assertContains(doc, "verify-onvif-synthetic-vendor-fixtures", "doc missing vendor fixture command");
     assertContains(doc, "vendor-style synthetic fixture", "doc missing vendor-style wording");
   }
-  assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc must keep field success unverified");
+  assertContains(liveSupportDoc, "미확인", "live support doc must keep field success unverified");
   assertContains(noDeviceDoc, "실장비 endpoint 성공", "no-device doc must keep real endpoint caveat");
   assertContains(provenanceDoc, "test/fixtures/onvif_synthetic_vendor_fixture_pack.json", "provenance doc missing vendor fixture path");
   assertContains(provenanceDoc, "실제 장비/credential 없는 합성 JSON fixture", "provenance doc missing synthetic source wording");

@@ -31,6 +31,53 @@ export function hasDocumentLink(text, target) {
     .some((match) => match[1].split('#')[0].replace(/^\.\//, '') === target);
 }
 
+// 공개 필드/값은 유지하되 inline field=value와 읽기 쉬운 key/value 표를 모두 허용한다.
+export function hasDocumentFieldValue(text, field, value) {
+  const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (new RegExp('\\b' + escaped + '=' + value + '(?![\\w-])').test(text)) return true;
+  return String(text).split(/\r?\n/).some(line => {
+    const cells = line.trim().split('|').slice(1, -1).map(cell => cell.replace(/`/g, '').trim());
+    return cells.length >= 2 && cells[0].split(',').map(key => key.trim()).includes(field) && cells[1] === value;
+  });
+}
+
+// 지원 표의 기술 식별자와 조건을 검사한다. 도입 버전·옛 제목·실행 성공 문구는 계약이 아니다.
+// 표 행 안의 조건을 보므로 다른 행의 비지원 문구로 잘못된 지원 선언을 가리지 않는다.
+// 이 정적 연결 검사만으로 실장비·네트워크 동작을 PASS로 판정하지 않는다.
+export function validateOnvifSupportMatrixDocumentation(text) {
+  const errors = [];
+  const rows = String(text || '').split(/\r?\n/).filter(line => line.trim().startsWith('|'));
+  const requireRow = (name, identifiers, status) => {
+    const matches = rows.map(line => line.split('|').slice(1, -1).map(cell => cell.trim().replace(/`/g, '')))
+      .filter(cells => cells[0] === name);
+    if (matches.length !== 1) { errors.push('matrix row missing/duplicate: ' + name); return; }
+    const [label, state, ...detail] = matches[0];
+    if (status && !status.test(state)) errors.push('matrix unsupported/conditional status missing: ' + label);
+    for (const id of identifiers) if (![state, ...detail].join(' ').includes(id)) errors.push(label + ' missing: ' + id);
+  };
+  requireRow('ONVIF Device service SOAP', ['http://', 'https://', 'OpenSSL', 'GetServices']);
+  requireRow('ONVIF Media2 service SOAP', ['Media2.GetProfiles', 'Media2.GetStreamUri']);
+  requireRow('ONVIF Media service SOAP', ['Media.GetProfiles', 'Media.GetStreamUri']);
+  requireRow('Live stream URI import', ['rtsp://', 'rtsps://', 'kind=rtsp']);
+  requireRow('수동 ONVIF stream URI 등록', ['/ops/sources', 'rtsp://', 'rtsps://', 'http://', 'https://']);
+  requireRow('MediaServer egress URL', ['RTSP', 'WHEP', 'WebRTC']);
+  requireRow('HTTPS/TLS ONVIF SOAP endpoint', ['OpenSSL', 'certificate', 'hostname', 'fail-closed'], /제한|조건/);
+  requireRow('Credential reference / HTTP Basic auth', ['provider', 'http_basic', 'Authorization', 'credential']);
+  requireRow('SOAP Fault / malformed response', ['raw SOAP']);
+  for (const name of ['ONVIF WS-Discovery', 'ONVIF PTZ', 'ONVIF Events / PullPoint',
+    'ONVIF Profile G / Recording / Replay', 'ONVIF Analytics service', 'ONVIF Imaging service',
+    'ONVIF Device management', 'WS-Security UsernameToken', 'HTTP Digest auth 주입']) {
+    requireRow(name, [], /^(?:비지원|미지원)$/);
+  }
+  for (const target of ['onvif-rtsps-draft-policy.md', 'onvif-https-soap-transport-design.md',
+    'onvif-https-tls-fixture-harness-design.md', 'onvif-auth-injection-design.md',
+    'onvif-credential-store-integration-design.md', 'onvif-unsupported-api-guard.md',
+    'onvif-no-device-verification.md']) {
+    if (!hasDocumentLink(String(text || ''), target)) errors.push('matrix contract link missing: ' + target);
+  }
+  return errors;
+}
+
 // 사용자 안내는 출력 계약과 승인 기준으로 연결한다. 옛 영문 제목/설명 문장을 요구하지 않는다.
 // 승인 양식의 필수 항목·실제 승인·시각 품질 판정은 각각의 독립 검사/검토 범위다.
 export function validateVisualArtifactGuideDocumentation(guide) {

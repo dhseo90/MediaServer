@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation, validateWebRtcMetadataDocumentation} from './documentation_contract_lib.mjs';
+import {validateVerificationDocumentation, validateUiPolicyDocumentation, validateArchitectureContractDocumentation, validateVisualArtifactGuideDocumentation, validateWebRtcMetadataDocumentation, hasDocumentFieldValue, validateOnvifSupportMatrixDocumentation} from './documentation_contract_lib.mjs';
 import {validatePolicy, evaluateEvidence} from './ui_fulltest_evidence_policy_v4_lib.mjs';
 
 const read = (p) => fs.readFileSync(new URL('../../' + p, import.meta.url), 'utf8');
@@ -229,6 +229,74 @@ test('DOC-SHELL-COPY 현행 예제·문구 소비자의 제목 변경 허용과 
     if(reason)assert((result.stdout+result.stderr).includes(reason),result.stdout+result.stderr);
     assert(result.stdout.includes('actual UI not-run'),result.stdout);
     if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),originalHash);
+  });
+});
+
+test('DOC-ONVIF-FIELD 공개 preview 필드·값의 inline/표 표현과 오류 구분', () => {
+  assert(hasDocumentFieldValue('`storageAction=none`', 'storageAction', 'none'));
+  assert(hasDocumentFieldValue('| `storageAction` | `none` |', 'storageAction', 'none'));
+  assert(hasDocumentFieldValue('| `sourceRegistryMutation`, `publishedViewMutation` | `false` |', 'sourceRegistryMutation', 'false'));
+  assert(!hasDocumentFieldValue('| `storageAction` | `write` | none |', 'storageAction', 'none'));
+  assert(!hasDocumentFieldValue('storageAction=none-other', 'storageAction', 'none'));
+  assert(!hasDocumentFieldValue('| `anotherStorageAction` | `none` |', 'storageAction', 'none'));
+});
+
+test('DOC-ONVIF-MATRIX 지원 행 누락·중복 거부, 제목·행 순서·상대 링크 표현 자유', () => {
+  const doc=read('docs/onvif-protocol-support-matrix.md');
+  const rewritten=doc.replace(/^#{1,6}.*$/gm,'# 다른 제목').replaceAll('(./','(');
+  assert.deepEqual(validateOnvifSupportMatrixDocumentation(rewritten.split('\n').reverse().join('\n')),[]);
+  const row=doc.split('\n').find(line=>line.startsWith('| ONVIF PTZ |'));
+  assert(validateOnvifSupportMatrixDocumentation(doc.replace(row,'' )).some(error=>error.includes('missing/duplicate')));
+  assert(validateOnvifSupportMatrixDocumentation(doc+'\n'+row).some(error=>error.includes('missing/duplicate')));
+});
+
+test('DOC-ONVIF 현행 지원 안내와 검사 정의 분리·계약 누락 거부', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const matrix = 'docs/onvif-protocol-support-matrix.md', support = 'docs/onvif-live-source-support.md';
+  const cases = [
+    ['matrix 옛 버전·제목·실행 일지 없이 검사', 'protocol_support_matrix', {prose:true}, 0, ''],
+    ['profile 옛 영문 제목 없이 검사', 'probe_fixture_contract', {prose:true}, 0, ''],
+    ['completion 옛 버전 없이 검사', 'no_device_completion', {prose:true}, 0, ''],
+    ['WS-Discovery 미지원 판정 제거', 'protocol_support_matrix', {path:matrix,row:'ONVIF WS-Discovery'}, 1, 'unsupported'],
+    ['Profile G 미지원 판정 제거', 'no_device_completion', {path:matrix,row:'ONVIF Profile G / Recording / Replay'}, 1, 'unsupported'],
+    ['HTTPS OpenSSL 조건 제거', 'protocol_support_matrix', {path:matrix,remove:'OpenSSL'}, 1, 'OpenSSL'],
+    ['Basic provider 조건 제거', 'protocol_support_matrix', {path:matrix,remove:'provider'}, 1, 'provider'],
+    ['SOAP 조회 식별자 누락', 'protocol_support_matrix', {path:matrix,remove:'GetServices'}, 1, 'GetServices'],
+    ['matrix 관계 링크 누락', 'protocol_support_matrix', {path:support,remove:'./onvif-protocol-support-matrix.md'}, 1, 'matrix'],
+    ['profile 매핑 누락', 'probe_fixture_contract', {path:support,remove:'sourceDraft.rtspUrl'}, 1, 'profile policy'],
+    ['draft 무저장 필드 누락', 'probe_fixture_contract', {path:support,remove:'storageAction'}, 1, 'preview contract'],
+    ['검사 안내 링크 누락', 'no_device_mode', {path:support,remove:'./onvif-no-device-verification.md'}, 1, 'no-device'],
+    ['no-device 실패 fixture를 PASS로 위장', 'no_device_mode', {path:'test/fixtures/onvif_no_device_suite_failure_summary.json',failure:true}, 1, 'failure summary'],
+    ['제품 TLS hostname 검사 누락', 'protocol_support_matrix', {path:'src/ingress/onvif_live_import.cpp',remove:'SSL_set1_host'}, 1, 'implementation missing'],
+    ['쌍 저장 허용 문서 경계 누락', 'unsupported_api_guard', {path:'docs/onvif-unsupported-api-guard.md',remove:'PUT /ops/api/onvif/channels/{channelId}'}, 1, 'allowed boundary'],
+    ['제품 쌍 저장 route 누락', 'unsupported_api_guard', {path:'src/ingress/webrtc_http_server_runtime.cpp',remove:'/ops/api/onvif/channels/'}, 1, 'supported ONVIF route'],
+    ['프로필 검사 안내 명령 누락', 'probe_profile_variants', {path:'docs/onvif-no-device-verification.md',remove:'verify-onvif-probe-profile-variants'}, 1, 'profile variant command'],
+    ['vendor fixture 검사 안내 명령 누락', 'synthetic_vendor_fixture_pack', {path:'docs/onvif-no-device-verification.md',remove:'verify-onvif-synthetic-vendor-fixtures'}, 1, 'vendor fixture command'],
+  ];
+  for (const [name, verifier, mutation, expected, reason] of cases) await t.test(name, () => {
+    const before = mutation.path ? crypto.createHash('sha256').update(read(mutation.path)).digest('hex') : null;
+    const program = `
+      import fs from 'node:fs'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)}, mutation=${JSON.stringify(mutation)}, original=fs.readFileSync;
+      fs.readFileSync=function(file, options){
+        const rel=path.relative(root,String(file));
+        if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(rel)) throw new Error('과거 원장 읽기 금지');
+        const raw=original.call(this,file,options); let text=String(raw);
+        if(mutation.prose && rel.startsWith('docs/onvif-')) text=text.replace(/^#{1,6}.*$/gm,'# 한글 제목').replaceAll('v1.8.0','').replace(/2026-05-15[\\s\\S]*?local simulator fixture 성공은 보고에서 분리합니다\\./g,'');
+        if(rel===mutation.path){
+          if(mutation.remove) text=text.replaceAll(mutation.remove,'');
+          if(mutation.row) text=text.split('\\n').map(line=>line.startsWith('| '+mutation.row+' |')?line.replaceAll('비지원','지원').replaceAll('미지원','지원'):line).join('\\n');
+          if(mutation.failure){const d=JSON.parse(text);d.completed=d.total;d.failed=null;text=JSON.stringify(d);}
+        }
+        return Buffer.isBuffer(raw)?Buffer.from(text):text;
+      };
+      for(const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[key]=()=>{throw new Error('정적 검사 파일 쓰기 금지');};
+      await import(pathToFileURL(path.join(root,'scripts/internal/verify_onvif_${verifier}.mjs')).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,expected,r.stdout+r.stderr);
+    if(reason)assert((r.stdout+r.stderr).includes(reason),r.stdout+r.stderr);
+    if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),before,'반례 뒤 원본 불변');
   });
 });
 

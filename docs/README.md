@@ -60,10 +60,13 @@
 - 안전 경계: [미지원 API 차단](onvif-unsupported-api-guard.md),
   [인증정보 참조](onvif-credential-reference-policy.md), [TLS 전송](onvif-tls-transport-policy.md),
   [RTSPS 초안](onvif-rtsps-draft-policy.md).
-- 기본 비활성 설계 초안: [인증 주입](onvif-auth-injection-design.md),
+- 전송·인증의 구현 조건과 미구현 경계: [인증 주입](onvif-auth-injection-design.md),
   [인증정보 저장소 연동](onvif-credential-store-integration-design.md),
   [HTTPS SOAP 전송](onvif-https-soap-transport-design.md),
   [HTTPS/TLS fixture harness](onvif-https-tls-fixture-harness-design.md).
+
+HTTP Basic은 provider를 명시적으로 연결한 경로에서만, HTTPS SOAP는 OpenSSL 빌드에서 지원합니다.
+제품 UI가 카메라 endpoint를 자동 탐색·probe하거나 영구 secret store를 제공한다는 뜻은 아닙니다.
 
 ### VLM 보조 기능
 

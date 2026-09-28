@@ -9,6 +9,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateOnvifSupportMatrixDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -52,10 +53,11 @@ check("English UI translation contains WS-Discovery unsupported wording", () => 
 });
 
 check("ONVIF docs keep WS-Discovery outside supported scope", () => {
-  assertContains(liveSupportDoc, "WS-Discovery 자동 검색", "live support doc missing WS-Discovery non-scope");
-  assertContains(liveSupportDoc, "ONVIF Events/PullPoint subscription", "live support doc missing Events/PullPoint non-scope");
-  assertContains(liveSupportDoc, "PTZ control", "live support doc missing PTZ non-scope");
-  assertContains(liveSupportDoc, "ONVIF Profile G recording/replay", "live support doc missing Profile G non-scope");
+  for (const identifier of ["WS-Discovery", "Events/PullPoint", "PTZ", "Profile G"]) {
+    assertContains(liveSupportDoc, identifier, "live support doc missing non-scope identifier: " + identifier);
+  }
+  const errors = validateOnvifSupportMatrixDocumentation(matrixDoc);
+  if (errors.length) throw new Error(errors.join("; "));
   assertContains(matrixDoc, "ONVIF WS-Discovery", "protocol matrix missing WS-Discovery row");
   assertContains(matrixDoc, "ONVIF PTZ", "protocol matrix missing PTZ row");
   assertContains(matrixDoc, "ONVIF Events / PullPoint", "protocol matrix missing Events/PullPoint row");
