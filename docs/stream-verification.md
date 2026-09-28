@@ -28,6 +28,14 @@
 `DOC-POL-01`~`DOC-POL-07`은 제목/옛 완료 문구 변경 허용, 정책 링크·식별자 누락 거부,
 과거 원장 없이 정의 검사, 문서 PASS와 실제 UI PASS 분리 및 기존 UI 정책의 완화 거부를 확인한다.
 
+릴리즈 문서 검증기 자체검사는 `node --test scripts/internal/release_documentation_contract.test.mjs`다.
+`REL-DOC-01`~`REL-DOC-13`은 명시 metadata, source/target/공개 관측 분리, 문구 변경 허용,
+버전·서명/배포 정책·링크 오류 거부, Git 없는 소스 실행, 파일 누락·경로 이탈, 실패 exit·보고서를 확인한다.
+과거 OPS-041 사례는 `test/fixtures/release_metadata_boundary.json`의 테스트 입력이며 실행 증거가 아니다.
+입력의 source/공개 기준을 합치거나 실행 증거로 위장한 경우에도 CLI 실패가 유지되어야 한다.
+`verify-v410-entry-baseline`은 CLI 호환을 위해 현행 `verify-release-metadata`에 연결한다.
+과거 v4.1.0 단계 완료를 재판정하거나 당시 로그를 복원하지 않으며, 잘못된 옵션과 실패 exit를 그대로 전달한다.
+
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
 

@@ -1,0 +1,31 @@
+{
+  "schema": "media-server.release-boundary-fixture.v1",
+  "purpose": "OPS-041의 source/published/roadmap 구분을 확인하는 최소 회귀 입력. 과거 PASS 행이나 이번 실행 결과가 아님.",
+  "provenance": {
+    "commit": "9bc7b11a",
+    "path": "docs/project-feature-test-inventory.md",
+    "featureId": "OPS-041",
+    "basis": "현재 테스트 정의의 독립 버전 값. 중앙 실행 로그를 복사하지 않음."
+  },
+  "case": {
+    "sourceVersion": "2.9.0",
+    "roadmapTitle": "v2.9.0 Final 2.x Closure & Compatibility Baseline",
+    "context": {
+      "schema": "media-server.release-context.v1",
+      "repository": "example/project",
+      "releaseTarget": "v2.9.0",
+      "priorPublishedTag": "v2.8.0",
+      "releaseNotes": "release-notes.md",
+      "roadmap": "roadmap.md",
+      "distribution": "source-only",
+      "tagType": "signed-annotated",
+      "published": {
+        "tag": "v2.8.0",
+        "url": "https://github.com/example/project/releases/tag/v2.8.0",
+        "observedAt": "2000-01-01T00:00:00Z"
+      }
+    }
+  },
+  "syntheticFields": ["repository", "releaseNotes", "roadmap", "published.url", "published.observedAt"],
+  "executionEvidence": false
+}

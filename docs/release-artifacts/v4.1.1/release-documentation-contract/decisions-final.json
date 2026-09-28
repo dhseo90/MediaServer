@@ -1,0 +1,36 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-scoped-decisions.v1",
+  "reviewerIsCandidateGenerator": false,
+  "verdict": "approved",
+  "reviewer": "codex-main-source-review",
+  "reviewedAt": "2026-09-28T14:01:45.846Z",
+  "reviewPackage": {
+    "sha256": "8f76ee830052d211ddeaacfe5cc5eb13a3749f88c0bb383bd0cf494a278ab9ec"
+  },
+  "candidate": {
+    "candidateDigest": "a7988b54a05b7c4280f51426fb62f45d4b4e32d5a6d644dbdb6380edb9ca0dcf",
+    "stagedEquivalentTreeOid": "a8732bf2aff92879a02554ed3d69d6a1cfe1e1ca",
+    "trackedWorktreeDiffSha256": "9eb25c8e38688696860420ff484fd7df5f9e30a0e0a83faa01ef3d26575c66f4"
+  },
+  "reviewScope": {
+    "ids": [
+      "OPS-041"
+    ]
+  },
+  "decisions": [
+    {
+      "id": "OPS-041",
+      "decision": "approved",
+      "featureContractSha256": "3c50b3e11199a71136cd03f9f9ef7e90ecf0c8381f7de6759c1f094fbd00b24c",
+      "sourceFlowDigest": "420df157a1fcbc17e4772f431308aab6f9c609dc44119dbfc6a8f6ccd036eaec",
+      "verifierCommand": "verify-release-metadata",
+      "verifierFile": "scripts/internal/verify_release_metadata_consistency.mjs",
+      "dispatchArmSha256": "f0588fa742a8cb24a9bfd92477a0e768ff74a482e5d29dde8945cda359178261",
+      "evidenceToken": "historicalBoundaryObserved",
+      "actionSymbol": "action:OPS-041",
+      "stateSymbol": "state:historicalBoundaryObserved",
+      "justification": "메인이 OPS-041 정의·diff·fixture·source-to-assertion 경로와 REL-DOC-13 반례를 직접 검토했다. 과거 중앙 Markdown 검색을 출처가 있는 최소 입력으로 대체하되 source 2.9.0 / 공개 v2.8.0 / roadmap 경계 및 외부·제품 실행 PASS 비대체 의미는 유지한다. 문구 강제는 제거하고 VERSION/CMake·명시 metadata·문서 존재와 공개 관측 분리를 검사한다. 후보 생성은 기존 스크립트이고 본 결정은 메인 소스 검토이며 별도 에이전트 리뷰를 주장하지 않는다.",
+      "justificationSha256": "e9a817c11e8be324661a9ec98cb1797610ca88badd266a9ac15e68878d40f81c"
+    }
+  ]
+}

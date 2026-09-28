@@ -4,6 +4,32 @@
 버전 의미는 [versioning-policy.md](./versioning-policy.md), 현재 개발 상태는
 [development-backlog.md](./development-backlog.md)를 함께 봅니다.
 
+현행 릴리즈 검증기는 다음 명시적 값과 `VERSION`·CMake·공개 진입점의 버전/링크를 대조합니다.
+제목·문장·과거 완료 기록을 고정하지 않습니다. `published`는 확인 당시의 공개 상태이며,
+이 블록을 읽은 로컬 검사만으로 원격 재검증·제품 테스트·릴리즈 실행이 완료되는 것은 아닙니다.
+
+<!-- release-metadata -->
+```json
+{
+  "schema": "media-server.release-context.v1",
+  "repository": "dhseo90/MediaServer",
+  "releaseTarget": "v4.1.0",
+  "priorPublishedTag": "v4.0.0",
+  "releaseNotes": "docs/release-notes-v4.1.0.md",
+  "roadmap": "docs/v410-v49-recording-search-roadmap.md",
+  "distribution": "source-only",
+  "tagType": "signed-annotated",
+  "published": {
+    "tag": "v4.1.0",
+    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0",
+    "observedAt": "2026-09-28T13:42:28Z"
+  }
+}
+```
+
+공개 상태는 `gh release view v4.1.0 --repo dhseo90/MediaServer`의 실제 응답으로 확인했습니다.
+문서 아래의 cut 당시 상세 기록·중복 기준은 v4.1.1 전체 문서 정리에서 현행 설명과 분리합니다.
+
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.1.0`

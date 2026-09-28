@@ -1,0 +1,33 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "a7988b54a05b7c4280f51426fb62f45d4b4e32d5a6d644dbdb6380edb9ca0dcf",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "OPS-041"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "a8732bf2aff92879a02554ed3d69d6a1cfe1e1ca",
+    "trackedWorktreeDiffSha256": "9eb25c8e38688696860420ff484fd7df5f9e30a0e0a83faa01ef3d26575c66f4",
+    "changedFiles": [
+      ".github/workflows/preflight.yml",
+      "docs/release-policy.md",
+      "docs/stream-verification.md",
+      "scripts/internal/verify_release_metadata_consistency.mjs",
+      "scripts/internal/verify_v410_entry_baseline.sh",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "OPS-041",
+      "featureContractSha256": "3c50b3e11199a71136cd03f9f9ef7e90ecf0c8381f7de6759c1f094fbd00b24c",
+      "sourceFlowDigest": "420df157a1fcbc17e4772f431308aab6f9c609dc44119dbfc6a8f6ccd036eaec",
+      "currentTrustBindingsSha256": "660fef1ac697c2adfffcc77c072f05f6634f00b57cc6b749403acc3b9b88046f"
+    }
+  ]
+}

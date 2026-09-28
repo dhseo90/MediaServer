@@ -1,0 +1,5 @@
+{
+  "candidatePath": "<run-temp>/fresh.json",
+  "candidateDigest": "01dfd49ddb0c89d88b76118b865273b38ed501abe3a418359bdf91475734592c",
+  "items": 986
+}
