@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 4 Command Plan Dry-run Simulator 구현, 문서, inventory 연결을 검증한다.
 
@@ -33,6 +34,7 @@ const command = "verify-v360-command-plan-dry-run-simulator";
 const schema = "media-server.ops.v360-command-plan-dry-run.v1";
 const route = "/ops/api/live-operations/simulation/command-plan-dry-run";
 const files = loadFiles();
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("Ops server builds the v3.6 command plan dry-run simulator", () => {
@@ -115,8 +117,25 @@ check("Ops API exposes the command dry-run route as guarded no-store JSON", () =
   assertIncludes(block, "no-store", "command dry-run route");
 });
 
-check("docs, inventory, and dispatch map v3.6 Step 4", () => {
-  assertStepDocs("4", "Command Plan Dry-run Simulator", "SRC-050", "RULE-107", "SAFE-151", "OPS-118");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["SRC-050","RULE-107","SAFE-151","OPS-118"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/command-plan-dry-run"],
+    command, script: "verify_v360_command_plan_dry_run_simulator.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-050","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = documentationImplementation.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
+  }
+
+});
+
+check("현행 실행·등록 연결 1", () => {
   for (const id of ["SRC-050", "RULE-107", "SAFE-151", "OPS-118"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -150,19 +169,14 @@ check("SAFE-151 canonical bounded no-execution boundary", () => {
 
 finish("== v3.6.0 command plan dry-run simulator summary ==", { schema, step: "v3.6.0 (4)", route });
 
-function assertStepDocs(step, title, ...ids) {
-  for (const snippet of [`| ${step} | v3.6.0 (${step}) ${title} | P0 | 완료 |`, `## v3.6.0 Step ${step} 개발 기록`, route, `\`./server.sh ${command}\``]) assertIncludes(files.backlog, snippet, `backlog v3.6 Step ${step}`);
-  assertIncludes(files.streamVerification, `| v3.6.0 (${step}) | \`./server.sh ${command}\` | ${title}.`, `stream verification v3.6 Step ${step}`);
-  assertIncludes(files.featureInventory, `v3.6.0 (${step}) ${title}`, `feature inventory v3.6 Step ${step}`);
-  for (const id of ids) assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`);
-  assertIncludes(files.releaseRecords, `V360 ${title}`, `release records v3.6 Step ${step}`);
-  assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, `release records v3.6 Step ${step}`);
-}
-function loadFiles() { return { server: readWebRtcHttpServerBundle(readText), backlog: readText("docs/development-backlog.md"), streamVerification: readText("docs/stream-verification.md"), featureInventory: readText("docs/project-feature-test-inventory.md"), featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"), projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"), scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"), releaseRecords: readText("docs/release-test-records.md"), serverSh: readText("server.sh") }; }
+
+function loadFiles() { return { server: readWebRtcHttpServerBundle(readText), streamVerification: readText("docs/stream-verification.md"), featureInventory: readText("docs/project-feature-test-inventory.md"), featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"), projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"), scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"), serverSh: readText("server.sh") }; }
 function extractRouteBlock(text, routeNeedle) { const start = text.indexOf(`request.path == "${routeNeedle}"`); assert(start >= 0, `missing route: ${routeNeedle}`); const next = text.indexOf("\n                        if (request.path == ", start + 1); return text.slice(start, next >= 0 ? next : start + 2200); }
 function extractBlock(text, startNeedle, endNeedle) { const start = text.indexOf(startNeedle); assert(start >= 0, `missing block start: ${startNeedle}`); const end = text.indexOf(endNeedle, start + startNeedle.length); assert(end >= 0, `missing block end after ${startNeedle}: ${endNeedle}`); return text.slice(start, end); }
 function assertFlagFalse(text, flag) { const index = text.indexOf(flag); assert(index >= 0, `missing boundary flag: ${flag}`); assert(text.slice(index, index + 128).includes("false"), `boundary flag must be false: ${flag}`); }
-function finish(title, summary) { const results = runChecks(); console.log(""); console.log(title); for (const [key, value] of Object.entries(summary)) console.log(`- ${key}: ${value}`); console.log("- writes: no command/source/view/rule/EventRecord/Ops audit/client/media mutation performed"); console.log(`- pass: ${results.pass}`); console.log(`- fail: ${results.fail}`); if (results.fail > 0) process.exit(1); }
+function finish(title, summary) { const results = runChecks(); console.log(""); console.log(title); for (const [key, value] of Object.entries(summary)) console.log(`- ${key}: ${value}`); console.log("- writes: no command/source/view/rule/EventRecord/Ops audit/client/media mutation performed"); console.log("- uiFulltest: not-run-by-this-command");
+  console.log("- longrun30Or120: not-run-by-this-command");
+  console.log(`- pass: ${results.pass}`); console.log(`- fail: ${results.fail}`); if (results.fail > 0) process.exit(1); }
 function runChecks() { let pass = 0, fail = 0; for (const item of checks) { try { item.fn(); pass += 1; console.log(`[pass] ${item.name}`); } catch (error) { fail += 1; console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`); } } return { pass, fail }; }
 function check(name, fn) { checks.push({ name, fn }); }
 function readText(relativePath) { return fs.readFileSync(path.join(rootDir, relativePath), "utf8"); }

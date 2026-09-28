@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 10 Approval Ticket Workflow 구현, 문서, inventory 연결을 검증한다.
 
@@ -145,8 +146,19 @@ check("Ops API exposes the approval ticket route as guarded no-store JSON", () =
   assertIncludes(block, "no-store", "approval workflow route");
 });
 
-check("docs, inventory, and dispatch map v3.7 Step 10", () => {
-  assertStepDocs("10", "Approval Ticket Workflow", "LAB-105", "SAFE-171", "OPS-138");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["LAB-105","SAFE-171","OPS-138"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/approval-ticket-workflow"],
+    command, script: "verify_v370_approval_ticket_workflow.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+});
+
+check("현행 실행·등록 연결 1", () => {
   for (const id of ["LAB-105", "SAFE-171", "OPS-138"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -181,31 +193,15 @@ check("SAFE-171 canonical bounded no-execution boundary", () => {
 
 finish("== v3.7.0 approval ticket workflow summary ==", { schema, step: "v3.7.0 (10)", route });
 
-function assertStepDocs(step, title, ...ids) {
-  for (const snippet of [
-    `| ${step} | v3.7.0 (${step}) ${title} | P1 | 완료 |`,
-    `## v3.7.0 Step ${step} 개발 기록`,
-    route,
-    `\`./server.sh ${command}\``,
-  ]) assertIncludes(files.backlog, snippet, `backlog v3.7 Step ${step}`);
-  assertIncludes(files.streamVerification, `| v3.7.0 (${step}) | \`./server.sh ${command}\` | ${title}.`, `stream verification v3.7 Step ${step}`);
-  assertIncludes(files.featureInventory, `v3.7.0 (${step}) ${title}`, `feature inventory v3.7 Step ${step}`);
-  for (const id of ids) assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`);
-  assertIncludes(files.releaseRecords, "V370 Approval Ticket Workflow", "release records v3.7 Step 10");
-  assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.7 Step 10");
-}
-
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     serverSh: readText("server.sh"),
   };
 }

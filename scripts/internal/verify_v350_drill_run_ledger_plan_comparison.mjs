@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 7 Drill Run Ledger and Plan Comparison 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops/api/live-operations/drill-run-ledger exposes a read-only drill run ledger
   - drill run id, operator note, blocker, evidence refs, and previous-run diff are accumulated
   - /ops command workspace renders the ledger and plan comparison without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -39,19 +40,19 @@ const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const stagedPlanRoute = "/ops/api/live-operations/staged-change-plan-impact-preview";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("Ops server builds the v3.5 drill run ledger and plan comparison model", () => {
@@ -79,7 +80,8 @@ check("Ops server builds the v3.5 drill run ledger and plan comparison model", (
 });
 
 check("drill ledger derives entries from graph, command plan, and staged plan without execution", () => {
-  const block = extractBlock(files.server, "struct OpsV350DrillRunLedgerEntry", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV350DrillRunLedgerEntry", "std::string OpsV350DrillRunLedgerPlanComparisonJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV350DrillRunLedgerPlanComparisonJson(");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV350CommandPlanCandidates",
@@ -100,7 +102,7 @@ check("drill ledger derives entries from graph, command plan, and staged plan wi
 });
 
 check("drill ledger preserves read-only append-only projection boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV350DrillRunLedgerPlanComparisonJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350DrillRunLedgerPlanComparisonJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -170,7 +172,7 @@ check("Ops API exposes the drill run ledger route as guarded no-store JSON", () 
 });
 
 check("/ops command workspace declares a drill ledger UI surface", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashCommandWorkspaceLedgerList",
     "ops-command-ledger-list",
@@ -234,51 +236,16 @@ check("client/viewer scripts do not expose drill ledger operator material", () =
   }
 });
 
-check("roadmap records v3.5 Step 7 without overclaiming execution or longrun", () => {
-  for (const snippet of [
-    "| 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 완료 |",
-    "## v3.5.0 Step 7 개발 기록",
-    route,
-    "OpsV350DrillRunLedgerPlanComparisonJson",
-    "drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이",
-    `\`./server.sh ${command}\``,
-    "Client Impact Forecast 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 7");
-  }
-});
-
-check("stream verification exposes v3.5 Step 7 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (7) | \`./server.sh ${command}\` | Drill Run Ledger and Plan Comparison.`,
-    route,
-    "drill run id, operator note, blocker, evidence refs",
-    "이전 run 대비 차이",
-    "drill run write/operator note write/command execution 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 7");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 7", () => {
-  for (const snippet of [
-    `v3.5.0 (7) Drill Run Ledger and Plan Comparison | \`UI-082\`, \`SAFE-141\`, \`OPS-108\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-082 | V350 Step 7 Drill Run Ledger and Plan Comparison UI",
-    "SAFE-141 | V350 Step 7 drill run ledger boundary",
-    "OPS-108 | V350 Step 7 Drill Run Ledger and Plan Comparison 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 7");
-  }
-  for (const snippet of [
-    "V350 Drill Run Ledger and Plan Comparison",
-    `\`./server.sh ${command}\``,
-    "v350 Step 7 RED drill run ledger gate",
-    "v350 Step 7 drill run ledger final",
-    "v350 Step 7 UI 풀테스트",
-    "v350 Step 7 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 7");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-082","SAFE-141","OPS-108"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/drill-run-ledger"],
+    command, script: "verify_v350_drill_run_ledger_plan_comparison.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 7 command", () => {

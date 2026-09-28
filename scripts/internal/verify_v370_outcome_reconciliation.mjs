@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 16 Outcome Reconciliation 연결, 문서, 경계를 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/site-operations/outcome-reconciliation compares pre-simulation refs with post-execution observed refs for source/event/client impact
   - reconciliation remains read-only and marks execution outcomes as pending/not-run when no pilot execution evidence exists
   - /ops dashboard renders source, EventRecord, client, and pending reconciliation signals without client/viewer injection
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -45,14 +46,12 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -295,47 +294,22 @@ check("client/viewer scripts do not receive v3.7 Outcome Reconciliation material
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.7 Step 16", () => {
-  for (const snippet of [
-    "| 16 | v3.7.0 (16) Outcome Reconciliation | P2 | 완료 |",
-    "## v3.7.0 Step 16 개발 기록",
-    route,
-    "OpsV370OutcomeReconciliationJson",
-    `\`./server.sh ${command}\``,
-    "Export/Handoff Bundle 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.7 Step 16");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-100","SRC-062","EVT-083","CLIENT-039","LAB-109","SAFE-177","OPS-144"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/outcome-reconciliation"],
+    command, script: "verify_v370_outcome_reconciliation.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-062","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.7.0 (16) | \`./server.sh ${command}\` | Outcome Reconciliation.`,
-    "source/event/client impact diff",
-    "pre-simulation",
-    "post-execution",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.7 Step 16");
-  }
-  for (const snippet of [
-    `v3.7.0 (16) Outcome Reconciliation | \`UI-100\`, \`SRC-062\`, \`EVT-083\`, \`CLIENT-039\`, \`LAB-109\`, \`SAFE-177\`, \`OPS-144\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-100 | V370 Step 16 Outcome Reconciliation UI",
-    "SRC-062 | V370 Step 16 source outcome reconciliation",
-    "EVT-083 | V370 Step 16 EventRecord outcome reconciliation",
-    "CLIENT-039 | V370 Step 16 client impact outcome reconciliation",
-    "LAB-109 | V370 Step 16 Outcome Reconciliation harness",
-    "SAFE-177 | V370 Step 16 Outcome Reconciliation boundary",
-    "OPS-144 | V370 Step 16 Outcome Reconciliation 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.7 Step 16");
-  }
-  for (const snippet of [
-    "V370 Outcome Reconciliation",
-    `\`./server.sh ${command}\``,
-    "v370 Step 16 RED outcome reconciliation gate",
-    "v370 Step 16 outcome reconciliation final",
-    "v370 Step 16 UI 풀테스트",
-    "v370 Step 16 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.7 Step 16");
-  }
+
 });
 
 check("server entrypoint and inventory verifiers include v3.7 Step 16 command", () => {

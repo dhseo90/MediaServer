@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.5.0 Step 3 Operations Command Plan Contract 구현, 문서, inventory 연결을 검증한다.
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/live-operations/command-plan exposes an Ops-only command plan contract
   - the contract defines source recheck, recovery, maintenance, client notice, and rule follow-up candidates
   - candidates remain draft/read-only and do not execute source, view, rule, client, EventRecord, audit, or media mutations
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -35,16 +36,15 @@ const schema = "media-server.ops.v350-command-plan.v1";
 const route = "/ops/api/live-operations/command-plan";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("Ops server builds the v3.5 command plan contract", () => {
@@ -165,52 +165,22 @@ check("Ops API exposes the command plan route as guarded no-store JSON", () => {
   assert(!block.includes("require_source_write_principal"), "command plan route must not require source writes");
 });
 
-check("roadmap records v3.5 Step 3 without overclaiming handoff or staging", () => {
-  for (const snippet of [
-    "| 3 | v3.5.0 (3) Operations Command Plan Contract | P0 | 완료 |",
-    "source recheck, recovery, maintenance, client notice, rule follow-up 후보를 command plan으로 표현",
-    "## v3.5.0 Step 3 개발 기록",
-    route,
-    "OpsV350CommandPlanJson",
-    "`./server.sh verify-v350-operations-command-plan-contract`",
-    "Incident-to-Command Handoff, Staged Change Plan 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 3");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["SRC-045","RULE-105","SAFE-137","OPS-104"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/command-plan"],
+    command, script: "verify_v350_operations_command_plan_contract.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-045","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = documentationImplementation.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-});
 
-check("stream verification exposes v3.5 Step 3 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (3) | \`./server.sh ${command}\` | Operations Command Plan Contract.`,
-    route,
-    "source recheck, recovery, maintenance, client notice, rule follow-up",
-    "draft-only command plan",
-    "source/view/rule/client/EventRecord/Ops audit/media mutation 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 3");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 3", () => {
-  for (const snippet of [
-    `v3.5.0 (3) Operations Command Plan Contract | \`SRC-045\`, \`RULE-105\`, \`SAFE-137\`, \`OPS-104\` | \`${command}\``,
-    "SRC-045 | V350 Step 3 source recheck/recovery command candidates",
-    "RULE-105 | V350 Step 3 rule follow-up command candidate boundary",
-    "SAFE-137 | V350 Step 3 command plan no-execution boundary",
-    "OPS-104 | V350 Step 3 Operations Command Plan Contract 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 3");
-  }
-  for (const snippet of [
-    "V350 Operations Command Plan Contract",
-    `\`./server.sh ${command}\``,
-    "v350 Step 3 RED operations command plan gate",
-    "v350 Step 3 operations command plan final",
-    "v350 Step 3 UI 풀테스트",
-    "v350 Step 3 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 3");
-  }
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 3 command", () => {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 13 VLM-assisted Simulation Explanation 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/live-operations/simulation/vlm-assisted-explanation summarizes simulation blocker, impact diff, and operator review hints
   - VLM assistance is default-off and never performs provider/runtime calls before opt-in
   - /ops simulation workspace renders explanation summaries without raw prompt, provider response, credential, or client material
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -39,14 +40,12 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -232,43 +231,25 @@ check("VLM-assisted Simulation Explanation styling and client redaction are in p
   }
 });
 
-check("docs, inventory, and dispatch map v3.6 Step 13", () => {
-  for (const snippet of [
-    "| 13 | v3.6.0 (13) VLM-assisted Simulation Explanation | P2 | 완료 |",
-    "## v3.6.0 Step 13 개발 기록",
-    route,
-    "OpsV360VlmAssistedSimulationExplanationJson",
-    `\`./server.sh ${command}\``,
-    "provider/runtime call은 opt-in 전 미수행",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 13");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-094","SRC-053","EVT-079","LAB-100","SAFE-160","OPS-127"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/vlm-assisted-explanation"],
+    command, script: "verify_v360_vlm_assisted_simulation_explanation.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-053","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.6.0 (13) | \`./server.sh ${command}\` | VLM-assisted Simulation Explanation.`,
-    "default-off VLM",
-    "blocker, impact diff, operator review hint",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 13");
-  }
-  for (const snippet of [
-    `v3.6.0 (13) VLM-assisted Simulation Explanation | \`UI-094\`, \`SRC-053\`, \`EVT-079\`, \`LAB-100\`, \`SAFE-160\`, \`OPS-127\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-094 | V360 Step 13 VLM-assisted Simulation Explanation UI",
-    "SRC-053 | V360 Step 13 source simulation explanation context",
-    "EVT-079 | V360 Step 13 event risk simulation explanation context",
-    "LAB-100 | V360 Step 13 default-off VLM simulation explanation harness",
-    "SAFE-160 | V360 Step 13 VLM-assisted simulation explanation boundary",
-    "OPS-127 | V360 Step 13 VLM-assisted Simulation Explanation 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 13");
-  }
-  for (const snippet of [
-    "V360 VLM-assisted Simulation Explanation",
-    `\`./server.sh ${command}\``,
-    "v360 Step 13 RED VLM-assisted simulation explanation gate",
-    "v360 Step 13 VLM-assisted simulation explanation final",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 13");
-  }
+
+});
+
+check("현행 실행·등록 연결 1", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_vlm_assisted_simulation_explanation.mjs", "server.sh script dispatch");
   for (const id of ["UI-094", "SRC-053", "EVT-079", "LAB-100", "SAFE-160", "OPS-127"]) {
@@ -312,7 +293,9 @@ console.log("- step: v3.6.0 (13)");
 console.log(`- route: ${route}`);
 console.log("- explains: simulation blocker, impact diff, operator review hint");
 console.log("- writes: no VLM/provider/runtime call, simulation execution, operator review write, source/view/EventRecord/Ops audit/client/media mutation performed");
-console.log(`- pass: ${results.pass}`);
+console.log("- uiFulltest: not-run-by-this-command");
+  console.log("- longrun30Or120: not-run-by-this-command");
+  console.log(`- pass: ${results.pass}`);
 console.log(`- fail: ${results.fail}`);
 if (results.fail > 0) process.exit(1);
 

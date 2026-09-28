@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 12 Outcome Observer and Reconciliation 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/actions/outcome-reconciliation exposes an Ops-only read model that compares readiness, candidate, and observed outcome refs
   - outcome observer keeps execution as not-run/pending and never writes EventRecord, source, rule, notice, approval, or media state
   - /ops action control workspace renders source/EventRecord/client/rule outcome diff signals without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -41,17 +42,16 @@ const featureIds = ["UI-104", "EVT-084", "CLIENT-041", "LAB-119", "SAFE-191", "O
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -210,7 +210,7 @@ check("Ops API exposes the Outcome Observer route as guarded no-store JSON", () 
 });
 
 check("/ops action control workspace declares and renders Outcome Observer signals", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
   for (const snippet of [
     "ops-action-outcome-observer",
     "data-testid=\"ops-action-outcome-observer\"",
@@ -296,46 +296,16 @@ check("client/viewer scripts do not receive v3.8 Outcome Observer material", () 
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.8 Step 12", () => {
-  for (const snippet of [
-    "| 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 완료 |",
-    "## v3.8.0 Step 12 개발 기록",
-    route,
-    "OpsV380OutcomeObserverReconciliationJson",
-    `\`./server.sh ${command}\``,
-    "Action Receipt Bundle 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 12");
-  }
-  for (const snippet of [
-    `| v3.8.0 (12) | \`./server.sh ${command}\` | Outcome Observer and Reconciliation.`,
-    "readiness/outcome diff",
-    "source/EventRecord/client/rule outcome diff",
-    "not-run",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.8 Step 12");
-  }
-  for (const snippet of [
-    `v3.8.0 (12) Outcome Observer and Reconciliation | \`UI-104\`, \`EVT-084\`, \`CLIENT-041\`, \`LAB-119\`, \`SAFE-191\`, \`OPS-158\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-104 | V380 Step 12 Outcome Observer and Reconciliation UI",
-    "EVT-084 | V380 Step 12 EventRecord outcome observer",
-    "CLIENT-041 | V380 Step 12 client impact outcome observer",
-    "LAB-119 | V380 Step 12 Outcome Observer harness",
-    "SAFE-191 | V380 Step 12 Outcome Observer boundary",
-    "OPS-158 | V380 Step 12 Outcome Observer 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.8 Step 12");
-  }
-  for (const snippet of [
-    "V380 Outcome Observer and Reconciliation",
-    `\`./server.sh ${command}\``,
-    "v380 Step 12 RED outcome observer reconciliation gate",
-    "v380 Step 12 Outcome Observer and Reconciliation final",
-    "v380 Step 12 UI 풀테스트",
-    "v380 Step 12 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.8 Step 12");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-104","EVT-084","CLIENT-041","LAB-119","SAFE-191","OPS-158"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/actions/outcome-reconciliation"],
+    command, script: "verify_v380_outcome_observer_reconciliation.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.8 Step 12 command", () => {

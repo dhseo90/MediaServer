@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 10 Rule/VA What-if Replay Pack 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/live-operations/simulation/rule-va-what-if-replay-pack exposes read-only what-if replay candidates
   - rule threshold, preset, and scenario candidates compare against EventRecord/VA fixture context
   - /ops simulation workspace renders the pack without rule/EventRecord/media mutation
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -35,17 +36,16 @@ const schema = "media-server.ops.v360-rule-va-what-if-replay-pack.v1";
 const route = "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -77,7 +77,8 @@ check("Ops server builds the v3.6 Rule/VA what-if replay pack model", () => {
 });
 
 check("what-if replay derives from EventRecord/VA fixture context and simulation diff inputs", () => {
-  const block = extractBlock(files.server, "struct OpsV360RuleVaWhatIfReplayCandidate", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV360RuleVaWhatIfReplayCandidate", "std::string OpsV360RuleVaWhatIfReplayPackJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV360RuleVaWhatIfReplayPackJson(");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV360CommandPlanDryRunResults",
@@ -149,7 +150,7 @@ check("Ops API exposes the Rule/VA what-if route as guarded no-store JSON", () =
 });
 
 check("/ops simulation workspace declares and renders Rule/VA what-if replay pack", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashSimulationWorkspaceWhatIfReplayList",
     "ops-simulation-what-if-replay-list",
@@ -192,43 +193,19 @@ check("Rule/VA what-if styling and client redaction are in place", () => {
   }
 });
 
-check("docs, inventory, and dispatch map v3.6 Step 10", () => {
-  for (const snippet of [
-    "| 10 | v3.6.0 (10) Rule/VA What-if Replay Pack | P1 | 완료 |",
-    "## v3.6.0 Step 10 개발 기록",
-    route,
-    "OpsV360RuleVaWhatIfReplayPackJson",
-    `\`./server.sh ${command}\``,
-    "Simulation Export Bundle 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 10");
-  }
-  for (const snippet of [
-    `| v3.6.0 (10) | \`./server.sh ${command}\` | Rule/VA What-if Replay Pack.`,
-    "rule threshold, preset, scenario",
-    "EventRecord/VA fixture",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 10");
-  }
-  for (const snippet of [
-    `v3.6.0 (10) Rule/VA What-if Replay Pack | \`UI-091\`, \`RULE-109\`, \`EVT-078\`, \`LAB-097\`, \`SAFE-157\`, \`OPS-124\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-091 | V360 Step 10 Rule/VA What-if Replay Pack UI",
-    "RULE-109 | V360 Step 10 Rule/VA what-if candidates",
-    "EVT-078 | V360 Step 10 EventRecord what-if replay input",
-    "LAB-097 | V360 Step 10 Rule/VA what-if replay pack",
-    "SAFE-157 | V360 Step 10 Rule/VA what-if boundary",
-    "OPS-124 | V360 Step 10 Rule/VA What-if Replay Pack 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 10");
-  }
-  for (const snippet of [
-    "V360 Rule/VA What-if Replay Pack",
-    `\`./server.sh ${command}\``,
-    "v360 Step 10 RED rule/VA what-if replay gate",
-    "v360 Step 10 rule/VA what-if replay final",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 10");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-091","RULE-109","EVT-078","LAB-097","SAFE-157","OPS-124"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/rule-va-what-if-replay-pack"],
+    command, script: "verify_v360_rule_va_what_if_replay_pack.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+});
+
+check("현행 실행·등록 연결 1", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_rule_va_what_if_replay_pack.mjs", "server.sh script dispatch");
   for (const id of ["UI-091", "RULE-109", "EVT-078", "LAB-097", "SAFE-157", "OPS-124"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
@@ -269,7 +246,9 @@ console.log("- step: v3.6.0 (10)");
 console.log(`- route: ${route}`);
 console.log("- compares: rule threshold, preset, scenario candidates");
 console.log("- writes: no rule/EventRecord/client/media mutation performed");
-console.log(`- pass: ${results.pass}`);
+console.log("- uiFulltest: not-run-by-this-command");
+  console.log("- longrun30Or120: not-run-by-this-command");
+  console.log(`- pass: ${results.pass}`);
 console.log(`- fail: ${results.fail}`);
 if (results.fail > 0) process.exit(1);
 

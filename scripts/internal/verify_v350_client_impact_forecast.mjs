@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 8 Client Impact Forecast 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -26,7 +27,7 @@ Checks:
   - client live/dashboard/events render only viewer-safe source/view/command plan impact summaries
   - forecast hides source URL, raw locator, raw JSON, debug, credential, operator notes, command plan details, and action controls
   - forecast does not mutate SourceRegistry, PublishedView, EventRecord/Event POST, media, metadata schemas, Rule/Profile payload, or search/metrics
-  - backlog, stream verification, release records, feature inventory, ops/client smoke, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -39,16 +40,15 @@ const files = {
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 const impactForecastProjectionBlock = extractCppFunctionBlock(files.server, "std::string ClientImpactForecastJson(");
 const impactForecastRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientImpactForecast");
@@ -178,52 +178,16 @@ check("forecast styling and ops/client smoke track Step 8 markers", () => {
   }
 });
 
-check("roadmap records v3.5 Step 8 without overclaiming client notice", () => {
-  for (const snippet of [
-    "| 8 | v3.5.0 (8) Client Impact Forecast | P1 | 완료 |",
-    "## v3.5.0 Step 8 개발 기록",
-    "ClientImpactForecastJson",
-    "renderClientImpactForecast",
-    `\`./server.sh ${command}\``,
-    "Client-safe Operations Notice 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 8");
-  }
-});
-
-check("stream verification exposes v3.5 Step 8 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (8) | \`./server.sh ${command}\` | Client Impact Forecast.`,
-    "/client/api/views/{id}/events",
-    "clientImpactForecast",
-    "source/view/command plan",
-    "client live/dashboard/event digest",
-    "source URL/raw locator/raw JSON/debug/credential/operator material",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 8");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 8", () => {
-  for (const snippet of [
-    `v3.5.0 (8) Client Impact Forecast | \`UI-083\`, \`CLIENT-031\`, \`SAFE-142\`, \`OPS-109\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-083 | V350 Step 8 Client Impact Forecast UI",
-    "CLIENT-031 | V350 Step 8 client impact forecast API/UI",
-    "SAFE-142 | V350 Step 8 client impact forecast boundary",
-    "OPS-109 | V350 Step 8 Client Impact Forecast 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 8");
-  }
-  for (const snippet of [
-    "V350 Client Impact Forecast",
-    `\`./server.sh ${command}\``,
-    "v350 Step 8 RED client impact forecast gate",
-    "v350 Step 8 client impact forecast final",
-    "v350 Step 8 UI 풀테스트",
-    "v350 Step 8 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 8");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-083","CLIENT-031","SAFE-142","OPS-109"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.client.v350-impact-forecast.v1"],
+    command, script: "verify_v350_client_impact_forecast.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 8 command", () => {

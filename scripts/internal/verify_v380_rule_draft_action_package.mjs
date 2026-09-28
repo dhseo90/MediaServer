@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 9 Rule Draft Action Package 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/actions/rule-draft-package exposes the v3.8 rule draft action package contract
   - rule threshold candidate, scenario candidate, draft package, review checklist, and apply blocker are explicit
   - rule draft action package is Ops-only/read-only and does not apply rules, persist drafts, write registries, or mutate media/event/client schemas
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -177,27 +178,22 @@ check("Ops API exposes the rule draft action package as guarded no-store JSON", 
   assert(!block.includes("require_client_write_principal"), "rule draft action package must not require client write principal");
 });
 
-check("docs, inventory, and dispatch map v3.8 Step 9", () => {
-  for (const snippet of [
-    "| 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 완료 |",
-    "## v3.8.0 Step 9 개발 기록",
-    route,
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 9");
-  }
-  assertIncludes(
-    files.streamVerification,
-    `| v3.8.0 (9) | \`./server.sh ${command}\` | Rule Draft Action Package.`,
-    "stream verification v3.8 Step 9",
-  );
-  assertIncludes(files.featureInventory, "v3.8.0 (9) Rule Draft Action Package", "feature inventory v3.8 Step 9");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["LAB-118","SAFE-188","OPS-155"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/actions/rule-draft-package"],
+    command, script: "verify_v380_rule_draft_action_package.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+});
+
+check("현행 실행·등록 연결 1", () => {
   for (const id of featureIds) {
-    assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`);
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.releaseRecords, "V380 Rule Draft Action Package", "release records v3.8 Step 9");
-  assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 9");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_rule_draft_action_package.mjs", "server.sh dispatch");
   for (const id of ["LAB-118", "SAFE-188", "OPS-155"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
@@ -233,14 +229,12 @@ finish("== v3.8.0 Rule Draft Action Package summary ==", { schema, step: "v3.8.0
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     serverSh: readText("server.sh"),
   };
 }

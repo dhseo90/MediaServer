@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.6.0 Step 3 Operations Simulation Run Contract 구현, 문서, inventory 연결을 검증한다.
@@ -134,15 +135,16 @@ check("Ops API exposes the simulation run route as guarded no-store JSON", () =>
   assertIncludes(block, "no-store", "simulation run route");
 });
 
-check("docs and inventory map v3.6 Step 3", () => {
-  assertDocs("3", "Operations Simulation Run Contract", "OPS-117", "SAFE-150", command, route);
-  for (const snippet of [
-    "LAB-095 | V360 Step 3 simulation run schema/envelope",
-    "SAFE-150 | V360 Step 3 simulation run no-execution boundary",
-    "OPS-117 | V360 Step 3 Operations Simulation Run Contract 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 3");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["LAB-095","SAFE-150","OPS-117"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/run-contract"],
+    command, script: "verify_v360_operations_simulation_run_contract.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.6 Step 3", () => {
@@ -159,32 +161,15 @@ check("server entrypoint and inventory verifiers include v3.6 Step 3", () => {
 
 finish("== v3.6.0 operations simulation run contract summary ==", { schema, step: "v3.6.0 (3)", route });
 
-function assertDocs(step, title, opsId, safeId, verifier, routeValue) {
-  for (const snippet of [
-    `| ${step} | v3.6.0 (${step}) ${title} | P0 | 완료 |`,
-    `## v3.6.0 Step ${step} 개발 기록`,
-    routeValue,
-    `\`./server.sh ${verifier}\``,
-  ]) assertIncludes(files.backlog, snippet, `backlog v3.6 Step ${step}`);
-  assertIncludes(files.streamVerification, `| v3.6.0 (${step}) | \`./server.sh ${verifier}\` | ${title}.`, `stream verification v3.6 Step ${step}`);
-  assertIncludes(files.featureInventory, `v3.6.0 (${step}) ${title}`, `feature inventory v3.6 Step ${step}`);
-  assertIncludes(files.featureInventory, `\`${opsId}\``, `feature inventory ${opsId}`);
-  assertIncludes(files.featureInventory, `\`${safeId}\``, `feature inventory ${safeId}`);
-  assertIncludes(files.releaseRecords, `V360 ${title}`, `release records v3.6 Step ${step}`);
-  assertIncludes(files.releaseRecords, `\`./server.sh ${verifier}\``, `release records v3.6 Step ${step}`);
-}
-
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     serverSh: readText("server.sh"),
   };
 }

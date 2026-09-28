@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 11 Field Evidence Intake 구현, UI, 문서, inventory 연결을 검증한다.
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops/api/live-operations/field-evidence-intake collects redacted ONVIF, external WHEP/TURN, and cloud/VLM provider field evidence states
   - execution conditions and not-run states are separated from collected redacted evidence
   - /ops command workspace renders field evidence intake without raw endpoint, credential, provider, or VLM material
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -37,18 +38,17 @@ const route = "/ops/api/live-operations/field-evidence-intake";
 const fieldBridgeRoute = "/ops/api/source-registry/field-bridge-condition-gates";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -82,7 +82,8 @@ check("Ops server builds redacted field evidence intake models", () => {
 });
 
 check("field evidence intake derives ONVIF, external WHEP/TURN, and cloud/VLM provider states without execution", () => {
-  const block = extractBlock(files.server, "struct OpsV350FieldEvidenceExecutionCondition", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV350FieldEvidenceExecutionCondition", "std::string OpsV350FieldEvidenceIntakeJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV350FieldEvidenceIntakeJson(");
   for (const snippet of [
     "BuildV340FieldBridgeConditionGates",
     "onvif-real-device",
@@ -105,7 +106,7 @@ check("field evidence intake derives ONVIF, external WHEP/TURN, and cloud/VLM pr
 });
 
 check("field evidence intake redaction and boundary flags prevent probes, writes, raw material, and media/schema changes", () => {
-  const block = extractBlock(files.server, "std::string OpsV350FieldEvidenceIntakeJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350FieldEvidenceIntakeJson(");
   for (const snippet of [
     "redactionPolicy",
     "redactedFieldEvidence",
@@ -214,7 +215,7 @@ check("Ops API exposes the field evidence intake route as guarded no-store JSON"
 });
 
 check("/ops command workspace declares field evidence intake surfaces", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashCommandWorkspaceFieldEvidenceIntake",
     "data-v350-field-evidence-intake",
@@ -301,64 +302,30 @@ check("client/viewer scripts do not expose field evidence operator material", ()
   }
 });
 
-check("roadmap records v3.5 Step 11 without overclaiming field smoke or VLM explanation", () => {
-  for (const snippet of [
-    "| 11 | v3.5.0 (11) Field Evidence Intake | P2 | 완료 |",
-    "## v3.5.0 Step 11 개발 기록",
-    route,
-    "OpsV350FieldEvidenceIntakeJson",
-    "ONVIF, external WHEP/TURN, cloud/VLM provider",
-    `\`./server.sh ${command}\``,
-    "field smoke 실행 evidence가 아닙니다",
-    "VLM-assisted Ops Explanation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 11");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-086","SRC-047","MEDIA-023","LAB-093","SAFE-145","OPS-112"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/field-evidence-intake"],
+    command, script: "verify_v350_field_evidence_intake.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-047","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-});
 
-check("stream verification exposes v3.5 Step 11 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (11) | \`./server.sh ${command}\` | Field Evidence Intake.`,
-    route,
-    "redacted field evidence",
-    "execution conditions",
-    "ONVIF, external WHEP/TURN, cloud/VLM provider",
-    "field smoke/provider call 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 11");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 11", () => {
-  for (const snippet of [
-    `v3.5.0 (11) Field Evidence Intake | \`UI-086\`, \`SRC-047\`, \`MEDIA-023\`, \`LAB-093\`, \`SAFE-145\`, \`OPS-112\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-086 | V350 Step 11 Field Evidence Intake UI",
-    "SRC-047 | V350 Step 11 ONVIF field evidence intake",
-    "MEDIA-023 | V350 Step 11 external WHEP/TURN field evidence intake",
-    "LAB-093 | V350 Step 11 cloud/VLM provider field evidence intake",
-    "SAFE-145 | V350 Step 11 field evidence redaction boundary",
-    "OPS-112 | V350 Step 11 Field Evidence Intake 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 11");
-  }
-  for (const snippet of [
-    "V350 Field Evidence Intake",
-    `\`./server.sh ${command}\``,
-    "v350 Step 11 RED field evidence intake gate",
-    "v350 Step 11 field evidence intake final",
-    "v350 Step 11 field smoke",
-    "v350 Step 11 UI 풀테스트",
-    "v350 Step 11 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 11");
-  }
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 11 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_field_evidence_intake.mjs", "server.sh script dispatch");
   for (const id of ["UI-086", "SRC-047", "MEDIA-023", "LAB-093", "SAFE-145", "OPS-112"]) {
-    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+    const expectedCommand = id === "SRC-047" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
   }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");

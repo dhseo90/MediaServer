@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 2 Simulation Input Contract 구현, 문서, inventory 연결을 검증한다.
 
@@ -141,43 +142,22 @@ check("Ops API exposes the input pack route as guarded no-store JSON", () => {
   assert(!block.includes("require_source_write_principal"), "simulation input route must not require source writes");
 });
 
-check("docs and inventory map v3.6 Step 2", () => {
-  for (const snippet of [
-    "| 2 | v3.6.0 (2) Simulation Input Contract | P0 | 완료 |",
-    "EventRecord, SourceRegistry, PublishedView, command plan, staged plan을 read-only simulation input pack으로 정의",
-    "## v3.6.0 Step 2 개발 기록",
-    route,
-    "OpsV360SimulationInputPackJson",
-    "`./server.sh verify-v360-simulation-input-contract`",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 2");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["SRC-049","EVT-077","SAFE-149","OPS-116"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/input-pack"],
+    command, script: "verify_v360_simulation_input_contract.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-049","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.6.0 (2) | \`./server.sh ${command}\` | Simulation Input Contract.`,
-    route,
-    "read-only simulation input pack",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 2");
-  }
-  for (const snippet of [
-    `v3.6.0 (2) Simulation Input Contract | \`SRC-049\`, \`EVT-077\`, \`SAFE-149\`, \`OPS-116\` | \`${command}\``,
-    "SRC-049 | V360 Step 2 SourceRegistry/PublishedView simulation input",
-    "EVT-077 | V360 Step 2 EventRecord simulation input",
-    "SAFE-149 | V360 Step 2 simulation input no-write boundary",
-    "OPS-116 | V360 Step 2 Simulation Input Contract 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 2");
-  }
-  for (const snippet of [
-    "V360 Simulation Input Contract",
-    `\`./server.sh ${command}\``,
-    "v360 Step 2 RED simulation input gate",
-    "v360 Step 2 simulation input final",
-    "v360 Step 2 UI 풀테스트",
-    "v360 Step 2 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 2");
-  }
+
 });
 
 check("server entrypoint and inventory verifiers include v3.6 Step 2", () => {
@@ -207,13 +187,11 @@ finish("== v3.6.0 simulation input contract summary ==", {
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     serverSh: readText("server.sh"),
   };

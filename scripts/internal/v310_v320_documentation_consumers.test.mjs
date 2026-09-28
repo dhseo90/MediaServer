@@ -39,6 +39,59 @@ const cases = [
   ["v340_ops_continuity_drill_workspace_ui","UI-075","media-server.ops.v340-continuity-drill-workspace-ui.v1","media-server.ops.v340-continuity-drill-workspace-ui.v1"],
   ["v340_recovery_candidate_package","SRC-041","media-server.ops.v340-recovery-candidate-package.v1","/ops/api/source-registry/recovery-candidate-package"],
   ["v340_source_health_replay_drift_diff","SRC-042","media-server.ops.v340-source-health-replay-drift-diff.v1","/ops/api/source-registry/source-health-replay-drift-diff"],
+  ["v350_client_impact_forecast","UI-083","media-server.client.v350-impact-forecast.v1","media-server.client.v350-impact-forecast.v1"],
+  ["v350_client_safe_operations_notice","UI-084","media-server.client.v350-operations-notice.v1","media-server.client.v350-operations-notice.v1"],
+  ["v350_drill_run_ledger_plan_comparison","UI-082","media-server.ops.v350-drill-run-ledger.v1","/ops/api/live-operations/drill-run-ledger"],
+  ["v350_field_evidence_intake","UI-086","media-server.ops.v350-field-evidence-intake.v1","/ops/api/live-operations/field-evidence-intake"],
+  ["v350_incident_to_command_handoff","UI-080","media-server.ops.v350-incident-command-handoff.v1","media-server.ops.v350-incident-command-handoff.v1"],
+  ["v350_live_operations_graph_contract","SRC-044","media-server.ops.v350-live-operations-graph.v1","/ops/api/live-operations/graph"],
+  ["v350_operations_command_plan_contract","SRC-045","media-server.ops.v350-command-plan.v1","/ops/api/live-operations/command-plan"],
+  ["v350_operations_export_bundle_handoff_map","UI-085","media-server.ops.v350-export-bundle-handoff-map.v1","/ops/api/live-operations/export-bundle-handoff-map"],
+  ["v350_ops_command_workspace_ui","UI-081","media-server.ops.v350-command-workspace-ui.v1","media-server.ops.v350-command-workspace-ui.v1"],
+  ["v350_staged_change_plan_impact_preview","SRC-046","media-server.ops.v350-staged-change-plan-impact-preview.v1","/ops/api/live-operations/staged-change-plan-impact-preview"],
+  ["v350_vlm_assisted_ops_explanation","UI-087","media-server.ops.v350-vlm-assisted-explanation.v1","/ops/api/live-operations/vlm-assisted-explanation"],
+  ["v360_client_notice_preview","UI-090","media-server.ops.v360-client-notice-preview.v1","/ops/api/live-operations/simulation/client-notice-preview"],
+  ["v360_command_plan_dry_run_simulator","SRC-050","media-server.ops.v360-command-plan-dry-run.v1","/ops/api/live-operations/simulation/command-plan-dry-run"],
+  ["v360_field_evidence_simulation_adapter","UI-093","media-server.ops.v360-field-evidence-simulation-adapter.v1","/ops/api/live-operations/simulation/field-evidence-adapter"],
+  ["v360_operations_simulation_run_contract","LAB-095","media-server.ops.v360-simulation-run-contract.v1","/ops/api/live-operations/simulation/run-contract"],
+  ["v360_ops_simulation_workspace_ui","UI-088","media-server.ops.v360-simulation-workspace-ui.v1","media-server.ops.v360-simulation-workspace-ui.v1"],
+  ["v360_rule_va_what_if_replay_pack","UI-091","media-server.ops.v360-rule-va-what-if-replay-pack.v1","/ops/api/live-operations/simulation/rule-va-what-if-replay-pack"],
+  ["v360_safe_apply_readiness_gate","SAFE-153","media-server.ops.v360-safe-apply-readiness.v1","/ops/api/live-operations/simulation/safe-apply-readiness"],
+  ["v360_simulation_export_bundle","UI-092","media-server.ops.v360-simulation-export-bundle.v1","/ops/api/live-operations/simulation/export-bundle"],
+  ["v360_simulation_input_contract","SRC-049","media-server.ops.v360-simulation-input-pack.v1","/ops/api/live-operations/simulation/input-pack"],
+  ["v360_simulation_run_ledger_comparison","UI-089","media-server.ops.v360-simulation-run-ledger.v1","/ops/api/live-operations/simulation/run-ledger"],
+  ["v360_source_rule_impact_diff","SRC-051","media-server.ops.v360-source-rule-impact-diff.v1","/ops/api/live-operations/simulation/impact-diff"],
+  ["v360_vlm_assisted_simulation_explanation","UI-094","media-server.ops.v360-vlm-assisted-simulation-explanation.v1","/ops/api/live-operations/simulation/vlm-assisted-explanation"],
+  ["v370_approval_ticket_workflow","LAB-105","media-server.ops.v370-approval-ticket-workflow.v1","/ops/api/site-operations/approval-ticket-workflow"],
+  ["v370_client_notice_by_site_view_group","UI-096","media-server.ops.v370-client-notice-by-site-view-group.v1","/ops/api/site-operations/client-notice-by-site-view-group"],
+  ["v370_cross_site_safe_apply_readiness","SRC-059","media-server.ops.v370-cross-site-safe-apply-readiness.v1","/ops/api/site-operations/cross-site-safe-apply-readiness"],
+  ["v370_export_handoff_bundle","UI-101","media-server.ops.v370-export-handoff-bundle.v1","/ops/api/site-operations/export-handoff-bundle"],
+  ["v370_field_evidence_attachment","UI-098","media-server.ops.v370-field-evidence-attachment.v1","/ops/api/site-operations/field-evidence-attachment"],
+  ["v370_limited_safe_execution_pilot","UI-099","media-server.ops.v370-limited-safe-execution-pilot.v1","/ops/api/site-operations/limited-safe-execution-pilot"],
+  ["v370_outcome_reconciliation","UI-100","media-server.ops.v370-outcome-reconciliation.v1","/ops/api/site-operations/outcome-reconciliation"],
+  ["v370_rule_va_what_if_by_site","UI-097","media-server.ops.v370-rule-va-what-if-by-site.v1","/ops/api/site-operations/rule-va-what-if-by-site"],
+  ["v370_runbook_instance_ledger","LAB-104","media-server.ops.v370-runbook-instance-ledger.v1","/ops/api/site-operations/runbook-instance-ledger"],
+  ["v370_runbook_template_contract","LAB-103","media-server.ops.v370-runbook-template-contract.v1","/ops/api/site-operations/runbook-template-contract"],
+  ["v370_site_aware_source_registry_projection","SRC-055","media-server.ops.v370-site-aware-source-registry-projection.v1","/ops/api/site-operations/source-registry-projection"],
+  ["v370_site_health_rollup","SRC-056","media-server.ops.v370-site-health-rollup.v1","/ops/api/site-operations/health-rollup"],
+  ["v370_site_impact_graph","SRC-057","media-server.ops.v370-site-impact-graph.v1","/ops/api/site-operations/impact-graph"],
+  ["v370_site_operations_workspace_ui","UI-095","media-server.ops.v370-site-operations-workspace-ui.v1","media-server.ops.v370-site-operations-workspace-ui.v1"],
+  ["v370_site_simulation_input_pack","SRC-058","media-server.ops.v370-site-simulation-input-pack.v1","/ops/api/site-operations/simulation-input-pack"],
+  ["v370_site_source_group_contract","SRC-054","media-server.ops.v370-site-source-group-contract.v1","/ops/api/site-operations/source-group-contract"],
+  ["v380_action_capability_contract","LAB-112","media-server.ops.v380-action-capability-contract.v1","/ops/api/actions/capability-contract"],
+  ["v380_action_readiness_preflight","LAB-115","media-server.ops.v380-action-readiness-preflight.v1","/ops/api/actions/readiness-preflight"],
+  ["v380_action_receipt_bundle","UI-105","media-server.ops.v380-action-receipt-bundle.v1","/ops/api/actions/receipt-bundle"],
+  ["v380_action_request_ledger_contract","LAB-113","media-server.ops.v380-action-request-ledger-contract.v1","/ops/api/actions/request-ledger"],
+  ["v380_approval_decision_gate","LAB-114","media-server.ops.v380-approval-decision-gate.v1","/ops/api/actions/approval-decision-gate"],
+  ["v380_client_notice_draft_queue","LAB-117","media-server.ops.v380-client-notice-draft-queue.v1","/ops/api/actions/client-notice-draft-queue"],
+  ["v380_client_safe_action_notice_preview","UI-103","media-server.client.v380-action-notice-preview.v1","media-server.client.v380-action-notice-preview.v1"],
+  ["v380_default_off_action_explanation","UI-107","media-server.ops.v380-default-off-action-explanation.v1","/ops/api/actions/default-off-explanation"],
+  ["v380_field_connector_evidence_package","UI-106","media-server.ops.v380-field-connector-evidence-package.v1","/ops/api/actions/field-connector-evidence-package"],
+  ["v380_ops_action_control_workspace_ui","UI-102","media-server.ops.v380-action-control-workspace-ui.v1","media-server.ops.v380-action-control-workspace-ui.v1"],
+  ["v380_ops_action_route_boundary","LAB-111","media-server.ops.v380-action-route-boundary.v1","/ops/api/actions/route-boundary"],
+  ["v380_outcome_observer_reconciliation","UI-104","media-server.ops.v380-outcome-observer-reconciliation.v1","/ops/api/actions/outcome-reconciliation"],
+  ["v380_rule_draft_action_package","LAB-118","media-server.ops.v380-rule-draft-action-package.v1","/ops/api/actions/rule-draft-package"],
+  ["v380_source_recheck_action_pilot","LAB-116","media-server.ops.v380-source-recheck-action-pilot.v1","/ops/api/actions/source-recheck-pilot"],
 ];
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 function snapshot() {
@@ -68,7 +121,21 @@ function invoke(name, mutation = {}) {
         const parsed = JSON.parse(value); parsed.items.find(item => item.id === 'UI-069').verifierEvidence.anchor = 'UI-069'; value = JSON.stringify(parsed);
       }
       if (mutation.duplicate && relative === 'scripts/internal/verify_v320_resolution_search_metrics.mjs') value += '\nassertIncludes(searchMetricsBlock, "media-server.ops.v320-resolution-search-metrics.v1", "UI-069 block-scoped canonical product state");\n';
-      if (mutation.control && relative === 'src/ingress/product_ui_server_pages.cpp') value = value.replaceAll('ops-v320-unified-events-workspace', 'removed-workspace-control');
+      if (mutation.control && relative === 'src/ingress/product_ui_server_pages.cpp') value = value.replaceAll(typeof mutation.control === 'string' ? mutation.control : 'ops-v320-unified-events-workspace', 'removed-workspace-control');
+      if (mutation.functionBody && relative === 'src/ingress/webrtc_http_server_ops_workflows.cpp') {
+        const {signature, token} = mutation.functionBody;
+        const start = value.indexOf('std::string ' + signature + '(');
+        if (start < 0) throw new Error('반례 준비 함수 없음: ' + signature);
+        const end = value.indexOf('// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN', start);
+        if (end < 0) throw new Error('반례 준비 함수 경계 없음: ' + signature);
+        const body = value.slice(start, end);
+        if (!body.includes(token)) throw new Error('반례 준비 token 없음: ' + token);
+        value = value.slice(0, start) + body.replaceAll(token, 'removed-function-obligation') + value.slice(end);
+      }
+      if (mutation.handoffAnchor && relative === 'test/fixtures/project_feature_implementation_evidence.json') {
+        const parsed = JSON.parse(value); parsed.items.find(item => item.id === 'UI-080').verifierEvidence.anchor = 'UI-080'; value = JSON.stringify(parsed);
+      }
+      if (mutation.handoffDuplicate && relative === 'scripts/internal/verify_v350_incident_to_command_handoff.mjs') value += '\nassertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff"), "incidentCommandHandoff", "UI-080 block-scoped canonical product state");\n';
       if (mutation.pin && relative === 'src/analysis/event_retention_cleanup.cpp') value = value.replaceAll('item.pinned && request.policy.pinned_excludes_automatic_cleanup', 'item.pinned && !request.policy.pinned_excludes_automatic_cleanup');
       if (mutation.identity && relative === 'test/fixtures/v310_optional_vector_search/cases.json') {
         const parsed = JSON.parse(value); parsed.cases[0].contractInvariants.identityEmbeddingIndexed = true; value = JSON.stringify(parsed);
@@ -85,9 +152,9 @@ function invoke(name, mutation = {}) {
 function rejected(result, reason) {
   assert.equal(result.status, 1, result.stderr + result.stdout);
   const output = result.stdout + result.stderr;
-  assert(output.includes('[fail]') && output.includes(reason), output);
+  assert(/\[fail\]/i.test(output) && output.includes(reason), output);
 }
-test('V31-V34-DOC 기능 문서 소비자', async t => {
+test('V31-V38-DOC 기능 문서 소비자', async t => {
   const before = snapshot();
   try {
     for (const [name, id, schema, identifier] of cases) {
@@ -122,6 +189,17 @@ test('V31-V34-DOC 기능 문서 소비자', async t => {
     ]) {
       await t.test('05 독립 인증/런타임 연결 유지 ' + id, () => rejected(invoke(name, {mapping: id}), id));
     }
+    for (const [name, id] of [["v350_field_evidence_intake","SRC-047"],["v350_live_operations_graph_contract","SRC-044"],["v350_operations_command_plan_contract","SRC-045"],["v350_staged_change_plan_impact_preview","SRC-046"],["v350_staged_change_plan_impact_preview","RULE-106"],["v350_vlm_assisted_ops_explanation","SRC-048"],["v360_command_plan_dry_run_simulator","SRC-050"],["v360_field_evidence_simulation_adapter","SRC-052"],["v360_safe_apply_readiness_gate","SAFE-153"],["v360_safe_apply_readiness_gate","OPS-120"],["v360_simulation_input_contract","SRC-049"],["v360_source_rule_impact_diff","SRC-051"],["v360_source_rule_impact_diff","SAFE-152"],["v360_vlm_assisted_simulation_explanation","SRC-053"],["v370_cross_site_safe_apply_readiness","SRC-059"],["v370_cross_site_safe_apply_readiness","SAFE-168"],["v370_cross_site_safe_apply_readiness","OPS-135"],["v370_field_evidence_attachment","SRC-060"],["v370_limited_safe_execution_pilot","SRC-061"],["v370_outcome_reconciliation","SRC-062"],["v370_site_aware_source_registry_projection","SRC-055"],["v370_site_health_rollup","SRC-056"],["v370_site_impact_graph","SRC-057"],["v370_site_simulation_input_pack","SRC-058"],["v370_site_source_group_contract","SRC-054"],["v380_default_off_action_explanation","SRC-064"],["v380_field_connector_evidence_package","SRC-063"]]) {
+      await t.test('09 독립 API 실행 연결 유지 ' + id, () => rejected(invoke(name, {mapping: id}), id));
+    }
+    for (const [name, signature, token] of [["v350_drill_run_ledger_plan_comparison","OpsV350DrillRunLedgerPlanComparisonJson","drillRunWritePerformed"],["v350_field_evidence_intake","OpsV350FieldEvidenceIntakeJson","fieldSmokeExecuted"],["v350_operations_export_bundle_handoff_map","OpsV350OperationsExportBundleHandoffMapJson","artifactExportExecuted"],["v350_vlm_assisted_ops_explanation","OpsV350VlmAssistedOpsExplanationJson","BuildV350LiveOperationsGraphContext"],["v360_client_notice_preview","OpsV360ClientNoticePreviewJson","BuildV360CommandPlanDryRunResults"],["v360_rule_va_what_if_replay_pack","OpsV360RuleVaWhatIfReplayPackJson","BuildV360SourceRuleImpactDiffs"],["v360_simulation_export_bundle","OpsV360SimulationExportBundleJson","fileWritePerformed"],["v360_simulation_run_ledger_comparison","OpsV360SimulationRunLedgerComparisonJson","simulationRunPersisted"]]) {
+      await t.test('10 대상 함수 의무 누락 거부 ' + name, () => rejected(invoke(name, {functionBody: {signature, token}}), token));
+    }
+    for (const [name, control] of [['v350_ops_command_workspace_ui', 'ops-command-workspace'], ['v380_ops_action_control_workspace_ui', 'ops-action-control-workspace']]) {
+      await t.test('10 분리된 UI 입력 검사 ' + name, () => rejected(invoke(name, {control}), control));
+    }
+    await t.test('10 UI-080 구형 anchor 거부', () => rejected(invoke('v350_incident_to_command_handoff', {handoffAnchor: true}), 'UI-080'));
+    await t.test('10 UI-080 중복 assertion 거부', () => rejected(invoke('v350_incident_to_command_handoff', {handoffDuplicate: true}), 'one location'));
     await t.test('06 pin 보호 반례', () => rejected(invoke('v310_retention_export_hardening', {pin: true}), 'pinned'));
     await t.test('06 신원 embedding 반례', () => rejected(invoke('v310_optional_vector_search', {identity: true}), 'identity embedding'));
     await t.test('07 분리된 UI control 누락 거부', () => rejected(invoke('v320_unified_ops_events_workspace', {control: true}), 'ops-v320-unified-events-workspace'));

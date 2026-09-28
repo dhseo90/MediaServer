@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 8 Simulation Run Ledger and Comparison 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops/api/live-operations/simulation/run-ledger exposes a read-only simulation run ledger
   - simulation run id, input ref, result diff, operator note, and previous-run comparison are accumulated
   - /ops simulation workspace renders the ledger without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -41,17 +42,16 @@ const impactDiffRoute = "/ops/api/live-operations/simulation/impact-diff";
 const readinessRoute = "/ops/api/live-operations/simulation/safe-apply-readiness";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -81,7 +81,8 @@ check("Ops server builds the v3.6 simulation run ledger and comparison model", (
 });
 
 check("simulation ledger derives entries from input pack, run contract, dry-run, impact diff, and readiness", () => {
-  const block = extractBlock(files.server, "struct OpsV360SimulationRunLedgerEntry", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV360SimulationRunLedgerEntry", "std::string OpsV360SimulationRunLedgerComparisonJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV360SimulationRunLedgerComparisonJson(");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV360SimulationInputPackItems",
@@ -104,7 +105,7 @@ check("simulation ledger derives entries from input pack, run contract, dry-run,
 });
 
 check("simulation ledger preserves read-only append-only projection boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV360SimulationRunLedgerComparisonJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SimulationRunLedgerComparisonJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -180,7 +181,7 @@ check("Ops API exposes the simulation run ledger route as guarded no-store JSON"
 });
 
 check("/ops simulation workspace declares a ledger UI surface", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashSimulationWorkspaceLedgerList",
     "ops-simulation-ledger-list",
@@ -245,52 +246,16 @@ check("client/viewer scripts do not expose simulation ledger operator material",
   }
 });
 
-check("roadmap records v3.6 Step 8 without overclaiming execution or longrun", () => {
-  for (const snippet of [
-    "| 8 | v3.6.0 (8) Simulation Run Ledger and Comparison | P1 | 완료 |",
-    "## v3.6.0 Step 8 개발 기록",
-    route,
-    "OpsV360SimulationRunLedgerComparisonJson",
-    "simulation run id, 입력 ref, 결과 diff, operator note, 이전 run 대비 변화",
-    `\`./server.sh ${command}\``,
-    "Client Notice Preview 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 8");
-  }
-});
-
-check("stream verification exposes v3.6 Step 8 command and boundary", () => {
-  for (const snippet of [
-    `| v3.6.0 (8) | \`./server.sh ${command}\` | Simulation Run Ledger and Comparison.`,
-    route,
-    "simulation run id, 입력 ref, 결과 diff, operator note",
-    "이전 run 대비 변화",
-    "simulation run persist/execute/operator note write/client notice 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 8");
-  }
-});
-
-check("feature inventory and release records map v3.6 Step 8", () => {
-  for (const snippet of [
-    `v3.6.0 (8) Simulation Run Ledger and Comparison | \`UI-089\`, \`LAB-096\`, \`SAFE-155\`, \`OPS-122\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-089 | V360 Step 8 Simulation Run Ledger and Comparison UI",
-    "LAB-096 | V360 Step 8 simulation run ledger comparison",
-    "SAFE-155 | V360 Step 8 simulation ledger boundary",
-    "OPS-122 | V360 Step 8 Simulation Run Ledger and Comparison 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 8");
-  }
-  for (const snippet of [
-    "V360 Simulation Run Ledger and Comparison",
-    `\`./server.sh ${command}\``,
-    "v360 Step 8 RED simulation run ledger gate",
-    "v360 Step 8 simulation run ledger final",
-    "v360 Step 8 UI 풀테스트",
-    "v360 Step 8 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 8");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-089","LAB-096","SAFE-155","OPS-122"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/run-ledger"],
+    command, script: "verify_v360_simulation_run_ledger_comparison.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.6 Step 8 command", () => {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 2 Ops Action Route Boundary 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/actions/route-boundary exposes the v3.8 action route namespace boundary
   - action routes are separated from v3.5 live-operations and v3.7 site-operations projections
   - route boundary is Ops-only/read-only and does not execute actions, persist requests, write runbooks, or mutate media/event/client schemas
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -153,27 +154,22 @@ check("Ops API exposes the action route boundary as guarded no-store JSON", () =
   assert(!block.includes("require_source_write_principal"), "action route boundary must not require source write principal");
 });
 
-check("docs, inventory, and dispatch map v3.8 Step 2", () => {
-  for (const snippet of [
-    "| 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 완료 |",
-    "## v3.8.0 Step 2 개발 기록",
-    route,
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 2");
-  }
-  assertIncludes(
-    files.streamVerification,
-    `| v3.8.0 (2) | \`./server.sh ${command}\` | Ops Action Route Boundary.`,
-    "stream verification v3.8 Step 2",
-  );
-  assertIncludes(files.featureInventory, "v3.8.0 (2) Ops Action Route Boundary", "feature inventory v3.8 Step 2");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["LAB-111","SAFE-181","OPS-148"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/actions/route-boundary"],
+    command, script: "verify_v380_ops_action_route_boundary.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+});
+
+check("현행 실행·등록 연결 1", () => {
   for (const id of featureIds) {
-    assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`);
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.releaseRecords, "V380 Ops Action Route Boundary", "release records v3.8 Step 2");
-  assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 2");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_ops_action_route_boundary.mjs", "server.sh dispatch");
   const expectedCanonicalCommands = new Map([
@@ -223,14 +219,12 @@ finish("== v3.8.0 Ops Action Route Boundary summary ==", { schema, step: "v3.8.0
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     serverSh: readText("server.sh"),
   };
 }

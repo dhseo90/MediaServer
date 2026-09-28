@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 9 Client Notice Preview 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/live-operations/simulation/client-notice-preview exposes viewer-safe preview-only notices
   - maintenance/degraded/recovering notices are generated without actual delivery
   - /ops simulation workspace renders notice previews without client/viewer injection
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -38,19 +39,19 @@ const impactDiffRoute = "/ops/api/live-operations/simulation/impact-diff";
 const readinessRoute = "/ops/api/live-operations/simulation/safe-apply-readiness";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("Ops server builds the v3.6 client notice preview model", () => {
@@ -78,7 +79,8 @@ check("Ops server builds the v3.6 client notice preview model", () => {
 });
 
 check("client notice preview derives from dry-run, impact diff, and readiness without delivery", () => {
-  const block = extractBlock(files.server, "struct OpsV360ClientNoticePreviewItem", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV360ClientNoticePreviewItem", "std::string OpsV360ClientNoticePreviewJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV360ClientNoticePreviewJson(");
   for (const snippet of [
     "BuildV360CommandPlanDryRunResults",
     "BuildV360SourceRuleImpactDiffs",
@@ -164,7 +166,7 @@ check("Ops API exposes the client notice preview route as guarded no-store JSON"
 });
 
 check("/ops simulation workspace declares and renders notice preview", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashSimulationWorkspaceNoticePreviewList",
     "ops-simulation-notice-preview-list",
@@ -219,43 +221,16 @@ check("client/viewer scripts do not receive v3.6 preview material", () => {
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.6 Step 9", () => {
-  for (const snippet of [
-    "| 9 | v3.6.0 (9) Client Notice Preview | P1 | 완료 |",
-    "## v3.6.0 Step 9 개발 기록",
-    route,
-    "OpsV360ClientNoticePreviewJson",
-    `\`./server.sh ${command}\``,
-    "Rule/VA What-if Replay Pack 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 9");
-  }
-  for (const snippet of [
-    `| v3.6.0 (9) | \`./server.sh ${command}\` | Client Notice Preview.`,
-    "maintenance/degraded/recovering",
-    "실제 발송 없이",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 9");
-  }
-  for (const snippet of [
-    `v3.6.0 (9) Client Notice Preview | \`UI-090\`, \`CLIENT-034\`, \`SAFE-156\`, \`OPS-123\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-090 | V360 Step 9 Client Notice Preview UI",
-    "CLIENT-034 | V360 Step 9 client notice preview",
-    "SAFE-156 | V360 Step 9 client notice preview boundary",
-    "OPS-123 | V360 Step 9 Client Notice Preview 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 9");
-  }
-  for (const snippet of [
-    "V360 Client Notice Preview",
-    `\`./server.sh ${command}\``,
-    "v360 Step 9 RED client notice preview gate",
-    "v360 Step 9 client notice preview final",
-    "v360 Step 9 UI 풀테스트",
-    "v360 Step 9 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 9");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-090","CLIENT-034","SAFE-156","OPS-123"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/client-notice-preview"],
+    command, script: "verify_v360_client_notice_preview.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.6 Step 9 command", () => {

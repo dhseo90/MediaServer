@@ -28,6 +28,15 @@ staging 복구 자체검사와 버전 마감 판정이 섞인 검증기는 이 �
 `V33-V34-DOC-05`는 SRC-033~039/043의 `verify-ops-source-registry-api` 결속을 훼손하면
 정적 동반 검사도 실패하는 반례다. 이 연결 확인을 해당 API 런타임 검사의 실행 PASS로 대체하지 않는다.
 
+`V35-V38-DOC-01`~`04`는 같은 자체검사의 v350~v380 기능 검증기 53개에 적용한다.
+종료 원장/backlog/직접 색인 접근 차단·문서 제목 변경은 정상, 현재 ID·제품 schema·현행 문서
+식별자 누락은 exit 1을 기대한다. `V35-V38-DOC-05`는 별도 API로 연결된 27개 ID의
+명령을 훼손하면 실패해야 하며 정적 동반 명령으로 런타임 검사를 대체하지 않는다.
+`V35-V38-DOC-06`은 분리된 dashboard control·함수 내부 안전 조건 누락, 구형/중복 assertion
+연결을 거부한다. 실제 파일은 변경하지 않고 입력 hash로 불변을 확인한다.
+원래 검증기의 입력 파일·함수 범위·manifest 불일치 실패와 신규 자체검사의 예상 RED를 구분한다.
+버전 마감 gate·제품/외부 서비스·실제 UI·장시간 실행은 이 묶음에서 수행하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

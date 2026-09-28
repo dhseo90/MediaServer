@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 13 Rule/VA What-if by Site 연결, 문서, 경계를 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/site-operations/rule-va-what-if-by-site exposes site-scoped rule/VA what-if candidates
   - EventRecord and VA fixture inputs are read-only and rule threshold/scenario candidates are not applied
   - /ops dashboard renders site impact, EventRecord/VA fixture refs, and what-if delta without client/viewer injection
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -44,17 +45,16 @@ const featureIds = ["UI-097", "RULE-110", "EVT-082", "LAB-106", "SAFE-174", "OPS
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -213,7 +213,7 @@ check("Ops API exposes the Rule/VA what-if by site route as guarded no-store JSO
 });
 
 check("/ops dashboard declares and renders Rule/VA what-if by site workspace", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "ops-site-rule-va-what-if-workspace",
     "data-testid=\"ops-site-rule-va-what-if-workspace\"",
@@ -287,45 +287,16 @@ check("client/viewer scripts do not receive v3.7 Rule/VA what-if by site materia
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.7 Step 13", () => {
-  for (const snippet of [
-    "| 13 | v3.7.0 (13) Rule/VA What-if by Site | P1 | 완료 |",
-    "## v3.7.0 Step 13 개발 기록",
-    route,
-    "OpsV370RuleVaWhatIfBySiteJson",
-    `\`./server.sh ${command}\``,
-    "Stabilization and Release Readiness 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.7 Step 13");
-  }
-  for (const snippet of [
-    `| v3.7.0 (13) | \`./server.sh ${command}\` | Rule/VA What-if by Site.`,
-    "site 영향과 EventRecord/VA fixture 기반",
-    "rule apply 없이",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.7 Step 13");
-  }
-  for (const snippet of [
-    `v3.7.0 (13) Rule/VA What-if by Site | \`UI-097\`, \`RULE-110\`, \`EVT-082\`, \`LAB-106\`, \`SAFE-174\`, \`OPS-141\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-097 | V370 Step 13 Rule/VA What-if by Site UI",
-    "RULE-110 | V370 Step 13 site-scoped Rule/VA what-if candidates",
-    "EVT-082 | V370 Step 13 EventRecord what-if by site aggregate",
-    "LAB-106 | V370 Step 13 Rule/VA what-if by site harness",
-    "SAFE-174 | V370 Step 13 Rule/VA what-if by site boundary",
-    "OPS-141 | V370 Step 13 Rule/VA What-if by Site 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.7 Step 13");
-  }
-  for (const snippet of [
-    "V370 Rule/VA What-if by Site",
-    `\`./server.sh ${command}\``,
-    "v370 Step 13 RED Rule/VA what-if by site gate",
-    "v370 Step 13 Rule/VA what-if by site final",
-    "v370 Step 13 UI 풀테스트",
-    "v370 Step 13 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.7 Step 13");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-097","RULE-110","EVT-082","LAB-106","SAFE-174","OPS-141"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/rule-va-what-if-by-site"],
+    command, script: "verify_v370_rule_va_what_if_by_site.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.7 Step 13 command", () => {
