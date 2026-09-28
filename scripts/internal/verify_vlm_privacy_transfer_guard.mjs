@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S11 VLM Privacy/전송 guard UI/API/fixture/문서 경계를 정적 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -171,29 +172,24 @@ check("viewer/client and existing external payload paths do not expose S11 inter
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/ui-guide.md"),
-    readText("docs/README.md"),
-    readText("docs/vlm-privacy-transfer-guard.md"),
-  ].join("\n");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V200-S11",
-    "Privacy/전송 guard",
-    "media-server.vlm-privacy-transfer-guard.v1",
-    "verify-vlm-privacy-transfer-guard",
-    "provider logging/retention",
-    "credential/prompt/raw response/source URL",
-    "UI-024",
-    "LAB-042",
-    "SAFE-024",
-  ]) {
-    assert(docs.includes(snippet), `docs missing S11 snippet: ${snippet}`);
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-privacy-transfer-guard.md"),
+    identifiers: ["media-server.vlm-privacy-transfer-guard.v1"],
+    command: "verify-vlm-privacy-transfer-guard", script: "verify_vlm_privacy_transfer_guard.mjs",
+    featureIds: ["UI-024","SAFE-024"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 실행 명령 결속이며 이 정적 검사로 인증·HTTP·규칙 실행을 대신하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["LAB-042","verify-v390-review4-lab-core-api","scripts/internal/verify_v390_review4_lab_core_api.mjs"]]) {
+    const rows = currentInventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = currentImplementation.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 실행 연결 불일치");
   }
   assert(serverSh.includes("verify-vlm-privacy-transfer-guard"), "server.sh missing S11 verifier command");
   assert(serverSh.includes("verify_vlm_privacy_transfer_guard.mjs"), "server.sh missing S11 verifier dispatch");
@@ -219,6 +215,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM privacy/transfer guard summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

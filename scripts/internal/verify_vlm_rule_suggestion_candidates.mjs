@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 // 파일 용도: V200-S13 VLM rule 추천 보조 후보 fixture, builder, no-auto-apply 경계를 검증한다.
 
 import fs from "node:fs";
@@ -148,33 +149,32 @@ check("C++ sidecar rule suggestion builder and analysis-state smoke are wired", 
 });
 
 check("docs, inventory, stream verification, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-rule-suggestion-candidates.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V200-S13",
-    "Rule 추천 보조 후보",
-    "media-server.vlm-rule-suggestion-candidates.v1",
-    "media-server.vlm-rule-suggestion-candidate.v1",
-    "verify-vlm-rule-suggestion-candidates",
-    "LAB-044",
-  ]) {
-    assert(docs.includes(snippet), `docs/inventory missing snippet: ${snippet}`);
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-rule-suggestion-candidates.md"),
+    identifiers: ["media-server.vlm-rule-suggestion-candidates.v1","media-server.vlm-rule-suggestion-candidate.v1"],
+    command: "verify-vlm-rule-suggestion-candidates", script: "verify_vlm_rule_suggestion_candidates.mjs",
+    featureIds: ["EVT-033","LAB-055"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 실행 명령 결속이며 이 정적 검사로 인증·HTTP·규칙 실행을 대신하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["LAB-044","verify-v390-review4-lab-core-api","scripts/internal/verify_v390_review4_lab_core_api.mjs"],["RULE-048","verify-ops-rules-roundtrip","scripts/internal/verify_ops_rules_roundtrip.mjs"],["RULE-066","verify-ops-rules-roundtrip","scripts/internal/verify_ops_rules_roundtrip.mjs"],["RULE-067","verify-ops-rules-roundtrip","scripts/internal/verify_ops_rules_roundtrip.mjs"],["RULE-068","verify-ops-rules-roundtrip","scripts/internal/verify_ops_rules_roundtrip.mjs"],["RULE-069","verify-ops-rules-roundtrip","scripts/internal/verify_ops_rules_roundtrip.mjs"]]) {
+    const rows = currentInventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = currentImplementation.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 실행 연결 불일치");
   }
   assert(server.includes("verify-vlm-rule-suggestion-candidates"), "server command missing S13 verifier");
   assert(server.includes("verify_vlm_rule_suggestion_candidates.mjs"), "server dispatch missing S13 verifier script");
   assert(scriptInventory.includes("verify_vlm_rule_suggestion_candidates.mjs"),
     "script inventory missing S13 verifier");
   for (const id of ["RULE-048", "RULE-066", "RULE-067", "RULE-068", "RULE-069", "LAB-044"]) {
-    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-rule-suggestion-candidates",
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === (id.startsWith("RULE-") ? "verify-ops-rules-roundtrip" : "verify-v390-review4-lab-core-api"),
       `${id} manifest verifier command drift`);
   }
   assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
@@ -188,7 +188,7 @@ check("S13 remains candidate-only and does not introduce provider/client/schema/
     "scripts/internal/analysis_state_smoke.cpp",
     "docs/vlm-rule-suggestion-candidates.md",
     "test/fixtures/vlm_rule_suggestion/cases.json",
-    "docs/development-backlog.md",
+    "docs/project-feature-test-inventory.md",
   ];
   const forbidden = [
     /\bcloudProviderApiCalled\s*:\s*true\b/,
@@ -229,6 +229,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM rule suggestion candidate summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

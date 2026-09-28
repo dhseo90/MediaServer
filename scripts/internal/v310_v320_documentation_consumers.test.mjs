@@ -114,6 +114,13 @@ function invoke(name, mutation = {}) {
       if (mutation.removeId && relative === 'docs/project-feature-test-inventory.md') value = value.split('\n').filter(line => !line.startsWith('| ' + mutation.removeId + ' |')).join('\n');
       if (mutation.manual && relative === 'docs/manual-ui-checklist.md') value = '';
       if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');
+      if (mutation.currentDocIdentifier && relative.startsWith('docs/') && relative !== 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.currentDocIdentifier, 'missing-current-contract');
+      if (mutation.fixturePath === relative) {
+        const parsed = JSON.parse(value);
+        if (mutation.rawPrompt) parsed.cases[0].observation.redactionReview.rawPromptStored = true;
+        else parsed.contractInvariants.runtimeVlmCallPerformed = true;
+        value = JSON.stringify(parsed);
+      }
       if (mutation.mapping && relative === 'test/fixtures/project_feature_implementation_evidence.json') {
         const parsed = JSON.parse(value); parsed.items.find(item => item.id === mutation.mapping).verifierEvidence.command = 'verify-wrong-command'; value = JSON.stringify(parsed);
       }
@@ -207,5 +214,56 @@ test('V31-V38-DOC 기능 문서 소비자', async t => {
     await t.test('07 중복 assertion 위치 거부', () => rejected(invoke('v320_resolution_search_metrics', {duplicate: true}), 'one location'));
   } finally {
     assert.deepEqual(snapshot(), before, '실제 제품/fixture는 불변이어야 함');
+  }
+});
+
+test('VLM-DOC 현행 계약과 종료 기록 분리', async t => {
+  const cases = [
+    ['evaluation_result_workflow', 'LAB-059', 'media-server.ops.vlm-evaluation-result-workflow.v1'],
+    ['event_evidence_extraction', 'EVT-027', 'media-server.vlm-event-evidence-refs.v1'],
+    ['privacy_transfer_guard', 'UI-024', 'media-server.vlm-privacy-transfer-guard.v1'],
+    ['profile_storage', 'SAFE-023', 'media-server.vlm-profile.v1'],
+    ['summary_search_candidates', 'EVT-032', 'media-server.vlm-summary-search-candidates.v1'],
+    ['runtime_opt_in_contract', 'SAFE-025', 'media-server.vlm-runtime-opt-in-contract.v1'],
+    ['observation_sidecar', 'LAB-040', 'media-server.vlm-observation.v1'],
+    ['rule_suggestion_draft_workflow', 'UI-036', 'media-server.vlm-rule-suggestion-draft-workflow.v1'],
+    ['install_connection_ui', 'UI-022', '/ops/api/vlm/install-connection/dry-run'],
+    ['rule_suggestion_candidates', 'EVT-033', 'media-server.vlm-rule-suggestion-candidates.v1'],
+    ['review_action_workflow', 'LAB-060', 'media-server.ops.vlm-review-action-state.v1'],
+    ['runtime_status_ui', 'UI-033', '/ops/api/runtime/status'],
+  ];
+  const before = snapshot();
+  try {
+    for (const [name, id, identifier] of cases) {
+      await t.test('01 역사 자료 없이 정상 ' + name, () => {
+        const r = invoke('vlm_' + name);
+        assert.equal(r.status, 0, r.stderr + r.stdout);
+        assert(r.stdout.includes('uiFulltest: not-run-by-this-command'));
+        assert(r.stdout.includes('longrun30Or120: not-run-by-this-command'));
+      });
+      await t.test('02 현행 ID 누락 ' + name, () => rejected(invoke('vlm_' + name, {removeId: id}), id));
+      await t.test('03 현행 문서 식별자 누락 ' + name, () => rejected(invoke('vlm_' + name, {currentDocIdentifier: identifier}), identifier));
+      const sourceFailure = name === 'rule_suggestion_draft_workflow' ? 'draft workflow schema' :
+        name === 'rule_suggestion_candidates' ? 'candidate builder schema' : identifier;
+      await t.test('04 제품 계약 누락 실패 전파 ' + name, () => rejected(invoke('vlm_' + name, {schema: identifier}), sourceFailure));
+    }
+    for (const [name, id] of [
+      ['privacy_transfer_guard', 'LAB-042'], ['summary_search_candidates', 'LAB-043'],
+      ['runtime_opt_in_contract', 'SAFE-025'], ['rule_suggestion_draft_workflow', 'SAFE-038'],
+      ['rule_suggestion_candidates', 'LAB-044'], ['rule_suggestion_candidates', 'RULE-048'],
+      ['rule_suggestion_candidates', 'RULE-066'], ['rule_suggestion_candidates', 'RULE-067'],
+      ['rule_suggestion_candidates', 'RULE-068'], ['rule_suggestion_candidates', 'RULE-069'],
+    ]) await t.test('05 독립 실행 연결 유지 ' + id, () => rejected(invoke('vlm_' + name, {mapping: id}), id));
+    await t.test('06 sidecar 원문 보존 거부', () => rejected(invoke('vlm_observation_sidecar', {
+      fixturePath: 'test/fixtures/vlm_observation_store/observations.json', rawPrompt: true,
+    }), 'rawPromptStored'));
+    await t.test('06 자동 runtime 호출 허용 거부', () => rejected(invoke('vlm_evaluation_result_workflow', {
+      fixturePath: 'test/fixtures/vlm_evaluation_result_workflow/cases.json',
+    }), 'runtimeVlmCallPerformed'));
+    await t.test('06 현행 UI control 누락 거부', () => rejected(invoke('vlm_review_action_workflow', {
+      control: 'data-vlm-review-action-workflow="ops-only-review-state"',
+    }), 'data-vlm-review-action-workflow'));
+  } finally {
+    assert.deepEqual(snapshot(), before, '실제 제품/fixture 파일 변경 금지');
   }
 });

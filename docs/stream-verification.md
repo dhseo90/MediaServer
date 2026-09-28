@@ -37,6 +37,13 @@ staging 복구 자체검사와 버전 마감 판정이 섞인 검증기는 이 �
 원래 검증기의 입력 파일·함수 범위·manifest 불일치 실패와 신규 자체검사의 예상 RED를 구분한다.
 버전 마감 gate·제품/외부 서비스·실제 UI·장시간 실행은 이 묶음에서 수행하지 않는다.
 
+`VLM-DOC-01`~`06`은 같은 자체검사의 VLM 정적 검증기 12개에 적용한다.
+종료 기록·직접 색인 없이 현행 정의와 계약이 있으면 정상 종료해야 한다. 현재 기능 ID,
+문서 식별자, 제품 식별자, 독립 인증/HTTP 명령 연결이 빠지면 실패해야 한다.
+sidecar 원문 저장·자동 runtime 호출 반례와 분리된 UI control 누락도 거부한다.
+입력은 자식 프로세스 메모리에서만 바꾸고 실제 제품/fixture hash를 대조한다.
+기존 명령 결속·UI 파일 위치 실패와 신규 예상 RED를 구분하고, 실제 인증/HTTP/UI 실행 PASS로 확대하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

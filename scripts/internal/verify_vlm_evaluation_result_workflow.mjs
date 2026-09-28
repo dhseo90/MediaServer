@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S06 VLM evaluation result workflow의 Ops UI/API/profile draft 경계를 검증한다.
 
@@ -117,23 +118,17 @@ check("existing VLM profile and recommendation gates remain connected", () => {
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-evaluation-result-workflow.md"),
-    readText("docs/README.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "V210-S06",
-    "verify-vlm-evaluation-result-workflow",
-    "media-server.ops.vlm-evaluation-result-workflow.v1",
-    "eval-qwen8b-event-review-default",
-    "fallback",
-    "invalid JSON",
-  ]) {
-    assertIncludes(docs, snippet, `docs snippet ${snippet}`);
-  }
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-evaluation-result-workflow.md"),
+    identifiers: ["media-server.ops.vlm-evaluation-result-workflow.v1","eval-qwen8b-event-review-default"],
+    command: "verify-vlm-evaluation-result-workflow", script: "verify_vlm_evaluation_result_workflow.mjs",
+    featureIds: ["LAB-059"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assertIncludes(serverSh, "verify-vlm-evaluation-result-workflow", "server.sh");
   assertIncludes(serverSh, "verify_vlm_evaluation_result_workflow.mjs", "server.sh");
   assertIncludes(scriptInventory, "verify_vlm_evaluation_result_workflow.mjs", "script inventory");
@@ -171,6 +166,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM evaluation result workflow summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

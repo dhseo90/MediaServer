@@ -5,9 +5,9 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "5d9eba180049fa60decb1b285c5f2a0df3b8c7e9efc3edd58ad87d2e486f4fdd",
+    "implementationProjectionSha256": "ce20814fe5ab7f92d7224dee8a865dd29458e8f0c3ad8f77c78864b092a4b981",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "8690a9e4f56f6bd0714781e28063fe9deffb1d8945c4cd11889497236e0da79f",
+    "runtimeOracleCatalogSha256": "f82b63f96eb3943f4e95e88515294ded3e972546e38138b1f48d157972e19ff3",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -13698,7 +13698,7 @@
             "setupId": "UI-022:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
+            "semanticCallChainSha256": "59d1c72eba571d5b4a6e07f06463d65a6e593d41d6082670bf642c2d32875bbe",
             "persistedMutation": false,
             "fixtureId": "ui-022-review4-fixture",
             "beforeSnapshotRef": null
@@ -13772,7 +13772,7 @@
             "contextSha256": "803529072bc9f63021989b1886d1e59f2fcef6a4029de92e26490018d3552608"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5"
+          "assertedSemanticDigest": "59d1c72eba571d5b4a6e07f06463d65a6e593d41d6082670bf642c2d32875bbe"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -13784,7 +13784,7 @@
             "text": "Ops-only route에서 local/cloud dry-run 후보, cloud opt-in guard, 단일 선택 상태, 실행/저장 없음 boundary가 표시되고 viewer/client에는 노출되지 않음",
             "sha256": "0d7e4c1950ffa6507114dc3c6e6cb38a724d45dcb60747c486f1f79b2f740fe7"
           },
-          "specSha256": "e9bd3942725fc4d1c19c9c07b4bc304aa702951029eab515da330180a507a6ef",
+          "specSha256": "a67a72f555a6ab6b82d9dc8c0f10ed5c86f99c89c2c7de06c6b16fcc815a4971",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -14039,7 +14039,7 @@
             "cleanupId": "UI-022:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5"
+            "semanticCallChainSha256": "59d1c72eba571d5b4a6e07f06463d65a6e593d41d6082670bf642c2d32875bbe"
           }
         ]
       },
@@ -15073,7 +15073,7 @@
             "setupId": "UI-024:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "b8e1cc9cb4b22f6acab3c4e07490621d4073d6b5132119d9bcf621a9a79bfb40",
+            "semanticCallChainSha256": "94dfbc4bd55bc6c21b754631eb0d3137fe80b700d90f1f3eba37b1fef0a4bd40",
             "persistedMutation": false,
             "fixtureId": "ui-024-review4-fixture",
             "beforeSnapshotRef": null
@@ -15147,7 +15147,7 @@
             "contextSha256": "75a9a0853ad0ff1ad90ac14d19a7f293d3e2a50b6c3c4a7fe3ce0903da65c734"
           },
           "verifierCommand": "verify-vlm-privacy-transfer-guard",
-          "assertedSemanticDigest": "b8e1cc9cb4b22f6acab3c4e07490621d4073d6b5132119d9bcf621a9a79bfb40"
+          "assertedSemanticDigest": "94dfbc4bd55bc6c21b754631eb0d3137fe80b700d90f1f3eba37b1fef0a4bd40"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -15159,7 +15159,7 @@
             "text": "Cloud 후보에서 외부 전송 경고 확인과 provider logging/retention 검토가 profile 저장 전 guard로 표시되고, local 후보는 provider 전송 없음 상태로 표시",
             "sha256": "24c5834ad42fee7a8c89c2360e78b2ed69f6979cf21c1508adb1c2bad645552a"
           },
-          "specSha256": "709a5f58a0c4404eeed5d2c3922d2e482d1e55d824a71f945deea8e025e70e01",
+          "specSha256": "e3c108bc62f5e0f459d068f1320c385cd96f48116b9f58da157dbb5cb355296f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -15421,7 +15421,7 @@
             "cleanupId": "UI-024:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "b8e1cc9cb4b22f6acab3c4e07490621d4073d6b5132119d9bcf621a9a79bfb40"
+            "semanticCallChainSha256": "94dfbc4bd55bc6c21b754631eb0d3137fe80b700d90f1f3eba37b1fef0a4bd40"
           }
         ]
       },
@@ -15708,7 +15708,7 @@
             "setupId": "UI-025:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
+            "semanticCallChainSha256": "1ea8691ce96e42352ab293b4cea523a449143312c4ee99670e7580957a196252",
             "persistedMutation": false,
             "fixtureId": "ui-025-review4-fixture",
             "beforeSnapshotRef": null
@@ -15785,7 +15785,7 @@
             "contextSha256": "17e2401c8566dad8707faa22d0df1e76118b9fd4b75bc0a96231133d3726d567"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26"
+          "assertedSemanticDigest": "1ea8691ce96e42352ab293b4cea523a449143312c4ee99670e7580957a196252"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -15797,7 +15797,7 @@
             "text": "hardware class, runtime readiness, 추천/대안/비추천 사유가 Ops-only로 표시되고 자동 설치/호출/저장 action은 발생하지 않음",
             "sha256": "8bbbc88e368d8f2eda58ca20d85bdd8243387d677fd0e32702adfe0b6b042bc5"
           },
-          "specSha256": "120ff274191dd256969a93129ca33a2e122666a40fecfbbd45fbe18ced9bf098",
+          "specSha256": "7d058a4bf9f3d588b8256fb860ddf68c73b4721c89130a76300013f0a85100a4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -16051,7 +16051,7 @@
             "cleanupId": "UI-025:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26"
+            "semanticCallChainSha256": "1ea8691ce96e42352ab293b4cea523a449143312c4ee99670e7580957a196252"
           }
         ]
       },
@@ -16392,7 +16392,7 @@
             "setupId": "UI-026:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
+            "semanticCallChainSha256": "2c76b1442f22f625e7907737b048eed5ca50a1bc5ae2c2b6baa9a8415b7e0329",
             "persistedMutation": false,
             "fixtureId": "ui-026-review4-fixture",
             "beforeSnapshotRef": null
@@ -16463,7 +16463,7 @@
             "contextSha256": "a16dde247f389bb7c250b0ac545867f88313a1f7a3677675689193114f540aab"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a"
+          "assertedSemanticDigest": "2c76b1442f22f625e7907737b048eed5ca50a1bc5ae2c2b6baa9a8415b7e0329"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -16475,7 +16475,7 @@
             "text": "local 후보 선택 버튼이 단일 선택 상태를 반영하고 model download, runtime install, profile 저장 없이 dry-run 상태만 갱신",
             "sha256": "0b198a3f564129c6f5774ca5e3e98ecc2ef36e9814456366ec73af9e642c2acb"
           },
-          "specSha256": "6c82d1351b442d4e2e5f5bf38727c10bb3ee20fe404917b97bb93ce7b1d83b36",
+          "specSha256": "d352b80dddf3b8b9cce95c95e5d6af2f997e87f41315b0ca6ec277c71e7593ca",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -16839,7 +16839,7 @@
             "cleanupId": "UI-026:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a"
+            "semanticCallChainSha256": "2c76b1442f22f625e7907737b048eed5ca50a1bc5ae2c2b6baa9a8415b7e0329"
           }
         ]
       },
@@ -17132,7 +17132,7 @@
             "setupId": "UI-027:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
+            "semanticCallChainSha256": "46b641e819892216da50865ac433e707bf1278f64e29ed5c4d2ed1a284f322d4",
             "persistedMutation": false,
             "fixtureId": "ui-027-review4-fixture",
             "beforeSnapshotRef": null
@@ -17206,7 +17206,7 @@
             "contextSha256": "b0cf2f6b7a271cdf6457d36137eaf9ab95b5f856174c300aab330fed06a72bb3"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b"
+          "assertedSemanticDigest": "46b641e819892216da50865ac433e707bf1278f64e29ed5c4d2ed1a284f322d4"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -17218,7 +17218,7 @@
             "text": "cloud opt-in 전 후보가 disabled 상태이며 opt-in 확인 후에도 provider API 호출/credential 저장 없이 dry-run 선택만 반영",
             "sha256": "9585ad5f024aa26cad53b448ccc05fdb36ee1b15ef5aedf2b892f475ce1a68ce"
           },
-          "specSha256": "437fe743c82ce912bbe4ee2d92896693a7148cd2d52ec2012b2e2fb069f7f9e0",
+          "specSha256": "8d7e56d5360d33e2b61e5ecd227432a3801a1ac11441281401b45d976bfcdf62",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -17480,7 +17480,7 @@
             "cleanupId": "UI-027:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b"
+            "semanticCallChainSha256": "46b641e819892216da50865ac433e707bf1278f64e29ed5c4d2ed1a284f322d4"
           }
         ]
       },
@@ -17767,7 +17767,7 @@
             "setupId": "UI-028:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
+            "semanticCallChainSha256": "510b6c7e00e23de9613c86c041011f40770e07fae98ad0701e484d87387c1fb1",
             "persistedMutation": false,
             "fixtureId": "ui-028-review4-fixture",
             "beforeSnapshotRef": null
@@ -17844,7 +17844,7 @@
             "contextSha256": "c6d2edf6704572d891dbb2cac9312b2e4c2e929d7157266608d7af77a7141479"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266"
+          "assertedSemanticDigest": "510b6c7e00e23de9613c86c041011f40770e07fae98ad0701e484d87387c1fb1"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -17856,7 +17856,7 @@
             "text": "profile row의 active/fallback/disabled 상태가 저장 목록과 상세 copy에 반영되고 VLM runtime 호출은 발생하지 않음",
             "sha256": "f2248e91cd5e6af1e509a4436f15fc7c07b99366290db34cb07b0d22fd921d56"
           },
-          "specSha256": "f5890a26b19a31c9595542406ac749d1c96296e2cca9f2854c4e4e889b08c7cc",
+          "specSha256": "cb01d588cad42ac076968661b049f81734ccfffedb211f8d8d8a417eb34b74ff",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -18110,7 +18110,7 @@
             "cleanupId": "UI-028:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266"
+            "semanticCallChainSha256": "510b6c7e00e23de9613c86c041011f40770e07fae98ad0701e484d87387c1fb1"
           }
         ]
       },
@@ -19149,7 +19149,7 @@
             "setupId": "UI-030:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
+            "semanticCallChainSha256": "91b1cb32a8484466c640c1740bbb1280be081b3e664199f6c25019d6c6b7cec6",
             "persistedMutation": false,
             "fixtureId": "ui-030-review4-fixture",
             "beforeSnapshotRef": null
@@ -19223,7 +19223,7 @@
             "contextSha256": "2379a3aab5d513d2eb2a70d9344f1622cd27622d1d4a3eee0bd37857f2ca0c49"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28"
+          "assertedSemanticDigest": "91b1cb32a8484466c640c1740bbb1280be081b3e664199f6c25019d6c6b7cec6"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -19235,7 +19235,7 @@
             "text": "평가 상태, prompt profile, language/JSON stability planning 값이 저장 profile에 표시되고 benchmark PASS로 과장하지 않음",
             "sha256": "0f4b4762bba5e5d1b62c92a57a3f7efa148e6705547c5f0e0571969cd7ecd27d"
           },
-          "specSha256": "b6db671ef06a3233587193445776999594b77306691775d5c3456d45155a3155",
+          "specSha256": "5b24b6048370742c2f6e401e912eac05d28cc8cf850bcfe62076a87479ad0b0e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -19507,7 +19507,7 @@
             "cleanupId": "UI-030:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28"
+            "semanticCallChainSha256": "91b1cb32a8484466c640c1740bbb1280be081b3e664199f6c25019d6c6b7cec6"
           }
         ]
       },
@@ -19793,7 +19793,7 @@
             "setupId": "UI-031:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
+            "semanticCallChainSha256": "e763612cceab692a9d3e3d20a292e0b5f673047b9580baf0b4e65c690298437c",
             "persistedMutation": false,
             "fixtureId": "ui-031-review4-fixture",
             "beforeSnapshotRef": null
@@ -19875,7 +19875,7 @@
             "contextSha256": "17183f41d0a3953ce01545c1d9febbf8d8a9de67859e95eb68063ee233148af8"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd"
+          "assertedSemanticDigest": "e763612cceab692a9d3e3d20a292e0b5f673047b9580baf0b4e65c690298437c"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -19887,7 +19887,7 @@
             "text": "dry-run/profile diagnostic JSON은 Ops debug details 안에만 접혀 있고 viewer/client 화면에는 노출되지 않음",
             "sha256": "55381bb44c2d7779465ca594154059fb15b76ebdba74a584039f6896caefb198"
           },
-          "specSha256": "9c403f5dbd953cdabd257817b6ed340d220765ecc288d579ff90842ab3840dda",
+          "specSha256": "cfad1510078f685ff5b2a61b0eecc07ebadebddfe25fe2f72bd6b7bddd571ab1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -20144,7 +20144,7 @@
             "cleanupId": "UI-031:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd"
+            "semanticCallChainSha256": "e763612cceab692a9d3e3d20a292e0b5f673047b9580baf0b4e65c690298437c"
           }
         ]
       },
@@ -21060,7 +21060,7 @@
             "setupId": "UI-033:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "1ac0fe42a3e2cfc0a83a6545f72877cdbddacd4b703b408575272d87069d976a",
+            "semanticCallChainSha256": "aeafc09919d4f208b00ff4541d7d01dfae11c1a3b2c387c3e27ee94387fbff94",
             "persistedMutation": false,
             "fixtureId": "ui-033-review4-fixture",
             "beforeSnapshotRef": null
@@ -21142,7 +21142,7 @@
             "contextSha256": "b1578bbb39d715fafa91f4cefc5b59d4fd4b93bd94fd8cb2f50252ac93237eb5"
           },
           "verifierCommand": "verify-vlm-runtime-status-ui",
-          "assertedSemanticDigest": "1ac0fe42a3e2cfc0a83a6545f72877cdbddacd4b703b408575272d87069d976a"
+          "assertedSemanticDigest": "aeafc09919d4f208b00ff4541d7d01dfae11c1a3b2c387c3e27ee94387fbff94"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -21154,7 +21154,7 @@
             "text": "provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태가 Ops-only panel에 표시되고 client/viewer에는 노출되지 않음",
             "sha256": "9e749d7e93bf80816ba7989aa080bb1a16d23c4004603cd2007166b9bbd0c0fd"
           },
-          "specSha256": "20e7817de23d28c4475b89337123cb53d640c9ee1555dd20ae3374758ad60e94",
+          "specSha256": "339b96858b0f625ddf3a72b2e67894cc475146ca5087d21a047d275598cc119f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -21409,7 +21409,7 @@
             "cleanupId": "UI-033:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "1ac0fe42a3e2cfc0a83a6545f72877cdbddacd4b703b408575272d87069d976a"
+            "semanticCallChainSha256": "aeafc09919d4f208b00ff4541d7d01dfae11c1a3b2c387c3e27ee94387fbff94"
           }
         ]
       },
@@ -21702,7 +21702,7 @@
             "setupId": "UI-034:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
+            "semanticCallChainSha256": "adafdbd80b53ed2dce1dad1538365389a7515c1551534dd5f31f9a62b053e98a",
             "persistedMutation": false,
             "fixtureId": "ui-034-review4-fixture",
             "beforeSnapshotRef": null
@@ -21776,7 +21776,7 @@
             "contextSha256": "0d4109ac7f01c5b2228038860545532beb3f6a6d7eee8c32d024aed03d4ec48f"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c"
+          "assertedSemanticDigest": "adafdbd80b53ed2dce1dad1538365389a7515c1551534dd5f31f9a62b053e98a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -21788,7 +21788,7 @@
             "text": "evaluation result 후보를 latency/JSON/explanation/hallucination/language 축으로 비교하고 profile draft 반영 버튼이 model/prompt/evaluation 상태만 채우며 자동 저장/활성화/runtime 호출은 하지 않음",
             "sha256": "c97a45fec68cd6589a1b36ac3296e3abb0761cf36779cde46f7aa431120af8ea"
           },
-          "specSha256": "bdca67c481bb26e22d04632eb0921ff12cefa949e5b272fc91132bc86e6c9c3d",
+          "specSha256": "a1862247f56ddad87b8eb32020dd354193c1826ec8a28442a76981a488a08a35",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -22050,7 +22050,7 @@
             "cleanupId": "UI-034:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c"
+            "semanticCallChainSha256": "adafdbd80b53ed2dce1dad1538365389a7515c1551534dd5f31f9a62b053e98a"
           }
         ]
       },
@@ -23023,7 +23023,7 @@
             "setupId": "UI-036:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/rules",
-            "semanticCallChainSha256": "a607ca0815af628dabe3abc88feac1576e1973b3c3751e9260ffaef9ee6bdf9c",
+            "semanticCallChainSha256": "7e00d67665a8cd1faa3b492be344cbfdcde6e1996991f39c86469f9c175342ac",
             "persistedMutation": false,
             "fixtureId": "ui-036-review4-fixture",
             "beforeSnapshotRef": null
@@ -23094,7 +23094,7 @@
             "contextSha256": "5d7d48fd669ca32f4d486eaaa428ee59bf2dc3c1dcb351dd4b69c32ce1d1cee3"
           },
           "verifierCommand": "verify-vlm-rule-suggestion-draft-workflow",
-          "assertedSemanticDigest": "a607ca0815af628dabe3abc88feac1576e1973b3c3751e9260ffaef9ee6bdf9c"
+          "assertedSemanticDigest": "7e00d67665a8cd1faa3b492be344cbfdcde6e1996991f39c86469f9c175342ac"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -23106,7 +23106,7 @@
             "text": "VLM rule draft 후보 refresh/kind filter/`폼에 적용`이 이벤트 템플릿 form draft만 채우고, 기존 저장 버튼 전에는 `/lab/analysis/rules`/`va-rules` write, 자동 Rule/Profile 적용, runtime/provider 호출이 발생하지 않음",
             "sha256": "80aefca497d6a5c6f690e0f314c9418e49ecb1da39a54028cac38bd9fa9c9e7a"
           },
-          "specSha256": "ccee93f5cd795eb0c9704f84bb770eef1e7ea291c1f98dca088e0dbe9f5e9dc9",
+          "specSha256": "51acea74474c0634d1a35e3889f7e17844a5d8deaa4758cf11b4d5329bae9747",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -23474,7 +23474,7 @@
             "cleanupId": "UI-036:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "a607ca0815af628dabe3abc88feac1576e1973b3c3751e9260ffaef9ee6bdf9c"
+            "semanticCallChainSha256": "7e00d67665a8cd1faa3b492be344cbfdcde6e1996991f39c86469f9c175342ac"
           }
         ]
       },
@@ -211742,7 +211742,7 @@
             "setupId": "EVT-030:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/ops/events",
-            "semanticCallChainSha256": "074d47c21d9e5a024b85f9b0d1f99b019cac5e4d23dc8cae24f97684e197b959",
+            "semanticCallChainSha256": "24d375a5bb36256514341c46c13fcfafa81124cf0e2a1862ad5d97549997056a",
             "persistedMutation": false,
             "fixtureId": "evt-030-review4-fixture",
             "beforeSnapshotRef": null
@@ -211824,7 +211824,7 @@
             "contextSha256": "6e71934edd87eca62cbf804f7beaf4163e58dfbfdf107bf0f8a431ca7ed98647"
           },
           "verifierCommand": "verify-vlm-observation-sidecar",
-          "assertedSemanticDigest": "074d47c21d9e5a024b85f9b0d1f99b019cac5e4d23dc8cae24f97684e197b959"
+          "assertedSemanticDigest": "24d375a5bb36256514341c46c13fcfafa81124cf0e2a1862ad5d97549997056a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-event-oracle.v1",
@@ -212088,7 +212088,7 @@
             "cleanupId": "EVT-030:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "074d47c21d9e5a024b85f9b0d1f99b019cac5e4d23dc8cae24f97684e197b959"
+            "semanticCallChainSha256": "24d375a5bb36256514341c46c13fcfafa81124cf0e2a1862ad5d97549997056a"
           }
         ]
       },
@@ -213012,7 +213012,7 @@
             "setupId": "EVT-036:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/ops/events",
-            "semanticCallChainSha256": "e0bdf914dedf6941813cf2191396542a7197af089ab5a1a8e482b94241349fa2",
+            "semanticCallChainSha256": "19012b9c3164628e38c3927b1221aade29331b67993da5f3c8903cdbb98d332c",
             "persistedMutation": false,
             "fixtureId": "evt-036-review4-fixture",
             "beforeSnapshotRef": null
@@ -213094,7 +213094,7 @@
             "contextSha256": "966c4fcfa0dd5f5b25bedd704d1b8fc4daf3ae0b8d3709740c3b74eba302848c"
           },
           "verifierCommand": "verify-vlm-rule-suggestion-draft-workflow",
-          "assertedSemanticDigest": "e0bdf914dedf6941813cf2191396542a7197af089ab5a1a8e482b94241349fa2"
+          "assertedSemanticDigest": "19012b9c3164628e38c3927b1221aade29331b67993da5f3c8903cdbb98d332c"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-event-oracle.v1",
@@ -213358,7 +213358,7 @@
             "cleanupId": "EVT-036:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "e0bdf914dedf6941813cf2191396542a7197af089ab5a1a8e482b94241349fa2"
+            "semanticCallChainSha256": "19012b9c3164628e38c3927b1221aade29331b67993da5f3c8903cdbb98d332c"
           }
         ]
       },
@@ -258306,7 +258306,7 @@
             "setupId": "SAFE-024:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops",
-            "semanticCallChainSha256": "9e272705d860a831cf82e64bfff0ac32156e229179db07ef08afbac6f516aa34",
+            "semanticCallChainSha256": "a8c7f9b44340d2782de1a3de809c58c85f341bd1155fc21595cb0b4800e31980",
             "persistedMutation": false,
             "fixtureId": "safe-024-review4-fixture",
             "beforeSnapshotRef": null
@@ -258388,7 +258388,7 @@
             "contextSha256": "0ff8632d6d3cb070e0d42ef15923259ab5afcf3a6d3660eb89ced923326a871c"
           },
           "verifierCommand": "verify-vlm-privacy-transfer-guard",
-          "assertedSemanticDigest": "9e272705d860a831cf82e64bfff0ac32156e229179db07ef08afbac6f516aa34"
+          "assertedSemanticDigest": "a8c7f9b44340d2782de1a3de809c58c85f341bd1155fc21595cb0b4800e31980"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -258652,7 +258652,7 @@
             "cleanupId": "SAFE-024:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "9e272705d860a831cf82e64bfff0ac32156e229179db07ef08afbac6f516aa34"
+            "semanticCallChainSha256": "a8c7f9b44340d2782de1a3de809c58c85f341bd1155fc21595cb0b4800e31980"
           }
         ]
       },

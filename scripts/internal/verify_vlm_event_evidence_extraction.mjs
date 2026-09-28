@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 // 파일 용도: V200-S07 VLM event evidence reference 추출 경계와 검증 연결을 확인한다.
 
 import fs from "node:fs";
@@ -78,27 +79,18 @@ check("analysis state smoke verifies crop media, VLM refs, and redaction boundar
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-event-evidence-extraction.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "verify-vlm-event-evidence-extraction",
-    "media-server.vlm-event-evidence-refs.v1",
-    "bbox crop",
-    "previousFrame",
-    "eventFrame",
-    "nextFrame",
-    "V200-S07",
-    "EVT-027",
-  ]) {
-    assert(docs.includes(snippet), `docs/inventory missing snippet: ${snippet}`);
-  }
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-event-evidence-extraction.md"),
+    identifiers: ["media-server.vlm-event-evidence-refs.v1","previousFrame","eventFrame","nextFrame"],
+    command: "verify-vlm-event-evidence-extraction", script: "verify_vlm_event_evidence_extraction.mjs",
+    featureIds: ["EVT-027","EVT-029"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assert(server.includes("verify-vlm-event-evidence-extraction"), "server command missing S07 verifier");
   assert(server.includes("verify_vlm_event_evidence_extraction.mjs"), "server dispatch missing S07 verifier script");
   assert(scriptInventory.includes("verify_vlm_event_evidence_extraction.mjs"), "script inventory missing S07 verifier");
@@ -146,6 +138,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM event evidence extraction summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

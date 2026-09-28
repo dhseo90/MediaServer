@@ -4836,7 +4836,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:renderOpsVlmPrivacyTransferGuard",
           "anchor": "assert(privacyBlock.includes(\"renderOpsVlmPrivacyTransferGuard\"), \"VLM privacy transfer renderer missing\");",
-          "line": 120,
+          "line": 121,
           "contextSha256": "803529072bc9f63021989b1886d1e59f2fcef6a4029de92e26490018d3552608"
         },
         "verifier": {
@@ -4878,14 +4878,14 @@
           "kind": "structural-producer-assertion",
           "witness": "renderOpsVlmPrivacyTransferGuard is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3801",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:120"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:121"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:120",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:121",
           "target": "server.sh:3451"
         }
       ],
@@ -4939,7 +4939,7 @@
           "sha256": "b6203cbe567d6c81bb960ee1fac160009e3be38352f7edbad728da0abf476dd5"
         }
       },
-      "sourceFlowDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
+      "sourceFlowDigest": "59d1c72eba571d5b4a6e07f06463d65a6e593d41d6082670bf642c2d32875bbe",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -4982,10 +4982,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:renderOpsVlmPrivacyTransferGuard",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -4997,7 +4997,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -5294,7 +5294,7 @@
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
           "symbol": "canonical-assertion:opsVlmExternalTransferWarningAck",
           "anchor": "assertIncludes(extractNamedFunctionBlock(pageScript, \"renderOpsVlmPrivacyTransferGuard\"), \"opsVlmExternalTransferWarningAck\", \"UI-024 block-scoped canonical product state\");",
-          "line": 143,
+          "line": 144,
           "contextSha256": "75a9a0853ad0ff1ad90ac14d19a7f293d3e2a50b6c3c4a7fe3ce0903da65c734"
         },
         "verifier": {
@@ -5336,14 +5336,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmExternalTransferWarningAck is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3807",
-          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:143"
+          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:144"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-privacy-transfer-guard",
-          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:143",
+          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:144",
           "target": "server.sh:3519"
         }
       ],
@@ -5397,7 +5397,7 @@
           "sha256": "20ba0cbcc2fe38b0d0488925501eafa3ecb95fcaf10a7c73d295ccc2e9e412cf"
         }
       },
-      "sourceFlowDigest": "b8e1cc9cb4b22f6acab3c4e07490621d4073d6b5132119d9bcf621a9a79bfb40",
+      "sourceFlowDigest": "94dfbc4bd55bc6c21b754631eb0d3137fe80b700d90f1f3eba37b1fef0a4bd40",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -5440,10 +5440,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
             "symbol": "canonical-assertion:opsVlmExternalTransferWarningAck",
-            "trackedBlobSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+            "trackedBlobSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
             "enclosingBodySha256": "a685ae70695ba1f3c188341fa7cb6d3ac87a16b9a342c88de04500e38a758e23",
-            "enclosingBodyStartLine": 117,
-            "enclosingBodyEndLine": 147,
+            "enclosingBodyStartLine": 118,
+            "enclosingBodyEndLine": 148,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -5455,7 +5455,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+        "verifierFileSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
         "dispatch": {
           "command": "verify-vlm-privacy-transfer-guard",
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
@@ -5522,7 +5522,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:runtimeStatus",
           "anchor": "assert(runtimeSummaryBlock.includes(\"runtimeStatus: externalTransfer\"), \"VLM runtimeStatus summary state missing\");",
-          "line": 87,
+          "line": 88,
           "contextSha256": "17e2401c8566dad8707faa22d0df1e76118b9fd4b75bc0a96231133d3726d567"
         },
         "verifier": {
@@ -5564,14 +5564,14 @@
           "kind": "structural-producer-assertion",
           "witness": "runtimeStatus is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3575",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:87"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:88"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:87",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:88",
           "target": "server.sh:3451"
         }
       ],
@@ -5630,7 +5630,7 @@
           "sha256": "c7a933e5bd33036dda80828bcc0afe50e9406f4cecc4dcbc801de1a9450cfe99"
         }
       },
-      "sourceFlowDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
+      "sourceFlowDigest": "1ea8691ce96e42352ab293b4cea523a449143312c4ee99670e7580957a196252",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -5673,10 +5673,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:runtimeStatus",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -5688,7 +5688,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -5755,7 +5755,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:opsVlmSelectedOptionId",
           "anchor": "assert(controlsBlock.includes(\"opsVlmSelectedOptionId = String(button.dataset.vlmOptionId\"), \"VLM selected option state missing\");",
-          "line": 93,
+          "line": 94,
           "contextSha256": "a16dde247f389bb7c250b0ac545867f88313a1f7a3677675689193114f540aab"
         },
         "verifier": {
@@ -5797,14 +5797,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmSelectedOptionId is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:4146",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:93"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:94"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:93",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:94",
           "target": "server.sh:3451"
         }
       ],
@@ -5863,7 +5863,7 @@
           "sha256": "91852c103a2bffe50da04ba9269a3e4c2afefd25165bb18a55697a1962552a49"
         }
       },
-      "sourceFlowDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
+      "sourceFlowDigest": "2c76b1442f22f625e7907737b048eed5ca50a1bc5ae2c2b6baa9a8415b7e0329",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -5906,10 +5906,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:opsVlmSelectedOptionId",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -5921,7 +5921,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -5988,7 +5988,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:cloudOptInState",
           "anchor": "assert(runtimeSummaryBlock.includes(\"payload?.privacy?.cloudOptInState === 'acknowledged'\"), \"VLM cloud opt-in state missing\");",
-          "line": 98,
+          "line": 99,
           "contextSha256": "b0cf2f6b7a271cdf6457d36137eaf9ab95b5f856174c300aab330fed06a72bb3"
         },
         "verifier": {
@@ -6030,14 +6030,14 @@
           "kind": "structural-producer-assertion",
           "witness": "cloudOptInState is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3573",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:98"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:99"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:98",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:99",
           "target": "server.sh:3451"
         }
       ],
@@ -6103,7 +6103,7 @@
           "sha256": "73c36f7f60fbca06fb8c7c578617370c70f88dce72f84b00d0ddf054be9a9e66"
         }
       },
-      "sourceFlowDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
+      "sourceFlowDigest": "46b641e819892216da50865ac433e707bf1278f64e29ed5c4d2ed1a284f322d4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -6146,10 +6146,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:cloudOptInState",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -6161,7 +6161,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -6228,7 +6228,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:activation.status",
           "anchor": "assert(profilesBlock.includes(\"badge(activation.status || 'pending-evaluation'\"), \"VLM activation status state missing\");",
-          "line": 104,
+          "line": 105,
           "contextSha256": "c6d2edf6704572d891dbb2cac9312b2e4c2e929d7157266608d7af77a7141479"
         },
         "verifier": {
@@ -6270,14 +6270,14 @@
           "kind": "structural-producer-assertion",
           "witness": "activation.status is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3953",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:104"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:105"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:104",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:105",
           "target": "server.sh:3451"
         }
       ],
@@ -6331,7 +6331,7 @@
           "sha256": "d6ae56928eb96c71e8152832283cff9c120bd7e0c57ddc2d33cc5a17b5491f28"
         }
       },
-      "sourceFlowDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
+      "sourceFlowDigest": "510b6c7e00e23de9613c86c041011f40770e07fae98ad0701e484d87387c1fb1",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -6374,10 +6374,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:activation.status",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -6389,7 +6389,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -6682,7 +6682,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:dimensions",
           "anchor": "assert(dimensionsBlock.includes(\"dimensions[key]\"), \"VLM evaluation dimensions state missing\");",
-          "line": 109,
+          "line": 110,
           "contextSha256": "2379a3aab5d513d2eb2a70d9344f1622cd27622d1d4a3eee0bd37857f2ca0c49"
         },
         "verifier": {
@@ -6724,14 +6724,14 @@
           "kind": "structural-producer-assertion",
           "witness": "dimensions is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3650",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:109"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:110"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:109",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:110",
           "target": "server.sh:3451"
         }
       ],
@@ -6781,7 +6781,7 @@
           "sha256": "c3f0e1b0e14483ff89b7874f4e3d8dfb2d43c227b028bd9594d9a9cc6561ec49"
         }
       },
-      "sourceFlowDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
+      "sourceFlowDigest": "91b1cb32a8484466c640c1740bbb1280be081b3e664199f6c25019d6c6b7cec6",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -6824,10 +6824,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:dimensions",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -6839,7 +6839,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -6906,7 +6906,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:opsVlmRaw",
           "anchor": "assert(refreshBlock.includes(\"opsVlmRaw\"), \"UI-031 block-scoped canonical product state\");",
-          "line": 125,
+          "line": 126,
           "contextSha256": "17183f41d0a3953ce01545c1d9febbf8d8a9de67859e95eb68063ee233148af8"
         },
         "verifier": {
@@ -6948,14 +6948,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmRaw is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:4109",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:125"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:126"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:125",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:126",
           "target": "server.sh:3451"
         }
       ],
@@ -7013,7 +7013,7 @@
           "sha256": "5f9df38c5cf526d34cc8033f5332acefcb762c7e471e8df96ebf9800f0e5f998"
         }
       },
-      "sourceFlowDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
+      "sourceFlowDigest": "e763612cceab692a9d3e3d20a292e0b5f673047b9580baf0b4e65c690298437c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -7056,10 +7056,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:opsVlmRaw",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -7071,7 +7071,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -7375,7 +7375,7 @@
           "file": "scripts/internal/verify_vlm_runtime_status_ui.mjs",
           "symbol": "canonical-assertion:opsVlmProviderStatus",
           "anchor": "assert(runtimeBlock.includes(\"opsVlmProviderStatus\"), \"UI-033 block-scoped canonical product state missing\");",
-          "line": 59,
+          "line": 60,
           "contextSha256": "b1578bbb39d715fafa91f4cefc5b59d4fd4b93bd94fd8cb2f50252ac93237eb5"
         },
         "verifier": {
@@ -7417,14 +7417,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmProviderStatus is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3592",
-          "target": "scripts/internal/verify_vlm_runtime_status_ui.mjs:59"
+          "target": "scripts/internal/verify_vlm_runtime_status_ui.mjs:60"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-runtime-status-ui",
-          "source": "scripts/internal/verify_vlm_runtime_status_ui.mjs:59",
+          "source": "scripts/internal/verify_vlm_runtime_status_ui.mjs:60",
           "target": "server.sh:3479"
         }
       ],
@@ -7487,7 +7487,7 @@
           "sha256": "4f1f9c0ef3c551ac145912b074d3de48e448d1b675abf4821a9dfee71f729306"
         }
       },
-      "sourceFlowDigest": "1ac0fe42a3e2cfc0a83a6545f72877cdbddacd4b703b408575272d87069d976a",
+      "sourceFlowDigest": "aeafc09919d4f208b00ff4541d7d01dfae11c1a3b2c387c3e27ee94387fbff94",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -7530,10 +7530,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_runtime_status_ui.mjs",
             "symbol": "canonical-assertion:opsVlmProviderStatus",
-            "trackedBlobSha256": "767729731c85af49b5c7750e013ad966fce799251926e0d8f40043bad7bef5f5",
+            "trackedBlobSha256": "73d638b5da55e5cf0d1023cb6e235ecf80941990e26c8f0797d7a5d8546dfd22",
             "enclosingBodySha256": "d944e773d5e279a9bc6302204824512a431e2b9d6707006d2eeecc39b5ac43e7",
-            "enclosingBodyStartLine": 42,
-            "enclosingBodyEndLine": 63,
+            "enclosingBodyStartLine": 43,
+            "enclosingBodyEndLine": 64,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -7545,7 +7545,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "767729731c85af49b5c7750e013ad966fce799251926e0d8f40043bad7bef5f5",
+        "verifierFileSha256": "73d638b5da55e5cf0d1023cb6e235ecf80941990e26c8f0797d7a5d8546dfd22",
         "dispatch": {
           "command": "verify-vlm-runtime-status-ui",
           "file": "scripts/internal/verify_vlm_runtime_status_ui.mjs",
@@ -7612,7 +7612,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:opsVlmEvaluationRows",
           "anchor": "assert(evaluationBlock.includes(\"document.getElementById('opsVlmEvaluationRows')\"), \"VLM evaluation rows state missing\");",
-          "line": 113,
+          "line": 114,
           "contextSha256": "0d4109ac7f01c5b2228038860545532beb3f6a6d7eee8c32d024aed03d4ec48f"
         },
         "verifier": {
@@ -7654,14 +7654,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmEvaluationRows is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3668",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:113"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:114"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:113",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:114",
           "target": "server.sh:3451"
         }
       ],
@@ -7724,7 +7724,7 @@
           "sha256": "cab2852970655f834f37a11fc8594a73fb58b7eb0b0dad5965a8bcdb5b8936fa"
         }
       },
-      "sourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
+      "sourceFlowDigest": "adafdbd80b53ed2dce1dad1538365389a7515c1551534dd5f31f9a62b053e98a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -7767,10 +7767,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:opsVlmEvaluationRows",
-            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+            "trackedBlobSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 67,
-            "enclosingBodyEndLine": 131,
+            "enclosingBodyStartLine": 68,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -7782,7 +7782,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
+        "verifierFileSha256": "60e57dcd90df2acd48eab027649eb1d37678472d9dfaf6735bd9d915c8c6567e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -8092,7 +8092,7 @@
           "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
           "symbol": "check:rule suggestion candidate list renders ops-only review and explicit no-auto-apply boundary",
           "anchor": "assert(applyFunction.includes(\"opsRulesEventTypes.includes(type)\"), \"draft apply must reject unsupported candidate outside opsRulesEventTypes\");",
-          "line": 118,
+          "line": 119,
           "contextSha256": "5d7d48fd669ca32f4d486eaaa428ee59bf2dc3c1dcb351dd4b69c32ce1d1cee3"
         },
         "verifier": {
@@ -8134,14 +8134,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsRulesEventTypes /ops/rules /lab/analysis/rules va-rules VLM 폼에 적용 independent assertion",
           "source": "src/ingress/product_ui_page_scripts.cpp:7080",
-          "target": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:118"
+          "target": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:119"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-rule-suggestion-draft-workflow",
-          "source": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:118",
+          "source": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:119",
           "target": "server.sh:3531"
         }
       ],
@@ -8220,7 +8220,7 @@
           "sha256": "7ef1166783f3d3bf442b208d94e3d45661ae1ccbc30249372615942b794226fd"
         }
       },
-      "sourceFlowDigest": "a607ca0815af628dabe3abc88feac1576e1973b3c3751e9260ffaef9ee6bdf9c",
+      "sourceFlowDigest": "7e00d67665a8cd1faa3b492be344cbfdcde6e1996991f39c86469f9c175342ac",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -8263,10 +8263,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
             "symbol": "check:rule suggestion candidate list renders ops-only review and explicit no-auto-apply boundary",
-            "trackedBlobSha256": "d8416f5fa0567ab88bc6cb47d0d8583bf0857a21d43d784b01e419fac53dff87",
+            "trackedBlobSha256": "3066642d12ae9653fe8af5bd2d267376f8511e5a60698fdfd2a17ee935db93c5",
             "enclosingBodySha256": "d3903b90b19ea710080c9ab6543f85251a86b2657015b682702581ec8f5fba2d",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 132,
+            "enclosingBodyStartLine": 95,
+            "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -8278,7 +8278,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "d8416f5fa0567ab88bc6cb47d0d8583bf0857a21d43d784b01e419fac53dff87",
+        "verifierFileSha256": "3066642d12ae9653fe8af5bd2d267376f8511e5a60698fdfd2a17ee935db93c5",
         "dispatch": {
           "command": "verify-vlm-rule-suggestion-draft-workflow",
           "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
@@ -85719,7 +85719,7 @@
           "file": "scripts/internal/verify_vlm_event_evidence_extraction.mjs",
           "symbol": "EVT-027:bounded-event-evidence-oracle",
           "anchor": "assert(evidenceRefsBlock.includes('\\\\\"available\\\\\"') && exactBooleanFlagValue(evidenceRefsBlock, \"rawMediaEmbedded\") === false, \"available evidence state must exclude raw media\");",
-          "line": 39,
+          "line": 40,
           "contextSha256": "969959526d7cb305ca201927d94ff3a088b7670c44d2f33ccda558d975321e0c"
         },
         "verifier": {
@@ -85761,14 +85761,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts rawMediaEmbedded. VLM metadata.vlmEvidenceRefs",
           "source": "src/analysis/event_storage.cpp:890",
-          "target": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:39"
+          "target": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:40"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-event-evidence-extraction",
-          "source": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:39",
+          "source": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:40",
           "target": "server.sh:3499"
         }
       ],
@@ -85822,7 +85822,7 @@
           "sha256": "664f588eabbe78e68b350b1e9ce3ba89248453880f8fb5c200899c50f604c73a"
         }
       },
-      "sourceFlowDigest": "3f2246a710b46bb9a06fcafa7497f3f18341b9b927244d21543fb63517152d10",
+      "sourceFlowDigest": "c15a842f9d015edc13e821c6315e64cffdf5218b9b4c056d41c4753b187c9246",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -85865,10 +85865,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_event_evidence_extraction.mjs",
             "symbol": "EVT-027:bounded-event-evidence-oracle",
-            "trackedBlobSha256": "66ced387c58683f0b608ce1a500f8c7fef6f340beb565aae67ca10fd4a0899b4",
+            "trackedBlobSha256": "2acae62c63d9286d6766c445bd1290b6f74fe916e88fc213fd6cbd008ef5342c",
             "enclosingBodySha256": "1c0f9e0c81314bc8e23a8c73b38db057509a8c2b583c959711d1db94cec473d1",
-            "enclosingBodyStartLine": 34,
-            "enclosingBodyEndLine": 60,
+            "enclosingBodyStartLine": 35,
+            "enclosingBodyEndLine": 61,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -85880,7 +85880,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "66ced387c58683f0b608ce1a500f8c7fef6f340beb565aae67ca10fd4a0899b4",
+        "verifierFileSha256": "2acae62c63d9286d6766c445bd1290b6f74fe916e88fc213fd6cbd008ef5342c",
         "dispatch": {
           "command": "verify-vlm-event-evidence-extraction",
           "file": "scripts/internal/verify_vlm_event_evidence_extraction.mjs",
@@ -86181,7 +86181,7 @@
           "file": "scripts/internal/verify_vlm_event_evidence_extraction.mjs",
           "symbol": "event-evidence-availability-source-contract",
           "anchor": "assert(evidenceRefsBlock.includes('\\\\\"available\\\\\"') && exactBooleanFlagValue(evidenceRefsBlock, \"rawMediaEmbedded\") === false, \"available evidence state must exclude raw media\");",
-          "line": 39,
+          "line": 40,
           "contextSha256": "969959526d7cb305ca201927d94ff3a088b7670c44d2f33ccda558d975321e0c"
         },
         "verifier": {
@@ -86223,14 +86223,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts available. VLM evidence availability",
           "source": "src/analysis/event_storage.cpp:861",
-          "target": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:39"
+          "target": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:40"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-event-evidence-extraction",
-          "source": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:39",
+          "source": "scripts/internal/verify_vlm_event_evidence_extraction.mjs:40",
           "target": "server.sh:3499"
         }
       ],
@@ -86305,7 +86305,7 @@
           "sha256": "763e7fb0ee1144a239f11dbeadd906e2237cc830cf78211991cc5505e2e0d6b2"
         }
       },
-      "sourceFlowDigest": "1a9054a41ed28154275269c5e0774bec77a7195ccb7b040ef7652c1c7d7075da",
+      "sourceFlowDigest": "0dff915a59abc89ab6e067943911f503a0f91ad768fdf9c47c6e8cdc9fbe323e",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -86348,10 +86348,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_event_evidence_extraction.mjs",
             "symbol": "event-evidence-availability-source-contract",
-            "trackedBlobSha256": "66ced387c58683f0b608ce1a500f8c7fef6f340beb565aae67ca10fd4a0899b4",
+            "trackedBlobSha256": "2acae62c63d9286d6766c445bd1290b6f74fe916e88fc213fd6cbd008ef5342c",
             "enclosingBodySha256": "1c0f9e0c81314bc8e23a8c73b38db057509a8c2b583c959711d1db94cec473d1",
-            "enclosingBodyStartLine": 34,
-            "enclosingBodyEndLine": 60,
+            "enclosingBodyStartLine": 35,
+            "enclosingBodyEndLine": 61,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -86363,7 +86363,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "66ced387c58683f0b608ce1a500f8c7fef6f340beb565aae67ca10fd4a0899b4",
+        "verifierFileSha256": "2acae62c63d9286d6766c445bd1290b6f74fe916e88fc213fd6cbd008ef5342c",
         "dispatch": {
           "command": "verify-vlm-event-evidence-extraction",
           "file": "scripts/internal/verify_vlm_event_evidence_extraction.mjs",
@@ -86431,7 +86431,7 @@
           "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
           "symbol": "observation-correlation-source-contract",
           "anchor": "assert(correlationBlock.includes(\"eventIdMatched\") && exactBooleanFlagValue(correlationBlock, \"externalPayloadChanged\") === false, \"eventIdMatched correlation must preserve external payload schema\");",
-          "line": 64,
+          "line": 65,
           "contextSha256": "6e71934edd87eca62cbf804f7beaf4163e58dfbfdf107bf0f8a431ca7ed98647"
         },
         "verifier": {
@@ -86473,14 +86473,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts eventIdMatched.",
           "source": "src/analysis/vlm_observation_store.cpp:1126",
-          "target": "scripts/internal/verify_vlm_observation_sidecar.mjs:64"
+          "target": "scripts/internal/verify_vlm_observation_sidecar.mjs:65"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-observation-sidecar",
-          "source": "scripts/internal/verify_vlm_observation_sidecar.mjs:64",
+          "source": "scripts/internal/verify_vlm_observation_sidecar.mjs:65",
           "target": "server.sh:3503"
         }
       ],
@@ -86534,7 +86534,7 @@
           "sha256": "c505f197619706539f27ff4580ecab9cb5650498e7bb983a30ae528bc980bfe4"
         }
       },
-      "sourceFlowDigest": "074d47c21d9e5a024b85f9b0d1f99b019cac5e4d23dc8cae24f97684e197b959",
+      "sourceFlowDigest": "24d375a5bb36256514341c46c13fcfafa81124cf0e2a1862ad5d97549997056a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -86577,10 +86577,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
             "symbol": "observation-correlation-source-contract",
-            "trackedBlobSha256": "e6a55f8ce3e2acceade949f7c1e7f67cf7a7699ee04a43d12edeaebebd38079f",
+            "trackedBlobSha256": "dfdb59b39d13bf06bdc1c423f5dd69b19cc25c048afb2b303fafb56c5a971c38",
             "enclosingBodySha256": "ba1cf7fb2cc695d294ad98a024584cb70311bffd502b879809563cef7143a429",
-            "enclosingBodyStartLine": 60,
-            "enclosingBodyEndLine": 97,
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 98,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -86592,7 +86592,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e6a55f8ce3e2acceade949f7c1e7f67cf7a7699ee04a43d12edeaebebd38079f",
+        "verifierFileSha256": "dfdb59b39d13bf06bdc1c423f5dd69b19cc25c048afb2b303fafb56c5a971c38",
         "dispatch": {
           "command": "verify-vlm-observation-sidecar",
           "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
@@ -86907,7 +86907,7 @@
           "file": "scripts/internal/verify_vlm_summary_search_candidates.mjs",
           "symbol": "summary-candidate-fixture-oracle",
           "anchor": "assert(item.expected.schema === \"media-server.vlm-summary-search-candidates.v1\",",
-          "line": 91,
+          "line": 92,
           "contextSha256": "3ffa36076a716a95a14269d7d251a758943bc5455341de2feae7af8b7d116606"
         },
         "verifier": {
@@ -86949,14 +86949,14 @@
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts media-server.vlm-summary-search-candidates.v1. eventId VLM summary candidate",
           "source": "src/analysis/vlm_observation_store.cpp:903",
-          "target": "scripts/internal/verify_vlm_summary_search_candidates.mjs:91"
+          "target": "scripts/internal/verify_vlm_summary_search_candidates.mjs:92"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-summary-search-candidates",
-          "source": "scripts/internal/verify_vlm_summary_search_candidates.mjs:91",
+          "source": "scripts/internal/verify_vlm_summary_search_candidates.mjs:92",
           "target": "server.sh:3523"
         }
       ],
@@ -87012,7 +87012,7 @@
           "sha256": "d524833151b187e7e52c204fd2113395b3744176f13cc5802d04f34266da82cc"
         }
       },
-      "sourceFlowDigest": "4f3083cb7005a0b5208f784da5fbf7a14255d0a8bc81c9bb0bf11c06a510ee8f",
+      "sourceFlowDigest": "eeb91ae3676f2e9f1fc2ffba809e2463af9a16065797c003ef76b9d8e49ca934",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -87055,10 +87055,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_summary_search_candidates.mjs",
             "symbol": "summary-candidate-fixture-oracle",
-            "trackedBlobSha256": "0f00f13f89517833bac0d98bd799f6a1ee0b4e7a72666db05555a1103c096a28",
+            "trackedBlobSha256": "667fb553cbd16910b1ad0fa44cbc9bcd1b1d579254423fa830896dba870bd7db",
             "enclosingBodySha256": "aa332051138c7305e6aeef928ec6f71277a36252865e89dd583970f01e7280bc",
-            "enclosingBodyStartLine": 60,
-            "enclosingBodyEndLine": 102,
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 103,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -87070,7 +87070,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0f00f13f89517833bac0d98bd799f6a1ee0b4e7a72666db05555a1103c096a28",
+        "verifierFileSha256": "667fb553cbd16910b1ad0fa44cbc9bcd1b1d579254423fa830896dba870bd7db",
         "dispatch": {
           "command": "verify-vlm-summary-search-candidates",
           "file": "scripts/internal/verify_vlm_summary_search_candidates.mjs",
@@ -87138,7 +87138,7 @@
           "file": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs",
           "symbol": "rule-candidate-fixture-oracle",
           "anchor": "assert(candidateBuilderBlock.includes(\"media-server.vlm-rule-suggestion-candidates.v1\") && exactBooleanFlagValue(candidateBuilderBlock, \"ruleRegistryWritePerformed\") === false, \"candidate builder schema must not write rule registry\");",
-          "line": 123,
+          "line": 124,
           "contextSha256": "a2bba7db0379c97950d33398cf350944c49856843d80be21733aa68d3134477c"
         },
         "verifier": {
@@ -87180,14 +87180,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independently dispatched verifier structurally asserts media-server.vlm-rule-suggestion-candidates.v1 from the bounded executable producer output without claiming live HTTP or external runtime observation.",
           "source": "src/analysis/vlm_observation_store.cpp:1059",
-          "target": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:123"
+          "target": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:124"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-rule-suggestion-candidates",
-          "source": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:123",
+          "source": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:124",
           "target": "server.sh:3527"
         }
       ],
@@ -87255,7 +87255,7 @@
           "sha256": "feae74d9c0914ac5a97a53d4e4bc521d5de2dd3c27960d159a0be808634d2d85"
         }
       },
-      "sourceFlowDigest": "e6af4f5650f641e98ff6335e3d082b74e1723e1d497913b81cc0a81a3ec6f32c",
+      "sourceFlowDigest": "e3aced65a76c171dcc00266ab16068e92b6840b7777aef59c1493316a71d016a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -87298,10 +87298,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs",
             "symbol": "rule-candidate-fixture-oracle",
-            "trackedBlobSha256": "c846c160cf1c3783a02ffce1b7784b5e6b39a7db44eb00b2e1e9a8916eaeaa86",
+            "trackedBlobSha256": "29c600834ba6f053ec6f21184032485be525af3a776b9eb1223c8e706318c837",
             "enclosingBodySha256": "74db74a039fb4f1fa9d9b1b8532b325e6fd29e2e5d6b9f13096acc4df37abdaa",
-            "enclosingBodyStartLine": 118,
-            "enclosingBodyEndLine": 148,
+            "enclosingBodyStartLine": 119,
+            "enclosingBodyEndLine": 149,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -87313,7 +87313,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "c846c160cf1c3783a02ffce1b7784b5e6b39a7db44eb00b2e1e9a8916eaeaa86",
+        "verifierFileSha256": "29c600834ba6f053ec6f21184032485be525af3a776b9eb1223c8e706318c837",
         "dispatch": {
           "command": "verify-vlm-rule-suggestion-candidates",
           "file": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs",
@@ -87841,7 +87841,7 @@
           "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
           "symbol": "EVT-036:source-assertion",
           "anchor": "assert(draftWorkflowBlock.includes(\"media-server.vlm-rule-suggestion-draft-workflow.v1\") && exactBooleanFlagValue(draftWorkflowBlock, \"ruleRegistryWritePerformed\") === false, \"draft workflow schema must not write the rule registry\");",
-          "line": 70,
+          "line": 71,
           "contextSha256": "966c4fcfa0dd5f5b25bedd704d1b8fc4daf3ae0b8d3709740c3b74eba302848c"
         },
         "verifier": {
@@ -87883,14 +87883,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The source assertion binds media-server.vlm-rule-suggestion-draft-workflow.v1 and sourceCandidateReport VLM state.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1185",
-          "target": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:70"
+          "target": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:71"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-rule-suggestion-draft-workflow",
-          "source": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:70",
+          "source": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:71",
           "target": "server.sh:3531"
         }
       ],
@@ -87954,7 +87954,7 @@
           "sha256": "9a0e5bdad4a4cfa621342ef9382d2aa4ed7ec9b89b025f1bdd400097eef2f9b1"
         }
       },
-      "sourceFlowDigest": "e0bdf914dedf6941813cf2191396542a7197af089ab5a1a8e482b94241349fa2",
+      "sourceFlowDigest": "19012b9c3164628e38c3927b1221aade29331b67993da5f3c8903cdbb98d332c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -87997,10 +87997,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
             "symbol": "EVT-036:source-assertion",
-            "trackedBlobSha256": "d8416f5fa0567ab88bc6cb47d0d8583bf0857a21d43d784b01e419fac53dff87",
+            "trackedBlobSha256": "3066642d12ae9653fe8af5bd2d267376f8511e5a60698fdfd2a17ee935db93c5",
             "enclosingBodySha256": "65ce39465a7f01c5befa6ee94883a6b9ba43442061cbdea670690bdd67e111b5",
-            "enclosingBodyStartLine": 66,
-            "enclosingBodyEndLine": 92,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 93,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -88012,7 +88012,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "d8416f5fa0567ab88bc6cb47d0d8583bf0857a21d43d784b01e419fac53dff87",
+        "verifierFileSha256": "3066642d12ae9653fe8af5bd2d267376f8511e5a60698fdfd2a17ee935db93c5",
         "dispatch": {
           "command": "verify-vlm-rule-suggestion-draft-workflow",
           "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
@@ -125479,7 +125479,7 @@
           "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
           "symbol": "LAB-040:exact-oracle",
           "anchor": "assert(item.observation.storageScope === \"vlm-observation-store-only\", `${item.id}: storage scope mismatch`);",
-          "line": 45,
+          "line": 46,
           "contextSha256": "1346f9639e869a5f0c6f20297ad358f3d1f95c4cd8ec0b1c1bb8b752a67f6645"
         },
         "verifier": {
@@ -125521,14 +125521,14 @@
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes vlm-observation-store-only from the product response.",
           "source": "src/analysis/vlm_observation_store.cpp:712",
-          "target": "scripts/internal/verify_vlm_observation_sidecar.mjs:45"
+          "target": "scripts/internal/verify_vlm_observation_sidecar.mjs:46"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-observation-sidecar",
-          "source": "scripts/internal/verify_vlm_observation_sidecar.mjs:45",
+          "source": "scripts/internal/verify_vlm_observation_sidecar.mjs:46",
           "target": "server.sh:3503"
         }
       ],
@@ -125592,7 +125592,7 @@
           "sha256": "b057f77ad567d4d0017e1229726b18c0736fd805043709cb584542dc1815b0d3"
         }
       },
-      "sourceFlowDigest": "ba78c1273d2e49e0e8ee93be44ae12cae9f270f6106cb16e86241862bf0d0aab",
+      "sourceFlowDigest": "d0cbb47231b0a826c409046ff732686d4589a5619988899662b453ed7340cd14",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -125635,10 +125635,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
             "symbol": "LAB-040:exact-oracle",
-            "trackedBlobSha256": "e6a55f8ce3e2acceade949f7c1e7f67cf7a7699ee04a43d12edeaebebd38079f",
+            "trackedBlobSha256": "dfdb59b39d13bf06bdc1c423f5dd69b19cc25c048afb2b303fafb56c5a971c38",
             "enclosingBodySha256": "689b4832f031370a439bceae752e2d278314567bfbac144e5e3eee571ede8bf2",
-            "enclosingBodyStartLine": 35,
-            "enclosingBodyEndLine": 58,
+            "enclosingBodyStartLine": 36,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -125650,7 +125650,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e6a55f8ce3e2acceade949f7c1e7f67cf7a7699ee04a43d12edeaebebd38079f",
+        "verifierFileSha256": "dfdb59b39d13bf06bdc1c423f5dd69b19cc25c048afb2b303fafb56c5a971c38",
         "dispatch": {
           "command": "verify-vlm-observation-sidecar",
           "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
@@ -128055,7 +128055,7 @@
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
           "symbol": "LAB-051:exact-oracle",
           "anchor": "assert(profilePreparationBlock.includes(\"credential\") && profilePreparationBlock.includes(\"SetRegistryError\") && registryWritePerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && providerCallPerformed === false, \"LAB-051 VLM profile credential/raw/source reject must not write registry state\");",
-          "line": 124,
+          "line": 125,
           "contextSha256": "aa44092e8210ce3bc5bfdeef5d031f1c2c6883acf2422f8f4b7bdea4ffde03d1"
         },
         "verifier": {
@@ -128097,14 +128097,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts credential rejection and no registry mutation, raw/source/credential exposure, or provider call from the bounded profile preparation flow.",
           "source": "src/ingress/webrtc_http_server_detail.h:1036",
-          "target": "scripts/internal/verify_vlm_profile_storage.mjs:124"
+          "target": "scripts/internal/verify_vlm_profile_storage.mjs:125"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-profile-storage",
-          "source": "scripts/internal/verify_vlm_profile_storage.mjs:124",
+          "source": "scripts/internal/verify_vlm_profile_storage.mjs:125",
           "target": "server.sh:3455"
         }
       ],
@@ -128191,7 +128191,7 @@
           "sha256": "ffae4cddc01580ffcea1775b65ffc4be66cffe65765d376b67246d8a28defb82"
         }
       },
-      "sourceFlowDigest": "380e041291d8e0d1b3cca8dc6e4a51e471dcbcba1c34f86cac5977a344a5d3be",
+      "sourceFlowDigest": "0e3367e703cff470d8e11201f4ba8b7aaa54f8f48bf34b4dfd1513429618d1e5",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -128234,10 +128234,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_profile_storage.mjs",
             "symbol": "LAB-051:exact-oracle",
-            "trackedBlobSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+            "trackedBlobSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
             "enclosingBodySha256": "b2589cd09f0b251a67c1e460ed632b1b12ae0160f596cd73ffc50f79aacca858",
-            "enclosingBodyStartLine": 36,
-            "enclosingBodyEndLine": 143,
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 144,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -128249,7 +128249,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+        "verifierFileSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
         "dispatch": {
           "command": "verify-vlm-profile-storage",
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
@@ -128542,7 +128542,7 @@
           "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
           "symbol": "LAB-053:exact-oracle",
           "anchor": "assert(item.observation.redactionReview?.rawPromptStored === false && item.observation.redactionReview?.sourceUrlExposed === false && item.observation.redactionReview?.credentialMaterialStored === false && eventRecordWritePerformed === false, `${item.id}: VLM rawPromptStored/sourceUrl/credential sidecar boundaries must remain false`);",
-          "line": 50,
+          "line": 51,
           "contextSha256": "9d0d0b3915e56bfdec4c532ffd70e5ea090ea886a507c78aaed30f440902f445"
         },
         "verifier": {
@@ -128584,14 +128584,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts rawPromptStored from the computed source flow.",
           "source": "src/analysis/vlm_observation_store.cpp:714",
-          "target": "scripts/internal/verify_vlm_observation_sidecar.mjs:50"
+          "target": "scripts/internal/verify_vlm_observation_sidecar.mjs:51"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-observation-sidecar",
-          "source": "scripts/internal/verify_vlm_observation_sidecar.mjs:50",
+          "source": "scripts/internal/verify_vlm_observation_sidecar.mjs:51",
           "target": "server.sh:3503"
         }
       ],
@@ -128674,7 +128674,7 @@
           "sha256": "f904a0db2ced83f240947d3f492276d05a842213040e40d53ed0b1110a0a3a92"
         }
       },
-      "sourceFlowDigest": "79ea93680e82d7c1176a98cec76f633aa9f555131ccb8f59a6f56799aff8bc97",
+      "sourceFlowDigest": "79e024d6cd852ba1181cd809f138459e544500f4815099bd98f00a70c3e87f6a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -128717,10 +128717,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
             "symbol": "LAB-053:exact-oracle",
-            "trackedBlobSha256": "e6a55f8ce3e2acceade949f7c1e7f67cf7a7699ee04a43d12edeaebebd38079f",
+            "trackedBlobSha256": "dfdb59b39d13bf06bdc1c423f5dd69b19cc25c048afb2b303fafb56c5a971c38",
             "enclosingBodySha256": "689b4832f031370a439bceae752e2d278314567bfbac144e5e3eee571ede8bf2",
-            "enclosingBodyStartLine": 35,
-            "enclosingBodyEndLine": 58,
+            "enclosingBodyStartLine": 36,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -128732,7 +128732,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e6a55f8ce3e2acceade949f7c1e7f67cf7a7699ee04a43d12edeaebebd38079f",
+        "verifierFileSha256": "dfdb59b39d13bf06bdc1c423f5dd69b19cc25c048afb2b303fafb56c5a971c38",
         "dispatch": {
           "command": "verify-vlm-observation-sidecar",
           "file": "scripts/internal/verify_vlm_observation_sidecar.mjs",
@@ -128800,7 +128800,7 @@
           "file": "scripts/internal/verify_vlm_summary_search_candidates.mjs",
           "symbol": "LAB-054:exact-oracle",
           "anchor": "assert(candidates[0].matchedTerms.includes(normalize(term)),",
-          "line": 88,
+          "line": 89,
           "contextSha256": "26769f212a29ac4434cfc1ce3db973a36e0d039560822839386ac1259d34ec04"
         },
         "verifier": {
@@ -128842,14 +128842,14 @@
           "kind": "runtime-readback",
           "witness": "The independent canonical verifier asserts matchedTerms from the computed source flow.",
           "source": "src/analysis/vlm_observation_store.cpp:527",
-          "target": "scripts/internal/verify_vlm_summary_search_candidates.mjs:88"
+          "target": "scripts/internal/verify_vlm_summary_search_candidates.mjs:89"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-summary-search-candidates",
-          "source": "scripts/internal/verify_vlm_summary_search_candidates.mjs:88",
+          "source": "scripts/internal/verify_vlm_summary_search_candidates.mjs:89",
           "target": "server.sh:3523"
         }
       ],
@@ -128917,7 +128917,7 @@
           "sha256": "8a847e1e097cbd7c1774fceef938d9ffa3febf247bcbdb874ac496bf2deef3d1"
         }
       },
-      "sourceFlowDigest": "5c1866c3170a37ace4faf6d9592dc16265d4ad6f22f317e505a821ba17ef3319",
+      "sourceFlowDigest": "540818028b1e5cd7108a0a6c48c2509907a93d8d05485bef784d28e1afde9e5c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -128960,10 +128960,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_summary_search_candidates.mjs",
             "symbol": "LAB-054:exact-oracle",
-            "trackedBlobSha256": "0f00f13f89517833bac0d98bd799f6a1ee0b4e7a72666db05555a1103c096a28",
+            "trackedBlobSha256": "667fb553cbd16910b1ad0fa44cbc9bcd1b1d579254423fa830896dba870bd7db",
             "enclosingBodySha256": "aa332051138c7305e6aeef928ec6f71277a36252865e89dd583970f01e7280bc",
-            "enclosingBodyStartLine": 60,
-            "enclosingBodyEndLine": 102,
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 103,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -128975,7 +128975,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0f00f13f89517833bac0d98bd799f6a1ee0b4e7a72666db05555a1103c096a28",
+        "verifierFileSha256": "667fb553cbd16910b1ad0fa44cbc9bcd1b1d579254423fa830896dba870bd7db",
         "dispatch": {
           "command": "verify-vlm-summary-search-candidates",
           "file": "scripts/internal/verify_vlm_summary_search_candidates.mjs",
@@ -129043,7 +129043,7 @@
           "file": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs",
           "symbol": "LAB-055:exact-oracle",
           "anchor": "assert(exactBooleanFlagValue(candidateBuilderBlock, \"autoRuleApplied\") === false, \"auto rule apply must remain false\");",
-          "line": 124,
+          "line": 125,
           "contextSha256": "34033f967d70db1387fd287361d278bfc405455ce9a56a388533cbe7613d6d86"
         },
         "verifier": {
@@ -129085,14 +129085,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts autoRuleApplied from the computed source flow.",
           "source": "src/analysis/vlm_observation_store.cpp:1097",
-          "target": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:124"
+          "target": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:125"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-rule-suggestion-candidates",
-          "source": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:124",
+          "source": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs:125",
           "target": "server.sh:3527"
         }
       ],
@@ -129172,7 +129172,7 @@
           "sha256": "a04c1b1595680d1643b570a0970695ab387046b3c97530237e3d05e08fbbe8fc"
         }
       },
-      "sourceFlowDigest": "d6e989a3910407e233be5b0b73f999f0b03354f4b94f3436fdd3c7af921bf115",
+      "sourceFlowDigest": "1cdd73339b628fbc4c3c956a20d3dcbd712b58070f6ff6ba2fa70b1b1a0ca229",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -129215,10 +129215,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs",
             "symbol": "LAB-055:exact-oracle",
-            "trackedBlobSha256": "c846c160cf1c3783a02ffce1b7784b5e6b39a7db44eb00b2e1e9a8916eaeaa86",
+            "trackedBlobSha256": "29c600834ba6f053ec6f21184032485be525af3a776b9eb1223c8e706318c837",
             "enclosingBodySha256": "74db74a039fb4f1fa9d9b1b8532b325e6fd29e2e5d6b9f13096acc4df37abdaa",
-            "enclosingBodyStartLine": 118,
-            "enclosingBodyEndLine": 148,
+            "enclosingBodyStartLine": 119,
+            "enclosingBodyEndLine": 149,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -129230,7 +129230,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "c846c160cf1c3783a02ffce1b7784b5e6b39a7db44eb00b2e1e9a8916eaeaa86",
+        "verifierFileSha256": "29c600834ba6f053ec6f21184032485be525af3a776b9eb1223c8e706318c837",
         "dispatch": {
           "command": "verify-vlm-rule-suggestion-candidates",
           "file": "scripts/internal/verify_vlm_rule_suggestion_candidates.mjs",
@@ -130007,7 +130007,7 @@
           "file": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs",
           "symbol": "LAB-059:exact-oracle",
           "anchor": "assert(evaluationWorkflowBlock.includes(\"sourceReportSchema\") && exactBooleanFlagValue(evaluationWorkflowBlock, \"runtimeCallAllowed\") === false, \"LAB-059 canonical VLM evaluation sourceReportSchema must preserve runtimeCallAllowed false\");",
-          "line": 61,
+          "line": 62,
           "contextSha256": "e661da16ba9d41133c79081f30fcb161f99847eef43ec1e0c26539710977a682"
         },
         "verifier": {
@@ -130049,14 +130049,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts sourceReportSchema from the computed source flow.",
           "source": "src/ingress/vlm_evaluation_promotion.cpp:235",
-          "target": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs:61"
+          "target": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs:62"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-evaluation-result-workflow",
-          "source": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs:61",
+          "source": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs:62",
           "target": "server.sh:3483"
         }
       ],
@@ -130110,7 +130110,7 @@
           "sha256": "6b9684d7e3d26d3383a22d45f8a3f7b4cd1303edb435c432d5b261e3b9a2a55f"
         }
       },
-      "sourceFlowDigest": "d9733ed72bd98d1956586031302bdf39a13b75d2ef8a30b959d7e542f25ea63d",
+      "sourceFlowDigest": "7b4b8a06dcc3014877bb3f84585c098d20b72fe01bca3de0556b8e65703553ed",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -130153,10 +130153,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs",
             "symbol": "LAB-059:exact-oracle",
-            "trackedBlobSha256": "ec3a239a6e13b8ef215c3f1d6af41791ed5efc7d10eb4b7c69c9a8506d766804",
+            "trackedBlobSha256": "76ea60062970da389dd470e6905f28c8794075a2a050cde9b16bec06bcad6eee",
             "enclosingBodySha256": "8153741dd5bca4e437e3e53927ba64269de44859370a9e6f28b27a54f302b5e1",
-            "enclosingBodyStartLine": 60,
-            "enclosingBodyEndLine": 82,
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 83,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -130168,7 +130168,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "ec3a239a6e13b8ef215c3f1d6af41791ed5efc7d10eb4b7c69c9a8506d766804",
+        "verifierFileSha256": "76ea60062970da389dd470e6905f28c8794075a2a050cde9b16bec06bcad6eee",
         "dispatch": {
           "command": "verify-vlm-evaluation-result-workflow",
           "file": "scripts/internal/verify_vlm_evaluation_result_workflow.mjs",
@@ -130236,7 +130236,7 @@
           "file": "scripts/internal/verify_vlm_review_action_workflow.mjs",
           "symbol": "LAB-060:exact-oracle",
           "anchor": "assert(fixture.workflow?.defaultAction === \"not-reviewed\" && Object.values(fixture.contractInvariants || {}).every(value => value === false), \"VLM review action not-reviewed must preserve explicit negative contract invariants\");",
-          "line": 47,
+          "line": 49,
           "contextSha256": "aed4650aa35684e3c6c837acfc8033a688801757949ea8e841843532c6a609e4"
         },
         "verifier": {
@@ -130278,14 +130278,14 @@
           "kind": "runtime-readback",
           "witness": "The independent canonical verifier asserts not-reviewed from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:4434",
-          "target": "scripts/internal/verify_vlm_review_action_workflow.mjs:47"
+          "target": "scripts/internal/verify_vlm_review_action_workflow.mjs:49"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-review-action-workflow",
-          "source": "scripts/internal/verify_vlm_review_action_workflow.mjs:47",
+          "source": "scripts/internal/verify_vlm_review_action_workflow.mjs:49",
           "target": "server.sh:3487"
         }
       ],
@@ -130339,7 +130339,7 @@
           "sha256": "9ab11ddc2b088869d425c7141e4f68493c64f7a72af7f9fdcfa93e33751978e0"
         }
       },
-      "sourceFlowDigest": "142623dd1abb2414026abdf1ebbe5aafdbe9af16f3fef60946ba19ece76e3cfb",
+      "sourceFlowDigest": "9080cad90eb1d1683c341dfd929bde207485f13231d078567f485343e97b7329",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -130382,10 +130382,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_review_action_workflow.mjs",
             "symbol": "LAB-060:exact-oracle",
-            "trackedBlobSha256": "fd4e2ff9b931e29a96c08df00ea17afcac74ece075276d18cac6d918f4551ce5",
+            "trackedBlobSha256": "9e00026c5419402d8e512f42974111e4b91b6adbffcc2ecb502a3310d3151e60",
             "enclosingBodySha256": "8a6b0172ba2e1bbc7fdda4cde5b857a16bea010121ae97cbfd2c9f05f70287fe",
-            "enclosingBodyStartLine": 41,
-            "enclosingBodyEndLine": 67,
+            "enclosingBodyStartLine": 43,
+            "enclosingBodyEndLine": 69,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -130397,7 +130397,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "fd4e2ff9b931e29a96c08df00ea17afcac74ece075276d18cac6d918f4551ce5",
+        "verifierFileSha256": "9e00026c5419402d8e512f42974111e4b91b6adbffcc2ecb502a3310d3151e60",
         "dispatch": {
           "command": "verify-vlm-review-action-workflow",
           "file": "scripts/internal/verify_vlm_review_action_workflow.mjs",
@@ -130465,7 +130465,7 @@
           "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
           "symbol": "LAB-061:exact-oracle",
           "anchor": "assert(draftWorkflowBlock.includes(\"sourceCandidateReport\") && exactBooleanFlagValue(draftWorkflowBlock, \"autoRuleApplied\") === false,",
-          "line": 71,
+          "line": 72,
           "contextSha256": "7d194ae4fd63693d5dcdf1fee6a3a74ecfb5891756a49b7e70f6623d7fe8350d"
         },
         "verifier": {
@@ -130507,14 +130507,14 @@
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts sourceCandidateReport from the computed source flow.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1190",
-          "target": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:71"
+          "target": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:72"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-rule-suggestion-draft-workflow",
-          "source": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:71",
+          "source": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs:72",
           "target": "server.sh:3531"
         }
       ],
@@ -130588,7 +130588,7 @@
           "sha256": "14fb7a21ef8e6481fb047c3990832b351f4fd4debc099c56ce3c155b6963627b"
         }
       },
-      "sourceFlowDigest": "e3c3b56c6d7e19fd2671fb0d92d0f622d7cccb0034705f3de92680d012a5c91c",
+      "sourceFlowDigest": "23826ff1712ae8d7d23f538b340aaf034460b7222577ea55e7404cfc2ea1ffbf",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -130631,10 +130631,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
             "symbol": "LAB-061:exact-oracle",
-            "trackedBlobSha256": "d8416f5fa0567ab88bc6cb47d0d8583bf0857a21d43d784b01e419fac53dff87",
+            "trackedBlobSha256": "3066642d12ae9653fe8af5bd2d267376f8511e5a60698fdfd2a17ee935db93c5",
             "enclosingBodySha256": "65ce39465a7f01c5befa6ee94883a6b9ba43442061cbdea670690bdd67e111b5",
-            "enclosingBodyStartLine": 66,
-            "enclosingBodyEndLine": 92,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 93,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -130646,7 +130646,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "d8416f5fa0567ab88bc6cb47d0d8583bf0857a21d43d784b01e419fac53dff87",
+        "verifierFileSha256": "3066642d12ae9653fe8af5bd2d267376f8511e5a60698fdfd2a17ee935db93c5",
         "dispatch": {
           "command": "verify-vlm-rule-suggestion-draft-workflow",
           "file": "scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs",
@@ -151033,35 +151033,35 @@
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
           "symbol": "canonical-owner:SAFE-023",
           "anchor": "check(\"registry persists VLM profiles with strict validation\", () => {",
-          "line": 36,
+          "line": 37,
           "contextSha256": "e41706b1bb3d562a6a2ad98d5fd632e179f94aaf6a91676dd455c6a4e0e06b63"
         },
         "dispatch": {
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
           "symbol": "canonical-dispatch:SAFE-023",
           "anchor": "const profilePreparationBlock = extractCppFunctionBlock(server, \"std::optional<Document> PrepareVlmProfileDocumentLocked(\");",
-          "line": 38,
+          "line": 39,
           "contextSha256": "67c849115d3c5db8c2b124323fc4fc2bee4a215aed95f553ce4d65aa63a06f5b"
         },
         "action": {
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
           "symbol": "canonical-action:SAFE-023",
           "anchor": "const registryWritePerformed = /\\b(?:Write|Persist|DispatchEventRecords|ProviderCall|HttpPost)[A-Za-z0-9_:]*\\s*\\(/.test(profilePreparationBlock);",
-          "line": 117,
+          "line": 118,
           "contextSha256": "84a426545e62d5d0df0fd6ea967a30ae63ba7341b309ab297206d62adda8171c"
         },
         "state": {
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
           "symbol": "canonical-state:SAFE-023",
           "anchor": "const mutationPerformed = registryWritePerformed || /\\b(?:Apply|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\\s*\\(/.test(profilePreparationBlock);",
-          "line": 118,
+          "line": 119,
           "contextSha256": "efb3879905e7b242a65190201d017dc486c1366e04ba4e70336a366669f65d2d"
         },
         "readback": {
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
           "symbol": "canonical-readback:SAFE-023",
           "anchor": "assert(mutationPerformed === false && providerCallPerformed === false, \"SAFE-023 profile storage must not call a cloud provider or mutate non-profile state\");",
-          "line": 123,
+          "line": 124,
           "contextSha256": "55d91eedc0ed68d7385aa4bb6e78a2c62b619e21260066cd1b3e6af3522f4018"
         },
         "verifier": {
@@ -151078,39 +151078,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-023 owner-dispatch",
-          "source": "scripts/internal/verify_vlm_profile_storage.mjs:36",
-          "target": "scripts/internal/verify_vlm_profile_storage.mjs:38"
+          "source": "scripts/internal/verify_vlm_profile_storage.mjs:37",
+          "target": "scripts/internal/verify_vlm_profile_storage.mjs:39"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-023 dispatch-action",
-          "source": "scripts/internal/verify_vlm_profile_storage.mjs:38",
-          "target": "scripts/internal/verify_vlm_profile_storage.mjs:117"
+          "source": "scripts/internal/verify_vlm_profile_storage.mjs:39",
+          "target": "scripts/internal/verify_vlm_profile_storage.mjs:118"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-023 action-state",
-          "source": "scripts/internal/verify_vlm_profile_storage.mjs:117",
-          "target": "scripts/internal/verify_vlm_profile_storage.mjs:118"
+          "source": "scripts/internal/verify_vlm_profile_storage.mjs:118",
+          "target": "scripts/internal/verify_vlm_profile_storage.mjs:119"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-023 state-readback",
-          "source": "scripts/internal/verify_vlm_profile_storage.mjs:118",
-          "target": "scripts/internal/verify_vlm_profile_storage.mjs:123"
+          "source": "scripts/internal/verify_vlm_profile_storage.mjs:119",
+          "target": "scripts/internal/verify_vlm_profile_storage.mjs:124"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-profile-storage",
-          "source": "scripts/internal/verify_vlm_profile_storage.mjs:123",
+          "source": "scripts/internal/verify_vlm_profile_storage.mjs:124",
           "target": "server.sh:3455"
         }
       ],
@@ -151217,53 +151217,53 @@
           "sha256": "82de9ede65901a2f819c77fa980e92b2488a732f1f004f1d0483261fa8831fb2"
         }
       },
-      "sourceFlowDigest": "2ca557a2a209d92d32c824284719dc6a1218f2408488f3fcfda40a8c50262bed",
+      "sourceFlowDigest": "b70f5de51e8b4c2dad95d5189b4692511bfbc360fffd3d02bb94f81e6b43d2a4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_vlm_profile_storage.mjs",
             "symbol": "canonical-owner:SAFE-023",
-            "trackedBlobSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+            "trackedBlobSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
             "enclosingBodySha256": "b2589cd09f0b251a67c1e460ed632b1b12ae0160f596cd73ffc50f79aacca858",
-            "enclosingBodyStartLine": 36,
-            "enclosingBodyEndLine": 143,
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 144,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_vlm_profile_storage.mjs",
             "symbol": "canonical-dispatch:SAFE-023",
-            "trackedBlobSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+            "trackedBlobSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
             "enclosingBodySha256": "b2589cd09f0b251a67c1e460ed632b1b12ae0160f596cd73ffc50f79aacca858",
-            "enclosingBodyStartLine": 36,
-            "enclosingBodyEndLine": 143,
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 144,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_vlm_profile_storage.mjs",
             "symbol": "canonical-action:SAFE-023",
-            "trackedBlobSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+            "trackedBlobSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
             "enclosingBodySha256": "b2589cd09f0b251a67c1e460ed632b1b12ae0160f596cd73ffc50f79aacca858",
-            "enclosingBodyStartLine": 36,
-            "enclosingBodyEndLine": 143,
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 144,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_vlm_profile_storage.mjs",
             "symbol": "canonical-state:SAFE-023",
-            "trackedBlobSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+            "trackedBlobSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
             "enclosingBodySha256": "b2589cd09f0b251a67c1e460ed632b1b12ae0160f596cd73ffc50f79aacca858",
-            "enclosingBodyStartLine": 36,
-            "enclosingBodyEndLine": 143,
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 144,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_vlm_profile_storage.mjs",
             "symbol": "canonical-readback:SAFE-023",
-            "trackedBlobSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+            "trackedBlobSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
             "enclosingBodySha256": "b2589cd09f0b251a67c1e460ed632b1b12ae0160f596cd73ffc50f79aacca858",
-            "enclosingBodyStartLine": 36,
-            "enclosingBodyEndLine": 143,
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 144,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -151275,7 +151275,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "17d1b620f4ca4cd91167de882cc2863bfd28cb9be535e525b77648715c1d2672",
+        "verifierFileSha256": "36ebc4dc3214804f609bfc46a8f32e04339576cf2a141df61aa023bfa5046c33",
         "dispatch": {
           "command": "verify-vlm-profile-storage",
           "file": "scripts/internal/verify_vlm_profile_storage.mjs",
@@ -151314,35 +151314,35 @@
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
           "symbol": "canonical-owner:SAFE-024",
           "anchor": "check(\"SAFE-024 canonical privacy guard source keeps raw and credential material absent\", () => {",
-          "line": 107,
+          "line": 108,
           "contextSha256": "846d6a104d6381fc9118055084c4b2d785b4742fdbcca3003044a99bf0c83fcc"
         },
         "dispatch": {
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
           "symbol": "canonical-dispatch:SAFE-024",
           "anchor": "const block = extractCppFunctionBlock(server, \"static bool ValidateVlmPrivacyGuardContract(\");",
-          "line": 108,
+          "line": 109,
           "contextSha256": "0faeb814896839304f39c2a58be74b99d2bd006eb96d19590a60c3592cf25ddc"
         },
         "action": {
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
           "symbol": "canonical-action:SAFE-024",
           "anchor": "const privacyGuardObserved = block.includes(\"sourceUrlStored\") && block.includes(\"credentialMaterialStored\");",
-          "line": 109,
+          "line": 110,
           "contextSha256": "cec556cbfbb20b167ecb7b00bcb25b5eb8a61742761c5be1c85a2346c00e43dc"
         },
         "state": {
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
           "symbol": "canonical-state:SAFE-024",
           "anchor": "const rawMaterialExposed = /\\\\\\\"(?:rawPrompt|rawProviderResponse|rawFrameBytes|rawJson|rawLocator)\\\\\\\":true/.test(block);",
-          "line": 110,
+          "line": 111,
           "contextSha256": "48a4697df3b9085575e5e98520ee40442247110ff0b528907e145c21d9162073"
         },
         "readback": {
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
           "symbol": "canonical-readback:SAFE-024",
           "anchor": "assert(privacyGuardObserved && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false,",
-          "line": 113,
+          "line": 114,
           "contextSha256": "0ff8632d6d3cb070e0d42ef15923259ab5afcf3a6d3660eb89ced923326a871c"
         },
         "verifier": {
@@ -151359,39 +151359,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-024 owner-dispatch",
-          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:107",
-          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:108"
+          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:108",
+          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:109"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-024 dispatch-action",
-          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:108",
-          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:109"
+          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:109",
+          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:110"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "co-asserted-boundary",
           "witness": "SAFE-024 action-state",
-          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:109",
-          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:110"
+          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:110",
+          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:111"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-024 state-readback",
-          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:110",
-          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:113"
+          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:111",
+          "target": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:114"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-privacy-transfer-guard",
-          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:113",
+          "source": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs:114",
           "target": "server.sh:3519"
         }
       ],
@@ -151468,53 +151468,53 @@
           "sha256": "73beb6fa3e8e36ea0966ec3bef846643c09b7ca8823bc00faa7789925ea32e0e"
         }
       },
-      "sourceFlowDigest": "9e272705d860a831cf82e64bfff0ac32156e229179db07ef08afbac6f516aa34",
+      "sourceFlowDigest": "a8c7f9b44340d2782de1a3de809c58c85f341bd1155fc21595cb0b4800e31980",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
             "symbol": "canonical-owner:SAFE-024",
-            "trackedBlobSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+            "trackedBlobSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
             "enclosingBodySha256": "6bc9f66c9f161a9516ebd3b09fd27276470a6f79e1d3a78a18d36c131f4809dc",
-            "enclosingBodyStartLine": 107,
-            "enclosingBodyEndLine": 147,
+            "enclosingBodyStartLine": 108,
+            "enclosingBodyEndLine": 148,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
             "symbol": "canonical-dispatch:SAFE-024",
-            "trackedBlobSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+            "trackedBlobSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
             "enclosingBodySha256": "6bc9f66c9f161a9516ebd3b09fd27276470a6f79e1d3a78a18d36c131f4809dc",
-            "enclosingBodyStartLine": 107,
-            "enclosingBodyEndLine": 147,
+            "enclosingBodyStartLine": 108,
+            "enclosingBodyEndLine": 148,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
             "symbol": "canonical-action:SAFE-024",
-            "trackedBlobSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+            "trackedBlobSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
             "enclosingBodySha256": "6bc9f66c9f161a9516ebd3b09fd27276470a6f79e1d3a78a18d36c131f4809dc",
-            "enclosingBodyStartLine": 107,
-            "enclosingBodyEndLine": 147,
+            "enclosingBodyStartLine": 108,
+            "enclosingBodyEndLine": 148,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
             "symbol": "canonical-state:SAFE-024",
-            "trackedBlobSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+            "trackedBlobSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
             "enclosingBodySha256": "6bc9f66c9f161a9516ebd3b09fd27276470a6f79e1d3a78a18d36c131f4809dc",
-            "enclosingBodyStartLine": 107,
-            "enclosingBodyEndLine": 147,
+            "enclosingBodyStartLine": 108,
+            "enclosingBodyEndLine": 148,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
             "symbol": "canonical-readback:SAFE-024",
-            "trackedBlobSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+            "trackedBlobSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
             "enclosingBodySha256": "6bc9f66c9f161a9516ebd3b09fd27276470a6f79e1d3a78a18d36c131f4809dc",
-            "enclosingBodyStartLine": 107,
-            "enclosingBodyEndLine": 147,
+            "enclosingBodyStartLine": 108,
+            "enclosingBodyEndLine": 148,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -151526,7 +151526,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "51a2c77da5e79d756d7bb8470a70703cf806371b92f55cc20103f2feb05011f6",
+        "verifierFileSha256": "8a1a074f89ff439c8d3c03d43799e6e96657e308e97f93d96177690ded2573c4",
         "dispatch": {
           "command": "verify-vlm-privacy-transfer-guard",
           "file": "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
@@ -235279,5 +235279,5 @@
       }
     }
   ],
-  "candidateDigest": "5cbafd9bc5da9dd2d8fbf74b9406fd6acfc378406cd2b2de3e4e251cb4c25133"
+  "candidateDigest": "2ee1d33c5575b03b25b91ec0e8a1c477b4232e0f6c2d8a125c5811c711d4d64c"
 }

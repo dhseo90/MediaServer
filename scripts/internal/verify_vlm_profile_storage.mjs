@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S05 VLM profile 저장 API/UI/문서/fixture 계약을 정적 검증한다.
 
@@ -218,30 +219,19 @@ check("auth route smoke covers VLM profile read/write/invalid/delete boundaries"
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/ui-guide.md"),
-    readText("docs/README.md"),
-    readText("docs/vlm-profile-storage.md"),
-  ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const implementationManifest = readText("test/fixtures/project_feature_implementation_evidence.json");
-  for (const snippet of [
-    "V200-S05",
-    "VLM profile 저장",
-    "media-server.vlm-profile.v1",
-    "media-server.vlm-runtime-opt-in-contract.v1",
-    "verify-vlm-runtime-opt-in-contract",
-    "verify-vlm-profile-storage",
-    "/ops/api/vlm/profiles",
-    "profile CRUD smoke",
-    "fallback/disable",
-  ]) {
-    assert(docs.includes(snippet), `docs missing VLM profile snippet: ${snippet}`);
-  }
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-profile-storage.md"),
+    identifiers: ["media-server.vlm-profile.v1","media-server.vlm-runtime-opt-in-contract.v1","/ops/api/vlm/profiles"],
+    command: "verify-vlm-profile-storage", script: "verify_vlm_profile_storage.mjs",
+    featureIds: ["LAB-051","SAFE-023"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assert(serverSh.includes("verify-vlm-profile-storage"), "server.sh missing VLM profile verifier command");
   assert(serverSh.includes("verify_vlm_profile_storage.mjs"), "server.sh missing VLM profile verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_profile_storage.mjs"), "script inventory missing VLM profile verifier");
@@ -263,6 +253,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM profile storage summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

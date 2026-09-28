@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S08 VLM rule suggestion draft workflow의 Ops-only/manual-save 경계를 검증한다.
 
@@ -146,25 +147,23 @@ check("browser rule UI smoke covers draft apply without write calls", () => {
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/vlm-rule-suggestion-candidates.md"),
-  ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "V210-S08",
-    "Rule suggestion draft workflow",
-    "verify-vlm-rule-suggestion-draft-workflow",
-    "media-server.vlm-rule-suggestion-draft-workflow.v1",
-    "UI-036",
-    "EVT-036",
-    "LAB-061",
-    "SAFE-038",
-  ]) {
-    assert(docs.includes(snippet), `docs/inventory missing snippet: ${snippet}`);
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-rule-suggestion-candidates.md"),
+    identifiers: ["media-server.vlm-rule-suggestion-draft-workflow.v1"],
+    command: "verify-vlm-rule-suggestion-draft-workflow", script: "verify_vlm_rule_suggestion_draft_workflow.mjs",
+    featureIds: ["UI-036","EVT-036","LAB-061"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 실행 명령 결속이며 이 정적 검사로 인증·HTTP·규칙 실행을 대신하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SAFE-038","verify-auth-routes","scripts/internal/verify_auth_workflow.sh"]]) {
+    const rows = currentInventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = currentImplementation.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 실행 연결 불일치");
   }
   assert(serverSh.includes("verify-vlm-rule-suggestion-draft-workflow"), "server.sh command missing");
   assert(serverSh.includes("verify_vlm_rule_suggestion_draft_workflow.mjs"), "server.sh dispatch missing");
@@ -177,7 +176,7 @@ check("S08 remains Ops-only and does not add forbidden client/runtime/schema/med
     "src/ingress/webrtc_http_server.cpp",
     "src/ingress/product_ui_page_scripts.cpp",
     "src/ingress/product_ui_css.cpp",
-    "docs/development-backlog.md",
+    "docs/vlm-rule-suggestion-candidates.md",
     "docs/project-feature-test-inventory.md",
     "test/fixtures/vlm_rule_suggestion/draft_workflow.json",
   ];
@@ -219,6 +218,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM rule suggestion draft workflow summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);
