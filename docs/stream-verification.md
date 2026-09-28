@@ -7,11 +7,137 @@
 ## 역할과 경계
 
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
-- 이 문서는 검증 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
+- 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.
 - 안정화, 30분, 120분, UI 풀테스트는 서로 대체하지 않습니다.
 - 외부 조건이 필요한 테스트와 장시간 테스트는 별도 gate로 분리합니다.
 - endpoint, credential, runtime 승인 같은 사전 조건이 필요한 항목은 조건과 실행 evidence가 있을 때만 PASS 근거가 됩니다.
+
+## 검증 정책
+
+독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
+정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
+
+### 영향별 1 문서 전용 변경
+
+최소 `git diff --check`. 허용 범위에서 `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`를 추가한다.
+릴리즈 버전/metadata/published 변경이면 관련 metadata 검증 필요성을 따로 판단한다.
+
+### 영향별 2 UI / Auth / Ops / Client 변경
+
+`./server.sh`의 build, verify-auth-bootstrap, verify-auth-users, verify-auth-routes,
+verify-ops-client-ui, verify-ops-client-ui --screenshots, verify-rule-ui 및 `git diff --check`.
+추가 후보: verify-ops-click-e2e, verify-ops-tables-layout, verify-ops-rules-roundtrip.
+
+### 영향별 3 `/ops/rules` / VA Rule / Scenario 변경
+
+`./server.sh`의 build, verify-rule-ui, verify-ops-rules-roundtrip, verify-analysis-state,
+verify-va-replay, verify-va-events 및 `git diff --check`.
+
+### 영향별 4 RTSP / WebRTC / Media path 변경
+
+`./server.sh`의 build, verify-codecs, verify-webrtc-ice, verify-webrtc-va-metadata 및 `git diff --check`.
+
+### 영향별 5 Runtime Dashboard / metadata / SSE / WS 변경
+
+`./server.sh`의 build, verify-va-runtime-console, verify-webrtc-va-metadata,
+verify-va-metadata-sidechannel, verify-ws-metadata 및 `git diff --check`.
+
+### 네 영역과 격리 인증
+
+영역은 안정화 테스트·30분 테스트·120분 테스트·UI 풀테스트 네 가지뿐이다.
+preflight/gate/wrapper/rehearsal/field smoke/credential/no-device는 해당 영역의 조건·절차·제외이지 다섯 번째 영역이 아니다.
+
+| 영역 | 인정 evidence | 대체 불가 |
+| --- | --- | --- |
+| 안정화 | build/static/API/auth/media/verifier 실제 명령·exit·summary·로그 | 장시간·실제 UI PASS |
+| 30분 | `verify-predev --soak-minutes 30` duration/iteration/summary/log | 안정화·120분·UI |
+| 120분 | 승인된 120분 명령의 실제 duration/자원·drift/summary/log | 안정화·30분·UI |
+| UI 풀테스트 | direct-browser 또는 7.6.3 적격 실제 실행의 control/action·상태·로그·시각 증거 | API-only·fixture·wrapper·replay·screenshot-only·coverage |
+
+안정화 실패 후 30분/120분/UI로 넘어가지 않는다. 개발·수정 요청의 관련 단기 검증과 재실행은 AGENTS의 승인된 같은 단계 수정 범위에 포함된다.
+조사만 요청받은 경우와 장시간/UI/릴리즈 검증 묶음은 별도 명시 실행 승인이 필요하다.
+30분과 UI는 버전 로드맵/릴리즈 완료의 필수 evidence다. 미실행/FAIL/미확인 시 생략 가능한 조건부가 아니라 blocker이며
+이를 알고 강제 release 진행하라는 최신 명시 승인 전에는 릴리즈 불가다. 120분은 아래 테스트 필요성 판정으로 결정한다.
+
+Auth verifier의 격리 검증에서는 사용자에게 비밀번호 지정을 요구하지 않는다. 실행마다 암호학적으로 안전한 난수로
+테스트 정책을 충족하는 서로 다른 임시값 다섯 개를 생성하고 아래 환경변수로 검증 프로세스에만 전달한다.
+파일 없는 메모리·자식 프로세스 환경 전달을 우선하며, 고정 기본값·이전 실행 값 재사용은 금지한다.
+실제 운영/기존 사용자 환경은 자동 생성값으로 대체하거나 비밀번호를 변경하지 않는다. 별도 승인·자격증명이 필요하다.
+실행 도구가 자동 생성을 지원하지 않으면 격리 실행 준비 단계에서 주입한다. 격리 또는 안전한 주입을 보장하지 못하면
+시작하지 않고 선수조건 실패/미실행을 보고한다. 문서 변경만으로 도구 구현까지 완료됐다고 보고하지 않는다.
+
+- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
+
+임시파일이 필요한 경우 저장소 밖 실행 전용 디렉터리(권한 0700)에 파일 권한 0600으로 생성한다.
+원문은 대화·로그·명령행 인자·증적·Git에 남기지 않고 shell tracing도 금지한다.
+성공·실패·중단 시 자식 프로세스 종료와 함께 환경 참조·임시파일·검증 소유 계정 저장소를 정리한다.
+강제 종료로 정리가 누락되면 다음 실행 전에 소유권이 확인된 잔여물만 정리하며 미확인 상태는 cleanup blocker로 남긴다.
+
+보고는 스크립트(단기·30분·120분·미실행)와 UI(evidence mode·화면/action·exact 대상/pass/fail/notRun/unsupported·시각·제외)를 분리한다.
+모든 영역 기록에 `token start`, `token end`, `token consumed`, `elapsed`, `source`를 남긴다.
+자동 goal usage 등 실제 집계가 우선이며 없으면 미집계 이유를 적는다.
+
+### 테스트 정의와 실행 결과
+
+기능별 정의는 현재 inventory/fixture에 한 번 등록하고 명령·route/control/action·역할/scope와
+네 영역의 매핑·독립 기대값·negative case를 둔다. 실행 결과는 정의가 아니라 별도 run 자료다.
+VA rule, scenario, tracker, Re-ID처럼 기능 축이 늘어나는 경우 한 줄로 뭉치지 않는다.
+각 event type, scenario type, line direction, tracker policy, Re-ID policy, invalid 조합,
+runtime 반영과 EventRecord 발생 여부를 각각 독립 기능 ID/결과 행으로 추가한다.
+기능별 테스트 결과 행의 판정값은 `PASS`와 `FAIL`만 쓴다.
+미실행·부분 실행·미확인·제외는 실행 상태로 별도 기록하며 사용자 명시 제외는 `제외 기록`에만 남긴다.
+UI 비대상 내부 기능은 그 이유를 정의에 적고 실제 UI 기능의 검사를 생략하는 근거로 쓰지 않는다.
+
+모든 개별 항목 결과·명령/exit·안전한 핵심 관측·원출력·source/환경·cleanup을 하나의 버전/run
+결과 위치에서 연결한다. JSON 등 구조화 전수 결과로 누락을 대조할 수 있으면 같은 표를 Markdown에
+다시 복사하지 않는다. 최초 실패와 재검증은 연결하고 최종 PASS로 실패를 덮어쓰지 않는다.
+사전등록 누락은 해당 증거 무효 → 영향 판단 → 정의 보완 → 관련 재실행으로 처리한다.
+사후 등록만으로 PASS를 복원하거나 무관한 전체 결과를 폐기하지 않는다.
+
+기본 결과 위치는 `docs/release-artifacts/<version>/<run-id>/`이며 실행 도구의 명시 output 계약을
+따른다. raw 임시 출력은 저장소 밖 소유 경로에 두고 보존할 결과만 정제한다.
+종료 버전의 중앙 원장을 계속 갱신하지 않는다. 단계별 source/명령/결과를 다른 문서에는 링크로 연결한다.
+버전 마감 때는 AGENTS의 Git 보존·내용 대조·별도 삭제 커밋 절차를 따른다.
+삭제 이후에도 과거 증거는 보존 commit/path에서 찾으며 현재 제품 테스트가 이를 fetch해야 하는 구조는 만들지 않는다.
+
+### 테스트 필요성·기존 증거 판정
+
+테스트 계획은 다음 표부터 만든다. 판정은 진행 대상/조건부 진행/미진행/미확인 중 하나다.
+
+`테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태`
+
+진행 대상은 이번 범위의 직접 근거가 있음, 조건부는 명시 조건 충족 시 실행, 미진행은 범위 밖/근거 없음,
+미확인은 source-of-truth 미확인이다. 직접 근거는 사용자 지시, 이번 cut 필수 gate, 변경 기능의 영역 매핑,
+선수 결과의 high-risk signal 또는 제공된 외부 조건+승인이다. baseline ID 존재만으로 이번 cut에 끌어오지 않는다.
+
+120분 진행 대상은 다음 중 하나가 있어야 하며 실행 승인은 별도로 확인한다.
+
+1. 사용자 120분 명시 지시.
+2. 현재 release policy/roadmap/evidence의 필수 gate.
+3. 이번 변경/신규 기능 ID의 120분 직접 매핑.
+4. RTSP/WebRTC/WHEP/WHIP media path, source worker lifecycle, shared stream reuse, runtime/metadata fanout, cleanup/port lifecycle 직접 변경.
+5. 안정화/30분의 memory leak, runtime/cleanup drift, media/session 유지 문제 신호.
+
+연결된 정확한 기능 ID·파일·route·module 없이 필요성을 단정하지 않는다. 새 근거 없이 판정을 뒤집지 않는다.
+정정 시 이전 보고·오류 이유·새 직접 근거·새 판정·문서/커밋 영향을 적는다. 세부 명령은 영역 판정 뒤 제시한다.
+
+기존 증거는 변경 diff·실행 source/환경·검증 경계를 근거로 유지/부분 무효/전체 무효를 메인이 판단한다.
+수정된 기능과 영향 회귀는 다시 검증하되 수정마다 30분/UI 전체를 자동 무효화하지 않는다.
+공통 수명·인증·미디어·관측/판정 경계의 변경으로 기존 전수 증거가 성립하지 않으면 그 범위의 재검증이 필요하다.
+개발 중 focused 검증을 최종 전체 검증으로 확대하지 않으며, 코드 고정 후 승인된 최종 대상과 남은 조건을 확인한다.
+
+### 실행 전·후 정리
+
+실행 전 성공/실패 oracle, output/temp/registry/event/browser 경로, 원출력 보존과 종료 방법을 정한다.
+실패·중단도 비민감 재현 명령·기대/관측·exit·source/환경·최초 실패·필수 hash를 보존한 뒤
+소유 프로세스·포트·임시 파일을 정리하고 부재를 확인한다. cleanup 실패·소유 미확인은 blocker다.
+큰 media/trace 보존은 별도 승인이 필요하며 credentials·raw source URL·debug 원문은 증거에 넣지 않는다.
+과거 로그·임시 경로·fixture 준비 결과는 실제 실행 PASS의 대체가 아니다.
 
 ## 빠른 실행 경계
 

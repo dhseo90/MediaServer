@@ -29,6 +29,28 @@ current화, `v3.5-v3.8 UI coverage bridge`를 닫습니다. 아래 v2.x/v3.x rel
 확인하지 않은 경우에는 완료로 쓰지 않습니다. 조작 evidence는 `AGENTS.md` 7.6.3의
 Policy v4에 따라 direct-browser, qualified-native-automation, hybrid 중 하나로 기록합니다.
 
+## Policy v4 증거 적격 기준
+
+Policy v4는 UI 영역 안의 `direct-browser`, `qualified-native-automation`, `hybrid` 구분이다.
+도구 이름이 아니라 실제 evidence로 판단한다. 개별 자동화 대체는 아래 조건을 모두 만족해야 한다.
+
+1. 실제 제품 브라우저 실행이어야 한다. fixture, one-shot wrapper, static smoke, API/raw JSON-only, screenshot-only, source/script/hidden marker 판정은 불가다.
+2. project implementation evidence의 exact test ID/route/control/action과 requested/observed role·scope, viewport, theme가 일치해야 한다.
+3. 신뢰된 visible/enabled control을 실제 조작하고 DOM 전이, network response+DOM, persisted state readback, EventRecord, server log 중 하나 이상의 상관된 completion oracle로 반영을 확인한다. 기존 동일 문자열만으로 PASS하지 않는다.
+4. exact-selector visible assertion, screenshot, trace, browser console, server log, 지원 시 실제 video, adapter/browser/version provenance, source/policy/manifest/runner fingerprint, 실행 시각·재현 명령을 보존한다.
+5. 허용 run root 안 artifact의 hash/type/path containment·redaction을 통과해야 한다. placeholder video, 경로 escape, hash 불일치, credential/session/token/viewer source URL/raw debug material 노출은 FAIL이다.
+6. fallback을 공개하고 manualIntervention=false, failed interaction 0, unapproved console error/warning 0, server/port/temp cleanup PASS여야 한다.
+7. video viewport, VA overlay, crop, clipping, contrast, focus, accessibility는 명시적 visual/geometry evidence(`compare-ui-visual-baseline` 등)와 reviewRequired 해소 또는 direct evidence를 결합한 hybrid가 필요하다.
+
+전체 PASS는 개별 대체 적격과 별개다. 현재 release exact ID 전수가 direct-pass 또는 automation-equivalent-pass,
+fail/notRun/unsupported/unapproved exclusion/manual intervention 0이어야 한다.
+반응형 320/390/760/1180, light/dark, role/scope guard, client/viewer redaction, video/overlay,
+시각 품질·accessibility 교차 항목이 모두 닫혀야 한다. VA rule/scenario는 EventRecord 발생 이력도 확인한다.
+부분 자동화·coverage mapping·replay·Policy contract PASS로 suite PASS를 만들지 않는다.
+기계 기준은 `test/fixtures/ui_fulltest_evidence_policy_v4.json`과
+`./server.sh verify-ui-fulltest-evidence-policy-v4`다. policyValidationResult와 uiFulltestPass를 분리한다.
+fixture/verifier는 이 정책을 완화하지 않으며 historical evidence를 현재 PASS로 소급 승격하지 않는다.
+
 ## 1. 정의
 
 UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저에서 열고,
