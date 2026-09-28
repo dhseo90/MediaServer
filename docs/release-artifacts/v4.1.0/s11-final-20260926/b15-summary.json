@@ -792,6 +792,44 @@
         "consumed": null,
         "source": "개별 사용량 계측 미제공"
       }
+    },
+    {
+      "id": "b15-public-history-01",
+      "file": "b15-public-history-01.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-public-repo-readiness",
+        "--max-history",
+        "1"
+      ],
+      "exit": 0,
+      "elapsedMs": 3359.680833,
+      "items": 8,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-docs-links-final",
+      "file": "b15-docs-links-final.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 170.247666,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
     }
   ],
   "images": 20,
