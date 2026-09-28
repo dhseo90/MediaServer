@@ -2,8 +2,9 @@
 
 - [2026-09-28 B13 재감사 후 마감](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-재감사-후-마감):
   인증 진단20·현행users72·inventory18 통과, 최종 제품 변경과 기존 UI/30분/120분 증거 연결.
-  과거 실패와 무기한 자원 보장 한계를 유지한다. 공개 준비 실제 검사·문서 정합과 외부
-  릴리즈는 구분하며 [현재 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)을 따른다.
+  과거 실패와 무기한 자원 보장 한계를 유지한다. 문서 정합은 통과했지만 실제 공개 검사에서
+  기존 자료1,301파일의 정책 불일치를 확인했다. history500 중단·배포/Actions 미실행·푸시
+  보류이며 [현재 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)을 따른다.
 
 - [2026-09-28 v4.1.0 S11 최종 로컬 게이트](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md):
   최종30분 109개·UI432개·녹화120분 10,093개 증거에 이어 build, 현행 녹화158개,

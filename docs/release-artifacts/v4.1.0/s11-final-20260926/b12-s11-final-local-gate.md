@@ -270,3 +270,110 @@ v3.9.0 runner 설명은 당시 이력으로 한정했다. B12의 users72는 진�
 [2·3번 원출력·개별 결과](b13-document-gates.json.gz)에 최초 실패와 각 명령 elapsed를
 보존했다. 문서 검사 외 새 서버·미디어·포트는 만들지 않았다. token은 별도 집계 부재로
 미집계다. 이제 4번 공개 준비 실제 검사가 남으며 이를 위 단기 gate로 대체하지 않는다.
+
+### B13 4번 공개 준비 실행 전 정의
+
+제품·정책의 합격 기준은 변경하지 않는다. 공개 검사의 원출력에는 탐지된 민감 문자열이
+포함될 수 있으므로 작업 소유 0700 임시 root에서만 수집하고, 공개 기록에는 검사항목·
+파일의 저장소 상대 경로·분류·개수·원출력 해시와 안전하게 정제한 결과를 보존한다.
+실패하면 뒤 검사는 실행하지 않고 원인·소유권·기존 증거 소비자를 읽기 검토한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B13-P04-01 | 의존성 고지 정합 | `./server.sh write-dependency-notice --check`; 현행 inventory와 문서 대조 | v4.1.0 |
+| B13-P04-02 | 공개 파일·내용·이력 | `./server.sh verify-public-repo-readiness --report <소유 임시 root>/public-readiness.md`; 기본 history500, 8개 검사·실패 분류 보존 | v4.1.0 |
+| B13-P04-03 | 의존성·배포 정책 | `dependency-snapshot --stable --no-linked-libs`, `verify-bundle-policy`, `source-offer-checklist --stable`; 각각 소유 임시 output 지정, 실제 CI와 구분 | v4.1.0 |
+| B13-P04-04 | source-only 배포 리허설 | `./server.sh verify-release-bundle-dry-run --candidate source-only`; 기본 반례 검사 유지, 실제 Release 생성 아님 | v4.1.0 |
+| B13-P04-05 | Actions·로컬 대응 | `./server.sh verify-actions-security`, `./server.sh verify-ci-local-gate-parity`; 실제 GitHub CI 결과와 구분 | v4.1.0 |
+| B13-P04-06 | 기록·정리·커밋 판정 | 공개 가능한 전수 결과 보존·소유 temp 삭제·공백/문서 검사, 전체 승인 범위 통과 시 커밋·푸시 | v4.1.0 |
+
+#### 공개 준비에서 확인된 기존 자료 문제
+
+제품 동작 실패가 아니라 공개 증거 관리의 누적 불일치다. `config/public_repo_policy.json`은
+`7f3e9dc9`부터 같은 제한을 갖고 있었지만, v4.1.0에서 원본 실행 자료와 개인/임시 경로가
+누적됐다. `verify-release-closeout-helper`의 localCommands 등록 검사는 실제 public readiness
+실행을 대신하지 않는다. B12의 포괄 완료 주장은 이 차이를 놓쳤고 B13 3번에서 정정했다.
+
+| 분류 | 직접 확인 | 의미와 한계 |
+| --- | --- | --- |
+| 금지된 artifact 경로 | 960파일, 17,007,252B; `.log`953·seed 이름 gz3·trace 이름 txt4 | 전부 기존 v4.1.0 자료. 검증 성공/실패 여부와 무관하게 현재 공개 정책 위반 |
+| 개인/임시 경로 | 874파일, 파일·패턴별 최초 탐지1,066건(개인364·임시702) | 전체 문자열 출현 횟수가 아님. 본문을 대화/새 증거에 복사하지 않음 |
+| 비허용 이미지 | S09 `s09-recording-ui-21777` JPEG20개, 1,234,863B | 경로 allowlist 위반이며 이미지 내 비밀 노출이 확인됐다는 뜻은 아님 |
+| 합집합 | 1,301파일, 모두 B13 시작 commit `534a8dfa`에 이미 존재 | B13 새 파일은 위반 대상0. 변경한 중앙 기록에는 기존 경로가 있으나 B13 추가 행의 해당 경로0 |
+
+메인이 직접 확인한 소비자와 보존 경계:
+
+- `scripts/internal/recording_current_longrun_diagnostics.test.mjs:19`의 A03은 과거
+  `recording-120-attempt3.log`에서 관측 행을 읽고 초과 간격5건·첫 실패를 확인한다.
+  로그를 지우면 이 반례가 깨진다. 필요한 행의 독립 fixture 또는 정제 transcript에
+  연결하고 해당 focused 검사로 확인해야 하며 이것이 전체120분 재실행 근거는 아니다.
+- `b06-verifier-connection-20260925/execution-manifest.json`의 seed3개에는 원출력과
+  보존 gzip의 경로·크기·해시가 결속돼 있다. 내용 정제나 이동 시 원본 digest를 남기고
+  정제본 hash/bytes와 직계 소비자만 재결속해야 한다. 전체 승인 manifest 재생성은 불필요하다.
+- S09 JPEG18개는 자체 `artifact-manifest.json`에, 추가 이미지의 SHA·시각 확인과
+  잘못 촬영한 화면/수정 이력은 중앙 기록에 보존돼 있다. `wholeSuitePass=false`인 과거
+  증거를 공개 기능 자산이나 최종 UI PASS로 옮겨 표시할 수 없다. 원본 퇴역은 증거 가용성을
+  줄이고, 정확한 역사 경로 추가 허용은 정책 변경이므로 보존 방식 결정이 필요하다.
+- 이전 실패·결과·원본 해시는 유지해야 하지만 민감 경로나 금지된 원본 파일 형태까지
+  그대로 공개할 의무는 아니다. 정제한 파생물·전환 영수증·직계 참조를 한 묶음으로 다룬다.
+
+따라서 기존1,301파일의 정제·소비자 변경과 JPEG 보존 방식은 별도 범위로 확정해야 한다.
+자료 삭제·내용 덮어쓰기·allowlist 완화·history rewrite·제품 수정은 하지 않았다.
+현재4번은 미완료이며, 실패 단계의 커밋과 전체 범위 푸시는 보류한다(AGENTS3.1/5.2/8).
+
+#### B13-P04 실제 결과 및 중단 범위
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| B13-P04-01 notice | `./server.sh write-dependency-notice --check`; exit0, 38.589ms | pass | 1개 검사, 현행 의존성 고지 일치 |
+| 공개 필수 문서 | public readiness의 required public docs exist | pass | 현재 파일 존재 검사 |
+| 금지 추적 경로 | tracked denied paths are absent | pass | 모델/환경 파일 등 지정 패턴 대상 |
+| 원본 산출물 경로 | tracked release artifacts are bounded | fail | 960파일 |
+| 개인/임시 경로 | tracked content has no personal or ephemeral paths | fail | 874파일·파일/패턴1,066건 |
+| 파일 크기 | tracked file sizes stay public-friendly | pass | 25MiB 상한 |
+| 미디어 allowlist | tracked media assets are allowlisted | fail | 과거 JPEG20개 |
+| 현재 파일 고신뢰 비밀 패턴 | current tracked content has no high-confidence secrets | pass | 지정 패턴만; 임의 비밀번호/압축 내부 전수 감사 아님 |
+
+`./server.sh verify-public-repo-readiness --report <소유 임시 root>/public-readiness.md`는
+총663,740.044ms 후 exit1이다. 기본 history500 검색은 10분 넘게 CPU를 사용하고 있었으며
+선행3항목 실패 확정 뒤 추가 비용을 중단했다. 부모 명령·작업 소유 출력 경로·자식 PPID를
+대조한 뒤 해당 git 자식95089에만 SIGTERM을 보냈다. 전체 검사 프로세스는 exit1로 종료했다.
+원출력은4 PASS/4 FAIL이지만 마지막1 FAIL은 검색 중단이며, **이력에서 비밀을 찾았다는
+뜻이 아니다**. 이력 검사는 `중단·미확인`이고 PASS로 사용할 수 없다. 기존 시간제한이나
+합격 기준은 변경하지 않았으며 전체 공개 검사는 자료 보완 뒤 같은 조건으로 다시 실행한다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| history500 | git history high-confidence secret search | 선행3정책 실패 확정 후 소유 검색 자식 종료 | 미완료; 비밀 유무·과거500개 전수 PASS 미확인 |
+| B13-P04-03 | snapshot·bundle policy·source offer | 공개 gate 실패 뒤 단계 | 미실행 |
+| B13-P04-04 | source-only 배포 리허설 | 공개 gate 실패 뒤 단계 | 미실행; Release 생성 없음 |
+| B13-P04-05 | Actions/local parity | 공개 gate 실패 뒤 단계 | 미실행; 실제 CI/annotation도 미확인 |
+| 공개 자료 대량 정제·이미지 정책 판단 | 기존 증거1,301파일의 보존/참조 영향 | 실행 검사에서 범위 확대·명시 판단 필요 | 아직 수정·삭제·정책 완화 없음 |
+
+[안전한 원출력·8개 검사·전수 분류·해시](b13-public-readiness.json.gz)는88,869B,
+SHA-256 `45057a260c4166326e21085e346fae43f2c43d8036840ccaac507a1e0a6fba5a`다.
+개인/임시 경로 일치값은 제거했고 원출력·중복 report의 원본 SHA/크기는 별도로 보존했다.
+현재 파일 분류는 기존 scanner 함수로 읽기 대조했고 전체 출현 횟수로 과장하지 않았다.
+기본 sandbox의 프로세스 조회는 환경상 불가였으나 별도 허용된 상태 조회·정확한 소유권
+확인 후 종료했다. 이를 제품 실패로 분류하지 않는다. 새 서버·브라우저·미디어·포트는 없었다.
+token start/end/consumed는 실행별 집계가 없어 미집계, elapsed는 위 실제값이다.
+
+#### 최종 기록 검증과 정리
+
+중앙 기록의 새 링크에서 제목의 가운데점 처리 차이로 anchor1건이 실패했다(exit1,
+235.593ms). 제목과 링크를 `실제 결과 및 중단 범위`로 맞춘 뒤 같은 링크 검사 exit0
+(170.297ms), `git diff --check` exit0(36.754ms)을 확인했다. 공개 검사 자체를 다시 실행하거나
+해당 실패를 PASS로 바꾸지 않았다. [기록 검사 원출력·정리 영수증](b13-closeout-records.json.gz)을 보존한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-b13-main.BxS1Ub` | 작업 소유 로그/보고서30파일 | 1,045,628B | 결과·안전한 전수 분류·원본 hash 이관 후 정확한 대상 삭제 | 삭제 후 부재 확인 | UID·0700·실경로·30개 파일 SHA/bytes/종류를 이관 영수증과 재대조 |
+| `b13-public-readiness.json.gz` | 정제된 실패 증거 | 88,869B | 저장소 보존 | 보존 | 민감 일치값 제거, 실제8검사와1,301파일 분류·원본 digest 유지 |
+| `b13-closeout-records.json.gz` | 기록 검사·cleanup 영수증 | 소규모 압축 JSON | 저장소 보존 | 보존 | 최초 링크 실패→수정→PASS 및 삭제 전 파일명/크기/hash·부재 확인 |
+
+이번 정리에서 과거 저장소 증거는 삭제하지 않았다. 임시 원문은 삭제했으며 필요한 결과는
+정제본·원본 digest로 보존했다. 1~3번은 `dae8f3ae`·`6a2c1e31`·`076b248c`로 커밋했고,
+4번 실패 기록4문서와 압축 증거2파일은 미커밋으로 남겼다. 제품 코드의 미커밋 변경은 없다.
+푸시 가능: **아니오** — 공개 준비 실패와 미완료 단계 때문에 전체 승인 범위가 닫히지 않았다.
+푸시는 수행하지 않았다. 다음은 [현행 잔여 전수표](readiness.md#7-릴리즈-잔여-순서)의
+자료 정제·보존 범위 확정이며 PR/merge/tag/Release나 새 UI/장시간 실행이 아니다.

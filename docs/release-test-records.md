@@ -2,6 +2,61 @@
 
 검증 호환 식별자: `# Release Test Records`. 문서 제목과 본문은 한글을 기준으로 유지한다.
 
+## v4.1.0 S11 B14 공개 증거 정제 (2026-09-28)
+
+독자: 현재 릴리즈·증거 유지 담당자. 수명: 이번 공개 준비와 변환 영수증의 장기 보존.
+AGENTS.md가 정책이며, 사용자 승인 1~4번은 보존 결정 → 정제/참조 → 공개 검사 → 커밋/푸시다.
+이전 B13 실패 원출력·6개 미커밋 기록도 이번 보존 기준에 포함한다. 제품 코드·검사 판정·
+시간제한·기존 PASS/FAIL·UI action·운영 데이터·Git 이력은 변경하지 않는다.
+
+### B14-01 보존 방식 확정
+
+- 금지된 원본 로그960개는 내용을 버리지 않고 개인/임시 경로를 정제한 **평문 transcript**로
+  이전한다. `.log`953개·기존 gzip3개·txt4개를 검사 가능한 `.txt`로 보존한다. 정책 금지어와
+  충돌하는 이름은 정확한 원본 경로를 해시한 이름으로 치환한다. 단순 압축/개명만으로 숨기지 않는다.
+- 원본 path/bytes/SHA·정제본 path/bytes/SHA·치환 횟수를 하나의 변환 영수증으로 보존한다.
+  기존 manifest의 raw/source 해시는 과거 원본 값으로 유지하며, 현재 배포본의 해시와 혼동하지
+  않도록 변환 관계를 명시한다. 현재 파일을 실제로 소비하는 링크·검사는 새 경로를 사용한다.
+- 기존 텍스트의 개인/임시 경로도 정제하되 JSON 구문과 PASS/FAIL·exit·수치·최초 실패를
+  유지한다. 원본을 덮기 전에 변환본·영수증·허용 치환 외 차이 없음을 대조한다. 비밀 패턴을
+  찾으면 원문을 출력하지 않고 적용을 중단한다. 정제는 기존 v4.1.0 자료와 직계 참조에 한정한다.
+- JPEG20개는 삭제하지 않는다. 메인이 모두 직접 열람했고 비밀번호/세션/source URL/개인
+  경로/raw JSON 미노출 및 APP1~APP15/COM 부재를 확인했다. 18개 기존 manifest SHA/크기도
+  일치한다. [정확한20개 검토](release-artifacts/v4.1.0/s11-final-20260926/b14-historical-ui-review.json)의
+  path/bytes/SHA와 고정 검토 manifest SHA에 한해서 공개 정책을 연결한다. 폴더/확장자 포괄
+  허용은 하지 않는다. `player-760-light.jpg`의 잘못 촬영한 화면과 수정본을 그대로 보존하고
+  `wholeSuitePass=false`를 승격하지 않는다. 새 브라우저/UI 테스트 결과가 아니다.
+- 기존 로그를 읽는 `recording_current_longrun_diagnostics.test.mjs` A03은 동일 관측 행을
+  가진 정제 transcript로 연결한다. 초과5건·첫 실패 assertion은 유지한다. 이 변경 자체는
+  제품·30분·UI·120분 전체 재실행 근거가 아니다. 다른 직접 소비자는 적용 전후 검색한다.
+- B13에서 중단한 history500은 공개 현재 파일 검사 통과 뒤 **기본500 조건 그대로** 끝까지
+  실행한다. source-only 준비 검사만 포함하며 PR/merge/tag/Release는 별도 승인 전 실행하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B14-01 | 보존 결정·이미지20 검토 | 원본18 해시/크기,20개 픽셀·JPEG metadata와 생성 fixture 출처, 실패/미완료 이력 유지 | v4.1.0 |
+| B14-02-U | 정제 변환 자체검증 | home/temp 치환·정상 수치/판정 불변·JSON 구문·비밀 거부·결정적 이름·경로 충돌/범위 거부·동일 관측 행. 신규 미구현 assertion만 예상 RED | v4.1.0 |
+| B14-02-A | 제한 이미지 허용 검증 | exact path/bytes/hash·manifest hash 일치만 허용, 새 파일/변조/경로 escape/중복/임의 wildcard 거부 | v4.1.0 |
+| B14-02-M | 자료 정제·참조 검사 | B13 목록과 실제 대상 대조, 원본/정제본 digest·허용 치환 외 불변, JSON 유효·현재 링크 유효, A03 포함 focused 회귀·inventory | v4.1.0 |
+| B14-03 | 공개·배포·CI 대응 | notice→현재 public 검사→기본 history500 포함 전체 public→dependency snapshot→bundle policy→source offer→source-only dry-run→Actions/security·local parity. 각 exit·개별 결과 기록 | v4.1.0 |
+| B14-04 | 마감 | 문서/공백·정리·Git 범위·원격 차이 확인, 전체 승인 범위 통과 뒤 최종 커밋/푸시 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 정제·공개 안정화 | 진행 대상 | B13 공개 실패의 확정 원인·직접 소비자 | B14-01~04·OPS-163/SAFE-196 | 사용자 승인 |
+| 30분·실제 UI·120분 새 실행 | 미진행 | 제품/판정 불변, 정제·정적 소비자와 관련 unit만 변경 | B13-E02·AGENTS7.6.2 | 새 실행 없음 |
+| 외부 서비스·실기기 | 미진행 | 사용자 제외 | 현행 릴리즈 범위 | 제외 |
+| PR/CI/병합/tag/Release | 조건부 진행 | 이번은 개발 branch push까지 | AGENTS4 | 별도 승인 전 미실행 |
+
+1번 직접 확인: JPEG20개·1,234,863B를 열람했고 원본 manifest18개의 SHA/크기 불변,
+20개 모두 APP1~APP15/COM 없음. B13 실패 기록은 historical로 보존하며 아직 공개 gate PASS가 아니다.
+1번 문서/등록 검증은 inventory18/18(기존986행·승인 items SHA 불변), docs-links 오류0,
+diff-check exit0으로 통과했다. [전수 원출력](release-artifacts/v4.1.0/s11-final-20260926/b14-step1-results.json.gz)에
+실제 elapsed·개별 결과를 보존했다. 로그960개는 UTF-8/NUL 없는 평문(기존 gzip3개는 해제 후)
+이며 최대621,549B임을 적용 전 확인했다. 아직 대량 정제·이미지 허용 구현은 시작하지 않았다.
+구현·테스트·정리·커밋 결과는 아래에 순차 추가한다. token start/end/consumed는 개별 사용량
+제공이 없어 미집계이며 실행 elapsed·원출력·개별 결과는 실제 기록한다.
+
 ## v4.1.0 S11 B13 재감사 후 마감 (2026-09-28)
 
 독자: 현재 릴리즈 검토자. 수명: v4.1.0 실행 기록. 정책은 AGENTS.md이며 상세 결과는
@@ -33,7 +88,12 @@ project inventory18/18·986행, 격리 auth-users72/72를 통과했다. 전체 �
 3번은 backlog/version/roadmap/정책·현재 기록을 정정했다. metadata 최초16/18 FAIL을
 정확한 현재/과거 문구 구분으로 보완해18/18 PASS, entry33·evidence8·reconciliation·
 문서 링크/자산 검사를 통과했다. [원출력·개별 결과](release-artifacts/v4.1.0/s11-final-20260926/b13-document-gates.json.gz)를 보존한다.
-4번 공개 준비 검사는 아직 완료가 아니다.
+4번은 notice 정합 PASS 뒤 실제 공개 준비에서 기존 자료 정책 위반을 확인해 미완료다.
+원본 산출물960파일·개인/임시 경로874파일·JPEG20개(합집합1,301파일)가 대상이다.
+history500은 선행3검사 실패 확정 뒤 소유 자식만 종료해 미완료이며 비밀 유무는 미확인이다.
+뒤 배포/Actions 검사는 미실행, 실패 단계 커밋·전체 범위 푸시는 보류했다.
+[실제 결과·한계](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-p04-실제-결과-및-중단-범위)와
+[정제 원출력·전수 분류](release-artifacts/v4.1.0/s11-final-20260926/b13-public-readiness.json.gz)를 보존한다.
 
 ## B11 녹화 전용 120분 1차 실패 (2026-09-27)
 
