@@ -76,6 +76,34 @@ v2.2 도구의 incident redaction/fallback 정적 경계와 경로 이탈을 검
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
 
+기능 manifest의 일반 `--refresh-manifest`는 독립 REVIEW4 승인 정보를 보존하지 못하므로
+읽기/쓰기 전에 거부한다. 갱신이 승인된 작업에서는 기존
+`verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest`가
+현재 소스·개별 proof·독립 승인 원장을 대조하는 절차를 사용한다. 새 승인 생성이나
+과거 제품 테스트 PASS의 복사를 허용하는 뜻이 아니다. 기본 검증 명령은 읽기 전용으로 유지한다.
+`node --test scripts/internal/feature_manifest_refresh_boundary.test.mjs`의 자체검사 정의는 다음과 같다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| MANIFEST-WRITE-01 | 일반 재생성 거부, 기존 승인 자료 바이트 불변, 보고서 쓰기 없음 |
+| MANIFEST-WRITE-02 | 입력 누락·손상에도 파일 처리 전 거부 |
+| MANIFEST-WRITE-03 | 옵션 충돌·삭제된 migration·미등록 옵션 실패 유지 |
+| MANIFEST-WRITE-04 | 도움말에 폐기 옵션·독립 승인 경로·제품 미실행 경계 안내 |
+| MANIFEST-WRITE-05 | 정상 입력 검증 실패 시 반례 15개를 미실행으로 표시하고 실패 전파 |
+
+manifest 검증은 정상 입력의 **전체 986개**를 먼저 검사한다. 같은 실행의 내장 반례는
+전체 ID·개수·해시·승인 사유 조건과 변경된 항목을 동일 집합/항목 검사 함수로 확인하며,
+바뀌지 않은 986개 전체를 반례마다 반복 검사하지 않는다. 항목 검사는 전체 manifest PASS가 아니다.
+정상 입력은 동결해 반례의 제자리 수정을 거부하며, 정상 입력 검증 실패 뒤 반례는 미실행이다.
+`node --test scripts/internal/feature_manifest_validation.test.mjs`는 다음 도구 반례를 확인한다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| MANIFEST-SPLIT-01 | 전체 ID·개수·hash·승인 사유 집합 검사 |
+| MANIFEST-SPLIT-02 | 누락·중복·hash 불일치·승인 사유 누락/중복·배열 손상 거부 |
+| MANIFEST-SPLIT-03 | 전체 검사와 집합+모든 항목 검사 합성 일치. 불완전 fixture의 실패 유지 |
+| MANIFEST-SPLIT-04 | 변경된 항목의 실제 오류 검출과 원본 입력 불변 |
+
 ### 영향별 1 문서 전용 변경
 
 최소 `git diff --check`. 허용 범위에서 `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`를 추가한다.

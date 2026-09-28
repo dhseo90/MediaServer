@@ -3955,9 +3955,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 `media-server.feature-implementation-evidence.v2` manifest와 1:1 대조했습니다. 이 완료는
 content-addressed owner/route-control/action/state/readback 5-edge와 verifier assertion,
 reviewer-bound semantic digest 확인이며
-제품 테스트 실행 PASS가 아닙니다. manifest 갱신은 `--refresh-manifest`를 명시한 source 변경으로만
-수행하고, 변경된 행은 `review-required`가 되며 명시 reviewer 승인 전 semantic closure로 전환되지
-않습니다. 기본 verifier는 read-only로 source context와 relation drift를 검사합니다.
+제품 테스트 실행 PASS가 아닙니다. 현행 manifest 갱신은
+[검증 정책](stream-verification.md#검증-정책)의 독립 REVIEW4 승인 경로를 따릅니다.
+일반 `--refresh-manifest`는 승인 정보를 잃을 수 있어 거부하며 새 승인을 만들지 않습니다.
+기본 verifier는 read-only로 source context와 relation drift를 검사합니다.
 
 | 대조 항목 | exact-ID 결과 | 검증 경계 |
 | --- | ---: | --- |

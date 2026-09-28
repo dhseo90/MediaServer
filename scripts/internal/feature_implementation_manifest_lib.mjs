@@ -110,12 +110,9 @@ export function generateImplementationManifest({ rootDir, inventoryText, rows, r
   return manifest;
 }
 
-export function validateImplementationManifest({ rootDir, inventoryText, rows, manifest }) {
+// 전체 집합 조건만 검사한다. 이것만으로 소스/구현 검증 완료를 판정하지 않는다.
+export function validateImplementationManifestStructure({ inventoryText, rows, manifest }) {
   const errors = [];
-  const repository = readRepositoryIndex(rootDir);
-  const serverText = repository.textByFile.get("server.sh") || "";
-  const dispatch = parseServerDispatch(serverText);
-  const tracked = repository.tracked;
 
   if (manifest?.schema !== IMPLEMENTATION_MANIFEST_SCHEMA) {
     errors.push(`schema must be ${IMPLEMENTATION_MANIFEST_SCHEMA}`);
@@ -128,7 +125,7 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
   }
   if (!Array.isArray(manifest?.items)) {
     errors.push("items must be an array");
-    return { ok: false, errors, summary: emptySummary(rows) };
+    return errors;
   }
   if (rows.length !== EXPECTED_FEATURE_ROWS) {
     errors.push(`inventory row count must stay ${EXPECTED_FEATURE_ROWS}, got ${rows.length}`);
@@ -153,8 +150,24 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
     if (!rowSet.has(id)) errors.push(`manifest has extra feature ID ${id}`);
   }
 
+  const reviewReasons = manifest.items.map(item => item?.review?.reason || "");
+  if (reviewReasons.some(reason => !reason)) errors.push("every feature requires a review reason");
+  if (new Set(reviewReasons).size !== manifest.items.length) {
+    errors.push("bulk or duplicate semantic review reason detected");
+  }
+  return errors;
+}
+
+// 지정 항목의 실제 소스/계약만 검사한다. 집합 조건과 전체 PASS는 상위 함수 책임이다.
+export function validateImplementationManifestEntries({ rootDir, rows, items }) {
+  const errors = [];
+  if (items.length === 0) return errors;
+  const repository = readRepositoryIndex(rootDir);
+  const serverText = repository.textByFile.get("server.sh") || "";
+  const dispatch = parseServerDispatch(serverText);
+  const tracked = repository.tracked;
   const rowById = new Map(rows.map(row => [row.id, row]));
-  for (const item of manifest.items) {
+  for (const item of items) {
     const row = rowById.get(item.id);
     if (!row) continue;
     const prefix = featurePrefix(row.id);
@@ -250,12 +263,13 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
     }
   }
 
-  const reviewReasons = manifest.items.map(item => item?.review?.reason || "");
-  if (reviewReasons.some(reason => !reason)) errors.push("every feature requires a review reason");
-  if (new Set(reviewReasons).size !== manifest.items.length) {
-    errors.push("bulk or duplicate semantic review reason detected");
-  }
+  return errors;
+}
 
+export function validateImplementationManifest({ rootDir, inventoryText, rows, manifest }) {
+  const errors = validateImplementationManifestStructure({ inventoryText, rows, manifest });
+  if (!Array.isArray(manifest?.items)) return { ok: false, errors, summary: emptySummary(rows) };
+  errors.push(...validateImplementationManifestEntries({ rootDir, rows, items: manifest.items }));
   return {
     ok: errors.length === 0,
     errors,

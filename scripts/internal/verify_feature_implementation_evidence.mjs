@@ -8,12 +8,11 @@ import { fileURLToPath } from "node:url";
 
 import {
   EXPECTED_FEATURE_ROWS,
-  IMPLEMENTATION_MANIFEST_PATH,
-  generateImplementationManifest,
   loadImplementationManifest,
   parseFeatureRows,
   validateImplementationManifest,
-  writeImplementationManifest,
+  validateImplementationManifestStructure,
+  validateImplementationManifestEntries,
 } from "./feature_implementation_manifest_lib.mjs";
 import {
   summarizeSemanticClosure,
@@ -32,14 +31,17 @@ Usage:
   ./server.sh verify-feature-implementation-evidence [options]
 
 Options:
-  --refresh-manifest  Explicitly rebuild the reviewed 986-row manifest.
+  --refresh-manifest  Retired: generic regeneration cannot preserve independent REVIEW4 approval.
   --migrate-review3           Removed: REVIEW3 generator-owned approval is rejected.
   --review-ids IDS            Removed with --migrate-review3.
   --json-report PATH  Write the validation report.
   -h, --help          Show help.
 
-The default command is read-only. --refresh-manifest is an explicit source update and
-must be reviewed before commit. This verifier does not execute product tests.`);
+The manifest is read-only; --json-report may write the explicitly requested report.
+An explicitly approved manifest update uses:
+  ./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest
+That path validates current source proofs against the independent approval ledger;
+it does not create an approval. This verifier does not execute product tests.`);
 }
 
 assertKnownOptions(rawArgs, [
@@ -60,22 +62,20 @@ if (args.reviewIds.length > 0 && !args.migrateReview3) {
 if (args.migrateReview3) {
   throw new Error("--migrate-review3 was removed: candidate generation, reviewed proof specs, and independent approval must remain separate");
 }
+if (args.refreshManifest) {
+  throw new Error("--refresh-manifest is retired: generic regeneration cannot preserve independent REVIEW4 approval; use verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest only for an explicitly approved update");
+}
 const inventoryText = fs.readFileSync(
   path.join(rootDir, "docs/project-feature-test-inventory.md"),
   "utf8",
 );
 const rows = parseFeatureRows(inventoryText);
 
-if (args.refreshManifest) {
-  const generated = generateImplementationManifest({ rootDir, inventoryText, rows });
-  writeImplementationManifest(rootDir, generated);
-  console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH} (reviewed rows preserved; drift remains review-required)`);
-}
-
 const manifest = loadImplementationManifest(rootDir);
 const result = validateImplementationManifest({ rootDir, inventoryText, rows, manifest });
 const review4GlobalErrors = validateReview4AppliedManifest({ rows, manifest });
-const negativeChecks = runNegativeFixtures({ rootDir, inventoryText, rows, manifest });
+const negativeChecks = runNegativeFixtures({ rootDir, inventoryText, rows, manifest,
+  baselineValid: result.ok && review4GlobalErrors.length === 0 });
 
 if (args.jsonReport) {
   const target = path.resolve(rootDir, args.jsonReport);
@@ -92,7 +92,7 @@ if (args.jsonReport) {
 for (const error of result.errors) console.log(`[fail] ${error}`);
 for (const error of review4GlobalErrors) console.log(`[fail] ${error}`);
 for (const check of negativeChecks) {
-  console.log(`[${check.pass ? "pass" : "fail"}] negative fixture ${check.name}`);
+  console.log(`[${check.executed === false ? "not-run" : check.pass ? "pass" : "fail"}] negative fixture ${check.name}`);
 }
 
 console.log("");
@@ -115,7 +115,7 @@ console.log("- executionEvidenceStatus: not-execution-evidence");
 
 if (!result.ok || review4GlobalErrors.length > 0 || negativeChecks.some(check => !check.pass)) process.exit(1);
 
-function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
+function runNegativeFixtures({ rootDir, inventoryText, rows, manifest, baselineValid }) {
   const cases = [
     {
       name: "missing-id",
@@ -217,15 +217,32 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
       expect: "REVIEW4 source-flow digest drift",
     },
   ];
+  // 반례가 복제 없이 정상 입력을 바꿔 이전 검증을 무효화하지 못하게 한다.
+  if (baselineValid) freezeFixtureInput(manifest.items);
   return cases.map(testCase => {
+    if (!baselineValid) return { name: testCase.name, pass: false, executed: false, reason: "baseline-validation-failed" };
     const copy = { ...manifest, items: [...manifest.items] };
     testCase.mutate(copy);
-    const result = validateImplementationManifest({ rootDir, inventoryText, rows, manifest: copy });
+    // 정상 입력 전체 검증은 위에서 완료했다. 내장 반례는 copy-on-write로 만든 변경 항목만
+    // 같은 항목 검사에 넣고, 누락/중복/해시/사유 등의 집합 조건은 매번 전체로 확인한다.
+    const unchanged = new Set(manifest.items);
+    const changedItems = copy.items.filter(item => !unchanged.has(item));
+    const errors = [
+      ...validateImplementationManifestStructure({ inventoryText, rows, manifest: copy }),
+      ...validateImplementationManifestEntries({ rootDir, rows, items: changedItems }),
+    ];
     return {
       name: testCase.name,
-      pass: !result.ok && result.errors.some(error => error.includes(testCase.expect)),
+      executed: true,
+      pass: errors.some(error => error.includes(testCase.expect)),
     };
   });
+}
+
+function freezeFixtureInput(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
+  for (const nested of Object.values(value)) freezeFixtureInput(nested);
+  Object.freeze(value);
 }
 
 function mutateItem(manifest, selector, mutate) {
