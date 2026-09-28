@@ -1386,7 +1386,7 @@
   },
   "environment": {
     "PATH": "<home>/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
-    "HOME": "/Users/dhseo",
+    "HOME": "<home>",
     "LANG": "en_US.UTF-8",
     "TMPDIR": "/private/tmp/media-server-gst-packaging-resume.9NfixH",
     "XDG_CACHE_HOME": "/private/tmp/media-server-gst-packaging-resume.9NfixH/xdg-cache",
@@ -1436,7 +1436,7 @@
   },
   "candidateEnvironment": {
     "PATH": "<home>/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
-    "HOME": "/Users/dhseo",
+    "HOME": "<home>",
     "LANG": "en_US.UTF-8",
     "TMPDIR": "/private/tmp/media-server-gst-packaging-resume.9NfixH",
     "XDG_CACHE_HOME": "/private/tmp/media-server-gst-packaging-resume.9NfixH/xdg-cache",
