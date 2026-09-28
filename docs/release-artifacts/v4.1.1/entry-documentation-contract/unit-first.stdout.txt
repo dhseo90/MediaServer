@@ -1,0 +1,18 @@
+✔ ENTRY-DOC-01 과거 실행 기록·Git 없이 현행 문서와 다섯 회귀 입력 연결 (7.718375ms)
+✔ ENTRY-DOC-02 버전 순서와 잘못된 버전 거부 (0.066209ms)
+✔ ENTRY-DOC-03 과거 source·published·roadmap·ID 변조 거부 (0.076666ms)
+✔ ENTRY-DOC-04 과거 PASS를 현재 실행 증거로 사용하거나 출처 제거하면 거부 (0.050166ms)
+✔ ENTRY-DOC-05 source/CMake·문서 링크 오류와 현행 문서 누락 유지 (4.267875ms)
+✔ ENTRY-DOC-06 다른 branch에만 있는 dispatch·누락/중복 ID·명령 불일치 거부 (3.593875ms)
+✔ ENTRY-DOC-07 회귀 입력 누락/중복·외부 symlink 거부 (3.212958ms)
+✔ ENTRY-DOC-08 기존 CLI 다섯 개를 종료 기록 없는 소스에서 실행 (119.556458ms)
+✔ ENTRY-DOC-09 CLI 실제 실패 exit와 옵션 오류 전파 (218.982875ms)
+✔ ENTRY-DOC-10 CLI 회귀 fixture 변조·실행 승격 거부 (134.034333ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 524.053584

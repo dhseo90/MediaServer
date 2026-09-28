@@ -1,0 +1,102 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "cc9fbd35278a4c81f07d936c461f2dd6465f45dc8cbdfde37f8c27b6b84cc8bf",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "SAFE-124",
+      "SAFE-135",
+      "SAFE-148",
+      "SAFE-162",
+      "SAFE-180",
+      "OPS-091",
+      "OPS-102",
+      "OPS-115",
+      "OPS-129",
+      "OPS-147"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "19fdc2a509b4140c189da0011b04a4a2971ea0a2",
+    "trackedWorktreeDiffSha256": "5262e0a4525e24fc02bfb80d239dd07ea81a5f27b72b2ce9cab5a468176b26bb",
+    "changedFiles": [
+      ".github/workflows/preflight.yml",
+      "docs/project-feature-test-inventory.md",
+      "docs/stream-verification.md",
+      "scripts/internal/verify_v340_entry_baseline.mjs",
+      "scripts/internal/verify_v350_entry_baseline.mjs",
+      "scripts/internal/verify_v360_entry_baseline.mjs",
+      "scripts/internal/verify_v370_entry_baseline.mjs",
+      "scripts/internal/verify_v380_entry_baseline.mjs",
+      "test/fixtures/project_feature_implementation_evidence.json",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "SAFE-124",
+      "featureContractSha256": "0d61d5d38ac74dbeed1e16647d53841c1b5ff87b8b7cf6923202210a01c5cda3",
+      "sourceFlowDigest": "c6008fe0f53e54e96b0bc671ce4ca9b71ddde21811d8107171bb1b97b642cef0",
+      "currentTrustBindingsSha256": "4ca1a015de5d5bd5c80b9d051dd44e3d799039576a586518609a7ab415b19eed"
+    },
+    {
+      "id": "SAFE-135",
+      "featureContractSha256": "b64caef2f8864c03dac6fa0b3a630f48152c6eee9b578106cfa20af7a43eab2f",
+      "sourceFlowDigest": "45bf96a58d90099ce06701a1de851470546b8b6951659f9bd904cf698a74fceb",
+      "currentTrustBindingsSha256": "4941b5b82813ab30211790c4e87ad7edc0a29d2f75ce25bb1dc143cfa3e0c233"
+    },
+    {
+      "id": "SAFE-148",
+      "featureContractSha256": "be5586be184cf1d6b9b1b4624e7dbe74a62bc8c8220de3f889751f8894ceac55",
+      "sourceFlowDigest": "40ce6e22a517452a23aa54edd27a0f62f65b4176f929db894227d475e345f4a4",
+      "currentTrustBindingsSha256": "8dcb777f90da513f6313d34f5d1d238a4b81fe882d4c6b95c09762abc64b7005"
+    },
+    {
+      "id": "SAFE-162",
+      "featureContractSha256": "9366caa6867827662e5db00ecdc16a52063f8076ab096e8bf9be8db21158aaec",
+      "sourceFlowDigest": "44325d285f7365c434a2252bf400a52d5b9b7a648d1ba4b0f17468f3d81eb0a5",
+      "currentTrustBindingsSha256": "769294c89c4f495e190dcfd2513f41c24d35bc6a8aa8242a4639b8f44e6559b4"
+    },
+    {
+      "id": "SAFE-180",
+      "featureContractSha256": "96a82bd60c780dafb6a3f4af8332764941267828827cf5dc1622cb015d4032ad",
+      "sourceFlowDigest": "43720573e908bef8120afc1fb3f01c9f9b9d47edca1a5bd91769bc2b4911a588",
+      "currentTrustBindingsSha256": "817aeee780fd9a04fb04a960f49ccf9b2b6a1fece05dae301974bbc47eeba25f"
+    },
+    {
+      "id": "OPS-091",
+      "featureContractSha256": "b0cc079e525104ffc6f6f7d3a44a70d5023f3dbb4b51f7bf18909fda0d353006",
+      "sourceFlowDigest": "a44ec2ad97b231a352d5ee75671f1b60c622ce1d2e185b99c5a2be3c9c7998d8",
+      "currentTrustBindingsSha256": "d3ba60ce747c32c546b90896101d198bd158d8ab8c8663e670240ca9a47827dc"
+    },
+    {
+      "id": "OPS-102",
+      "featureContractSha256": "344aa1d4efebe940dd034ffd5efb7eb5559728786f199c1bba426f9e86659cd7",
+      "sourceFlowDigest": "9ac10e45ea30b449aaf438f6ecfdc0deb5fb99864ee28776bb46264c9ff7bad8",
+      "currentTrustBindingsSha256": "8cd7db6ce8bb5681de2f4145d4cb1507ab861994bd47df3541fbb98925f529c7"
+    },
+    {
+      "id": "OPS-115",
+      "featureContractSha256": "1b6089971c24a26bea5f5facddda708d4fd1a828c7f6e095ee38145a0dc3df61",
+      "sourceFlowDigest": "3b68818337d1dd6eff8f32269aa9183452adb69a256b6d08e6c92df58eaa8980",
+      "currentTrustBindingsSha256": "5e1610a90167654ab0c4a7cf643277002c172bd7ec882bb185c709acc27fef22"
+    },
+    {
+      "id": "OPS-129",
+      "featureContractSha256": "8f1a5f0ae312be736b0f683b42625de039d63a69745984dab720c13b86fad97a",
+      "sourceFlowDigest": "d6bad4102a399672e1272efffc834c6aba426cffbbf128958ede9c1aa79375b0",
+      "currentTrustBindingsSha256": "71972a734e99a4761d49aa82fe5785a5a0e0538bcb44f72dc79ff255faed47f6"
+    },
+    {
+      "id": "OPS-147",
+      "featureContractSha256": "bc1a8620cdc4bd9b3d88b0e7894a83f7cc0b6d6dc2c1e5c93943c21ca0c17f38",
+      "sourceFlowDigest": "92b73486bbad3c494fcbbbbfe2f13c7a925fc67827d5f40b94cf066ac2a06bd8",
+      "currentTrustBindingsSha256": "9f76732a570c0c03fd236df277d5413249e259316fd62a818bb8703885720816"
+    }
+  ]
+}

@@ -1,0 +1,1473 @@
+알 수 없는 명령입니다: verify-project-feature-inventory
+
+MediaServer 사용법
+
+Usage:
+  ./server.sh <command> [options]
+
+가장 많이 쓰는 명령:
+  install        새 환경에 필요한 패키지, ONNX Runtime, YOLO 모델/라벨, 로컬 설정을 준비합니다.
+  build          서버를 실행하지 않고 AI 포함 기본 빌드만 수행합니다.
+  start          AI 포함 기본 빌드(build-gst-onnx) 후 서버를 백그라운드로 실행합니다.
+  stop           실행 중인 media_server를 종료하고 stale pid/listener 상태를 정리합니다.
+
+운영/점검 명령:
+  restart        stop 후 start를 실행하고 진단까지 수행합니다.
+  status         현재 프로세스, RTSP/HTTP 포트, 샘플 URL, 최근 로그를 확인합니다.
+  check          status와 동일한 별칭입니다.
+  diagnose       실행환경, 포트 바인딩, 파일/RTSP source 접근성 문제를 자세히 진단합니다.
+  ops-bundle     health/runtime/diagnose/log/config 요약을 운영 공유용 bundle로 생성합니다.
+  ops-evidence-cleanup
+                 EventRecord snapshot/clip evidence retention cleanup job을 실행합니다.
+  urls           같은 LAN의 다른 PC/VLC/IINA/브라우저에서 복사해 쓸 테스트 URL을 출력합니다.
+  auth-user      users file 계정을 list/add/disable/enable/reset-password로 관리합니다.
+
+개발/검증 명령:
+  foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
+  test           기본값은 --basic입니다. 기본/풀/외부 통합 테스트를 한글 리포트로 실행합니다.
+  verify-gst-environment
+                GStreamer 검색·캐시·실행 환경 전달을 격리 fixture로 검증합니다.
+  verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
+  verify-webrtc-ice
+                 WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
+  verify-external-turn-whep-field-gate
+                 v2.1.0 external TURN/WHEP field smoke와 기본 release PASS 분리 기준을 검증합니다.
+  verify-uri-longrun
+                 HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
+  verify-va      YOLO/VA overlay의 lab/RTSP 검증을 수행합니다.
+  verify-redaction
+                 사람 객체 자동 모자이크(redaction)의 image/live 검증을 수행합니다.
+  verify-va-events
+                 이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
+  verify-va-event-coverage-report
+                 VA rule/scenario/EventRecord coverage를 조합 단위 report로 검증합니다.
+  verify-va-category-samples
+                 실제 영상 샘플에서 VA 카테고리별 presence 이벤트를 검증합니다.
+  verify-route-profiles
+                 실제 RTSP overlay에서 route별 profile/rule matching을 검증합니다.
+  verify-rule-ui
+                 /ops/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
+  verify-ops-client-ui
+                 /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
+  verify-ui-visual-artifact-index
+                 UI screenshot artifact index/manifest 생성을 검증합니다.
+  verify-ui-release-baseline-approval-log
+                 UI release baseline approval log template과 CI 연결을 검증합니다.
+  compare-ui-visual-baseline
+                 UI screenshot artifact baseline과 candidate의 manifest/pixel diff를 생성합니다.
+  write-ui-visual-qa-issue-links
+                 UI visual QA issue에 붙일 artifact link Markdown을 생성합니다.
+  write-ui-visual-baseline-comment
+                 UI visual baseline diff report를 PR/issue comment Markdown으로 요약합니다.
+  ui-visual-artifact-maintenance
+                 UI visual artifact를 retention policy 기준으로 dry-run/보관/정리합니다.
+  verify-product-ui-token-drift
+                 제품 UI CSS가 design token 밖 raw color를 추가하지 않는지 검증합니다.
+  verify-v220-design-token-refresh
+                 v2.2.0 design token refresh 계약과 token 소비 지점을 검증합니다.
+  verify-v220-component-primitives
+                 v2.2.0 component primitive helper 경계와 소비 지점을 검증합니다.
+  verify-v220-ops-workspace-redesign
+                 v2.2.0 Ops workspace redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-rules-workspace-redesign
+                 v2.2.0 Rules workspace redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-client-live-redesign
+                 v2.2.0 Client live redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-auth-setup-redesign
+                 v2.2.0 Auth/setup redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-channels-workspace
+                 v2.2.0 Ops Channels Workspace route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-users-access-workspace
+                 v2.2.0 Ops Users / Access Workspace route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-vlm-containment
+                 v2.2.0 Ops VLM containment route/CSS/문서 연결을 검증합니다.
+  verify-v220-client-preview-redaction-review
+                 v2.2.0 Client preview/redaction route/CSS/문서 연결을 검증합니다.
+  verify-v220-ui-evidence-closeout
+                 v2.2.0 UI evidence close-out 문서/checklist/result 기준 연결을 검증합니다.
+  verify-product-shell-examples
+                 제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
+  verify-ops-route-boundaries
+                 /ops, /client shell과 Lab 분석 API 경계를 검증합니다.
+  verify-ops-click-e2e
+                 /ops 채널/룰/사용자 주요 패널과 탭 이동을 실제 브라우저 클릭으로 검증합니다.
+  verify-ops-tables-layout
+                 /ops 채널/룰/사용자 데이터 테이블의 반응형 셀 침범과 리사이즈 안정성을 검증합니다.
+  verify-ops-rules-roundtrip
+                 /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
+  verify-ops-rule-relationships
+                 채널/PublishedView/VA 룰/이벤트 템플릿/분석 프로파일 참조와 저장 validation을 검증합니다.
+  verify-ops-rule-conflict-ui
+                 /ops/rules 저장 전 충돌/누락 표시와 차단 hook을 검증합니다.
+  verify-ops-rule-validation-matrix
+                 룰 저장 validation fixture matrix를 정적 검증합니다.
+  verify-ops-scenario-presets
+                 현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
+  verify-ops-source-lifecycle
+                 WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
+  verify-ops-source-registry-api
+                 격리 서버에서 SourceRegistry/PublishedView CRUD·soft-disable·client projection을 직접 검증합니다.
+  verify-ops-source-health-bulk
+                 /ops/api/source-health/bulk partial retry 계약을 검증합니다.
+  verify-ops-channel-bulk
+                 /ops/sources 대량 채널 복제/비활성화/상태 진단 UI hook을 검증합니다.
+  verify-ops-event-records-scope
+                 EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
+  verify-fixture-cleanup-contracts
+                 UI/Event 검증 fixture가 실행 후 복원/삭제 계약을 유지하는지 정적 검증합니다.
+  verify-flaky-verifiers
+                 access approval, rule preview, clipboard, route smoke verifier 안정화 guard를 검증합니다.
+  verify-ops-evidence-retention-cleanup
+                 Evidence retention cleanup job의 dry-run/apply/audit/report 계약을 검증합니다.
+  verify-ops-audit-trail
+                 /ops 채널/룰/사용자 UI 변경 이력 패널과 기록 hook을 검증합니다.
+  verify-ops-audit-persistence
+                 /ops/api/audit 서버 영속 감사 로그와 UI fallback hook을 검증합니다.
+  verify-ops-diagnostics-bundle
+                 운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
+  verify-ops-backup-recovery-guide
+                 운영 백업/복구 가이드와 복구 후 검증 절차를 정적 검증합니다.
+  verify-ops-backup-restore-dry-run
+                 운영 백업/복구 절차를 임시 디렉터리에서 리허설합니다.
+  verify-ops-root-cause-panel
+                 /ops/dashboard 문제 원인 패널과 source/stale/reconnect/auth 해석 hook을 검증합니다.
+  verify-client-dashboard-polish
+                 /client/dashboard 다중 view 비교와 로딩/빈/오류 상태 문구를 검증합니다.
+  verify-ui-copy-matrix
+                 제품 UI empty/loading/error copy matrix와 구현 스니펫을 검증합니다.
+  verify-ui-copy-i18n-parity
+                 제품 UI 한국어/영어 문구 parity와 반복 UI translation pattern을 검증합니다.
+  verify-docs-ui-assets
+                 README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
+  verify-manual-ui-evidence
+                 수동 UI 검수 결과가 확인/미확인/건너뜀을 분리해 기록됐는지 검증합니다.
+  verify-product-ui-no-native-dialogs
+                 제품 UI가 alert/confirm/prompt native dialog로 자동 UI 검수를 멈추지 않는지 검증합니다.
+  verify-ui-blocking-dialog-policy
+                 제품/test UI blocking dialog 허용 기준과 fail-fast 정책을 검증합니다.
+  verify-ui-fulltest-one-shot
+                 throwaway seed/server와 UI 풀테스트 verifier 묶음을 한 번에 실행합니다.
+  verify-v390-ui-automation
+                 v3.9.0 R2 UI automation runner summary/report를 생성합니다.
+  verify-v390-ui-automation-report
+                 v3.9.0 R2 UI automation summary case evidence를 검증합니다.
+  verify-v390-ui-automation-runner-contract
+                 v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-coverage
+                 V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
+  verify-v390-ui-automation-coverage-contract
+                 V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
+  verify-v390-ui-native-exact-cases-contract
+                 V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-case-child-isolation-contract
+                 verification rebase single-case child의 finally summary/격리/infra-fatal 계약을 검증합니다.
+  verify-v390-ui-canonical-parent-isolation-contract
+                 verification rebase canonical parent의 exact-once 424 child/fail-continue/infra 계약을 검증합니다.
+  verify-v390-review4-source-fixture-ids
+                 V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
+  verify-v390-ui-exact-core-oracles-contract
+                 V390-REVIEW4-65 UI/AUTH/SRC/RULE 288개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-event-oracles-contract
+                 V390-REVIEW4-65 EVT 49개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-event-oracle-evaluator-contract
+                 V390-REVIEW4-65 EVT response/DOM/network/state evaluator의 fail-closed 계약을 검증합니다.
+  verify-v390-ui-exact-client-safe-oracles-contract
+                 V390-REVIEW4-65 CLIENT/MEDIA/SAFE 87개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-oracle-catalog-contract
+                 V390-REVIEW4-65 exact 424 통합 runtime oracle catalog를 검증합니다.
+  verify-v390-ui-exact-oracle-runtime-contract
+                 V390-REVIEW4-65 actual runtime oracle 실행기의 false-PASS 거부 계약을 검증합니다.
+  verify-v390-ui-request-action-ownership-scope-contract
+                 canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
+  verify-v390-ui-action-request-background-ledger-contract
+                 canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
+  verify-v390-ui-page-owned-request-lifecycle-contract
+                 canonical 424/391/11 request lifecycle tuple의 exact-one 분류를 검증합니다.
+  verify-v390-ui-request-lifecycle-rebase-contract
+                 actual-like object graph로 request recorder/evaluator lifecycle 계약을 검증합니다.
+  verify-v390-ui-document-form-response-binding-contract
+                 canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
+  verify-v390-ui-browser-callback-free-identifier-contract
+                 browser-evaluated callback의 격리 실행, serialized argument/result, 자유 식별자 fail-closed 계약을 검증합니다.
+  verify-v390-ui-completion-oracle-contract
+                 V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
+  verify-v390-ui-policy-v4-producer-contract
+                 V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-policy-v4-independence-contract
+                 V390-REVIEW4-60 raw native evidence와 Policy qualifier 독립성 계약을 검증합니다.
+  verify-v390-ui-visual-evidence-contract
+                 V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
+  verify-v390-full-suite-eligibility-contract
+                 V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
+  verify-v390-current-ui-evidence-contract
+                 V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
+  run-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
+  run-v390-ui-native-diagnostic-sweep
+                 내부 전용: shared registry로 검증된 diagnostic selection을 release evidence와 분리해 실행합니다.
+  verify-v390-ui-native-diagnostic-sweep-contract
+                 내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
+  verify-v390-ui-native-diagnostic-trace-replay-contract
+                 최신 actual diagnostic 33개 실패를 고정 trace 기반 공통 경계로 replay합니다.
+  verify-v390-ui-remaining-actual-trace-replay-contract
+                 remaining-133 actual census의 7개 실패를 공통 owner 경계로 replay합니다.
+  verify-ui-fulltest-evidence-policy-v4
+                 V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
+  verify-ui-fulltest-evidence-policy-v4-contract
+                 V390-ADD1-12 Policy v4 false-PASS negative contract를 검증합니다.
+  verify-v390-ui-native-adapter
+                 V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
+  verify-v390-ui-native-adapter-contract
+                 V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-request-action-ownership-scope-contract
+                 canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
+  verify-v390-ui-post-action-visual-owner-contract
+                 latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
+  verify-v390-ui-action-request-background-ledger-contract
+                 canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
+  verify-v390-ui-document-form-response-binding-contract
+                 canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
+  verify-v390-ui-browser-callback-free-identifier-contract
+                 browser-evaluated callback의 격리 실행, serialized argument/result, 자유 식별자 fail-closed 계약을 검증합니다.
+  prepare-manual-ui-fulltest-seed
+                 수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
+  verify-docs-links
+                 README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
+  verify-v260-incident-memory-productization
+                 v2.6.0 S01 VLM summary candidate의 Ops incident memory productization 경계를 검증합니다.
+  verify-v260-rule-suggestion-review
+                 v2.6.0 S02 Rule suggestion 후보의 incident-to-rule manual review/draft 연결 경계를 검증합니다.
+  verify-v260-onvif-credential-gate
+                 v2.6.0 S03 ONVIF credential binding/store gate와 redaction guard를 검증합니다.
+  verify-v260-runtime-dashboard-trends
+                 v2.6.0 S04 Runtime dashboard baseline/sparkline 후보와 비범위 경계를 검증합니다.
+  verify-v260-scenario-cross-zone-reentry
+                 v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증합니다.
+  verify-v260-owner-release-readiness
+                 v2.6.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
+  verify-v270-incident-triage-board
+                 v2.7.0 S01 Incident Triage Board view model/UI와 비범위 경계를 검증합니다.
+  verify-v270-incident-decision-scorecard
+                 v2.7.0 S02 Incident Decision Scorecard와 deterministic priority reason 경계를 검증합니다.
+  verify-v270-operational-action-pack
+                 v2.7.0 S03 Operational Action Pack과 기존 수동 workflow 연결 경계를 검증합니다.
+  verify-v270-rule-what-if-preview
+                 v2.7.0 S04 Rule What-if Preview와 draft-only/manual-save 경계를 검증합니다.
+  verify-v270-operator-outcome-memory
+                 v2.7.0 S05 Operator outcome memory와 review/audit history hint 경계를 검증합니다.
+  verify-v270-owner-release-readiness
+                 v2.7.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
+  verify-v280-incident-action-readiness-queue
+                 v2.8.0 S02 Incident Action Readiness Queue와 external delivery/auto write 비범위 경계를 검증합니다.
+  verify-v280-approval-gated-rule-draft
+                 v2.8.0 S03 Approval-gated Rule Draft Readiness와 no-auto-save/no-auto-apply 경계를 검증합니다.
+  verify-v280-evidence-intake-field-readiness
+                 v2.8.0 S04 Evidence Intake and Field Readiness와 redaction/field smoke 비범위 경계를 검증합니다.
+  verify-v280-runtime-evidence-window
+                 v2.8.0 S05 Runtime Evidence Window와 bounded/no-longrun/no-archive 경계를 검증합니다.
+  verify-v280-client-safe-followup-digest
+                 v2.8.0 S06 Client-safe Follow-up Digest와 viewer redaction 경계를 검증합니다.
+  verify-v280-owner-release-readiness
+                 v2.8.0 S07 release readiness gate와 미실행/제외 경계를 검증합니다.
+  verify-v290-final-contract-freeze
+                 v2.9.0 S01 2.x final contract freeze 문서/검증 기준과 schema/media/auth/rule payload 불변 경계를 검증합니다.
+  verify-v290-v28-regression-bundle
+                 v2.9.0 S02 v2.8 기능군 verifier를 현재 source tree에서 재실행해 regression bundle을 검증합니다.
+  verify-v290-2x-compatibility-baseline
+                 v2.9.0 S03 v2.5~v2.8 핵심 compatibility verifier를 현재 source tree에서 재실행합니다.
+  verify-v290-release-test-records-enforcement
+                 v2.9.0 S04 release test records enforcement와 테스트 기록/미실행 경계를 검증합니다.
+  verify-v290-ui-fulltest-criteria-freeze
+                 v2.9.0 S05 UI 풀테스트 route/control/action/role/viewport/theme 기준 freeze를 검증합니다.
+  verify-v290-release-evidence-hygiene
+                 v2.9.0 S06 release evidence index/records/inventory/manual UI evidence 경계를 검증합니다.
+  verify-v290-public-docs-assets-refresh
+                 v2.9.0 S07 public README/docs index/UI asset refresh 경계를 검증합니다.
+  verify-v290-final-stabilization-run
+                 v2.9.0 S08 final stabilization run 결과와 미실행 경계를 검증합니다.
+  verify-v290-owner-release-readiness
+                 v2.9.0 S09 owner release readiness와 close-out 준비 경계를 검증합니다.
+  verify-v300-entry-baseline
+                 v3.0.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
+  verify-v300-event-evidence-contract
+                 v3.0.0 S01 Event Evidence Contract와 FrameRef/retention/non-VMS 경계를 검증합니다.
+  verify-v300-feature-schema-privacy
+                 v3.0.0 S03 Feature Schema and Privacy Policy와 identity/privacy 경계를 검증합니다.
+  verify-v300-vlm-feature-queue
+                 v3.0.0 S04 VLM Feature Queue와 VLM-only failure 경계를 검증합니다.
+  verify-v300-feature-only-retention
+                 v3.0.0 S05 Feature-only Retention과 raw prompt/response non-retention 경계를 검증합니다.
+  verify-v300-search-dsl-query-convert
+                 v3.0.0 S06 Search DSL and Query Convert와 text/tags/filter 경계를 검증합니다.
+  verify-v300-feature-search-index
+                 v3.0.0 S07 Feature/Search Index와 stale result guard 경계를 검증합니다.
+  verify-v300-ops-events-ui
+                 v3.0.0 S08 Ops Events UI와 evidence timeline/feature reason/retry/pin/retention UI 경계를 검증합니다.
+  verify-v300-retention-pin-cleanup
+                 v3.0.0 S09 Retention/Pin/Cleanup과 pin 제외/dry-run/audit 경계를 검증합니다.
+  verify-v300-stabilization-release-readiness
+                 v3.0.0 S10 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v310-entry-baseline
+                 v3.1.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
+  verify-v310-event-clip-contract
+                 v3.1.0 S01 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계를 검증합니다.
+  verify-v310-replay-timeline-ui
+                 v3.1.0 S03 Replay Timeline UI와 event frame/frame bundle/encoded clip timeline 경계를 검증합니다.
+  verify-v310-client-safe-event-digest
+                 v3.1.0 S04 Client-safe Event Digest와 viewer redaction 경계를 검증합니다.
+  verify-v310-scoped-integrator-search-api
+                 v3.1.0 S05 Scoped Integrator Search API와 integrator scope/redaction 경계를 검증합니다.
+  verify-v310-operator-feature-correction
+                 v3.1.0 S06 Operator Feature Correction과 alias/reanalysis request 경계를 검증합니다.
+  verify-v310-optional-vector-search
+                 v3.1.0 S07 Optional Vector Search의 default-off embedding index와 quality gate 경계를 검증합니다.
+  verify-v310-retention-export-hardening
+                 v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
+  verify-v320-entry-baseline
+                 v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
+  verify-v320-resolution-state-contract
+                 v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
+  verify-v320-unified-ops-events-workspace
+                 v3.2.0 Step 3 Unified Ops Events Workspace와 resolution queue/detail/timeline UI 경계를 검증합니다.
+  verify-v320-evidence-quality-layer
+                 v3.2.0 Step 4 Evidence Quality Layer와 completeness/confidence/replay coverage hint 경계를 검증합니다.
+  verify-v320-source-reliability-context
+                 v3.2.0 Step 5 Source Reliability Context와 source health/recent failure/recheck hint 경계를 검증합니다.
+  verify-v320-source-reliability-runtime-sample
+                 v3.2.0 Step 5 fixture EventRecord item의 sourceReliability 런타임 샘플을 검증합니다.
+  verify-v320-ai-review-quality-context
+                 v3.2.0 Step 6 AI Review Quality Context와 correction/review signal, uncertainty reason, quality badge 경계를 검증합니다.
+  verify-v320-operator-resolution-flow
+                 v3.2.0 Step 7 Operator Resolution Flow와 assign/note/close/reopen/audit 경계를 검증합니다.
+  verify-v320-action-readiness-checklist
+                 v3.2.0 Step 8 Action Readiness Checklist와 rule draft/evidence bundle/notification readiness 경계를 검증합니다.
+  verify-v320-client-safe-resolution-digest
+                 v3.2.0 Step 9 Client-safe Resolution Digest와 viewer redaction 경계를 검증합니다.
+  verify-v320-resolution-search-metrics
+                 v3.2.0 Step 10 Resolution Search & Metrics와 filter/saved view/metric summary 경계를 검증합니다.
+  verify-v320-stabilization-release-readiness
+                 v3.2.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v330-entry-baseline
+                 v3.3.0 Step 1 source baseline과 latest published v3.2.0 경계를 검증합니다.
+  verify-v330-source-registry-snapshot-identity
+                 v3.3.0 Step 2 Source Registry Snapshot and Identity read model 경계를 검증합니다.
+  verify-v330-source-onboarding-quality-summary
+                 v3.3.0 Step 3 Source Onboarding Quality Summary API/UI 경계를 검증합니다.
+  verify-v330-reliability-timeline-health-history
+                 v3.3.0 Step 4 Reliability Timeline and Health History API/UI 경계를 검증합니다.
+  verify-v330-incident-source-correlation-layer
+                 v3.3.0 Step 5 Incident-to-Source Correlation Layer API/UI 경계를 검증합니다.
+  verify-v330-operator-recheck-recovery-queue
+                 v3.3.0 Step 6 Operator Recheck and Recovery Queue API/UI 경계를 검증합니다.
+  verify-v330-client-safe-source-status-digest
+                 v3.3.0 Step 7 Client-safe Source Status Digest와 viewer redaction 경계를 검증합니다.
+  verify-v330-operator-runbook-reliability-handoff
+                 v3.3.0 Step 8 Operator Runbook and Reliability Handoff 문서 연결 경계를 검증합니다.
+  verify-v330-source-reliability-search-metrics
+                 v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
+  verify-v330-ops-backup-recovery-source-handoff
+                 v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
+  verify-v330-stabilization-release-readiness
+                 v3.3.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v340-entry-baseline
+                 v3.4.0 Step 1 source baseline과 latest published v3.3.0 경계를 검증합니다.
+  verify-v340-continuity-drill-contract
+                 v3.4.0 Step 2 Continuity Drill Contract read-only/no-write 경계를 검증합니다.
+  verify-v340-recovery-candidate-package
+                 v3.4.0 Step 3 Recovery Candidate Package redacted read model 경계를 검증합니다.
+  verify-v340-staging-restore-validation-harness
+                 v3.4.0 Step 4 Staging Restore Validation Harness temporary-only 경계를 검증합니다.
+  verify-v340-source-health-replay-drift-diff
+                 v3.4.0 Step 5 Source Health Replay and Drift Diff read-only 경계를 검증합니다.
+  verify-v340-ops-continuity-drill-workspace-ui
+                 v3.4.0 Step 6 Ops Continuity Drill Workspace UI read-only 경계를 검증합니다.
+  verify-v340-approval-gated-recovery-checklist-audit
+                 v3.4.0 Step 7 Approval-Gated Recovery Checklist and Audit no-auto-recovery 경계를 검증합니다.
+  verify-v340-client-safe-maintenance-digest
+                 v3.4.0 Step 8 Client-safe Maintenance Digest redaction 경계를 검증합니다.
+  verify-v340-drill-evidence-export-cleanup-manifest
+                 v3.4.0 Step 9 Drill Evidence Export and Cleanup Manifest 경계를 검증합니다.
+  verify-v340-field-bridge-condition-gates
+                 v3.4.0 Step 10 Field Bridge Condition Gates 조건부 field smoke 경계를 검증합니다.
+  verify-v340-stabilization-release-readiness
+                 v3.4.0 Step 11 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v350-entry-baseline
+                 v3.5.0 Step 1 source baseline과 latest published v3.4.0 경계를 검증합니다.
+  verify-v350-live-operations-graph-contract
+                 v3.5.0 Step 2 Live Operations Graph Contract read-only 경계를 검증합니다.
+  verify-v350-operations-command-plan-contract
+                 v3.5.0 Step 3 Operations Command Plan Contract draft-only 경계를 검증합니다.
+  verify-v350-incident-to-command-handoff
+                 v3.5.0 Step 4 Incident-to-Command Handoff selected detail 경계를 검증합니다.
+  verify-v350-staged-change-plan-impact-preview
+                 v3.5.0 Step 5 Staged Change Plan and Impact Preview staging-only 경계를 검증합니다.
+  verify-v350-ops-command-workspace-ui
+                 v3.5.0 Step 6 Ops Command Workspace UI read-only 경계를 검증합니다.
+  verify-v350-drill-run-ledger-plan-comparison
+                 v3.5.0 Step 7 Drill Run Ledger and Plan Comparison read-only 경계를 검증합니다.
+  verify-v350-client-impact-forecast
+                 v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
+  verify-v350-client-safe-operations-notice
+                 v3.5.0 Step 9 Client-safe Operations Notice viewer-safe 경계를 검증합니다.
+  verify-v350-operations-export-bundle-handoff-map
+                 v3.5.0 Step 10 Operations Export Bundle and Handoff Map release-safe 경계를 검증합니다.
+  verify-v350-field-evidence-intake
+                 v3.5.0 Step 11 Field Evidence Intake redacted/not-run 경계를 검증합니다.
+  verify-v350-vlm-assisted-ops-explanation
+                 v3.5.0 Step 12 VLM-assisted Ops Explanation default-off 경계를 검증합니다.
+  verify-v350-stabilization-release-readiness
+                 v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v380-entry-baseline
+                 v3.8.0 Step 1 source baseline과 latest published v3.8.0 경계를 검증합니다.
+  verify-v380-ops-action-route-boundary
+                 v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
+  verify-v380-action-capability-contract
+                 v3.8.0 Step 3 Action Capability Contract를 검증합니다.
+  verify-v380-action-request-ledger-contract
+                 v3.8.0 Step 4 Action Request Ledger Contract를 검증합니다.
+  verify-v380-approval-decision-gate
+                 v3.8.0 Step 5 Approval Decision Gate를 검증합니다.
+  verify-v380-action-readiness-preflight
+                 v3.8.0 Step 6 Action Readiness Preflight를 검증합니다.
+  verify-v380-source-recheck-action-pilot
+                 v3.8.0 Step 7 Source Recheck Action Pilot을 검증합니다.
+  verify-v380-client-notice-draft-queue
+                 v3.8.0 Step 8 Client Notice Draft Queue를 검증합니다.
+  verify-v380-rule-draft-action-package
+                 v3.8.0 Step 9 Rule Draft Action Package를 검증합니다.
+  verify-v380-ops-action-control-workspace-ui
+                 v3.8.0 Step 10 Ops Action Control Workspace UI를 검증합니다.
+  verify-v380-client-safe-action-notice-preview
+                 v3.8.0 Step 11 Client-safe Action Notice Preview를 검증합니다.
+  verify-v380-outcome-observer-reconciliation
+                 v3.8.0 Step 12 Outcome Observer and Reconciliation을 검증합니다.
+  verify-v380-action-receipt-bundle
+                 v3.8.0 Step 13 Action Receipt Bundle을 검증합니다.
+  verify-v380-field-connector-evidence-package
+                 v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
+  verify-v380-default-off-action-explanation
+                 v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
+  verify-v380-stabilization-release-readiness
+                 v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v390-entry-baseline
+                 v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-entry-baseline-contract
+                 v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
+  verify-feature-semantic-closure-contract
+                 986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
+  verify-v390-review3-discovery-ledger
+                 V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
+  verify-v390-review4-semantic-discovery-ledger
+                 V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-audit
+                 V390-REVIEW4-53 986행 production source/call/data-flow 독립 ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approvals
+                 V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approval-selftest
+                 V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-semantic-migration-contract
+                 V390-REVIEW4-65 scoped semantic input과 carry-forward negative contract를 검증합니다.
+  verify-v390-review4-ops-168-184-safe-001-008-semantic
+                 V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
+  verify-v390-feature-completion-inventory
+                 v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
+  verify-v390-user-review-gate
+                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
+  verify-v390-evidence-test-gate-prep
+                 v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
+  verify-v390-server-longrun
+                 v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
+  verify-v390-server-longrun-runner-contract
+                 v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-longrun-evidence-measurement-contract
+                 V390-REVIEW4-61 monotonic duration, 120분 판정, PID/port/artifact cleanup 실측을 검증합니다.
+  verify-v390-ui-automation
+                 v3.9.0 R2 UI automation runner summary/report를 생성합니다.
+  verify-v390-ui-automation-report
+                 v3.9.0 R2 UI automation summary case evidence를 검증합니다.
+  verify-v390-ui-automation-runner-contract
+                 v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-coverage
+                 V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
+  verify-v390-ui-automation-coverage-contract
+                 V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
+  verify-v390-ui-native-exact-cases-contract
+                 V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-case-child-isolation-contract
+                 verification rebase single-case child의 finally summary/격리/infra-fatal 계약을 검증합니다.
+  verify-v390-ui-canonical-parent-isolation-contract
+                 verification rebase canonical parent의 exact-once 424 child/fail-continue/infra 계약을 검증합니다.
+  verify-v390-review4-source-fixture-ids
+                 V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
+  verify-v390-ui-completion-oracle-contract
+                 V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
+  verify-v390-ui-policy-v4-producer-contract
+                 V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-visual-evidence-contract
+                 V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
+  verify-v390-full-suite-eligibility-contract
+                 V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
+  verify-v390-current-ui-evidence-contract
+                 V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
+  run-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
+  run-v390-ui-native-diagnostic-sweep
+                 내부 전용: shared registry로 검증된 diagnostic selection을 release evidence와 분리해 실행합니다.
+  verify-v390-ui-native-diagnostic-sweep-contract
+                 내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
+  verify-v390-ui-native-diagnostic-trace-replay-contract
+                 최신 actual diagnostic 33개 실패를 고정 trace 기반 공통 경계로 replay합니다.
+  verify-v390-ui-remaining-actual-trace-replay-contract
+                 remaining-133 actual census의 7개 실패를 공통 owner 경계로 replay합니다.
+  verify-ui-fulltest-evidence-policy-v4
+                 V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
+  verify-ui-fulltest-evidence-policy-v4-contract
+                 V390-ADD1-12 Policy v4 false-PASS negative contract를 검증합니다.
+  verify-v390-ui-automation-report-replay-guard
+                 v3.9.0 R5 UI automation report replay guard contract를 검증합니다.
+  verify-v390-ui-native-adapter
+                 V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
+  verify-v390-ui-native-adapter-contract
+                 V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-post-action-visual-owner-contract
+                 latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
+  verify-v390-test-acceptance-bundle
+                 v3.9.0 canonical build→기능→30분→exact 424→Policy v4→조건부 120분→final integrity bundle을 실행합니다.
+  verify-v390-test-acceptance-bundle-contract
+                 v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
+  verify-v390-user-test-launchers-contract
+                 REVIEW4-62/65 사용자용 30분·120분·UI·release 무옵션 launcher 계약을 검증합니다.
+  verify-v390-final-evidence-integrity
+                 v3.9.0 Evidence 13~14 final artifact/provenance/cleanup 무결성을 검증합니다.
+  verify-v390-final-evidence-integrity-contract
+                 v3.9.0 final evidence 무결성 negative fixture를 검증합니다.
+  verify-v390-longrun-runner-role-alignment
+                 v3.9.0 R4 legacy predev와 release-grade longrun runner 역할 정렬을 검증합니다.
+  verify-v390-onvif-credential-provider-status
+                 v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
+  verify-v390-onvif-live-import-persist-decision
+                 v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
+  verify-v390-onvif-source-view-atomicity
+                 V390-REVIEW4-55 ONVIF source/view crash recovery transaction을 검증합니다.
+  verify-v390-analysis-registry-durable-write
+                 V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
+  verify-v390-review4-lab-core-api
+                 REVIEW4-53 LAB core API의 실제 mutation/readback/cleanup을 짧게 검증합니다.
+  verify-v390-vlm-rule-suggestion-draft-bridge
+                 v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
+  verify-v390-vlm-incident-rule-provenance
+                 v3.9.0 (17) Development 15 VLM incident-to-rule 저장 provenance를 검증합니다.
+  verify-v390-deferred-product-owner-signoff
+                 v3.9.0 (17) Development 16 deferred 항목별 owner 역할과 결정을 검증합니다.
+  verify-v390-deferred-product-owner-source-region-contract
+                 REVIEW4-65 deferred owner UI 근거의 row-local source binding negative contract를 검증합니다.
+  verify-v390-vlm-evaluation-promotion-guard
+  verify-v390-vlm-promotion-trust-boundary
+                 v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
+  verify-v390-backup-recovery-handoff-validation
+                 v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
+  verify-v390-action-execution-deferral-decision
+                 v3.9.0 Step 16 action execution deferral decision을 검증합니다.
+  verify-v390-conditional-field-ai-decisions
+                 v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-reid-readiness-consistency
+                 V390-ADD1-04 Re-ID 파일/SHA/provenance/OpenSSL/ONNX 공용 readiness를 검증합니다.
+  verify-v390-structure-stabilization-handoff
+                 v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
+  verify-v390-structure-stabilization-readiness
+                 v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
+  verify-v390-review4-structure-stabilization-execution
+                 V390-REVIEW4-64 실제 6-slice 구조 안정화 실행 원장과 current graph를 검증합니다.
+  verify-v390-ops-product-ui-renderer-owner
+                 V390-REVIEW4-64 Ops shell/dashboard/rules/events/home/VLM renderer 분리와 HTML byte 불변을 검증합니다.
+  verify-v390-product-ui-principal-view-boundary
+                 V390-REVIEW4-64 product UI renderer의 transport auth 역의존 제거와 HTML byte 불변을 검증합니다.
+  verify-v390-cmake-internal-target-separation
+                 V390-REVIEW4-64 composition executable과 runtime static library 분리를 검증합니다.
+  verify-v390-stable-contract-leaf-boundary
+                 V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
+  verify-v390-analysis-query-owner-boundary
+                 V390-REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 중간 SCC 경계를 검증합니다.
+  verify-v390-core-media-analysis-port-inversion
+                 V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
+  verify-v390-analysis-runtime-port-boundary
+                 V390-REVIEW4-64 analysis→core-utilities 설정·진단·명령 실행을 core-media port로 역전합니다.
+  verify-v390-transport-runtime-config-boundary
+                 V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
+  verify-v390-strict-json-service-boundary
+                 V390-REVIEW4-64 transport의 strict JSON 사용을 의미 기반 application service로 역전합니다.
+  verify-v390-source-view-application-boundary
+                 V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
+  verify-v390-appearance-readiness-application-boundary
+                 V390-REVIEW4-64 transport의 Re-ID readiness 결속을 application service로 역전합니다.
+  verify-v390-category-catalog-application-boundary
+                 V390-REVIEW4-64 transport의 category catalog 결속을 application service로 역전합니다.
+  verify-v390-vlm-observation-application-boundary
+                 V390-REVIEW4-64 transport의 VLM observation 조회 결속을 application service로 역전합니다.
+  verify-v390-incident-memory-application-boundary
+                 V390-REVIEW4-64 transport의 incident-memory 결속을 application service로 역전합니다.
+  verify-v390-event-post-application-boundary
+                 V390-REVIEW4-64 transport의 Event POST projection/status 결속을 application service로 역전합니다.
+  verify-v390-image-codec-application-boundary
+                 V390-REVIEW4-64 transport의 image decode/JPEG encode 결속을 application service로 역전합니다.
+  verify-v390-analysis-rule-private-declaration-boundary
+                 V390-REVIEW4-64 transport의 analysis rule domain 선언 결속을 private declaration으로 분리합니다.
+  verify-v390-analysis-frame-application-boundary
+                 V390-REVIEW4-64 transport의 detector/tracker/overlay 실행을 application service로 역전합니다.
+  verify-v390-va-metadata-application-boundary
+                 V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
+  verify-v390-event-feature-search-application-boundary
+                 V390-REVIEW4-64 transport의 Event Feature/Search Index·DSL 결속을 application service로 역전합니다.
+  verify-v390-event-storage-application-boundary
+                 V390-REVIEW4-64 transport의 Event Storage 결속을 application service로 역전합니다.
+  verify-v390-event-rule-application-boundary
+                 V390-REVIEW4-64 transport의 Event Rule runtime/evaluation 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-read-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session 조회 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-lifecycle-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session lifecycle 결속을 application service로 역전합니다.
+  verify-v390-webrtc-media-application-boundary
+                 V390-REVIEW4-64 transport의 WebRTC media/runtime 결속을 application service로 역전합니다.
+  verify-v390-stable-contract-owner-realignment
+                 V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
+  verify-v390-public-contract-interface-owner
+                 V390-REVIEW4-64 public contract/interface와 구현 owner를 분리합니다.
+  verify-v390-core-media-registry-rule-port
+                 V390-REVIEW4-64 WebRTC source registry와 RTSP rule lookup의 core-media 경계를 검증합니다.
+  verify-v390-webrtc-http-server-source-bundle
+                 V390-REVIEW4-64 split-safe HTTP server verifier source bundle을 검증합니다.
+  verify-v390-webrtc-http-server-physical-split
+                 V390-REVIEW4-64 HTTP server의 실제 translation-unit 분할과 15,000줄 한계를 검증합니다.
+  verify-v390-source-request-parser-owner
+                 V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
+  verify-v390-review4-truth-reset
+                 V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
+  verify-v390-review4-structure-scope-decision
+                 V390-REVIEW4-51 v3.9 actual refactor 승인, 순서, base/branch, 불변 계약을 검증합니다.
+  verify-v390-external-field-smoke-no-device-closure
+                 v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
+  verify-v390-truthfulness-status-vocabulary
+                 V390-REVIEW2-35 owner/field/structure 상태 진실성 vocabulary를 검증합니다.
+  verify-v390-stabilization-release-readiness
+                 v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v370-entry-baseline
+                 v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v370-site-source-group-contract
+                 v3.7.0 Step 2 Site / Source Group Contract read-only 경계를 검증합니다.
+  verify-v370-site-aware-source-registry-projection
+                 v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
+  verify-v370-site-health-rollup
+                 v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
+  verify-v370-site-impact-graph
+                 v3.7.0 Step 5 Site Impact Graph read-only 경계를 검증합니다.
+  verify-v370-site-simulation-input-pack
+                 v3.7.0 Step 6 Site Simulation Input Pack read-only 경계를 검증합니다.
+  verify-v370-cross-site-safe-apply-readiness
+                 v3.7.0 Step 7 Cross-Site Safe Apply Readiness read-only 경계를 검증합니다.
+  verify-v370-runbook-template-contract
+                 v3.7.0 Step 8 Runbook Template Contract read-only 경계를 검증합니다.
+  verify-v370-runbook-instance-ledger
+                 v3.7.0 Step 9 Runbook Instance Ledger append-only/read-only 경계를 검증합니다.
+  verify-v370-approval-ticket-workflow
+                 v3.7.0 Step 10 Approval Ticket Workflow read-only 경계를 검증합니다.
+  verify-v370-site-operations-workspace-ui
+                 v3.7.0 Step 11 Site Operations Workspace UI read-only 경계를 검증합니다.
+  verify-v370-client-notice-by-site-view-group
+                 v3.7.0 Step 12 Client Notice by Site/View Group preview-only 경계를 검증합니다.
+  verify-v370-rule-va-what-if-by-site
+                 v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
+  verify-v370-field-evidence-attachment
+                 v3.7.0 Step 14 Field Evidence Attachment conditional/not-run 경계를 검증합니다.
+  verify-v370-limited-safe-execution-pilot
+                 v3.7.0 Step 15 Limited Safe Execution Pilot approval-gated preview 경계를 검증합니다.
+  verify-v370-outcome-reconciliation
+                 v3.7.0 Step 16 Outcome Reconciliation pending/not-run 비교 경계를 검증합니다.
+  verify-v370-export-handoff-bundle
+                 v3.7.0 Step 17 Export / Handoff Bundle release-safe 경계를 검증합니다.
+  verify-v370-stabilization-release-readiness
+                 v3.7.0 Step 18 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v360-entry-baseline
+                 v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v360-simulation-input-contract
+                 v3.6.0 Step 2 Simulation Input Contract read-only 경계를 검증합니다.
+  verify-v360-operations-simulation-run-contract
+                 v3.6.0 Step 3 Operations Simulation Run Contract not-run 경계를 검증합니다.
+  verify-v360-command-plan-dry-run-simulator
+                 v3.6.0 Step 4 Command Plan Dry-run Simulator no-write 경계를 검증합니다.
+  verify-v360-source-rule-impact-diff
+                 v3.6.0 Step 5 Source/Rule Impact Diff read-only 경계를 검증합니다.
+  verify-v360-safe-apply-readiness-gate
+                 v3.6.0 Step 6 Safe Apply Readiness Gate no-auto-apply 경계를 검증합니다.
+  verify-v360-ops-simulation-workspace-ui
+                 v3.6.0 Step 7 Ops Simulation Workspace UI read-only 경계를 검증합니다.
+  verify-v360-simulation-run-ledger-comparison
+                 v3.6.0 Step 8 Simulation Run Ledger and Comparison read-only 경계를 검증합니다.
+  verify-v360-client-notice-preview
+                 v3.6.0 Step 9 Client Notice Preview preview-only 경계를 검증합니다.
+  verify-v360-rule-va-what-if-replay-pack
+                 v3.6.0 Step 10 Rule/VA What-if Replay Pack read-only 경계를 검증합니다.
+  verify-v360-simulation-export-bundle
+                 v3.6.0 Step 11 Simulation Export Bundle release-safe 경계를 검증합니다.
+  verify-v360-field-evidence-simulation-adapter
+                 v3.6.0 Step 12 Field Evidence Simulation Adapter not-run 경계를 검증합니다.
+  verify-v360-vlm-assisted-simulation-explanation
+                 v3.6.0 Step 13 VLM-assisted Simulation Explanation default-off 경계를 검증합니다.
+  verify-v360-stabilization-release-readiness
+                 v3.6.0 Step 14 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-onvif-live-import-contract
+                 카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
+  verify-onvif-protocol-support-matrix
+                 ONVIF protocol/service 지원/비지원 matrix와 구현 기준을 검증합니다.
+  verify-onvif-rtsps-draft-policy
+                 ONVIF rtsps:// 후보와 automatic draft 저장 계약을 검증합니다.
+  verify-onvif-https-soap-transport-design
+                 ONVIF HTTPS SOAP transport 향후 설계와 현재 fail-closed 경계를 검증합니다.
+  verify-onvif-https-tls-fixture
+                 ONVIF HTTPS TLS fixture harness command skeleton의 design-only skip 경계를 검증합니다.
+  verify-onvif-auth-injection-design
+                 ONVIF 인증 주입 향후 설계와 현재 credential reference-only 경계를 검증합니다.
+  verify-onvif-auth-injection-loopback
+                 ONVIF credential reference가 있어도 인증 material이 주입되지 않는 loopback 경계를 검증합니다.
+  verify-onvif-ws-discovery-ux
+                 ONVIF WS-Discovery 비지원 Ops UX 문구와 문서 경계를 검증합니다.
+  verify-onvif-unsupported-api-guard
+                 ONVIF PTZ/Events/Profile G 등 비지원 API route 경계를 검증합니다.
+  verify-onvif-probe-fixture-contract
+                 ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
+  verify-onvif-probe-profile-variants
+                 ONVIF Media/Media2 profile selection fixture variant를 검증합니다.
+  verify-onvif-synthetic-vendor-fixtures
+                 ONVIF vendor-style 합성 fixture pack을 실장비 없이 검증합니다.
+  verify-onvif-probe-parser
+                 ONVIF SOAP service/profile/stream URI parser 단위 smoke를 검증합니다.
+  verify-onvif-probe-adapter
+                 ONVIF probe action 순서와 실패 요약 redaction 단위 smoke를 검증합니다.
+  verify-onvif-probe-error-wording
+                 ONVIF probe 실패 문구 fixture matrix와 redaction을 검증합니다.
+  verify-onvif-soap-fault-matrix
+                 ONVIF SOAP Fault/malformed response matrix와 redaction을 검증합니다.
+  verify-onvif-no-device-suite
+                 ONVIF 실장비 제외 fixture/loopback/redaction 검증 묶음을 순차 실행합니다.
+  verify-onvif-no-device-mode
+                 ONVIF 실장비 제외 검증 모드의 문서/명령/옵션 경계를 검증합니다.
+  verify-onvif-no-device-completion
+                 ONVIF 실장비 제외 조건의 종료 판정과 별도 후속 범위 분리를 검증합니다.
+  verify-onvif-field-smoke-redaction
+                 ONVIF 현장 smoke 산출물 redaction checklist를 검증합니다.
+  verify-onvif-field-smoke-gate
+                 ONVIF 현장 smoke gate 절차와 report/review 상태 분리를 검증합니다.
+  verify-onvif-field-http-probe
+                 실제 ONVIF HTTP endpoint probe harness와 sanitized 산출물을 검증합니다.
+  verify-onvif-closed-loopback-failure-matrix
+                 ONVIF 닫힌 loopback endpoint 실패 matrix와 redaction을 검증합니다.
+  verify-onvif-tls-transport-policy
+                 ONVIF HTTPS/TLS fail-closed transport 정책을 검증합니다.
+  verify-onvif-credential-reference-policy
+                 ONVIF credential reference 원문 미저장 정책을 검증합니다.
+  verify-onvif-field-smoke-sample-bundle
+                 ONVIF 현장 smoke 산출물 sample bundle redaction을 검증합니다.
+  verify-onvif-http-transport
+                 ONVIF HTTP SOAP transport가 실제 POST/응답 수신을 수행하는지 검증합니다.
+  verify-onvif-local-simulator
+                 실장비 대신 로컬 ONVIF simulator fixture로 HTTP SOAP probe 성공 경로를 검증합니다.
+  verify-onvif-probe-draft-api
+                 실행 중인 서버가 ONVIF probe fixture를 source/view draft로 변환하는지 검증합니다.
+  verify-onvif-import-draft-api
+                 실행 중인 서버의 ONVIF import draft API가 fixture를 source/view draft로 변환하는지 검증합니다.
+  verify-onvif-rtsp-downstream
+                 ONVIF import draft의 공개 RTSP URL이 기존 source/view/client redaction 경로를 통과하는지 검증합니다.
+  verify-onvif-ops-sources-ui
+                 /ops/sources ONVIF import UI가 source/view 저장 round-trip까지 연결되는지 검증합니다.
+
+일반 정적/release 검증 명령:
+  verify-code-comments
+                 코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
+  verify-release-metadata
+                 VERSION, CMake, README, release/versioning/backlog 문서의 release 기준 drift를 검증합니다.
+  verify-release-evidence-index
+                 release evidence index가 실행/미실행/미확인 항목을 분리하는지 검증합니다.
+  verify-v190-entry-baseline
+                 v1.9.0 종료와 v2.0.0 진입 baseline report 구획을 검증합니다.
+  verify-v210-entry-baseline
+                 v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
+  verify-v220-entry-boundary
+                 v2.2.0 responsive UI foundation 진입 경계와 변경 금지 contract를 검증합니다.
+  verify-v230-entry-baseline
+                 v2.3.0 operational evidence baseline과 4대 테스트 영역 유지 계약을 검증합니다.
+  verify-v230-test-evidence-consistency
+                 v2.3.0 S02 4대 테스트 evidence 정합성과 미실행/제외 기록 경계를 검증합니다.
+  verify-v230-ui-renderer-module-decomposition
+                 v2.3.0 S03 UI renderer/module decomposition 산출물과 계약 경계를 검증합니다.
+  verify-v230-conditional-field-evidence
+                 v2.3.0 S04 조건부 ONVIF/external TURN/WHEP field evidence gate를 검증합니다.
+  verify-v230-ops-backup-recovery-lifecycle
+                 v2.3.0 S06 Ops backup/recovery evidence lifecycle gate를 검증합니다.
+  verify-v220-ui-architecture-inventory
+                 v2.2.0 UI architecture inventory와 S01 roadmap 연결을 검증합니다.
+  verify-v220-responsive-task-shell
+                 v2.2.0 responsive task shell 계약과 S02 roadmap 연결을 검증합니다.
+  verify-feature-scope-gate
+                 v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
+  verify-script-inventory
+                 server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
+  verify-project-inventory
+                 코드 기능/UI 접근 기능/검증 명령 inventory 문서가 현재 command/route 범위를 덮는지 점검합니다.
+  verify-feature-inventory-coverage
+                 기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
+  verify-feature-implementation-evidence
+                 984개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
+  verify-v300-entry-baseline
+                 v3.0.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
+  verify-v300-event-evidence-contract
+                 v3.0.0 S01 Event Evidence Contract와 FrameRef/retention/non-VMS 경계를 검증합니다.
+  verify-v300-feature-schema-privacy
+                 v3.0.0 S03 Feature Schema and Privacy Policy와 identity/privacy 경계를 검증합니다.
+  verify-v300-vlm-feature-queue
+                 v3.0.0 S04 VLM Feature Queue와 VLM-only failure 경계를 검증합니다.
+  verify-v300-feature-only-retention
+                 v3.0.0 S05 Feature-only Retention과 raw prompt/response non-retention 경계를 검증합니다.
+  verify-v300-search-dsl-query-convert
+                 v3.0.0 S06 Search DSL and Query Convert와 text/tags/filter 경계를 검증합니다.
+  verify-v300-feature-search-index
+                 v3.0.0 S07 Feature/Search Index와 stale result guard 경계를 검증합니다.
+  verify-v300-ops-events-ui
+                 v3.0.0 S08 Ops Events UI와 evidence timeline/feature reason/retry/pin/retention UI 경계를 검증합니다.
+  verify-v300-retention-pin-cleanup
+                 v3.0.0 S09 Retention/Pin/Cleanup과 pin 제외/dry-run/audit 경계를 검증합니다.
+  verify-v300-stabilization-release-readiness
+                 v3.0.0 S10 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v310-entry-baseline
+                 v3.1.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
+  verify-v310-event-clip-contract
+                 v3.1.0 S01 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계를 검증합니다.
+  verify-v310-replay-timeline-ui
+                 v3.1.0 S03 Replay Timeline UI와 event frame/frame bundle/encoded clip timeline 경계를 검증합니다.
+  verify-v310-client-safe-event-digest
+                 v3.1.0 S04 Client-safe Event Digest와 viewer redaction 경계를 검증합니다.
+  verify-v310-scoped-integrator-search-api
+                 v3.1.0 S05 Scoped Integrator Search API와 integrator scope/redaction 경계를 검증합니다.
+  verify-v310-operator-feature-correction
+                 v3.1.0 S06 Operator Feature Correction과 alias/reanalysis request 경계를 검증합니다.
+  verify-v310-optional-vector-search
+                 v3.1.0 S07 Optional Vector Search의 default-off embedding index와 quality gate 경계를 검증합니다.
+  verify-v310-retention-export-hardening
+                 v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
+  verify-v310-stabilization-release-readiness
+                 v3.1.0 S09 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v320-entry-baseline
+                 v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
+  verify-v320-resolution-state-contract
+                 v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
+  verify-v320-unified-ops-events-workspace
+                 v3.2.0 Step 3 Unified Ops Events Workspace와 resolution queue/detail/timeline UI 경계를 검증합니다.
+  verify-v320-evidence-quality-layer
+                 v3.2.0 Step 4 Evidence Quality Layer와 completeness/confidence/replay coverage hint 경계를 검증합니다.
+  verify-v320-source-reliability-context
+                 v3.2.0 Step 5 Source Reliability Context와 source health/recent failure/recheck hint 경계를 검증합니다.
+  verify-v320-source-reliability-runtime-sample
+                 v3.2.0 Step 5 fixture EventRecord item의 sourceReliability 런타임 샘플을 검증합니다.
+  verify-v320-ai-review-quality-context
+                 v3.2.0 Step 6 AI Review Quality Context와 correction/review signal, uncertainty reason, quality badge 경계를 검증합니다.
+  verify-v320-operator-resolution-flow
+                 v3.2.0 Step 7 Operator Resolution Flow와 assign/note/close/reopen/audit 경계를 검증합니다.
+  verify-v320-action-readiness-checklist
+                 v3.2.0 Step 8 Action Readiness Checklist와 rule draft/evidence bundle/notification readiness 경계를 검증합니다.
+  verify-v320-client-safe-resolution-digest
+                 v3.2.0 Step 9 Client-safe Resolution Digest와 viewer redaction 경계를 검증합니다.
+  verify-v320-stabilization-release-readiness
+                 v3.2.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v330-entry-baseline
+                 v3.3.0 Step 1 source baseline과 latest published v3.2.0 경계를 검증합니다.
+  verify-v330-source-registry-snapshot-identity
+                 v3.3.0 Step 2 Source Registry Snapshot and Identity read model 경계를 검증합니다.
+  verify-v330-source-onboarding-quality-summary
+                 v3.3.0 Step 3 Source Onboarding Quality Summary API/UI 경계를 검증합니다.
+  verify-v330-reliability-timeline-health-history
+                 v3.3.0 Step 4 Reliability Timeline and Health History API/UI 경계를 검증합니다.
+  verify-v330-incident-source-correlation-layer
+                 v3.3.0 Step 5 Incident-to-Source Correlation Layer API/UI 경계를 검증합니다.
+  verify-v330-operator-recheck-recovery-queue
+                 v3.3.0 Step 6 Operator Recheck and Recovery Queue API/UI 경계를 검증합니다.
+  verify-v330-client-safe-source-status-digest
+                 v3.3.0 Step 7 Client-safe Source Status Digest와 viewer redaction 경계를 검증합니다.
+  verify-v330-operator-runbook-reliability-handoff
+                 v3.3.0 Step 8 Operator Runbook and Reliability Handoff 문서 연결 경계를 검증합니다.
+  verify-v330-source-reliability-search-metrics
+                 v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
+  verify-v330-ops-backup-recovery-source-handoff
+                 v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
+  verify-v340-entry-baseline
+                 v3.4.0 Step 1 source baseline과 latest published v3.3.0 경계를 검증합니다.
+  verify-v340-continuity-drill-contract
+                 v3.4.0 Step 2 Continuity Drill Contract read-only/no-write 경계를 검증합니다.
+  verify-v340-recovery-candidate-package
+                 v3.4.0 Step 3 Recovery Candidate Package redacted read model 경계를 검증합니다.
+  verify-v340-staging-restore-validation-harness
+                 v3.4.0 Step 4 Staging Restore Validation Harness temporary-only 경계를 검증합니다.
+  verify-v340-source-health-replay-drift-diff
+                 v3.4.0 Step 5 Source Health Replay and Drift Diff read-only 경계를 검증합니다.
+  verify-v340-ops-continuity-drill-workspace-ui
+                 v3.4.0 Step 6 Ops Continuity Drill Workspace UI read-only 경계를 검증합니다.
+  verify-v340-approval-gated-recovery-checklist-audit
+                 v3.4.0 Step 7 Approval-Gated Recovery Checklist and Audit no-auto-recovery 경계를 검증합니다.
+  verify-v340-client-safe-maintenance-digest
+                 v3.4.0 Step 8 Client-safe Maintenance Digest redaction 경계를 검증합니다.
+  verify-v340-drill-evidence-export-cleanup-manifest
+                 v3.4.0 Step 9 Drill Evidence Export and Cleanup Manifest 경계를 검증합니다.
+  verify-v340-field-bridge-condition-gates
+                 v3.4.0 Step 10 Field Bridge Condition Gates 조건부 field smoke 경계를 검증합니다.
+  verify-v340-stabilization-release-readiness
+                 v3.4.0 Step 11 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v350-entry-baseline
+                 v3.5.0 Step 1 source baseline과 latest published v3.4.0 경계를 검증합니다.
+  verify-v350-live-operations-graph-contract
+                 v3.5.0 Step 2 Live Operations Graph Contract read-only 경계를 검증합니다.
+  verify-v350-operations-command-plan-contract
+                 v3.5.0 Step 3 Operations Command Plan Contract draft-only 경계를 검증합니다.
+  verify-v350-incident-to-command-handoff
+                 v3.5.0 Step 4 Incident-to-Command Handoff selected detail 경계를 검증합니다.
+  verify-v350-staged-change-plan-impact-preview
+                 v3.5.0 Step 5 Staged Change Plan and Impact Preview staging-only 경계를 검증합니다.
+  verify-v350-ops-command-workspace-ui
+                 v3.5.0 Step 6 Ops Command Workspace UI read-only 경계를 검증합니다.
+  verify-v350-drill-run-ledger-plan-comparison
+                 v3.5.0 Step 7 Drill Run Ledger and Plan Comparison read-only 경계를 검증합니다.
+  verify-v350-client-impact-forecast
+                 v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
+  verify-v350-stabilization-release-readiness
+                 v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v380-entry-baseline
+                 v3.8.0 Step 1 source baseline과 latest published v3.8.0 경계를 검증합니다.
+  verify-v380-ops-action-route-boundary
+                 v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
+  verify-v380-action-capability-contract
+                 v3.8.0 Step 3 Action Capability Contract를 검증합니다.
+  verify-v380-action-request-ledger-contract
+                 v3.8.0 Step 4 Action Request Ledger Contract를 검증합니다.
+  verify-v380-approval-decision-gate
+                 v3.8.0 Step 5 Approval Decision Gate를 검증합니다.
+  verify-v380-action-readiness-preflight
+                 v3.8.0 Step 6 Action Readiness Preflight를 검증합니다.
+  verify-v380-source-recheck-action-pilot
+                 v3.8.0 Step 7 Source Recheck Action Pilot을 검증합니다.
+  verify-v380-client-notice-draft-queue
+                 v3.8.0 Step 8 Client Notice Draft Queue를 검증합니다.
+  verify-v380-rule-draft-action-package
+                 v3.8.0 Step 9 Rule Draft Action Package를 검증합니다.
+  verify-v380-ops-action-control-workspace-ui
+                 v3.8.0 Step 10 Ops Action Control Workspace UI를 검증합니다.
+  verify-v380-client-safe-action-notice-preview
+                 v3.8.0 Step 11 Client-safe Action Notice Preview를 검증합니다.
+  verify-v380-outcome-observer-reconciliation
+                 v3.8.0 Step 12 Outcome Observer and Reconciliation을 검증합니다.
+  verify-v380-action-receipt-bundle
+                 v3.8.0 Step 13 Action Receipt Bundle을 검증합니다.
+  verify-v380-field-connector-evidence-package
+                 v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
+  verify-v380-default-off-action-explanation
+                 v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
+  verify-v380-stabilization-release-readiness
+                 v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v390-entry-baseline
+                 v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-entry-baseline-contract
+                 v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
+  verify-feature-semantic-closure-contract
+                 986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
+  verify-v390-review3-discovery-ledger
+                 V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
+  verify-v390-review4-semantic-discovery-ledger
+                 V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-audit
+                 V390-REVIEW4-53 986행 production source/call/data-flow 독립 ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approvals
+                 V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approval-selftest
+                 V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-semantic-migration-contract
+                 V390-REVIEW4-65 scoped semantic input과 carry-forward negative contract를 검증합니다.
+  verify-v390-review4-ops-168-184-safe-001-008-semantic
+                 V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
+  verify-v390-feature-completion-inventory
+                 v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
+  verify-v390-user-review-gate
+                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
+  verify-v390-evidence-test-gate-prep
+                 v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
+  verify-v390-server-longrun
+                 v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
+  verify-v390-server-longrun-runner-contract
+                 v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-longrun-evidence-measurement-contract
+                 V390-REVIEW4-61 monotonic duration, 120분 판정, PID/port/artifact cleanup 실측을 검증합니다.
+  verify-v390-onvif-credential-provider-status
+                 v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
+  verify-v390-onvif-live-import-persist-decision
+                 v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
+  verify-v390-onvif-source-view-atomicity
+                 V390-REVIEW4-55 ONVIF source/view crash recovery transaction을 검증합니다.
+  verify-v390-analysis-registry-durable-write
+                 V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
+  verify-v390-review4-lab-core-api
+                 REVIEW4-53 LAB core API의 실제 mutation/readback/cleanup을 짧게 검증합니다.
+  verify-v390-vlm-rule-suggestion-draft-bridge
+                 v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
+  verify-v390-vlm-incident-rule-provenance
+                 v3.9.0 (17) Development 15 VLM incident-to-rule 저장 provenance를 검증합니다.
+  verify-v390-deferred-product-owner-signoff
+                 v3.9.0 (17) Development 16 deferred 항목별 owner 역할과 결정을 검증합니다.
+  verify-v390-deferred-product-owner-source-region-contract
+                 REVIEW4-65 deferred owner UI 근거의 row-local source binding negative contract를 검증합니다.
+  verify-v390-vlm-evaluation-promotion-guard
+                 v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
+  verify-v390-vlm-promotion-trust-boundary
+                 V390-ADD1-03 candidate/result/provenance 서버 권위 승격 경계를 실제 HTTP로 검증합니다.
+  verify-v390-backup-recovery-handoff-validation
+                 v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
+  verify-v390-action-execution-deferral-decision
+                 v3.9.0 Step 16 action execution deferral decision을 검증합니다.
+  verify-v390-conditional-field-ai-decisions
+                 v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-reid-readiness-consistency
+                 V390-ADD1-04 Re-ID 파일/SHA/provenance/OpenSSL/ONNX 공용 readiness를 검증합니다.
+  verify-v390-structure-stabilization-handoff
+                 v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
+  verify-v390-structure-stabilization-readiness
+                 v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
+  verify-v390-review4-structure-stabilization-execution
+                 V390-REVIEW4-64 실제 6-slice 구조 안정화 실행 원장과 current graph를 검증합니다.
+  verify-v390-cmake-internal-target-separation
+                 V390-REVIEW4-64 composition executable과 runtime static library 분리를 검증합니다.
+  verify-v390-stable-contract-leaf-boundary
+                 V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
+  verify-v390-analysis-query-owner-boundary
+                 V390-REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 중간 SCC 경계를 검증합니다.
+  verify-v390-core-media-analysis-port-inversion
+                 V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
+  verify-v390-analysis-runtime-port-boundary
+                 V390-REVIEW4-64 analysis→core-utilities 설정·진단·명령 실행을 core-media port로 역전합니다.
+  verify-v390-transport-runtime-config-boundary
+                 V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
+  verify-v390-strict-json-service-boundary
+                 V390-REVIEW4-64 transport의 strict JSON 사용을 의미 기반 application service로 역전합니다.
+  verify-v390-source-view-application-boundary
+                 V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
+  verify-v390-appearance-readiness-application-boundary
+                 V390-REVIEW4-64 transport의 Re-ID readiness 결속을 application service로 역전합니다.
+  verify-v390-category-catalog-application-boundary
+                 V390-REVIEW4-64 transport의 category catalog 결속을 application service로 역전합니다.
+  verify-v390-vlm-observation-application-boundary
+                 V390-REVIEW4-64 transport의 VLM observation 조회 결속을 application service로 역전합니다.
+  verify-v390-incident-memory-application-boundary
+                 V390-REVIEW4-64 transport의 incident-memory 결속을 application service로 역전합니다.
+  verify-v390-event-post-application-boundary
+                 V390-REVIEW4-64 transport의 Event POST projection/status 결속을 application service로 역전합니다.
+  verify-v390-image-codec-application-boundary
+                 V390-REVIEW4-64 transport의 image decode/JPEG encode 결속을 application service로 역전합니다.
+  verify-v390-analysis-rule-private-declaration-boundary
+                 V390-REVIEW4-64 transport의 analysis rule domain 선언 결속을 private declaration으로 분리합니다.
+  verify-v390-analysis-frame-application-boundary
+                 V390-REVIEW4-64 transport의 detector/tracker/overlay 실행을 application service로 역전합니다.
+  verify-v390-va-metadata-application-boundary
+                 V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
+  verify-v390-event-feature-search-application-boundary
+                 V390-REVIEW4-64 transport의 Event Feature/Search Index·DSL 결속을 application service로 역전합니다.
+  verify-v390-event-storage-application-boundary
+                 V390-REVIEW4-64 transport의 Event Storage 결속을 application service로 역전합니다.
+  verify-v390-event-rule-application-boundary
+                 V390-REVIEW4-64 transport의 Event Rule runtime/evaluation 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-read-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session 조회 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-lifecycle-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session lifecycle 결속을 application service로 역전합니다.
+  verify-v390-webrtc-media-application-boundary
+                 V390-REVIEW4-64 transport의 WebRTC media/runtime 결속을 application service로 역전합니다.
+  verify-v390-stable-contract-owner-realignment
+                 V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
+  verify-v390-public-contract-interface-owner
+                 V390-REVIEW4-64 public contract/interface와 구현 owner를 분리합니다.
+  verify-v390-core-media-registry-rule-port
+                 V390-REVIEW4-64 WebRTC source registry와 RTSP rule lookup의 core-media 경계를 검증합니다.
+  verify-v390-webrtc-http-server-source-bundle
+                 V390-REVIEW4-64 split-safe HTTP server verifier source bundle을 검증합니다.
+  verify-v390-webrtc-http-server-physical-split
+                 V390-REVIEW4-64 HTTP server의 실제 translation-unit 분할과 15,000줄 한계를 검증합니다.
+  verify-v390-source-request-parser-owner
+                 V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
+  verify-v390-review4-truth-reset
+                 V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
+  verify-v390-review4-structure-scope-decision
+                 V390-REVIEW4-51 v3.9 actual refactor 승인, 순서, base/branch, 불변 계약을 검증합니다.
+  verify-v390-external-field-smoke-no-device-closure
+                 v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
+  verify-v390-truthfulness-status-vocabulary
+                 V390-REVIEW2-35 owner/field/structure 상태 진실성 vocabulary를 검증합니다.
+  verify-v390-stabilization-release-readiness
+                 v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v370-entry-baseline
+                 v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v370-site-source-group-contract
+                 v3.7.0 Step 2 Site / Source Group Contract read-only 경계를 검증합니다.
+  verify-v370-site-aware-source-registry-projection
+                 v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
+  verify-v370-site-health-rollup
+                 v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
+  verify-v370-site-impact-graph
+                 v3.7.0 Step 5 Site Impact Graph read-only 경계를 검증합니다.
+  verify-v370-site-simulation-input-pack
+                 v3.7.0 Step 6 Site Simulation Input Pack read-only 경계를 검증합니다.
+  verify-v370-cross-site-safe-apply-readiness
+                 v3.7.0 Step 7 Cross-Site Safe Apply Readiness read-only 경계를 검증합니다.
+  verify-v370-runbook-template-contract
+                 v3.7.0 Step 8 Runbook Template Contract read-only 경계를 검증합니다.
+  verify-v370-runbook-instance-ledger
+                 v3.7.0 Step 9 Runbook Instance Ledger append-only/read-only 경계를 검증합니다.
+  verify-v370-approval-ticket-workflow
+                 v3.7.0 Step 10 Approval Ticket Workflow read-only 경계를 검증합니다.
+  verify-v370-site-operations-workspace-ui
+                 v3.7.0 Step 11 Site Operations Workspace UI read-only 경계를 검증합니다.
+  verify-v370-client-notice-by-site-view-group
+                 v3.7.0 Step 12 Client Notice by Site/View Group preview-only 경계를 검증합니다.
+  verify-v370-rule-va-what-if-by-site
+                 v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
+  verify-v370-field-evidence-attachment
+                 v3.7.0 Step 14 Field Evidence Attachment conditional/not-run 경계를 검증합니다.
+  verify-v370-limited-safe-execution-pilot
+                 v3.7.0 Step 15 Limited Safe Execution Pilot approval-gated preview 경계를 검증합니다.
+  verify-v370-outcome-reconciliation
+                 v3.7.0 Step 16 Outcome Reconciliation pending/not-run 비교 경계를 검증합니다.
+  verify-v370-export-handoff-bundle
+                 v3.7.0 Step 17 Export / Handoff Bundle release-safe 경계를 검증합니다.
+  verify-v370-stabilization-release-readiness
+                 v3.7.0 Step 18 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v360-entry-baseline
+                 v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v360-simulation-input-contract
+                 v3.6.0 Step 2 Simulation Input Contract read-only 경계를 검증합니다.
+  verify-v360-operations-simulation-run-contract
+                 v3.6.0 Step 3 Operations Simulation Run Contract not-run 경계를 검증합니다.
+  verify-v360-command-plan-dry-run-simulator
+                 v3.6.0 Step 4 Command Plan Dry-run Simulator no-write 경계를 검증합니다.
+  verify-v360-source-rule-impact-diff
+                 v3.6.0 Step 5 Source/Rule Impact Diff read-only 경계를 검증합니다.
+  verify-v360-safe-apply-readiness-gate
+                 v3.6.0 Step 6 Safe Apply Readiness Gate no-auto-apply 경계를 검증합니다.
+  verify-v360-ops-simulation-workspace-ui
+                 v3.6.0 Step 7 Ops Simulation Workspace UI read-only 경계를 검증합니다.
+  verify-v360-simulation-run-ledger-comparison
+                 v3.6.0 Step 8 Simulation Run Ledger and Comparison read-only 경계를 검증합니다.
+  verify-v360-client-notice-preview
+                 v3.6.0 Step 9 Client Notice Preview preview-only 경계를 검증합니다.
+  verify-v360-rule-va-what-if-replay-pack
+                 v3.6.0 Step 10 Rule/VA What-if Replay Pack read-only 경계를 검증합니다.
+  verify-v360-simulation-export-bundle
+                 v3.6.0 Step 11 Simulation Export Bundle release-safe 경계를 검증합니다.
+  verify-v360-field-evidence-simulation-adapter
+                 v3.6.0 Step 12 Field Evidence Simulation Adapter not-run 경계를 검증합니다.
+  verify-v360-vlm-assisted-simulation-explanation
+                 v3.6.0 Step 13 VLM-assisted Simulation Explanation default-off 경계를 검증합니다.
+  verify-v360-stabilization-release-readiness
+                 v3.6.0 Step 14 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-actions-security
+                 GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
+  verify-ci-local-gate-parity
+                 로컬 verifier와 GitHub Actions static/guardrail gate 매핑을 검증합니다.
+  verify-public-repo-readiness
+                 public 전환 전 secret/history/asset/문서 준비 상태를 검증합니다.
+  verify-public-repo-readiness-contract
+                 public readiness의 개인 경로/raw artifact/대형 text fail-closed 계약을 검증합니다.
+  verify-generated-fixture-serialization-contract
+                 대형 generated fixture의 compact 직렬화·schema·cardinality·크기 계약을 검증합니다.
+  verify-v391-documentation-truth
+                 v3.9.1 public README/현재 문서/release evidence의 정합성을 검증합니다.
+  verify-v400-entry-baseline
+                 v4.0.0 current source baseline과 published v3.9.1 분리를 검증합니다.
+  verify-v400-user-review-gate
+                 v4.0.0 정책/안정화 범위와 v4.1.0 신규 기능 경계의 사용자 승인 기록을 검증합니다.
+  verify-v400-verification-layer-reduction
+                 v4.0.0 986/424 유지, verifier 남발 금지, wrapper/실행 PASS 분리 규칙을 검증합니다.
+  verify-v400-local-ops-policy-freeze
+                 v4.0.0 로컬 운영 정책 freeze(3.9 defer 5개 비구현 유지, field smoke 조건부 미실행)를 검증합니다.
+  verify-v400-incident-os-policy
+                 v4.0.0 Incident OS 정책화(/ops/events 검색·timeline·resolution, 새 event type 금지)를 검증합니다.
+  verify-v400-evidence-ops-policy
+                 v4.0.0 Evidence 운영 정책화(opt-in, 비-VMS, 삭제 금지, default-on은 4.1.0)를 검증합니다.
+  verify-v400-local-ops-stabilization
+                 v4.0.0 로컬 운영 안정화(역사적 verifier 유지, 현재소스 구분, v320 drift 기록)를 검증합니다.
+  verify-v400-release-readiness
+                 v4.0.0 release readiness(네 영역 판정, 30/UI 미실행 blocker, close-out dry-run)를 검증합니다.
+  verify-v400-roadmap-contract
+                 v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
+  verify-v410-research-gate
+                 v4.1.0 녹화 기반의 공개 자료 provenance와 IP clean-room 차단선을 검증합니다.
+  verify-v410-entry-baseline
+                 v4.1.0 source target과 published v4.0.0 baseline 분리를 검증합니다.
+  verify-v410-recording-contracts
+                 v4.1.0 녹화 v1 계약과 golden JSONL fixture의 ID·시간·호환성 경계를 검증합니다.
+  verify-v410-recording-generation
+  verify-v410-recording-generation-files
+  verify-v410-recording-generation-active
+  verify-v410-recording-generation-cold-mutation
+  verify-v410-recording-generation-projection
+  verify-v410-recording-journal-generation-readonly
+  verify-v410-recording-catalog-generation-scratch
+  verify-v410-recording-catalog-generation-readonly
+  verify-v410-recording-generation-preappend
+  verify-v410-recording-generation-append
+  verify-v410-recording-generation-checkpoint
+  verify-v410-recording-generation-consumers
+  verify-v410-recording-runtime-generation
+  verify-v410-recording-cutover-input
+  verify-v410-recording-cutover-session
+  verify-v410-recording-order-snapshot
+  verify-v410-recording-identity-shards
+  verify-v410-recording-catalog-snapshot
+                 B안 파일·복원·증분 쓰기·세대 회전의 해당 단위를 검사합니다. 전체 제품 통합 PASS는 아닙니다.
+  verify-v410-recording-retention
+                 v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
+  verify-v410-event-recording
+                 v4.1.0 이벤트-상시녹화 연결, 비동기 remux, fallback과 event quota 경계를 검증합니다.
+  verify-v410-recording-timeline
+                 S06 조회·Range·인증·전송 수명을 검증합니다. 인증 환경변수 5개와 빌드된 서버가 필요합니다.
+  verify-v410-recording-observations
+                 S07 V2 관측·sampling·종료·시간 snapshot focused 검증을 실행합니다.
+  verify-v410-recording-foundation-runtime
+                 S09 실제 runtime oracle 1/5/7을 검증합니다. 전체 S09 PASS를 뜻하지 않습니다.
+  verify-v410-recording-foundation
+                 기본 --all은 runtime→app-auth, 부분모드는 별도 실행합니다. 전체 S09 PASS가 아닙니다.
+  verify-v410-recording-longrun --duration-minutes 120
+                 S09 실제 녹화120분 관측입니다. 자원 안정성은 별도 검토하며 명시 실행 승인 필요.
+  verify-v410-recording-fallback-binding
+                 S09 fallback의 durable identity 결속·legacy·noOpenSSL 거부를 검증합니다.
+  verify-v410-recording-ui-contract
+                 S06 화면 정적 계약을 검증합니다. 실제 UI 풀테스트 PASS를 뜻하지 않습니다.
+  verify-post-release-reconciliation
+                 post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
+  verify-release-closeout-helper
+                 release close-out 전 로컬 검증, visual baseline readiness, 수동 tag/push 경계를 dry-run으로 요약합니다.
+  verify-client-action-reduction
+                 Client Live 버튼/CTA 축소 baseline과 UI smoke 연결을 검증합니다.
+  verify-client-live-workspace
+                 Client Live source tree/drag-drop workspace 계약을 검증합니다.
+  verify-client-source-dock-events
+                 Client Live source tree/dock event feed redaction 계약을 검증합니다.
+  verify-client-tile-disconnect
+                 Client Live tile/workspace disconnect 계약을 검증합니다.
+  verify-ops-event-review-inbox
+                 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
+  verify-ops-event-action-incident-workflow
+                 Event Action/Incident Workflow의 Ops-only state/audit/UI 계약을 검증합니다.
+  verify-ops-alert-delivery-integrations
+                 Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
+  verify-v240-ops-event-route-owner-decomposition
+                 v2.4.0 S06 Ops Events/action/client summary/alert dry-run route owner 분리를 검증합니다.
+  verify-v240-evidence-inventory-mapping
+                 v2.4.0 S07 feature inventory/manual UI/release evidence 매핑을 검증합니다.
+  verify-v240-release-readiness-gate
+                 v2.4.0 S08 release metadata/docs/assets/CI parity/close-out dry-run evidence를 검증합니다.
+  verify-v250-incident-text-projection
+                 v2.5.0 Event/incident text projection과 redaction guard를 검증합니다.
+  verify-v250-incident-memory-index
+                 v2.5.0 Local incident memory index의 SQLite FTS5 primary/JSONL BM25 fallback을 검증합니다.
+  verify-v250-ops-events-semantic-search-ui
+                 v2.5.0 /ops/events semantic search UI와 Ops-only search view model을 검증합니다.
+  verify-v250-incident-timeline-graph
+                 v2.5.0 incident timeline graph와 action/audit linkage를 검증합니다.
+  verify-v250-explainable-incident-brief
+                 v2.5.0 explainable incident brief와 VLM default-off 경계를 검증합니다.
+  verify-v250-similar-incident-lookup
+                 v2.5.0 similar incident lookup과 deterministic scoring/redaction 경계를 검증합니다.
+  verify-v250-client-safe-incident-digest
+                 v2.5.0 client-safe incident digest와 viewer redaction 경계를 검증합니다.
+  verify-v250-redacted-incident-evidence-bundle
+                 v2.5.0 redacted incident evidence bundle과 release-safe export 경계를 검증합니다.
+  verify-v250-owner-release-readiness
+                 v2.5.0 owner decomposition/release readiness gate를 검증합니다.
+  verify-ops-scenario-builder-ui
+                 Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
+  verify-ops-client-shared-declutter
+                 Ops/Client shared action declutter와 context action 계약을 검증합니다.
+  verify-ops-source-group-site-management
+                 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
+  verify-client-tile-info-overlay-health
+                 Client Live tile info overlay와 playback health UI 계약을 검증합니다.
+  verify-client-saved-views-layout-presets
+                 Saved Views/Layout Presets preference API와 UI 계약을 검증합니다.
+  verify-ops-operator-incident-timeline
+                 Operator Incident Timeline workflow/UI 계약을 검증합니다.
+  verify-server-start-modes
+                 foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
+  verify-auth-bootstrap
+                 최초 setup, admin password policy, login/logout/session을 검증합니다.
+  verify-auth-users
+                 admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
+  verify-auth-routes
+                 root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
+  verify-auth-ui-smoke
+                 실행 중인 auth shell 페이지의 selector와 선택 visual smoke를 검증합니다.
+  verify-auth-scope-picker
+                 실행 중인 /ops/users 권한 범위 템플릿 UI를 admin 세션으로 검증합니다.
+  verify-auth-regression-matrix
+                 Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
+  verify-vlm-boundary
+                 v2.0.0 VLM 도입 경계와 기존 event/metadata/media contract 불변 조건을 검증합니다.
+  verify-vlm-selection-decision
+                 v2.0.0 VLM 모델 선택값, fallback, license/privacy/bundle gate를 검증합니다.
+  detect-vlm-pc-capability
+                 v2.0.0 VLM PC 사양 감지 정보를 local-only JSON으로 수집합니다.
+  verify-vlm-pc-capability
+                 v2.0.0 VLM PC 사양 감지 detector와 fixture matrix를 검증합니다.
+  recommend-vlm-model
+                 v2.0.0 VLM 추천 모델/대안/비추천 사유와 resource estimate를 산출합니다.
+  verify-vlm-recommendation-engine
+                 v2.0.0 VLM 추천 엔진과 low/standard/high/privacy fixture matrix를 검증합니다.
+  verify-vlm-install-connection-scope-gate
+                 v2.0.0 VLM 설치/연결 UI 착수 범위 gate를 검증합니다.
+  vlm-install-connection-dry-run
+                 v2.0.0 VLM 설치/연결 dry-run contract JSON을 산출합니다.
+  verify-vlm-install-connection-dry-run
+                 v2.0.0 VLM 설치/연결 dry-run contract와 fixture matrix를 검증합니다.
+  verify-vlm-install-connection-ui
+                 v2.0.0 VLM 설치/연결 Ops UI와 dry-run API 경계를 검증합니다.
+  verify-vlm-profile-storage
+                 v2.0.0 VLM profile 저장 API/UI/fixture/auth 경계를 검증합니다.
+  verify-vlm-runtime-opt-in-contract
+                 v2.1.0 VLM runtime opt-in 상태와 default-off 계약을 검증합니다.
+  verify-vlm-local-runtime-smoke
+                 v2.1.0 Local VLM runtime connection smoke의 loopback endpoint/timeout/cleanup/fallback을 검증합니다.
+  verify-vlm-cloud-provider-field-smoke-gate
+                 v2.1.0 Cloud provider field smoke gate의 승인/credential/redaction/PASS 분리 기준을 검증합니다.
+  verify-v230-vlm-opt-in-operational-evidence
+                 v2.3.0 VLM opt-in operational evidence와 default-off/provider-not-run 경계를 검증합니다.
+  verify-vlm-queue-backpressure-stability
+                 v2.1.0 VLM queue/backpressure가 media/Event/metadata/Event POST 경로를 막지 않는지 검증합니다.
+  verify-vlm-runtime-status-ui
+                 v2.1.0 Ops VLM runtime status UI와 viewer/client 비노출 경계를 검증합니다.
+  verify-vlm-evaluation-result-workflow
+                 v2.1.0 VLM evaluation result workflow의 Ops 선택/profile draft 경계를 검증합니다.
+  verify-vlm-review-action-workflow
+                 v2.1.0 VLM review action workflow의 Ops review state/API/UI 경계를 검증합니다.
+  verify-vlm-rule-suggestion-draft-workflow
+                 v2.1.0 VLM rule suggestion 후보를 /ops/rules draft/manual save로만 가져가는지 검증합니다.
+  evaluate-vlm-harness
+                 v2.0.0 VLM 평가 harness fixture report를 산출합니다.
+  verify-vlm-evaluation-harness
+                 v2.0.0 VLM 평가 harness와 latency/품질/JSON/언어 fixture를 검증합니다.
+  verify-vlm-event-evidence-extraction
+                 v2.0.0 VLM event evidence reference 추출 경계를 검증합니다.
+  verify-vlm-observation-sidecar
+                 v2.0.0 VLMObservation sidecar 저장소와 EventRecord 상관 경계를 검증합니다.
+  generate-vlm-event-explanation
+                 v2.0.0 VLM 이벤트 설명/오탐 힌트 fixture report를 산출합니다.
+  verify-vlm-event-explanation-hints
+                 v2.0.0 VLM 이벤트 설명/오탐 힌트와 JSON 안정성을 검증합니다.
+  verify-vlm-ops-event-review-ui
+                 v2.0.0 Ops 이벤트 리뷰 UI의 VLM 설명/evidence 표시 경계를 검증합니다.
+  verify-vlm-privacy-transfer-guard
+                 v2.0.0 Privacy/전송 guard와 provider logging/redaction 경계를 검증합니다.
+  verify-vlm-summary-search-candidates
+                 v2.0.0 VLM summary 검색 후보와 sidecar/EventRecord correlation 경계를 검증합니다.
+  verify-vlm-rule-suggestion-candidates
+                 v2.0.0 VLM Rule 추천 보조 후보와 no-auto-apply 경계를 검증합니다.
+  verify-vlm-test-rehearsal
+                 v2.0.0 VLM 간이 테스트 리허설과 failure fixture/cleanup/lifecycle 경계를 검증합니다.
+  verify-vlm-closeout-readiness
+                 v2.0.0 VLM close-out readiness report와 release evidence 분리 기준을 검증합니다.
+  verify-event-post
+                 VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
+  verify-integrator-contract-artifact
+                 integrator 배포용 Event/WebRTC/SSE/WS contract sample bundle을 정적 검증합니다.
+  verify-event-post-longrun
+                 event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
+  verify-longrun-separation
+                 기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
+  verify-runtime-media-longrun-trigger-matrix
+                 runtime/media 변경 유형별 30분/120분 longrun trigger matrix를 검증합니다.
+  verify-runtime-dashboard-longrun-template
+                 Runtime Dashboard 장시간 evidence template과 실행 분리 기준을 검증합니다.
+  verify-rc-release-gate
+                 120분 soak/VA runtime longrun이 RC 전용 기준으로 분리됐는지 검증합니다.
+  rc-release-checklist
+                 RC gate summary/report를 Markdown/HTML checklist와 history index로 묶습니다.
+  rc-artifact-archive
+                 RC gate artifact를 외부 마운트/S3/NAS 보관소로 checksum manifest와 함께 복사합니다.
+  write-dependency-notice
+                 third-party attribution inventory에서 배포용 notice 문서를 생성하거나 검증합니다.
+  dependency-snapshot
+                 현재 설치된 dependency 버전, 모델 hash, linked library snapshot을 생성합니다.
+  verify-bundle-policy
+                 배포 bundle 안의 FFmpeg/GStreamer GPL-risk runtime 포함 여부를 검사합니다.
+  verify-release-bundle-dry-run
+                 기본 release bundle을 임시 구성하고 bundle policy gate를 실행합니다.
+  verify-runtime-model-bundle-rc-rehearsal
+                 v2.1.0 runtime/model bundle RC rehearsal과 release asset 금지 기준을 검증합니다.
+  source-offer-checklist
+                 LGPL/GPL runtime 포함 배포 전 source offer 준비 항목을 점검합니다.
+  verify-tracker-stability
+                 이동 영상에서 track ID 유지/분절 통계를 수집합니다.
+  compare-close-object-tracker
+                 close-object guard off/diagnostic/enforce tracker stability 비교 리포트를 생성합니다.
+  verify-close-object-fixture-matrix
+                 close-object guard 전체 fixture matrix를 정기 검증용 hard gate로 실행합니다.
+  verify-reid-advanced-tracking
+                 Re-ID/advanced tracking 실험의 default-off/privacy/benchmark gate를 검증합니다.
+  verify-oc-sort-benchmark-boundary
+                 OC-SORT 후순위 benchmark가 runtime tracker로 승격되지 않았는지 검증합니다.
+  verify-bot-sort-deepsort-research-boundary
+                 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증합니다.
+  verify-yolo-layouts
+                 YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
+  verify-adaptive
+                 adaptive tuner의 downshift/upshift 장시간 안정성을 검증합니다.
+  verify-image-analysis
+                 정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
+  verify-analysis-state
+                 TrackState/SceneContext/EventManager/Scenario/Appearance hook 단위 smoke를 검증합니다.
+  verify-sse-metadata
+                 VA metadata SSE side-channel schema/cleanup을 검증합니다.
+  verify-va-metadata-sidechannel
+                 VA metadata SSE side-channel schema/cleanup을 summary JSON과 함께 검증합니다.
+  verify-webrtc-va-metadata
+                 WebRTC vaMetadata=1 DataChannel의 video/ICE/schema 수신을 브라우저로 검증합니다.
+  verify-va-runtime-console
+                 VA Runtime Dashboard용 metrics/state/status endpoint를 검증합니다.
+  verify-va-runtime-console-longrun
+                 WebRTC metadata/dashboard/SSE/선택 RTSP overlay 장시간 안정성을 검증합니다.
+  verify-va-runtime-console-cycles
+                 WebRTC/dashboard/SSE/RTSP consumer connect/disconnect cycle RSS baseline을 검증합니다.
+  verify-rtsp-va-overlay-policy
+                 RTSP raw/server-side overlay와 metadata side-channel 분리 정책을 검증합니다.
+  verify-ws-metadata
+                 VA metadata WebSocket side-channel handshake/schema/cleanup을 검증합니다.
+  replay-va-metadata
+                 저장된 detection/tracking metadata를 media pipeline 없이 VA rule/scenario 계층에 replay합니다.
+  verify-va-replay
+                 VA metadata replay baseline fixture와 expected event JSON을 비교 검증합니다.
+  verify-predev  기능 개발 재개 전 smoke, VA event, event POST, cleanup, report를 묶어 검증합니다.
+  summarize-reports
+                 /tmp의 검증 summary JSON/NDJSON을 짧은 Markdown 리포트로 변환합니다.
+
+install 옵션:
+  --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
+  --with-youtube lab-only YouTube 실험 보조 도구인 yt-dlp/deno를 설치합니다.
+  --no-youtube   호환용 옵션입니다. 기본값이며 yt-dlp/deno 설치를 건너뜁니다.
+
+예시:
+  ./server.sh install
+  ./server.sh build
+  ./server.sh start
+  ./server.sh status
+  ./server.sh test
+  ./server.sh urls
+  ./server.sh stop
+
+기본 동작:
+  - AI 빌드가 기본입니다: build-gst-onnx + ONNX Runtime + YOLO 모델.
+  - 외부 PC에서도 접근 가능하도록 RTSP/HTTP를 0.0.0.0에 바인딩합니다.
+  - 로컬 환경 오버라이드는 scripts/.media_server.env에 저장합니다.
+  - start background 방식은 기본 nohup입니다. macOS에서 필요하면 MEDIA_SERVER_START_MODE=launchd를 명시합니다.
+  - WebRTC STUN/TURN은 MEDIA_SERVER_WEBRTC_STUN_SERVER, MEDIA_SERVER_WEBRTC_TURN_SERVER로 지정합니다.

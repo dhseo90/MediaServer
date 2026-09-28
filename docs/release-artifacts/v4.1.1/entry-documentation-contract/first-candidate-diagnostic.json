@@ -1,0 +1,784 @@
+{
+  "fullCandidatePreserved": false,
+  "sourceSha256": "0df2f2422987fe24747c892f4f0d8e413fd5a81bd808efff0845da29b189dbab",
+  "candidateDigest": "a50044ac152e9cd814127a1aaa0d2d9dff68a1241596b89c88288c9767e23f51",
+  "summary": {
+    "rows": 986,
+    "resolvedCandidates": 980,
+    "discoveredCandidates": 0,
+    "unresolvedCandidates": 6,
+    "fileScopeRoles": 0
+  },
+  "items": [
+    {
+      "id": "SAFE-124",
+      "featureContractSha256": "0d61d5d38ac74dbeed1e16647d53841c1b5ff87b8b7cf6923202210a01c5cda3",
+      "flowKind": "read-model",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "policy"
+      },
+      "status": "unresolved",
+      "failureReason": "ambiguous-shared-contract-facet",
+      "verifier": {
+        "command": "verify-v340-entry-baseline",
+        "file": "scripts/internal/verify_v340_entry_baseline.mjs"
+      },
+      "evidenceMode": "canonical-functional-source-assertion",
+      "evidenceToken": "safe124BoundaryObserved",
+      "sharedContract": null,
+      "proofSource": {
+        "kind": "separate-reviewed-proof-spec",
+        "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+      },
+      "roles": {
+        "owner": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+          "anchor": "check(\"SAFE-124 canonical V340 source-of-truth boundary\", () => {",
+          "line": 28,
+          "contextSha256": "4b93f962b2757a52fd3381f4fd90eceae4ef1d2ad932d9b967e7c31b4b762838"
+        },
+        "dispatch": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v340-entry-baseline)\");",
+          "line": 29,
+          "contextSha256": "277f63ae8818a64cacfbe0253aec42f48412285a55297cac531acf9dbf7aa631"
+        },
+        "action": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 30,
+          "contextSha256": "f54ac06204e32049a8d65fcbe4cc89e56937cd20d8452a1c404da4bbb1543fbe"
+        },
+        "state": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+          "anchor": "const safe124BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
+          "line": 32,
+          "contextSha256": "36d5476a8807a897fc06c552bf4d412a511c591e8eff6a21f0555c092ee4b9cd"
+        },
+        "readback": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+          "anchor": "assert(safe124BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
+          "line": 33,
+          "contextSha256": "13212507666550079e9f274c743f923f65132a27cc9f921f031deef1f2b3e450"
+        },
+        "verifier": {
+          "file": "server.sh",
+          "symbol": "server-dispatch:verify-v340-entry-baseline",
+          "anchor": "verify-v340-entry-baseline)",
+          "line": 2218,
+          "contextSha256": "d6104536ac7c06ae9aa5a17a357f94de74576429088b684fcb1b5651af828234"
+        }
+      },
+      "edges": [
+        {
+          "from": "owner",
+          "to": "dispatch",
+          "kind": "function-containment",
+          "witness": "SAFE-124 owner-dispatch",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:28",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:29"
+        },
+        {
+          "from": "dispatch",
+          "to": "action",
+          "kind": "co-asserted-boundary",
+          "witness": "SAFE-124 dispatch-action",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:29",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:30"
+        },
+        {
+          "from": "action",
+          "to": "state",
+          "kind": "assignment-def-use",
+          "witness": "SAFE-124 action-state",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:32"
+        },
+        {
+          "from": "state",
+          "to": "readback",
+          "kind": "structural-producer-assertion",
+          "witness": "SAFE-124 state-readback",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:33"
+        },
+        {
+          "from": "readback",
+          "to": "verifier",
+          "kind": "verifier-dispatch",
+          "witness": "verify-v340-entry-baseline",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:33",
+          "target": "server.sh:2218"
+        }
+      ],
+      "semanticObligation": {
+        "schema": "media-server.review4-typed-semantic-obligation.v1",
+        "policyVersion": "review4-outcome-binding-v3",
+        "featureContractSha256": "0d61d5d38ac74dbeed1e16647d53841c1b5ff87b8b7cf6923202210a01c5cda3",
+        "requirement": {
+          "operation": "read",
+          "expectation": "allow",
+          "surface": "policy"
+        },
+        "sourceClass": "harness-source-eligible",
+        "routeTokens": [],
+        "schemaTokens": [],
+        "fieldTokens": [
+          "verify-v340-entry-baseline",
+          "3.4.0",
+          "v3.4.0",
+          "v3.4.0 Operations Continuity Drill Workspace"
+        ],
+        "outcomeTokens": [],
+        "negativeBoundaries": [],
+        "clauses": [
+          {
+            "kind": "route",
+            "tokens": [],
+            "minimumExactMatches": 0
+          },
+          {
+            "kind": "schema",
+            "tokens": [],
+            "minimumExactMatches": 0
+          },
+          {
+            "kind": "field",
+            "tokens": [
+              "verify-v340-entry-baseline",
+              "3.4.0",
+              "v3.4.0",
+              "v3.4.0 Operations Continuity Drill Workspace"
+            ],
+            "minimumExactMatches": 1
+          },
+          {
+            "kind": "outcome",
+            "tokens": [],
+            "minimumExactMatches": 0
+          }
+        ],
+        "requiredOutcome": {
+          "normalized": "`verify-v340-entry-baseline`가 과거 회귀 입력의 source `3.4.0`, latest published `v3.4.0`, 선택 roadmap `v3.4.0 Operations Continuity Drill Workspace`, 출처 명시 회귀 입력, inventory, server dispatch 연결과 현행 VERSION/CMake/공개 문서 정합성을 확인하되 v3.4 기능 구현, UI 풀테스트 직접 조작, 30분/120분, PR/main/tag/GitHub Release PASS로 대체하지 않음",
+          "sha256": "25ec2492f548b8d0279c966d50f43901cb3b8db79c4b919b9381cc2d3fad43b1"
+        }
+      },
+      "sourceFlowDigest": null,
+      "trustBindings": {
+        "schema": "media-server.review4-source-trust-bindings.v1",
+        "roles": {
+          "owner": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "dispatch": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "action": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "state": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "readback": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "check:SAFE-124 canonical V340 source-of-truth boundary",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "verifier": {
+            "file": "server.sh",
+            "symbol": "server-dispatch:verify-v340-entry-baseline",
+            "enclosingBodySha256": "2e233945b3676c2a1ea2ac20fb14575cb98742a657cfc02b95f61913d37ab04d",
+            "enclosingBodyStartLine": null,
+            "enclosingBodyEndLine": null,
+            "enclosingBodyScope": "exact-dispatch-arm"
+          }
+        },
+        "verifierFileSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+        "dispatch": {
+          "command": "verify-v340-entry-baseline",
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "armSha256": "2e233945b3676c2a1ea2ac20fb14575cb98742a657cfc02b95f61913d37ab04d",
+          "requireTarget": "verify_v340_entry_baseline.mjs",
+          "execTarget": "verify_v340_entry_baseline.mjs",
+          "connectedFiles": [],
+          "connectedExecSha256": null
+        }
+      },
+      "sharedCandidateIds": [
+        "OPS-091"
+      ]
+    },
+    {
+      "id": "OPS-091",
+      "featureContractSha256": "b0cc079e525104ffc6f6f7d3a44a70d5023f3dbb4b51f7bf18909fda0d353006",
+      "flowKind": "read-model",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "ops"
+      },
+      "status": "unresolved",
+      "failureReason": "ambiguous-shared-contract-facet",
+      "verifier": {
+        "command": "verify-v340-entry-baseline",
+        "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+        "dispatchFile": "server.sh"
+      },
+      "evidenceMode": "canonical-functional-source-readback",
+      "evidenceToken": "safe124BoundaryObserved",
+      "sharedContract": null,
+      "proofSource": {
+        "kind": "separate-reviewed-proof-spec",
+        "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+      },
+      "roles": {
+        "owner": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "canonical-owner:OPS-091",
+          "anchor": "check(\"SAFE-124 canonical V340 source-of-truth boundary\", () => {",
+          "line": 28,
+          "contextSha256": "4b93f962b2757a52fd3381f4fd90eceae4ef1d2ad932d9b967e7c31b4b762838"
+        },
+        "dispatch": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "flow:OPS-091",
+          "anchor": "const baselineCommandDocumented = files.serverSh.includes(\"verify-v340-entry-baseline)\");",
+          "line": 29,
+          "contextSha256": "277f63ae8818a64cacfbe0253aec42f48412285a55297cac531acf9dbf7aa631"
+        },
+        "action": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "flow:OPS-091",
+          "anchor": "const currentSourceAligned = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 30,
+          "contextSha256": "f54ac06204e32049a8d65fcbe4cc89e56937cd20d8452a1c404da4bbb1543fbe"
+        },
+        "state": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "flow:OPS-091",
+          "anchor": "const safe124BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;",
+          "line": 32,
+          "contextSha256": "36d5476a8807a897fc06c552bf4d412a511c591e8eff6a21f0555c092ee4b9cd"
+        },
+        "readback": {
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "symbol": "flow:OPS-091",
+          "anchor": "assert(safe124BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),",
+          "line": 33,
+          "contextSha256": "13212507666550079e9f274c743f923f65132a27cc9f921f031deef1f2b3e450"
+        },
+        "verifier": {
+          "file": "server.sh",
+          "symbol": "server-dispatch:verify-v340-entry-baseline",
+          "anchor": "verify-v340-entry-baseline)",
+          "line": 2218,
+          "contextSha256": "d6104536ac7c06ae9aa5a17a357f94de74576429088b684fcb1b5651af828234"
+        }
+      },
+      "edges": [
+        {
+          "from": "owner",
+          "to": "dispatch",
+          "kind": "function-containment",
+          "witness": "OPS-091 owner-dispatch",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:28",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:29"
+        },
+        {
+          "from": "dispatch",
+          "to": "action",
+          "kind": "co-asserted-boundary",
+          "witness": "OPS-091 dispatch-action",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:29",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:30"
+        },
+        {
+          "from": "action",
+          "to": "state",
+          "kind": "assignment-def-use",
+          "witness": "OPS-091 action-state",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:30",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:32"
+        },
+        {
+          "from": "state",
+          "to": "readback",
+          "kind": "structural-producer-assertion",
+          "witness": "OPS-091 state-readback",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:32",
+          "target": "scripts/internal/verify_v340_entry_baseline.mjs:33"
+        },
+        {
+          "from": "readback",
+          "to": "verifier",
+          "kind": "verifier-dispatch",
+          "witness": "verify-v340-entry-baseline",
+          "source": "scripts/internal/verify_v340_entry_baseline.mjs:33",
+          "target": "server.sh:2218"
+        }
+      ],
+      "semanticObligation": {
+        "schema": "media-server.review4-typed-semantic-obligation.v1",
+        "policyVersion": "review4-outcome-binding-v3",
+        "featureContractSha256": "b0cc079e525104ffc6f6f7d3a44a70d5023f3dbb4b51f7bf18909fda0d353006",
+        "requirement": {
+          "operation": "read",
+          "expectation": "allow",
+          "surface": "ops"
+        },
+        "sourceClass": "harness-source-eligible",
+        "routeTokens": [],
+        "schemaTokens": [],
+        "fieldTokens": [
+          "verify-v340-entry-baseline",
+          "3.4.0",
+          "v3.4.0",
+          "v3.4.0 Operations Continuity Drill Workspace"
+        ],
+        "outcomeTokens": [],
+        "negativeBoundaries": [],
+        "clauses": [
+          {
+            "kind": "route",
+            "tokens": [],
+            "minimumExactMatches": 0
+          },
+          {
+            "kind": "schema",
+            "tokens": [],
+            "minimumExactMatches": 0
+          },
+          {
+            "kind": "field",
+            "tokens": [
+              "verify-v340-entry-baseline",
+              "3.4.0",
+              "v3.4.0",
+              "v3.4.0 Operations Continuity Drill Workspace"
+            ],
+            "minimumExactMatches": 1
+          },
+          {
+            "kind": "outcome",
+            "tokens": [],
+            "minimumExactMatches": 0
+          }
+        ],
+        "requiredOutcome": {
+          "normalized": "`verify-v340-entry-baseline`가 현행 VERSION/CMake/공개 문서 정합성과 과거 회귀 입력의 source `3.4.0`, latest published `v3.4.0`, 선택 roadmap `v3.4.0 Operations Continuity Drill Workspace` 구분 및 inventory/dispatch 연결을 확인하되 v3.4 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음",
+          "sha256": "5bda80db201213ff79d23a4f64fd1d13a8ebacab81e67dc3ed674b92552ba641"
+        }
+      },
+      "sourceFlowDigest": null,
+      "trustBindings": {
+        "schema": "media-server.review4-source-trust-bindings.v1",
+        "roles": {
+          "owner": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "canonical-owner:OPS-091",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "dispatch": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "flow:OPS-091",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "action": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "flow:OPS-091",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "state": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "flow:OPS-091",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "readback": {
+            "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+            "symbol": "flow:OPS-091",
+            "trackedBlobSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+            "enclosingBodySha256": "938d0cfb4c6d3f3fa7aa458c132b7ce3ab4818d4e73c8b84209b3a1d07354280",
+            "enclosingBodyStartLine": 28,
+            "enclosingBodyEndLine": 35,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "verifier": {
+            "file": "server.sh",
+            "symbol": "server-dispatch:verify-v340-entry-baseline",
+            "enclosingBodySha256": "2e233945b3676c2a1ea2ac20fb14575cb98742a657cfc02b95f61913d37ab04d",
+            "enclosingBodyStartLine": null,
+            "enclosingBodyEndLine": null,
+            "enclosingBodyScope": "exact-dispatch-arm"
+          }
+        },
+        "verifierFileSha256": "3306efb346606805fffdee95856c4bb94dc9c2ae354b29396139631e3534a908",
+        "dispatch": {
+          "command": "verify-v340-entry-baseline",
+          "file": "scripts/internal/verify_v340_entry_baseline.mjs",
+          "armSha256": "2e233945b3676c2a1ea2ac20fb14575cb98742a657cfc02b95f61913d37ab04d",
+          "requireTarget": "verify_v340_entry_baseline.mjs",
+          "execTarget": "verify_v340_entry_baseline.mjs",
+          "connectedFiles": [],
+          "connectedExecSha256": null
+        }
+      },
+      "sharedCandidateIds": [
+        "SAFE-124"
+      ]
+    },
+    {
+      "id": "OPS-102",
+      "featureContractSha256": "344aa1d4efebe940dd034ffd5efb7eb5559728786f199c1bba426f9e86659cd7",
+      "flowKind": "read-model",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "ops"
+      },
+      "status": "unresolved",
+      "failureReason": "reviewed-proof-invalid",
+      "verifier": {
+        "command": "verify-v350-entry-baseline",
+        "file": "scripts/internal/verify_v350_entry_baseline.mjs"
+      },
+      "roles": {},
+      "edges": [],
+      "sourceFlowDigest": null,
+      "reviewedProofFile": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+      "reviewedProofErrors": [
+        "edge-1:containment-unproven"
+      ]
+    },
+    {
+      "id": "OPS-115",
+      "featureContractSha256": "1b6089971c24a26bea5f5facddda708d4fd1a828c7f6e095ee38145a0dc3df61",
+      "flowKind": "read-model",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "ops"
+      },
+      "status": "unresolved",
+      "failureReason": "reviewed-proof-invalid",
+      "verifier": {
+        "command": "verify-v360-entry-baseline",
+        "file": "scripts/internal/verify_v360_entry_baseline.mjs"
+      },
+      "roles": {},
+      "edges": [],
+      "sourceFlowDigest": null,
+      "reviewedProofFile": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+      "reviewedProofErrors": [
+        "edge-1:containment-unproven"
+      ]
+    },
+    {
+      "id": "OPS-129",
+      "featureContractSha256": "8f1a5f0ae312be736b0f683b42625de039d63a69745984dab720c13b86fad97a",
+      "flowKind": "read-model",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "ops"
+      },
+      "status": "unresolved",
+      "failureReason": "reviewed-proof-invalid",
+      "verifier": {
+        "command": "verify-v370-entry-baseline",
+        "file": "scripts/internal/verify_v370_entry_baseline.mjs"
+      },
+      "roles": {},
+      "edges": [],
+      "sourceFlowDigest": null,
+      "reviewedProofFile": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+      "reviewedProofErrors": [
+        "edge-1:containment-unproven"
+      ]
+    },
+    {
+      "id": "OPS-147",
+      "featureContractSha256": "bc1a8620cdc4bd9b3d88b0e7894a83f7cc0b6d6dc2c1e5c93943c21ca0c17f38",
+      "flowKind": "read-model",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "ops"
+      },
+      "status": "unresolved",
+      "failureReason": "typed-semantic-proof-invalid:edge-1:co-asserted-boundary-unproven",
+      "verifier": {
+        "command": "verify-v380-entry-baseline",
+        "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+        "dispatchFile": "server.sh"
+      },
+      "evidenceMode": "canonical-functional-source-assertion",
+      "evidenceToken": "ops147GateObserved",
+      "sharedContract": null,
+      "proofSource": {
+        "kind": "separate-reviewed-proof-spec",
+        "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+      },
+      "roles": {
+        "owner": {
+          "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+          "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+          "anchor": "check(\"OPS-147 canonical V380 historical baseline gate\", () => {",
+          "line": 37,
+          "contextSha256": "bd4e695de41f7cf4adf701e341cb38dfad146b229bac844fcc8945fce4f438aa"
+        },
+        "dispatch": {
+          "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+          "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+          "anchor": "const historicalBaselineRecorded = baseline.sourceVersion === \"3.8.0\" &&",
+          "line": 38,
+          "contextSha256": "212d80ac507f645a96e5e0a34f28d142eb13912d89afda1d7c0957c85d7aa7bf"
+        },
+        "action": {
+          "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+          "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+          "anchor": "const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && inputs.errors.length === 0;",
+          "line": 40,
+          "contextSha256": "a6c07a2081ba293862de537339cc36eefdd8982fcb5403318534f7615d0a9d3b"
+        },
+        "state": {
+          "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+          "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+          "anchor": "const ops147GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&",
+          "line": 43,
+          "contextSha256": "11b25b6d690db101e0cc10ee52bcb6f2d50d7959e01fbafac912c393d5947e39"
+        },
+        "readback": {
+          "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+          "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+          "anchor": "assert(ops147GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,",
+          "line": 45,
+          "contextSha256": "fc33c3e901e7e3f561bb689c9cb20b5f2ed7b9b2dce5219bb85b8df34edeb84e"
+        },
+        "verifier": {
+          "file": "server.sh",
+          "symbol": "server-dispatch:verify-v380-entry-baseline",
+          "anchor": "verify-v380-entry-baseline)",
+          "line": 2314,
+          "contextSha256": "7811878566a61adf49bcdf3d239adab3a6832c323a8f9915204a940c6c1430f0"
+        }
+      },
+      "edges": [
+        {
+          "from": "owner",
+          "to": "dispatch",
+          "kind": "function-containment",
+          "witness": "OPS-147 owner-dispatch",
+          "source": "scripts/internal/verify_v380_entry_baseline.mjs:37",
+          "target": "scripts/internal/verify_v380_entry_baseline.mjs:38"
+        },
+        {
+          "from": "dispatch",
+          "to": "action",
+          "kind": "co-asserted-boundary",
+          "witness": "OPS-147 dispatch-action",
+          "source": "scripts/internal/verify_v380_entry_baseline.mjs:38",
+          "target": "scripts/internal/verify_v380_entry_baseline.mjs:40"
+        },
+        {
+          "from": "action",
+          "to": "state",
+          "kind": "assignment-def-use",
+          "witness": "OPS-147 action-state",
+          "source": "scripts/internal/verify_v380_entry_baseline.mjs:40",
+          "target": "scripts/internal/verify_v380_entry_baseline.mjs:43"
+        },
+        {
+          "from": "state",
+          "to": "readback",
+          "kind": "structural-producer-assertion",
+          "witness": "OPS-147 state-readback",
+          "source": "scripts/internal/verify_v380_entry_baseline.mjs:43",
+          "target": "scripts/internal/verify_v380_entry_baseline.mjs:45"
+        },
+        {
+          "from": "readback",
+          "to": "verifier",
+          "kind": "verifier-dispatch",
+          "witness": "verify-v380-entry-baseline",
+          "source": "scripts/internal/verify_v380_entry_baseline.mjs:45",
+          "target": "server.sh:2314"
+        }
+      ],
+      "semanticObligation": {
+        "schema": "media-server.review4-typed-semantic-obligation.v1",
+        "policyVersion": "review4-outcome-binding-v3",
+        "featureContractSha256": "bc1a8620cdc4bd9b3d88b0e7894a83f7cc0b6d6dc2c1e5c93943c21ca0c17f38",
+        "requirement": {
+          "operation": "read",
+          "expectation": "allow",
+          "surface": "ops"
+        },
+        "sourceClass": "harness-source-eligible",
+        "routeTokens": [],
+        "schemaTokens": [],
+        "fieldTokens": [
+          "verify-v380-entry-baseline",
+          "3.8.0",
+          "v3.8.0",
+          "v3.8.0 Operator-Gated Action Pilot & Outcome Loop"
+        ],
+        "outcomeTokens": [],
+        "negativeBoundaries": [],
+        "clauses": [
+          {
+            "kind": "route",
+            "tokens": [],
+            "minimumExactMatches": 0
+          },
+          {
+            "kind": "schema",
+            "tokens": [],
+            "minimumExactMatches": 0
+          },
+          {
+            "kind": "field",
+            "tokens": [
+              "verify-v380-entry-baseline",
+              "3.8.0",
+              "v3.8.0",
+              "v3.8.0 Operator-Gated Action Pilot & Outcome Loop"
+            ],
+            "minimumExactMatches": 1
+          },
+          {
+            "kind": "outcome",
+            "tokens": [],
+            "minimumExactMatches": 0
+          }
+        ],
+        "requiredOutcome": {
+          "normalized": "`verify-v380-entry-baseline`가 현행 VERSION/CMake/공개 문서 정합성과 과거 회귀 입력의 source `3.8.0`, latest published `v3.8.0`, 선택 roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` 구분 및 inventory/dispatch 연결을 확인하되 v3.8 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음",
+          "sha256": "87b7a15e21ac94a9e5b6354e57b21b57e867458531f9eaacfa9b3a4796a77fe5"
+        }
+      },
+      "sourceFlowDigest": null,
+      "trustBindings": {
+        "schema": "media-server.review4-source-trust-bindings.v1",
+        "roles": {
+          "owner": {
+            "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+            "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+            "trackedBlobSha256": "42077dde1ce7e7cea778b5a19069d781f6455541fd871d49dedc29245baf5e6f",
+            "enclosingBodySha256": "8d26f407ad221dcf594a24b87a6896300ba032cc62f892040f2fecbf324fa267",
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 47,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "dispatch": {
+            "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+            "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+            "trackedBlobSha256": "42077dde1ce7e7cea778b5a19069d781f6455541fd871d49dedc29245baf5e6f",
+            "enclosingBodySha256": "8d26f407ad221dcf594a24b87a6896300ba032cc62f892040f2fecbf324fa267",
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 47,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "action": {
+            "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+            "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+            "trackedBlobSha256": "42077dde1ce7e7cea778b5a19069d781f6455541fd871d49dedc29245baf5e6f",
+            "enclosingBodySha256": "8d26f407ad221dcf594a24b87a6896300ba032cc62f892040f2fecbf324fa267",
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 47,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "state": {
+            "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+            "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+            "trackedBlobSha256": "42077dde1ce7e7cea778b5a19069d781f6455541fd871d49dedc29245baf5e6f",
+            "enclosingBodySha256": "8d26f407ad221dcf594a24b87a6896300ba032cc62f892040f2fecbf324fa267",
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 47,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "readback": {
+            "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+            "symbol": "check:OPS-147 canonical V380 historical baseline gate",
+            "trackedBlobSha256": "42077dde1ce7e7cea778b5a19069d781f6455541fd871d49dedc29245baf5e6f",
+            "enclosingBodySha256": "8d26f407ad221dcf594a24b87a6896300ba032cc62f892040f2fecbf324fa267",
+            "enclosingBodyStartLine": 37,
+            "enclosingBodyEndLine": 47,
+            "enclosingBodyScope": "semantic-enclosing-function"
+          },
+          "verifier": {
+            "file": "server.sh",
+            "symbol": "server-dispatch:verify-v380-entry-baseline",
+            "enclosingBodySha256": "6fa06f2274e1cf1cb86474f3b4186785af25b20888615c2a960a04063176b264",
+            "enclosingBodyStartLine": null,
+            "enclosingBodyEndLine": null,
+            "enclosingBodyScope": "exact-dispatch-arm"
+          }
+        },
+        "verifierFileSha256": "42077dde1ce7e7cea778b5a19069d781f6455541fd871d49dedc29245baf5e6f",
+        "dispatch": {
+          "command": "verify-v380-entry-baseline",
+          "file": "scripts/internal/verify_v380_entry_baseline.mjs",
+          "armSha256": "6fa06f2274e1cf1cb86474f3b4186785af25b20888615c2a960a04063176b264",
+          "requireTarget": "verify_v380_entry_baseline.mjs",
+          "execTarget": "verify_v380_entry_baseline.mjs",
+          "connectedFiles": [],
+          "connectedExecSha256": null
+        }
+      },
+      "typedSemanticErrors": [
+        "edge-1:co-asserted-boundary-unproven"
+      ]
+    }
+  ]
+}

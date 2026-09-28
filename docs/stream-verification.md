@@ -36,6 +36,12 @@
 `verify-v410-entry-baseline`은 CLI 호환을 위해 현행 `verify-release-metadata`에 연결한다.
 과거 v4.1.0 단계 완료를 재판정하거나 당시 로그를 복원하지 않으며, 잘못된 옵션과 실패 exit를 그대로 전달한다.
 
+진입 문서 회귀 자체검사는 `node --test scripts/internal/entry_baseline_documentation.test.mjs`다.
+`ENTRY-DOC-01`~`ENTRY-DOC-10`은 v3.4~v3.8 기존 명령·기능 ID를 유지하면서 현행 문서 정합성,
+과거 버전 경계 입력, 실행 증거 승격 거부, 정확한 dispatch/정의 연결, Git·종료 기록 없는 실행,
+입력 누락·변조·symlink 이탈·실패 exit를 확인한다. 과거 제목/완료 표/중앙 실행 기록의 존재 검사는
+현재 gate에서 분리한다. UI 자산 무결성은 전용 `verify-docs-ui-assets`가 담당하고 이 검사로 대체하지 않는다.
+
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
 

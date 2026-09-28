@@ -1,0 +1,13 @@
+[pass] current documents, feature definitions, and dispatch remain connected
+[pass] SAFE-162 canonical V370 historical baseline boundary
+[pass] OPS-129 canonical V370 historical baseline gate
+== verify-v370-entry-baseline 문서 계약 검사 ==
+- currentVersion: 4.1.0
+- publishedSnapshot: v4.1.0 (현재 원격 확인 아님)
+- historicalFixture: 3.7.0 / v3.7.0
+- featureImplementation: not-run-by-this-command
+- uiFulltest: not-run-by-this-command
+- longrun30Or120: not-run-by-this-command
+- publishedMetadata: not-run-by-this-command
+- pass: 3
+- fail: 0
