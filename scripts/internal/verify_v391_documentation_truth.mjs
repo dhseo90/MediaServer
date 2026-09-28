@@ -1,50 +1,38 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9.1 public 문서의 role, dependency, current/published, public-index 경계를 검증합니다.
-
+// 파일 용도: 현행 공개 문서의 권한·의존성·metadata·정책 연결을 검사한다. 종료 실행 기록은 입력이 아니다.
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
-
-import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {fileURLToPath} from "node:url";
+import {assertKnownOptions, hasHelpFlag, printUsageAndExit} from "./script_arg_utils.mjs";
+import {hasDocumentLink, validateUiPolicyDocumentation, validateVerificationDocumentation} from "./documentation_contract_lib.mjs";
+import {readReleaseContext, validateReleaseContext, validateLocalReleaseDocuments} from "./release_documentation_contract.mjs";
+import {validatePolicy} from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const rawArgs = process.argv.slice(2);
-if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`v3.9.1 documentation truth verification
-
-Usage:
-  ./server.sh verify-v391-documentation-truth
-
-Checks public role wording, GStreamer 1.28 minimums, public-index exclusions,
-and v4.0.0 current-source / v3.9.1 latest-published status boundaries.
-`);
-}
-assertKnownOptions(rawArgs, ["h", "help"]);
-
+const args = process.argv.slice(2);
+if (hasHelpFlag(args)) printUsageAndExit("공개 문서 정합성 검사\nUsage: ./server.sh verify-v391-documentation-truth\n현행 권한 안내·의존성·source/published metadata·공개 색인·검증 기준을 확인합니다. 과거 제목·고정 행수·실행 원장은 요구하지 않습니다.");
+assertKnownOptions(args, ["h", "help"]);
 const checks = [];
-const read = (relativePath) => fs.readFileSync(path.join(rootDir, relativePath), "utf8");
-const head = (text, lineCount) => text.split(/\r?\n/).slice(0, lineCount).join("\n");
+const read = relative => fs.readFileSync(path.join(rootDir, relative), "utf8");
 
-const readme = read("README.md");
-const readmeEn = read("README.en.md");
-const docsIndex = read("docs/README.md");
+check("공개 권한 안내는 admin 전용 사용자 관리와 operator 제한을 유지", () => {
+  const ko = prose(read("README.md")), en = prose(read("README.en.md"));
+  assert(/사용자\s*관리[^\n]*admin[^\n]*전용/.test(ko), "README admin 전용 사용자 관리 안내 없음");
+  assert(/user\s+management[^\n]*admin-only/i.test(en), "README.en admin-only user management 안내 없음");
+  const koOperator = ko.split(/\r?\n/).filter(line => /\boperator\b/.test(line)).join("\n");
+  const enOperator = en.split(/\r?\n/).filter(line => /\boperator\b/.test(line)).join("\n");
+  assert(/사용자\s*관리[^\n]*(?:접근하지\s*않|접근할\s*수\s*없)/.test(koOperator), "README operator 사용자 관리 제한 없음");
+  assert(/cannot\s+access\s+user\s+management/i.test(enOperator), "README.en operator 사용자 관리 제한 없음");
+  for (const file of ["README.md","README.en.md"])
+    assert(hasDocumentLink(read(file), "docs/ui-guide.md"), file + " 상세 권한 안내 연결 없음");
+});
+
 const developmentGuide = read("docs/development-guide.md");
 const thirdParty = read("THIRD_PARTY_NOTICES.md");
 const dependencySnapshot = read("DEPENDENCY_SNAPSHOT.md");
 const attribution = JSON.parse(read("config/third_party_attribution.json"));
 const cmake = read("CMakeLists.txt");
-
-check("Ops user management is admin-only in both public READMEs", () => {
-  const ko = section(readme, "## 계정별 화면");
-  const en = section(readmeEn, "## Account Views");
-  assert(ko.includes("사용자 관리는 admin 전용입니다."), "README missing admin-only user management wording");
-  assert(en.includes("User management is admin-only."), "README.en missing admin-only user management wording");
-  const koOperator = ko.split(/\r?\n/).find(line => line.includes("operator")) || "";
-  const enOperator = en.split(/\r?\n/).find(line => line.includes("operator")) || "";
-  assert(koOperator.includes("사용자 관리 화면에는 접근하지 않습니다"), "README does not deny operator user-management access");
-  assert(/cannot access user management/i.test(enOperator), "README.en does not deny operator user-management access");
-});
 
 check("GStreamer API namespace and minimum supported version are distinct", () => {
   const gst = attribution.dependencies.find(item => item.id === "gstreamer");
@@ -59,102 +47,48 @@ check("GStreamer API namespace and minimum supported version are distinct", () =
   }
 });
 
-check("public docs index excludes internal release and generated-test material", () => {
-  const links = [...docsIndex.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)].map(match => match[1]);
-  const forbidden = [
-    "release-test-records",
-    "release-evidence-index",
-    "v390-current-state",
-    "v390-full-status",
-    "/superpowers/",
-    "superpowers/",
-    "project-feature-test-inventory",
-    "v390-ui-automation-coverage-matrix",
-    "v390-feature-completion-inventory",
-  ];
-  const denied = links.filter(link => forbidden.some(marker => link.includes(marker)));
-  assert(denied.length === 0, `public docs index contains internal link(s): ${denied.join(", ")}`);
+check("공개 색인에서 상세 실행 기록과 내부 계획 분리", () => {
+  const text = prose(read("docs/README.md"));
+  const links = [...text.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)].map(match => match[1]);
+  const forbidden = ["release-test-records", "release-evidence-index", "release-artifacts/",
+    "v390-current-state", "v390-full-status", "superpowers/", "v390-feature-completion-inventory"];
+  // release-artifacts 안의 공개 release note는 실행 일지와 다르다. 디렉터리명만으로 배제하지 않는다.
+  const releaseNote = link => /^release-artifacts\/v\d+\.\d+\.\d+\/release-notes\.md(?:#[^\s]*)?$/.test(link.replace(/^\.\//, ""));
+  const denied = links.filter(link => !releaseNote(link) && forbidden.some(marker => link.includes(marker)));
+  assert(denied.length === 0, "공개 색인에 종료 기록/내부 계획 연결: " + denied.join(", "));
+  // 현행 inventory·검증 정의는 유지보수자용 색인의 대상이다. 실행 일지와 혼동하지 않는다.
 });
 
-check("manual UI current header identifies v4.0.0 and preserves v3.9.1 as previous baseline", () => {
-  for (const file of ["docs/manual-ui-checklist.md", "docs/manual-ui-fulltest.md"]) {
-    const current = head(read(file), 35);
-    assert(current.includes("v4.0.0"), `${file} missing current source v4.0.0`);
-    assert(current.includes("v3.9.1"), `${file} missing previous published v3.9.1`);
-    assert(!current.includes("최신 공개 release 기준은 `v3.8.0"), `${file} still calls v3.8.0 latest`);
-    assert(!current.includes("최신 공개 release 기준은 `v3.9.0"), `${file} still calls v3.9.0 latest`);
-    assert(!current.includes("최신 공개 release 기준은 `v3.9.1"), `${file} still calls v3.9.1 latest`);
-  }
+check("현행 source와 기록된 공개 metadata 일치", () => {
+  const version = read("VERSION").trim(), context = readReleaseContext(read("docs/release-policy.md"));
+  const errors = [...validateReleaseContext(context, version), ...validateLocalReleaseDocuments(rootDir, context, version)];
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("current verification and inventory docs expose v3.9.1 correction state", () => {
-  assert(head(read("docs/stream-verification.md"), 125).includes("v3.9.1 release correction"),
-    "stream verification missing v3.9.1 correction row");
-  assert(head(read("docs/project-feature-test-inventory.md"), 190).includes("v3.9.1 release correction"),
-    "project inventory missing v3.9.1 correction row");
-  const completion = head(read("docs/v390-feature-completion-inventory.md"), 25);
-  assert(completion.includes("historical v3.9.0 archive") &&
-    completion.includes("현재 source 4.0.0의 완료 상태가 아닙니다"),
-  "v3.9 completion inventory lacks historical archive boundary");
+check("현행 UI·단기·장시간 판정 기준 연결", () => {
+  const policy = JSON.parse(read("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const agents = read("AGENTS.md"), fulltest = read("docs/manual-ui-fulltest.md");
+  const errors = [...validatePolicy(policy), ...validateUiPolicyDocumentation({agents, fulltest, policy}),
+    ...validateVerificationDocumentation({agents, verification: read("docs/stream-verification.md")})];
+  for (const file of ["docs/manual-ui-checklist.md", "docs/project-feature-test-inventory.md"])
+    if (!read(file).trim()) errors.push(file + " 현행 정의 없음");
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("release records and evidence report v4.0.0 current/published target and preserve v3.9.1 history", () => {
-  for (const file of ["docs/release-test-records.md", "docs/release-evidence-index.md"]) {
-    const current = head(read(file), 110);
-    assert(
-      current.includes("v4.0.0 현재 소스 baseline 상태") || current.includes("v4.0.0 release baseline 상태"),
-      `${file} missing v4.0.0 current/release baseline status`
-    );
-    assert(current.includes("v3.9.1 현재 소스 정정 상태") || current.includes("v3.9.1 published 정정 상태"),
-      `${file} missing v3.9.1 published correction status`);
-    assert(current.includes("current source: `v4.0.0`"), `${file} missing current source v4.0.0`);
-    assert(
-      current.includes("latest published: v4.0.0") || current.includes("latest published target: v4.0.0"),
-      `${file} missing latest-published/target v4.0.0`
-    );
-    assert(current.includes("conditional-not-run"), `${file} omits v4.0.0 conditional 120-minute state`);
-  }
-});
-
-check("v3.9.0 closeout plan is explicitly historical", () => {
-  const current = head(read("docs/superpowers/plans/2026-08-13-v390-release-closeout.md"), 18);
-  assert(current.includes("Historical archive") && current.includes("v3.9.1 실행 계획으로 사용하지 않습니다"),
-    "v3.9.0 closeout plan can be mistaken for the current v3.9.1 plan");
-});
-
-const result = runChecks();
-console.log("");
-console.log("== v3.9.1 documentation truth summary ==");
-console.log(`- pass: ${result.pass}`);
-console.log(`- fail: ${result.fail}`);
-if (result.fail > 0) process.exit(1);
-
-function section(text, heading) {
-  const start = text.indexOf(heading);
-  assert(start >= 0, `heading missing: ${heading}`);
-  const tail = text.slice(start + heading.length);
-  const next = tail.search(/\n##\s/);
-  return next >= 0 ? tail.slice(0, next) : tail;
+let pass = 0, fail = 0;
+for (const item of checks) {
+  try { item.run(); pass += 1; console.log("[pass] " + item.name); }
+  catch (error) { fail += 1; console.log("[fail] " + item.name + ": " + error.message); }
 }
+console.log("\n== v3.9.1 documentation truth summary ==");
+console.log("- scope: current documentation; no product, UI or published execution");
+console.log("- pass: " + pass);
+console.log("- fail: " + fail);
+if (fail > 0) process.exit(1);
 
-function check(name, fn) { checks.push({ name, fn }); }
-
-function runChecks() {
-  let pass = 0;
-  let fail = 0;
-  for (const item of checks) {
-    try {
-      item.fn();
-      pass += 1;
-      console.log(`[pass] ${item.name}`);
-    } catch (error) {
-      fail += 1;
-      console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-  return { pass, fail };
+function prose(text) {
+  return text.replace(/(^|\n)[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n[ \t]*\2[ \t]*(?=\n|$)/g, "\n")
+    .replace(/<!--[\s\S]*?-->/g, "").replace(/`/g, "");
 }
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
+function check(name, run) { checks.push({name, run}); }
+function assert(value, message) { if (!value) throw new Error(message); }

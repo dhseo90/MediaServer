@@ -87,6 +87,12 @@ acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 relea
 거부한다. 기존 검사의 과거 제목 누락 FAIL은 예상 RED와 구분하여 보존한다.
 실제 이미지 검수·제품/브라우저 실행은 이 자체검사의 범위가 아니다.
 
+`DOC-TRUTH`와 `DOC-LONGRUN` 자체검사는 공개 권한 안내·현행 릴리즈 metadata·UI 기준,
+단기/장시간 명령의 구분을 확인한다. 제목·고정 행수·종료 버전 원장을 요구하지 않으며
+권한 안내의 반전, GStreamer 최소 버전 불일치, 현행 문서/명령 누락, 장시간 자동 실행
+혼입과 공개 색인에 실행 기록을 넣는 반례는 거부한다. 같은 디렉터리의 공개 release note와
+상세 실행 자료를 구분한다. 실제 인증·장시간 실행은 하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

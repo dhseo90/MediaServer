@@ -5,6 +5,8 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { hasDocumentLink } from "./documentation_contract_lib.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -36,6 +38,7 @@ check("test modes keep event POST smoke commands", () => {
 
 check("longrun commands remain explicit server.sh entrypoints", () => {
   const server = readText("server.sh");
+  const dispatches = parseServerDispatches(server);
   const requiredCommands = [
     "verify-uri-longrun",
     "verify-event-post-longrun",
@@ -45,15 +48,16 @@ check("longrun commands remain explicit server.sh entrypoints", () => {
     "verify-longrun-separation",
   ];
   for (const command of requiredCommands) {
-    assert(server.includes(command), `server.sh is missing ${command}`);
+    assert(dispatches.filter(item => item.command === command).length === 1, "server.sh dispatch missing/duplicate: " + command);
   }
 });
 
 check("stream verification docs keep short gates documented", () => {
   const docs = readText("docs/stream-verification.md");
   const requiredSnippets = [
-    "`./server.sh test --full` | Product UI smoke, Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함",
-    "외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다",
+    "./server.sh test --full",
+    "verify-event-post --mode schema",
+    "verify-event-post --mode recovery",
   ];
   for (const snippet of requiredSnippets) {
     assert(docs.includes(snippet), `docs/stream-verification.md is missing: ${snippet}`);
@@ -63,7 +67,6 @@ check("stream verification docs keep short gates documented", () => {
 check("stream verification docs keep long gates documented", () => {
   const docs = readText("docs/stream-verification.md");
   const requiredSnippets = [
-    "## 장기 테스트 명령",
     "./server.sh verify-uri-longrun",
     "./server.sh verify-event-post-longrun",
     "./server.sh verify-va-runtime-console-longrun",
@@ -78,8 +81,10 @@ check("stream verification docs keep long gates documented", () => {
 
 check("README points longrun work to the verification guide", () => {
   const readme = readText("README.md");
-  assert(readme.includes("장기 soak/부하 검증"), "README.md no longer names longrun follow-up scope");
-  assert(readme.includes("[docs/stream-verification.md](docs/stream-verification.md)"), "README.md must point to stream verification guide");
+  const direct = hasDocumentLink(readme, "docs/stream-verification.md");
+  const viaIndex = hasDocumentLink(readme, "docs/README.md") &&
+    hasDocumentLink(readText("docs/README.md"), "stream-verification.md");
+  assert(direct || viaIndex, "README 검증 안내 경로 없음");
 });
 
 let failCount = 0;

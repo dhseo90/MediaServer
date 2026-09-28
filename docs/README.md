@@ -38,7 +38,6 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
 | v4.1.0~v4.9.0 녹화·검색 로드맵 | [v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md) |
-| v4.1.0 녹화 기반 상세 구현계획 | [superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md) |
 | v4.1.0 저장 표준·오픈소스 검토 | [research/v410-recording-storage-open-source-review.md](research/v410-recording-storage-open-source-review.md) |
 | v4.1.0 IP 위험 차단 게이트 | [research/v410-recording-ip-risk-gate.md](research/v410-recording-ip-risk-gate.md) |
 | v4.1.0 release note source | [release-notes-v4.1.0.md](release-notes-v4.1.0.md) |

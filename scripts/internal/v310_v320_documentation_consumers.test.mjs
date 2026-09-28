@@ -8,6 +8,40 @@ import {fileURLToPath} from 'node:url';
 import {buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4CanonicalFlowKey, validateReview4SharedFlows} from './feature_semantic_review4_trust_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+test('DOC-TRUTH 현행 문서와 과거 기록의 판정 분리', async t => {
+  const before = snapshot();
+  const run = mutation => invoke('v391_documentation_truth', {readinessOnly: true, publicDocs: true, truthOnly: true, ...mutation});
+  try {
+    await t.test('01 종료 기록·고정 제목 없이 현행 문서', () => { const r = run({}); assert.equal(r.status, 0, r.stdout + r.stderr); });
+    await t.test('02 관리자 권한 안내 반전', () => rejected(run({truthRole: 'admin'}), 'admin'));
+    await t.test('03 operator 사용자 관리 허용', () => rejected(run({truthRole: 'operator'}), 'operator'));
+    await t.test('04 역할 안내가 코드 예제뿐인 경우', () => rejected(run({truthRole: 'code'}), 'admin'));
+    await t.test('05 dependency 최소 버전 불일치', () => rejected(run({gstMinimum: true}), 'GStreamer'));
+    await t.test('06 실제 CMake 최소 버전 불일치', () => rejected(run({gstCmake: true}), 'gstreamer'));
+    await t.test('07 source metadata 불일치', () => rejected(run({publicSource: true}), 'source'));
+    await t.test('08 UI 정책 완화', () => rejected(run({uiPolicy: true}), 'suite zero count'));
+    await t.test('09 공개 색인에 종료 실행 원장 연결', () => rejected(run({truthIndex: 'history'}), 'release-test-records'));
+    await t.test('10 유지보수자의 현행 테스트 정의 연결 허용', () => { const r = run({truthIndex: 'definition'}); assert.equal(r.status, 0, r.stdout + r.stderr); });
+    await t.test('11 현행 문서 누락', () => rejected(run({publicBlank: 'docs/manual-ui-checklist.md'}), 'manual-ui-checklist'));
+    await t.test('12 직접 UI 정책 연결 누락', () => rejected(run({currentDocIdentifier: 'reviewRequired'}), 'reviewRequired'));
+    await t.test('13 artifact 디렉터리의 공개 release note 허용', () => { const r = run({truthIndex: 'note'}); assert.equal(r.status, 0, r.stdout + r.stderr); });
+    await t.test('14 artifact 디렉터리의 상세 실행 자료 거부', () => rejected(run({truthIndex: 'artifact'}), 'release-artifacts'));
+  } finally { assert.deepEqual(snapshot(), before); }
+});
+test('DOC-LONGRUN 문서 표현과 실제 실행 분리', async t => {
+  const before = snapshot();
+  const run = mutation => invoke('longrun_separation', {readinessOnly: true, publicDocs: true, ...mutation});
+  try {
+    await t.test('01 제목·문장 변경 허용', () => { const r = run({longrunLabels: true}); assert.equal(r.status, 0, r.stdout + r.stderr); });
+    for (const mode of ['basic', 'full'])
+      await t.test('02 단기 모드의 장시간 실행 혼입 ' + mode, () => rejected(run({longrunMode: mode}), mode + ' mode'));
+    await t.test('03 event POST smoke 누락', () => rejected(run({longrunSmoke: true}), 'schema smoke'));
+    await t.test('04 실제 장시간 dispatch 누락', () => rejected(run({dispatch: 'verify-uri-longrun'}), 'verify-uri-longrun'));
+    await t.test('05 장시간 명령 안내 누락', () => rejected(run({catalogCommand: 'verify-uri-longrun'}), 'verify-uri-longrun'));
+    await t.test('06 목적별 색인 통한 안내 허용', () => { const r = run({longrunLink: 'indirect'}); assert.equal(r.status, 0, r.stdout + r.stderr); });
+    await t.test('07 검증 안내 경로 누락', () => rejected(run({longrunLink: 'missing'}), 'README'));
+  } finally { assert.deepEqual(snapshot(), before); }
+});
 test('PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계', async t => {
   const before = snapshot();
   const run = mutation => invoke('v290_public_docs_assets_refresh', {readinessOnly: true, publicDocs: true, renameLabels: true, ...mutation});
@@ -475,6 +509,22 @@ function invoke(name, mutation = {}) {
       if (['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(relative) || (relative === 'docs/README.md' && !mutation.publicDocs)) throw new Error('종료 기록/직접 색인 의존: ' + relative);
       let value = original.call(this, file, options);
       if (typeof value !== 'string') return value;
+      if (mutation.truthOnly && ['docs/v390-feature-completion-inventory.md','docs/superpowers/plans/2026-08-13-v390-release-closeout.md'].includes(relative)) throw new Error('종료 기록 의존: ' + relative);
+      if (mutation.truthRole && ['README.md','README.en.md'].includes(relative)) {
+        if (mutation.truthRole === 'admin') value = value.replaceAll('admin 전용', 'operator 전용').replaceAll('admin-only', 'operator-only');
+        if (mutation.truthRole === 'operator') value = value.replaceAll('접근하지 않습니다', '접근합니다').replaceAll('cannot access user management', 'can access user management');
+        if (mutation.truthRole === 'code') value = '~~~md\n' + value + '\n~~~\n';
+      }
+      if (mutation.gstMinimum && relative === 'config/third_party_attribution.json') value = value.replaceAll('minimum supported version: 1.28', 'minimum supported version: 1.20');
+      if (mutation.gstCmake && relative === 'CMakeLists.txt') value = value.replaceAll('>=1.28', '>=1.20');
+      if (mutation.truthIndex && relative === 'docs/README.md') value += '\n[검사](' + ({history:'release-test-records.md', definition:'project-feature-test-inventory.md', note:'release-artifacts/v4.0.0/release-notes.md', artifact:'release-artifacts/v4.0.0/run/result.json'}[mutation.truthIndex]) + ')\n';
+      if (mutation.longrunMode && relative === 'scripts/internal/test_all.sh') value = value.replace(new RegExp('(if \\[\\[ [^\\n]+== "' + mutation.longrunMode + '" \\]\\]; then)'), '$1\n  INCLUDE_URI_LONGRUN=1');
+      if (mutation.longrunSmoke && relative === 'scripts/internal/test_all.sh') value = value.replaceAll('./server.sh verify-event-post --mode schema', 'removed-event-smoke');
+      if (mutation.longrunLabels && relative.endsWith('.md')) value = value.replaceAll('장기 soak/부하 검증', '장시간 검사').replaceAll('외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다', '외부와 장시간은 따로 검증').replaceAll('Product UI smoke, Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함', '단기 회귀');
+      if (mutation.longrunLink && relative === 'README.md') {
+        value = value.replace(/\[[^\]\n]+\]\((?:\.\/)?docs\/stream-verification\.md\)/g, '검증 안내');
+        if (mutation.longrunLink === 'missing') value = value.replace(/\[[^\]\n]+\]\((?:\.\/)?docs\/README\.md\)/g, '색인 안내');
+      }
       if (mutation.publicDocs && (relative.endsWith('.md'))) value = value.replaceAll('v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation', '과거 제목 제거').replaceAll('v3.9.0 source baseline alignment', '과거 제목 제거').replaceAll('2026-05-23', '과거 날짜 제거').replaceAll('이번 Task 7에서는 이미지 파일을 새로 교체하지 않았습니다.', '과거 작업 일지 제거');
       if (mutation.publicBlank === relative) value = '';
       if (mutation.publicSource && relative === 'README.md') value = value.replaceAll(original.call(this, path.join(root, 'VERSION'), 'utf8').trim(), '999.0.0');
