@@ -75,6 +75,12 @@ UI·장시간·published·외부 릴리즈/field 미실행 표시는 유지한�
 `displayName`과 저장 후 API의 `displayName/zone` 확인 지점을 대조한다. 다른 기능의 readback을
 대입한 반례는 거부해야 한다. 이는 소스 연결 자체검사이며 실제 채널 수정 UI를 실행한 결과가 아니다.
 
+`V30-V39-READY-01`~`12`는 v3.0·v3.9 준비 검사의 종료 기록 의존 제거를 확인한다.
+현행 정의·정책·companion 연결은 유지하며 v3.9의 `SAFE-212`·`OPS-179`는 기존 독립
+acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 release 모드 진입도 확인하되
+실제 acceptance는 실행하지 않는다. 예상 RED는 과거 원장 읽기이며, 누락·변조 반례와
+미실행 출력 보존을 격리된 읽기 대체로 검사한다. 총 27개 도구 자체검사다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.

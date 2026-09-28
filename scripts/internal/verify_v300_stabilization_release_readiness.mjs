@@ -1,260 +1,125 @@
 #!/usr/bin/env node
-// 파일 용도: v3.0.0 S10 stabilization/release readiness 기록과 미실행 경계를 검증한다.
-
+// 파일 용도: 현행 준비 검사 연결과 미실행 경계를 확인한다. 종료된 실행 원장을 요구하지 않는다.
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation, validateVerificationDocumentation, validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
+import { readReleaseContext, validateReleaseContext } from "./release_documentation_contract.mjs";
+import { validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(scriptDir, "../..");
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const rawArgs = process.argv.slice(2);
-
-if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`v3.0.0 S10 stabilization and release readiness verification
-
-Usage:
-  ./server.sh verify-v300-stabilization-release-readiness
-
-Checks:
-  - v3.0.0 S10 roadmap, stream verification, feature inventory, release policy, evidence index, and release records are wired
-  - local stabilization companion gates are documented without claiming UI fulltest, 30m/120m longrun, published metadata, or release actions
-  - server.sh and inventory verifiers expose the S10 readiness command
-`);
-}
-
+if (hasHelpFlag(rawArgs)) printUsageAndExit(`v3.0.0 호환 릴리즈 준비 문서 검사
+Usage: ./server.sh verify-v300-stabilization-release-readiness
+현행 정의·정책·명령 연결만 검사합니다. 제품·UI·장시간·published·외부 실행 결과가 아닙니다.
+종료된 버전의 완료/RED/미실행 문구는 입력으로 요구하지 않습니다.`);
 assertKnownOptions(rawArgs, ["h", "help"]);
 
+const commandName = "verify-v300-stabilization-release-readiness";
+const command = `./server.sh ${commandName}`;
+const featureIds = ["SAFE-092","OPS-060"];
 const checks = [];
-const backlog = readText("docs/development-backlog.md");
-const streamVerification = readText("docs/stream-verification.md");
-const featureInventory = readText("docs/project-feature-test-inventory.md");
-const releaseRecords = readText("docs/release-test-records.md");
-const releaseEvidenceIndex = readText("docs/release-evidence-index.md");
-const releasePolicy = readText("docs/release-policy.md");
-const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
-const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
-const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-const serverSh = readText("server.sh");
-const eventStorage = readText("src/analysis/event_storage.cpp");
-const analysisStateSmoke = readText("scripts/internal/analysis_state_smoke.cpp");
-const normalizedRecords = normalizeWhitespace(releaseRecords);
 
-const command = "./server.sh verify-v300-stabilization-release-readiness";
-const companionCommands = [
-  command,
-  "./server.sh build",
-  "./server.sh verify-v300-entry-baseline",
-  "./server.sh verify-v300-event-evidence-contract",
-  "./server.sh verify-v300-feature-schema-privacy",
-  "./server.sh verify-v300-vlm-feature-queue",
-  "./server.sh verify-v300-feature-only-retention",
-  "./server.sh verify-v300-search-dsl-query-convert",
-  "./server.sh verify-v300-feature-search-index",
-  "./server.sh verify-v300-ops-events-ui",
-  "./server.sh verify-v300-retention-pin-cleanup",
-  "./server.sh verify-analysis-state",
-  "./server.sh verify-release-metadata",
-  "./server.sh verify-docs-links",
-  "./server.sh verify-docs-ui-assets",
-  "./server.sh verify-project-inventory",
-  "./server.sh verify-feature-inventory-coverage",
-  "./server.sh verify-release-evidence-index",
-  "./server.sh verify-release-closeout-helper --dry-run",
-  "./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run",
-  "./server.sh verify-script-inventory",
-  "git diff --check",
-];
-
-check("roadmap and stream verification expose V300-S10 stabilization readiness", () => {
-  for (const snippet of [
-    "| 10 | V300-S10 | P0 | 완료 | Stabilization and Release Readiness |",
-    "v3.0 local stabilization, release evidence/not-run 경계",
-    "`./server.sh verify-v300-stabilization-release-readiness`",
-    "## v3.0.0 S10 개발 기록",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S10 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S10 | `./server.sh verify-v300-stabilization-release-readiness` |",
-    "v3.0.0 local stabilization and release readiness",
-    "UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence를 대체하지 않음",
-  ]) {
-    assert(streamVerification.includes(snippet), `stream verification missing S10 snippet: ${snippet}`);
+check("현행 기능 정의와 독립 명령 연결", () => {
+  const inventory = readText("docs/project-feature-test-inventory.md");
+  const implementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/release-policy.md"),
+    identifiers: ["media-server.release-context.v1", "source-only", "signed-annotated"],
+    command: commandName, script: "verify_v300_stabilization_release_readiness.mjs",
+    featureIds: ["OPS-060"], inventory, implementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  for (const id of featureIds) {
+    const definitions = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementation.items.filter(item => item.id === id);
+    assert(definitions.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === commandName,
+      id + " 현행 정의/명령 연결 누락·중복·불일치");
   }
 });
 
-check("feature inventory maps V300-S10 to SAFE-092 and OPS-060", () => {
-  assertSummaryCountAtLeast("전체 기능 항목", 546);
-  assertSummaryCountAtLeast("기능 ID 목록", 546);
-  assertRangeCovers("SAFE", 92);
-  assertRangeCovers("OPS", 60);
-  for (const snippet of [
-    "V300-S10 Stabilization and Release Readiness | `SAFE-092`, `OPS-060` | `verify-v300-stabilization-release-readiness`",
-    "SAFE-092 | V300-S10 stabilization/release readiness boundary",
-    "OPS-060 | V300-S10 stabilization/release readiness 게이트",
-  ]) {
-    assert(featureInventory.includes(snippet), `feature inventory missing S10 snippet: ${snippet}`);
-  }
-  assertCanonicalCoverage(["SAFE-092", "OPS-060"], "verify-v300-stabilization-release-readiness");
-  assert(projectInventoryVerifier.includes('"SAFE-092"'), "project inventory verifier missing SAFE-092");
-  assert(projectInventoryVerifier.includes('"OPS-060"'), "project inventory verifier missing OPS-060");
-  assert(projectInventoryVerifierRangeCovers("SAFE", 92), "project inventory verifier SAFE range below 092");
-  assert(projectInventoryVerifierRangeCovers("OPS", 60), "project inventory verifier OPS range below 060");
+check("현행 릴리즈 정책과 실제 실행 판정의 경계", () => {
+  const policy = readText("docs/release-policy.md");
+  const policyErrors = validateReleaseContext(readReleaseContext(policy), readText("VERSION").trim());
+  const agents = readText("AGENTS.md");
+  const verification = readText("docs/stream-verification.md");
+  const fulltest = readText("docs/manual-ui-fulltest.md");
+  const uiPolicy = JSON.parse(readText("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  policyErrors.push(...validatePolicy(uiPolicy));
+  policyErrors.push(...validateUiPolicyDocumentation({ agents, fulltest, policy: uiPolicy }));
+  policyErrors.push(...validateVerificationDocumentation({ agents, verification }));
+  if (!verification.includes("verify-release-metadata --published")) policyErrors.push("published 검사 안내 누락");
+  const releaseReadinessPolicyObserved = policyErrors.length === 0;
+  assert(releaseReadinessPolicyObserved,
+    "SAFE-092·OPS-060: " + policyErrors.join("; "));
 });
 
-check("release policy, evidence index, and records list S10 companion local gates", () => {
-  for (const item of companionCommands) {
-    assert(backlog.includes(item), `backlog missing S10 command: ${item}`);
-    assert(releasePolicy.includes(item), `release policy missing S10 command: ${item}`);
-    assert(releaseEvidenceIndex.includes(item), `release evidence index missing S10 command: ${item}`);
-    assert(releaseRecords.includes(item), `release records missing S10 command: ${item}`);
-  }
-  for (const snippet of [
-    "## v3.0.0 stabilization and release readiness",
-    "media-server.v300-stabilization-release-readiness.v1",
-    "V300-S10 local readiness gate",
-    "`verify-release-metadata --published` 미실행",
-  ]) {
-    assert(releasePolicy.includes(snippet), `release policy missing S10 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "v300-s10-stabilization-release-readiness-20260620",
-    "media-server.v300-stabilization-release-readiness.v1",
-    "V300-S10 stabilization/release readiness",
-    "UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence를 대체하지 않습니다",
-  ]) {
-    assert(releaseEvidenceIndex.includes(snippet), `release evidence index missing S10 snippet: ${snippet}`);
-  }
+check("companion 안내와 실제 명령 dispatch", () => {
+  const companionCommands = [
+    command,
+    "./server.sh build",
+    "./server.sh verify-v300-entry-baseline",
+    "./server.sh verify-v300-event-evidence-contract",
+    "./server.sh verify-v300-feature-schema-privacy",
+    "./server.sh verify-v300-vlm-feature-queue",
+    "./server.sh verify-v300-feature-only-retention",
+    "./server.sh verify-v300-search-dsl-query-convert",
+    "./server.sh verify-v300-feature-search-index",
+    "./server.sh verify-v300-ops-events-ui",
+    "./server.sh verify-v300-retention-pin-cleanup",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-release-metadata",
+    "./server.sh verify-docs-links",
+    "./server.sh verify-docs-ui-assets",
+    "./server.sh verify-project-inventory",
+    "./server.sh verify-feature-inventory-coverage",
+    "./server.sh verify-release-evidence-index",
+    "./server.sh verify-release-closeout-helper --dry-run",
+    "./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run",
+    "./server.sh verify-script-inventory",
+    "git diff --check",
+  ];
+  const verification = readText("docs/stream-verification.md");
+  const dispatches = parseServerDispatches(readText("server.sh"));
+  const companionErrors = companionCommands.filter(item => !verification.includes(item) || (item !== "git diff --check" && dispatches.filter(entry => entry.command === item.split(" ")[1]).length !== 1));
+  const localCommandsWired = companionErrors.length === 0;
+  assert(localCommandsWired, "companion 안내 또는 dispatch 누락/중복: " + companionErrors.join("; "));
 });
 
-check("release records include S10 RED, local gate placeholders, and not-run boundaries", () => {
-  for (const snippet of [
-    "V300 stabilization and release readiness",
-    "최초 `./server.sh verify-v300-stabilization-release-readiness`는 command 미구현으로 fail",
-    "v300 S10 stabilization/release readiness",
-    "v300 S10 local stabilization gates",
-    "v300 S10 closeout dry-run",
-    "v300 S10 one-shot closeout dry-run",
-  ]) {
-    assert(normalizedRecords.includes(normalizeWhitespace(snippet)), `release records missing S10 result: ${snippet}`);
-  }
-  for (const snippet of [
-    "v300 S10 UI 풀테스트",
-    "v300 S10 30분/120분 longrun",
-    "v300 S10 published metadata",
-    "v300 S10 PR/main/tag/GitHub Release",
-    "v300 S10 field smoke",
-    "S10 local readiness PASS로 대체하지 않음",
-  ]) {
-    assert(normalizedRecords.includes(normalizeWhitespace(snippet)), `release records missing S10 not-run boundary: ${snippet}`);
-  }
+check("전수 기능 검증과 필수 ID 연결", () => {
+  const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const inventory = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows === rows.length"),
+    "전수 기능 manifest 검사 연결 누락");
+  for (const id of featureIds) assert(inventory.includes('"' + id + '"'), id + " 필수 기능 검사 연결 누락");
 });
 
-check("server and script inventory expose S10 readiness command", () => {
-  for (const snippet of [
-    "verify-v300-stabilization-release-readiness",
-    "verify_v300_stabilization_release_readiness.mjs",
-  ]) {
-    assert(serverSh.includes(snippet), `server.sh missing S10 command snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "server.sh command dispatch",
-    "tracked scripts are classified and referenced",
-  ]) {
-    assert(scriptInventory.includes(snippet), `script inventory verifier missing generic dispatch coverage snippet: ${snippet}`);
-  }
-});
-
-check("historical V300 readiness remains distinct from later V310 scope", () => {
-  assert(backlog.includes("## v3.0.0 S10 개발 기록"), "historical V300-S10 record missing");
-  assert(backlog.includes("## v3.1.0 S02 개발 기록"), "later V310-S02 record missing");
-  assert(releaseRecords.includes("v300 S10 stabilization/release readiness"), "V300-S10 result record missing");
-  assert(releaseRecords.includes("v310 S02 analysis state final"), "V310 scope record missing");
-  assert(featureInventory.includes("EVT-059"), "historical V310 EVT-059 mapping missing");
-});
-
-check("SAFE-092 canonical V300 readiness boundary", () => {
-  const readinessCommandRecorded = normalizedRecords.includes("verify-v300-stabilization-release-readiness");
-  const publishedMetadataSeparated = releasePolicy.includes("published metadata");
-  const safe092BoundaryObserved = readinessCommandRecorded && publishedMetadataSeparated;
-  assert(safe092BoundaryObserved && (readinessCommandRecorded && publishedMetadataSeparated),
-    "verify-v300-stabilization-release-readiness must keep UI/longrun/published actions separate");
-});
-
-let pass = 0;
-let fail = 0;
-for (const item of checks) {
-  try {
-    item.fn();
-    pass += 1;
-    console.log(`[pass] ${item.name}`);
-  } catch (error) {
-    fail += 1;
-    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
+const results = runChecks();
 console.log("");
 console.log("== v3.0.0 stabilization/release readiness summary ==");
 console.log("- schema: media-server.v300-stabilization-release-readiness.v1");
-console.log("- scope: local stabilization gate wiring, release evidence records, not-run boundaries");
+console.log("- scope: current definitions, policy and companion wiring; no execution evidence");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30m120m: not-run-by-this-command");
 console.log("- publishedMetadata: not-run-by-this-command");
 console.log("- releaseActions: not-run-by-this-command");
-console.log(`- pass: ${pass}`);
-console.log(`- fail: ${fail}`);
-if (fail > 0) process.exit(1);
+console.log(`- pass: ${results.pass}`);
+console.log(`- fail: ${results.fail}`);
+if (results.fail > 0) process.exit(1);
 
-function check(name, fn) {
-  checks.push({ name, fn });
-}
 
-function readText(relativePath) {
-  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+function runChecks() {
+  let pass = 0, fail = 0;
+  for (const item of checks) {
+    try { item.fn(); pass += 1; console.log("[pass] " + item.name); }
+    catch (error) { fail += 1; console.log("[fail] " + item.name + ": " + error.message); }
+  }
+  return { pass, fail };
 }
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
-
-function normalizeWhitespace(text) {
-  return text.replace(/\s+/g, " ");
-}
-
-function assertSummaryCountAtLeast(label, minimum) {
-  const pattern = new RegExp(`\\| ${escapeRegExp(label)} \\| ([0-9]+)`);
-  const match = featureInventory.match(pattern);
-  assert(match, `feature inventory missing summary count: ${label}`);
-  const count = Number.parseInt(match[1], 10);
-  assert(count >= minimum, `feature inventory ${label} ${count} below ${minimum}`);
-}
-
-function assertRangeCovers(prefix, minimum) {
-  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
-  const matches = [...featureInventory.matchAll(pattern)];
-  assert(matches.length > 0, `feature inventory missing ${prefix} range`);
-  const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
-  assert(max >= minimum, `feature inventory ${prefix} range ${max} below ${minimum}`);
-}
-
-function projectInventoryVerifierRangeCovers(prefix, minimum) {
-  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
-  const matches = [...projectInventoryVerifier.matchAll(pattern)];
-  if (matches.length === 0) return false;
-  const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
-  return max >= minimum;
-}
-
-function assertCanonicalCoverage(ids, command) {
-  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"), "feature coverage missing canonical implementation manifest validation");
-  for (const id of ids) assert(implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+function check(name, fn) { checks.push({ name, fn }); }
+function assert(condition, message) { if (!condition) throw new Error(message); }
+function readText(relativePath) { return fs.readFileSync(path.join(rootDir, relativePath), "utf8"); }

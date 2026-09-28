@@ -167955,7 +167955,7 @@
     },
     {
       "id": "SAFE-092",
-      "featureContractSha256": "b4bddf3601dcf6ded385ab26192c73b12c9b94e7632572b42669e445cff4f645",
+      "featureContractSha256": "f1ace7b47bcc5b38882e663310c315e3037f48194a938fff4d841da1f41f68d7",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -167969,7 +167969,7 @@
         "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs"
       },
       "evidenceMode": "actual-canonical-policy-safe-092",
-      "evidenceToken": "safe092BoundaryObserved",
+      "evidenceToken": "releaseReadinessPolicyObserved",
       "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
@@ -167978,42 +167978,42 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "symbol": "canonical-safe-092-boundary",
-          "anchor": "check(\"SAFE-092 canonical V300 readiness boundary\", () => {",
-          "line": 180,
-          "contextSha256": "ade63e9a264f4c31bb57af7d3d2b8132d159e2a9a1eeaa835c6a0bc913eed54a"
+          "symbol": "owner:SAFE-092",
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
+          "line": 45,
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "symbol": "canonical-safe-092-boundary",
-          "anchor": "const readinessCommandRecorded = normalizedRecords.includes(\"verify-v300-stabilization-release-readiness\");",
-          "line": 181,
-          "contextSha256": "7b7adc247e3360aa03fbae80e80af54d685f2b0cb1324b68d68f2290ba0a5d3f"
+          "symbol": "dispatch:SAFE-092",
+          "anchor": "const policy = readText(\"docs/release-policy.md\");",
+          "line": 46,
+          "contextSha256": "08b55a900ab54448ea7f77ea9d27244d51748782868dfa2e66e8fee9c8add155"
         },
         "action": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "symbol": "canonical-safe-092-boundary",
-          "anchor": "const publishedMetadataSeparated = releasePolicy.includes(\"published metadata\");",
-          "line": 182,
-          "contextSha256": "77e418dd6f9e6a911c1646358f5baad34695d352a68b6b423c894d3566da55a3"
+          "symbol": "action:SAFE-092",
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
+          "line": 47,
+          "contextSha256": "936c6c5c7316c5a5ee0e0ff6ef47bd448d9c9f453b1659cad2060ca2556d2ad6"
         },
         "state": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "symbol": "canonical-safe-092-boundary",
-          "anchor": "const safe092BoundaryObserved = readinessCommandRecorded && publishedMetadataSeparated;",
-          "line": 183,
-          "contextSha256": "e0660e053a8dd8f37feb82e1567efed6449ecf4ea9916df104217e32a99943b7"
+          "symbol": "state:releaseReadinessPolicyObserved",
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
+          "line": 56,
+          "contextSha256": "c45df100e697a5d8c52238b526c291aabdef52f2bef22a4e5ef58d7d4b11da56"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "symbol": "canonical-safe-092-boundary",
-          "anchor": "assert(safe092BoundaryObserved && (readinessCommandRecorded && publishedMetadataSeparated),",
-          "line": 184,
-          "contextSha256": "b3ae780f78b0e0d06c3f8cdb8ca5a10a872842800e605b5de4813a3785c7680a"
+          "symbol": "readback:SAFE-092",
+          "anchor": "assert(releaseReadinessPolicyObserved,",
+          "line": 57,
+          "contextSha256": "3114781d130c9c1986aa52eb4606e067e3a4857ec4e63c2f3f07015aeac167a2"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-v300-stabilization-release-readiness",
+          "symbol": "verifier:SAFE-092",
           "anchor": "verify-v300-stabilization-release-readiness)",
           "line": 2086,
           "contextSha256": "6243f65721dea6ee663970c6ca32a71655128ae083b526913d36a6b0757832b4"
@@ -168025,46 +168025,46 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-092 owner-dispatch",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:180",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:181"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:45",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:46"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "SAFE-092 dispatch-action",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:181",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:182"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:46",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:47"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-092 action-state",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:182",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:183"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:47",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:56"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-092 state-readback",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:183",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:184"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:56",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:57"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-stabilization-release-readiness",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:184",
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:57",
           "target": "server.sh:2086"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "b4bddf3601dcf6ded385ab26192c73b12c9b94e7632572b42669e445cff4f645",
+        "featureContractSha256": "f1ace7b47bcc5b38882e663310c315e3037f48194a938fff4d841da1f41f68d7",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -168103,69 +168103,69 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v300-stabilization-release-readiness`가 v3.0 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, release action PASS로 대체하지 않음을 확인함",
-          "sha256": "73ff3995846103e39e4605354515777062f80970c4dd6c052d179f061442ad09"
+          "normalized": "`verify-v300-stabilization-release-readiness`가 현행 릴리즈 metadata·서명·UI/검증 정책의 누락·완화를 거부하며 UI 풀테스트 직접 조작, 30분/120분, published metadata, release action PASS로 대체하지 않음을 확인함",
+          "sha256": "d9b19d45e7ffbf94cbf7f28c70482cf9aab86286ce75198971e94bdd4c542898"
         }
       },
-      "sourceFlowDigest": "91c12adb07006b0212024bbf0abf291b9cfc2696a01636f188dca99777016a48",
+      "sourceFlowDigest": "4a98a3402574570816ca8b99a5bf5b90ff096a8823afeb6f40ed378bf3bdac99",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-safe-092-boundary",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "owner:SAFE-092",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "415e8acaa7675d6ec4c92e1d4b8a6d0498fe9050125dee12215dc532255a16ec",
+            "enclosingBodyStartLine": 45,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-safe-092-boundary",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "dispatch:SAFE-092",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "415e8acaa7675d6ec4c92e1d4b8a6d0498fe9050125dee12215dc532255a16ec",
+            "enclosingBodyStartLine": 45,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-safe-092-boundary",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "action:SAFE-092",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "415e8acaa7675d6ec4c92e1d4b8a6d0498fe9050125dee12215dc532255a16ec",
+            "enclosingBodyStartLine": 45,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-safe-092-boundary",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "state:releaseReadinessPolicyObserved",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "415e8acaa7675d6ec4c92e1d4b8a6d0498fe9050125dee12215dc532255a16ec",
+            "enclosingBodyStartLine": 45,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-safe-092-boundary",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "readback:SAFE-092",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "415e8acaa7675d6ec4c92e1d4b8a6d0498fe9050125dee12215dc532255a16ec",
+            "enclosingBodyStartLine": 45,
+            "enclosingBodyEndLine": 59,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
             "file": "server.sh",
-            "symbol": "server-dispatch:verify-v300-stabilization-release-readiness",
+            "symbol": "verifier:SAFE-092",
             "enclosingBodySha256": "55124d152a2d4203daf89949fe5fa846f3e3750de78cbbc12a5dedb0b06da548",
             "enclosingBodyStartLine": null,
             "enclosingBodyEndLine": null,
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
+        "verifierFileSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
         "dispatch": {
           "command": "verify-v300-stabilization-release-readiness",
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
@@ -205787,7 +205787,7 @@
     },
     {
       "id": "OPS-060",
-      "featureContractSha256": "73fc778d88d68f6f474ea92ef208c34286326ba7dcf8500ae9088c35b2f5ea3f",
+      "featureContractSha256": "6e3423e437f690be7f5d85eccbaf0fcd5a9c75eb0a4172cec1efd0288c8838df",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -205798,10 +205798,11 @@
       "failureReason": "",
       "verifier": {
         "command": "verify-v300-stabilization-release-readiness",
-        "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs"
+        "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
+        "dispatchFile": "server.sh"
       },
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "safe092BoundaryObserved",
+      "evidenceToken": "localCommandsWired",
       "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
@@ -205810,42 +205811,42 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "line": 180,
-          "anchor": "check(\"SAFE-092 canonical V300 readiness boundary\", () => {",
-          "symbol": "canonical-owner:OPS-060",
-          "contextSha256": "ade63e9a264f4c31bb57af7d3d2b8132d159e2a9a1eeaa835c6a0bc913eed54a"
+          "symbol": "owner:OPS-060",
+          "anchor": "check(\"companion 안내와 실제 명령 dispatch\", () => {",
+          "line": 61,
+          "contextSha256": "98dc820a416cac9963c87dc303eab63ad24ca123d4131e640e7c6fc1e0a2ab64"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "line": 181,
-          "anchor": "const readinessCommandRecorded = normalizedRecords.includes(\"verify-v300-stabilization-release-readiness\");",
-          "symbol": "flow:OPS-060",
-          "contextSha256": "7b7adc247e3360aa03fbae80e80af54d685f2b0cb1324b68d68f2290ba0a5d3f"
+          "symbol": "dispatch:OPS-060",
+          "anchor": "const dispatches = parseServerDispatches(readText(\"server.sh\"));",
+          "line": 87,
+          "contextSha256": "8f3287ef1dff15f90b9a6a485bfac3861366bc5a113bdcf0a87814d4a47f7bc2"
         },
         "action": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "line": 182,
-          "anchor": "const publishedMetadataSeparated = releasePolicy.includes(\"published metadata\");",
-          "symbol": "flow:OPS-060",
-          "contextSha256": "77e418dd6f9e6a911c1646358f5baad34695d352a68b6b423c894d3566da55a3"
+          "symbol": "action:OPS-060",
+          "anchor": "const companionErrors = companionCommands.filter(item => !verification.includes(item) || (item !== \"git diff --check\" && dispatches.filter(entry => entry.command === item.split(\" \")[1]).length !== 1));",
+          "line": 88,
+          "contextSha256": "b4db1e860ae5708d302a845b1ba31d6539361933c2ddca75309e8585c29671ac"
         },
         "state": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "line": 183,
-          "anchor": "const safe092BoundaryObserved = readinessCommandRecorded && publishedMetadataSeparated;",
-          "symbol": "flow:OPS-060:asserted-state",
-          "contextSha256": "e0660e053a8dd8f37feb82e1567efed6449ecf4ea9916df104217e32a99943b7"
+          "symbol": "state:localCommandsWired",
+          "anchor": "const localCommandsWired = companionErrors.length === 0;",
+          "line": 89,
+          "contextSha256": "2c1dbafcb95b228a3e6c342f22ab89081da1939ff6dd216dff902ea61099f0e7"
         },
         "readback": {
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-          "line": 184,
-          "anchor": "assert(safe092BoundaryObserved && (readinessCommandRecorded && publishedMetadataSeparated),",
-          "symbol": "canonical-readback:verify-v300-stabilization-release-readiness",
-          "contextSha256": "b3ae780f78b0e0d06c3f8cdb8ca5a10a872842800e605b5de4813a3785c7680a"
+          "symbol": "readback:OPS-060",
+          "anchor": "assert(localCommandsWired, \"companion 안내 또는 dispatch 누락/중복: \" + companionErrors.join(\"; \"));",
+          "line": 90,
+          "contextSha256": "5d49b32d8854e792f1168e503eaa2874f6dbcc86fe255fb28e879281e07e7625"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-v300-stabilization-release-readiness",
+          "symbol": "verifier:OPS-060",
           "anchor": "verify-v300-stabilization-release-readiness)",
           "line": 2086,
           "contextSha256": "6243f65721dea6ee663970c6ca32a71655128ae083b526913d36a6b0757832b4"
@@ -205857,46 +205858,46 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-060 owner-dispatch",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:180",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:181"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:61",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:87"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-060 dispatch-action",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:181",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:182"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:87",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:88"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-060 action-state",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:182",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:183"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:88",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:89"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-060 state-readback",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:183",
-          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:184"
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:89",
+          "target": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:90"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v300-stabilization-release-readiness",
-          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:184",
+          "source": "scripts/internal/verify_v300_stabilization_release_readiness.mjs:90",
           "target": "server.sh:2086"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "73fc778d88d68f6f474ea92ef208c34286326ba7dcf8500ae9088c35b2f5ea3f",
+        "featureContractSha256": "6e3423e437f690be7f5d85eccbaf0fcd5a9c75eb0a4172cec1efd0288c8838df",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -205935,69 +205936,69 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v300-stabilization-release-readiness`가 v3.0 S00~S09 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음",
-          "sha256": "2b656f0d89bdfe7e367ba559bc9a5d8c0f051defb13cdf268660ecf528d5e1bd"
+          "normalized": "`verify-v300-stabilization-release-readiness`가 현행 기능 정의·독립 명령·local companion 안내와 실제 server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음",
+          "sha256": "d88f8b0bb81f64a087ebc65e7a35772dc69d2840622463f80822a0252430c595"
         }
       },
-      "sourceFlowDigest": "9da555feff43a791935667f068079b769775970ad9f30344b7725a1bfb9d735f",
+      "sourceFlowDigest": "000effc0e10ba4471adfc67942011fd2438665f78a3924ba9574e7b3d2d1dddf",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-owner:OPS-060",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "owner:OPS-060",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "c0257dee76d653854aecb9ed8e5af5d1fcd86667d2299ba94410d1a98b0c38ae",
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 91,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "flow:OPS-060",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "dispatch:OPS-060",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "c0257dee76d653854aecb9ed8e5af5d1fcd86667d2299ba94410d1a98b0c38ae",
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 91,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "flow:OPS-060",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "action:OPS-060",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "c0257dee76d653854aecb9ed8e5af5d1fcd86667d2299ba94410d1a98b0c38ae",
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 91,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "flow:OPS-060:asserted-state",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "state:localCommandsWired",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "c0257dee76d653854aecb9ed8e5af5d1fcd86667d2299ba94410d1a98b0c38ae",
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 91,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-            "symbol": "canonical-readback:verify-v300-stabilization-release-readiness",
-            "trackedBlobSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
-            "enclosingBodySha256": "19532ae46b6c2bc1005239c7aa8e51d555573ec4b171a36f2819c05a43d3d2ca",
-            "enclosingBodyStartLine": 180,
-            "enclosingBodyEndLine": 186,
+            "symbol": "readback:OPS-060",
+            "trackedBlobSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
+            "enclosingBodySha256": "c0257dee76d653854aecb9ed8e5af5d1fcd86667d2299ba94410d1a98b0c38ae",
+            "enclosingBodyStartLine": 61,
+            "enclosingBodyEndLine": 91,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
             "file": "server.sh",
-            "symbol": "server-dispatch:verify-v300-stabilization-release-readiness",
+            "symbol": "verifier:OPS-060",
             "enclosingBodySha256": "55124d152a2d4203daf89949fe5fa846f3e3750de78cbbc12a5dedb0b06da548",
             "enclosingBodyStartLine": null,
             "enclosingBodyEndLine": null,
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e64bb1a281402304ff0226ded059f0c55dc2175f13c13d636c82e94dfac7d197",
+        "verifierFileSha256": "af7d65df431b9420fbc11f241a3dd6699f02e1865d0aedb3974de0327e86684e",
         "dispatch": {
           "command": "verify-v300-stabilization-release-readiness",
           "file": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
@@ -235281,5 +235282,5 @@
       }
     }
   ],
-  "candidateDigest": "32c73e214878b2a2b107347d30e20f3ab923503abba0a23307734631a6ff1653"
+  "candidateDigest": "5a4b7fdc2e64b832f603f85083720ace840ab067f8e45054221cfbbb460dc9e7"
 }

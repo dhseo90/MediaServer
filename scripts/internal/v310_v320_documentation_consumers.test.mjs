@@ -8,6 +8,40 @@ import {fileURLToPath} from 'node:url';
 import {buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4CanonicalFlowKey, validateReview4SharedFlows} from './feature_semantic_review4_trust_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+test('V30-V39-READY 현행 준비 안내와 독립 실행 연결', async t => {
+  const before = snapshot();
+  try {
+    for (const [version, ids] of [['300', ['SAFE-092', 'OPS-060']], ['390', ['SAFE-212', 'OPS-179']]]) {
+      const name = 'v' + version + '_stabilization_release_readiness';
+      const command = 'verify-' + name.replaceAll('_', '-');
+      const companion = 'verify-v' + version + '-entry-baseline';
+      const run = mutation => invoke(name, {readinessOnly: true, renameLabels: true, ...mutation});
+      await t.test('01 종료 기록 없이 정상 ' + version, () => {
+        const r = run({}); assert.equal(r.status, 0, r.stdout + r.stderr);
+        assert(r.stdout.includes('- schema: media-server.v' + version + '-stabilization-release-readiness.v1'));
+        for (const key of ['uiFulltest', 'longrun30m120m', 'publishedMetadata', 'releaseActions'])
+          assert(r.stdout.includes(key + ': not-run-by-this-command'));
+        if (version === '390') assert(r.stdout.includes('fieldSmoke: not-run-by-this-command'));
+      });
+      for (const id of ids) {
+        await t.test('02 현행 정의 누락 ' + id, () => rejected(run({removeId: id}), id));
+        await t.test('03 독립 명령 연결 변조 ' + id, () => rejected(run({mapping: id}), id));
+      }
+      await t.test('04 서명 metadata 변조 ' + version, () => rejected(run({releaseMetadata: true}), 'tag'));
+      await t.test('05 UI 판정 완화 ' + version, () => rejected(run({uiPolicy: true}), 'suite zero count'));
+      await t.test('06 현행 UI 기준 누락 ' + version, () => rejected(run({currentDocIdentifier: 'uiFulltestPass'}), 'uiFulltestPass'));
+      await t.test('07 자체 dispatch 누락 ' + version, () => rejected(run({dispatch: command}), 'dispatch'));
+      await t.test('08 companion dispatch 누락 ' + version, () => rejected(run({dispatch: companion}), companion));
+      await t.test('09 companion 안내 누락 ' + version, () => rejected(run({catalogCommand: companion}), companion));
+      if (version === '390') {
+        for (const actual of ['verify-v390-test-acceptance-bundle', 'verify-v390-test-acceptance-bundle-contract'])
+          await t.test('10 독립 acceptance dispatch 누락 ' + actual, () => rejected(run({dispatch: actual}), actual));
+        await t.test('11 최종 실행 안내 누락', () => rejected(run({catalogCommand: './test_release.sh'}), 'test_release.sh'));
+        await t.test('12 최종 launcher 모드 변조', () => rejected(run({releaseLauncher: true}), 'test_release.sh'));
+      }
+    }
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
 const cases = [
   ['v310_event_clip_contract', 'OPS-062', 'media-server.encoded-event-clip-contract.v1'],
   ['v310_replay_timeline_ui', 'UI-060', 'media-server.ops.v310-replay-timeline-ui.v1'],
@@ -426,6 +460,7 @@ function invoke(name, mutation = {}) {
       }
       if (mutation.dispatch && relative === 'server.sh') value = value.replaceAll(mutation.dispatch + ')', 'removed-dispatch)');
       if (mutation.catalogCommand && relative === 'docs/stream-verification.md') value = value.replaceAll(mutation.catalogCommand, 'missing-companion-command');
+      if (mutation.releaseLauncher && relative === 'test_release.sh') value = value.replaceAll('media_server_run_user_test "release"', 'media_server_run_user_test "other"');
       if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');
       if (mutation.currentDocIdentifier && relative.startsWith('docs/') && relative !== 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.currentDocIdentifier, 'missing-current-contract');
       if (mutation.fixturePath === relative) {
