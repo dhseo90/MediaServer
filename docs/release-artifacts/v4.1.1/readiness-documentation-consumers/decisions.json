@@ -1,0 +1,120 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-scoped-decisions.v1",
+  "reviewerIsCandidateGenerator": false,
+  "verdict": "approved",
+  "reviewer": "codex-main-source-review",
+  "reviewedAt": "2026-09-28T19:32:48.323Z",
+  "reviewPackage": {
+    "path": "/private/tmp/media-server-readiness-docs.uk7OAh/review-package.json",
+    "sha256": "6026ff97b5340abe3b1775ffaa53600155a742f0d7c237b624a882fb1bad2860"
+  },
+  "candidate": {
+    "candidateDigest": "2f75117c158c7ddad2a9319be792fc9ef85e80821a3e6ad4d48a26fcb6224ed4",
+    "stagedEquivalentTreeOid": "67b29f9e88edbd39c1f587c04541dc970b00a6f1",
+    "trackedWorktreeDiffSha256": "e1073ba88833af91cb203c93d319a3c2e7a12ede02f23b2d9ab4000028d4cc3e",
+    "changedFiles": [
+      "docs/stream-verification.md",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "scripts/internal/verify_v260_owner_release_readiness.mjs",
+      "scripts/internal/verify_v270_owner_release_readiness.mjs",
+      "scripts/internal/verify_v280_owner_release_readiness.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "reviewScope": {
+    "ids": [
+      "SAFE-057",
+      "SAFE-063",
+      "SAFE-070",
+      "OPS-037",
+      "OPS-038",
+      "OPS-040"
+    ]
+  },
+  "decisions": [
+    {
+      "id": "SAFE-057",
+      "decision": "approved",
+      "featureContractSha256": "1673b21374bcf0d4f02ca891bfd9e52da6cd604fecd5dc252158af3ac35ddf09",
+      "sourceFlowDigest": "8f8f2d873d1e465f8a84fccfa00498dbef84132a05a49627ff4cd093d233276b",
+      "verifierCommand": "verify-v260-owner-release-readiness",
+      "verifierFile": "scripts/internal/verify_v260_owner_release_readiness.mjs",
+      "dispatchArmSha256": "5cfd309e97e4afcf28be7cab043cef0ed1f0c84db6de3cf71b87147ecd18d7c9",
+      "evidenceToken": "releaseReadinessPolicyObserved",
+      "actionSymbol": "release-readiness-policy-check",
+      "stateSymbol": "release-readiness-policy-check",
+      "justification": "SAFE-057: 메인이 verify-v260-owner-release-readiness의 scripts/internal/verify_v260_owner_release_readiness.mjs을 검토. 과거 미실행 문구 대신 release context·UI 증거 정책·검증 식별자를 실제 검증하여 releaseReadinessPolicyObserved를 assert함. 기능 계약·필수 검사 의미·실패 전파 유지, 누락/변조 반례 통과. 실제 UI·장시간·published·외부 릴리즈 미실행을 명시하며 준비 검사를 제품 PASS로 승격하지 않음.",
+      "justificationSha256": "907f33b3c301788f1a8b964d61625d79f0a691cdfed88b8bf8fb2341a8f76dc5"
+    },
+    {
+      "id": "SAFE-063",
+      "decision": "approved",
+      "featureContractSha256": "a37281fecde7c237ecc9675f0c93a5c90643dafd577d25e7b3c5f3a391f072aa",
+      "sourceFlowDigest": "4d50c5441a6aa9ad3d559f62e85d069a34cfb46d60f3ba6dbbcf3e719d742a4e",
+      "verifierCommand": "verify-v270-owner-release-readiness",
+      "verifierFile": "scripts/internal/verify_v270_owner_release_readiness.mjs",
+      "dispatchArmSha256": "63c9a9e417248a82b8d685664ba14210d7bffab6946a6cdafc7d89a1b1afd3fc",
+      "evidenceToken": "releaseReadinessPolicyObserved",
+      "actionSymbol": "flow:SAFE-063",
+      "stateSymbol": "flow:SAFE-063",
+      "justification": "SAFE-063: 메인이 verify-v270-owner-release-readiness의 scripts/internal/verify_v270_owner_release_readiness.mjs을 검토. 과거 미실행 문구 대신 release context·UI 증거 정책·검증 식별자를 실제 검증하여 releaseReadinessPolicyObserved를 assert함. 기능 계약·필수 검사 의미·실패 전파 유지, 누락/변조 반례 통과. 실제 UI·장시간·published·외부 릴리즈 미실행을 명시하며 준비 검사를 제품 PASS로 승격하지 않음.",
+      "justificationSha256": "a11df0db5cdfde472d5957d89d9433d5e82d7abca779f49722327ad8c60a05f8"
+    },
+    {
+      "id": "SAFE-070",
+      "decision": "approved",
+      "featureContractSha256": "fd25037c4a945d8f40f78777092ce5e1bf4de93e77c2b2ba0565693673a9ae76",
+      "sourceFlowDigest": "c5a71508804ee585302dbdc8b76a1795aff0ac336295f1739446df47787c085a",
+      "verifierCommand": "verify-v280-owner-release-readiness",
+      "verifierFile": "scripts/internal/verify_v280_owner_release_readiness.mjs",
+      "dispatchArmSha256": "9994c2ba45cffd521a2127d77bf0d52b5862ed251f1057d99533cd2d4f164697",
+      "evidenceToken": "releaseReadinessPolicyObserved",
+      "actionSymbol": "flow:SAFE-070",
+      "stateSymbol": "flow:SAFE-070",
+      "justification": "SAFE-070: 메인이 verify-v280-owner-release-readiness의 scripts/internal/verify_v280_owner_release_readiness.mjs을 검토. 과거 미실행 문구 대신 release context·UI 증거 정책·검증 식별자를 실제 검증하여 releaseReadinessPolicyObserved를 assert함. 기능 계약·필수 검사 의미·실패 전파 유지, 누락/변조 반례 통과. 실제 UI·장시간·published·외부 릴리즈 미실행을 명시하며 준비 검사를 제품 PASS로 승격하지 않음.",
+      "justificationSha256": "3a8915c943ecf110181c02bf8b4778deaac19a59333ea3b582619c354eb390a8"
+    },
+    {
+      "id": "OPS-037",
+      "decision": "approved",
+      "featureContractSha256": "3a8ded6f001a5dd87c872bb0ae3db7bd2a1cf48f9287a45b9e5b2d7658324158",
+      "sourceFlowDigest": "6d0470c6f77c49651725a08b4c00d3c6dfc2f5dcf1db79621637d6480822cc32",
+      "verifierCommand": "verify-v260-owner-release-readiness",
+      "verifierFile": "scripts/internal/verify_v260_owner_release_readiness.mjs",
+      "dispatchArmSha256": "5cfd309e97e4afcf28be7cab043cef0ed1f0c84db6de3cf71b87147ecd18d7c9",
+      "evidenceToken": "releaseReadinessPolicyObserved",
+      "actionSymbol": "action:OPS-037",
+      "stateSymbol": "state:releaseReadinessPolicyObserved",
+      "justification": "OPS-037: 메인이 verify-v260-owner-release-readiness의 scripts/internal/verify_v260_owner_release_readiness.mjs을 검토. 과거 미실행 문구 대신 release context·UI 증거 정책·검증 식별자를 실제 검증하여 releaseReadinessPolicyObserved를 assert함. 기능 계약·필수 검사 의미·실패 전파 유지, 누락/변조 반례 통과. 실제 UI·장시간·published·외부 릴리즈 미실행을 명시하며 준비 검사를 제품 PASS로 승격하지 않음.",
+      "justificationSha256": "b856d582149bf9c1961213aa4ef287fba7971a4e6b14efa9bd161b4ac0de87c1"
+    },
+    {
+      "id": "OPS-038",
+      "decision": "approved",
+      "featureContractSha256": "a57714c9392b5ac73c6e007b346c1ea210e0639dfb3ba075ae2f21aebb277e14",
+      "sourceFlowDigest": "5dd5c65711daa10c057fd2bde08dea4057f83d5705f6028af4ac198a21864941",
+      "verifierCommand": "verify-v270-owner-release-readiness",
+      "verifierFile": "scripts/internal/verify_v270_owner_release_readiness.mjs",
+      "dispatchArmSha256": "63c9a9e417248a82b8d685664ba14210d7bffab6946a6cdafc7d89a1b1afd3fc",
+      "evidenceToken": "releaseReadinessPolicyObserved",
+      "actionSymbol": "action:OPS-038",
+      "stateSymbol": "state:releaseReadinessPolicyObserved",
+      "justification": "OPS-038: 메인이 verify-v270-owner-release-readiness의 scripts/internal/verify_v270_owner_release_readiness.mjs을 검토. 과거 미실행 문구 대신 release context·UI 증거 정책·검증 식별자를 실제 검증하여 releaseReadinessPolicyObserved를 assert함. 기능 계약·필수 검사 의미·실패 전파 유지, 누락/변조 반례 통과. 실제 UI·장시간·published·외부 릴리즈 미실행을 명시하며 준비 검사를 제품 PASS로 승격하지 않음.",
+      "justificationSha256": "6244458fd62644e8f502e1153c1a183f052eca5c26be1f3a70058bb63cc6fa9a"
+    },
+    {
+      "id": "OPS-040",
+      "decision": "approved",
+      "featureContractSha256": "99120b503319c6188939708479e1818d514b342ef62c6cf5519500230bd3d49e",
+      "sourceFlowDigest": "5885fe2dbf381d6e4e68f104ad17c242bfb40e881662332ba0fa72bffcf77edd",
+      "verifierCommand": "verify-v280-owner-release-readiness",
+      "verifierFile": "scripts/internal/verify_v280_owner_release_readiness.mjs",
+      "dispatchArmSha256": "9994c2ba45cffd521a2127d77bf0d52b5862ed251f1057d99533cd2d4f164697",
+      "evidenceToken": "releaseReadinessPolicyObserved",
+      "actionSymbol": "action:OPS-040",
+      "stateSymbol": "state:releaseReadinessPolicyObserved",
+      "justification": "OPS-040: 메인이 verify-v280-owner-release-readiness의 scripts/internal/verify_v280_owner_release_readiness.mjs을 검토. 과거 미실행 문구 대신 release context·UI 증거 정책·검증 식별자를 실제 검증하여 releaseReadinessPolicyObserved를 assert함. 기능 계약·필수 검사 의미·실패 전파 유지, 누락/변조 반례 통과. 실제 UI·장시간·published·외부 릴리즈 미실행을 명시하며 준비 검사를 제품 PASS로 승격하지 않음.",
+      "justificationSha256": "3bd574bb8b5a68ffa6ef5ff67051a6a27fea5c101a906728cb312058874c687d"
+    }
+  ]
+}

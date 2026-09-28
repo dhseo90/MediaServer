@@ -159521,7 +159521,7 @@
         "file": "scripts/internal/verify_v260_owner_release_readiness.mjs"
       },
       "evidenceMode": "actual-canonical-policy-safe-057",
-      "evidenceToken": "publishedMetadataStillManual",
+      "evidenceToken": "releaseReadinessPolicyObserved",
       "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
@@ -159531,37 +159531,37 @@
         "owner": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "release-readiness-policy-check",
-          "anchor": "check(\"release policy and evidence index record S06 readiness without promoting not-run gates\", () => {",
-          "line": 86,
-          "contextSha256": "6a6ff67c849e776c4ad1b0c1fd3584aceceb3960fa24c7b4a9cb559936e4d49e"
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
+          "line": 89,
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "release-readiness-policy-check",
           "anchor": "const policy = readText(\"docs/release-policy.md\");",
-          "line": 88,
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "line": 90,
+          "contextSha256": "ada51775f2fa7734edeb5d8d2adf8d90dde38ab4dda245ec43c341209f265262"
         },
         "action": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "release-readiness-policy-check",
-          "anchor": "const publishedMetadataCommand = \"verify-release-metadata --published\";",
-          "line": 90,
-          "contextSha256": "359bf579d53b5b4bc2ee468240ce89b33729828399590317c4479fa726ffb1c5"
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
+          "line": 92,
+          "contextSha256": "9848871bc2af243df4101ce969cb1c97dd8b79e0fae319502ec5e153a952a98b"
         },
         "state": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "release-readiness-policy-check",
-          "anchor": "const publishedMetadataStillManual = policy.includes(`\\`${publishedMetadataCommand}\\` 미실행`) &&",
-          "line": 91,
-          "contextSha256": "b13cfc428b3bfc7919db0fda4275bca940b837751fbe2d7e28e19553df3cc602"
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
+          "line": 101,
+          "contextSha256": "0d7d3777e315ce5a777cae67fffbb643110b6f41859cc0531742032f0eca7ed0"
         },
         "readback": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "release-readiness-policy-check",
-          "anchor": "assert(publishedMetadataStillManual && policy.includes(`\\`${publishedMetadataCommand}\\` 미실행`),",
-          "line": 94,
-          "contextSha256": "6f995caa4a66791e8c1e4d15c1a6441464fb0a31140d9e5f464a2f7db15e9618"
+          "anchor": "assert(releaseReadinessPolicyObserved,",
+          "line": 102,
+          "contextSha256": "b8fcfa1873de200c41cdb69a51c5f2b76430edd9cc414d583ceeefaa30a8cb3b"
         },
         "verifier": {
           "file": "server.sh",
@@ -159577,39 +159577,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-057 owner-dispatch",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:86",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:88"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:89",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:90"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "function-containment",
+          "kind": "assignment-def-use",
           "witness": "SAFE-057 dispatch-action",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:88",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:90"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:90",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:92"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-057 action-state",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:90",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:91"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:92",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:101"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-057 state-readback",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:91",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:94"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:101",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:102"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-owner-release-readiness",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:94",
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:102",
           "target": "server.sh:2994"
         }
       ],
@@ -159659,53 +159659,53 @@
           "sha256": "3544be4fcd0d9cec86fc73f6242be043b8985648d660fe190fab9296d80b54d5"
         }
       },
-      "sourceFlowDigest": "cc1196632db887104bc921ff384ca7ab1559ebccbdd465be1aa8f7b061a60214",
+      "sourceFlowDigest": "8f8f2d873d1e465f8a84fccfa00498dbef84132a05a49627ff4cd093d233276b",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -159717,7 +159717,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
+        "verifierFileSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
         "dispatch": {
           "command": "verify-v260-owner-release-readiness",
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
@@ -161016,38 +161016,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-          "line": 91,
-          "anchor": "check(\"release policy, evidence index, and backlog record S06 readiness without promoting not-run gates\", () => {",
+          "line": 149,
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
           "symbol": "release-readiness-policy-check",
-          "contextSha256": "2ad3f37614c6a09727f7c3c8dc19d656c91b20471e63e0e65f794e3f450d627c"
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-          "line": 93,
+          "line": 150,
           "anchor": "const policy = readText(\"docs/release-policy.md\");",
           "symbol": "flow:SAFE-063",
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "contextSha256": "ada51775f2fa7734edeb5d8d2adf8d90dde38ab4dda245ec43c341209f265262"
         },
         "action": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-          "line": 96,
-          "anchor": "const publishedMetadataStillManual = policy.includes(\"`verify-release-metadata --published` 미실행\") &&",
+          "line": 152,
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
           "symbol": "flow:SAFE-063",
-          "contextSha256": "069fa38e96672d05a130c2b60820db86554b845e234237bc9ab37696a72682a6"
+          "contextSha256": "9848871bc2af243df4101ce969cb1c97dd8b79e0fae319502ec5e153a952a98b"
         },
         "state": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-          "line": 99,
-          "anchor": "const releaseReadinessPolicyObserved = publishedMetadataStillManual;",
+          "line": 161,
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
           "symbol": "flow:SAFE-063",
-          "contextSha256": "726f3310c5fb15da75f26574062d42be11ac4b7aaf2680e4d70643a08eb6bd85"
+          "contextSha256": "0d7d3777e315ce5a777cae67fffbb643110b6f41859cc0531742032f0eca7ed0"
         },
         "readback": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-          "line": 100,
+          "line": 162,
           "anchor": "assert(releaseReadinessPolicyObserved,",
           "symbol": "flow:SAFE-063",
-          "contextSha256": "fae324a0006911343d956be790345cbdecf9750d84a499e238fa7a35b31f6b2c"
+          "contextSha256": "659605631371fdeef7f235ef5e69d2aa6d5c7de40d4101447c1ef264fc502ce2"
         },
         "verifier": {
           "file": "server.sh",
@@ -161063,39 +161063,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-063 owner-dispatch",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:91",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:93"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:149",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-063 dispatch-action",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:93",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:96"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:150",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:152"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-063 action-state",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:96",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:99"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:152",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:161"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-063 state-readback",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:99",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:100"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:161",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:162"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-owner-release-readiness",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:100",
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:162",
           "target": "server.sh:3018"
         }
       ],
@@ -161147,53 +161147,53 @@
           "sha256": "2233e3cf5b80f69bd99d1f51ddca5aeaab7c74f9ff1a7bae789abb84018489d5"
         }
       },
-      "sourceFlowDigest": "466f3c443de433e723680112623fbb235ad570c5fb3365e9376c0f53654a49e0",
+      "sourceFlowDigest": "4d50c5441a6aa9ad3d559f62e85d069a34cfb46d60f3ba6dbbcf3e719d742a4e",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-063",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-063",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-063",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-063",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -161205,7 +161205,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
+        "verifierFileSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
         "dispatch": {
           "command": "verify-v270-owner-release-readiness",
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
@@ -162758,38 +162758,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
-          "line": 94,
-          "anchor": "check(\"release policy, evidence index, and backlog record S07 readiness without promoting not-run gates\", () => {",
+          "line": 149,
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
           "symbol": "release-readiness-policy-check",
-          "contextSha256": "12763c6d1ccd41129787aae3bb00c7cdd655c19e9197617d901a2653c25faf0d"
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
-          "line": 96,
+          "line": 150,
           "anchor": "const policy = readText(\"docs/release-policy.md\");",
           "symbol": "flow:SAFE-070",
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "contextSha256": "ada51775f2fa7734edeb5d8d2adf8d90dde38ab4dda245ec43c341209f265262"
         },
         "action": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
-          "line": 99,
-          "anchor": "const publishedMetadataStillManual = policy.includes(\"`verify-release-metadata --published` 미실행\") &&",
+          "line": 152,
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
           "symbol": "flow:SAFE-070",
-          "contextSha256": "74d12522ed08134c5e5e6d693b5e6bbc1d9832cc34e0503c5fc24fe3e71909c3"
+          "contextSha256": "9848871bc2af243df4101ce969cb1c97dd8b79e0fae319502ec5e153a952a98b"
         },
         "state": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
-          "line": 102,
-          "anchor": "const releaseReadinessPolicyObserved = publishedMetadataStillManual;",
+          "line": 161,
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
           "symbol": "flow:SAFE-070",
-          "contextSha256": "726f3310c5fb15da75f26574062d42be11ac4b7aaf2680e4d70643a08eb6bd85"
+          "contextSha256": "0d7d3777e315ce5a777cae67fffbb643110b6f41859cc0531742032f0eca7ed0"
         },
         "readback": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
-          "line": 103,
+          "line": 162,
           "anchor": "assert(releaseReadinessPolicyObserved,",
           "symbol": "flow:SAFE-070",
-          "contextSha256": "85ab130a082365136d4fc1bf41a9b5762690fac9f77bc50184668aebfb219b41"
+          "contextSha256": "68ff0c98893dfe9c10630b85cec4d6a2399720a31d83c2988776523c112f478a"
         },
         "verifier": {
           "file": "server.sh",
@@ -162805,39 +162805,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-070 owner-dispatch",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:94",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:96"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:149",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-070 dispatch-action",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:96",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:99"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:150",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:152"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-070 action-state",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:99",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:102"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:152",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:161"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-070 state-readback",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:102",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:103"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:161",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:162"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-owner-release-readiness",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:103",
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:162",
           "target": "server.sh:3042"
         }
       ],
@@ -162889,53 +162889,53 @@
           "sha256": "7d5cec35be58c7a39f4f7f96e1d5bee199327e9ab441872f929c77078327ba59"
         }
       },
-      "sourceFlowDigest": "31afada770652d7add80d1e845680e6fd643ac2f50125f54290d54b763a00ae7",
+      "sourceFlowDigest": "c5a71508804ee585302dbdc8b76a1795aff0ac336295f1739446df47787c085a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-070",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-070",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-070",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-070",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -162947,7 +162947,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
+        "verifierFileSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
         "dispatch": {
           "command": "verify-v280-owner-release-readiness",
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
@@ -200541,7 +200541,7 @@
         "file": "scripts/internal/verify_v260_owner_release_readiness.mjs"
       },
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "publishedMetadataStillManual",
+      "evidenceToken": "releaseReadinessPolicyObserved",
       "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
@@ -200551,37 +200551,37 @@
         "owner": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "owner:OPS-037",
-          "anchor": "check(\"release policy and evidence index record S06 readiness without promoting not-run gates\", () => {",
-          "line": 86,
-          "contextSha256": "6a6ff67c849e776c4ad1b0c1fd3584aceceb3960fa24c7b4a9cb559936e4d49e"
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
+          "line": 89,
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "dispatch:OPS-037",
           "anchor": "const policy = readText(\"docs/release-policy.md\");",
-          "line": 88,
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "line": 90,
+          "contextSha256": "ada51775f2fa7734edeb5d8d2adf8d90dde38ab4dda245ec43c341209f265262"
         },
         "action": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "action:OPS-037",
-          "anchor": "const publishedMetadataCommand = \"verify-release-metadata --published\";",
-          "line": 90,
-          "contextSha256": "359bf579d53b5b4bc2ee468240ce89b33729828399590317c4479fa726ffb1c5"
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
+          "line": 92,
+          "contextSha256": "9848871bc2af243df4101ce969cb1c97dd8b79e0fae319502ec5e153a952a98b"
         },
         "state": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
-          "symbol": "state:publishedMetadataStillManual",
-          "anchor": "const publishedMetadataStillManual = policy.includes(`\\`${publishedMetadataCommand}\\` 미실행`) &&",
-          "line": 91,
-          "contextSha256": "b13cfc428b3bfc7919db0fda4275bca940b837751fbe2d7e28e19553df3cc602"
+          "symbol": "state:releaseReadinessPolicyObserved",
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
+          "line": 101,
+          "contextSha256": "0d7d3777e315ce5a777cae67fffbb643110b6f41859cc0531742032f0eca7ed0"
         },
         "readback": {
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
           "symbol": "readback:OPS-037",
-          "anchor": "assert(publishedMetadataStillManual && policy.includes(`\\`${publishedMetadataCommand}\\` 미실행`),",
-          "line": 94,
-          "contextSha256": "6f995caa4a66791e8c1e4d15c1a6441464fb0a31140d9e5f464a2f7db15e9618"
+          "anchor": "assert(releaseReadinessPolicyObserved,",
+          "line": 102,
+          "contextSha256": "b8fcfa1873de200c41cdb69a51c5f2b76430edd9cc414d583ceeefaa30a8cb3b"
         },
         "verifier": {
           "file": "server.sh",
@@ -200597,39 +200597,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-037 owner-dispatch",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:86",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:88"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:89",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:90"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-037 dispatch-action",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:88",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:90"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:90",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:92"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-037 action-state",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:90",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:91"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:92",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:101"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-037 state-readback",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:91",
-          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:94"
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:101",
+          "target": "scripts/internal/verify_v260_owner_release_readiness.mjs:102"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v260-owner-release-readiness",
-          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:94",
+          "source": "scripts/internal/verify_v260_owner_release_readiness.mjs:102",
           "target": "server.sh:2994"
         }
       ],
@@ -200679,53 +200679,53 @@
           "sha256": "50fbc0c64161c70b740f04b53715559a9b8b5c37ec17d344ca7b0a763d0a10a8"
         }
       },
-      "sourceFlowDigest": "1adc1c38803463919f9fba1d2352ebfde5bc797b2dffcde7dffec2657cfcf92b",
+      "sourceFlowDigest": "6d0470c6f77c49651725a08b4c00d3c6dfc2f5dcf1db79621637d6480822cc32",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "owner:OPS-037",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "dispatch:OPS-037",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "action:OPS-037",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
-            "symbol": "state:publishedMetadataStillManual",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "symbol": "state:releaseReadinessPolicyObserved",
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
             "symbol": "readback:OPS-037",
-            "trackedBlobSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
-            "enclosingBodySha256": "2d81562f31938d8c0c6efb1f6543c373baa196b8747b4781965be4d63c7626e2",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 120,
+            "trackedBlobSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
+            "enclosingBodySha256": "8734241c065453c8d364cd3b4076b1e0ef7ab6ead6b90298a150733e2b94b024",
+            "enclosingBodyStartLine": 89,
+            "enclosingBodyEndLine": 104,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -200737,7 +200737,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "64c2ccf4066720150e0d8a1e89d4c195dfef40e4db54d6cc093871bef00e56bf",
+        "verifierFileSha256": "f58adef96821d41e8f1d146d58af026f349a2f7c21011080ec6527ec8ead7ca9",
         "dispatch": {
           "command": "verify-v260-owner-release-readiness",
           "file": "scripts/internal/verify_v260_owner_release_readiness.mjs",
@@ -200778,37 +200778,37 @@
         "owner": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
           "symbol": "owner:OPS-038",
-          "anchor": "check(\"release policy, evidence index, and backlog record S06 readiness without promoting not-run gates\", () => {",
-          "line": 91,
-          "contextSha256": "2ad3f37614c6a09727f7c3c8dc19d656c91b20471e63e0e65f794e3f450d627c"
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
+          "line": 149,
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
           "symbol": "dispatch:OPS-038",
           "anchor": "const policy = readText(\"docs/release-policy.md\");",
-          "line": 93,
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "line": 150,
+          "contextSha256": "ada51775f2fa7734edeb5d8d2adf8d90dde38ab4dda245ec43c341209f265262"
         },
         "action": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
           "symbol": "action:OPS-038",
-          "anchor": "const publishedMetadataStillManual = policy.includes(\"`verify-release-metadata --published` 미실행\") &&",
-          "line": 96,
-          "contextSha256": "069fa38e96672d05a130c2b60820db86554b845e234237bc9ab37696a72682a6"
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
+          "line": 152,
+          "contextSha256": "9848871bc2af243df4101ce969cb1c97dd8b79e0fae319502ec5e153a952a98b"
         },
         "state": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
           "symbol": "state:releaseReadinessPolicyObserved",
-          "anchor": "const releaseReadinessPolicyObserved = publishedMetadataStillManual;",
-          "line": 99,
-          "contextSha256": "726f3310c5fb15da75f26574062d42be11ac4b7aaf2680e4d70643a08eb6bd85"
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
+          "line": 161,
+          "contextSha256": "0d7d3777e315ce5a777cae67fffbb643110b6f41859cc0531742032f0eca7ed0"
         },
         "readback": {
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
           "symbol": "readback:OPS-038",
           "anchor": "assert(releaseReadinessPolicyObserved,",
-          "line": 100,
-          "contextSha256": "fae324a0006911343d956be790345cbdecf9750d84a499e238fa7a35b31f6b2c"
+          "line": 162,
+          "contextSha256": "659605631371fdeef7f235ef5e69d2aa6d5c7de40d4101447c1ef264fc502ce2"
         },
         "verifier": {
           "file": "server.sh",
@@ -200824,39 +200824,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-038 owner-dispatch",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:91",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:93"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:149",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-038 dispatch-action",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:93",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:96"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:150",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:152"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-038 action-state",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:96",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:99"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:152",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:161"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-038 state-readback",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:99",
-          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:100"
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:161",
+          "target": "scripts/internal/verify_v270_owner_release_readiness.mjs:162"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-owner-release-readiness",
-          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:100",
+          "source": "scripts/internal/verify_v270_owner_release_readiness.mjs:162",
           "target": "server.sh:3018"
         }
       ],
@@ -200906,53 +200906,53 @@
           "sha256": "6df7d8ba64766a66fca21a3bd27aaae16b6e3c7c24b5ba5826997179fa491b0e"
         }
       },
-      "sourceFlowDigest": "a7c028518513f0e482ec3f4ac7aa7b5b3233399cd17a482728b2f10d817a22eb",
+      "sourceFlowDigest": "5dd5c65711daa10c057fd2bde08dea4057f83d5705f6028af4ac198a21864941",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "owner:OPS-038",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "dispatch:OPS-038",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "action:OPS-038",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "state:releaseReadinessPolicyObserved",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
             "symbol": "readback:OPS-038",
-            "trackedBlobSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
-            "enclosingBodySha256": "3fa534b10b2638196672517d5f8c93a5f3651b61958565d013b321cecd1046f0",
-            "enclosingBodyStartLine": 91,
-            "enclosingBodyEndLine": 126,
+            "trackedBlobSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
+            "enclosingBodySha256": "0e4d77d9bb6cba7f8793b55a3b81ed1c0fa6d11abb4bf083e06ce335fcab1a80",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -200964,7 +200964,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0606249b0733fcd341a73c5808ee8efca664735e7a3adfd2f5243103647dbbf8",
+        "verifierFileSha256": "8526f8d43c0da868523e823761835b83cdf7d5a19475a45e9ac7224fc46bb357",
         "dispatch": {
           "command": "verify-v270-owner-release-readiness",
           "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
@@ -201233,37 +201233,37 @@
         "owner": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
           "symbol": "owner:OPS-040",
-          "anchor": "check(\"release policy, evidence index, and backlog record S07 readiness without promoting not-run gates\", () => {",
-          "line": 94,
-          "contextSha256": "12763c6d1ccd41129787aae3bb00c7cdd655c19e9197617d901a2653c25faf0d"
+          "anchor": "check(\"현행 릴리즈 정책과 실제 실행 판정의 경계\", () => {",
+          "line": 149,
+          "contextSha256": "c803e1f329dd2e03f8112d2b0b347f38672302d36f309f2c11b05db290b4b3b8"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
           "symbol": "dispatch:OPS-040",
           "anchor": "const policy = readText(\"docs/release-policy.md\");",
-          "line": 96,
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "line": 150,
+          "contextSha256": "ada51775f2fa7734edeb5d8d2adf8d90dde38ab4dda245ec43c341209f265262"
         },
         "action": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
           "symbol": "action:OPS-040",
-          "anchor": "const publishedMetadataStillManual = policy.includes(\"`verify-release-metadata --published` 미실행\") &&",
-          "line": 99,
-          "contextSha256": "74d12522ed08134c5e5e6d693b5e6bbc1d9832cc34e0503c5fc24fe3e71909c3"
+          "anchor": "const policyErrors = validateReleaseContext(readReleaseContext(policy), readText(\"VERSION\").trim());",
+          "line": 152,
+          "contextSha256": "9848871bc2af243df4101ce969cb1c97dd8b79e0fae319502ec5e153a952a98b"
         },
         "state": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
           "symbol": "state:releaseReadinessPolicyObserved",
-          "anchor": "const releaseReadinessPolicyObserved = publishedMetadataStillManual;",
-          "line": 102,
-          "contextSha256": "726f3310c5fb15da75f26574062d42be11ac4b7aaf2680e4d70643a08eb6bd85"
+          "anchor": "const releaseReadinessPolicyObserved = policyErrors.length === 0;",
+          "line": 161,
+          "contextSha256": "0d7d3777e315ce5a777cae67fffbb643110b6f41859cc0531742032f0eca7ed0"
         },
         "readback": {
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
           "symbol": "readback:OPS-040",
           "anchor": "assert(releaseReadinessPolicyObserved,",
-          "line": 103,
-          "contextSha256": "85ab130a082365136d4fc1bf41a9b5762690fac9f77bc50184668aebfb219b41"
+          "line": 162,
+          "contextSha256": "68ff0c98893dfe9c10630b85cec4d6a2399720a31d83c2988776523c112f478a"
         },
         "verifier": {
           "file": "server.sh",
@@ -201279,39 +201279,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-040 owner-dispatch",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:94",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:96"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:149",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:150"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-040 dispatch-action",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:96",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:99"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:150",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:152"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-040 action-state",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:99",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:102"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:152",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:161"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-040 state-readback",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:102",
-          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:103"
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:161",
+          "target": "scripts/internal/verify_v280_owner_release_readiness.mjs:162"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v280-owner-release-readiness",
-          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:103",
+          "source": "scripts/internal/verify_v280_owner_release_readiness.mjs:162",
           "target": "server.sh:3042"
         }
       ],
@@ -201361,53 +201361,53 @@
           "sha256": "1c7e015dd6e73c63a60dd3370a3fcd185e36ae0dd97344629ec776708a56434b"
         }
       },
-      "sourceFlowDigest": "9a2ea6cf869e07c6af115aefb35f83356c47e5ca141fcb751f7aecb69508ad8d",
+      "sourceFlowDigest": "5885fe2dbf381d6e4e68f104ad17c242bfb40e881662332ba0fa72bffcf77edd",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "owner:OPS-040",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "dispatch:OPS-040",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "action:OPS-040",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "state:releaseReadinessPolicyObserved",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
             "symbol": "readback:OPS-040",
-            "trackedBlobSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
-            "enclosingBodySha256": "bc23e65220c8e11b418383853aa452fcfc1866744dd6c4ad8bf496a98dddda20",
-            "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 136,
+            "trackedBlobSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
+            "enclosingBodySha256": "729a96b01341c2cb35f913a71db187a75963f36ed5104b94f3de4b804b6b5130",
+            "enclosingBodyStartLine": 149,
+            "enclosingBodyEndLine": 164,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -201419,7 +201419,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f836405f8ccebc88a5d878101f12069d7300ee7fd17131edc86ee82b09d0de6c",
+        "verifierFileSha256": "086fc4c2ede979190be11ba74127430d42246c8676d719399923a7feb19e980f",
         "dispatch": {
           "command": "verify-v280-owner-release-readiness",
           "file": "scripts/internal/verify_v280_owner_release_readiness.mjs",
@@ -235281,5 +235281,5 @@
       }
     }
   ],
-  "candidateDigest": "f1539bb107254a441565f24d9f036363d1e0aa960e32a8c0b4df7e9cbf8c70f5"
+  "candidateDigest": "2f75117c158c7ddad2a9319be792fc9ef85e80821a3e6ad4d48a26fcb6224ed4"
 }

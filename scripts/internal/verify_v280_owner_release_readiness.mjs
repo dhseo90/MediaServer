@@ -1,180 +1,193 @@
 #!/usr/bin/env node
-// 파일 용도: v2.8.0 S07 release readiness gate의 문서/인벤토리/명령 연결을 검증한다.
-
+// 파일 용도: 현행 기능 정의·정책·명령의 연결을 검사한다. 과거 릴리즈 실행 결과는 읽지 않는다.
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation, validateVerificationDocumentation, validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
+import { readReleaseContext, validateReleaseContext } from "./release_documentation_contract.mjs";
+import { validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(scriptDir, "../..");
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const rawArgs = process.argv.slice(2);
-
-if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`v2.8.0 S07 release readiness verification
-
-Usage:
-  ./server.sh verify-v280-owner-release-readiness
-
-Checks:
-  - v2.8.0 S02~S07 feature inventory, manual UI criteria, release policy, evidence index가 같은 local readiness gate를 가리키는지 확인
-  - v2.8.0 local readiness verifier와 release metadata/docs/assets/coverage/evidence/close-out dry-run companion command가 문서화됐는지 확인
-  - UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release 경계가 S07 local readiness PASS로 승격되지 않는지 확인
-  - server.sh가 S07 verifier를 노출하는지 확인
-`);
-}
-
+if (hasHelpFlag(rawArgs)) printUsageAndExit(`v2.8.0 호환 릴리즈 준비 문서 검사
+Usage: ./server.sh verify-v280-owner-release-readiness
+현행 기능·UI 정의·정책·명령 연결만 확인합니다. 제품·UI·장시간·published·외부 작업은 실행하지 않습니다.
+옛 명령/summary schema를 유지하되 종료 기록과 당시 완료 상태는 검사 입력이 아닙니다.`);
 assertKnownOptions(rawArgs, ["h", "help"]);
-
 const checks = [];
 const readinessCommands = [
-  "verify-v280-owner-release-readiness",
-  "verify-release-metadata",
-  "verify-docs-links",
-  "verify-docs-ui-assets",
-  "verify-feature-inventory-coverage",
-  "verify-manual-ui-evidence",
-  "verify-release-evidence-index",
-  "verify-release-closeout-helper --dry-run",
-  "git diff --check",
+  "verify-v280-owner-release-readiness", "verify-release-metadata", "verify-docs-links", "verify-docs-ui-assets",
+  "verify-feature-inventory-coverage", "verify-manual-ui-evidence", "verify-release-evidence-index",
+  "verify-release-closeout-helper --dry-run", "git diff --check",
+];
+const featureCommands = [
+  [
+    "UI-055",
+    "verify-v280-incident-action-readiness-queue"
+  ],
+  [
+    "EVT-055",
+    "verify-v280-incident-action-readiness-queue"
+  ],
+  [
+    "LAB-079",
+    "verify-v280-incident-action-readiness-queue"
+  ],
+  [
+    "SAFE-065",
+    "verify-auth-routes"
+  ],
+  [
+    "UI-056",
+    "verify-v280-approval-gated-rule-draft"
+  ],
+  [
+    "RULE-104",
+    "verify-v280-approval-gated-rule-draft"
+  ],
+  [
+    "EVT-056",
+    "verify-v280-approval-gated-rule-draft"
+  ],
+  [
+    "LAB-080",
+    "verify-v280-approval-gated-rule-draft"
+  ],
+  [
+    "SAFE-066",
+    "verify-auth-routes"
+  ],
+  [
+    "UI-057",
+    "verify-v280-evidence-intake-field-readiness"
+  ],
+  [
+    "SRC-032",
+    "verify-ops-source-registry-api"
+  ],
+  [
+    "EVT-057",
+    "verify-v280-evidence-intake-field-readiness"
+  ],
+  [
+    "LAB-081",
+    "verify-v280-evidence-intake-field-readiness"
+  ],
+  [
+    "SAFE-067",
+    "verify-auth-routes"
+  ],
+  [
+    "UI-058",
+    "verify-v280-runtime-evidence-window"
+  ],
+  [
+    "EVT-058",
+    "verify-v280-runtime-evidence-window"
+  ],
+  [
+    "LAB-082",
+    "verify-v280-runtime-evidence-window"
+  ],
+  [
+    "SAFE-068",
+    "verify-auth-routes"
+  ],
+  [
+    "CLIENT-024",
+    "verify-v280-client-safe-followup-digest"
+  ],
+  [
+    "SAFE-069",
+    "verify-auth-routes"
+  ],
+  [
+    "OPS-040",
+    "verify-v280-owner-release-readiness"
+  ],
+  [
+    "SAFE-070",
+    "verify-v280-owner-release-readiness"
+  ]
 ];
 
-check("feature inventory maps v2.8.0 S02-S07 readiness IDs and coverage", () => {
+check("현행 기능 정의와 독립 검사 연결", () => {
   const inventory = readText("docs/project-feature-test-inventory.md");
+  const implementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const projectInventory = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
-  for (const snippet of [
-    "| V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `verify-v280-incident-action-readiness-queue` |",
-    "| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` |",
-    "| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` |",
-    "| V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` |",
-    "| V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` |",
-    "| V280-S07 Release readiness | `UI-055`, `UI-056`, `UI-057`, `UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `verify-v280-owner-release-readiness` |",
-    "| OPS-040 | V280-S07 릴리즈 준비 게이트 |",
-    "| SAFE-070 | V280-S07 릴리즈 준비 경계 |",
-  ]) {
-    assert(inventory.includes(snippet), `inventory missing v2.8.0 readiness snippet: ${snippet}`);
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/release-policy.md"),
+    identifiers: ["media-server.release-context.v1", "source-only", "signed-annotated"],
+    command: "verify-v280-owner-release-readiness", script: "verify_v280_owner_release_readiness.mjs",
+    featureIds: ["OPS-040"], inventory, implementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  for (const [id, command] of featureCommands) {
+    const definitions = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementation.items.filter(item => item.id === id);
+    assert(definitions.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === command,
+      id + " 현행 정의/독립 명령 연결 누락·중복·불일치");
   }
-  assert(coverage.includes("verifierEvidenceRows === rows.length"),
-    "feature coverage must validate verifier evidence for every inventory row");
-  assert(projectInventory.includes('"OPS-040"'), "project inventory verifier missing OPS-040 required row");
-  assert(projectInventory.includes('"SAFE-070"'), "project inventory verifier missing SAFE-070 required row");
+  assert(coverage.includes("verifierEvidenceRows === rows.length"), "feature coverage must validate every inventory row");
+  for (const id of ["OPS-040", "SAFE-070"]) assert(projectInventory.includes('"' + id + '"'), id + " project inventory 연결 누락");
 });
 
-check("manual UI criteria records v2.8.0 controls without claiming execution", () => {
-  const fulltest = readText("docs/manual-ui-fulltest.md");
-  const checklist = readText("docs/manual-ui-checklist.md");
-  for (const text of [fulltest, checklist]) {
-    for (const snippet of [
-      "v2.8.0 Operator-Supervised Action Readiness UI 풀테스트 기준",
-      "UI-055",
-      "UI-056",
-      "UI-057",
-      "UI-058",
-      "CLIENT-024",
-      "OPS-040",
-      "SAFE-070",
-      "/ops/events",
-      "/ops/rules",
-      "/client/live",
-      "/client/dashboard",
-      "/client/events",
-    ]) {
-      assert(text.includes(snippet), `manual UI criteria missing V280-S07 snippet: ${snippet}`);
+check("manual UI 현행 대상 정의 유지", () => {
+  for (const file of ["docs/manual-ui-fulltest.md", "docs/manual-ui-checklist.md"]) {
+    const text = readText(file);
+    for (const identifier of ["UI-055","UI-056","UI-057","UI-058","CLIENT-024","OPS-040","SAFE-070","/ops/events","/ops/rules","/client/live","/client/dashboard","/client/events"]) {
+      assert(text.includes(identifier), "manual UI 대상 정의 누락: " + identifier);
     }
   }
-  assert(fulltest.includes("raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다"),
-    "manual UI fulltest missing non-equivalence boundary");
-  assert(checklist.includes("실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음"),
-    "manual UI checklist missing non-execution boundary");
 });
 
-check("release policy, evidence index, and backlog record S07 readiness without promoting not-run gates", () => {
-  const backlog = readText("docs/development-backlog.md");
+check("현행 릴리즈 정책과 실제 실행 판정의 경계", () => {
   const policy = readText("docs/release-policy.md");
-  const evidence = readText("docs/release-evidence-index.md");
-  const readinessCommand = "verify-v280-owner-release-readiness";
-  const publishedMetadataStillManual = policy.includes("`verify-release-metadata --published` 미실행") &&
-    policy.includes(readinessCommand) && policy.includes("UI 풀테스트 직접 조작 미실행") &&
-    policy.includes("30분 테스트 미실행") && policy.includes("120분 테스트 미실행");
-  const releaseReadinessPolicyObserved = publishedMetadataStillManual;
+  const publishedMetadataCommand = "verify-release-metadata --published";
+  const policyErrors = validateReleaseContext(readReleaseContext(policy), readText("VERSION").trim());
+  const agents = readText("AGENTS.md");
+  const verification = readText("docs/stream-verification.md");
+  const fulltest = readText("docs/manual-ui-fulltest.md");
+  const uiPolicy = JSON.parse(readText("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  policyErrors.push(...validatePolicy(uiPolicy));
+  policyErrors.push(...validateUiPolicyDocumentation({ agents, fulltest, policy: uiPolicy }));
+  policyErrors.push(...validateVerificationDocumentation({ agents, verification }));
+  if (!verification.includes(publishedMetadataCommand)) policyErrors.push(publishedMetadataCommand + " 안내 누락");
+  const releaseReadinessPolicyObserved = policyErrors.length === 0;
   assert(releaseReadinessPolicyObserved,
-    "verify-v280-owner-release-readiness must not promote published/UI/30분/120분 gates");
-  assert(/\| 7 \| V280-S07 \| P2 \| 완료 \| 릴리즈 준비 \|/.test(backlog),
-    "backlog V280-S07 row must be 완료");
-  for (const snippet of readinessCommands) {
-    assert(backlog.includes(snippet), `backlog missing V280-S07 command: ${snippet}`);
-    assert(policy.includes(snippet), `release policy missing V280-S07 command: ${snippet}`);
-    assert(evidence.includes(snippet), `release evidence missing V280-S07 command: ${snippet}`);
-  }
-  for (const snippet of [
-    "## v2.8.0 소유권 분리 / 릴리즈 준비 게이트",
-    "media-server.v280-owner-release-readiness.v1",
-    "v2.8.0 Operator-Supervised Action Readiness Coverage Mapping",
-    "UI 풀테스트 직접 조작 미실행",
-    "30분 테스트 미실행",
-    "120분 테스트 미실행",
-    "tag/push/GitHub Release 실행은 S07 gate PASS로 대체하지 않습니다.",
-    "`verify-release-metadata --published` 미실행",
-  ]) {
-    assert(policy.includes(snippet), `release policy missing V280-S07 readiness snippet: ${snippet}`);
-  }
-  assert(!policy.includes("아직 구현 후보 이름"), "release policy must no longer describe V280-S07 as a candidate verifier");
-  for (const snippet of [
-    "v280-s07-owner-release-readiness-20260618",
-    "media-server.v280-owner-release-readiness.v1",
-    "v2.8.0 S07 소유권 분리 / 릴리즈 준비",
-    "UI 풀테스트 직접 조작 미실행",
-    "30분 테스트 미실행",
-    "120분 테스트 미실행",
-    "Not run for `v280-s07-owner-release-readiness-20260618`",
-  ]) {
-    assert(evidence.includes(snippet), `release evidence missing V280-S07 readiness snippet: ${snippet}`);
-  }
+    "verify-v280-owner-release-readiness: " + policyErrors.join("; "));
 });
 
-check("stream verification and server entrypoint expose the S07 verifier", () => {
-  const streamVerification = readText("docs/stream-verification.md");
-  const serverSh = readText("server.sh");
-  assert(streamVerification.includes("verify-v280-owner-release-readiness"),
-    "stream verification missing V280-S07 command");
-  assert(serverSh.includes("verify-v280-owner-release-readiness"),
-    "server.sh missing verify-v280-owner-release-readiness");
-  assert(serverSh.includes("verify_v280_owner_release_readiness.mjs"),
-    "server.sh missing V280-S07 verifier script dispatch");
+check("현재 companion 명령과 실제 dispatch 연결", () => {
+  const verification = readText("docs/stream-verification.md");
+  const dispatches = parseServerDispatches(readText("server.sh"));
+  for (const command of readinessCommands) {
+    assert(verification.includes(command), "검증 명령 안내 누락: " + command);
+    if (command === "git diff --check") continue;
+    const base = command.split(" ")[0];
+    const targets = dispatches.filter(item => item.command === base);
+    assert(targets.length === 1, "dispatch 누락/중복: " + base);
+    if (base === "verify-v280-owner-release-readiness") assert(targets[0].script === "verify_v280_owner_release_readiness.mjs", "dispatch 대상 불일치");
+  }
 });
 
 let pass = 0;
 let fail = 0;
 for (const item of checks) {
-  try {
-    item.fn();
-    pass += 1;
-    console.log(`[pass] ${item.name}`);
-  } catch (error) {
-    fail += 1;
-    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
-  }
+  try { item.fn(); pass += 1; console.log("[pass] " + item.name); }
+  catch (error) { fail += 1; console.log("[fail] " + item.name + ": " + error.message); }
 }
-
-console.log("");
-console.log("== v2.8.0 S07 owner/release readiness summary ==");
+console.log("\n== v2.8.0 S07 owner/release readiness summary ==");
 console.log("- schema: media-server.v280-owner-release-readiness.v1");
-console.log(`- pass: ${pass}`);
-console.log(`- fail: ${fail}`);
-
+console.log("- pass: " + pass);
+console.log("- fail: " + fail);
+for (const scope of ["uiFulltest", "longrun30Or120", "publishedMetadata", "releaseActions"]) console.log("- " + scope + ": not-run-by-this-command");
 if (fail > 0) process.exit(1);
-
-function check(name, fn) {
-  checks.push({ name, fn });
-}
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
-
-function readText(relativePath) {
-  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
-}
+function check(name, fn) { checks.push({ name, fn }); }
+function assert(condition, message) { if (!condition) throw new Error(message); }
+function readText(relativePath) { return fs.readFileSync(path.join(rootDir, relativePath), "utf8"); }

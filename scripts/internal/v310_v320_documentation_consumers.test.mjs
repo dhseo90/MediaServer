@@ -93,6 +93,249 @@ const cases = [
   ["v380_rule_draft_action_package","LAB-118","media-server.ops.v380-rule-draft-action-package.v1","/ops/api/actions/rule-draft-package"],
   ["v380_source_recheck_action_pilot","LAB-116","media-server.ops.v380-source-recheck-action-pilot.v1","/ops/api/actions/source-recheck-pilot"],
 ];
+const readinessCases = [
+  {
+    "name": "v260_owner_release_readiness",
+    "mappings": [
+      {
+        "id": "UI-045",
+        "command": "verify-v260-incident-memory-productization"
+      },
+      {
+        "id": "UI-046",
+        "command": "verify-v260-rule-suggestion-review"
+      },
+      {
+        "id": "UI-047",
+        "command": "verify-v260-onvif-credential-gate"
+      },
+      {
+        "id": "UI-048",
+        "command": "verify-v260-runtime-dashboard-trends"
+      },
+      {
+        "id": "UI-049",
+        "command": "verify-v260-scenario-cross-zone-reentry"
+      },
+      {
+        "id": "OPS-037",
+        "command": "verify-v260-owner-release-readiness"
+      },
+      {
+        "id": "SAFE-057",
+        "command": "verify-v260-owner-release-readiness"
+      }
+    ]
+  },
+  {
+    "name": "v270_owner_release_readiness",
+    "mappings": [
+      {
+        "id": "UI-050",
+        "command": "verify-v270-incident-triage-board"
+      },
+      {
+        "id": "EVT-050",
+        "command": "verify-v270-incident-triage-board"
+      },
+      {
+        "id": "LAB-074",
+        "command": "verify-v270-incident-triage-board"
+      },
+      {
+        "id": "SAFE-058",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-051",
+        "command": "verify-v270-incident-decision-scorecard"
+      },
+      {
+        "id": "EVT-051",
+        "command": "verify-v270-incident-decision-scorecard"
+      },
+      {
+        "id": "LAB-075",
+        "command": "verify-v270-incident-decision-scorecard"
+      },
+      {
+        "id": "SAFE-059",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-052",
+        "command": "verify-v270-operational-action-pack"
+      },
+      {
+        "id": "EVT-052",
+        "command": "verify-v270-operational-action-pack"
+      },
+      {
+        "id": "LAB-076",
+        "command": "verify-v270-operational-action-pack"
+      },
+      {
+        "id": "SAFE-060",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-053",
+        "command": "verify-v270-rule-what-if-preview"
+      },
+      {
+        "id": "EVT-053",
+        "command": "verify-v270-rule-what-if-preview"
+      },
+      {
+        "id": "LAB-077",
+        "command": "verify-v270-rule-what-if-preview"
+      },
+      {
+        "id": "SAFE-061",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-054",
+        "command": "verify-v270-operator-outcome-memory"
+      },
+      {
+        "id": "EVT-054",
+        "command": "verify-v270-operator-outcome-memory"
+      },
+      {
+        "id": "LAB-078",
+        "command": "verify-v270-operator-outcome-memory"
+      },
+      {
+        "id": "SAFE-062",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "OPS-038",
+        "command": "verify-v270-owner-release-readiness"
+      },
+      {
+        "id": "SAFE-063",
+        "command": "verify-v270-owner-release-readiness"
+      }
+    ]
+  },
+  {
+    "name": "v280_owner_release_readiness",
+    "mappings": [
+      {
+        "id": "UI-055",
+        "command": "verify-v280-incident-action-readiness-queue"
+      },
+      {
+        "id": "EVT-055",
+        "command": "verify-v280-incident-action-readiness-queue"
+      },
+      {
+        "id": "LAB-079",
+        "command": "verify-v280-incident-action-readiness-queue"
+      },
+      {
+        "id": "SAFE-065",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-056",
+        "command": "verify-v280-approval-gated-rule-draft"
+      },
+      {
+        "id": "RULE-104",
+        "command": "verify-v280-approval-gated-rule-draft"
+      },
+      {
+        "id": "EVT-056",
+        "command": "verify-v280-approval-gated-rule-draft"
+      },
+      {
+        "id": "LAB-080",
+        "command": "verify-v280-approval-gated-rule-draft"
+      },
+      {
+        "id": "SAFE-066",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-057",
+        "command": "verify-v280-evidence-intake-field-readiness"
+      },
+      {
+        "id": "SRC-032",
+        "command": "verify-ops-source-registry-api"
+      },
+      {
+        "id": "EVT-057",
+        "command": "verify-v280-evidence-intake-field-readiness"
+      },
+      {
+        "id": "LAB-081",
+        "command": "verify-v280-evidence-intake-field-readiness"
+      },
+      {
+        "id": "SAFE-067",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "UI-058",
+        "command": "verify-v280-runtime-evidence-window"
+      },
+      {
+        "id": "EVT-058",
+        "command": "verify-v280-runtime-evidence-window"
+      },
+      {
+        "id": "LAB-082",
+        "command": "verify-v280-runtime-evidence-window"
+      },
+      {
+        "id": "SAFE-068",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "CLIENT-024",
+        "command": "verify-v280-client-safe-followup-digest"
+      },
+      {
+        "id": "SAFE-069",
+        "command": "verify-auth-routes"
+      },
+      {
+        "id": "OPS-040",
+        "command": "verify-v280-owner-release-readiness"
+      },
+      {
+        "id": "SAFE-070",
+        "command": "verify-v280-owner-release-readiness"
+      }
+    ]
+  }
+];
+test('V26-V28-READY 종료 기록과 현행 준비 검사 분리', async t => {
+  const before = snapshot();
+  try {
+    for (const {name, mappings} of readinessCases) {
+      const command = 'verify-' + name.replaceAll('_', '-');
+      const run = mutation => invoke(name, {readinessOnly: true, renameLabels: true, ...mutation});
+      await t.test('01 종료 기록·옛 문구 없이 정상 ' + name, () => {
+        const r = run({}); assert.equal(r.status, 0, r.stdout + r.stderr);
+        const header = {v260: 'v2.6.0 S06', v270: 'v2.7.0 S06', v280: 'v2.8.0 S07'}[name.slice(0, 4)];
+        assert(r.stdout.includes('== ' + header + ' owner/release readiness summary =='), '기존 CLI summary 유지');
+        for (const scope of ['uiFulltest', 'longrun30Or120', 'publishedMetadata', 'releaseActions']) assert(r.stdout.includes(scope + ': not-run-by-this-command'));
+      });
+      await t.test('02 현재 기능 정의 누락 ' + name, () => rejected(run({removeId: mappings[0].id}), mappings[0].id));
+      await t.test('03 UI 정의 누락 ' + name, () => rejected(run({manual: true}), 'manual UI'));
+      await t.test('04 공개 metadata 변조 ' + name, () => rejected(run({releaseMetadata: true}), 'tag'));
+      await t.test('05 UI 증거 정책 완화 ' + name, () => rejected(run({uiPolicy: true}), 'suite zero count'));
+      await t.test('06 현재 UI 계약 누락 ' + name, () => rejected(run({currentDocIdentifier: 'uiFulltestPass'}), 'uiFulltestPass'));
+      await t.test('07 실제 dispatch 누락 ' + name, () => rejected(run({dispatch: command}), 'dispatch'));
+      for (const {id} of mappings) await t.test('08 명령 연결 보존 ' + name + ' ' + id, () => rejected(run({mapping: id}), id));
+    }
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 function snapshot() {
   return Object.fromEntries(['src', 'include', 'test/fixtures'].flatMap(dir => fs.readdirSync(root + dir, {recursive: true})
@@ -115,6 +358,14 @@ function invoke(name, mutation = {}) {
       if (mutation.manual && relative === 'docs/manual-ui-checklist.md') value = '';
       if (mutation.renameLabels && relative === 'docs/manual-ui-checklist.md') value = value.replace(/\| V[0-9]+[^|\n]*\|/g, '| 표현을 바꾼 기능 제목 |');
       if (mutation.renameLabels && relative === 'docs/project-feature-test-inventory.md') value = value.replace(/^(\| [A-Z]+-[0-9]+ \|)[^|\n]*\|/gm, '$1 표현을 바꾼 정의 제목 |');
+      if (mutation.readinessOnly && relative === 'docs/release-policy.md') value = value.slice(0, value.indexOf('# 변경 가능한 제목', 1));
+      if (mutation.readinessOnly && relative === 'docs/manual-ui-fulltest.md') value = value.replaceAll('raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다', '');
+      if (mutation.readinessOnly && relative === 'docs/manual-ui-checklist.md') value = value.replaceAll('실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음', '');
+      if (mutation.releaseMetadata && relative === 'docs/release-policy.md') value = value.replaceAll('"tagType": "signed-annotated"', '"tagType": "unsigned"');
+      if (mutation.uiPolicy && relative === 'test/fixtures/ui_fulltest_evidence_policy_v4.json') {
+        const parsed = JSON.parse(value); parsed.suiteClosure.requiredZeroCounts = []; value = JSON.stringify(parsed);
+      }
+      if (mutation.dispatch && relative === 'server.sh') value = value.replaceAll(mutation.dispatch + ')', 'removed-dispatch)');
       if (mutation.identifier && relative === 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.identifier, 'missing-current-contract');
       if (mutation.currentDocIdentifier && relative.startsWith('docs/') && relative !== 'docs/project-feature-test-inventory.md') value = value.replaceAll(mutation.currentDocIdentifier, 'missing-current-contract');
       if (mutation.fixturePath === relative) {
@@ -152,6 +403,12 @@ function invoke(name, mutation = {}) {
       return value;
     };
     for (const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync']) fs[key] = () => {throw new Error('정적 검사의 파일 변경 금지');};
+    if (mutation.readinessOnly) {
+      const cp = (await import('node:child_process')).default;
+      for (const key of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork']) cp[key] = () => {throw new Error('정적 준비 검사의 다른 명령 실행 금지');};
+      (await import('node:module')).syncBuiltinESMExports();
+      globalThis.fetch = () => {throw new Error('정적 준비 검사의 외부 요청 금지');};
+    }
     await import(pathToFileURL(path.join(root, 'scripts/internal/verify_' + ${JSON.stringify(name)} + '.mjs')).href);
   `;
   const result = spawnSync(process.execPath, ['--input-type=module', '--eval', code], {cwd: root, encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024});

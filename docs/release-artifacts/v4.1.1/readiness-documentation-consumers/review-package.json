@@ -1,0 +1,73 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "2f75117c158c7ddad2a9319be792fc9ef85e80821a3e6ad4d48a26fcb6224ed4",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "SAFE-057",
+      "SAFE-063",
+      "SAFE-070",
+      "OPS-037",
+      "OPS-038",
+      "OPS-040"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "67b29f9e88edbd39c1f587c04541dc970b00a6f1",
+    "trackedWorktreeDiffSha256": "e1073ba88833af91cb203c93d319a3c2e7a12ede02f23b2d9ab4000028d4cc3e",
+    "changedFiles": [
+      "docs/stream-verification.md",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "scripts/internal/verify_v260_owner_release_readiness.mjs",
+      "scripts/internal/verify_v270_owner_release_readiness.mjs",
+      "scripts/internal/verify_v280_owner_release_readiness.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "SAFE-057",
+      "featureContractSha256": "1673b21374bcf0d4f02ca891bfd9e52da6cd604fecd5dc252158af3ac35ddf09",
+      "sourceFlowDigest": "8f8f2d873d1e465f8a84fccfa00498dbef84132a05a49627ff4cd093d233276b",
+      "currentTrustBindingsSha256": "0a13c1401e6c090ca731bf2989e77d191ce6b3bb04a32d71d6479d00a2297aa2"
+    },
+    {
+      "id": "SAFE-063",
+      "featureContractSha256": "a37281fecde7c237ecc9675f0c93a5c90643dafd577d25e7b3c5f3a391f072aa",
+      "sourceFlowDigest": "4d50c5441a6aa9ad3d559f62e85d069a34cfb46d60f3ba6dbbcf3e719d742a4e",
+      "currentTrustBindingsSha256": "f907de0cbbc19ae82cfadd603024d897d575bb7d4d7b3750839ba3f9755d3b4f"
+    },
+    {
+      "id": "SAFE-070",
+      "featureContractSha256": "fd25037c4a945d8f40f78777092ce5e1bf4de93e77c2b2ba0565693673a9ae76",
+      "sourceFlowDigest": "c5a71508804ee585302dbdc8b76a1795aff0ac336295f1739446df47787c085a",
+      "currentTrustBindingsSha256": "f2efe2a5ebb864d5436bc1ec98bf55f7fcd75c8d0b96f7612360c0cda2f02e7b"
+    },
+    {
+      "id": "OPS-037",
+      "featureContractSha256": "3a8ded6f001a5dd87c872bb0ae3db7bd2a1cf48f9287a45b9e5b2d7658324158",
+      "sourceFlowDigest": "6d0470c6f77c49651725a08b4c00d3c6dfc2f5dcf1db79621637d6480822cc32",
+      "currentTrustBindingsSha256": "eae2d207f7666b5ff315eb0f16e92b07d44d9ae1ac714833cdf57f17b695d171"
+    },
+    {
+      "id": "OPS-038",
+      "featureContractSha256": "a57714c9392b5ac73c6e007b346c1ea210e0639dfb3ba075ae2f21aebb277e14",
+      "sourceFlowDigest": "5dd5c65711daa10c057fd2bde08dea4057f83d5705f6028af4ac198a21864941",
+      "currentTrustBindingsSha256": "7066b1549397830b30af38a120359c1289afbb8c9d52a8a20364dd5245eb5862"
+    },
+    {
+      "id": "OPS-040",
+      "featureContractSha256": "99120b503319c6188939708479e1818d514b342ef62c6cf5519500230bd3d49e",
+      "sourceFlowDigest": "5885fe2dbf381d6e4e68f104ad17c242bfb40e881662332ba0fa72bffcf77edd",
+      "currentTrustBindingsSha256": "ca7d5d085bc715ff4c01ddfb284bb633558495d95a162d9e9c9265c7c8bf5581"
+    }
+  ],
+  "reviewNotes": [
+    "메인 직접 diff·역할·실제 호출 경로 검토. 과거 완료 문구와 원장을 읽는 검사를 현행 정책 검증→오류 집계→assert 경로로 대체. 위치 이동만으로 취급하지 않음.",
+    "기능 요구·기대 결과·명령·51개 독립 실행 연결 유지. 손상 metadata·UI 판정 완화·정의/dispatch 누락 반례 포함 자체검사 73개와 영향 회귀 628개 결과 확인.",
+    "정적 문서/정책 검증이며 실제 제품·UI·장시간·published 실행 승인이 아님."
+  ]
+}

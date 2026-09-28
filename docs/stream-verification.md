@@ -51,6 +51,15 @@ sidecar 원문 저장·자동 runtime 호출 반례와 분리된 UI control 누�
 옛 제목·backlog 읽기에 따른 예상 RED와 기존 기능 검사 실패를 구분한다.
 실제 제품·브라우저·장시간·외부 장치 검증은 실행하지 않는다.
 
+`V26-V28-READY-01`~`08`은 같은 자체검사의 릴리즈 준비 명령 3개에 적용한다.
+과거 완료 행·실행 원장·옛 제목 없이 현행 정책과 기능 연결을 확인하며, 기능 ID·실행 명령·
+UI 정의·릴리즈 metadata·UI 증거 정책 누락/변조는 실패해야 한다. 각 명령은 제품·실제 UI·
+장시간·공개 상태를 실행하지 않았음을 구분하며 파일 변경·자식 명령·외부 요청을 하지 않는다.
+종료 기록에 묶인 최초 예상 RED와 정책 연결 구현 후 동일 검사·영향 회귀를 보존한다.
+
+릴리즈 준비 companion인 `./server.sh verify-release-evidence-index`는 증적 색인의 별도 검사다.
+준비 명령의 등록 확인은 이 명령의 실제 실행이나 릴리즈 검증 결과를 뜻하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
 - 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.
