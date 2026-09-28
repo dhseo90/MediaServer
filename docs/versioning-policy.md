@@ -7,21 +7,22 @@
 
 - 현재 소스 버전: `4.1.0`
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- 최신 공개 GitHub Release: `v4.0.0`
-- 최신 공개 roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v4.0.0`와 현재 source tag `v4.1.0`을 구분합니다. 후자는 생성 목표이며 실제 생성·서명·푸시 완료를 뜻하지 않습니다.
+- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
+- 현재 release target: `v4.1.0`
+- 직전 공개 roadmap: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- source-only release 기준 tag를 판단할 때 release target tag `v4.1.0`과 직전 공개 baseline `v4.0.0`을 구분합니다. target은 실제 생성·서명·푸시·GitHub Release 완료를 뜻하지 않습니다.
 - `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `4.1.0` roadmap은 v4.1.0 Recording Foundation이며 상시·이벤트 녹화,
-보존·조회/재생·검색 준비 metadata와 S10 보강을 구현한 개발 소스입니다. S11 제품 검증
-증거와 공개 준비/외부 릴리즈 상태는 현재 로드맵 및 증적 색인에서 구분합니다.
+보존·조회/재생·검색 준비 metadata와 S10 보강을 구현한 소스입니다. S11 제품 검증과
+B14 공개 준비는 완료했으며 외부 릴리즈 상태는 실제 실행 기록에서 별도로 판정합니다.
 초기의 `source-only/live-only` 설명은 S00 당시 이력이다. 현재 source-only는 공개 패키지에
 runtime/model binary를 포함하지 않는다는 뜻이며 녹화 기능
-미구현이나 live-only를 뜻하지 않습니다. 게시된 v4.0.0 signed tag와 GitHub Release가
-최신 공개 기준입니다. v4.0.0 publish 완료는 signed tag, source-only GitHub Release,
-`verify-release-metadata --published` evidence로 확인합니다. v3.9.1 previous published
+미구현이나 live-only를 뜻하지 않습니다. v4.0.0은 이 cut의 직전 공개 baseline입니다.
+v4.1.0 publish 완료는 signed tag, source-only GitHub Release,
+`verify-release-metadata --published` evidence로 확인합니다. v3.9.1 earlier published
 baseline, v3.9.0/v3.8.0 historical published baseline과 후속 기능별 완료 evidence는
 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며 binary/runtime/model
 bundle을 공개 asset으로 포함하지 않습니다.
@@ -69,7 +70,7 @@ bundle을 공개 asset으로 포함하지 않습니다.
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 
-## 4.0.0 latest published source-only release 범위
+## 4.0.0 cut-prior published source-only release 범위
 
 - Local Operations Policy freeze
 - Incident OS policy surfaces
@@ -80,7 +81,7 @@ bundle을 공개 asset으로 포함하지 않습니다.
 - 120-minute soak operator-excluded for this cut
 - Real-device field smoke excluded
 
-위 항목은 신규 제품 기능 없이 로컬 운영 정책을 고정한 latest published major
+위 항목은 신규 제품 기능 없이 로컬 운영 정책을 고정한 cut 직전 published major
 baseline입니다. 외부 field smoke는 실제 endpoint, credential, 실기기, provider
 조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
 
@@ -101,8 +102,9 @@ integrity evidence를 보존했습니다. 외부 field smoke는 실제 endpoint,
 ## v4.1.0 현재 source 개발 범위
 
 - `v4.1.0`은 Recording Foundation minor다.
-- 현재 소스 트리의 `VERSION`은 `4.1.0`이고 latest published GitHub Release는 `v4.0.0`이다.
-- S00 조사·설계 차단선만 완료됐으며 상시·이벤트 연동 녹화는 S01부터 순서대로 구현한다.
+- 현재 소스 트리의 `VERSION`과 release target은 `4.1.0`이고 직전 공개 baseline은 `v4.0.0`이다.
+- S01~S08 구현, S10 보강, S11 제품 검증과 B14 공개 준비를 완료했다. PR·병합·서명 tag,
+  GitHub Release와 published metadata는 실제 실행 기록에서만 완료로 판정한다.
 - 구조화/벡터/자연어 검색과 실기기 ONVIF 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출은
   v4.1.0 기본 범위가 아니다.
 - 상세 스텝과 테스트 스크립트 반영 불변 조건은 [development-backlog.md](./development-backlog.md)의
@@ -337,8 +339,8 @@ v3.3에서는 historical reference로만 참조합니다.
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v4.0.0`
-- 현재 source tag 기준: `v4.1.0`
+- 현재 release target tag 기준: `v4.1.0`
+- cut 직전 공개 tag 기준: `v4.0.0`
 - `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
   `verified=true`/`reason=valid` 확인 대상입니다.
 - `v3.9.1` previous published tag는 GitHub Release publish evidence가 있을 때만

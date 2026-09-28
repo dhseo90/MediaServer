@@ -1,19 +1,21 @@
-# UI Screenshot Assets
+# UI 스크린샷 자산
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v4.1.0`
-Recording Foundation을 가리키고,
-최신 공개 GitHub Release는 `v4.0.0` Local Operations Policy and Stabilization
-source-only baseline을 가리킵니다. 직전 `v3.9.1` Release Correctness and Public Repository Hygiene은
-previous reference입니다. v3.9.0 entry-baseline historical pin:
+Recording Foundation을 가리킵니다. 릴리즈 목표는 `v4.1.0 Recording Foundation`이며,
+cut 직전 공개 baseline은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
+직전 `v3.9.1` Release Correctness and Public Repository Hygiene은 historical reference입니다.
+실제 공개 상태는 [GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)에서 확인합니다.
+아래 이전 촬영 기록은 촬영 당시의 사실이며 현재 공개 완료 판정이 아닙니다.
+v3.9.0 entry-baseline historical pin:
 최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation
 source-only baseline을 가리켰고, 직전 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop은
 그 당시 previous reference입니다. 이 이미지를 v4.0.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
-Client Live 이미지는 source tree, dock event feed, workspace preset,
-tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
+현재 Client Live 이미지는 전체 4신 영상·VA overlay·tile action·도구 모음의 완결된
+작업 영역입니다. 별도 source tree·event dock은 긴 한 장에 억지로 넣지 않습니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
 리뷰 보조 화면의 전체 UI 증거도 아니며, UI 풀테스트 PASS 증거도 아닙니다.
 또한 REVIEW4-59의 viewport/theme별 `/client/live` ready video, VA overlay containment,
@@ -26,8 +28,8 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `config/docs_ui_assets.json`의 managed asset list에서 단일 관리합니다.
 `ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
 캡처로 유지합니다.
-재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다. Codex
-세션에서는 AGENTS.md의 인앱 브라우저 기준을 우선합니다. 이 저장소의
+기존 전체 재캡처 도구는 `scripts/internal/capture_docs_ui_assets.mjs`입니다. 실제
+브라우저 사용과 증거 구분은 AGENTS.md를 따릅니다. 이 저장소의
 2026-08-31 대표 이미지는 사용자가 잘림 없는 재촬영을 명시한 뒤 Google Chrome
 CDP로 캡처하고 Grok이 PNG를 직접 검수한 결과입니다.
 기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
@@ -35,7 +37,23 @@ CDP로 캡처하고 Grok이 PNG를 직접 검수한 결과입니다.
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v4.0.0 source / v3.9.1 published screenshot alignment
+## v4.1.0 대표 이미지 정비 — 2026-09-28
+
+한국어/영문 Rules·Users·Client Live·Client Dashboard 8개를 격리 샘플과 실제 Chrome으로
+재촬영했습니다. 나머지 UI10개·VA2개는 직접 열람 후 유지했습니다. 촬영일과 검토일,
+각 파일의 크기·해시·교체/유지 구분은 manifest의 `directReview.assets`에 남깁니다.
+기존 `baseline.capturedAt`은 원래 이미지 세트의 촬영일이지 이번20개의 촬영일이 아닙니다.
+
+Rules는 설정 유형·목록, Users는 사용자 목록, Dashboard는 요약 카드의 완결 영역입니다.
+Live는 전체 영상·VA overlay·재생 버튼·toolbar를 모두 포함합니다. 이미지 늘리기·텍스트
+합성·DOM/CSS 숨김은 하지 않았습니다. 긴 별도 도크는 Live 이미지에 포함하지 않습니다.
+대표 이미지 교체는 UI 전수 테스트 결과를 변경하거나 대체하지 않습니다.
+
+영문 Users는 전체 샘플 채널 조회 권한을 가진 viewer 예시입니다. 단일 숫자 채널 권한의
+`채널 1` 문구는 현행 제품에서 영문으로 전환되지 않는 한계가 있어 release note에 남겼으며,
+이번 이미지를 해당 문자열의 번역 수정·권한 검증 증거로 사용하지 않습니다.
+
+## 이전 v4.0.0 source / v3.9.1 published 촬영 이력
 
 2026-08-31에 현재 v4.0.0 source tree와 최신 공개 `v3.9.1` pin 기준으로 한국어 9개와
 English 9개 제품 UI PNG를 다시 캡처했습니다. 구도는 v3.8.0 전체 요소 캡처를
@@ -46,7 +64,7 @@ English 9개 제품 UI PNG를 다시 캡처했습니다. 구도는 v3.8.0 전체
 이 직접 검수와 정적 gate는 대표 문서 이미지의 현재성 확인이며, UI 풀테스트나
 공개 릴리즈 증거로 쓰지 않습니다.
 
-## Current English screenshot status
+## 이전 영문 촬영 상태 — 2026-08-31
 
 On 2026-08-31 the nine English product UI PNGs under `docs/assets/ui/en/` were
 recaptured from the live English UI (`?lang=en`) with the v3.8.0 full-element
@@ -81,13 +99,13 @@ v4.0.0 source / v3.9.1 published 기준:
 ## Docs Image Review 기준
 
 문서가 참조하는 전체 이미지 20개는 manifest 관리 대상입니다. static gate는
-manifest와 링크/assets 기준을 확인하고, 2026-08-31 직접 검수 기록은
+manifest와 링크/assets 기준을 확인하고, 현재 직접 검수 기록은
 `config/docs_ui_assets.json`의 `directReview`에 남깁니다. 제품 기능 전체를 직접
 조작하는 UI 풀테스트는 별도 승인과 별도 evidence가 필요합니다.
 대상은 한국어 UI PNG 9개, English UI PNG 9개,
 `docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
 
-결론:
+아래는 2026-08-31 당시 결론이며 현재 구도는 위 v4.1.0 절이 우선합니다.
 
 - 2026-08-31 v4.0.0 source / v3.9.1 published 대표 제품 shell 캡처로 한국어/English
   UI PNG 18개를 교체했습니다.

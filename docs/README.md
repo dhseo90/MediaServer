@@ -6,14 +6,14 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ## 현재 상태
 
-- 최신 공개 GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
-- 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
+- 현재 release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
+- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 소스 버전: `4.1.0`
-- v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 상태: `V410-S01~S08` 구현과 `V410-S10` 시간·식별·저장 기반 보강 후 검증 준비 마감 중.
-  `V410-S09`는 S10·S11로 대체했으며 `V410-S11` 최종 검증·릴리즈는 미완료
+- v4.1.0 상태: `V410-S01~S08` 구현, `V410-S10` 보강, `V410-S11` 제품 검증과 B14 공개 준비 완료.
+  PR·병합·서명 tag·GitHub Release·published 검증은 실제 실행 기록에서 별도 판정
 - 장기 로드맵은 `main`에서 공통 관리하며 각 버전 브랜치는 해당 버전 구현에만 집중하고
   후속 버전 절은 stable contract 설계 문맥으로 상속함
 - 현재 장기 로드맵은 v4.1.0 변경에 포함하며 v4.1.0 머지 때 `main`에 공통 반영
@@ -41,6 +41,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | v4.1.0 녹화 기반 상세 구현계획 | [superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md) |
 | v4.1.0 저장 표준·오픈소스 검토 | [research/v410-recording-storage-open-source-review.md](research/v410-recording-storage-open-source-review.md) |
 | v4.1.0 IP 위험 차단 게이트 | [research/v410-recording-ip-risk-gate.md](research/v410-recording-ip-risk-gate.md) |
+| v4.1.0 release note source | [release-notes-v4.1.0.md](release-notes-v4.1.0.md) |
 | v4.0.0 release notes | [release-artifacts/v4.0.0/release-notes.md](release-artifacts/v4.0.0/release-notes.md) |
 | v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |

@@ -7,14 +7,15 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.1.0`
-- 최신 공개 GitHub Release: `v4.0.0`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
-  포함하지 않습니다.
+- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
+- 현재 release target: `v4.1.0`
+- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source roadmap은 `v4.1.0 Recording Foundation`입니다.
-- 현재 latest published release는 `v4.0.0`입니다.
-- 현재 공개 release tag 기준은 `v4.0.0`입니다.
-- 현재 source tag 기준은 `v4.1.0`입니다.
-- `v4.1.0` GitHub Release publish 완료는 tag, GitHub Release,
+- 현재 source/release target tag 기준은 `v4.1.0`입니다.
+- S11 제품 검증과 B14 공개 준비는 완료했습니다. PR·병합·서명 tag·GitHub Release는
+  실제 실행 기록에서만 완료로 판정합니다.
+- `v4.1.0` GitHub Release publish 완료는 signed tag, GitHub Release,
   `verify-release-metadata --published` evidence로 확인합니다.
 
 ## 기본 공개 범위
@@ -60,11 +61,9 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v4.1.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `4.1.0`, current roadmap
-`v4.1.0 Recording Foundation`,
-latest published `v4.0.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
-`v4.0.0 Local Operations Policy and Stabilization`입니다.
+v4.1.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를 source `4.1.0`,
+release target `v4.1.0`, current roadmap `v4.1.0 Recording Foundation`, 직전 공개
+baseline `v4.0.0 Local Operations Policy and Stabilization`으로 구분하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
@@ -176,8 +175,9 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ### v4.1.0 Release Close-out Runbook
 
-현재 개발 소스는 `4.1.0`이며 공개 기준은 여전히 `v4.0.0`입니다. v4.1.0의
-상시·이벤트 녹화 구현과 S10 보강을 고정한 뒤 S11 최종 검증으로 공개 여부를 판단합니다.
+현재 source와 release target은 `v4.1.0`이고 직전 공개 baseline은 `v4.0.0`입니다.
+상시·이벤트 녹화 구현, S10 보강, S11 제품 검증과 B14 공개 준비를 완료했습니다.
+PR·병합·서명 tag·GitHub Release·published metadata는 실제 실행 뒤에만 완료로 기록합니다.
 이 절은 실행 순서 안내이며 완료 증거 또는 외부 변경 승인이 아닙니다. 작업 정책은
 AGENTS.md가 기준이며 PR, 병합, 서명 태그, GitHub Release는 각각 승인 후 수동으로만 진행합니다.
 
@@ -204,7 +204,8 @@ CI 또는 릴리즈 완료를 선언하지 않습니다. 상세 실행 결과는
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-아래는 v4.0.0 당시 실행 이력입니다. 현재 개발 소스는 `4.1.0`이며 latest published metadata 기준은 `v4.0.0`입니다.
+아래는 v4.0.0 당시 실행 이력입니다. 현재 release target은 `v4.1.0`이며 cut 직전
+published metadata 기준은 `v4.0.0`입니다.
 compact handoff boundary `09436674`를 포함한
 동일 clean source `b96f74ab`에서 fresh 30분/UI는 PASS했습니다. 120분은 재판정 후
 `conditional-not-run`입니다.
@@ -1105,13 +1106,19 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v4.0.0 Release Note Source
+## v4.1.0 Release Note Source
+
+현재 release target의 안정된 사용자용 release note source는
+[release-notes-v4.1.0.md](./release-notes-v4.1.0.md)입니다. 이 링크와 local 준비 완료는
+PR·병합·서명 tag·GitHub Release 또는 published metadata 완료 주장이 아닙니다.
+
+## v4.0.0 Historical Release Note Source
 
 아래 본문의 저장소 원본은
 [release-artifacts/v4.0.0/release-notes.md](./release-artifacts/v4.0.0/release-notes.md)입니다.
 아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. latest published metadata와
-이 절은 latest published `v4.0.0`의 보존된 release note source입니다. 현재 개발 source
+이 절은 `v4.0.0`의 보존된 historical release note source입니다. 현재 release target
 tag 기준은 `v4.1.0`이며, 실제 signed tag, GitHub Release, published
 metadata 결과는 저장소 snapshot과 분리해 직접 확인합니다.
 

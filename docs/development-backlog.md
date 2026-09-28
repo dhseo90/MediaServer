@@ -8,7 +8,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   통과했다. 30분20회109 PASS, 공통UI424+녹화8 ID/31 action, 녹화120분10,093 PASS와
   종료·복구·정리 증거를 B13에서 최종 제품 변경에 연결했다. 공통120분은 변경되지 않은
   구성요소에 한정해 기존 증거를 유지한다. 이는 무기한 누수 부재나 외부 실기기 보장이 아니다.
-  제품·검증 증거 마감과 공개 저장소/배포 준비·외부 릴리즈 완료는 구분한다.
+  제품·검증 증거와 B14 공개 저장소/배포 준비는 마감했다. 외부 릴리즈 완료는 구분한다.
   [현재 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)과
   [B13 증거 연결](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-2번-최종-소스와-증거-연결)을 우선한다.
   아래 이전 B08/B09·LP29/LP31·S10/S11의 중간 결과는 당시 이력이다.
@@ -20,12 +20,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.1.0`
-- 최신 공개 GitHub Release: `v4.0.0`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
-  포함하지 않습니다.
+- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
+- 현재 release target: `v4.1.0`
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
   S00~S08의 단계 구현·검증 이력을 유지한다. S09 통합 검증은 2026-09-12 종료·대체했으며,
   현재 S10 구현·코드 고정과 S11 최종 단기 검증을 마친 단계다. 2026-09-21 LP25의 시간 표시/완료 관측/
@@ -40,7 +39,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   위 LP29 상태는 당시 이력이다. LP31 현재 source8fa98a99 실제UI baseline424/424·시각80·Policy 적격은
   PASS이며 최신 전체 증거를 복원 대조 후 보존했다. 이 LP31 당시에는 녹화UI·브라우저미디어·
   공통/녹화120분이 미실행이었다. 후속 B11/B12 실행과 B13 최종 소스 연결은 위 현행 판정을 따른다.
-  외부 서비스·실기기 검증은 사용자 명시 제외이며 PASS가 아니다.
+  B14 공개 준비도 완료했다. 외부 서비스·실기기 검증은 사용자 명시 제외이며 PASS가 아니다.
   S06 조회·재생 UI, S07 분석 관측·FrameLocator, S08 최종화·손상·시작 복구를 포함한다.
   S08은 `11953256`까지 커밋·푸시했다. 단계별 실패·수정·검증 기록은 전용 evidence와
   release-test-records를 따르며, 버전 전체 UI·장시간·릴리즈 완료를 뜻하지 않는다.
@@ -65,7 +64,7 @@ v4.1.0` 같은 문구는 당시의 historical planning context다. 현재 일정
   [v3.9.0 test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
   보존합니다. 이 절은 현재 v3.9.1 완료 증거가 아닙니다.
 
-## 최신 공개 기준: v4.0.0 Local Operations Policy and Stabilization
+## 직전 공개 baseline: v4.0.0 Local Operations Policy and Stabilization
 
 상태: v4.0.0 (1)~(8) 정책/안정화 기록 완료. 30분과 UI 풀테스트는 `executed-pass`.
 120분은 `conditional-not-run`. published는 `v4.0.0`. 이 로드맵 기록 완료는 출시
@@ -426,7 +425,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S08 | Recovery/compatibility gate | P0 | 단계 구현·검증 완료 | journal 꼬리·corrupt 상태·실제 media 검사·ready 최종화 복구·application 시작 전 동기 복구, V1 golden 호환성. `11953256`까지 푸시 |
 | V410-S09 | Stabilization/readiness | P0 | 종료·대체(성공 완료 아님) | 당시 개선·실패 이력을 보존. 설계 보완은 S10, 최종 검증은 S11로 분리 |
 | V410-S10 | 시간·식별·저장 기반 보강 | P0 | 구현·코드 고정 완료 | 현행 생산·소비·저장/복구·실제 이벤트 통합·HW 영향 회귀·PREP 재결속 마감. 구형 자료는 소비자·반례에 필요한 것만 보존 |
-| V410-S11 | 최종 검증·버전 완료 | P0 | 제품 검증 통과·공개 마감 잔여 | 최종 build·인증·녹화158·환경, 30분109·UI432·녹화120분10,093 및 cleanup 확인. B13에서 후속 코드와 기존 증거 연결. 공개 준비 실제 검사와 별도 승인된 외부 릴리즈는 현행 전수표를 따름 |
+| V410-S11 | 최종 검증·버전 완료 | P0 | 제품 검증·B14 공개 준비 완료 | 최종 build·인증·녹화158·환경, 30분109·UI432·녹화120분10,093 및 cleanup 확인. 이 문서를 동결한 release cut 준비 시점의 PR·병합·서명 tag·GitHub Release·published metadata는 실제 실행 기록에서 별도 판정하며, tag 이후에는 그 기록이 우선함 |
 
 ### v4.1.0 선행 인벤토리 정합성 부채 정리
 

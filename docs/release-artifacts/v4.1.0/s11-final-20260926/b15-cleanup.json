@@ -1,0 +1,772 @@
+[
+  {
+    "path": "<owned-temp>/media-server-b15.1Yu4Oj",
+    "kind": "문서 촬영 임시 PNG/기하 영수증",
+    "bytes": 1712410,
+    "files": [
+      {
+        "file": "capture.json",
+        "bytes": 3686,
+        "sha256": "51cfc6b8f377fc6578e543574f24801074f8ab5d8c79b172eb2b6ee87181336e"
+      },
+      {
+        "file": "ko-client-dashboard.png",
+        "bytes": 49733,
+        "sha256": "3c8c7255e108df9f910ff76e782de15b6f3a44d2b0051c21a516becc96478492"
+      },
+      {
+        "file": "ko-client-live.png",
+        "bytes": 1538621,
+        "sha256": "2ea553b701dedaa8bed74c4284a670d5ef1a9f45868765d1aaeddd4125f63dd0"
+      },
+      {
+        "file": "ko-ops-rules.png",
+        "bytes": 37866,
+        "sha256": "1e341fd3e94c76139de4ccdb8764ceb6d41ed28b10226e1c23b480d6a7739531"
+      },
+      {
+        "file": "ko-ops-users.png",
+        "bytes": 82504,
+        "sha256": "655a75b2c6834c8e99f60d551610087bd5a0602f614fd28b6e1843f6a00741ee"
+      }
+    ],
+    "action": "선택8개와 원출력·실패/기하 기록 보존 후 삭제",
+    "removed": true,
+    "capture": [
+      {
+        "file": "ko-ops-rules.png",
+        "lang": "ko",
+        "name": "ops-rules",
+        "route": "/ops/rules",
+        "selector": ".rules-workspace-catalog-grid",
+        "clip": {
+          "x": 88,
+          "y": 1388,
+          "width": 1504,
+          "height": 346
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 1400.03125,
+            "width": 1480,
+            "height": 321.59375,
+            "scrollWidth": 1480,
+            "clientWidth": 1480
+          }
+        ],
+        "bytes": 37866,
+        "sha256": "1e341fd3e94c76139de4ccdb8764ceb6d41ed28b10226e1c23b480d6a7739531",
+        "capturedAt": "2026-09-28T10:00:11.136Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "ko-ops-users.png",
+        "lang": "ko",
+        "name": "ops-users",
+        "route": "/ops/users",
+        "selector": "[data-access-task=\"users\"]",
+        "clip": {
+          "x": 88,
+          "y": 378,
+          "width": 1504,
+          "height": 580
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 390.265625,
+            "width": 1480,
+            "height": 555,
+            "scrollWidth": 1478,
+            "clientWidth": 1478
+          }
+        ],
+        "bytes": 82504,
+        "sha256": "655a75b2c6834c8e99f60d551610087bd5a0602f614fd28b6e1843f6a00741ee",
+        "capturedAt": "2026-09-28T10:00:12.992Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "ko-client-dashboard.png",
+        "lang": "ko",
+        "name": "client-dashboard",
+        "route": "/client/dashboard",
+        "selector": ".client-dashboard-head,[data-testid=\"client-dashboard-field-summary\"],[data-testid=\"client-dashboard-safe-summary\"]",
+        "clip": {
+          "x": 447,
+          "y": 123,
+          "width": 1145,
+          "height": 473
+        },
+        "geometry": [
+          {
+            "x": 459,
+            "y": 135,
+            "width": 1121,
+            "height": 79.1875,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          },
+          {
+            "x": 459,
+            "y": 228.1875,
+            "width": 1121,
+            "height": 140,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          },
+          {
+            "x": 459,
+            "y": 382.1875,
+            "width": 1121,
+            "height": 201,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          }
+        ],
+        "bytes": 49733,
+        "sha256": "3c8c7255e108df9f910ff76e782de15b6f3a44d2b0051c21a516becc96478492",
+        "capturedAt": "2026-09-28T10:00:14.854Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "ko-client-live.png",
+        "lang": "ko",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": "header,[data-testid=\"client-live-source-tree\"],[data-testid=\"client-live-workspace\"]",
+        "clip": {
+          "x": 0,
+          "y": 0,
+          "width": 1680,
+          "height": 1119
+        },
+        "geometry": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 1680,
+            "height": 61,
+            "scrollWidth": 1680,
+            "clientWidth": 1680
+          },
+          {
+            "x": 0,
+            "y": 219,
+            "width": 1648,
+            "height": 900,
+            "scrollWidth": 1648,
+            "clientWidth": 1648
+          },
+          {
+            "x": 0,
+            "y": 219,
+            "width": 365,
+            "height": 900,
+            "scrollWidth": 364,
+            "clientWidth": 364
+          }
+        ],
+        "bytes": 1538621,
+        "sha256": "2ea553b701dedaa8bed74c4284a670d5ef1a9f45868765d1aaeddd4125f63dd0",
+        "capturedAt": "2026-09-28T10:00:17.362Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      }
+    ]
+  },
+  {
+    "path": "<owned-temp>/media-server-b15.fxSGTG",
+    "kind": "문서 촬영 임시 PNG/기하 영수증",
+    "bytes": 1959659,
+    "files": [
+      {
+        "file": "capture.json",
+        "bytes": 6291,
+        "sha256": "95e9bc25a013d17939a8cbbba3af46e670b5c5842de5c14d2ee2bebdee4a7da1"
+      },
+      {
+        "file": "en-client-dashboard.png",
+        "bytes": 55283,
+        "sha256": "104639f67b8113755085f8a77364ce41e66f265b52727f35ee203fd9fa115d95"
+      },
+      {
+        "file": "en-ops-rules.png",
+        "bytes": 75262,
+        "sha256": "0ff35536df6d0410e6db00a4d0659dd479f28a2440da5d7d97be5f030b764504"
+      },
+      {
+        "file": "en-ops-users.png",
+        "bytes": 84078,
+        "sha256": "b9fad8408d95bc771875aaf3620b826bf4b1af5174e8096401d6d2293b59e726"
+      },
+      {
+        "file": "ko-client-dashboard.png",
+        "bytes": 49733,
+        "sha256": "3c8c7255e108df9f910ff76e782de15b6f3a44d2b0051c21a516becc96478492"
+      },
+      {
+        "file": "ko-client-live.png",
+        "bytes": 1536228,
+        "sha256": "3e546ad03a01fc0761122f5a7428c5ac68ba83a765f549e7b64a9d8d8f7447b1"
+      },
+      {
+        "file": "ko-ops-rules.png",
+        "bytes": 68388,
+        "sha256": "85504cc1b46fde47effd2f9c51649d2cf300ab489edefd825b998cb2855558d6"
+      },
+      {
+        "file": "ko-ops-users.png",
+        "bytes": 84396,
+        "sha256": "98e9541c44bd1cc2880cf82f3f9c2403f4b3fa601ff25a952b58145fa7805a05"
+      }
+    ],
+    "action": "선택8개와 원출력·실패/기하 기록 보존 후 삭제",
+    "removed": true,
+    "capture": [
+      {
+        "file": "ko-ops-rules.png",
+        "lang": "ko",
+        "name": "ops-rules",
+        "route": "/ops/rules",
+        "selector": ".rules-workspace-catalog-grid",
+        "clip": {
+          "x": 88,
+          "y": 1388,
+          "width": 1504,
+          "height": 491
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 1400.03125,
+            "width": 1480,
+            "height": 466.59375,
+            "scrollWidth": 1480,
+            "clientWidth": 1480
+          }
+        ],
+        "bytes": 68388,
+        "sha256": "85504cc1b46fde47effd2f9c51649d2cf300ab489edefd825b998cb2855558d6",
+        "capturedAt": "2026-09-28T10:04:27.948Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "ko-ops-users.png",
+        "lang": "ko",
+        "name": "ops-users",
+        "route": "/ops/users",
+        "selector": "[data-access-task=\"users\"]",
+        "clip": {
+          "x": 88,
+          "y": 378,
+          "width": 1504,
+          "height": 580
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 390.265625,
+            "width": 1480,
+            "height": 555,
+            "scrollWidth": 1478,
+            "clientWidth": 1478
+          }
+        ],
+        "bytes": 84396,
+        "sha256": "98e9541c44bd1cc2880cf82f3f9c2403f4b3fa601ff25a952b58145fa7805a05",
+        "capturedAt": "2026-09-28T10:04:29.784Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "ko-client-dashboard.png",
+        "lang": "ko",
+        "name": "client-dashboard",
+        "route": "/client/dashboard",
+        "selector": ".client-dashboard-head,[data-testid=\"client-dashboard-field-summary\"],[data-testid=\"client-dashboard-safe-summary\"]",
+        "clip": {
+          "x": 447,
+          "y": 123,
+          "width": 1145,
+          "height": 473
+        },
+        "geometry": [
+          {
+            "x": 459,
+            "y": 135,
+            "width": 1121,
+            "height": 79.1875,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          },
+          {
+            "x": 459,
+            "y": 228.1875,
+            "width": 1121,
+            "height": 140,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          },
+          {
+            "x": 459,
+            "y": 382.1875,
+            "width": 1121,
+            "height": 201,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          }
+        ],
+        "bytes": 49733,
+        "sha256": "3c8c7255e108df9f910ff76e782de15b6f3a44d2b0051c21a516becc96478492",
+        "capturedAt": "2026-09-28T10:04:31.666Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "ko-client-live.png",
+        "lang": "ko",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": "header,[data-testid=\"client-live-source-tree\"],[data-testid=\"client-live-workspace\"]",
+        "clip": {
+          "x": 0,
+          "y": 0,
+          "width": 1680,
+          "height": 1359
+        },
+        "geometry": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 1680,
+            "height": 61,
+            "scrollWidth": 1680,
+            "clientWidth": 1680
+          },
+          {
+            "x": 0,
+            "y": 219,
+            "width": 1648,
+            "height": 1140,
+            "scrollWidth": 1648,
+            "clientWidth": 1648
+          },
+          {
+            "x": 0,
+            "y": 219,
+            "width": 365,
+            "height": 1140,
+            "scrollWidth": 364,
+            "clientWidth": 364
+          }
+        ],
+        "bytes": 1536228,
+        "sha256": "3e546ad03a01fc0761122f5a7428c5ac68ba83a765f549e7b64a9d8d8f7447b1",
+        "capturedAt": "2026-09-28T10:04:34.142Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "en-ops-rules.png",
+        "lang": "en",
+        "name": "ops-rules",
+        "route": "/ops/rules",
+        "selector": ".rules-workspace-catalog-grid",
+        "clip": {
+          "x": 88,
+          "y": 1518,
+          "width": 1504,
+          "height": 508
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 1530.71875,
+            "width": 1480,
+            "height": 482.59375,
+            "scrollWidth": 1480,
+            "clientWidth": 1480
+          }
+        ],
+        "bytes": 75262,
+        "sha256": "0ff35536df6d0410e6db00a4d0659dd479f28a2440da5d7d97be5f030b764504",
+        "capturedAt": "2026-09-28T10:04:36.152Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "en-ops-users.png",
+        "lang": "en",
+        "name": "ops-users",
+        "route": "/ops/users",
+        "selector": "[data-access-task=\"users\"]",
+        "clip": {
+          "x": 88,
+          "y": 378,
+          "width": 1504,
+          "height": 596
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 390.265625,
+            "width": 1480,
+            "height": 571,
+            "scrollWidth": 1478,
+            "clientWidth": 1478
+          }
+        ],
+        "bytes": 84078,
+        "sha256": "b9fad8408d95bc771875aaf3620b826bf4b1af5174e8096401d6d2293b59e726",
+        "capturedAt": "2026-09-28T10:04:37.983Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "en-client-dashboard.png",
+        "lang": "en",
+        "name": "client-dashboard",
+        "route": "/client/dashboard",
+        "selector": ".client-dashboard-head,[data-testid=\"client-dashboard-field-summary\"],[data-testid=\"client-dashboard-safe-summary\"]",
+        "clip": {
+          "x": 447,
+          "y": 123,
+          "width": 1145,
+          "height": 473
+        },
+        "geometry": [
+          {
+            "x": 459,
+            "y": 135,
+            "width": 1121,
+            "height": 79.1875,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          },
+          {
+            "x": 459,
+            "y": 228.1875,
+            "width": 1121,
+            "height": 140,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          },
+          {
+            "x": 459,
+            "y": 382.1875,
+            "width": 1121,
+            "height": 201,
+            "scrollWidth": 1119,
+            "clientWidth": 1119
+          }
+        ],
+        "bytes": 55283,
+        "sha256": "104639f67b8113755085f8a77364ce41e66f265b52727f35ee203fd9fa115d95",
+        "capturedAt": "2026-09-28T10:04:39.825Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      }
+    ]
+  },
+  {
+    "path": "<owned-temp>/media-server-b15.ZJW3yz",
+    "kind": "문서 촬영 임시 PNG/기하 영수증",
+    "bytes": 1655007,
+    "files": [
+      {
+        "file": "capture.json",
+        "bytes": 1806,
+        "sha256": "44f61861abc6221b38beadd9c4067bb72c7546f9663f72ab693d0a532afa5195"
+      },
+      {
+        "file": "en-client-live.png",
+        "bytes": 1569859,
+        "sha256": "8bd542544cd61d73f132ce0d2352332c5515ef5aaf40185d714774ec2a5987e6"
+      },
+      {
+        "file": "en-ops-users.png",
+        "bytes": 83342,
+        "sha256": "8c97af029a9fb0e5bf0b9a0089ff24fc037e6b5cdfe98cc550cbae2342cd5448"
+      }
+    ],
+    "action": "선택8개와 원출력·실패/기하 기록 보존 후 삭제",
+    "removed": true,
+    "capture": [
+      {
+        "file": "en-ops-users.png",
+        "lang": "en",
+        "name": "ops-users",
+        "route": "/ops/users",
+        "selector": "[data-access-task=\"users\"]",
+        "clip": {
+          "x": 88,
+          "y": 378,
+          "width": 1504,
+          "height": 596
+        },
+        "geometry": [
+          {
+            "x": 100,
+            "y": 390.265625,
+            "width": 1480,
+            "height": 571,
+            "scrollWidth": 1478,
+            "clientWidth": 1478
+          }
+        ],
+        "bytes": 83342,
+        "sha256": "8c97af029a9fb0e5bf0b9a0089ff24fc037e6b5cdfe98cc550cbae2342cd5448",
+        "capturedAt": "2026-09-28T10:11:09.898Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "en-client-live.png",
+        "lang": "en",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": "header,[data-testid=\"client-live-source-tree\"],[data-testid=\"client-live-workspace\"]",
+        "clip": {
+          "x": 0,
+          "y": 0,
+          "width": 1680,
+          "height": 1359
+        },
+        "geometry": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 1680,
+            "height": 61,
+            "scrollWidth": 1680,
+            "clientWidth": 1680
+          },
+          {
+            "x": 0,
+            "y": 219,
+            "width": 1648,
+            "height": 1140,
+            "scrollWidth": 1648,
+            "clientWidth": 1648
+          },
+          {
+            "x": 0,
+            "y": 219,
+            "width": 365,
+            "height": 1140,
+            "scrollWidth": 364,
+            "clientWidth": 364
+          }
+        ],
+        "bytes": 1569859,
+        "sha256": "8bd542544cd61d73f132ce0d2352332c5515ef5aaf40185d714774ec2a5987e6",
+        "capturedAt": "2026-09-28T10:11:12.386Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      }
+    ]
+  },
+  {
+    "path": "<owned-temp>/media-server-b15.kFOSN8",
+    "kind": "문서 촬영 임시 PNG/기하 영수증",
+    "bytes": 3839974,
+    "files": [
+      {
+        "file": "capture.json",
+        "bytes": 1437,
+        "sha256": "dca6bc32d65dfc099456cf91388de62e7e64e70208c1ccbd506352a75cf245ff"
+      },
+      {
+        "file": "en-client-live.png",
+        "bytes": 1922843,
+        "sha256": "57fdd7029af2a3376193d51b2a96686a90b12e30d50b1deb47b1ff2dffebdc65"
+      },
+      {
+        "file": "ko-client-live.png",
+        "bytes": 1915694,
+        "sha256": "89581c172c75d5f2797db8adcd20bc516d130b300d48cf271b7c8dd739cc250f"
+      }
+    ],
+    "action": "선택8개와 원출력·실패/기하 기록 보존 후 삭제",
+    "removed": true,
+    "capture": [
+      {
+        "file": "ko-client-live.png",
+        "lang": "ko",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": ".live-workspace-main",
+        "clip": {
+          "x": 353,
+          "y": 207,
+          "width": 1547,
+          "height": 1032
+        },
+        "geometry": [
+          {
+            "x": 365,
+            "y": 219,
+            "width": 1523,
+            "height": 1020,
+            "scrollWidth": 1523,
+            "clientWidth": 1523
+          }
+        ],
+        "bytes": 1915694,
+        "sha256": "89581c172c75d5f2797db8adcd20bc516d130b300d48cf271b7c8dd739cc250f",
+        "capturedAt": "2026-09-28T10:12:59.723Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "en-client-live.png",
+        "lang": "en",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": ".live-workspace-main",
+        "clip": {
+          "x": 353,
+          "y": 207,
+          "width": 1547,
+          "height": 1032
+        },
+        "geometry": [
+          {
+            "x": 365,
+            "y": 219,
+            "width": 1523,
+            "height": 1020,
+            "scrollWidth": 1523,
+            "clientWidth": 1523
+          }
+        ],
+        "bytes": 1922843,
+        "sha256": "57fdd7029af2a3376193d51b2a96686a90b12e30d50b1deb47b1ff2dffebdc65",
+        "capturedAt": "2026-09-28T10:13:03.300Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      }
+    ]
+  },
+  {
+    "path": "<owned-temp>/media-server-b15.ozWcZx",
+    "kind": "문서 촬영 임시 PNG/기하 영수증",
+    "bytes": 3885691,
+    "files": [
+      {
+        "file": "capture.json",
+        "bytes": 1771,
+        "sha256": "63531becab2c949489f79442b6aceaa5ca0c1e0133d27f0c29d67daa5f40cb6d"
+      },
+      {
+        "file": "en-client-live.png",
+        "bytes": 1966077,
+        "sha256": "433ace30958bf87c1a36a91519ea3d6d9e19098e9bb499e536c203d881fbf205"
+      },
+      {
+        "file": "ko-client-live.png",
+        "bytes": 1917843,
+        "sha256": "ce76caa4f88c0531b981c3f4567c5f3b65d133e6c43d3d930824aa549262587b"
+      }
+    ],
+    "action": "선택8개와 원출력·실패/기하 기록 보존 후 삭제",
+    "removed": true,
+    "capture": [
+      {
+        "file": "ko-client-live.png",
+        "lang": "ko",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": ".live-workspace-main,.live-toolbar",
+        "clip": {
+          "x": 353,
+          "y": 207,
+          "width": 1547,
+          "height": 1032
+        },
+        "geometry": [
+          {
+            "x": 365,
+            "y": 219,
+            "width": 1523,
+            "height": 1020,
+            "scrollWidth": 1523,
+            "clientWidth": 1523
+          },
+          {
+            "x": 1322,
+            "y": 233,
+            "width": 544,
+            "height": 50,
+            "scrollWidth": 544,
+            "clientWidth": 544
+          }
+        ],
+        "bytes": 1917843,
+        "sha256": "ce76caa4f88c0531b981c3f4567c5f3b65d133e6c43d3d930824aa549262587b",
+        "capturedAt": "2026-09-28T10:14:54.332Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      },
+      {
+        "file": "en-client-live.png",
+        "lang": "en",
+        "name": "client-live",
+        "route": "/client/live",
+        "selector": ".live-workspace-main,.live-toolbar",
+        "clip": {
+          "x": 353,
+          "y": 207,
+          "width": 1547,
+          "height": 1032
+        },
+        "geometry": [
+          {
+            "x": 365,
+            "y": 219,
+            "width": 1523,
+            "height": 1020,
+            "scrollWidth": 1523,
+            "clientWidth": 1523
+          },
+          {
+            "x": 1309,
+            "y": 233,
+            "width": 557,
+            "height": 50,
+            "scrollWidth": 557,
+            "clientWidth": 557
+          }
+        ],
+        "bytes": 1966077,
+        "sha256": "433ace30958bf87c1a36a91519ea3d6d9e19098e9bb499e536c203d881fbf205",
+        "capturedAt": "2026-09-28T10:14:57.709Z",
+        "browserVersion": "152.0.7977.83",
+        "source": "현재 제품·격리 샘플·실제 브라우저",
+        "uiFulltestPass": false
+      }
+    ]
+  }
+]

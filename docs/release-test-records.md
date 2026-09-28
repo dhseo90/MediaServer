@@ -2,6 +2,117 @@
 
 검증 호환 식별자: `# Release Test Records`. 문서 제목과 본문은 한글을 기준으로 유지한다.
 
+## v4.1.0 B15 문서 및 실제 공개 절차 (2026-09-28)
+
+독자: 릴리즈 담당자. 수명: v4.1.0 공개 절차와 문서 이미지 변경 기록. 정책은 AGENTS.md다.
+사용자는 PR/CI → main 병합 → 최종 커밋의 서명 태그 → source-only Release 및 커밋·푸시를 승인했다.
+제품 코드·기존 실패 기록·장기 로드맵·판정 기준은 변경하지 않는다. 실제 외부 결과 전에는 공개 완료로 기록하지 않는다.
+제품·공통 수명 경로가 불변이므로 B13/B14의 30분·UI·120분 유효 증거를 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B15-D01 | 문서·릴리즈 목표 구분 | source/target4.1·직전 공개4.0·이전3.9.1을 분리, S11/B14 실제 완료 반영·과거 실패 유지 | v4.1.0 |
+| B15-D02 | published 검사 대상 | local 문서는 목표와 직전 공개 구분, 실제 published-mode의 list/API/view/tag/landing은4.1 검사.4.0을 대신 검사하는 반례 거부 | v4.1.0 |
+| B15-I01 | 대표 이미지 준비 | 기존20개 직접 열람·길이/잘림/비밀 확인. 지나치게 긴 화면은 격리 실제 제품의 완결된 카드/화면 단위로 재촬영, 숨김/늘리기/합성 금지 | v4.1.0 |
+| B15-I02 | 이미지 개별 검수 | ko/en 각각9개와 VA2개를 개별 행으로 크기·SHA·캡처일·직접 검토 기록. 전체 영상/컨트롤·client 비밀 미노출 확인, 미확인은 PASS 아님 | v4.1.0 |
+| B15-L01 | 관련 로컬 검사 | 구문·entry·release metadata local·docs links/assets·공백·source-only closeout·공개/Actions 대응. 실제 exit/원출력/개별 결과 보존 | v4.1.0 |
+| B15-C01 | 실제 PR·CI | main ruleset 필수 static-gates/guardrails, Actions읽기권한, PR check·각 annotation 확인 | v4.1.0 |
+| B15-R01 | 병합·태그 | 모든 보정 후 main 최종SHA, 기존 태그 충돌 없음, 등록된 SSH signing key의 local서명검증과 remote verified/valid 확인 | v4.1.0 |
+| B15-R02 | Release·최종 확인 | source-only·assets0, v4.1 tag/targetSHA/Latest URL·published metadata 실제 확인. 결과는 Release·PR의 외부 공개 기록과 최종 보고에 연결하여 태그 이후 보정 커밋을 만들지 않음 | v4.1.0 |
+| B15-CLEAN | 정리 | 격리 서버/브라우저 종료·포트 해제·임시 인증/저장소 제거, 소유 경로·크기·부재 확인 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 문서·이미지·metadata 안정화 | 진행 대상 | 사용자 문서/스크린샷/최종 태그 지시 | B15-D/I/L | 승인 |
+| 대표 이미지 실제 브라우저 촬영 | 진행 대상 | 긴4종 ko/en 및 현재성 점검 | B15-I01/I02 | 승인, UI 풀테스트로 대체하지 않음 |
+| 30분·UI 풀테스트·120분 새 실행 | 미진행 | 제품 diff0·기존 유효 증거 유지 | B13-E02·B14 | 새 실행 없음 |
+| PR/CI/main/tag/Release/published | 진행 대상 | 최신 사용자 명시 승인 | B15-C01/R01/R02 | 승인, 선수조건 통과 후 순차 |
+| 외부 서비스·실기기 | 미진행 | 사용자 제외 | 현행 릴리즈 범위 | 제외 |
+
+실행 전 등록이다. token start/end/consumed는 개별 실제 사용량 계측 수단이 없어 미집계로 기록하며,
+elapsed/source/명령·exit는 실행 결과에 남긴다. 공개 뒤의 실제 판정은 로컬 준비 PASS와 분리한다.
+
+### B15 집중 검사 세부 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B15-M01 | published 정상 | 격리 gh/git/curl의 v4.1.0 list/API/view/tag/landing·branch HEAD 일치 | v4.1.0 |
+| B15-M02 | 직전 공개 오인 거부 | 같은 fixture의 v4.0.0 응답을 현재 target PASS로 받지 않음 | v4.1.0 |
+| B15-A01 | 이미지 정상 | 실제20 receipt·파일 복제본·기존10검사 일치 | v4.1.0 |
+| B15-A02 | SHA 변조 | 복제 receipt hash 변조 거부 | v4.1.0 |
+| B15-A03 | 누락 | receipt 한 행 제거 거부 | v4.1.0 |
+| B15-A04 | 중복 | 중복 path 거부 | v4.1.0 |
+| B15-A05 | 경로 이탈 | repository 밖 path 거부 | v4.1.0 |
+| B15-A06 | 긴 이미지 | 이미지 높이와 hash·bytes를 같이 재결속해도 높이/비율 상한 거부 | v4.1.0 |
+
+위8개는 앞선 B15-D02/I02에 범위로 등록했으나 개별 정의 행을 빠뜨렸다. 최초 unit
+각각2/2·6/6 exit0 출력은 보존하되 완료 증거로 승격하지 않고, 이 세부 등록 후 동일8개만
+재실행했다. `b15-metadata-unit-02` 2/2와 `b15-assets-unit-02` 6/6이 exit0이며
+현재 완료 증거다. 기존 제품·장시간/UI 증거에는 영향이 없다.
+
+### B15 검토 지문 변경 영향
+
+feature coverage 첫 실행은 986행 모두 실행 연결이 있으나 `UI-019`·`OPS-041`의
+verifier 파일 지문 변경으로 7 pass/1 fail였다. 테마 action·persistence readback과
+v2.9/v2.8 historical 구분 assertion 자체는 그대로다. 이는 제품 실패나 UI 재실행
+요구가 아니라 승인 증적의 영향 검토 대상이다. 후보 생성 담당과 승인 담당을 분리하고
+공식 migration 경로로만 재결속한다. 최초 실패 뒤 외부 단계는 실행하지 않았다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B15-T01 | UI-019 독립 검토 | shell→theme 함수→localStorage·DOM 상태→bounded assertion·dispatch를 현재/이전 소스와 대조. contrast 전수 실행 증거로 확대 금지 | v4.1.0 |
+| B15-T02 | OPS-041 독립 검토 | 실제 중앙 기록의 historical2.9/2.8 행→historicalBoundaryObserved→assertion 불변 및 새4.1 published 분리 확인 | v4.1.0 |
+| B15-T03 | 범위·이관·검증 | fresh986에서 정확히2개 변경·984 strict 동등 확인, 독립 결정→공식 원자 producer→feature coverage·관련 approval/manifest 검사 | v4.1.0 |
+
+### B15 로컬 실행 결과와 실패 보존
+
+전수 명령·개별 결과·이미지20개·정리는
+[B15 결과표](release-artifacts/v4.1.0/s11-final-20260926/b15-items.md.gz)와
+[요약](release-artifacts/v4.1.0/s11-final-20260926/b15-summary.json)에 보존한다.
+각 명령 원출력은 같은 위치의 `b15-*.json.gz`이며 결과표가 해당 파일을 명시한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B15-M01/M02 | 실제 공개가 아닌 격리 published 정상/구형 응답 거부 2개, 사전등록 뒤 unit-02 | pass |
+| B15-A01~06 | 이미지20개 정상·변조·누락·중복·탈출·길이 반례 6개, 사전등록 뒤 unit-02 | pass |
+| B15-I02 | 새8개/유지12개 직접 열람, 실제파일 hash·크기·전체 영상/toolbar·가독성 대조 | pass |
+| B15-T01/T02 | 메인 /root 독립 소스 검토, UI-019/OPS-041 핵심 assertion·dispatch 불변 | pass |
+| B15-T03 | 공식 producer984 strict승계/2독립검토·4fixture 원자 readback, 재실행 coverage986/986·8/8 | pass |
+| B15-L01-closeout 최초 | 기존 필수 문구 `source-only release 기준 tag`가 문서 수정 중 사라져 5/6 | fail |
+| B15-L01-closeout 재검증 | target/prior 의미 유지하며 문구 복원, 동일 closeout6/6 | pass |
+| B15-L01-links 최초 | 중간점 제목의 anchor를 잘못 연결한2개 발견, 검사 exit1 | fail |
+| B15-L01-links 재검증 | 제목을 `문서 및 실제 공개 절차`로 명확히 연결,374문서·14750링크·223anchor 오류0 | pass |
+
+metadata 최초17/18→18/18, capture01~04의 실패, 잘린05/06 Live 컷 제외,
+coverage 최초7/8→8/8 및 migration 최초 옵션 불일치의 fail-closed를 보존한다.
+capture04의 생성5개는 생성·해시·개별 시각 확인이 유효하나 명령 전체 FAIL을 PASS로
+바꾸지 않는다. 최종8개는 capture04의5개+05의영문Users1개+07의Live2개다.
+초기 `ps` 진단은 sandbox에서 금지되어 미실행이며 테스트 실패나 프로세스 상태 증거로
+사용하지 않았다. 소유 fixture의 종료·포트·경로 정리는 각 실제 receipt로 확인한다.
+변경된3개 검증기와 B15 mjs 전부의 구문 검사, `git diff --check`도 exit0이다.
+문서만의 추가 수정은 verifier 소스 지문을 바꾸지 않으며 이미 통과한 986개 재결속
+검증을 새 실행인 것처럼 보고하지 않는다. 원출력과 명령별 유효 범위를 유지한다.
+독립 검토·이관의 [전수 요약](release-artifacts/v4.1.0/s11-final-20260926/b15-trust-items.md.gz),
+[정제 원자료](release-artifacts/v4.1.0/s11-final-20260926/b15-trust-review.json.gz),
+[지문·정리 영수증](release-artifacts/v4.1.0/s11-final-20260926/b15-trust-receipt.json)을
+별도 보존한다. native424개 중 UI-019의 hash6개만 바뀌었고 action/control/route/
+selector/expected 변경은0이다. 소유 migration 임시경로1개·45,306,793B는 필요한
+11개 원자료 정제·전후해시 확인 후 삭제하고 부재를 확인했다. 촬영 임시경로5개와는
+별도이며 이전 Git 커밋의 audit/approval은 해시 참조로 중복 보관하지 않는다.
+현재 공개 검사 `--no-history`는 실제 현재파일7개 검사가 통과한 결과다. 도구의
+8/8 요약 중 history 한 줄은 실행 생략이므로 새 history PASS로 사용하지 않고
+전수 실행 행에서도 제외한다. B14의 기본500개·후속2개 이력 검사는 그대로 유지하고,
+이번 새 커밋은 생성 후 추가 이력 범위를 별도로 검사한다.
+`b15-entry-03`은 메인이 명령을 `verify-v410-entry`로 잘못 입력해 exit1로 끝난
+실행 오류다. 제품 실패/예상 RED가 아니며 기존 정의와 server dispatch의 정확한
+`verify-v410-entry-baseline`으로 같은 승인 검사를 재실행한다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| B15 외부 단계 | 실제 PR CI→main→서명 tag→Release→published | 로컬 기록 동결 후 순차 실행 | 아래 로컬 PASS만으로 외부 완료를 주장하지 않음. 실제 결과는 해당 PR/Release의 공개 기록에 보존 |
+| B15 기존 제품 검증 | B13/B14의 제품·장시간·UI 증거 유지 | 제품 코드·UI action·판정 기준 변경 없음 | 이번 대표 이미지 촬영을 UI전수 재실행이라고 보고하지 않음 |
+| B15 외부 환경 | 외부 서비스·실기기 | 사용자 명시 제외 | 해당 환경 PASS·보장 아님 |
+
 ## v4.1.0 S11 B14 공개 증거 정제 (2026-09-28)
 
 독자: 현재 릴리즈·증거 유지 담당자. 수명: 이번 공개 준비와 변환 영수증의 장기 보존.

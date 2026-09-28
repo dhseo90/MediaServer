@@ -2,25 +2,26 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v4.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
+[![Release Target](https://img.shields.io/badge/release%20target-v4.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
 ![Source Version](https://img.shields.io/badge/source-4.1.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
 
-현재 공개 v4.0.0의 제품 경계는 **live source onboarding, live source health, live VA event 품질**입니다.
-개발 중인 v4.1.0 소스에는 상시·이벤트 녹화, 순환 보존, 타임라인·재생 기반이 구현되어 있습니다.
-최종 검증·릴리즈는 아직 완료되지 않았으며, VMS/NVR 완성 제품·자연어 영상 검색·runtime/model bundle 배포를 뜻하지 않습니다.
+현재 release target v4.1.0은 **상시·이벤트 녹화, 순환 보존, 타임라인·재생 기반**을
+v4.0.0의 live source/VA 경계 위에 추가합니다. S11 제품 검증과 B14 공개 준비는 완료했으며,
+PR·병합·서명 tag·GitHub Release·published 검증 같은 외부 상태는 실제 실행 기록에서만 판정합니다.
+이 범위는 VMS/NVR 완성 제품·자연어 영상 검색·runtime/model bundle 배포를 뜻하지 않습니다.
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 공개 GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
+- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
+- 현재 release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
 - 현재 소스 버전: `4.1.0`
-- v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 상태: S01~S08 구현과 S10 시간·식별·저장 기반 보강 후 검증 준비 마감 중. S09는 S10·S11로 대체했으며 S11 최종 검증·릴리즈는 미완료
-- 최신 공개 기준: v4.0.0 Local Operations Policy and Stabilization
-- 직전 공개 기준: v3.9.1 Release Correctness and Public Repository Hygiene
+- v4.1.0 상태: S01~S08 구현, S10 보강, S11 제품 검증과 B14 공개 준비 완료. 외부 release action은 실제 기록에서 별도 판정
+- 직전 공개 baseline: v4.0.0 Local Operations Policy and Stabilization
+- 이전 공개 baseline: v3.9.1 Release Correctness and Public Repository Hygiene
 
 ## 한눈에 보기
 
@@ -32,7 +33,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
   live Event POST, runtime metadata를 제공합니다.
 - **Incident memory**: 현재 소스 트리는 EventRecord, audit, source health, alert dry-run을
   `/ops/events` 검색, timeline, 설명, 유사 사건 lookup으로 정리합니다.
-- **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
+- **녹화**: 채널별 opt-in 상시·이벤트 녹화, 설정 용량의 순환 보존, 이벤트 우선
+  타임라인과 권한에 따른 녹화 재생을 제공합니다.
+- **제외 범위**: 완성형 VMS/NVR, 무기한 아카이브 운영 보장, broad archive search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
 ## 실행 환경
@@ -103,7 +106,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- 최신 공개 릴리즈 노트: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
+- 현재 release note source: [v4.1.0](docs/release-notes-v4.1.0.md)
 
 ## 대표 UI 미리보기
 
@@ -123,6 +126,8 @@ README에는 대표 제품 화면만 둡니다. 2026-08-31에 source `4.0.0` / p
 
 **운영 룰 관리**
 
+설정 유형 선택과 룰 목록 영역입니다. 긴 편집 페이지 전체를 축소한 이미지가 아닙니다.
+
 ![운영 룰 관리](docs/assets/ui/ops-rules.png)
 
 **룰 영상/영역 편집**
@@ -131,9 +136,14 @@ README에는 대표 제품 화면만 둡니다. 2026-08-31에 source `4.0.0` / p
 
 **운영 사용자 관리**
 
+사용자 목록 카드 전체입니다. 초대·상세 편집은 UI 가이드를 참고하세요.
+
 ![운영 사용자 관리](docs/assets/ui/ops-users.png)
 
 **클라이언트 라이브**
+
+영상 작업 영역과 도구 모음입니다. 전체 4신 영상·VA 오버레이·재생 제어를 담고,
+별도의 탐색 도크는 이 구도에 포함하지 않았습니다.
 
 ![클라이언트 라이브](docs/assets/ui/client-live.png)
 

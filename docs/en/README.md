@@ -6,13 +6,13 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
-- Latest published baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- Previous published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
+- Current release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
+- Prior published baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- Earlier published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - Current source version: `4.1.0`
-- v4.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 status: S01-S08 are implemented and S10 strengthens recording time, identity, and storage. Verification preparation is being finalized. S09 was superseded by S10/S11; S11 final validation and release remain incomplete.
+- v4.1.0 status: S01-S08 implementation, S10 hardening, S11 product validation, and B14 public readiness are complete. External release actions remain separately evidence-based.
 - Default public distribution: source-only
 - Representative screenshots were recaptured on 2026-08-31 for source `4.0.0` /
   then-published `v3.9.1`, using the v3.8.0 uncropped composition. They are managed
@@ -35,13 +35,14 @@ points to the current public sources.
 | Verification commands | [../stream-verification.md](../stream-verification.md) |
 | Release/version policy | [../release-policy.md](../release-policy.md), [../versioning-policy.md](../versioning-policy.md) |
 | Current roadmap summary | [../development-backlog.md](../development-backlog.md) |
+| v4.1.0 release-note source | [../release-notes-v4.1.0.md](../release-notes-v4.1.0.md) |
 
 ## Product Boundary
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - The current source tree tracks the `v4.1.0 Recording Foundation`
-  roadmap. Latest published is `v4.0.0`. v3.9.1 remains the previous published baseline.
+  roadmap. v4.0.0 is the prior published baseline and v3.9.1 is the earlier baseline.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
   recording/replay, Re-ID default-on, tracker default-on, and VLM default-on

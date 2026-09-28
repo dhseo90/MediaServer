@@ -1,16 +1,20 @@
 # Public Repo Final Review
 
-이 문서는 public repository 상태와 release readiness를 확인하는 기준입니다. GitHub
-Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 수동 체크로 남깁니다.
+이 문서는 public repository 상태와 release readiness를 확인하는 기준입니다. GitHub가
+제공하는 동일 설정 필드는 read-only API 실제 응답으로 확인할 수 있으며, API가 제공하지
+않는 표시·설정만 owner가 GitHub Settings UI에서 직접 확인합니다. 확인 수단을 바꿔 PASS를
+추정하거나 설정을 변경하지 않습니다.
 
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.1.0`
-- 최신 공개 GitHub Release: `v4.0.0`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
-- 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
+- 현재 release target: `v4.1.0`
+- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- `v4.0.0` publish 완료는 signed tag, source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
+- S11 제품 검증과 B14 공개 준비는 완료했습니다. v4.1.0 외부 release는 signed tag,
+  source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
 - public repository 기준은 source-only 공개입니다.
 
 ## 공개 대상
@@ -79,19 +83,23 @@ GitHub check-run annotation JSON을 확보한 경우에만 아래 gate를 추가
 
 annotation 상태를 확인하지 않았으면 release gate PASS로 대체하지 않습니다.
 
-## 수동 GitHub 설정
+## GitHub 설정 확인
 
-아래 항목은 owner가 GitHub UI에서 직접 확인합니다.
+아래 항목은 read-only API의 동일 필드 실제 응답 또는 API가 제공하지 않는 경우 owner의
+GitHub UI 직접 확인으로 판정합니다.
 
-| 영역 | 확인 항목 |
-| --- | --- |
-| Actions | Workflow permissions가 read-only인지 확인 |
-| Actions | GitHub Actions가 pull request를 create/approve할 수 없도록 설정 |
-| Branch protection | `main` required status checks가 저장소 정책과 일치 |
-| Branch protection | force push 차단 |
-| Branch protection | branch deletion 차단 |
-| Repository metadata | Description과 topics가 현재 제품 경계를 설명 |
-| Visibility | public 상태와 owner 정책 일치 |
+| 영역 | 확인 항목 | 허용 근거 |
+| --- | --- | --- |
+| Actions | Workflow permissions가 read-only인지 확인 | Actions permissions API의 `default_workflow_permissions=read` 실제 응답 또는 UI |
+| Actions | GitHub Actions가 pull request를 create/approve할 수 없도록 설정 | Actions permissions API의 `can_approve_pull_request_reviews=false` 실제 응답 또는 UI |
+| Branch protection | `main` required status checks가 저장소 정책과 일치 | active ruleset API의 strict required checks 실제 응답 또는 UI |
+| Branch protection | force push 차단 | active ruleset API의 `non_fast_forward`/bypass 실제 응답 또는 UI |
+| Branch protection | branch deletion 차단 | active ruleset API의 deletion/bypass 실제 응답 또는 UI |
+| Repository metadata | Description과 topics가 현재 제품 경계를 설명 | repository/topics API 실제 응답 또는 UI |
+| Visibility | public 상태와 owner 정책 일치 | repository API의 visibility·permission 실제 응답 또는 UI |
+
+read-only API가 반환하지 않는 UI 표시나 owner 정책 의도는 수동 UI 확인으로 남깁니다.
+API 응답 일부만으로 API 미제공 항목까지 확인했다고 확장하지 않습니다.
 
 ## Release 직전 확인
 
@@ -99,7 +107,7 @@ annotation 상태를 확인하지 않았으면 release gate PASS로 대체하지
 | --- | --- |
 | working tree | `git status --short --branch`가 의도한 변경만 표시 |
 | secret scan | 현재 추적 텍스트의 금지 경로·고신뢰 비밀 패턴과 기본 최근500 commit의 고신뢰 비밀 패턴 검사를 구분해 기록. 임의 비밀번호·모든 archive·전체 이력 부재로 확대하지 않음 |
-| README 첫 화면 | 제품 경계, 최신 공개 릴리즈, 현재 소스 버전, 빠른 시작이 한눈에 보임 |
+| README 첫 화면 | 제품 경계, release target, live Latest 링크, 현재 소스 버전, 빠른 시작이 한눈에 보임 |
 | 영문 문서 | README.en과 docs/en/README가 한국어 문서와 같은 상태를 설명 |
 | VERSION/CMake | `VERSION`과 `CMakeLists.txt` 버전 일치 |
 | release policy | source-only, tag, GitHub Release, not-run 경계가 현재 상태와 일치 |

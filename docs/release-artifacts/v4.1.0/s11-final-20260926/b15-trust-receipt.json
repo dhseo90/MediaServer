@@ -1,0 +1,202 @@
+{
+  "schema": "media-server.b15-trust-preservation-receipt.v1",
+  "status": "PASS",
+  "outputs": [
+    {
+      "path": "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-trust-review.json.gz",
+      "bytes": 180271,
+      "sha256": "cd323c7a551dad215b52ae2b0cad886ba83ebcb3e0edac79d8c61a2dcd004a2b",
+      "uncompressedBytes": 1030041,
+      "uncompressedSha256": "e13bd6065bb2d2bf942aeeb58c380dd4735c813cd0e05e124af9288e47873731"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/s11-final-20260926/b15-trust-items.md.gz",
+      "bytes": 1770,
+      "sha256": "ec8608e24eeaa87008c282a6905cbc0a0143ae70e8fc6380867391fc301c49fb",
+      "uncompressedBytes": 3072,
+      "uncompressedSha256": "0f33182164142c48bbe02edf173aa3c5954d0202f3137f6198ccc662a62c8e18"
+    }
+  ],
+  "sourceReceipts": [
+    {
+      "id": "review-package",
+      "originalBytes": 2503,
+      "originalSha256": "80feb06b96ee5f49d5a8c8c8a9fea12456398a21ad221c245389e16e43e3bc38",
+      "sanitizedBytes": 2503,
+      "sanitizedSha256": "80feb06b96ee5f49d5a8c8c8a9fea12456398a21ad221c245389e16e43e3bc38",
+      "replacements": {
+        "home": 0,
+        "temp": 0
+      }
+    },
+    {
+      "id": "independent-decisions",
+      "originalBytes": 3642,
+      "originalSha256": "ce323957b0bcd8e48d420a37a6ac98bef25b552818b6d06097ad45a390e14e17",
+      "sanitizedBytes": 3635,
+      "sanitizedSha256": "7b7d3b15a1e2e577bf7c0f35fd18a8301e1ec2bfb0705b6a90d1da35d71c0278",
+      "replacements": {
+        "home": 0,
+        "temp": 1
+      }
+    },
+    {
+      "id": "changed-rows",
+      "originalBytes": 42258,
+      "originalSha256": "5baab764eeba16d8e8958002d635ab515aaaf831fcf507ecc84adc92fb39b316",
+      "sanitizedBytes": 42258,
+      "sanitizedSha256": "5baab764eeba16d8e8958002d635ab515aaaf831fcf507ecc84adc92fb39b316",
+      "replacements": {
+        "home": 0,
+        "temp": 0
+      }
+    },
+    {
+      "id": "migration-delta",
+      "originalBytes": 521592,
+      "originalSha256": "2511b18e758bde8af21d120b294c28f6e8ee10a7633102831abb82210edf8e97",
+      "sanitizedBytes": 521592,
+      "sanitizedSha256": "2511b18e758bde8af21d120b294c28f6e8ee10a7633102831abb82210edf8e97",
+      "replacements": {
+        "home": 0,
+        "temp": 0
+      }
+    },
+    {
+      "id": "migration-evidence",
+      "originalBytes": 375021,
+      "originalSha256": "ee447f600d243d7dc0f40917518201fa546683a2e7c3fd65776a308ba1b1222c",
+      "sanitizedBytes": 375021,
+      "sanitizedSha256": "ee447f600d243d7dc0f40917518201fa546683a2e7c3fd65776a308ba1b1222c",
+      "replacements": {
+        "home": 0,
+        "temp": 0
+      }
+    },
+    {
+      "id": "migration-failure-log",
+      "originalBytes": 1062,
+      "originalSha256": "9f7a643c6d94f4aada3411f7a06248a1269ada27ab400a3886cf7775f3a6a4e1",
+      "sanitizedBytes": 1038,
+      "sanitizedSha256": "d22b2488ceb1ba58c9efdc2b273d97021f25ee9cdb563865474304cfa97d970f",
+      "replacements": {
+        "home": 4,
+        "temp": 0
+      }
+    },
+    {
+      "id": "migration-success-log",
+      "originalBytes": 575,
+      "originalSha256": "2c5b919789b8bd080805b8b5ef60450082f26c08cb0906d59a2b4831290b8da6",
+      "sanitizedBytes": 561,
+      "sanitizedSha256": "8fb2f87c655e7d3efb1d7a61e32c0b7650d15f9350132c5e2ccddd536ada6900",
+      "replacements": {
+        "home": 0,
+        "temp": 2
+      }
+    },
+    {
+      "id": "migration-diagnostic-log",
+      "originalBytes": 523,
+      "originalSha256": "68287706978080346aff6a521b76a8de3be2e032d4756742bc1541808e782a0a",
+      "sanitizedBytes": 516,
+      "sanitizedSha256": "b53b755a81cac5d75af5b46dfc56c8e9d7f3946528530ad24087b9570e3cadb6",
+      "replacements": {
+        "home": 0,
+        "temp": 1
+      }
+    },
+    {
+      "id": "candidate-generation-log",
+      "originalBytes": 192,
+      "originalSha256": "024c034e594f7be5da2eb7dca85f21f9bda243bd056ccc34969c4958cdb90109",
+      "sanitizedBytes": 185,
+      "sanitizedSha256": "b0cf8a08cc8df0b2601efb37d3a364b3512c93de7b24d3a2eb821a27b3394bbc",
+      "replacements": {
+        "home": 0,
+        "temp": 1
+      }
+    },
+    {
+      "id": "native-binding-diff",
+      "originalBytes": 654,
+      "originalSha256": "feeebe84af5b15d099c9a9019b858c77449e239bbcfaf41a371f238b78c778ad",
+      "sanitizedBytes": 654,
+      "sanitizedSha256": "feeebe84af5b15d099c9a9019b858c77449e239bbcfaf41a371f238b78c778ad",
+      "replacements": {
+        "home": 0,
+        "temp": 0
+      }
+    },
+    {
+      "id": "producer-result",
+      "originalBytes": 1168,
+      "originalSha256": "d1e0bf785313def3543bfa132e41f9c49c6b9920944650d7a01e07c30b43bc88",
+      "sanitizedBytes": 1133,
+      "sanitizedSha256": "efc7270be9990f67f9810702c17aebaca5178ec648740be32906d680bbc9d38f",
+      "replacements": {
+        "home": 0,
+        "temp": 5
+      }
+    }
+  ],
+  "sourceReferences": {
+    "prior": [
+      {
+        "file": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "commit": "a1655a214caff1cc37c2c23fae3fa44d906c4968",
+        "bytes": 10413259,
+        "sha256": "163c8e8d8da799dec419946642b830618cc19915d3f12b8a8f9c70ef7c4dfbf5"
+      },
+      {
+        "file": "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "commit": "a1655a214caff1cc37c2c23fae3fa44d906c4968",
+        "bytes": 1743881,
+        "sha256": "f3ac56f1c9e754241dff913adf3aa506e5b31c706e23523632fa024516e8a3aa"
+      }
+    ],
+    "fresh": [
+      {
+        "file": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "bytes": 10413259,
+        "sha256": "30844487c059039869ae20e064ee987325001916475972791e28e175834ded87"
+      },
+      {
+        "file": "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "bytes": 1743157,
+        "sha256": "54fca2d90b0efd97c1fd1e85465acf6e744ae48207918beb905dcddce8320b5e"
+      },
+      {
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "bytes": 26200283,
+        "sha256": "0bd82d944613493f46bb135832096b1a9bc0280cd19f614257a2aecad6e7df14"
+      },
+      {
+        "file": "test/fixtures/v390_ui_native_exact_cases.json",
+        "bytes": 14007819,
+        "sha256": "da020e2488ddcb2d9ff5bebfd5ba472b8e659b4e0d14949b12291020f9d359cb"
+      }
+    ]
+  },
+  "sanitization": {
+    "deniedContent": [],
+    "homeReplacements": 4,
+    "tempReplacements": 10
+  },
+  "nativeExact": {
+    "changedPathCount": 6,
+    "changedCaseIds": [
+      "UI-019"
+    ],
+    "actionControlExpectedInvariant": true
+  },
+  "cleanup": {
+    "ownedRoot": "<owned-temp>/media-server-b15-review4",
+    "ownerUid": 501,
+    "mode": "700",
+    "filesBefore": 23,
+    "fileBytesBefore": 45306793,
+    "removed": true,
+    "absent": true
+  }
+}

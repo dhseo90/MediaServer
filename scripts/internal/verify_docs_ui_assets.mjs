@@ -5,12 +5,14 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
+const realRootDir = fs.realpathSync(rootDir);
 const docsAssetDir = path.join(rootDir, "docs/assets/ui");
 const docsAssetEnDir = path.join(docsAssetDir, "en");
 
@@ -20,6 +22,27 @@ const latestPublishedTag = "v4.0.0";
 const readmeAssets = manifest.assets.filter((asset) => asset.readme).map((asset) => asset.file);
 const uiGuideAssets = manifest.assets.filter((asset) => asset.uiGuide).map((asset) => asset.file);
 const assetByFile = new Map(manifest.assets.map((asset) => [asset.file, asset]));
+const expectedUiReviewFiles = [
+  "auth-login.png",
+  "client-dashboard.png",
+  "client-live.png",
+  "ops-channels.png",
+  "ops-dashboard.png",
+  "ops-home.png",
+  "ops-rules-preview.png",
+  "ops-rules.png",
+  "ops-users.png",
+];
+const expectedReviewPaths = [
+  ...expectedUiReviewFiles.map((file) => `docs/assets/ui/${file}`),
+  ...expectedUiReviewFiles.map((file) => `docs/assets/ui/en/${file}`),
+  "docs/assets/va-four-scene-sample.png",
+  "docs/assets/va-four-scene-overlay-ko.jpg",
+].sort();
+const historicalVaReviewPaths = new Set([
+  "docs/assets/va-four-scene-sample.png",
+  "docs/assets/va-four-scene-overlay-ko.jpg",
+]);
 
 const checks = [];
 
@@ -85,18 +108,36 @@ check("docs UI asset policy documents capture rules", () => {
 check("managed UI asset manifest stays complete", () => {
   assert(manifest.schema === "media-server.docs-ui-assets.v1", "docs UI asset manifest schema mismatch");
   assert(manifest.baseline?.sourceVersion === currentVersion, "docs UI asset manifest source version drifted");
+  assert(manifest.baseline?.releaseTarget === `v${currentVersion}`, "docs UI asset manifest release target drifted");
   assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release drifted");
   assert(manifest.baseline?.publicReleaseStatus === `v${currentVersion}-source-${latestPublishedTag}-published`, "docs UI asset manifest public release status drifted");
   assert(manifest.baseline?.capturedAt === "2026-08-31", "docs UI asset manifest capture date drifted");
   assert(manifest.baseline?.theme === "dark", "docs UI asset manifest theme drifted");
   assert(manifest.baseline?.sampleVideo === "va_four_scene_sample.mp4", "docs UI asset manifest sample video drifted");
   assert(manifest.baseline?.manualReviewRequired === true, "docs UI asset manifest must require direct manual image review");
-  assert(manifest.directReview?.reviewedAt === manifest.baseline.capturedAt, "docs UI asset direct review date drifted");
-  assert(manifest.directReview?.tool === "Google Chrome CDP + Grok PNG review", "docs UI asset direct review tool drifted");
+  assert(manifest.directReview?.reviewedAt === "2026-09-28", "docs UI asset direct review date drifted");
+  assert(manifest.directReview?.tool === "Native Chrome + Codex PNG review", "docs UI asset direct review tool drifted");
   assert(manifest.directReview?.assetCount === 20, "docs UI asset direct review count drifted");
   assert(manifest.directReview?.status === "PASS", "docs UI asset direct review is not PASS");
   assert(manifest.directReview?.englishHangulResidue === 0, "English screenshot direct review found Hangul residue");
   assert(manifest.directReview?.clientLeakCheck === "PASS", "client screenshot leak review is not PASS");
+  assert(Array.isArray(manifest.directReview?.assets), "docs UI asset direct review receipts are missing");
+  assert(manifest.directReview.assets.length === manifest.directReview.assetCount, "direct review receipt count does not match assetCount");
+  const reviewedPaths = manifest.directReview.assets.map((asset) => asset?.path);
+  assert(new Set(reviewedPaths).size === reviewedPaths.length, "direct review receipts contain duplicate paths");
+  assert(
+    JSON.stringify([...reviewedPaths].sort()) === JSON.stringify(expectedReviewPaths),
+    "direct review receipts must contain the exact Korean/English UI 18 and historical VA 2 paths",
+  );
+  let recapturedCount = 0;
+  let retainedCount = 0;
+  for (const reviewed of manifest.directReview.assets) {
+    assertReviewedAssetReceipt(reviewed);
+    if (reviewed.action === "recaptured") recapturedCount += 1;
+    if (reviewed.action === "retained") retainedCount += 1;
+  }
+  assert(recapturedCount === 8, `direct review recaptured count must be 8, got ${recapturedCount}`);
+  assert(retainedCount === 12, `direct review retained count must be 12, got ${retainedCount}`);
   assert(manifest.captureScript === "scripts/internal/capture_docs_ui_assets.mjs", "docs UI asset manifest capture script drifted");
   assert(manifest.verificationCommand === "./server.sh verify-docs-ui-assets", "docs UI asset manifest verification command drifted");
   assert(Array.isArray(manifest.directReviewChecklist) && manifest.directReviewChecklist.length >= 5, "direct review checklist is too small");
@@ -318,6 +359,57 @@ function findAssetReferences(text) {
     }
   }
   return [...found].sort();
+}
+
+// 직접 시각 검토 receipt와 현재 파일의 결속만 확인하며 시각 검토 자체를 대체하지 않는다.
+function assertReviewedAssetReceipt(reviewed) {
+  assert(reviewed && typeof reviewed === "object", "direct review asset receipt must be an object");
+  const relativePath = reviewed.path;
+  assert(typeof relativePath === "string" && relativePath.length > 0, "direct review asset path is missing");
+  assert(!relativePath.includes("\\") && !relativePath.includes("\0"), `direct review asset path is not portable: ${relativePath}`);
+  assert(!path.isAbsolute(relativePath), `direct review asset path must be repository-relative: ${relativePath}`);
+  assert(path.posix.normalize(relativePath) === relativePath && !relativePath.split("/").includes(".."), `direct review asset path is not normalized: ${relativePath}`);
+  assert(relativePath.startsWith("docs/assets/"), `direct review asset is outside docs/assets: ${relativePath}`);
+  const filePath = path.resolve(rootDir, relativePath);
+  assert(filePath.startsWith(`${rootDir}${path.sep}`), `direct review asset escapes repository root: ${relativePath}`);
+  assert(fs.existsSync(filePath), `direct review asset is missing: ${relativePath}`);
+  const realFilePath = fs.realpathSync(filePath);
+  assert(realFilePath.startsWith(`${realRootDir}${path.sep}`), `direct review asset symlink escapes repository root: ${relativePath}`);
+  const stat = fs.statSync(filePath);
+  assert(stat.isFile(), `direct review asset is not a file: ${relativePath}`);
+
+  assert(reviewed.review === "PASS", `direct review asset is not PASS: ${relativePath}`);
+  assert(reviewed.action === "recaptured" || reviewed.action === "retained", `direct review action is invalid: ${relativePath}`);
+  if (historicalVaReviewPaths.has(relativePath)) {
+    assert(reviewed.action === "retained", `historical VA asset must be retained: ${relativePath}`);
+    assert(reviewed.capturedAt === null, `only historical VA assets use null capturedAt: ${relativePath}`);
+  } else if (reviewed.action === "recaptured") {
+    assert(reviewed.capturedAt === "2026-09-28", `recaptured UI asset date drifted: ${relativePath}`);
+  } else {
+    assert(reviewed.capturedAt === manifest.baseline.capturedAt, `retained UI asset date must keep the baseline capture date: ${relativePath}`);
+  }
+
+  assert(Number.isSafeInteger(reviewed.bytes) && reviewed.bytes > 1024, `direct review asset bytes are invalid: ${relativePath}`);
+  assert(reviewed.bytes === stat.size, `direct review asset byte count drifted: ${relativePath}`);
+  assert(typeof reviewed.sha256 === "string" && /^[0-9a-f]{64}$/.test(reviewed.sha256), `direct review asset SHA-256 is invalid: ${relativePath}`);
+  assert(reviewed.sha256 === sha256File(filePath), `direct review asset SHA-256 drifted: ${relativePath}`);
+  assert(Number.isSafeInteger(reviewed.width) && reviewed.width > 0, `direct review asset width is invalid: ${relativePath}`);
+  assert(Number.isSafeInteger(reviewed.height) && reviewed.height > 0, `direct review asset height is invalid: ${relativePath}`);
+  const dimensions = relativePath.endsWith(".png") ? readPngDimensions(filePath) : readJpegDimensions(filePath);
+  assert(reviewed.width === dimensions.width, `direct review asset width drifted: ${relativePath}`);
+  assert(reviewed.height === dimensions.height, `direct review asset height drifted: ${relativePath}`);
+
+  if (relativePath.startsWith("docs/assets/ui/") && relativePath.endsWith(".png")) {
+    const asset = path.basename(relativePath);
+    assertMeetsManifestMinimum(asset, dimensions, relativePath.includes("/en/") ? "English " : "");
+    assert(dimensions.height <= 1450, `${relativePath} height exceeds 1450: ${dimensions.height}`);
+    const verticalRatio = dimensions.height / dimensions.width;
+    assert(verticalRatio <= 1.15, `${relativePath} height/width exceeds 1.15: ${verticalRatio.toFixed(3)}`);
+  }
+}
+
+function sha256File(filePath) {
+  return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
 function readPngDimensions(filePath) {

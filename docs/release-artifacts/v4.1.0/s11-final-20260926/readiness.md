@@ -4,9 +4,98 @@
 정책 source-of-truth는 `AGENTS.md`다. 이 문서는 2026-09-26의 직접 관측과
 후속 제안을 분리하며, 미완료 단계를 PASS로 만들지 않는다.
 
+## 2026-09-28 B15 최종 문서·릴리즈 cut
+
+현재 로컬 판정은 이 절이다. 외부 PR/CI/병합/서명 tag/Release는 사용자가 승인했으며
+아래는 **최종 커밋에 담기 위한 문서 동결 시점**의 기록이다. 이후 실제 외부 결과는
+GitHub PR·Release의 실행 기록과 published metadata 판정이 권위 있는 근거다.
+태그를 최종 main 커밋에 유지하기 위해 외부 성공을 선기록하거나 태그 뒤 기록 커밋을
+추가하지 않는다. [중앙 B15 기록](../../../release-test-records.md#v410-b15-문서-및-실제-공개-절차-2026-09-28)을 따른다.
+
+로컬 문서·이미지·재결속 검사는 마감했다. entry46, metadata18, 이미지10,
+집중 반례8, script inventory12, feature986/986·8검사, 독립 approval986,
+native exact424, closeout6, CI/local대응6, Actions정책·구문·공백·문서링크가
+통과했다. 공개 현재파일 검사는7개 통과이며 `--no-history`의 생략된 이력 한 줄은
+PASS로 세지 않는다. 기존 B14 history500+2와 이번 새 커밋의 추가 이력 검사,
+그 뒤 실제 CI 판정을 분리한다. 최초 실패와 재검증은 [전수 결과](b15-items.md.gz),
+독립 검토·정리 결과는 [영수증](b15-trust-receipt.json)에 보존한다.
+
+### B15 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | PR·실제 CI 순차 | 승인·선수 로컬 검사 진행 | main active ruleset의 static-gates/guardrails·strict·bypass 없음 확인, 실제 PR 검사 후 병합 | GitHub read API·B15-C01 |
+| 2 | 문서 업데이트 | 반영 | target4.1·cut 직전4.0·Live Latest 구분, 한국어 사용자용 release note·기능/비범위/제한 명시 | README·release/version 정책·release note |
+| 3 | 잘림·지나치게 긴 이미지 금지 | 최종20개 직접 검수 | 8개 완결 영역별 교체·12개 유지. Live 전체 영상/toolbar, Rules/Users/Dashboard 완결 카드. 실패 컷은 채택하지 않음 | [파일20 receipt](../../../../config/docs_ui_assets.json)·[신규8 촬영](b15-image-capture.json) |
+| 4 | 최종 커밋에 tag·Release 처리 | 승인·외부 실행 대기 | 보정까지 포함한 main HEAD에 기존 등록 SSH 키 signed annotated tag. local verify→remote valid→source-only assets0 | B15-R01/R02·AGENTS4 |
+| 5 | 분할 커밋·푸시 | 승인 | 로컬 변경·관련 검사·정리 마감 뒤 승인 ref만 처리 | AGENTS5·B15 결과 |
+
+### B15 기준
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 버전·build | v4.1.0 /4.1.0 | VERSION·CMake 일치, 기존 제품 최종 c4735579 이후 src/include 변경0 | entry46·Git diff |
+| 시작 소스·원격 | v4.1.0 a1655a21 | 작업 시작 clean·origin 일치, main431397d9, v4.1.0 tag 없음 | Git·GitHub read API |
+| 공개 범위 | source-only | assets0·runtime/model·운영 영상·credential 제외 | release note·배포 정책 |
+| CHANGELOG/NEWS | 존재 시 갱신 | 제품 루트에는 없음, 버전별 release note 사용 | 직접 목록 |
+| 서명 | 등록된 기존 SSH 키 | 공개 fingerprint HspxD7ss8IYWUWSAs15WbF9QdaVBBDHP/yz9YdnJCJ4, 기존v4.0 remote valid | GitHub signing keys/tag API; 새 tag는 별도 전후 확인 |
+
+### B15 roadmap 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S01~S08·S10·S11 | 구현/최종 제품 검증 완료 | 제품 diff0, B13/B14의 build·auth·녹화·30/UI/120 유지 | 없음 | 기존 연결표·현행 diff |
+| 문서·대표 이미지 | 기존 전체 세로 화면 | 새8개·유지12개, 잘림/길이/해시 확인 | B15 정비 | manifest20·이미지 원출력 |
+| 외부 release | B14 당시 미승인 | 이번 사용자 승인, 실제 결과는 외부 절차에서 기록 | 승인 상태만 갱신, 선완료 없음 | B15 사용자 지시 |
+
+### B15 구현·실행 연결
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 공개 metadata | verify_release_metadata_consistency | published 시4.1 list/API/view/tag/landing, 이전4.0 오인 거부. tag object SHA와 commit SHA 구분 | B15-M01/M02 |
+| 이미지 | docs_ui_assets manifest·verify_docs_ui_assets | exact20 path/bytes/SHA/dimensions·상한, 직접 검수 별도 | B15-A01~06·I02 |
+| 촬영 | b15-capture, 실제 /ops/rules·users·/client/live·dashboard | 정상 소스 선택 자동 재생·임시 계정·로컬4신 샘플. 시각 증거≠UI전수 PASS | capture01~07 원출력·기하 receipt |
+| 권한·streaming·저장 | src/include | 변경 없음 | Git diff |
+
+### B15 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| 순차 외부 실행·최종 태그 | AGENTS 직접 규칙+사용자 승인 | AGENTS4/5·최신 지시 | 필수 CI 통과 전 병합 금지·최종SHA 서명 |
+| 이미지 현재성·제한 | 프로젝트 직접 확인 | 실제 파일20·원출력·source CSS/JS | 문서 이미지 정비, 제품 회귀로 확대하지 않음 |
+| 기존 장시간 증거 유지 | 직접 확인+메인 영향 판정 | 제품0diff·B13 연결·B14정제 | 이번 문서 수정 때문에 30/UI/120 반복하지 않음 |
+| 영문 숫자 채널 권한 보조 문구 | 프로젝트 직접 확인 | parseUserScope의 숫자 target `채널 1`·실제 컷 | 표시 언어의 제한을 공개. 권한 계약 변경 없음, blocker로 확대하지 않음 |
+
+### B15 테스트 판정
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 문서·metadata·이미지 안정화 | 진행 대상 | 현행 설명·이미지 변경 | B15-D/I/L·M01/02·A01~06 | 승인·실제 결과 중앙 기록 |
+| 30분·UI풀·공통/녹화120 새 실행 | 미진행 | src/include 변경0·기존 유효 증거 | B13-E02·B14 | 기존 결과 유지, 새 실행 없음 |
+| 실제 PR CI·tag·published | 진행 대상 | 최신 사용자 승인·필수 ruleset | B15-C/R | 로컬 통과 후 순차 승인됨 |
+| 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | 기존 release scope | 제외, PASS 아님 |
+
+### B15 외부 잔여 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | 승인 commit·push·PR CI | 실제 static-gates/guardrails·annotation 확인, 실패 후 뒤 단계 금지 | 외부 실행 | 사용자·AGENTS·ruleset | 병합 전 |
+| 2 | P0 | main 병합·최종SHA 서명 tag | clean/sync·merge target·최종커밋·local 서명·remote verified/valid 확인 | 외부 실행 | 사용자·AGENTS4 | Release 전 |
+| 3 | P0 | source-only Release·published | v4.1.0·Latest·URL·태그/커밋·assets0 검사·실제 외부 결과 공개 기록 | 외부 실행 | 사용자·AGENTS4 | 공개 후 즉시 |
+
+### B15 미해소·한계
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| 문서 촬영 첫 준비 실패 | 최초 원인 미확정, 대체 촬영 성공 | 01 상세 진단 부재, 최초 FAIL 보존. 후속 숨김 stop·규칙priority중복·자동재생toggle·absolute toolbar/도크 crop은 원인 확인·촬영기 보완 | 최종 선택8개·직접검수만 사용, 전체 시도 PASS 아님 | 동일 실패 재발 시 해당 진단부터 확인 |
+| 영문 숫자 채널 문구 | 비차단 표시 제한 | 제품 번역 수정은 이번 문서 범위 밖 | 번역완료 증거로 사용 불가, release note에 명시 | 별도 제품 수정·영향 검사 |
+| 외부 실행 완료 | 동결 시점 미실행·승인됨 | 최종 tag 뒤 문서 commit 루프 방지 | 불가 | 실제 GitHub PR/Release·published 결과가 우선 |
+| 장시간 범위 | 기존 최종결과 유지 | 무기한 자원/외부기기 보장은 아님 | 승인된 기존 범위만 | 추가 실행 자동 생성 안 함 |
+| 임시 이미지5 root | 정리 완료 | 13,052,741B·선택8개/실패해시/기하·원출력 보존 후 제거 | [정리 영수증](b15-cleanup.json) | 새 외부 단계 임시파일도 마감 시 제거 |
+
 ## 2026-09-28 B14 공개 증거 정제·공개 준비
 
-현재 판정은 이 절이다. 아래 B13은 당시 실패 이력이며 덮어쓰지 않는다. 사용자 승인
+B14 당시 판정이다. 아래 B13은 당시 실패 이력이며 덮어쓰지 않는다. 사용자 승인
 1~4번과 릴리즈 잔여를 대조한다. 원본/정제본 관계는 [변환 영수증](b14-migration-receipt.json.gz),
 단계별 실행은 [중앙 B14 기록](../../../release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28)을 따른다.
 

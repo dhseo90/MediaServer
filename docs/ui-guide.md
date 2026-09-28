@@ -6,10 +6,11 @@
 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
-현재 소스 버전은 `4.1.0`입니다. 최신 공개 GitHub Release는 `v4.0.0` source-only
-release이며, 최신 published baseline은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
-이 문서는 현재 source tree의 UI 구조와 v4.1.0 Recording Foundation
-roadmap, v3.9.1 previous published baseline 경계를 설명합니다.
+현재 소스 버전과 release target은 `4.1.0`입니다. 직전 공개 baseline은 `v4.0.0 Local Operations Policy and Stabilization`이며,
+이전 공개 baseline은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
+Live GitHub Latest는 repository의 `releases/latest`에서
+확인합니다. 이 문서는 현재 source tree의 UI 구조와 v4.1.0 Recording Foundation roadmap을
+설명하며 외부 release 완료를 주장하지 않습니다.
 UI 풀테스트 직접 조작 evidence는 별도 실행한 경우에만 PASS로 기록합니다.
 
 ## 목차
@@ -225,6 +226,9 @@ README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니�
 - Client Live
 
 ![클라이언트 라이브](assets/ui/client-live.png)
+
+위 대표 이미지는 긴 페이지 전체가 아니라 완결된 설정 목록·사용자 목록·영상 작업
+영역을 보여 줍니다. Live의 전체 영상과 도구 모음은 포함하고 별도 탐색 도크는 제외합니다.
 
 운영/개발 진단 화면은 아래 상세 섹션에서 따로 다룹니다.
 
@@ -1557,9 +1561,9 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-08-31에 source `4.0.0` / published `v3.9.1` 기준으로 v3.8.0 구도를 참고해 다시 캡처한 제품 shell 설명 이미지. GitHub Release publish evidence나 UI 풀테스트 PASS 증거가 아님. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-09-28 v4.1.0에서 한글/영문 Rules·Users·Client Live·Client Dashboard 8개를 완결 영역별 재촬영. 나머지 UI10개와 VA2개는 직접 검수 후 유지. Live는 전체 영상·VA·도구 모음, Dashboard는 요약 카드. 공개 완료나 UI 풀테스트 PASS 증거가 아님 |
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
-| historical v2.9.0 S07 | 당시 대표 이미지 교체 없이 v2.9 source/published baseline 문구만 정리한 기록. 현재 대표 이미지는 2026-08-31 recapture |
+| historical v2.9.0 S07 | 당시 대표 이미지 교체 없이 v2.9 source/published baseline 문구만 정리한 기록. 2026-08-31 전체 재촬영 후 현재는 2026-09-28 부분 교체·전수 검수 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082`. Codex 세션에서는 인앱 브라우저 확인을 우선한다. 2026-08-31 대표 이미지는 사용자 명시 승인 아래 Chrome/CDP로 캡처했다 |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
 | visual regression 산출물 | Codex 인앱 브라우저 screenshot/evidence 또는 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |

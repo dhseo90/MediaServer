@@ -1,5 +1,10 @@
 # Release Evidence Index
 
+- [2026-09-28 B15 문서·실제 공개 절차](release-test-records.md#v410-b15-문서-및-실제-공개-절차-2026-09-28):
+  대표20개 직접 검수·8개 완결 영역 재촬영, release target/직전 공개 구분과 published
+  대상 보완. 현재 기록은 최종 tag에 담는 cut 동결 시점이며 실제 PR/CI/병합/서명/Release
+  결과는 GitHub의 외부 실행 기록이 우선한다. [전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md).
+
 - [2026-09-28 B14 공개 증거 정제·공개 준비](release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28):
   원본960개와 관련361파일 정제·해시 영수증, 역사적 JPEG20개 제한 보존, history500·배포
   정책·source-only 리허설·Actions/local 대응 검사를 마쳤다. 최초 실패와 실행 환경
