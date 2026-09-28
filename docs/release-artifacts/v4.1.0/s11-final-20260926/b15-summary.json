@@ -830,6 +830,43 @@
         "consumed": null,
         "source": "개별 사용량 계측 미제공"
       }
+    },
+    {
+      "id": "b15-template-closeout",
+      "file": "b15-template-closeout.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-closeout-helper",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "elapsedMs": 90.91512499999999,
+      "items": 6,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
+    },
+    {
+      "id": "b15-template-links",
+      "file": "b15-template-links.json.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedMs": 207.81991699999998,
+      "items": 0,
+      "evidenceValid": true,
+      "token": {
+        "start": null,
+        "end": null,
+        "consumed": null,
+        "source": "개별 사용량 계측 미제공"
+      }
     }
   ],
   "images": 20,
