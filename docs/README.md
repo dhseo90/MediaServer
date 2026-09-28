@@ -1,177 +1,115 @@
-# Documentation Index
+# 문서 안내
 
-이 문서는 Media Server 공개 문서의 길잡이입니다. 내부 테스트 결과, release evidence
-ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서는 공개 첫 진입점에서
-제외합니다.
+설치·운영·개발·유지보수 목적에 따라 필요한 문서를 선택하세요.
+제품 개요와 빠른 시작은 [README](../README.md), 영문 안내는
+[English README](../README.en.md)와 [영문 색인](en/README.md)에 있습니다.
+공개 버전은 [GitHub Releases](https://github.com/dhseo90/MediaServer/releases/latest)에서 확인할 수 있습니다.
 
-## 현재 상태
-
-- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
-- 현재 release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
-- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 현재 소스 버전: `4.1.0`
-- 현재 source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 상태: `V410-S01~S08` 구현, `V410-S10` 보강, `V410-S11` 제품 검증과 B14 공개 준비 완료.
-  PR·병합·서명 tag·GitHub Release·published 검증은 실제 실행 기록에서 별도 판정
-- 장기 로드맵은 `main`에서 공통 관리하며 각 버전 브랜치는 해당 버전 구현에만 집중하고
-  후속 버전 절은 stable contract 설계 문맥으로 상속함
-- 현재 장기 로드맵은 v4.1.0 변경에 포함하며 v4.1.0 머지 때 `main`에 공통 반영
-- 의도된 공개용 영문 문서를 제외한 프로젝트 문서의 기본 언어는 한글
-- 기본 공개 형태: source-only
-- 대표 이미지는 2026-08-31에 source `4.0.0` / 당시 published `v3.9.1` 기준으로 v3.8.0
-  구도를 참고해 다시 캡처했습니다. `config/docs_ui_assets.json`과
-  `./server.sh verify-docs-ui-assets`로 관리하며 UI 풀테스트나 GitHub Release 증거가
-  아닙니다. 정책은 [assets/ui/README.md](assets/ui/README.md)입니다.
-
-## 먼저 볼 문서
-
-| 목적 | 문서 |
+| 독자 | 시작점 |
 | --- | --- |
-| 제품 개요와 빠른 시작 | [../README.md](../README.md), [../README.en.md](../README.en.md) |
-| 설치, 빌드, 실행 | [development-guide.md](development-guide.md) |
-| 설정 | [config-reference.md](config-reference.md) |
-| 운영자/클라이언트 UI | [ui-guide.md](ui-guide.md) |
-| RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
-| 영상 분석과 scenario | [video-analysis.md](video-analysis.md) |
-| 검증 명령 | [stream-verification.md](stream-verification.md) |
-| 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
-| 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
-| v4.1.0~v4.9.0 녹화·검색 로드맵 | [v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md) |
-| v4.1.0 저장 표준·오픈소스 검토 | [research/v410-recording-storage-open-source-review.md](research/v410-recording-storage-open-source-review.md) |
-| v4.1.0 IP 위험 차단 게이트 | [research/v410-recording-ip-risk-gate.md](research/v410-recording-ip-risk-gate.md) |
-| v4.1.0 release note source | [release-notes-v4.1.0.md](release-notes-v4.1.0.md) |
-| v4.0.0 release notes | [release-artifacts/v4.0.0/release-notes.md](release-artifacts/v4.0.0/release-notes.md) |
-| v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
-| v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
-| 영어 문서 진입점 | [en/README.md](en/README.md) |
+| 설치자 | [설치·빌드·실행](#설치자-설치와-실행) |
+| 운영자 | [채널·분석·녹화·복구](#운영자-설정과-화면-사용) |
+| 개발자 | [구조·API·연동 계약](#개발자-구조와-연동) |
+| 유지보수자 | [검증·배포·향후 개발](#유지보수자-검증과-배포) |
 
-## 공개 문서 전체 목록
+## 설치자: 설치와 실행
 
-### 운영과 배포
-
-| 문서 | 내용 |
+| 할 일 | 문서 |
 | --- | --- |
-| [development-guide.md](development-guide.md) | 개발 환경, 설치, 빌드, 실행, 기본 검증 |
-| [config-reference.md](config-reference.md) | 서버, RTSP/WebRTC, source, VA, event storage 설정 |
-| [distribution-policy.md](distribution-policy.md) | source-only, bundle, container 배포 경계 |
-| [release-policy.md](release-policy.md) | release 권한, tag, GitHub Release, not-run 경계 |
-| [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
-| [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
-| [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |
-| [sample-fixture-provenance.md](sample-fixture-provenance.md) | sample fixture 공개 판단 |
-| [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md) | runtime/model bundle RC rehearsal 경계 |
+| macOS/Linux 의존성 설치, 빌드, 서버 실행 | [개발 가이드](development-guide.md) |
+| 포트, 인증, 입력과 저장 경로 설정 | [설정 참조](config-reference.md) |
+| 소스 배포 범위와 선택 배포 형식 확인 | [배포 정책](distribution-policy.md) |
+| 라이선스와 모델·런타임 별도 조건 확인 | [LICENSE](../LICENSE), [THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES.md) |
 
-### 제품 UI와 문구
+## 운영자: 설정과 화면 사용
 
-| 문서 | 내용 |
+| 할 일 | 문서 |
 | --- | --- |
-| [ui-guide.md](ui-guide.md) | Auth, Ops, Client UI 구조 |
-| [assets/ui/README.md](assets/ui/README.md) | README/UI guide screenshot 정책 |
-| [product-shell-component-examples.md](product-shell-component-examples.md) | 제품 shell component 예시 |
-| [ui-empty-loading-error-copy-matrix.md](ui-empty-loading-error-copy-matrix.md) | 빈 상태, 로딩, 오류 문구 |
-| [browser-use-clipboard-diagnostics.md](browser-use-clipboard-diagnostics.md) | browser clipboard 진단 경계 |
+| 초기 관리자 설정, 역할·권한, Ops/Client 화면 사용 | [UI 가이드](ui-guide.md) |
+| 상시·이벤트 녹화 설정, 타임라인 조회와 재생 | [녹화 설정](config-reference.md#recording-env), [녹화 조회·재생](ui-guide.md#녹화-조회와-재생-v410-s06) |
+| 분석 룰과 시나리오 설정 | [영상 분석](video-analysis.md), [분석 임계값 기준](analysis-threshold-baselines.md) |
+| 라이브 입력 장애 진단과 인계 | [입력 상태와 source reliability operator runbook](live-source-health.md#operator-runbook-and-reliability-handoff) |
+| 운영 설정 백업과 복구 | [백업·복구 가이드](ops-backup-recovery.md) |
+| ONVIF 입력의 지원 범위 확인 | [라이브 입력 지원](onvif-live-source-support.md), [프로토콜 지원 표](onvif-protocol-support-matrix.md) |
 
-### 미디어, 이벤트, 메타데이터
+녹화는 용량 제한에 따른 순환 보존과 역할·채널 권한을 적용합니다.
+자연어 영상 검색은 [후속 로드맵](v410-v49-recording-search-roadmap.md)이며,
+현재 기능은 완성형 VMS/NVR이나 무기한 영상 보관을 보장하지 않습니다.
 
-| 문서 | 내용 |
+## 개발자: 구조와 연동
+
+### 서버·미디어·이벤트 계약
+
+| 분야 | 문서 |
 | --- | --- |
-| [media-server-architecture.md](media-server-architecture.md) | 서버 구조와 요청 흐름 |
-| [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
-| [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
-| [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |
-| [v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md) | v3.1 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계 |
-| [event-feature-schema-privacy.md](event-feature-schema-privacy.md) | v3.0 FeatureSet schema와 비식별 privacy guard |
-| [v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md) | v3.0 Search DSL/query convert 경계 |
-| [v300-feature-search-index.md](v300-feature-search-index.md) | v3.0 Feature/Search Index와 stale result guard 경계 |
-| [v300-retention-pin-cleanup.md](v300-retention-pin-cleanup.md) | v3.0 Retention/Pin/Cleanup lifecycle와 audit 경계 |
-| [analysis-threshold-baselines.md](analysis-threshold-baselines.md) | 분석 threshold baseline |
-| [live-source-health.md](live-source-health.md#operator-runbook-and-reliability-handoff) | live source health 상태 모델과 source reliability operator runbook |
-| [live-event-metadata-contracts.md](live-event-metadata-contracts.md) | Event POST, WebRTC, SSE, WS metadata contract |
-| [webrtc-metadata-client.md](webrtc-metadata-client.md) | WebRTC VA metadata client |
-| [close-object-report-archive-policy.md](close-object-report-archive-policy.md) | close-object report 보관 정책 |
-| [scenario-timeline-debug.md](scenario-timeline-debug.md) | scenario timeline debug field |
-| [integrator-contract-artifact.md](integrator-contract-artifact.md) | integrator sample bundle contract |
+| RTSP/WebRTC/VA 구조와 요청 흐름 | [서버 구조](media-server-architecture.md) |
+| Event POST, WebRTC, SSE, WS 메타데이터 | [공개 메타데이터 계약](live-event-metadata-contracts.md), [WebRTC 클라이언트](webrtc-metadata-client.md), [연동 샘플 계약](integrator-contract-artifact.md) |
+| 이벤트 근거와 인코딩 클립 | [Event Evidence와 FrameRef](event-evidence-contract.md), [Encoded Event Clip과 PTS](v310-encoded-event-clip-contract.md) |
+| FeatureSet·검색·개인정보 경계 | [스키마와 privacy guard](event-feature-schema-privacy.md), [Search DSL](v300-search-dsl-query-convert.md), [Feature/Search Index](v300-feature-search-index.md) |
+| 보존·pin·정리와 보고서 보관 | [Retention/Pin/Cleanup](v300-retention-pin-cleanup.md), [close-object 보고서 정책](close-object-report-archive-policy.md) |
+| 분석 진단 | [시나리오 타임라인 진단 필드](scenario-timeline-debug.md) |
+| 제품 UI 구현 | [공통 컴포넌트 예시](product-shell-component-examples.md), [빈 상태·로딩·오류 문구](ui-empty-loading-error-copy-matrix.md), [클립보드 진단](browser-use-clipboard-diagnostics.md) |
 
-### ONVIF
+### ONVIF 연동
 
-실기기 성공은 기본 공개 릴리즈 PASS가 아닙니다. 운영/검증 경계와 설계 초안을
-나눕니다.
+실기기 연결의 검증 범위는 아래 gate를 따릅니다. 장치 없는 검사나 설계 초안은
+실기기 성공을 뜻하지 않습니다.
 
-운영/검증 경계:
+- 검증: [장치 없는 검사](onvif-no-device-verification.md),
+  [현장 smoke gate](onvif-field-smoke-gate.md), [결과 비식별화](onvif-field-smoke-artifact-redaction.md).
+- 안전 경계: [미지원 API 차단](onvif-unsupported-api-guard.md),
+  [인증정보 참조](onvif-credential-reference-policy.md), [TLS 전송](onvif-tls-transport-policy.md),
+  [RTSPS 초안](onvif-rtsps-draft-policy.md).
+- 기본 비활성 설계 초안: [인증 주입](onvif-auth-injection-design.md),
+  [인증정보 저장소 연동](onvif-credential-store-integration-design.md),
+  [HTTPS SOAP 전송](onvif-https-soap-transport-design.md),
+  [HTTPS/TLS fixture harness](onvif-https-tls-fixture-harness-design.md).
 
-- [onvif-live-source-support.md](onvif-live-source-support.md)
-- [onvif-no-device-verification.md](onvif-no-device-verification.md)
-- [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md)
-- [onvif-field-smoke-artifact-redaction.md](onvif-field-smoke-artifact-redaction.md)
-- [onvif-protocol-support-matrix.md](onvif-protocol-support-matrix.md)
-- [onvif-unsupported-api-guard.md](onvif-unsupported-api-guard.md)
-- [onvif-credential-reference-policy.md](onvif-credential-reference-policy.md)
-- [onvif-tls-transport-policy.md](onvif-tls-transport-policy.md)
-- [onvif-rtsps-draft-policy.md](onvif-rtsps-draft-policy.md)
+### VLM 보조 기능
 
-설계 초안 (default-off, 제품 PASS 아님):
+VLM은 기본 비활성입니다. 모델 선택, runtime opt-in, 검토와 후보 생성의 경계를
+각 문서에서 확인하세요.
 
-- [onvif-auth-injection-design.md](onvif-auth-injection-design.md)
-- [onvif-credential-store-integration-design.md](onvif-credential-store-integration-design.md)
-- [onvif-https-soap-transport-design.md](onvif-https-soap-transport-design.md)
-- [onvif-https-tls-fixture-harness-design.md](onvif-https-tls-fixture-harness-design.md)
+- 선택·연결: [모델 선택](vlm-model-selection.md), [PC 사양별 추천 기준](vlm-recommendation-engine.md),
+  [설치·연결 dry-run](vlm-install-connection-dry-run.md), [로컬 runtime smoke](vlm-local-runtime-connection-smoke.md).
+- 실행·저장: [opt-in 계약](vlm-runtime-opt-in-contract.md), [상태 UI](vlm-runtime-status-ui.md),
+  [프로필 저장](vlm-profile-storage.md), [개인정보 전송 guard](vlm-privacy-transfer-guard.md),
+  [클라우드 provider gate](vlm-cloud-provider-field-smoke-gate.md).
+- 큐·보존: [backpressure 안정성](vlm-queue-backpressure-stability.md),
+  [feature 큐](v300-vlm-feature-queue.md), [feature-only 보존](v300-feature-only-retention.md).
+- 평가·검토: [평가 harness](vlm-evaluation-harness.md), [평가 결과 흐름](vlm-evaluation-result-workflow.md),
+  [검토 action](vlm-review-action-workflow.md), [Ops 이벤트 검토](vlm-ops-event-review-ui.md).
+- 근거·후보: [이벤트 근거 추출](vlm-event-evidence-extraction.md), [관측 sidecar](vlm-observation-sidecar.md),
+  [이벤트 설명 힌트](vlm-event-explanation-hints.md), [요약·검색 후보](vlm-summary-search-candidates.md),
+  [룰 제안 후보](vlm-rule-suggestion-candidates.md).
 
-### VLM Default-off 보조 기능
+### 실험과 연구
 
-VLM은 제품 default-on이 아닙니다. 선택/연결, runtime opt-in, 검토, 힌트 문서로
-나눕니다.
+- 외부 연결: [TURN/WHEP 현장 gate](external-turn-whep-field-gate.md),
+  [YouTube import의 lab 전용 경계](youtube-import.md).
+- Re-ID: [기본 비활성 연구 조건](reid-default-off-research-continuation.md),
+  [fixture 후보](reid-fixture-default-on-candidates.md), [tracking event hold 분석](reid-tracking-event-hold-analysis.md).
+- 추적기: [OC-SORT benchmark](oc-sort-benchmark-boundary.md),
+  [BoT-SORT/DeepSORT 연구 경계](bot-sort-deepsort-research-boundary.md).
 
-선택과 연결:
+## 유지보수자: 검증과 배포
 
-- [vlm-model-selection.md](vlm-model-selection.md)
-- [vlm-recommendation-engine.md](vlm-recommendation-engine.md)
-- [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md)
-- [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md)
-
-runtime opt-in:
-
-- [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md)
-- [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md)
-- [vlm-profile-storage.md](vlm-profile-storage.md)
-- [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md)
-- [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md)
-- [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md)
-- [v300-vlm-feature-queue.md](v300-vlm-feature-queue.md)
-- [v300-feature-only-retention.md](v300-feature-only-retention.md)
-
-검토와 평가:
-
-- [vlm-evaluation-harness.md](vlm-evaluation-harness.md)
-- [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md)
-- [vlm-review-action-workflow.md](vlm-review-action-workflow.md)
-- [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md)
-
-힌트와 후보:
-
-- [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md)
-- [vlm-observation-sidecar.md](vlm-observation-sidecar.md)
-- [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md)
-- [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md)
-- [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md)
-
-### 실험과 연구 경계
-
-| 문서 | 내용 |
+| 할 일 | 문서 |
 | --- | --- |
-| [external-turn-whep-field-gate.md](external-turn-whep-field-gate.md) | external TURN/WHEP field gate |
-| [youtube-import.md](youtube-import.md) | YouTube import/source lab-only 경계 |
-| [reid-default-off-research-continuation.md](reid-default-off-research-continuation.md) | Re-ID default-off 연구 지속 조건 |
-| [reid-fixture-default-on-candidates.md](reid-fixture-default-on-candidates.md) | Re-ID fixture 후보 |
-| [reid-tracking-event-hold-analysis.md](reid-tracking-event-hold-analysis.md) | Re-ID tracking event hold 분석 |
-| [oc-sort-benchmark-boundary.md](oc-sort-benchmark-boundary.md) | OC-SORT benchmark 경계 |
-| [bot-sort-deepsort-research-boundary.md](bot-sort-deepsort-research-boundary.md) | BoT-SORT/DeepSORT 연구 경계 |
+| 변경에 맞는 검사와 현행 기능별 테스트 정의 찾기 | [검증 정책과 명령](stream-verification.md) |
+| 실제 UI 검사 기준 확인 | [UI 풀테스트 기준](manual-ui-fulltest.md) |
+| 코드 기여와 보안 제보 | [기여 안내](../CONTRIBUTING.md), [보안 정책](../SECURITY.md) |
+| 소스 버전과 공개 절차 확인 | [버전 정책](versioning-policy.md), [릴리즈 정책](release-policy.md) |
+| 공개 저장소와 선택 bundle 점검 | [공개 저장소 점검](public-repo-final-review.md), [runtime/model bundle 준비](runtime-model-bundle-rc-rehearsal.md) |
+| 샘플 출처와 대표 이미지 관리 | [샘플 출처](sample-fixture-provenance.md), [이미지 정책](assets/ui/README.md) |
+| 미해결 항목과 후속 개발 확인 | [backlog](development-backlog.md), [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md) |
+| 녹화 저장의 설계 근거와 라이선스 판단 확인 | [저장 표준·오픈소스 검토](research/v410-recording-storage-open-source-review.md), [IP 위험 차단 게이트](research/v410-recording-ip-risk-gate.md) |
 
-## 공개 색인에서 제외한 문서
+기능별 테스트 정의와 실행 명령은 검증 문서에서 찾을 수 있습니다.
+검증 도구의 준비 검사, 실제 제품·UI 실행, 30분·120분 검증은 각각 구분합니다.
+대표 이미지는 제품 화면 안내이며 UI 풀테스트나 릴리즈 실행 증거가 아닙니다.
 
-다음 문서는 저장소에 남아 있어도 공개 첫 진입점의 안내 대상이 아닙니다.
-
-- release evidence ledger, 수동 UI checklist/result/template, runtime dashboard longrun template
-- VLM close-out readiness, VLM test rehearsal, stabilization/longrun/UI criteria 같은 history/test 기준 문서
-- v2.2.0/v2.3.0 standalone UI archive 문서
-- `.media_server.test/*`, `test/fixtures/*`, `docs/superpowers/*`
+버전별 변경 사항: [v4.1.0](release-notes-v4.1.0.md),
+[v4.0.0](release-artifacts/v4.0.0/release-notes.md),
+[v3.9.1](release-artifacts/v3.9.1/release-notes.md),
+[v3.9.0](release-artifacts/v3.9.0/release-notes.md).
