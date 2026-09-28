@@ -141,6 +141,26 @@ script inventory12/12, feature coverage8/8·986/986을 통과했다. 최초 code
 token start/end/consumed는 작업별 실제 사용량 계측 도구가 없어 미집계다. elapsed와
 source는 각 원출력의 실행 metadata를 보존하며 새 제품·30분·UI·120분을 실행하지 않았다.
 
+문서 링크0오류·자산10개·release metadata18개·공백 검사를 exit0으로 통과했다.
+기본500개 검사 뒤 추가된 `5eb29c6b`·`5ec8a728` 두 commit은 동일 public verifier의
+`--max-history 2`로 추가 검사해8/8·exit0이었다. 실제500개 SHA와 현재500개의 합집합
+대조를 보존했다. `--no-history` 실행의 history PASS 출력은 이력 검사 증거로 사용하지
+않는다. 최종 마감 문서는 현재 파일 검사와 동일 고신뢰 패턴의 staged 내용 검사로
+대조한다. 별도 실행하지 않은 최종 commit history 명령을 실행했다고 보고하지 않는다.
+이후의 짧은 마감 검사 원출력도 [마감 영수증](release-artifacts/v4.1.0/s11-final-20260926/b14-closeout-results.json.gz)에 추가 보존한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| B14 실행 전용 root `media-server-b14.mlVWPY` | 임시 파일134개·symlink277개 | 4,521,306B(링크 길이 포함) | 필요한 정제 원출력·실패·SHA 이관 후 정확한 소유 root 삭제 | 삭제·부재 확인, 링크 대상은 미접근·미삭제 | 마감 영수증의 전수 entries·process·absenceConfirmed |
+| 단계1/2/3·마감 증거 | 저장소 압축 기록·영수증 | 개별 bytes/SHA는 preservation 목록 | 최소 정제 증거 보존 | 압축 해제·구문 확인 | 단계별 전수표·마감 영수증 |
+| 기존 작업공간 GStreamer cache | 이번 실행 비소유 | 삭제 대상 아님 | 유지 | 제품·패키지 설치/삭제 없음 | source-tree 제외와 실제 bundle 거부3개 검사 |
+
+작업 소유 프로세스0개를 확인했고 이번 범위에서 서버·브라우저·LISTEN port를 만들지
+않았다. 삭제한 원본960개는 정제본/영수증으로 대체했으며 과거 Git commit에서 복구
+가능하다. registry·디버그 원문·리허설 임시파일은 복구용 보존 대상이 아니므로 삭제했다.
+커밋은 `c7f9f577` → `393f2eea` → `5eb29c6b` → `5ec8a728` 순서이며 마감 기록을
+별도 커밋한다. 최종 clean·원격 대조·동기화 결과는 사용자 보고에서 실제값을 확인한다.
+
 ## v4.1.0 S11 B13 재감사 후 마감 (2026-09-28)
 
 독자: 현재 릴리즈 검토자. 수명: v4.1.0 실행 기록. 정책은 AGENTS.md이며 상세 결과는
