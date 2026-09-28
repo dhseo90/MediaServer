@@ -48,6 +48,21 @@ v4.0 진입 호환 명령은 로컬 문서 검사만 허용하며 외부 공개 
 `verify-v390-entry-baseline-contract`는 이 회귀 입력을 검사하며 현재 backlog에 과거 완료 표를 요구하지 않는다.
 기능 discovery 정의와 UI 자산의 실제 검사는 각각 전용 inventory·자산 명령에서 유지한다.
 
+초기 진입 보고서 자체검사는 `node --test scripts/internal/entry_baseline_report.test.mjs`다.
+`ENTRY-REPORT-01`~`ENTRY-REPORT-08`은 종료 기록·Git 없는 소스, 현재 버전/문서 오류,
+명령 연결 누락, 출력 옵션·기존 파일 보호, 실제 실패 전파, 보고서의 미실행/미확인 구분,
+v2.2 도구의 incident redaction/fallback 정적 경계와 경로 이탈을 검사한다.
+다음 호환 명령의 `--report`/`--json-report`는 명시한 새 파일만 생성하며 기존 파일을 덮어쓰지 않는다.
+보고서의 과거 버전 필드는 `historicalBaseline`에 분리하고 현재 값은 `currentContext`로 표시한다.
+보고서 생성의 PASS를 열거된 동반 명령이나 과거/현재 제품 테스트 실행으로 사용하지 않는다.
+
+| 명령 | 유지하는 JSON 식별자 |
+| --- | --- |
+| `verify-v190-entry-baseline` | `media-server.v190-entry-baseline-report.v1` |
+| `verify-v210-entry-baseline` | `media-server.v210-entry-baseline-report.v1` |
+| `verify-v220-entry-boundary` | `media-server.v220-entry-boundary-report.v1` |
+| `verify-v230-entry-baseline` | `media-server.v230-entry-baseline-report.v1` |
+
 독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
 정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
 
