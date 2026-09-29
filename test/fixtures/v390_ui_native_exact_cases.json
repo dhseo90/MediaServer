@@ -5,7 +5,7 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "7160a8f4f16fced94051ecdf084cf62b864d33a958eb3ece41a0a6ce0e19f594",
+    "implementationProjectionSha256": "e01196a93921612af7e48dae344a1da3668868508a766ed08ce482fe7cdac101",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
     "runtimeOracleCatalogSha256": "69f1129bb5083c27d8afeb3345e8c805bd6528e21b59b8c217009f615f8edeef",
     "selection": "canonical-exact-ordered-test-id"
@@ -211110,7 +211110,7 @@
             "setupId": "EVT-028:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "a36ee8b7dfa6731a22cbd76babaa06578733826e3e61776d86a2564d94cf1424",
+            "semanticCallChainSha256": "90ff9c8ff9291be372e1af6472645d6a6e7f9e9fc2861335aefde31c97749ce9",
             "persistedMutation": false,
             "fixtureId": "evt-028-review4-fixture",
             "beforeSnapshotRef": null
@@ -211192,7 +211192,7 @@
             "contextSha256": "8599ac775c437493322f54c69e9cc4a6554715fc1f10c08ae7b8c8acfb08023f"
           },
           "verifierCommand": "verify-vlm-event-explanation-hints",
-          "assertedSemanticDigest": "a36ee8b7dfa6731a22cbd76babaa06578733826e3e61776d86a2564d94cf1424"
+          "assertedSemanticDigest": "90ff9c8ff9291be372e1af6472645d6a6e7f9e9fc2861335aefde31c97749ce9"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-event-oracle.v1",
@@ -211456,7 +211456,7 @@
             "cleanupId": "EVT-028:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "a36ee8b7dfa6731a22cbd76babaa06578733826e3e61776d86a2564d94cf1424"
+            "semanticCallChainSha256": "90ff9c8ff9291be372e1af6472645d6a6e7f9e9fc2861335aefde31c97749ce9"
           }
         ]
       },
@@ -212381,7 +212381,7 @@
             "setupId": "EVT-031:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "184e492f18cb4e3e20fc7404a9b9e0bc458a609e00929e69e2ba8899d808e854",
+            "semanticCallChainSha256": "9da688d14e17a1c8ba67c2771ef173f2e0bf95a456c4dad4595694002a812917",
             "persistedMutation": false,
             "fixtureId": "evt-031-review4-fixture",
             "beforeSnapshotRef": null
@@ -212455,7 +212455,7 @@
             "contextSha256": "3e6cfe60d48c03e79cf850fa44ab7d6bc68f21a20bf46b11b84e3582ac0dbee9"
           },
           "verifierCommand": "verify-vlm-event-explanation-hints",
-          "assertedSemanticDigest": "184e492f18cb4e3e20fc7404a9b9e0bc458a609e00929e69e2ba8899d808e854"
+          "assertedSemanticDigest": "9da688d14e17a1c8ba67c2771ef173f2e0bf95a456c4dad4595694002a812917"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-event-oracle.v1",
@@ -212726,7 +212726,7 @@
             "cleanupId": "EVT-031:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "184e492f18cb4e3e20fc7404a9b9e0bc458a609e00929e69e2ba8899d808e854"
+            "semanticCallChainSha256": "9da688d14e17a1c8ba67c2771ef173f2e0bf95a456c4dad4595694002a812917"
           }
         ]
       },
@@ -269236,7 +269236,7 @@
             "setupId": "SAFE-056:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops",
-            "semanticCallChainSha256": "09cd180f16b78dc2c235a71791c91d61d08a90e0cc512ea90e4b25324a06de65",
+            "semanticCallChainSha256": "8dcedea106820d9a6e287d11924540c815f21bc14c04d2ef1fc887f5c3e6451a",
             "persistedMutation": false,
             "fixtureId": "safe-056-review4-fixture",
             "beforeSnapshotRef": null
@@ -269318,7 +269318,7 @@
             "contextSha256": "c696e12e0a55731f85096fe9f5b0f865d085f84f45e80c326453f50750dd4ed2"
           },
           "verifierCommand": "verify-vlm-queue-backpressure-stability",
-          "assertedSemanticDigest": "09cd180f16b78dc2c235a71791c91d61d08a90e0cc512ea90e4b25324a06de65"
+          "assertedSemanticDigest": "8dcedea106820d9a6e287d11924540c815f21bc14c04d2ef1fc887f5c3e6451a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -269582,7 +269582,7 @@
             "cleanupId": "SAFE-056:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "09cd180f16b78dc2c235a71791c91d61d08a90e0cc512ea90e4b25324a06de65"
+            "semanticCallChainSha256": "8dcedea106820d9a6e287d11924540c815f21bc14c04d2ef1fc887f5c3e6451a"
           }
         ]
       },

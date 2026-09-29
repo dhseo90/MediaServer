@@ -85950,7 +85950,7 @@
           "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
           "symbol": "generated-explanation-oracle",
           "anchor": "assert(explanation.operatorReviewQuestions.length >= 1, `/ops/events ${item.id}: operator questions missing`);",
-          "line": 74,
+          "line": 75,
           "contextSha256": "8599ac775c437493322f54c69e9cc4a6554715fc1f10c08ae7b8c8acfb08023f"
         },
         "verifier": {
@@ -85992,14 +85992,14 @@
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts operatorReviewQuestions. /ops/events VLM WebRTC",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1079",
-          "target": "scripts/internal/verify_vlm_event_explanation_hints.mjs:74"
+          "target": "scripts/internal/verify_vlm_event_explanation_hints.mjs:75"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-event-explanation-hints",
-          "source": "scripts/internal/verify_vlm_event_explanation_hints.mjs:74",
+          "source": "scripts/internal/verify_vlm_event_explanation_hints.mjs:75",
           "target": "server.sh:3511"
         }
       ],
@@ -86057,7 +86057,7 @@
           "sha256": "f87918e89142c0719f38b88e6a0bd41223219e95fb817570a7bcc153b90a2bdd"
         }
       },
-      "sourceFlowDigest": "a36ee8b7dfa6731a22cbd76babaa06578733826e3e61776d86a2564d94cf1424",
+      "sourceFlowDigest": "90ff9c8ff9291be372e1af6472645d6a6e7f9e9fc2861335aefde31c97749ce9",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -86100,10 +86100,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
             "symbol": "generated-explanation-oracle",
-            "trackedBlobSha256": "67d85f810fda46b28e38cd60e7b6ab7bec13af02169709c37c326c32383466fc",
+            "trackedBlobSha256": "285817330e596774aae0d49300c7fd3b4ed83fe23ef6b1d04d530bc3bdeaf7bb",
             "enclosingBodySha256": "1e011c29335ac8f1b68b5674421c34eec8d4c2f886ecc1d3be1fe6d5d59bc488",
-            "enclosingBodyStartLine": 56,
-            "enclosingBodyEndLine": 81,
+            "enclosingBodyStartLine": 57,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -86115,7 +86115,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "67d85f810fda46b28e38cd60e7b6ab7bec13af02169709c37c326c32383466fc",
+        "verifierFileSha256": "285817330e596774aae0d49300c7fd3b4ed83fe23ef6b1d04d530bc3bdeaf7bb",
         "dispatch": {
           "command": "verify-vlm-event-explanation-hints",
           "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
@@ -86662,7 +86662,7 @@
           "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
           "symbol": "generated-explanation-oracle",
           "anchor": "assert(explanation.falsePositiveHints.length >= 1, `${item.id}: false-positive hints missing`);",
-          "line": 72,
+          "line": 73,
           "contextSha256": "3e6cfe60d48c03e79cf850fa44ab7d6bc68f21a20bf46b11b84e3582ac0dbee9"
         },
         "verifier": {
@@ -86704,14 +86704,14 @@
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts falsePositiveHints.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1078",
-          "target": "scripts/internal/verify_vlm_event_explanation_hints.mjs:72"
+          "target": "scripts/internal/verify_vlm_event_explanation_hints.mjs:73"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-event-explanation-hints",
-          "source": "scripts/internal/verify_vlm_event_explanation_hints.mjs:72",
+          "source": "scripts/internal/verify_vlm_event_explanation_hints.mjs:73",
           "target": "server.sh:3511"
         }
       ],
@@ -86783,7 +86783,7 @@
           "sha256": "1a55ec13f7543bf9a655d492bf8ed3b24d0e2389e84e3e7bfe712d1bd3f455c0"
         }
       },
-      "sourceFlowDigest": "184e492f18cb4e3e20fc7404a9b9e0bc458a609e00929e69e2ba8899d808e854",
+      "sourceFlowDigest": "9da688d14e17a1c8ba67c2771ef173f2e0bf95a456c4dad4595694002a812917",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -86826,10 +86826,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
             "symbol": "generated-explanation-oracle",
-            "trackedBlobSha256": "67d85f810fda46b28e38cd60e7b6ab7bec13af02169709c37c326c32383466fc",
+            "trackedBlobSha256": "285817330e596774aae0d49300c7fd3b4ed83fe23ef6b1d04d530bc3bdeaf7bb",
             "enclosingBodySha256": "1e011c29335ac8f1b68b5674421c34eec8d4c2f886ecc1d3be1fe6d5d59bc488",
-            "enclosingBodyStartLine": 56,
-            "enclosingBodyEndLine": 81,
+            "enclosingBodyStartLine": 57,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -86841,7 +86841,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "67d85f810fda46b28e38cd60e7b6ab7bec13af02169709c37c326c32383466fc",
+        "verifierFileSha256": "285817330e596774aae0d49300c7fd3b4ed83fe23ef6b1d04d530bc3bdeaf7bb",
         "dispatch": {
           "command": "verify-vlm-event-explanation-hints",
           "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
@@ -125252,7 +125252,7 @@
           "file": "scripts/internal/verify_vlm_evaluation_harness.mjs",
           "symbol": "LAB-039:exact-oracle",
           "anchor": "assert(candidate.dimensions[dimension], `${candidate.id}: VLM missing dimension ${dimension}`);",
-          "line": 64,
+          "line": 65,
           "contextSha256": "b4a994b263e53836465ff80c030ff6997b400e8b02515e4435d21ddad5e31cc3"
         },
         "verifier": {
@@ -125294,14 +125294,14 @@
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes dimensions from the product response.",
           "source": "scripts/internal/evaluate_vlm_harness.mjs:187",
-          "target": "scripts/internal/verify_vlm_evaluation_harness.mjs:64"
+          "target": "scripts/internal/verify_vlm_evaluation_harness.mjs:65"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-evaluation-harness",
-          "source": "scripts/internal/verify_vlm_evaluation_harness.mjs:64",
+          "source": "scripts/internal/verify_vlm_evaluation_harness.mjs:65",
           "target": "server.sh:3495"
         }
       ],
@@ -125355,7 +125355,7 @@
           "sha256": "901589a22bf736755a13d2ab52ae3816527ad8531e7565716dfb0f9c07466cfc"
         }
       },
-      "sourceFlowDigest": "e2e4bf75df1eee67116b4ece37d62b13279da99f7d109458977e0fb44182b855",
+      "sourceFlowDigest": "6a30fd36afde593cff24c4e77d03d4560ba9c4faacd2c148e1cc2acce06bf0ec",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -125398,10 +125398,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_evaluation_harness.mjs",
             "symbol": "LAB-039:exact-oracle",
-            "trackedBlobSha256": "f13fca48b882242d3d425c7a6d57f6b3d2486e59ef460eccc92f58612c9c20e7",
+            "trackedBlobSha256": "99cf3bfcaee9b436a3b6b3a9feca8e1bc92693835412bacac9453546372ad2ba",
             "enclosingBodySha256": "2738c1c8a172e2d0ee41cc394dbfac8dca73567224d551ca13797f4f7e41fef8",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 75,
+            "enclosingBodyStartLine": 53,
+            "enclosingBodyEndLine": 76,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -125413,7 +125413,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f13fca48b882242d3d425c7a6d57f6b3d2486e59ef460eccc92f58612c9c20e7",
+        "verifierFileSha256": "99cf3bfcaee9b436a3b6b3a9feca8e1bc92693835412bacac9453546372ad2ba",
         "dispatch": {
           "command": "verify-vlm-evaluation-harness",
           "file": "scripts/internal/verify_vlm_evaluation_harness.mjs",
@@ -125720,7 +125720,7 @@
           "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
           "symbol": "LAB-041:exact-oracle",
           "anchor": "assert(output.cases.every(item => item.explanation.operatorReviewQuestions.length >= 1), \"LAB-041 VLM operatorReviewQuestions report readback missing\");",
-          "line": 80,
+          "line": 81,
           "contextSha256": "889e704dd996fd1f739e1b735b43581dcfb2b9dad89b3e94348dc65acd89c062"
         },
         "verifier": {
@@ -125762,14 +125762,14 @@
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes operatorReviewQuestions from the product response.",
           "source": "scripts/internal/generate_vlm_event_explanation.mjs:174",
-          "target": "scripts/internal/verify_vlm_event_explanation_hints.mjs:80"
+          "target": "scripts/internal/verify_vlm_event_explanation_hints.mjs:81"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-event-explanation-hints",
-          "source": "scripts/internal/verify_vlm_event_explanation_hints.mjs:80",
+          "source": "scripts/internal/verify_vlm_event_explanation_hints.mjs:81",
           "target": "server.sh:3511"
         }
       ],
@@ -125833,7 +125833,7 @@
           "sha256": "1547c833c31b90b13c3b564c9502968aa9b345eff2b2d1d33c55aad2623dde94"
         }
       },
-      "sourceFlowDigest": "880b46e6fe1880cbd7a4f9a68613ad16cec33ad3a2a726cc5a2e508cdbd881d2",
+      "sourceFlowDigest": "1c38c57ba23576a384290c0684023b6a54f26ecf8491990c91a9d9b214addeed",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -125876,10 +125876,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
             "symbol": "LAB-041:exact-oracle",
-            "trackedBlobSha256": "67d85f810fda46b28e38cd60e7b6ab7bec13af02169709c37c326c32383466fc",
+            "trackedBlobSha256": "285817330e596774aae0d49300c7fd3b4ed83fe23ef6b1d04d530bc3bdeaf7bb",
             "enclosingBodySha256": "1e011c29335ac8f1b68b5674421c34eec8d4c2f886ecc1d3be1fe6d5d59bc488",
-            "enclosingBodyStartLine": 56,
-            "enclosingBodyEndLine": 81,
+            "enclosingBodyStartLine": 57,
+            "enclosingBodyEndLine": 82,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -125891,7 +125891,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "67d85f810fda46b28e38cd60e7b6ab7bec13af02169709c37c326c32383466fc",
+        "verifierFileSha256": "285817330e596774aae0d49300c7fd3b4ed83fe23ef6b1d04d530bc3bdeaf7bb",
         "dispatch": {
           "command": "verify-vlm-event-explanation-hints",
           "file": "scripts/internal/verify_vlm_event_explanation_hints.mjs",
@@ -128319,7 +128319,7 @@
           "file": "scripts/internal/verify_vlm_evaluation_harness.mjs",
           "symbol": "LAB-052:exact-oracle",
           "anchor": "assert(output.cases.every(item => item.candidates.every(candidate => Object.keys(candidate.dimensions || {}).length === 5)), \"LAB-052 VLM dimensions matrix readback mismatch\");",
-          "line": 70,
+          "line": 71,
           "contextSha256": "2f9361369a674b4b9f51b02f70bf9d3e83b233efc0c92e04e2d31f35b585baa7"
         },
         "verifier": {
@@ -128361,14 +128361,14 @@
           "kind": "runtime-readback",
           "witness": "The independent canonical verifier asserts dimensions from the computed source flow.",
           "source": "scripts/internal/evaluate_vlm_harness.mjs:187",
-          "target": "scripts/internal/verify_vlm_evaluation_harness.mjs:70"
+          "target": "scripts/internal/verify_vlm_evaluation_harness.mjs:71"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-evaluation-harness",
-          "source": "scripts/internal/verify_vlm_evaluation_harness.mjs:70",
+          "source": "scripts/internal/verify_vlm_evaluation_harness.mjs:71",
           "target": "server.sh:3495"
         }
       ],
@@ -128418,7 +128418,7 @@
           "sha256": "ffd812ab43d917ba736a1b782ea866882a469ba2cbf63d60c82a31dcf05028c5"
         }
       },
-      "sourceFlowDigest": "e6558e8487973049f302f6fbfaa48b51aeb72e408b3ec245438957be1416cf75",
+      "sourceFlowDigest": "30de8802bdc91b441b0eb993b062c875dc2e2985297bd0273d154b190e6b716c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -128461,10 +128461,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_evaluation_harness.mjs",
             "symbol": "LAB-052:exact-oracle",
-            "trackedBlobSha256": "f13fca48b882242d3d425c7a6d57f6b3d2486e59ef460eccc92f58612c9c20e7",
+            "trackedBlobSha256": "99cf3bfcaee9b436a3b6b3a9feca8e1bc92693835412bacac9453546372ad2ba",
             "enclosingBodySha256": "2738c1c8a172e2d0ee41cc394dbfac8dca73567224d551ca13797f4f7e41fef8",
-            "enclosingBodyStartLine": 52,
-            "enclosingBodyEndLine": 75,
+            "enclosingBodyStartLine": 53,
+            "enclosingBodyEndLine": 76,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -128476,7 +128476,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f13fca48b882242d3d425c7a6d57f6b3d2486e59ef460eccc92f58612c9c20e7",
+        "verifierFileSha256": "99cf3bfcaee9b436a3b6b3a9feca8e1bc92693835412bacac9453546372ad2ba",
         "dispatch": {
           "command": "verify-vlm-evaluation-harness",
           "file": "scripts/internal/verify_vlm_evaluation_harness.mjs",
@@ -129752,35 +129752,35 @@
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "evaluateCase",
           "anchor": "function evaluateCase(item) {",
-          "line": 232,
+          "line": 219,
           "contextSha256": "a10b96bb8b2729c6d24e638981f03dfb786ba8fc2aa8cca2d6a4d51ac73b5d1c"
         },
         "dispatch": {
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "evaluateCase",
           "anchor": "const sideEffects = Object.entries(item.contractInvariants || {})",
-          "line": 234,
+          "line": 221,
           "contextSha256": "11fe1bd3a8d8164857ddedfc64f238a1066aac46db355c41d881ba8a5aac64b4"
         },
         "action": {
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "evaluateCase",
           "anchor": "const blockedPaths = Object.entries({",
-          "line": 237,
+          "line": 224,
           "contextSha256": "13e333f1a5b0373098c8a47c27aa6637b2e267ec92ebf53e857326eb3643824a"
         },
         "state": {
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "evaluateCase",
           "anchor": "nonblocking: blockedPaths.length === 0 && sideEffects.length === 0,",
-          "line": 256,
+          "line": 243,
           "contextSha256": "ebef5ce63bc0e80d78e2f4984a53cfd01d51b43796bbc1b703598fbd07a8c7ea"
         },
         "readback": {
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "assertVlmQueueBackpressureArtifact",
           "anchor": "assert(fixture.schema === \"media-server.vlm-queue-backpressure-fixtures.v1\" && observedReport.schema === \"media-server.vlm-queue-backpressure-stability-report.v1\" && observedReport.cases.every(result => result.nonblocking === true), \"VLM queue/backpressure artifact nonblocking readback mismatch\");",
-          "line": 337,
+          "line": 324,
           "contextSha256": "9c80617c58188cb77903520d7fa21966948cb1baa418325aaf2573542282145e"
         },
         "verifier": {
@@ -129797,39 +129797,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The owner role flows to the dispatch role inside the actual feature implementation.",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:232",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:234"
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:219",
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:221"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch role flows to the action role inside the actual feature implementation.",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:234",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:237"
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:221",
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:224"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action role flows to the state role inside the actual feature implementation.",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:237",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:256"
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:224",
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:243"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The independent canonical verifier asserts nonblocking from the computed source flow.",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:256",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:337"
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:243",
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:324"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-queue-backpressure-stability",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:337",
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:324",
           "target": "server.sh:3475"
         }
       ],
@@ -129883,53 +129883,53 @@
           "sha256": "f258bf88aaa61fc817d9adeeb83b700b73efd8382de3eb5e4e781e8a10cc0da8"
         }
       },
-      "sourceFlowDigest": "5c0d284d323490dcbaa571cfc4b8a5d9a30d73a487d4a6a6709409dd1a131949",
+      "sourceFlowDigest": "daa53fbe24d43de9f22666633676a1dceb904b12dbf9e843f7ac5fbadb058688",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "evaluateCase",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "e064dc5f9a8600b0d135a3c450c001c33d21ad9c8c2dd56675fe8f9d27b987d0",
-            "enclosingBodyStartLine": 232,
-            "enclosingBodyEndLine": 260,
+            "enclosingBodyStartLine": 219,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "evaluateCase",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "e064dc5f9a8600b0d135a3c450c001c33d21ad9c8c2dd56675fe8f9d27b987d0",
-            "enclosingBodyStartLine": 232,
-            "enclosingBodyEndLine": 260,
+            "enclosingBodyStartLine": 219,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "evaluateCase",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "e064dc5f9a8600b0d135a3c450c001c33d21ad9c8c2dd56675fe8f9d27b987d0",
-            "enclosingBodyStartLine": 232,
-            "enclosingBodyEndLine": 260,
+            "enclosingBodyStartLine": 219,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "evaluateCase",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "e064dc5f9a8600b0d135a3c450c001c33d21ad9c8c2dd56675fe8f9d27b987d0",
-            "enclosingBodyStartLine": 232,
-            "enclosingBodyEndLine": 260,
+            "enclosingBodyStartLine": 219,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "assertVlmQueueBackpressureArtifact",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "35d510ab22944bb5525a4045083fcce65df29bc5a18d6df86f111323bdf4da3a",
-            "enclosingBodyStartLine": 332,
-            "enclosingBodyEndLine": 341,
+            "enclosingBodyStartLine": 319,
+            "enclosingBodyEndLine": 328,
             "enclosingBodyScope": "declared-symbol"
           },
           "verifier": {
@@ -129941,7 +129941,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+        "verifierFileSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
         "dispatch": {
           "command": "verify-vlm-queue-backpressure-stability",
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
@@ -153281,7 +153281,7 @@
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "SAFE-032-canonical-runtime-readback",
           "anchor": "assert(queueObserved.queueAction === \"drop-vlm-task\" && queueObserved.failureReason === \"queue-timeout\",",
-          "line": 106,
+          "line": 107,
           "contextSha256": "15c03076e2213d10837f2380a8bd46b584d86b29fb132ea210ce4b7527e52e67"
         },
         "verifier": {
@@ -153323,14 +153323,14 @@
           "kind": "runtime-readback",
           "witness": "SAFE-032 state-readback",
           "source": "src/analysis/vlm_feature_queue.cpp:143",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:106"
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:107"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-queue-backpressure-stability",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:106",
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:107",
           "target": "server.sh:3475"
         }
       ],
@@ -153384,7 +153384,7 @@
           "sha256": "01832dd005f454af24ade42c9d9984cf3cce49d27f71543d0caa4f4af8573ef3"
         }
       },
-      "sourceFlowDigest": "4cf437a4ec5caef818e1be66c15b95a6649ea32d6f096227f5241d0aa8eb63e0",
+      "sourceFlowDigest": "26cdc082ae0d6e22c7a68344316d73b047d5d429a75d0c898545aa7cd588de61",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -153427,10 +153427,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "SAFE-032-canonical-runtime-readback",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "d03a6b6d5b010026629faace6e95e2c410dc6c64b8fff1104db9e625103fb026",
-            "enclosingBodyStartLine": 95,
-            "enclosingBodyEndLine": 121,
+            "enclosingBodyStartLine": 96,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -153442,7 +153442,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+        "verifierFileSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
         "dispatch": {
           "command": "verify-vlm-queue-backpressure-stability",
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
@@ -154280,7 +154280,7 @@
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "SAFE-036-canonical-runtime-readback",
           "anchor": "assert(queueObserved.failureReason === \"queue-timeout\" && queueInvariants.mediaPathBlocked === false &&",
-          "line": 108,
+          "line": 109,
           "contextSha256": "d139dc6489b7aab572bb21b9a4d68afc2d04aaaba9c49dec420a0cfc6e602863"
         },
         "verifier": {
@@ -154322,14 +154322,14 @@
           "kind": "runtime-readback",
           "witness": "SAFE-036 state-readback",
           "source": "src/analysis/vlm_feature_queue.cpp:143",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:108"
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:109"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-queue-backpressure-stability",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:108",
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:109",
           "target": "server.sh:3475"
         }
       ],
@@ -154385,7 +154385,7 @@
           "sha256": "abb9382efcc0be4fed0b36d97c3d8c294586b8a6724a9aa08d115249b2000add"
         }
       },
-      "sourceFlowDigest": "209bcb25b1010b114a06f44e6ec1d407fae27838ba325c183759a45e07adb0a9",
+      "sourceFlowDigest": "66d08091d5eba68d65470bd16e060ff8859d8bef2ccd955cecd9a9e48ee13d3b",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -154428,10 +154428,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "SAFE-036-canonical-runtime-readback",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "d03a6b6d5b010026629faace6e95e2c410dc6c64b8fff1104db9e625103fb026",
-            "enclosingBodyStartLine": 95,
-            "enclosingBodyEndLine": 121,
+            "enclosingBodyStartLine": 96,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -154443,7 +154443,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+        "verifierFileSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
         "dispatch": {
           "command": "verify-vlm-queue-backpressure-stability",
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
@@ -159315,7 +159315,7 @@
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
           "symbol": "SAFE-056-canonical-runtime-readback",
           "anchor": "assert(crossZoneObserved.configuredZonesObserved === true && crossZoneObserved.configuredZoneMode === \"configured-zones\" &&",
-          "line": 116,
+          "line": 117,
           "contextSha256": "c696e12e0a55731f85096fe9f5b0f865d085f84f45e80c326453f50750dd4ed2"
         },
         "verifier": {
@@ -159357,14 +159357,14 @@
           "kind": "runtime-readback",
           "witness": "SAFE-056 state-readback",
           "source": "src/analysis/re_entry_scenario.cpp:160",
-          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:116"
+          "target": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:117"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-queue-backpressure-stability",
-          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:116",
+          "source": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs:117",
           "target": "server.sh:1353"
         }
       ],
@@ -159435,7 +159435,7 @@
           "sha256": "81f565230478d0b7d6ae307b7864db0548c3901391494240a3c76891d0095e36"
         }
       },
-      "sourceFlowDigest": "09cd180f16b78dc2c235a71791c91d61d08a90e0cc512ea90e4b25324a06de65",
+      "sourceFlowDigest": "8dcedea106820d9a6e287d11924540c815f21bc14c04d2ef1fc887f5c3e6451a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -159478,10 +159478,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
             "symbol": "SAFE-056-canonical-runtime-readback",
-            "trackedBlobSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+            "trackedBlobSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
             "enclosingBodySha256": "d03a6b6d5b010026629faace6e95e2c410dc6c64b8fff1104db9e625103fb026",
-            "enclosingBodyStartLine": 95,
-            "enclosingBodyEndLine": 121,
+            "enclosingBodyStartLine": 96,
+            "enclosingBodyEndLine": 122,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -159493,7 +159493,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "643b5b36b5d537972a6bc5878596ccd1dd34a7712165c61cf5927c5afa493f0b",
+        "verifierFileSha256": "cef29142815aad2e94f672fd91d51ece473624911fa54ebd160fdafabcd35487",
         "dispatch": {
           "command": "verify-vlm-queue-backpressure-stability",
           "file": "scripts/internal/verify_vlm_queue_backpressure_stability.mjs",
@@ -235275,5 +235275,5 @@
       }
     }
   ],
-  "candidateDigest": "e54701f518f838c81d99bd3be65d2efce6e8d153b1ab40c169de747cfc084179"
+  "candidateDigest": "a29969e9cef4d0f54ddd413d35dc478d7989d2c276c5ae7a73a93185da6ef543"
 }

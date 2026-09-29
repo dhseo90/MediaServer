@@ -1,129 +1,73 @@
-# VLM Summary Search Candidates
+# 저장된 VLM 요약의 검색 후보
 
-이 문서는 `v2.0.0 V200-S12 VLM summary 검색 후보`의 세부 기준 문서입니다.
-S12는 S08 VLMObservation sidecar에 이미 저장된 `summary`, `eventExplanation`,
-`falsePositiveHints[]`, `operatorReviewQuestions[]`를 이용해 semantic event search
-후보를 산출합니다. 검색은 후보 단계이며 제품 검색 UI, vector index, provider rerank,
-runtime VLM 재호출, 자동 rule 적용은 이 단계에서 하지 않습니다.
+개발자가 [observation sidecar](vlm-observation-sidecar.md)에 저장된 텍스트를 검색 후보로
+제공하는 계약이다. 현재 구현은 `sidecar-summary-token-candidate`이며 임베딩·vector index나
+자연어 영상 검색 엔진이 아니다. 운영자는 Ops incident memory에서 후보를 수동 검토할 수 있다.
 
-## 직접 답
+## 검색 방식과 결과
 
-S12의 1차 선택값은 `sidecar-summary-token-candidate`입니다. 기본 질문 후보는
-`문 근처에서 멈춘 사람`처럼 운영자가 자연어로 기억하는 이벤트를, 저장된
-VLMObservation summary에서 찾는 local-only 후보입니다.
+[vlm_observation_store.cpp](../src/analysis/vlm_observation_store.cpp)의
+`SummarySearchTerms/MatchedSearchTerms/BuildVlmSummarySearchCandidatesJson`이 기준이다.
+query를 ASCII 소문자·공백 기준으로 정규화해 중복 없는 최대 16개 term으로 나누고
+sidecar 텍스트의 부분 문자열과 비교한다. 힌트·질문 배열까지 읽기 위한 절충으로
+observation JSON 한 줄 전체도 검색하므로 내용 외 key/metadata가 일치할 수 있다.
 
-Fallback은 `eventId`/`sourceId` 범위로 좁힌 sidecar query와 Ops 수동 review입니다.
-대안 후보는 `vector-index-candidate`와 `provider-rerank-candidate`로 남기되, 둘 다
-S12에서는 승격하지 않습니다.
+한 term 이상 일치하면 후보이며 `matchScore=일치 term 수/전체 term 수`다.
+점수 내림차순, 동점이면 저장 행 순서로 정렬한다. `sourceId/privacyMode` 필터와
+offset/limit을 사용하며 builder의 limit은 기본 25, 최대 100이다.
+빈 query는 오류, 파일 부재는 `fileExists=false`의 빈 후보 결과로 구분한다.
 
-제외 대상과 이유:
+| 필드 | 계약 |
+| --- | --- |
+| 응답 schema | `media-server.vlm-summary-search-candidates.v1` |
+| 후보 schema | `media-server.vlm-summary-search-candidate.v1` |
+| `searchMode` | `sidecar-summary-token-candidate` |
+| `candidateStatus` | `candidate-only-not-product-search` |
+| `correlationKey` | `eventId` |
+| `contract` | 자동 적용·외부 payload 변경·runtime 호출을 하지 않는 후보 경계 |
+| 검색·페이지 | `query/queryTerms[]/candidates[]/matchedTerms[]/matchScore`, `offset/limit/nextOffset/matchedCandidates/hasMore/truncated/skippedCorruptLines` |
 
-- EventRecord top-level `vlmSummary` 추가: 기존 EventRecord, Event POST, WebRTC,
-  SSE/WS metadata contract를 바꾸므로 제외합니다.
-- client/viewer semantic search UI: viewer/client 노출 정책 검토가 별도 필요하므로
-  S12에서는 제외합니다.
-- runtime VLM re-query/provider rerank: 실제 VLM runtime 또는 cloud provider API 호출을
-  만들 수 있으므로 제외합니다.
-- 검색 결과 기반 자동 rule 생성/적용: V200-S13 Rule 추천 보조 후보 범위이므로
-  S12에서 제외합니다.
+기존 `summary/eventExplanation/falsePositiveHints[]/operatorReviewQuestions[]`를 사용하고
+EventRecord에는 결과를 복사하지 않는다. 기본 fixture 질문은 `문 근처에서 멈춘 사람`이다.
+fallback은 eventId/sourceId로 좁힌 sidecar 조회와 Ops 수동 검토다.
+`vector-index-candidate`·`provider-rerank-candidate`는 대안으로 남지만 이 builder는 실행하지 않는다.
 
-## Candidate Schema
+## 현재 Ops 연결
 
-Search response schema는 `media-server.vlm-summary-search-candidates.v1`입니다.
-개별 후보 schema는 `media-server.vlm-summary-search-candidate.v1`입니다.
+[webrtc_http_server_ops_incidents.cpp](../src/ingress/webrtc_http_server_ops_incidents.cpp)의
+`OpsVlmSummaryCandidateReviewJson`은 incident memory에
+`media-server.ops.vlm-summary-candidate-review.v1`을 붙인다.
+`candidateStatus=ops-manual-review-not-auto-applied`이며 기존 report를 `sourceCandidateReport`에
+담는다. 검색어가 없거나 report 생성에 실패하면 해당 값은 null이고 오류를 따로 표시한다.
+현재 wrapper는 최대 6개 후보를 요청한다.
 
-주요 field:
+`/ops/events`는 Ops 진단·검토 경로이지 primary nav 항목이 아니다.
+Ops operator/admin·`ops:read` 경계 안에서 검토하며 viewer/client 검색 화면은 제공하지 않는다.
+현행 Ops wrapper가 있다는 사실과 범용 제품 semantic search 미구현은 구분한다.
 
-- `query`
-- `searchMode`
-- `candidateStatus`
-- `correlationKey`
-- `queryTerms[]`
-- `candidates[]`
-- `matchedTerms[]`
-- `matchScore`
-- `contract`
+## 안전·검증 경계
 
-`correlationKey`는 `eventId`입니다. 후보는 EventRecord payload에 섞지 않고,
-observation sidecar summary와 EventRecord를 `eventId`로만 연결합니다.
-
-## License / Provenance / Privacy Review
-
-S12는 새 모델, runtime, provider, model artifact를 추가하지 않습니다. 모델 license와
-provenance는 V200-S01/V200-S05에서 저장한 VLM profile metadata를 참조합니다.
-
-S12 검색 후보는 아래 값을 저장하거나 노출하지 않습니다.
-
-- raw prompt
-- raw provider response
-- credential material
-- source URL
-- raw frame bytes
-
-Cloud 외부 전송도 추가하지 않습니다. 저장된 cloud observation을 검색 후보로 다룰
-때에도 provider logging/retention 검토는 V200-S11 guard 결과를 따라야 하며, S12
-verifier는 새 외부 호출을 PASS evidence로 보지 않습니다.
-
-## Command
+새 모델/runtime/provider/artifact를 추가하지 않는다. 기존 profile의 license/provenance와
+[privacy guard](vlm-privacy-transfer-guard.md)를 유지하며 raw prompt/provider response·credential·
+source URL·raw frame을 후보 자료에 넣지 않는다. builder의 contract flag는 임의 sidecar 입력을
+자동 정제했다는 보증이 아니므로 [저장 전 정제 책임](vlm-observation-sidecar.md#입력-정제-책임)을 따른다.
+runtime 재질의·cloud rerank·자동 Rule/Profile 적용은 하지 않고 기존 EventRecord/Event POST/
+WebRTC DataChannel/SSE/WS·RTSP/WebRTC 경로를 유지한다.
+규칙 후보는 [별도 수동 draft 계약](vlm-rule-suggestion-candidates.md)이다.
 
 ```bash
 ./server.sh verify-vlm-summary-search-candidates
-./server.sh verify-analysis-state
-./server.sh verify-event-post
-./server.sh verify-ws-metadata
-```
-
-## Non-Scope
-
-S12에서 하지 않는 일:
-
-- 실제 VLM runtime 호출
-- cloud provider API 호출 또는 provider rerank
-- vector DB/index 도입
-- 제품 검색 UI 또는 viewer/client 노출
-- EventRecord top-level schema 변경
-- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
-- RTSP/WebRTC media path 변경
-- 자동 Rule/Profile 적용
-- V200-S13 rule suggestion 구현
-
-## 완료 기준
-
-- `./server.sh verify-vlm-summary-search-candidates`가 fixture, C++ sidecar summary
-  search builder, EventRecord correlation boundary, docs/inventory/server wiring, non-scope
-  boundary를 검증합니다.
-- `./server.sh verify-analysis-state`가 VLM summary search 후보를 sidecar에서 조회하고
-  EventRecord와 `eventId`로만 상관시키는 smoke를 실행합니다.
-- `./server.sh verify-event-post`와 `./server.sh verify-ws-metadata`가 기존 외부 payload
-  변경이 없음을 확인합니다.
-- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
-
-이 검증은 제품 검색 UI, semantic 품질 평가, vector/rerank 품질, 장시간 안정화,
-UI 풀테스트, V200-S13 rule suggestion 완료를 대신하지 않습니다.
-
-## v2.6.0 S01 Productization Boundary
-
-`V260-S01`은 S12의 `media-server.vlm-summary-search-candidates.v1` 후보를
-`/ops/events` incident memory 안의 Ops-only manual review view model로 감쌉니다.
-새 wrapper schema는 `media-server.ops.vlm-summary-candidate-review.v1`이고,
-`sourceCandidateReport`에 기존 candidate-only report를 그대로 보존합니다.
-
-운영 기본값은 `ops-manual-review-not-auto-applied`입니다. 운영자는 `/ops/events`에서
-summary candidate를 incident memory 검색 결과와 나란히 검토할 수 있지만, 이 단계는
-viewer/client 비노출을 유지하고 자동 Rule/Profile 적용, runtime VLM 재호출, cloud
-provider API 호출, EventRecord/Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media
-path 변경을 수행하지 않습니다.
-
-검증:
-
-```bash
 ./server.sh verify-v260-incident-memory-productization
-./server.sh verify-vlm-summary-search-candidates
+./server.sh verify-analysis-state
 ./server.sh verify-ops-client-ui
 ./server.sh verify-event-post
 ./server.sh verify-ws-metadata
-git diff --check
 ```
 
-이 검증은 브라우저 UI 직접 조작, 30분/120분 장시간 안정화, provider 품질 평가,
-실제 자동 rule 적용 evidence를 대신하지 않습니다.
+[fixture](../test/fixtures/vlm_summary_search/cases.json)는
+`media-server.vlm-summary-search-fixtures.v1`, 사례는 `door-stop-person`이다.
+후보 검증기는 fixture 계산·C++ source/smoke 연결을 읽는 정적 검사(EVT-032·LAB-054)이며,
+Lab API 경로의 LAB-043 검증은 별도 명령이다. 실제 C++ 조회는 `verify-analysis-state`,
+브라우저·인증·외부 payload는 각 영향 검사 범위를 따른다.
+[검증 정책](stream-verification.md#검증-정책)과 [UI 풀테스트](manual-ui-fulltest.md)에 따라
+미실행을 구분하며 검색 의미 품질·vector/rerank 품질·장시간 완료를 주장하지 않는다.

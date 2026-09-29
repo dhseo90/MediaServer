@@ -1,26 +1,38 @@
-# VLM Runtime Status UI
+# Ops VLM 상태 패널 읽기
 
-이 문서는 `v2.1.0 V210-S05 Ops VLM runtime status UI`의 세부 기준 문서입니다.
-S05는 `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유,
-privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다.
+운영자는 `/ops/vlm`의 `data-testid="ops-vlm-runtime-status-panel"`에서
+선택 후보·저장 profile·서버 runtime 요약을 확인한다. Ops operator/admin과 `ops:read`가
+필요하며 viewer/client에는 provider·prompt·raw response·source URL·내부 진단을 노출하지 않는다.
 
-## 직접 답
+## 표시값의 출처와 한계
 
-`/ops/vlm`에는 `data-testid="ops-vlm-runtime-status-panel"` 패널이 있습니다. 이
-패널은 기존 `/ops/api/runtime/status`, `/ops/api/vlm/install-connection/dry-run`,
-`/ops/api/vlm/profiles` 상태를 조합해 read-only로 표시합니다. 새 Event POST,
-WebRTC DataChannel, SSE/WS metadata payload field는 추가하지 않습니다.
+[product_ui_page_scripts.cpp](../src/ingress/product_ui_page_scripts.cpp)의
+`opsVlmRuntimeStatusSummary/renderOpsVlmRuntimeStatus`가
+`/ops/api/runtime/status`, `/ops/api/vlm/install-connection/dry-run`,
+`/ops/api/vlm/profiles`의 상태를 조합한다.
 
-표시 항목:
+| 표시 | 의미 |
+| --- | --- |
+| Provider | 선택 후보/profile의 provider 또는 cloud opt-in 승인 metadata |
+| Runtime | local readiness와 runtimeContract 상태 또는 `provider field smoke only` |
+| Last evaluation | 선택된 저장 profile의 `evaluation.status`; 실시간 모델 재평가 아님 |
+| Failure | `disabled/missing-model/invalid-output/timeout` 또는 후보의 차단 사유 |
+| Privacy | `local-only/cloud-disabled/cloud-allowed` |
+| Default | `defaultEnabled=false/runtimeCallAllowed=false/providerCallAllowed=false` 계약과 상태 badge |
+| runtime/status | 서버의 tap/session/egress 요약 또는 loading/error |
 
-- Provider: local runtime 후보인지 cloud opt-in/field-smoke 후보인지 표시
-- Runtime: local runtime readiness 또는 provider field-smoke-only 상태 표시
-- Last evaluation: 저장 profile의 `evaluation.status` 표시
-- Failure: `disabled`, `missing-model`, `invalid-output`, `timeout` 같은 VLM-only 실패 사유 표시
-- Privacy: local-only, cloud-disabled, cloud-allowed 상태 표시
-- Default: `defaultEnabled=false`, `runtimeCallAllowed=false`, `providerCallAllowed=false` 상태 표시
+profile 선택은 active → fallback → 첫 저장 profile 순서다. 저장 profile이 없으면 선택 후보와
+dry-run으로 비활성 runtimeContract를 만든다. 화면의 `local ready`는 readiness metadata이며,
+실제 VLM HTTP 연결·모델 로드·추론 성공을 뜻하지 않는다.
+`runtime/status ok`도 media server의 상태 조회 성공이지 모델 endpoint 성공이 아니다.
+계약은 [runtime opt-in](vlm-runtime-opt-in-contract.md), 실제 loopback 검사는
+[로컬 연결 smoke](vlm-local-runtime-connection-smoke.md), 외부 호출은
+[cloud field gate](vlm-cloud-provider-field-smoke-gate.md)로 구분한다.
 
-## 검증
+패널을 읽는 행위는 profile 저장·활성화·모델 설치/다운로드·runtime/provider 호출을 하지 않는다.
+[평가 후보 선택](vlm-evaluation-result-workflow.md)과 profile 수동 저장은 별도 흐름이다.
+
+## 검증 정의
 
 ```bash
 ./server.sh verify-vlm-runtime-status-ui
@@ -29,28 +41,15 @@ WebRTC DataChannel, SSE/WS metadata payload field는 추가하지 않습니다.
 ./server.sh verify-vlm-privacy-transfer-guard
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
-git diff --check
 ```
 
-직접 UI evidence는 인앱 브라우저에서 `/ops/vlm`을 열고 runtime status panel,
-local/cloud dry-run 상태 변경, 저장 profile이 있을 때 Last evaluation을 반영하는
-렌더링 경계, `/client/live` 비노출을 확인한 기록으로 분리합니다.
-`verify-ops-client-ui`나 raw JSON/API 확인만으로 제품 UI 직접 확인 PASS를 대체하지
-않습니다.
+UI-033의 첫 검사는 panel selector·source 조합·client 비노출·명령 연결을 읽는 정적 검사다.
+이름에 UI가 있어도 브라우저를 직접 조작하지 않는다.
+실제 확인에서는 local/cloud dry-run 변경, 저장 profile의 evaluation 반영, loading/error,
+default-off 표시와 `/client/live`·`/client/dashboard` 비노출을 관측한다.
+적격 증거·실행 승인은 [UI 풀테스트](manual-ui-fulltest.md)와
+[검증 정책](stream-verification.md#검증-정책)을 따른다.
 
-## 비범위
-
-- 실제 VLM runtime/provider 호출
-- provider credential 저장
-- model/runtime bundle 또는 download
-- VLMObservation sidecar write
-- Event POST/WebRTC/SSE/WS payload/schema 변경
-- RTSP/WebRTC media path 변경
-- client/viewer 화면에 provider, prompt, raw response, source URL, 내부 runtime 진단 표시
-
-## 완료/미실행 구분
-
-완료로 볼 수 있는 것은 runtime status panel 구현, S05 verifier와 Ops UI smoke PASS,
-auth/scope route guard PASS, viewer/client redaction 확인, 그리고 인앱 브라우저 직접
-확인 evidence입니다. 30분 soak, 120분 longrun, cloud provider field smoke는 S05 UI
-패널 완료 evidence가 아니며, 실행하지 않으면 미실행으로 기록합니다.
+observation sidecar 쓰기, Event POST/WebRTC DataChannel/SSE/WS schema와 RTSP/WebRTC 경로는
+변경하지 않는다. 정적 검사·API 응답·이 패널의 표시를 실제 모델 품질·외부 연결·장시간 성공으로
+확대하지 않고 미실행 영역은 따로 기록한다.

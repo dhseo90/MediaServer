@@ -1,0 +1,132 @@
+{
+  "schema": "media-server.vlm-test-rehearsal-report.v1",
+  "targetStep": "V200-S15",
+  "generatedAt": "2026-09-29T01:40:21.754Z",
+  "status": "pass",
+  "fixturePath": "test/fixtures/vlm_test_rehearsal/cases.json",
+  "summary": {
+    "cases": 7,
+    "failureFixtures": 4,
+    "cleanupCases": 6,
+    "lifecycleCases": 1
+  },
+  "cases": [
+    {
+      "id": "short-vlm-smoke",
+      "kind": "smoke",
+      "status": "pass",
+      "outcome": "fixture-smoke-ready",
+      "expectedOutcome": "fixture-smoke-ready",
+      "cleanupRequired": false,
+      "cleanupState": "not-required",
+      "serverLifecycle": "not-started",
+      "portLifecycle": "not-bound",
+      "sideEffects": [],
+      "verdictNotes": []
+    },
+    {
+      "id": "missing-model",
+      "kind": "failure-fixture",
+      "status": "pass",
+      "outcome": "blocked-missing-model",
+      "expectedOutcome": "blocked-missing-model",
+      "cleanupRequired": true,
+      "cleanupState": "cleanup-ok",
+      "serverLifecycle": "not-started",
+      "portLifecycle": "not-bound",
+      "sideEffects": [],
+      "verdictNotes": []
+    },
+    {
+      "id": "cloud-disabled",
+      "kind": "failure-fixture",
+      "status": "pass",
+      "outcome": "blocked-cloud-disabled",
+      "expectedOutcome": "blocked-cloud-disabled",
+      "cleanupRequired": true,
+      "cleanupState": "cleanup-ok",
+      "serverLifecycle": "not-started",
+      "portLifecycle": "not-bound",
+      "sideEffects": [],
+      "verdictNotes": []
+    },
+    {
+      "id": "invalid-output",
+      "kind": "failure-fixture",
+      "status": "pass",
+      "outcome": "rejected-invalid-output",
+      "expectedOutcome": "rejected-invalid-output",
+      "cleanupRequired": true,
+      "cleanupState": "cleanup-ok",
+      "serverLifecycle": "not-started",
+      "portLifecycle": "not-bound",
+      "sideEffects": [],
+      "verdictNotes": []
+    },
+    {
+      "id": "queue-timeout",
+      "kind": "failure-fixture",
+      "status": "pass",
+      "outcome": "timeout-no-media-path-failure",
+      "expectedOutcome": "timeout-no-media-path-failure",
+      "cleanupRequired": true,
+      "cleanupState": "cleanup-ok",
+      "serverLifecycle": "not-started",
+      "portLifecycle": "not-bound",
+      "sideEffects": [],
+      "verdictNotes": [
+        "queue timeout recorded without DataChannel/media failure"
+      ]
+    },
+    {
+      "id": "cleanup-lifecycle",
+      "kind": "cleanup",
+      "status": "pass",
+      "outcome": "cleanup-ok",
+      "expectedOutcome": "cleanup-ok",
+      "cleanupRequired": true,
+      "cleanupState": "cleanup-ok",
+      "serverLifecycle": "not-started",
+      "portLifecycle": "not-bound",
+      "sideEffects": [],
+      "verdictNotes": []
+    },
+    {
+      "id": "port-server-lifecycle",
+      "kind": "lifecycle",
+      "status": "pass",
+      "outcome": "lifecycle-plan-valid",
+      "expectedOutcome": "lifecycle-plan-valid",
+      "cleanupRequired": true,
+      "cleanupState": "cleanup-ok",
+      "serverLifecycle": "throwaway-required-for-attached-smoke",
+      "portLifecycle": "explicit-isolated-port-required",
+      "sideEffects": [],
+      "verdictNotes": [
+        "static rehearsal does not bind ports"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "fixture covers V200-S15 short rehearsal matrix",
+      "status": "pass"
+    },
+    {
+      "name": "rehearsal outcomes are deterministic and VLM-only",
+      "status": "pass"
+    },
+    {
+      "name": "cleanup and port/server lifecycle are explicit but not longrun/UI substitutes",
+      "status": "pass"
+    },
+    {
+      "name": "docs, stream verification, server command, and script inventory are wired",
+      "status": "pass"
+    },
+    {
+      "name": "rehearsal scope does not claim stabilization, longrun, UI fulltest, or close-out PASS",
+      "status": "pass"
+    }
+  ]
+}

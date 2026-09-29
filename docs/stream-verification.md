@@ -115,6 +115,16 @@ acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 relea
 `DOC-POL-01`~`DOC-POL-07`은 제목/옛 완료 문구 변경 허용, 정책 링크·식별자 누락 거부,
 과거 원장 없이 정의 검사, 문서 PASS와 실제 UI PASS 분리 및 기존 UI 정책의 완화 거부를 확인한다.
 
+`DOC-VLM-FIXTURE`는 VLM 설명 생성·평가·큐·리허설의 현행 schema/기능 ID/명령 dispatch를
+확인한다. 과거 단계 제목·중앙 실행 기록·공개 색인의 직접 링크 없이도 검사하며, 실제 계약·
+기능 연결·fixture 부작용 경계와 UI/장시간 정책 링크가 빠지면 실패한다. 자연어 문장의 의미
+전체를 자동 판정하거나 실제 모델 품질을 보증하는 검사는 아니다.
+`DOC-VLM-FIXTURE-OUTPUT`은 생성 보고서 검사 성공·자식 실패·잘못된 보고서·정리 실패를
+격리 대역으로 확인한다. 최초 실패를 정리 실패로 덮지 않고 검사 소유 파일만 정리해야 한다.
+`DOC-VLM-FIXTURE-QUEUE`는 C++ 관측 출력의 정상·자식 실패·누락·손상·미디어 차단·cross-zone schema 위반
+대역으로 실패 전파를 확인한다. 큐 검증기의 실제 `verify-analysis-state` C++ 실행이나
+provider·브라우저·장시간 검증을 이 도구 자체검사 결과로 대체하지 않는다.
+
 릴리즈 문서 검증기 자체검사는 `node --test scripts/internal/release_documentation_contract.test.mjs`다.
 `REL-DOC-01`~`REL-DOC-13`은 명시 metadata, source/target/공개 관측 분리, 문구 변경 허용,
 버전·서명/배포 정책·링크 오류 거부, Git 없는 소스 실행, 파일 누락·경로 이탈, 실패 exit·보고서를 확인한다.

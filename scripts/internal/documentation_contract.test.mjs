@@ -626,6 +626,105 @@ test('DOC-VLM-RESULT 실패·원출력·보고서·cleanup 보존은 격리 stub
   });
 });
 
+test('DOC-VLM-FIXTURE 현행 결과 계약과 종료 기록 분리', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const cases = [
+    ['event_explanation_hints', 'EVT-028', 'media-server.vlm-event-explanation-report.v1'],
+    ['evaluation_harness', 'LAB-052', 'media-server.vlm-evaluation-report.v1'],
+    ['queue_backpressure_stability', 'SAFE-036', 'media-server.vlm-queue-backpressure-fixtures.v1'],
+    ['test_rehearsal', null, 'media-server.vlm-test-rehearsal-fixtures.v1'],
+  ];
+  for (const [name, id, schema] of cases) {
+    const mutations = ['none', 'identifier', 'dispatch', ...(id ? ['feature', 'binding'] : []),
+      ...(name === 'test_rehearsal' || name === 'queue_backpressure_stability' ? ['boundary', 'policy-link'] : [])];
+    for (const mutation of mutations) await t.test(name + ':' + mutation, () => {
+      const program = `
+        import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';
+        import {validateFeatureDocumentation,hasDocumentFieldValue,hasDocumentLink} from './scripts/internal/documentation_contract_lib.mjs';
+        import {parseServerDispatches} from './scripts/internal/script_dispatch_parser.mjs';
+        const root=${JSON.stringify(root)},name=${JSON.stringify(name)},id=${JSON.stringify(id)},schema=${JSON.stringify(schema)},mutation=${JSON.stringify(mutation)};
+        const readText=p=>{
+          if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md','docs/README.md'].includes(p))throw new Error('과거 기록/직접 색인 의존');
+          let s=fs.readFileSync(path.join(root,p),'utf8');
+          if(p.endsWith('.md'))s=s.replace(/^#{1,6}.*$/gm,'# 다른 제목');
+          if(mutation==='identifier'&&p.startsWith('docs/vlm-'))s=s.replaceAll(schema,'removed-contract');
+          if(mutation==='feature'&&p==='docs/project-feature-test-inventory.md')s=s.split('\\n').filter(l=>l.split('|')[1]?.trim()!==id).join('\\n');
+          if(mutation==='dispatch'&&p==='server.sh')s=s.replaceAll('verify-vlm-'+name.replaceAll('_','-'),'removed-command');
+          if(mutation==='binding'&&p==='test/fixtures/project_feature_implementation_evidence.json'){const m=JSON.parse(s);m.items.find(x=>x.id===id).verifierEvidence.command='verify-unrelated';s=JSON.stringify(m);}
+          if(mutation==='boundary'&&p.startsWith('docs/vlm-'))s=s.replaceAll('runtimeVlmCallPerformed','removed-boundary');
+          if(mutation==='policy-link'&&p.startsWith('docs/vlm-'))s=s.replaceAll('manual-ui-fulltest.md','missing-policy.md');
+          return s;
+        };
+        const source=fs.readFileSync(path.join(root,'scripts/internal/verify_vlm_'+name+'.mjs'),'utf8');
+        const start=source.indexOf('check("docs,'),end=source.indexOf(name==='event_explanation_hints'||name==='evaluation_harness'?'let pass =':'let failCount =');
+        if(start<0||end<start)throw new Error('문서 검사 블록 누락');
+        const checks=[];vm.runInNewContext(source.slice(start,end),{readText,validateFeatureDocumentation,hasDocumentFieldValue,hasDocumentLink,parseServerDispatches,
+          assert:(v,m)=>{if(!v)throw new Error(m);},check:(n,f)=>checks.push(f),isBinaryPath:()=>false});
+        if(!checks.length)throw new Error('검사 없음');for(const check of checks)await check();
+      `;
+      const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:2*1024*1024});
+      assert.equal(r.error,undefined);assert.equal(r.signal,null);
+      assert.equal(r.status,mutation==='none'?0:1,r.stdout+r.stderr);
+      if(mutation!=='none')assert((r.stdout+r.stderr).includes(mutation==='identifier'?schema:mutation==='dispatch'?'dispatch':mutation==='boundary'?'runtimeVlmCallPerformed':mutation==='policy-link'?'manual-ui-fulltest.md':id),r.stdout+r.stderr);
+    });
+  }
+});
+
+test('DOC-VLM-FIXTURE-OUTPUT 보고서 검사 성공·실패에도 소유 임시 파일 정리', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  for (const name of ['event_explanation_hints','evaluation_harness']) {
+    for (const scenario of ['pass','child-fail','report-invalid','cleanup-fail','child-and-cleanup-fail']) await t.test(name+':'+scenario, () => {
+      const program = `
+        import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';
+        const root=${JSON.stringify(root)},name=${JSON.stringify(name)},scenario=${JSON.stringify(scenario)},files=new Set(),trace=[];
+        const source=fs.readFileSync(path.join(root,'scripts/internal/verify_vlm_'+name+'.mjs'),'utf8');
+        const start=source.indexOf(name==='event_explanation_hints'?'check("generator output is byte-stable':'check("single case mode');
+        const end=source.indexOf('check("docs,',start),checks=[];
+        if(start<0||end<start)throw new Error('보고서 검사 블록 누락');
+        const run=()=>{files.add('/unit-owned/report.json');files.add('/unit-owned/report.md');if(['child-fail','child-and-cleanup-fail'].includes(scenario))throw new Error('first-child-failure');return {summary:{cases:1}};};
+        const ownedFs={mkdtempSync:()=>'/unit-owned',existsSync:p=>files.has(p),readFileSync:p=>{trace.push('read:'+p);return scenario==='report-invalid'?'invalid':'VLM Event Explanation Report VLM Evaluation Harness Report runtimeVlmCallPerformed: false';},
+          unlinkSync:p=>{if(!files.has(p))throw new Error('unexpected delete');trace.push('unlink:'+p);files.delete(p);},rmdirSync:p=>{if(p!=='/unit-owned')throw new Error('unexpected rmdir');trace.push('rmdir');if(['cleanup-fail','child-and-cleanup-fail'].includes(scenario))throw Object.assign(new Error('cleanup-denied'),{code:'EACCES'});}};
+        vm.runInNewContext(source.slice(start,end),{fs:ownedFs,path,osTmp:()=>'/unit-root',assert:(v,m)=>{if(!v)throw new Error(m);},runGenerator:run,runHarness:run,runGeneratorText:()=>'{"stable":true}',check:(n,f)=>checks.push(f)});
+        let error=null;try{checks[0]();}catch(e){error=e.message;}console.log(JSON.stringify({error,trace,remaining:files.size}));
+      `;
+      const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000});
+      assert.equal(r.error,undefined);assert.equal(r.status,0,r.stdout+r.stderr);
+      const result=JSON.parse(r.stdout);
+      assert.equal(result.remaining,0);assert(result.trace.includes('rmdir'));
+      if(scenario==='pass')assert.equal(result.error,null);
+      else assert(result.error);
+      if(scenario.includes('child'))assert(result.error.includes('first-child-failure'));
+      if(scenario.includes('cleanup'))assert(result.error.includes('EACCES'));
+      if(scenario==='report-invalid')assert(result.error.includes('report title missing'));
+    });
+  }
+});
+
+test('DOC-VLM-FIXTURE-QUEUE 실제 C++ 관측의 누락·실패·부작용 거부 경계 유지', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  for (const scenario of ['valid','child-fail','missing-marker','invalid-json','blocked-media','cross-zone-drift']) await t.test(scenario, () => {
+    const program = `
+      import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';
+      const root=${JSON.stringify(root)},scenario=${JSON.stringify(scenario)},source=fs.readFileSync(path.join(root,'scripts/internal/verify_vlm_queue_backpressure_stability.mjs'),'utf8');
+      const start=source.indexOf('check("compiled product queue'),end=source.indexOf('check("metadata fanout',start),checks=[];
+      if(start<0||end<start)throw new Error('C++ 관측 검사 블록 누락');
+      const execFileSync=(command,args)=>{
+        if(command!==path.join(root,'server.sh')||args.join()!=='verify-analysis-state')throw new Error('예상 밖 자식 명령');
+        if(scenario==='child-fail')throw new Error('fixture child failed');
+        const queue={queueAction:'drop-vlm-task',failureReason:'queue-timeout',contractInvariants:{mediaPathBlocked:scenario==='blocked-media',eventRecordBlocked:false,metadataFanoutBlocked:false,eventPostDispatchBlocked:false}};
+        const zone={configuredZonesObserved:true,configuredZoneMode:'configured-zones',eventType:'re-entry',WebRTCSchemaChanged:scenario==='cross-zone-drift',schemaChanged:false,mediaPathChanged:false,viewerClientExposureAdded:false};
+        return (scenario==='missing-marker'?'':'[review4-safe-032-036] '+(scenario==='invalid-json'?'invalid':JSON.stringify(queue)))+'\\n[safe-056-cross-zone] '+JSON.stringify(zone);
+      };
+      vm.runInNewContext(source.slice(start,end),{path,rootDir:root,execFileSync,assert:(v,m)=>{if(!v)throw new Error(m);},check:(n,f)=>checks.push(f)});
+      let error=null;try{checks[0]();}catch(e){error=e.message;}console.log(JSON.stringify({error}));
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000});
+    assert.equal(r.error,undefined);assert.equal(r.status,0,r.stdout+r.stderr);
+    const {error}=JSON.parse(r.stdout);
+    if(scenario==='valid')assert.equal(error,null);else assert(error);
+  });
+});
+
 test('DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결', () => {
   assert.deepEqual(validateArchitectureContractDocumentation(read('docs/media-server-architecture.md')), []);
 });
