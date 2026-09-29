@@ -115,6 +115,14 @@ acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 relea
 `DOC-POL-01`~`DOC-POL-07`은 제목/옛 완료 문구 변경 허용, 정책 링크·식별자 누락 거부,
 과거 원장 없이 정의 검사, 문서 PASS와 실제 UI PASS 분리 및 기존 UI 정책의 완화 거부를 확인한다.
 
+UI 구조 문서 소비자 자체검사는 `node --test scripts/internal/ui_component_documentation.test.mjs`다.
+실제 정적 명령과 소유 파일은 [UI 공통 구성요소 안내](product-shell-component-examples.md)에 둔다.
+`UI-DOC-01`은 기존 구조·반응형·토큰·helper·renderer 명령 5개가 종료 문서·backlog·원장 없이
+현행 구성요소 안내로 실행되는지 확인한다. `UI-DOC-02`는 문서 제목 변경을 허용하되 현재
+문서·정책 링크·route·viewport·명령 dispatch 누락을 거부한다. `UI-DOC-03`은 실제 토큰,
+helper API·사용처·CMake, 모듈 분리 조건을 메모리에서 훼손해 기존 실패 전파를 확인한다.
+제품 파일은 변경하지 않으며 이 정적 자체검사는 실제 UI·Auth·미디어·장시간 실행이 아니다.
+
 `DOC-VLM-FIXTURE`는 VLM 설명 생성·평가·큐·리허설의 현행 schema/기능 ID/명령 dispatch를
 확인한다. 과거 단계 제목·중앙 실행 기록·공개 색인의 직접 링크 없이도 검사하며, 실제 계약·
 기능 연결·fixture 부작용 경계와 UI/장시간 정책 링크가 빠지면 실패한다. 자연어 문장의 의미

@@ -834,3 +834,22 @@ closeout/reconciliation/RC/v240/v250/Actions/CI 소비자 7개는 종료 원장�
 원출력·실패→재검증·독립 결정·보존/정리 결과는
 [단일 실행 자료](release-artifacts/v4.1.1/release-policy-documentation/result.json)에 둔다.
 전체 문서·소비자 정리와 종료 기록 삭제는 아직 진행 중이며 v4.1.1 전체 완료가 아니다.
+
+## 11. UI 구조 문서와 현행 검사 연결 — 2026-09-29
+
+`a54d626d`를 기준으로 v220 구조·반응형·토큰·helper와 v230 renderer 문서 5개의 유효한
+계약·설계 이유를 기존 [구성요소 안내](product-shell-component-examples.md)에 통합했다.
+과거 문서는 아직 삭제하지 않았다. 종료 자료 일괄 정리는 보존·소비자 확인 후 별도 단계다.
+공개 helper·route·현재 owner·반응형 의도를 보존하고, 구현되지 않은 개념명은 API와 구분했다.
+
+검증기 5개는 옛 제목·backlog 완료 행·중앙 실행 원장 대신 현행 안내·정책 링크·정확한 dispatch를
+확인한다. 토큰·CMake·helper 사용·renderer 분리 검사는 유지하며, 이동 전 파일을 읽던 helper
+소비 검사는 실제 Auth/Ops renderer를 읽도록 바로잡았다. 최초 자체검사 10개 실패의 출력도 남겼다.
+독립 검토의 viewport 확인 조건 누락 1건은 두 설명 칸 검사와 빈 칸 반례로 보완했다.
+
+최종 자체검사 64개, 관련 문서 회귀 241개, 해당 정적 명령 5개와 기존 구성요소·토큰 검사,
+기능 연결 986개(검사 8개), 스크립트 목록 12개 및 링크·공백 검사를 확인했다.
+제품 소스·실제 UI·Auth·미디어·장시간 실행 결과가 아니라 문서/검증 도구의 결과다.
+변경·기존 검사 의미 대조·실패→재검증·원본 보존·정리는
+[단일 실행 자료](release-artifacts/v4.1.1/ui-component-documentation/result.json)에 둔다.
+다른 UI 작업 문서·소비자, 기록 생성/수명 정리와 v4.1.1 최종 마감은 남아 있다.

@@ -31,6 +31,45 @@ export function hasDocumentLink(text, target) {
     .some((match) => match[1].split('#')[0].replace(/^\.\//, '') === target);
 }
 
+// 기존 UI 명령은 유지하고 현재 기술 안내·정확한 dispatch만 연결한다.
+// 제목·옛 단계 완료/미실행·과거 실행 원장은 입력이 아니다. 실제 화면 판정은 별도다.
+export function validateUiComponentDocumentation({document, kind, verification, server}) {
+  const scripts = {
+    architecture: ['verify-v220-ui-architecture-inventory', 'verify_v220_ui_architecture_inventory.mjs'],
+    responsive: ['verify-v220-responsive-task-shell', 'verify_v220_responsive_task_shell.mjs'],
+    tokens: ['verify-v220-design-token-refresh', 'verify_v220_design_token_refresh.mjs'],
+    primitives: ['verify-v220-component-primitives', 'verify_v220_component_primitives.mjs'],
+    renderer: ['verify-v230-ui-renderer-module-decomposition', 'verify_v230_ui_renderer_module_decomposition.mjs'],
+  };
+  if (!Object.hasOwn(scripts, kind)) return ['UI 문서 검사 종류 오류'];
+  const errors = [], doc = String(document || ''), [command, script] = scripts[kind];
+  for (const link of ['ui-guide.md', 'manual-ui-fulltest.md', '../AGENTS.md']) {
+    if (!hasDocumentLink(doc, link)) errors.push('UI 문서 정책 링크 누락: ' + link);
+  }
+  const commands = text => new Set(String(text || '').match(/\bverify-[a-z0-9-]+\b/g) || []);
+  if (!commands(doc).has(command)) errors.push('UI 안내 명령 누락: ' + command);
+  if (!hasDocumentLink(String(verification || ''), 'product-shell-component-examples.md')) {
+    errors.push('검증 안내의 UI 기술 문서 링크 누락');
+  }
+  const targets = parseServerDispatches(String(server || '')).filter(item => item.command === command);
+  if (targets.length !== 1 || targets[0].script !== script) errors.push('UI 명령 dispatch 누락/중복/대상 불일치: ' + command);
+  if (kind === 'responsive') {
+    const rows = doc.split(/\r?\n/).filter(line => line.trim().startsWith('|'))
+      .map(line => line.split('|').slice(1, -1).map(cell => cell.replace(/`/g, '').trim()));
+    for (const width of ['320', '390', '760', '1180']) {
+      const matches = rows.filter(cells => new RegExp('^' + width + '(?:px)?\\+?$').test(cells[0]));
+      if (matches.length !== 1 || !matches[0][1] || !matches[0][2]) errors.push('UI viewport 기준 누락/중복: ' + width);
+    }
+    for (const route of ['/setup', '/login', '/password/change', '/client/request-access',
+      '/ops/home', '/ops/dashboard', '/ops/events', '/ops/sources', '/ops/rules', '/ops/users',
+      '/client/live', '/client/dashboard', '/client/events']) {
+      const matches = rows.filter(cells => cells[0]?.split(/[,\s]+/).includes(route));
+      if (matches.length !== 1 || !matches[0][1] || !matches[0][2]) errors.push('UI route 작업 기준 누락/중복: ' + route);
+    }
+  }
+  return errors;
+}
+
 // 공개 필드/값은 유지하되 inline field=value와 읽기 쉬운 key/value 표를 모두 허용한다.
 export function hasDocumentFieldValue(text, field, value) {
   const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

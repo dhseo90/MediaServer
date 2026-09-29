@@ -12,19 +12,137 @@ Auth·Ops·Client 화면을 수정하는 개발자를 위한 공통 helper와 HT
 
 ## 구현 위치와 공통 경계
 
+제품 UI는 별도 SPA가 아니라 C++에서 HTML/CSS/JavaScript 문자열을 조립하는 구조입니다.
+renderer·CSS·controller를 나눈 이유는 긴 문자열의 중복과 layout drift를 줄이고,
+화면 변경을 HTTP 권한·API 처리·미디어 signaling과 분리해 검토하기 위해서입니다.
+모든 route가 별도 renderer로 이동한 것은 아니며, 다음은 현재 소유 경계입니다.
+
 | 영역 | 실제 구현 | 재사용 기준 |
 | --- | --- | --- |
-| Ops shell | [product_ui_server_pages.cpp](../src/ingress/product_ui_server_pages.cpp)의 `AppendOpsShellStart/End`, `AppendProductAccountMenu` | `app-chrome`, `app-brand`, `image-nav-tabs`, `account-menu` |
-| Auth shell | [product_ui_auth_pages.cpp](../src/ingress/product_ui_auth_pages.cpp)의 `AppendAuthShellStart/End` | 해당 파일 내부 helper로 로그인·초기 설정·초대·접근 요청 화면 구성 |
+| Ops shell·페이지 | [product_ui_server_pages.cpp](../src/ingress/product_ui_server_pages.cpp)의 `OpsShellPageHtml`, `AppendOpsShellStart/End`, `AppendProductAccountMenu` | `app-chrome`, `app-brand`, `image-nav-tabs`, `account-menu`와 Home/Dashboard/Events/Rules/VLM HTML |
+| Auth shell·페이지 | [product_ui_auth_pages.cpp](../src/ingress/product_ui_auth_pages.cpp)의 내부 `AppendAuthShellStart/End`와 공개 page renderer | 로그인·초기 설정·초대·접근 요청·비밀번호 변경·권한 안내 HTML |
 | Client shell | [webrtc_http_server.cpp](../src/ingress/webrtc_http_server.cpp)의 `ClientShellPageHtml()` | 허용된 view와 미리보기 여부를 전달하고 Client 메뉴 구성 |
+| Channels·Users HTML | 같은 `webrtc_http_server.cpp`의 `BuildOpsSourcesPageHtml`, `BuildOpsUsersPageHtml` | 공통 Ops shell을 사용하지만 page HTML은 이 파일에 남음 |
 | 공통 스타일 | [product_ui_css.cpp](../src/ingress/product_ui_css.cpp)의 `ProductUiCss()`, `ProductDesignTokensCss()` | light/dark 공통 token, 버튼, `section-card`, `metric-card`, 반응형 표 |
 | C++ 구성요소 | [product_ui_components.cpp](../src/ingress/product_ui_components.cpp) | `ProductUiToolbarHtml`, `ProductUiSectionCardHtml`, `ProductUiStatusBadgeHtml`, `ProductUiTableShellHtml`, `ProductUiDetailsPanelHtml`, `ProductUiEmptyStateHtml` |
 | 공통 JS | [product_ui_js.cpp](../src/ingress/product_ui_js.cpp)의 `ProductSharedUiScript()` | `window.MediaServerUi`의 번역·상태·표·상세·감사 helper |
 | Client 라이브 | [product_ui_client_scripts.cpp](../src/ingress/product_ui_client_scripts.cpp)의 `AppendClientShellScript()`, [product_ui_client_css.cpp](../src/ingress/product_ui_client_css.cpp)의 `ClientShellCss()` | `live-monitor`, `live-source-tree`, `live-workspace`, `tile`을 같은 shell 안에서 구성 |
+| Ops controller | [product_ui_page_scripts.cpp](../src/ingress/product_ui_page_scripts.cpp), [product_ui_ops_sources_script.cpp](../src/ingress/product_ui_ops_sources_script.cpp), [product_ui_ops_users_script.cpp](../src/ingress/product_ui_ops_users_script.cpp) | 공통 Ops 화면과 채널·사용자 controller를 분리 |
+| 공통 자산 | [product_ui_assets.cpp](../src/ingress/product_ui_assets.cpp) | 테마·언어 control과 brand/nav/avatar HTML·SVG |
+
+[CMakeLists.txt](../CMakeLists.txt)는 위 renderer·CSS·controller·helper 소스를 빌드합니다.
+HTTP route 호출과 권한 gate는 [webrtc_http_server_runtime.cpp](../src/ingress/webrtc_http_server_runtime.cpp)에서
+각 renderer로 연결됩니다. Auth의 공개 renderer 선언은
+[product_ui_auth_pages.h](../include/ingress/product_ui_auth_pages.h), Ops shell 선언은
+[product_ui_server_pages.h](../include/ingress/product_ui_server_pages.h)에 있습니다.
+
+### 공통 생성 API
+
+아래는 C++ 호출 경계입니다. 파일 분리와 UI 재배치 시 이름·인자와 소비자 연결을 함께 유지합니다.
+
+| 선언 위치 | API | 책임 |
+| --- | --- | --- |
+| [product_ui_css.h](../include/ingress/product_ui_css.h) | `ProductDesignTokensCss()`, `ProductUiCss()`, `ClientShellCss()` | 의미별 변수, 공통/Ops 스타일, Client 전용 스타일 |
+| [product_ui_js.h](../include/ingress/product_ui_js.h) | `ProductThemeBootScript()`, `ProductSharedUiScript()`, `AppendProductThemeScript(out)` | 초기 테마, 공통 동작, 테마·언어 script 삽입 |
+| [product_ui_page_scripts.h](../include/ingress/product_ui_page_scripts.h) | `AppendClientAccessRequestScript(out)`, `AppendClientShellScript(out)` | Client 파일에서 접근 요청 form과 live/dashboard/events controller 생성 |
+| 같은 page script 선언 | `AppendOpsShellScript(out, active, stream_route, rtsp_port)` | 선택 Ops 화면의 controller 생성 |
+| 같은 page script 선언 | `AppendOpsSourcesPageScript(out, stream_route_json, rtsp_port)`, `AppendOpsUsersPageScript(out)` | 채널·사용자별 controller 생성 |
+| [product_ui_assets.h](../include/ingress/product_ui_assets.h) | `ProductThemeToggleButtonHtml()`, `ProductLanguageSelectHtml()` | 테마·언어 control |
+| 같은 asset 선언 | `ProductBrandMarkSvg()`, `ProductNavIconSvg(key)`, `ProductAccountAvatarSvg()` | brand·메뉴·계정 아이콘 |
+
+### 구성요소 API
+
+[product_ui_components.h](../include/ingress/product_ui_components.h)의 helper는 정적 markup을
+생성합니다. Auth form과 Ops toolbar/card 등에서 재사용하지만 JS runtime renderer의 모든
+문자열을 자동 대체하지는 않습니다.
+
+| API | 생성 구조·사용 경계 |
+| --- | --- |
+| `ProductUiSectionCardHtml` | `section-card`에 선택적인 toolbar와 body 삽입 |
+| `ProductUiToolbarHtml` | title/subtitle과 `actions` 묶음 |
+| `ProductUiNavTabsHtml` | `nav-tabs` 안의 링크 또는 버튼 |
+| `ProductUiSegmentedControlHtml` | `rule-mode-grid`, `role="group"` 안의 mode 버튼 |
+| `ProductUiTableShellHtml` | `table-wrap`, 열 머리글과 body; 반응형 cell 의미는 호출자가 유지 |
+| `ProductUiDetailsPanelHtml` | `collapsed-editor`인 `<details>`와 summary/body; modal drawer 구현은 아님 |
+| `ProductUiFormRowHtml` | `form-grid` label/control과 선택적인 `form-note` |
+| `ProductUiStatusBadgeHtml`, `ProductUiBadgeRowHtml` | `chip`과 tone, `badge-row` |
+| `ProductUiEmptyStateHtml`, `ProductUiLoadingStateHtml`, `ProductUiErrorStateHtml` | empty/loading은 `empty`, error는 `message error`; loading은 empty helper 재사용 |
+
+일반 label/text는 escape하지만 `body_html`, `actions_html`, `control_html`, raw `attributes`는
+호출자가 안전하게 구성해야 합니다. helper 사용만으로 입력 검증·권한·redaction이 성립하지 않습니다.
 
 위 소스의 공통 스타일·selector와 route별 controller를 함께 대조합니다.
 버튼의 `button-primary`, `button-secondary`, `ghost`, `danger`는 CSS 표현이며,
 위험 작업에만 `danger`를 사용합니다. 스타일 class나 숨김 속성이 API 권한 검사를 대신하지 않습니다.
+
+레이아웃 변경은 Event POST payload, WebRTC DataChannel·SSE/WS metadata schema,
+RTSP/WebRTC media path, Auth/session/scope, Rule/Profile 저장 payload를 바꾸지 않습니다.
+`/ops/rules`의 smoke selector와 저장 roundtrip, Client/viewer 정보 비노출도 유지합니다.
+`/ops/api/*`, `/client/api/*`, `/lab/*`, `/webrtc/*`, `/whep`, `/whip/publish`,
+`/ws/va-metadata`의 API·미디어 처리는 UI helper의 책임이 아닙니다.
+프로젝트 불변 계약과 변경 승인은 [AGENTS](../AGENTS.md)를 따릅니다.
+
+## 토큰과 반응형 작업 배치
+
+`ProductDesignTokensCss()`를 공통 token 정의의 기준으로 삼고 light/dark를 함께 검토합니다.
+
+| Token family | 역할 |
+| --- | --- |
+| `--color-*`, `--overlay-*` | surface·상태·media·overlay의 의미별 색상과 효과 |
+| `--space-*`, `--radius-*`, `--shadow-*` | 여백·모서리·그림자 |
+| `--font-ui`, `--font-mono`, `--font-size-*`, `--line-height-*` | UI와 운영 code/debug 문구의 글꼴·크기·행간 |
+| `--control-height-*`, `--icon-button-size`, `--panel-padding`, `--card-padding` | control과 panel/card 밀도 |
+| `--button-*`, `--input-*`, `--table-*`, `--badge-*`, `--debug-details-*` | 버튼·입력·표·상태·접힌 진단 영역의 공통 치수·표현 |
+
+button/input/select/textarea, table cell, chip/badge, 허용된 운영 진단 `pre`는 해당 token을
+재사용합니다. 글자 크기는 viewport 폭에 따라 흔들리는 `font-size: clamp(...vw...)`로
+정하지 않고, panel·표·form의 배치를 조정합니다.
+
+| 확인 폭 | 작업 배치 의도 | 확인할 조건 |
+| --- | --- | --- |
+| 320px | 한 열에서 주 작업을 먼저, 보조 작업은 접근 가능한 details·단계형 panel로 배치 | 가로 넘침·버튼/긴 단어 잘림 없이 입력·행 작업이 부모 폭 안에 머묾 |
+| 390px | compact toolbar와 카드형 행, form·상태를 한 열로 배치 | 주 작업이 먼저 보이고 보조 작업을 계속 찾을 수 있음 |
+| 760px | 주 영역과 inline detail 또는 위아래 panel 조합 | 목록·상세·편집 전환과 주요 작업을 유지 |
+| 1180px+ | 표·toolbar·side/detail panel을 함께 배치 | 반복 작업의 상태 비교·선택·수정을 빠르게 수행 |
+
+이 폭은 검토 기준이지 모든 CSS module의 breakpoint가 같다는 뜻은 아닙니다.
+작은 화면에서 기능을 없애거나 영상·overlay·control·상태를 잘라 맞추지 않습니다.
+표는 열 의미를 유지하는 record/card 형태로, form은 `min-width: 0`과 label/help/error
+줄바꿈으로 대응합니다. 실제 적용 여부는 route별 CSS와 화면에서 확인해야 합니다.
+
+설계 용어 `ProductShell`, `PageSection`, `ActionToolbar`, `StatusBadgeRow`,
+`EmptyLoadingErrorState`, `DebugDetails`는 공통 책임을 분류한 이름입니다.
+`ResponsiveTaskShell`, `PrimaryTaskRegion`, `SecondaryActionDrawer`, `DetailDrawerPanel`,
+`ResponsiveTable`, `FormGrid`, `ViewerSafeDock`도 배치 의도이며 동명의 구현 API가 아닙니다.
+실제 호출은 위 helper와 route별 controller를 사용하며, 모든 상세 영역에 drawer가 구현됐다고 해석하지 않습니다.
+
+### Route별 작업과 renderer
+
+주 작업과 보조 작업은 배치·검토의 우선순위입니다. 메뉴·버튼의 실제 사용법과 권한은
+[UI 가이드](ui-guide.md)를 따르며, 직접 route가 있다는 이유로 primary nav에 추가하지 않습니다.
+
+| Route | 주 작업 | 보조 작업 | HTML renderer 경계 |
+| --- | --- | --- | --- |
+| `/setup` | 최초 관리자 비밀번호 설정 | 정책 안내·테마·언어 | Auth `SetupPageHtml` |
+| `/invite/setup` | 초대 수락과 비밀번호 설정 | 정책·오류 안내 | Auth `InviteSetupPageHtml` |
+| `/login` | 로그인 | 테마·언어·오류 안내 | Auth `LoginPageHtml` |
+| `/password/change` | 현재/새 비밀번호 순서로 변경 | 정책·오류 안내 | Auth `PasswordChangePageHtml` |
+| `/client/request-access` | pending 접근 요청 제출 | 결과·상태 안내 | Auth `ClientAccessRequestPageHtml` + Client request script |
+| `/ops`, `/ops/home` | 운영 상태와 다음 조치 선택 | 바로가기·상태 요약 | `OpsShellPageHtml` → `AppendOpsHomePage` |
+| `/ops/dashboard` | source/runtime/event 원인 판독 | 인시던트 필터·복사·VA 진단 | 같은 shell → `AppendOpsDashboardPage` |
+| `/ops/events` | 이벤트 검토와 조회 | 필터·전송·증거·녹화 확인 | 같은 shell → `AppendOpsEventsPage` |
+| `/ops/vlm` | Ops 보조 후보·profile 상태 검토 | privacy·default-off·접힌 진단 | 같은 shell → `AppendOpsVlmInstallConnectionPage` |
+| `/ops/sources` | 채널 상태·source/view 관리 | 입력 준비·site/group·감사 확인 | `BuildOpsSourcesPageHtml` + Sources script |
+| `/ops/rules` | rule/profile/scenario 편집·preview·save | 검증·초안 보조·감사 확인 | `OpsShellPageHtml` → `AppendOpsRulesPage` |
+| `/ops/users` | 사용자·초대·접근 요청 관리 | role/scope·초기화·disable·감사 | `BuildOpsUsersPageHtml` + Users script |
+| `/client`, `/client/live` | 영상 시청·할당 view 선택 | layout·보기 모드·viewer-safe dock | `ClientShellPageHtml` + Client script |
+| `/client/dashboard` | viewer-safe 상태 요약 | 채널 비교·이벤트 요약 | 같은 Client shell/script |
+| `/client/events` | viewer-safe 이벤트 확인 | 채널 선택·상세 요약 | 같은 Client shell/script의 직접 route |
+
+Ops의 페이지별 `AppendOps*Page` 함수는 renderer 내부 구현이며 공개 API가 아닙니다.
+Client는 `IsClientShellRoute`/`ClientShellActiveForPath`, Ops overview는
+`IsOpsOverviewShellRoute`/`OpsOverviewActiveForPath`로 화면을 선택하고,
+Rules·Channels·Users와 Events 경로도 실제 route guard를 거쳐 연결됩니다.
 
 ## 공통 화면 틀과 메뉴
 
@@ -209,6 +327,17 @@ translation pattern과 함께 검토합니다. 반복 label은 pattern으로 처
 ./server.sh verify-ui-copy-i18n-parity
 ./server.sh verify-product-ui-token-drift
 ./server.sh verify-docs-links
+```
+
+구조·반응형·token·helper·module 연결의 기존 정적 명령도 이 안내를 기준으로 사용합니다.
+명령의 버전 이름은 과거 단계의 완료나 이번 실행 결과를 뜻하지 않습니다.
+
+```sh
+./server.sh verify-v220-ui-architecture-inventory
+./server.sh verify-v220-responsive-task-shell
+./server.sh verify-v220-design-token-refresh
+./server.sh verify-v220-component-primitives
+./server.sh verify-v230-ui-renderer-module-decomposition
 ```
 
 실제 브라우저 확인 명령은 `./server.sh verify-ops-client-ui --screenshots`입니다.

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.3.0 S03 UI renderer/module decomposition 산출물과 계약 경계를 검증한다.
+// 파일 용도: 현행 UI renderer 계약·구현 연결을 확인한다. CLI 이름은 호환을 위해 유지한다.
 
+import { validateUiComponentDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -19,12 +20,10 @@ if (hasHelpFlag(rawArgs)) {
 Usage:
   ./server.sh verify-v230-ui-renderer-module-decomposition
 
-Checks:
-  - archived V230-S03 release records point to the module decomposition gate
-  - module inventory documents route renderer, CSS module, JS controller boundaries
-  - new renderer/module source files exist and are compiled by CMake
-  - old large UI files no longer own the extracted auth/client/source/user modules
-  - server.sh exposes this verifier
+검사 범위:
+  - 현행 UI 기술 안내와 정확한 명령 연결
+  - 기존 소스·helper·모듈 계약
+  - 정적 결과를 실제 UI/장시간 PASS로 사용하지 않음
 `);
 }
 
@@ -32,27 +31,17 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 
-check("archived S03 records point to the module decomposition gate", () => {
-  const records = readText("docs/release-test-records.md");
-  const evidence = readText("docs/release-evidence-index.md");
-  assert(records.includes("v230 S03 UI renderer decomposition"),
-    "release records missing archived v230 S03 result");
-  for (const snippet of [
-    "v230-s03-ui-renderer-module-decomposition-20260605",
-    "verify-v230-ui-renderer-module-decomposition",
-    "route renderer/CSS module/JS controller",
-  ]) {
-    assert(evidence.includes(snippet), `release evidence missing archived S03 snippet: ${snippet}`);
-  }
+check("현행 UI 안내·정책·명령 연결", () => {
+  const errors = validateUiComponentDocumentation({
+    document: readText("docs/product-shell-component-examples.md"), kind: "renderer",
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("module inventory documents the extracted UI boundaries", () => {
-  const doc = readText("docs/v230-ui-renderer-module-decomposition.md");
+  const doc = readText("docs/product-shell-component-examples.md");
   for (const snippet of [
-    "V230-S03",
-    "route renderer",
-    "CSS module",
-    "JS controller",
     "src/ingress/webrtc_http_server.cpp",
     "include/ingress/product_ui_auth_pages.h",
     "src/ingress/product_ui_auth_pages.cpp",
@@ -60,15 +49,6 @@ check("module inventory documents the extracted UI boundaries", () => {
     "src/ingress/product_ui_client_scripts.cpp",
     "src/ingress/product_ui_ops_sources_script.cpp",
     "src/ingress/product_ui_ops_users_script.cpp",
-    "Event POST payload",
-    "WebRTC DataChannel payload",
-    "SSE/WS metadata schema",
-    "RTSP/WebRTC media path",
-    "Rule/Profile payload schema",
-    "client/viewer source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics",
-    "30분 테스트",
-    "120분 테스트",
-    "UI 풀테스트",
   ]) {
     assert(doc.includes(snippet), `inventory missing snippet: ${snippet}`);
   }
