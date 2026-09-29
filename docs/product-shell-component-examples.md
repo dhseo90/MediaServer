@@ -144,6 +144,108 @@ Client는 `IsClientShellRoute`/`ClientShellActiveForPath`, Ops overview는
 `IsOpsOverviewShellRoute`/`OpsOverviewActiveForPath`로 화면을 선택하고,
 Rules·Channels·Users와 Events 경로도 실제 route guard를 거쳐 연결됩니다.
 
+## 화면별 작업 영역과 유지 계약
+
+아래 class·`data-*`·ID는 renderer, CSS, controller와 회귀 검사가 공유하는 연결점입니다.
+배치를 바꿀 때 form field, 이벤트 연결, 접근성 이름과 저장 후 상태 갱신을 함께 확인합니다.
+marker가 있다는 사실만으로 권한·비노출·실제 작업 성공이 입증되지는 않습니다.
+
+### Auth form
+
+Auth renderer는 `auth-responsive-shell`, `auth-responsive-card`와
+`data-auth-shell="responsive-form"`으로 같은 틀을 사용합니다. `ProductUiFormRowHtml`로
+label/control을 연결하고 `auth-form-grid`, `auth-helper-panel auth-policy-hint`,
+`auth-message`로 입력·정책·결과를 구분합니다. 다음 form 식별자와 입력 이름을 유지합니다.
+
+| Form의 `data-testid` | 연결을 유지할 입력·동작 |
+| --- | --- |
+| `auth-setup-form` | `username`, `password`, `confirm`으로 최초 관리자 설정 |
+| `auth-login-form` | `username`, `password`로 로그인 |
+| `auth-password-change-form` | `currentPassword`, `password`, `confirm`으로 비밀번호 변경 |
+| `auth-invite-setup-form` | `token`, `password`, `confirm`; `data-access-route="invite-setup"` |
+| `auth-access-request-form` | `request-form`의 `username`, `displayName`, `contact`, `viewId`, `reason`과 `message`; `data-access-route="request-access"` |
+
+공통 CSS의 760px/560px 분기는 테마·언어 control과 form을 부모 폭 안에 배치합니다.
+레이아웃 수정으로 Auth route guard, 비밀번호·history 정책, 초대 token 검증·만료,
+접근 요청 schema·rate-limit을 바꾸지 않습니다. 설정·로그인·접근 요청 절차는
+[로그인과 계정 접근](ui-guide.md#2-로그인과-계정-접근)을 따릅니다.
+
+### Ops 요약·진단과 Rules 편집
+
+Home·Dashboard·Events는 `ops-workspace` 아래 각각 `ops-workspace-home`,
+`ops-workspace-dashboard`, `ops-workspace-events`로 구분합니다. `ops-workspace-hero`와
+action/diagnostic/event grid는 요약에서 다음 조치, 원인 판독, 이벤트 검토로 이어지는
+작업을 묶기 위한 구조입니다. `homeChannelCount`, `dashRootCauseList`,
+`dashIncidentTimeline`, `opsEventsRefresh`, `eventReviewRows`, `eventRecordRows` 같은
+조회·갱신 연결은 재배치 후에도 유지합니다. 자세한 조작은
+[운영 진단과 이벤트 검토](ui-guide.md#13-운영-진단과-이벤트-검토)에 둡니다.
+
+`/ops/rules`의 `rules-workspace`는 다음 순서로 작업 맥락을 유지합니다.
+
+| 영역 | 구조와 유지할 의미 |
+| --- | --- |
+| 저장 준비 | `rules-workspace-readiness-grid`: 검증·선수 항목을 먼저 확인하고 `opsRulesStatus`, `opsRulesValidationList`로 상태 표시 |
+| 초안 보조 | `rules-workspace-assist-grid`: `opsScenarioBuilderApply`, `opsVlmRuleDraftList`를 편집 보조로 사용; 자동 저장·자동 적용 없음 |
+| 목록 선택 | `rules-workspace-catalog-grid`: 채널 분석 설정·이벤트 템플릿·프로파일 목록과 `opsAddVaRuleBtn`, `opsCreateVaRuleBtn` 연결 |
+| 상세 편집 | `rules-workspace-detail-panel`: `opsVaRulePreviewVideo`, `opsRulesComposerSave`, `ops-rules-audit-list`로 preview·저장 feedback·감사 연결 |
+
+모바일에서는 mode 선택 → 편집 → preview 흐름과 긴 검증 문구를 유지합니다.
+이 구조가 모든 영역의 `ProductUiSegmentedControlHtml`·`ProductUiTableShellHtml`·
+`ProductUiDetailsPanelHtml` 호출을 뜻하지는 않습니다. 공통 helper로 치환하더라도 기존
+ID·`data-testid`·smoke selector, Rule/Profile/VA Rule/Event template payload와 저장 roundtrip은
+그대로여야 합니다. VLM 후보는 운영자가 폼으로 가져와 검토한 뒤 별도로 저장합니다.
+목록·편집 사용법은 [룰 관리](ui-guide.md#5-룰-관리-목록)에 둡니다.
+
+### Channels와 Users 작업 단위
+
+Channels·Users HTML은 `webrtc_http_server.cpp`에, 동작은 각각 Sources·Users script에
+남아 있습니다. 공통 shell로 보인다는 이유로 controller나 API 권한 검사를 합치지 않습니다.
+
+| 화면 | 작업 구분과 연결 |
+| --- | --- |
+| Channels | `ops-channels-workspace`, `data-channel-workspace="task-units"` 아래 `data-channel-task`의 `list`, `detail`, `published-view`, `inputs`, `audit` 구분 유지. `ops-channels-main-grid`, `ops-channels-detail-grid`, `ops-channels-input-grid`, `ops-channels-audit-panel`로 목록·편집·입력·이력을 배치 |
+| Users | `ops-users-access-workspace`, `ops-users-access-grid`, `data-access-workspace="task-units"` 아래 `data-access-task`의 `users`, `requests`, `invites`, `role-scope`, `audit` 구분 유지 |
+
+Channels는 `channels-body` 목록에서 `channel-detail-panel`을 열고 `channel-form`과
+`channel-save-selected`로 수정합니다. 현재 health·복구 안내 뒤에 목록→상세 흐름이 이어집니다.
+입력은 `data-channel-input-group`으로
+나누며 ONVIF의 `onvifStreamUrl`·`onvifProbeDraftApply`, 외부 WHEP의 `whepUrl`,
+WHIP으로 이미 발행된 WebRTC의 `webrtcSourceId`를 같은 URL 입력으로 취급하지 않습니다.
+SourceRegistry/PublishedView API, 입력 저장 schema와 ONVIF probe/import draft 경계는 유지합니다.
+site/group/floor/zone와 source/view scope는 PublishedView 영역에서 다루며
+`data-scope-contract="view-read-scopes-unchanged"`는 그 연결을 표시합니다.
+채널 변경에는 `source:write`가 필요하고 감사는 `channel-audit-list`에 연결합니다.
+실제 입력·저장 절차는 [채널 관리](ui-guide.md#4-채널-관리)를 봅니다.
+
+Users는 admin 전용입니다. `users-body`·`user-detail-panel`·`user-form`·
+`user-reset-password-panel`, 접근 요청의 `access-requests-body`·`request-invite-output`,
+초대의 `invite-create-form`·`invite-list-body`, 감사의 `user-audit-list` 연결을 유지합니다.
+`data-scope-contract="role-scope-unchanged"` 영역의 view assignment와
+`scopeTemplateForRole` 계산은 배치 변경과 별개입니다. pending 요청만으로 user·password·
+session·view 권한을 만들지 않으며, 승인도 초대 발급 단계이지 새 계정 활성화 완료가 아닙니다.
+초대 원문 token은 발급/승인 응답에서 한 번 표시하고 목록에는 token·tokenHash를 넣지 않습니다.
+비밀번호·history·token hash 비노출, 마지막 활성 admin 보호, 비밀번호 초기화/disable 시
+세션 회수는 그대로 유지합니다. 세부 수명과 운영 절차는 [사용자 관리](ui-guide.md#3-사용자-관리)에 둡니다.
+
+### VLM 보조 화면
+
+`/ops/vlm`은 `ops-vlm-containment-workspace`와
+`data-vlm-containment="ops-aux-default-off"`로 표시하는 Ops 보조 경로입니다.
+`data-vlm-task`는 `ops-aux`, `default-off`, `privacy`, `profile-state`, `boundary`,
+`raw-debug`를 구분합니다. 후보·평가 결과를 검토하는 영역과 runtime 상태 조회, privacy 검토,
+프로파일 저장을 나누어 후보 선택을 실행 승인이나 활성화 완료로 오인하지 않도록 합니다.
+
+`ops-vlm-aux-panel`, `ops-vlm-default-off-panel`, `ops-vlm-privacy-panel`,
+`ops-vlm-profile-state-panel`의 흐름을 유지합니다. profile의 평가·활성화·fallback·
+disabled reason·enabled는 저장 상태이며, 저장이나 추천만으로 runtime/queue/provider를
+자동 시작하지 않습니다. Cloud 외부 전송 경고와 provider logging/retention 검토를
+privacy guard에서 분리하고 credential·prompt·raw response·source URL·raw frame bytes를
+profile이나 Client에 넣지 않습니다. 허용된 dry-run 진단 JSON은 접힌 `opsVlmRawDetails`에
+한정하며, 이 화면을 Client의 개발 editor로 옮기지 않습니다.
+상세 계약은 [runtime opt-in](vlm-runtime-opt-in-contract.md),
+[프로파일 저장](vlm-profile-storage.md), [전송·비밀 보호](vlm-privacy-transfer-guard.md),
+조작 순서는 [VLM 보조 설정](ui-guide.md#133-vlm-보조-설정)을 따릅니다.
+
 ## 공통 화면 틀과 메뉴
 
 Ops의 메뉴 역할은 `Home`, `Dashboard`, `Channels`, `Rules`, `Users`, `Client Preview`입니다.
@@ -263,6 +365,30 @@ client/viewer용 데이터는 서버의 공개 응답 경계에서 제한하며,
 
 ## Client 라이브 타일
 
+Client shell의 `client-viewer-workspace`·dock·detail과 Client script의
+`liveSourceTreeHtml`, `liveMonitorHtml`, `renderDashboard`, `renderEventPage`를 함께 봅니다.
+shell의 `data-client-workspace="viewer-first"`와 `data-client-redaction="viewer-safe-dock"`를
+유지하고, 직접 Events route는 `data-client-active="events"`로 renderer를 선택합니다.
+Live는 `client-live-workspace`의 `client-live-layout` 안에 `client-live-primary`·
+`client-live-video-grid`와 `client-live-dock`·`client-live-event-dock`을 나누며
+`data-viewer-flow="video-first"`를 유지합니다.
+Dashboard는 `client-viewer-dashboard`와 `status-events`, 직접 Events route는
+`client-viewer-events`와 `events-first`로 흐름을 구분합니다. Client CSS의 780px 이하는
+dock을 영상 뒤로, 560px 이하는 toolbar·영상 grid를 한 열로 배치하며 작업 버튼의 touch target을
+유지합니다. 표시는 작아져도 시청·선택·상태 확인과 viewer 비노출 경계를 줄이지 않습니다.
+
+admin/operator가 `ops:read`로 Client를 열면 `ClientShellPageHtml`의 preview 판정에 따라
+`data-client-preview="true"`와 관리자 미리보기 안내를 표시합니다. compact review strip의
+`data-admin-preview-state`는 실제 판정값이며, `data-client-preview-boundary="admin-preview-viewer-safe"`,
+`data-client-redaction-review="viewer-safe-no-locator-debug"`,
+`data-admin-preview-review="preview-aware"`는 source dock·이벤트·화면·복사 영역의 검토 연결점입니다.
+검토 strip에는 관리자/시청 경계 요약만 두고, 금지 자료명을 실제 viewer 문구로 나열하지 않습니다.
+Live의 `data-viewer-redaction="source-url-hidden"`, `data-redaction="viewer-safe-events"`도 유지합니다.
+이 marker나 forbidden-text 정적 검사는 응답 정제 자체가 아닙니다. PublishedView의 scoped 응답과
+client WebRTC session alias 경계는 그대로이며, 미리보기라고 원본 locator·Ops/VLM 진단을 추가하지 않습니다.
+실제 선택·재생·layout·정리는 [Client 라이브](ui-guide.md#42-client-라이브),
+상태·이벤트·안전한 복사는 [Client 대시보드](ui-guide.md#41-client-대시보드)에 둡니다.
+
 `liveTileHtml`은 `tile-stage` 안에 video와 `tile-head`를 넣고 그 안에 `tile-actions`를 구성합니다.
 다음은 선택된 빈 타일의 접근성·배치 구조 예시입니다. mode 버튼, 상태 지표, 정보 overlay 등을
 생략했으므로 이 조각만으로 `updateTileDom`이나 재생 controller를 실행할 수는 없습니다.
@@ -339,6 +465,28 @@ translation pattern과 함께 검토합니다. 반복 label은 pattern으로 처
 ./server.sh verify-v220-component-primitives
 ./server.sh verify-v230-ui-renderer-module-decomposition
 ```
+
+화면별 정적 검사는 다음과 같습니다. 명령은 모두 `./server.sh <명령>` 형태로 실행하며,
+소스의 route·form·class·selector·권한/비노출 연결과 문서 정의를 확인합니다. 표의 기능 ID는
+[현재 기능별 테스트 정의](project-feature-test-inventory.md)를 찾아가기 위한 연결이며,
+정적 검사 통과로 해당 기능의 실제 UI 결과를 대신하지 않습니다.
+
+| 명령 | 보는 계약·범위 | 관련 기능 정의 |
+| --- | --- | --- |
+| `verify-v220-auth-setup-redesign` | Auth 공통 shell/form·정책/메시지·CSS와 기존 인증 처리 연결 | `UI-002`, `UI-003`, `UI-004`, `UI-007`, `UI-008` |
+| `verify-v220-client-live-redesign` | Live/Dashboard/직접 Events의 renderer·viewer-safe hook·반응형 CSS | `UI-015`, `UI-016`, `UI-017` |
+| `verify-v220-ops-workspace-redesign` | Home/Dashboard/Events 작업 grid와 기존 조회·검토 hook | `UI-009`, `UI-010`, `UI-014` |
+| `verify-v220-rules-workspace-redesign` | 저장 준비·초안·목록·상세 구조, preview/save/audit hook | `UI-012` |
+| `verify-v220-ops-channels-workspace` | 목록→상세, 입력 종류, PublishedView·scope·감사 연결 | `UI-011` |
+| `verify-v220-ops-users-access-workspace` | admin 사용자·접근 요청·초대·role/scope·감사와 Auth 연결 | `UI-013`, `UI-007`, `UI-008` |
+| `verify-v220-ops-vlm-containment` | Ops 보조/default-off/privacy/profile 상태와 기존 VLM verifier 연결 | `UI-022`, `UI-023`, `UI-024`, `SAFE-025` |
+| `verify-v220-client-preview-redaction-review` | preview 판정/표시·viewer-safe marker와 기존 비노출 smoke 연결 | `CLIENT-018` |
+
+이 명령들은 브라우저 조작, 저장 roundtrip, 실제 미디어·provider 호출을 실행하지 않습니다.
+기능별 API/route smoke와 실제 UI 증거도 서로 구분합니다. 실제 UI는
+[Policy v4](manual-ui-fulltest.md#policy-v4-증거-적격-기준)의 exact ID·route/control/action,
+role/scope·viewport·theme와 완료 관측·시각·비노출·정리 조건을 만족해야 합니다.
+`direct-browser`, `qualified-native-automation`, `hybrid` 적격 판정과 전체 UI PASS는 별개입니다.
 
 실제 브라우저 확인 명령은 `./server.sh verify-ops-client-ui --screenshots`입니다.
 이 안내 자체는 실행 승인이나 UI 풀테스트·장시간 PASS가 아닙니다.

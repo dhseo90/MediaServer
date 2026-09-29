@@ -52,7 +52,6 @@ const fulltest = readText("docs/manual-ui-fulltest.md");
 const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
 const streamVerification = readText("docs/stream-verification.md");
-const releaseEvidence = readText("docs/release-evidence-index.md");
 const agents = readText("AGENTS.md");
 const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
 const seedFixtureText = readText(seedFixturePath);
@@ -1177,7 +1176,6 @@ check("manual UI docs reference inventory", () => {
     ["manual-ui-checklist.md", checklist],
     ["manual-ui-result-template.md", template],
     ["stream-verification.md", streamVerification],
-    ["release-evidence-index.md", releaseEvidence],
   ]) {
     requireText(text, "project-feature-test-inventory.md", `${label} missing inventory reference`);
   }

@@ -20,6 +20,9 @@ const oldFiles = [
   'docs/v220-ui-architecture-inventory.md', 'docs/v220-responsive-task-shell.md',
   'docs/v220-design-token-refresh.md', 'docs/v220-component-primitives.md',
   'docs/v230-ui-renderer-module-decomposition.md', 'docs/README.md',
+  ...['auth-setup-redesign', 'client-live-redesign', 'ops-workspace-redesign',
+    'rules-workspace-redesign', 'ops-channels-workspace', 'ops-users-access-workspace',
+    'ops-vlm-containment', 'client-preview-redaction-review'].map(name => 'docs/v220-' + name + '.md'),
 ];
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(root + file)).digest('hex');
 
@@ -117,5 +120,80 @@ const failCases = [
 for (const [kind, file, remove, append, reason] of failCases) {
   test('UI-DOC-03 ' + kind + ' 기존 소스/계약 거부: ' + (remove || reason), () => {
     expect(cases.find(x => x[0] === kind)[1], [{file, remove, append}], 1, reason);
+  });
+}
+
+const workspaces = [
+  ['auth-setup-redesign', 'UI-002'], ['client-live-redesign', 'UI-015'],
+  ['ops-workspace-redesign', 'UI-009'], ['rules-workspace-redesign', 'UI-012'],
+  ['ops-channels-workspace', 'UI-011'], ['ops-users-access-workspace', 'UI-013'],
+  ['ops-vlm-containment', 'UI-022'], ['client-preview-redaction-review', 'CLIENT-018'],
+];
+for (const [name, id] of workspaces) {
+  const verifier = 'verify_v220_' + name.replaceAll('-', '_') + '.mjs';
+  const command = 'verify-v220-' + name;
+  test('UI-WORKSPACE-DOC-01 ' + name + ' 역사 기록 없이 현재 정의 검사', () => expect(verifier, [], 0));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 제목 변경 허용', () => expect(verifier, [{file: guide, headings: true}], 0));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 현재 문서 누락', () => expect(verifier, [{file: guide, empty: true}], 1));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 명령 안내 누락', () => expect(verifier, [{file: guide, remove: command}], 1, '명령'));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 실제 dispatch 오류',
+    () => expect(verifier, [{file: 'server.sh', remove: verifier, replace: 'wrong_workspace.mjs'}], 1, 'dispatch'));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 현행 기능 ID 누락',
+    () => expect(verifier, [{file: 'docs/project-feature-test-inventory.md', remove: '| ' + id + ' |'}], 1, id));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 중복 기능 정의 거부', () => {
+    const row = fs.readFileSync(root + 'docs/project-feature-test-inventory.md', 'utf8').split('\n').find(line => line.startsWith('| ' + id + ' |'));
+    assert(row);
+    expect(verifier, [{file: 'docs/project-feature-test-inventory.md', append: '\n' + row + '\n'}], 1, id);
+  });
+  test('UI-WORKSPACE-DOC-02 ' + name + ' UI 정책 링크 누락',
+    () => expect(verifier, [{file: guide, remove: 'manual-ui-fulltest.md'}], 1, '링크'));
+  test('UI-WORKSPACE-DOC-02 ' + name + ' 중복 dispatch 거부', () => {
+    const append = '\n  ' + command + ')\n    require_internal ' + verifier + '\n    exec node "${INTERNAL_DIR}/' + verifier + '" "$@"\n    ;;\n';
+    expect(verifier, [{file: 'server.sh', append}], 1, 'dispatch');
+  });
+}
+
+const criteriaVerifier = 'verify_v290_ui_fulltest_criteria_freeze.mjs';
+test('UI-CRITERIA-DOC-01 종료 원장 없이 현재 UI 기준 검사', () => expect(criteriaVerifier, [], 0));
+test('UI-CRITERIA-DOC-01 문서 제목 변경 허용', () => expect(criteriaVerifier,
+  ['fulltest', 'checklist', 'result-template'].map(name => ({file: 'docs/manual-ui-' + name + '.md', headings: true})), 0));
+for (const file of ['docs/manual-ui-fulltest.md', 'docs/manual-ui-checklist.md', 'docs/manual-ui-result-template.md']) {
+  test('UI-CRITERIA-DOC-02 현행 문서 누락 ' + file, () => expect(criteriaVerifier, [{file, empty: true}], 1));
+}
+test('UI-CRITERIA-DOC-02 UI 정책 식별자 누락', () => expect(criteriaVerifier,
+  [{file: 'docs/manual-ui-fulltest.md', remove: 'policyValidationResult'}], 1, 'UI 정책'));
+for (const id of ['OPS-046', 'SAFE-076']) {
+  test('UI-CRITERIA-DOC-02 정확한 기능 정의 누락 ' + id, () => expect(criteriaVerifier,
+    [{file: 'docs/project-feature-test-inventory.md', remove: '| ' + id + ' |'}], 1, id));
+}
+test('UI-CRITERIA-DOC-02 dispatch 변경 거부', () => expect(criteriaVerifier,
+  [{file: 'server.sh', remove: criteriaVerifier, replace: 'wrong_criteria.mjs'}], 1, 'dispatch'));
+test('UI-CRITERIA-DOC-03 raw JSON 증거 금지 완화 거부', () => expect(criteriaVerifier,
+  [{file: 'test/fixtures/ui_fulltest_evidence_policy_v4.json', remove: '"raw-json-only",'}], 1, 'raw material'));
+test('UI-CRITERIA-DOC-03 정책 검사와 실제 UI PASS 혼동 거부', () => expect(criteriaVerifier,
+  [{file: 'test/fixtures/ui_fulltest_evidence_policy_v4.json', remove: '"policyVerifierPassIsUiFulltestPass": false', replace: '"policyVerifierPassIsUiFulltestPass": true'}], 1, 'UI PASS'));
+
+const workspaceFailures = [
+  ['auth-setup-redesign', 'src/ingress/product_ui_auth_pages.cpp', 'data-testid="auth-login-form"', 'stable form test ids'],
+  ['auth-setup-redesign', 'src/ingress/product_ui_auth_pages.cpp', 'name="currentPassword"', 'field names'],
+  ['auth-setup-redesign', 'src/ingress/webrtc_http_server_runtime.cpp', 'auth::SaveBootstrapAdmin', 'auth route guard'],
+  ['client-live-redesign', 'src/ingress/product_ui_client_scripts.cpp', 'data-viewer-redaction="source-url-hidden"', 'viewer redaction markers'],
+  ['client-live-redesign', 'src/ingress/product_ui_client_css.cpp', '.client-live-video-grid', 'responsive Client'],
+  ['ops-workspace-redesign', 'src/ingress/product_ui_server_pages.cpp', 'id="dashRootCauseList"', 'existing JS hooks'],
+  ['ops-workspace-redesign', 'src/ingress/product_ui_css.cpp', 'grid-template-columns: 34px minmax(0, 1fr);', 'mobile grid template missing'],
+  ['rules-workspace-redesign', 'src/ingress/product_ui_server_pages.cpp', 'id="opsRulesComposerSave"', 'existing rules hooks'],
+  ['ops-channels-workspace', 'src/ingress/webrtc_http_server.cpp', 'data-channel-task="list"', 'first primary task'],
+  ['ops-channels-workspace', 'src/ingress/webrtc_http_server.cpp', 'data-scope-contract="view-read-scopes-unchanged"', 'source/view management boundary'],
+  ['ops-users-access-workspace', 'src/ingress/product_ui_ops_users_script.cpp', '/ops/api/access-requests', 'approval hooks'],
+  ['ops-users-access-workspace', 'src/ingress/product_ui_auth_pages.cpp', 'data-access-route="invite-setup"', 'without field renames'],
+  ['ops-vlm-containment', 'src/ingress/product_ui_page_scripts.cpp', 'runtimeCallAllowed === false', 'no-auto-start'],
+  ['ops-vlm-containment', 'src/ingress/product_ui_server_pages.cpp', 'id="opsVlmExternalTransferWarningAck"', 'Privacy task'],
+  ['client-preview-redaction-review', 'src/ingress/webrtc_http_server.cpp', 'data-admin-preview-state=', 'CLIENT-018 exact'],
+  ['client-preview-redaction-review', 'scripts/internal/verify_ops_client_ui_smoke.mjs', 'client-events-rendered-leak', 'UI smoke forbids'],
+];
+for (const [name, file, remove, reason] of workspaceFailures) {
+  test('UI-WORKSPACE-DOC-03 ' + name + ' 기존 실패 전파 ' + remove, () => {
+    assert(fs.readFileSync(root + file, 'utf8').includes(remove), '반례 대상 식별자 존재: ' + file);
+    expect('verify_v220_' + name.replaceAll('-', '_') + '.mjs', [{file, remove}], 1, reason);
   });
 }

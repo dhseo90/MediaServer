@@ -1,80 +1,63 @@
-# Manual UI Result Template
+# UI 풀테스트 결과 템플릿
 
-S10 3C-4 C419~425는 요청 사실 보존의 내부 단기 검증이다. 신규 UI 비대상이며 실제 영상 범위·재생 가능·UI PASS를 증명하지 않는다.
+실제 실행 결과를 기록하는 양식이다. 빈칸·`미실행`·`PASS/FAIL`은 준비 상태이며 PASS가 아니다.
+기준은 [Policy v4](manual-ui-fulltest.md#policy-v4-증거-적격-기준),
+순서는 [체크리스트](manual-ui-checklist.md), exact ID/기대값은
+[기능 테스트 정의](project-feature-test-inventory.md)를 따른다.
+소스 버전은 [VERSION](../VERSION)을 읽는다. 과거 결과를 현재 기대값이나 PASS로 복사하지 않는다.
 
-S10 3C-5A C501~508은 실제 파일 시간 측정용 내부 단기 검사로 UI 비대상이며 파생 기능 완료 PASS가 아니다.
+baseline 424개는 `test/fixtures/project_feature_implementation_evidence.json`의
+`manualUiCaseId`·`uiEvidence.screenRoute`·product UI anchor와 대조한다.
+전체는 녹화8을 더한 432개다. 각 기능 행에 route/control/action, requested/observed role·scope,
+viewport/theme, UTC, 전후 상태와 completion oracle, artifact 경로·hash·redaction·provenance를 연결한다.
+구조 검사와 실제 증거 판정은 별개다. 유효한 FAIL 보고서도 보존하며 검사 exit 0을 UI PASS로 쓰지 않는다.
+명령·원출력·개별 관측값은 실행 단위 자료 한 곳에 두고 필요한 링크만 적는다.
 
-S10 3C-4 C401~418은 내부 opt-in 소비자 연결이며 신규 UI 비대상이다. 실제 producer 단기 PASS가 UI 풀테스트 PASS는 아니다.
+<a id="v410-녹화-8개-id-action별-결과"></a>
 
-S10 3C-3C C341~356은 내부 원본 참조 저장이며 신규 UI 비대상이다. focused·복구 검증을 UI 전체 PASS로 확대하지 않는다.
-
-S10 3C-3B C321~336은 내부 writer/ready 결박이며 신규 UI 비대상이다. 실제 영상 단기 검증도 UI 전체 PASS가 아니다.
-
-S10 3C-3A C301~320은 내부 저장 결박이며 신규 UI 비대상이다. metadata 검증을 실제 writer/ready/UI PASS로 확대하지 않는다.
-
-S10 3C-2 C201~216은 내부 구간 해석이며 신규 UI 비대상이다. 실제 UI 결과를 대체하지 않는다.
-
-S10 3C-1 C101~112는 내부 원본·분석 연관이며 신규 UI 비대상이다. 단기 결과를 실제 UI PASS로 대체하지 않는다.
-
-
-S10 후속 3B B01~23: 신규 UI 비대상. 내부 단기 검증 결과는 중앙 기록에 보존한다.
-S10 후속 3A LOC01~14: 내부 위치 해석으로 UI 비대상. 실제 UI 실행 결과가 아니다.
-S10 후속 2번 INPUT01~10/WR01~09: 내부 기능으로 신규 UI 비대상. 단기 입력·writer 결과는
-중앙 기록에 남기고 이 UI 결과표의 PASS로 대신하지 않는다.
-
-이 템플릿은 인앱 브라우저 direct 실행 또는 `AGENTS.md` 7.6.3 Policy v4 qualifier를
-통과한 actual browser automation으로 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
-screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니다.
-기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
-기능별 UI 필요 여부와 테스트 영역은
-[project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
-[manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
-baseline 결과 행의 exact-ID 집합은 `test/fixtures/project_feature_implementation_evidence.json`의
-UI 테스트 영역 424개 `manualUiCaseId`이며, 각 행에 대응하는 `uiEvidence.screenRoute`와
-product UI anchor를 route/control/action evidence로 함께 기록합니다.
-
-## v4.1.0 녹화 8개 ID action별 결과
+## 녹화 8개 ID action별 결과
 
 현재 전체 대상은 기존 baseline 424개와 아래 녹화 8개 ID의 합집합인 432개입니다.
 기존 canonical/native manifest와 baseline 결과표를 보존합니다. 424 qualifier PASS는
-baseline만 뜻하며 아래 action 전수와 AGENTS 7.6.3 공통 조건을 메인이 별도 판정합니다.
+baseline만 뜻하며 아래 action 전수와 Policy v4 공통 조건을 메인이 별도 판정합니다.
 한 ID의 여러 action은 각각 기록하고 ID 수에 중복 가산하지 않습니다.
 아래 미실행은 준비 상태이며 실행 결과는 pass/fail로 기록합니다. 최종 실행하지 못한
-대상은 FAIL이며 승인된 제외만 별도 제외 기록으로 옮깁니다. 과거 PASS는 이월하지 않습니다.
+대상은 미실행으로 유지하며 전체 suite 미충족으로 판정합니다. 승인 제외는 별도 기록합니다.
+과거 PASS의 일괄 승계는 금지하며 기존 증거의 재사용은 diff·source·환경·검증 경계로 판단합니다.
 
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
 | --- | --- | --- | --- |
-| V410-S06-I27 | 정상 필터: 채널·시작·끝 입력 후 조회, 요청 범위와 목록 일치; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I27 | 빈값·빈 결과: 필수값 비움 거부와 데이터 없는 채널/범위의 빈 결과를 각각 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I27 | 역전 시간: 시작>종료 조회를 거부하고 올바른 시간 안내; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I27 | 페이지: 다음·이전 조작과 범위·개수·선택 상태 반영; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I28 | 이벤트 우선: 겹치는 event 기본 선택과 종류·시간·우선 badge 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I29 | 원본: 원본 보기 펼침·접기 및 continuous 선택, 해당 미디어와 원본 관계 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I30 | 재생: 네이티브 재생 조작 후 실제 영상 표시와 currentTime 진행; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I30 | 정지: 일시정지 조작 후 paused 상태와 시간 진행 중단; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I30 | 탐색: 실제 탐색 control 조작 후 시간·영상 반영 및 Range 응답 상관; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | partial: completeness의 일부 구간 표시 및 재생 가능 여부 확인; 정확한 missingRanges 표출은 요구하지 않음. 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | 삭제: 실제 삭제 fixture가 참조된 event의 공통 재생 불가 안내 및 재생 차단 확인; 삭제 segment 자체의 목록 표출은 요구하지 않음. 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지; 손상 fixture와 별도 확인 |
-| V410-S06-I31 | 손상: 실제 손상 fixture의 공통 재생 불가 안내 및 재생 차단 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지; 삭제 fixture와 별도 확인 |
-| V410-S06-I31 | 미완결 event: 실제 Pending link·미생성 media fixture의 안내 및 재생 차단 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | Writing segment 검증으로 대체하지 않음. Writing 재생 금지는 내부 안전성 V410-S06-I08 및 verify-v410-recording-timeline --read-model 참조 |
-| V410-S06-I31 | 공백: 녹화 공백 표시와 선택 영상 해제·오인 재생 방지; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | 오류: 조회/서버 오류 안내와 stale 재생 상태 처리; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I32 | quota: continuous/event 용량·상한을 실제 조회 값과 대조; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I32 | 활성: 실제 녹화 활성·비활성 전이와 상태 카드 반영; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I32 | blocked: 실제 storage-blocked 상태와 안내 반영; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I33 | navigation: 기존 primary nav·테마·배치 유지, 녹화 범위에 신규 nav/자연어·vector 입력 추가 없음; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | admin: 실제 admin 로그인으로 녹화 화면·허용 자료 접근; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | operator scope: 실제 operator 허용 채널 접근 및 다른 채널 자료·직접 미디어 접근 거부; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | viewer·미인증: 각 실제 계정/세션 상태에서 녹화 화면 접근 제한 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | redaction: 내부 경로·source URL·raw debug·credential/session/hash 비노출; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 320 light: 실제 320px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 320 dark: 실제 320px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 390 light: 실제 390px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 390 dark: 실제 390px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 760 light: 실제 760px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 760 dark: 실제 760px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 1180 light: 실제 1180px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I34 | 1180 dark: 실제 1180px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I27 | 정상 필터: 채널·시작·끝 입력 후 조회, 요청 범위와 목록 일치 | 미실행 |  |
+| V410-S06-I27 | 빈값·빈 결과: 필수값 비움 거부와 데이터 없는 채널/범위의 빈 결과를 각각 확인 | 미실행 |  |
+| V410-S06-I27 | 역전 시간: 시작>종료 조회를 거부하고 올바른 시간 안내 | 미실행 |  |
+| V410-S06-I27 | 페이지: 다음·이전 조작과 범위·개수·선택 상태 반영 | 미실행 |  |
+| V410-S06-I28 | 이벤트 우선: 겹치는 event 기본 선택과 종류·시간·우선 badge 확인 | 미실행 |  |
+| V410-S06-I29 | 원본: 원본 보기 펼침·접기 및 continuous 선택, 해당 미디어와 원본 관계 확인 | 미실행 |  |
+| V410-S06-I30 | 재생: 네이티브 재생 조작 후 실제 영상 표시와 currentTime 진행 | 미실행 |  |
+| V410-S06-I30 | 정지: 일시정지 조작 후 paused 상태와 시간 진행 중단 | 미실행 |  |
+| V410-S06-I30 | 탐색: 실제 탐색 control 조작 후 시간·영상 반영 및 Range 응답 상관 | 미실행 |  |
+| V410-S06-I31 | partial: completeness의 일부 구간 표시 및 재생 가능 여부 확인; 정확한 missingRanges 표출은 요구하지 않음 | 미실행 |  |
+| V410-S06-I31 | 삭제: 실제 삭제 fixture가 참조된 event의 공통 재생 불가 안내 및 재생 차단 확인; 삭제 segment 자체의 목록 표출은 요구하지 않음 | 미실행 | 손상 fixture와 별도 확인 |
+| V410-S06-I31 | 손상: 실제 손상 fixture의 공통 재생 불가 안내 및 재생 차단 확인 | 미실행 | 삭제 fixture와 별도 확인 |
+| V410-S06-I31 | 미완결 event: 실제 Pending link·미생성 media fixture의 안내 및 재생 차단 확인 | 미실행 | Writing segment 검증으로 대체하지 않음. Writing 재생 금지는 내부 안전성 V410-S06-I08 및 verify-v410-recording-timeline --read-model 참조 |
+| V410-S06-I31 | 공백: 녹화 공백 표시와 선택 영상 해제·오인 재생 방지 | 미실행 |  |
+| V410-S06-I31 | 오류: 조회/서버 오류 안내와 stale 재생 상태 처리 | 미실행 |  |
+| V410-S06-I32 | quota: continuous/event 용량·상한을 실제 조회 값과 대조 | 미실행 |  |
+| V410-S06-I32 | 활성: 실제 녹화 활성·비활성 전이와 상태 카드 반영 | 미실행 |  |
+| V410-S06-I32 | blocked: 실제 storage-blocked 상태와 안내 반영 | 미실행 |  |
+| V410-S06-I33 | navigation: 기존 primary nav·테마·배치 유지, 녹화 범위에 신규 nav/자연어·vector 입력 추가 없음 | 미실행 |  |
+| V410-S06-I34 | admin: 실제 admin 로그인으로 녹화 화면·허용 자료 접근 | 미실행 |  |
+| V410-S06-I34 | operator scope: 실제 operator 허용 채널 접근 및 다른 채널 자료·직접 미디어 접근 거부 | 미실행 |  |
+| V410-S06-I34 | viewer·미인증: 각 실제 계정/세션 상태에서 녹화 화면 접근 제한 확인 | 미실행 |  |
+| V410-S06-I34 | redaction: 내부 경로·source URL·raw debug·credential/session/hash 비노출 | 미실행 |  |
+| V410-S06-I34 | 320 light: 실제 320px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 320 dark: 실제 320px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 390 light: 실제 390px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 390 dark: 실제 390px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 760 light: 실제 760px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 760 dark: 실제 760px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 1180 light: 실제 1180px light 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
+| V410-S06-I34 | 1180 dark: 실제 1180px dark 전환 후 전체 video/controls·날짜·checkbox·잘림·대비·focus·접근성 확인 | 미실행 |  |
 
 각 행에 requested/observed role·scope, viewport/theme, 전후 상태와 completion oracle,
 screenshot/trace/log 경로·hash·redaction·provenance를 연결합니다. auth-off 준비 fixture는
@@ -86,15 +69,14 @@ unapproved error/warning 0, manual intervention 0, PID/port/temp cleanup 및 rev
 
 ## 검수 메타데이터
 
-## v4.1.0 Release Evidence Index
-
 - run id:
 - 검수자:
 - 날짜/시간:
-- 브랜치/커밋:
+- source version (VERSION):
+- 브랜치/커밋/worktree diff/build hash:
 - 서버 URL:
 - auth mode:
-- users/source/view/analysis fixture:
+- users/source/view/analysis/event/snapshot/clip/recording/audit fixture:
 - 데이터 리셋 방법:
 - evidence mode: direct-browser / qualified-native-automation / hybrid
 - browser/adapter/engine/version:
@@ -128,10 +110,10 @@ unapproved error/warning 0, manual intervention 0, PID/port/temp cleanup 및 rev
 
 | 영역 | 실행 범위 | evidence | 기록 |
 | --- | --- | --- | --- |
-| 안정화 테스트 | 로드맵 스텝 종료 및 30분/120분/UI 테스트 전 선수 확인 | 명령, exit code, summary/report | 실행 여부, exit code, 실패 사유 |
+| 안정화 테스트 | 변경 영향 회귀 및 30분/120분/UI 테스트 전 선수 확인 | 명령, exit code, summary/report | 실행 여부, exit code, 실패 사유 |
 | 30분 테스트 | `verify-predev --soak-minutes 30`, 장기간 테스트 기본값/버전 완료 soak | summary/report/log | 실행 여부, summary/report/log |
 | 120분 테스트 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, 메모리 릭 감시 필요 시 | summary/report/log | 실행 여부, summary/report/log |
-| UI 풀테스트 | 버전 완료 후 direct-browser 또는 Policy v4-qualified actual-browser 조작, 반응형, 시각 품질 | evidence mode, exact 기능별 실제 조작, completion oracle, role/viewport/theme, 로그/EventRecord, screenshot/trace/console/server-log/visual artifact, replay/cleanup | PASS/FAIL |
+| UI 풀테스트 | 432개 UI 대상 기능 ID 중 N PASS, M FAIL, K 미실행; 별도 승인 제외 집계. direct-browser 또는 Policy v4-qualified actual-browser 조작, 반응형, 시각 품질 | evidence mode, exact 기능별 실제 조작, completion oracle, role/viewport/theme, 로그/EventRecord, screenshot/trace/console/server-log/visual artifact, replay/cleanup | PASS/FAIL |
 
 Policy v4 자동화/혼합 evidence 요약:
 
@@ -161,9 +143,7 @@ Policy v4 자동화/혼합 evidence 요약:
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| 기능 목록 freeze | `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`, `docs/v390-feature-completion-inventory.md`, 기능 ID 목록 확인 |  | PASS/FAIL |  |
-| v3.9 required closeout | `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`가 manual UI 기준서/current 시작 조건/coverage bridge로 반영되고 `verify-manual-ui-evidence`가 통과 |  | PASS/FAIL |  |
-| v3.5-v3.8 coverage bridge | v3.5~v3.8 UI/control/action 대상이 `project-feature-test-inventory.md` delegation으로 연결됨 |  | PASS/FAIL |  |
+| 기능 목록 freeze | 현재 inventory·baseline 424 + 녹화8, route/control/action 기대값 대조 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -182,91 +162,6 @@ Policy v4 자동화/혼합 evidence 요약:
 - retained artifact로 재판정 가능한 항목:
 - retained artifact가 부족해 미확인으로 남길 항목:
 
-## v3.9.0 Required Closeout 기록 기준
-
-이 표는 이번 source-only Required Closeout의 문서/test-source evidence를 기록하는
-자리입니다. 아래 항목은 실제 인앱 브라우저 UI 풀테스트, 30분, 120분, published
-metadata, release action PASS를 뜻하지 않습니다.
-
-| Closeout ID | 준비 기준 | 확인 evidence | 판정 |
-| --- | --- | --- | --- |
-| V390-REQ-001 | `manual-ui-fulltest.md`, `manual-ui-checklist.md`, 이 템플릿이 `v3.9.0` current release target과 historical v2.x/v3.x material을 분리 | `./server.sh verify-manual-ui-evidence`, `./server.sh verify-docs-links` | PASS/FAIL |
-| V390-REQ-002 | 긴 테스트 시작 조건이 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건을 기준으로 함 | 시작 조건 표, `docs/release-test-records.md` 미실행/제외 기록 | PASS/FAIL |
-| V390-REQ-003 | `v3.5-v3.8 UI coverage bridge`가 project feature inventory의 UI/control/action rows로 위임됨 | `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-project-inventory` | PASS/FAIL |
-
-| Release range | Delegated UI/control/action rows | 결과 기록 방식 |
-| --- | --- | --- |
-| v3.5 | `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-| v3.6 | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-| v3.7 | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-| v3.8 | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-
-## v2.2.0 UI Evidence Close-out 기록 기준
-
-이 표는 새 로드맵 기준에 맞춘 close-out 준비 기록입니다. 기능 inventory와 문서
-연결은 실행 evidence가 아니며, 실제 UI 풀테스트 판정은 아래 `UI 풀테스트 기록`의
-개별 기능 행에서만 `PASS` 또는 `FAIL`로 씁니다.
-
-| 로드맵 항목 | 준비 기준 | 실행 evidence | 판정 |
-| --- | --- | --- | --- |
-| V220-F02 | `/ops/sources` 채널 목록/source detail/ONVIF/WHEP/WHIP/PublishedView/audit row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
-| V220-F03 | `/ops/users`, `/client/request-access`, `/invite/setup` 사용자/초대/승인/role/scope/audit row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
-| V220-F04 | `/ops/vlm` privacy/default-off/profile state/Ops-only raw debug row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
-| V220-F05 | `/client/live`, `/client/dashboard`, `/client/events` admin preview/viewer-safe 비노출 row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
-| V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 연결 | 안정화 verifier: `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence` | PASS/FAIL |
-
-- F06 문서/verifier PASS:
-- 30분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
-- 120분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
-- 인앱 브라우저 UI 풀테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
-- 실기기/외부 credential 조건: 별도 테스트 영역으로 쓰지 않고 안정화/UI 제외 기록에 사유
-
-## v2.7.0 Historical Release Evidence Index
-
-이 섹션은 historical release UI gate에서 직접 조작 evidence를 route/control/action
-단위로 남기는 자리입니다. 현재 v3.9.0 gate는 위의 `v3.9.0 Release Evidence Index`와
-`v3.9.0 Required Closeout 기록 기준`을 사용합니다. 자동 smoke나 raw JSON 확인만으로
-채우지 않습니다.
-카테고리 묶음 판정은 금지합니다.
-
-| route | 직접 조작 | 반영 상태/로그 확인 | 판정 | 증적 |
-| --- | --- | --- | --- | --- |
-| `/setup` |  |  | PASS/FAIL |  |
-| `/login` |  |  | PASS/FAIL |  |
-| `/ops/home` |  |  | PASS/FAIL |  |
-| `/ops/dashboard` |  |  | PASS/FAIL |  |
-| `/ops/sources` |  |  | PASS/FAIL |  |
-| `/ops/users` |  |  | PASS/FAIL |  |
-| `/ops/events` | Incident Triage Board, Decision scorecard, Operational Action Pack, Rule What-if Preview, Operator outcome memory | EventRecord/audit/log, redaction badge, source/raw/provider 비노출, client/viewer 비노출 | PASS/FAIL |  |
-| `/ops/rules` | Rule What-if Preview draft-only context, manual save 전 registry write 없음 | rule form state/log, 기존 event type/schema 유지 | PASS/FAIL |  |
-| `/client/live` | client/viewer 비노출 재확인 | source locator/raw/debug/provider material 없음 | PASS/FAIL |  |
-| `/client/dashboard` | client/viewer 비노출 재확인 | incident digest viewer-safe summary만 표시 | PASS/FAIL |  |
-| `/client/events` | client/viewer 비노출 재확인 | incident digest viewer-safe summary만 표시 | PASS/FAIL |  |
-
-- 직접 열어보지 않은 화면:
-- 실패 후 재검수한 화면:
-- raw JSON/API-only 또는 자동 smoke만 확인한 항목:
-- UI 풀테스트 직접 조작 미실행 항목:
-
-## v2.9.0 UI Fulltest Criteria Freeze
-
-이 섹션은 S05 기준 freeze입니다. 실제 UI 풀테스트 PASS가 아니라, UI 풀테스트를
-실행할 때 빠뜨리면 안 되는 route/control/action/role/viewport/theme 기준을 고정합니다.
-raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로
-쓰지 않습니다.
-
-| 기준 | 대상 | 기록 방식 | 판정 |
-| --- | --- | --- | --- |
-| route | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`, `/client/request-access` | 실제로 열고 직접 조작한 화면만 evidence index와 기능 ID 행에 기록 | PASS/FAIL |
-| role | admin, operator, viewer, integrator | route guard, 허용/거부 landing, client/viewer redaction을 계정별로 기록 | PASS/FAIL |
-| viewport/theme | 320px, 390px, 760px, 1180px, light, dark | overflow, clipping, contrast, focus/hover/selected/disabled 상태를 화면별로 기록 | PASS/FAIL |
-| controls/actions | nav/tab/button/menu/details, textbox/textarea/password, select/checkbox/toggle/segmented control, copy/export/preview/play/stop/reconnect | 클릭/타이핑/선택과 반영 상태, 로그/EventRecord 대조를 개별 기능 ID로 기록 | PASS/FAIL |
-
-- 자동 smoke로만 확인한 route/control/action:
-- raw JSON/API-only로만 확인한 기능 ID:
-- screenshot-only 또는 Chrome fallback-only 항목:
-- 인앱 브라우저 직접 조작 미실행 항목:
-
 ## 현재 보존 증적
 
 아래 표에는 최종 판정에 사용하는 retained artifact만 적습니다. command log에
@@ -278,6 +173,9 @@ raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스�
 | Auth/browser evidence |  | exists/FAIL |
 | Ops click E2E summary |  | exists/FAIL |
 | EventRecord history coverage |  | exists/FAIL |
+| UI screenshot/trace/console |  | exists/FAIL |
+| Policy/visual/redaction evidence |  | exists/FAIL |
+| 녹화 action/role/viewport evidence |  | exists/FAIL |
 
 ## 스크립트 테스트 기록
 
@@ -338,7 +236,8 @@ VLM queue/backpressure, memory/runtime cache, provider timeout, model install st
 ## VA Seed / 최종 룰 상태
 
 기준 fixture는 `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`입니다.
-이 표는 seed를 실제 서버에 적용하고 UI에서 확인했을 때만 채웁니다.
+실제 상태와 실행 결과는 seed를 서버에 적용하고 UI에서 확인한 내용으로 채웁니다.
+미실행은 해당 상태와 사유를 기록하며 빈칸을 PASS로 승인하지 않습니다.
 준비 단계에서 `./server.sh prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline`을 실행한
 경우에는 아래 준비 검증에만 기록합니다. dry-run은 HTTP 요청 0건이며 UI/event
 evidence가 아닙니다.
@@ -356,6 +255,8 @@ evidence가 아닙니다.
   - EventRecord JSON Lines:
   - snapshot dir:
   - clip dir:
+  - recording storage root:
+  - audit path:
 
 | 개별 항목 | 기대 상태 | 실제 상태 | 판정 |
 | --- | --- | --- | --- |
@@ -416,7 +317,7 @@ evidence가 아닙니다.
 `/ops/rules` 저장 성공은 이벤트 발생 evidence가 아닙니다. UI 풀테스트 후에는
 admin/operator 권한으로 `/ops/events`를 직접 열고, 최종 enabled event
 template/vaRule별 EventRecord 발생 이력을 대조합니다. 파일/API 대조는 보조
-evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
+evidence이며, UI에서 열지 않았다면 미실행으로 남겨 전체 suite 미충족을 표시합니다.
 `line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse`처럼 event key를
 개별 행으로 기록하고 묶음 PASS로 대체하지 않습니다.
 
@@ -443,6 +344,7 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `zone-occupancy` |  |  |  |  | 최소 1개 EventRecord, scenarioName/scenarioPhase 또는 scenario type 표시 | PASS/FAIL |
 
 - missing event types:
+- VA 미실행 사유:
 - missing template/rule ids:
 - missing vaRule ids:
 - sample/video 한계:
@@ -470,36 +372,12 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/client/events` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
 
-## v2.4.0 Release Evidence Index
-
-자동 smoke나 raw JSON 확인만으로 채우지 않습니다. 실제로 열고 클릭한 화면만
-`PASS` 후보가 될 수 있고, 열지 않은 개별 기능은 `FAIL`입니다.
-
-| route | 계정/권한 | 직접 조작 | screenshot/artifact | 연결 자동 검증 | 판정 | 실패 사유 |
-| --- | --- | --- | --- | --- | --- | --- |
-| `/setup` | unauth |  |  | `verify-auth-bootstrap` | PASS/FAIL |  |
-| `/login` | unauth |  |  | `verify-auth-bootstrap` | PASS/FAIL |  |
-| `/ops/home` | admin/operator | Home 화면 진입/요약 카드 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
-| `/ops/dashboard` | admin/operator | Dashboard 화면 진입/상태 카드 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
-| `/ops/sources` | admin/operator | Channels 화면 진입/source table 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
-| `/ops/rules` | admin/operator | Rules 화면 진입/validation 확인 |  | `verify-rule-ui` | PASS/FAIL |  |
-| `/ops/users` | admin | Users 화면 진입/user table 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
-| `/ops/events` | admin/operator | Events 화면 진입/EventRecord review 확인 |  | `verify-ops-event-records-scope` | PASS/FAIL |  |
-| `/ops/vlm` | admin/operator | VLM install/profile/privacy 화면 진입 및 controls 확인 |  | `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` | PASS/FAIL |  |
-| `/client/live` | viewer/admin preview | Live 화면 진입/source 선택/drag-drop 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
-| `/client/dashboard` | viewer/admin preview | Dashboard 화면 진입/view 상태 확인 |  | `verify-client-dashboard-polish` | PASS/FAIL |  |
-| `/client/events` | viewer/admin preview | viewer scope events와 VLM internal card 비노출 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
-
-- 직접 열어보지 않은 화면:
-- 실패 후 재검수한 화면:
-- raw JSON/API-only로만 확인한 항목:
-- client/viewer 비노출 재확인:
-
 ## 기능별 직접 조작 기록
 
 기능 ID는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 ID를
 사용합니다. route를 열었더라도 해당 기능 ID의 control/action을 직접 조작하지
-않았으면 `FAIL`로 남깁니다. 카테고리 묶음 판정은 금지합니다. 아래 행은 예시이며,
+않았으면 미실행으로 남깁니다. 실제 조작 실패는 FAIL과 관측값을 기록합니다.
+카테고리 묶음 판정은 금지합니다. 아래 행은 예시이며,
 실제 결과 문서에서는 inventory의 대상 기능 ID를 빠짐없이 한 행씩 추가합니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
@@ -521,12 +399,14 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 - invite setup 후 `/ops/home` 결과:
 - 거절 flow 실행 여부:
 
-## Chrome Auth 입력 Evidence
+## Auth 입력 증거
 
 비밀번호 원문, invite token 원문, session cookie, 브라우저 generated password
 suggestion은 기록하지 않습니다.
 
-Auth verifier 선수 조건:
+Auth verifier 선수 조건(내부 전달 이름의 SET/MISSING만 기록):
+격리 실행마다 안전한 난수 5개를 생성·주입하며 사용자 지정을 요구하지 않습니다.
+안전한 생성·주입이 없으면 준비 실패와 UI 미실행으로 기록하고 원문은 남기지 않습니다.
 
 - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`: SET / MISSING
 - `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`: SET / MISSING
@@ -534,7 +414,7 @@ Auth verifier 선수 조건:
 - `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`: SET / MISSING
 - `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`: SET / MISSING
 
-| 화면 | fixture/users file | 직접 입력/제출 | 기대 결과 | artifact/screenshot | 대체 검증 | 판정 |
+| 화면 | fixture/users file | 직접 입력/제출 | 기대 결과 | artifact/screenshot | 관련 단기 검사 | 판정 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `/setup` | throwaway | weak password 제출 | 400/rejection copy |  | `./server.sh verify-auth-bootstrap` | PASS/FAIL |
 | `/setup` | throwaway | strong admin password 제출 | `/login` redirect |  | `./server.sh verify-auth-bootstrap` | PASS/FAIL |
@@ -543,13 +423,13 @@ Auth verifier 선수 조건:
 | `/invite/setup` | throwaway | invite password setup | viewer login 가능, ops forbidden |  | `./server.sh verify-auth-users` | PASS/FAIL |
 
 - Password change success/restoration detail:
-  - 시작 pw: 사용자 지정 테스트 pw / 기타
+  - 시작 pw: 실행 초기 임시 비밀번호(원문 기록 금지)
   - 임시 pw 변경 성공: PASS/FAIL
   - 임시 pw 로그인: PASS/FAIL
   - 즉시 원래 pw 재사용 거부: PASS/FAIL
   - `MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT`:
   - history eviction용 중간 변경 횟수:
-  - 최종 사용자 지정 테스트 pw 복원 로그인:
+  - 최종 임시 비밀번호 로그인(복원 검증은 선택):
   - 이전 임시 pw 로그인 거부:
   - failedLoginCount/lockedUntil 최종 상태:
 
@@ -558,11 +438,12 @@ Auth verifier 선수 조건:
 - 자동 smoke로 대체 확인한 항목:
 - 수동 auth 입력 미완료 항목:
 
-## Browser/Computer Use Fallback
+## 브라우저 fallback
 
+강제 도구 순서는 두지 않습니다. 실제 adapter·fallback·적격 여부를 Policy v4로 판단합니다.
 raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
-| 항목 | 1차 Browser Use | 2차 Chrome | 3차 Computer Use | 마지막 직접 확인 상태 | 대체 smoke | 판정 |
+| 항목 | 사용 adapter | fallback adapter | evidence mode | 마지막 직접 확인 상태 | 관련 smoke | 판정 |
 | --- | --- | --- | --- | --- | --- | --- |
 | auth 입력 |  |  |  |  |  | PASS/FAIL |
 | copy fallback |  |  |  |  |  | PASS/FAIL |
@@ -609,23 +490,21 @@ admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상�
 ## 제외 기록
 
 사용자가 의도적으로 UI 풀테스트 기준에서 제외하라고 한 항목만 적습니다.
-여기에 있는 항목은 PASS/FAIL 판정표에 넣지 않습니다.
+여기에 있는 항목은 PASS/FAIL 판정표에 넣지 않습니다. 제외로 전체 432개 suite를 충족했다고 하지 않습니다.
 
 | 항목 | 제외 이유 | 후속 확인 조건 |
 | --- | --- | --- |
 |  |  |  |
 
-## 문서 재작성/신규 작성/비교 병합
-
-- 재작성한 UI 풀테스트 관련 문서:
-- 새로 작성한 UI 풀테스트 문서:
-- 비교 결과:
-- 병합 결과:
-- 남은 중복:
-
 ## 최종 판정
 
 - 최종 결론: PASS 또는 FAIL
+- server cleanup: PASS/FAIL
+- port cleanup: PASS/FAIL
+- temp cleanup: PASS/FAIL
+- 미실행/unsupported/승인 제외/미해결 reviewRequired:
+- baseline: 424개 중 N PASS, M FAIL
+- recording: 8개 ID / 31개 action 중 결과별 수
 - PASS 조건: exact 대상 전수가 direct-pass 또는 automation-equivalent-pass,
   fail/notRun/unsupported/unapproved exclusion/manualIntervention 0, Policy v4 교차
   visual/반응형/theme/role/redaction/video/accessibility 의무 PASS
@@ -636,7 +515,7 @@ admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상�
 - 푸시 가능:
 - 푸시 수행 여부: 수행하지 않음
 
-결과 문서를 저장한 뒤 `./server.sh verify-manual-ui-evidence`와
+결과 문서를 저장한 뒤 `./server.sh verify-manual-ui-evidence --result <result.md>`와
 `./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <summary.json>`로 UI 풀테스트
 PASS/FAIL 이원화, 개별 기능 결과, 제외 기록, 대체 evidence 자격이 누락되지 않았는지
 점검합니다. Policy verifier PASS와 `uiFulltestPass`를 같은 값으로 쓰지 않습니다.

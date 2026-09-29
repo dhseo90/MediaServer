@@ -2300,7 +2300,7 @@
           "file": "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
           "symbol": "structural-oracle:ops-workspace-diagnostic-grid",
           "anchor": "if (!css.includes('.ops-workspace-diagnostic-grid')) throw new Error('ops workspace diagnostic grid missing');",
-          "line": 60,
+          "line": 58,
           "contextSha256": "afb458269633c75a8ab7bbc4e82105add5fceec6661459dc124fa45f88991c04"
         },
         "verifier": {
@@ -2340,20 +2340,20 @@
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
-          "witness": "ops-workspace-diagnostic-grid 1180px desktop exact CSS assertion",
+          "witness": "responsive CSS class presence assertion; not a 1180px browser observation",
           "source": "src/ingress/product_ui_css.cpp:4928",
-          "target": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:60"
+          "target": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:58"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v220-ops-workspace-redesign",
-          "source": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:60",
+          "source": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:58",
           "target": "server.sh:1805"
         }
       ],
-      "rationale": "UI-020 binds the responsive CSS state to the browser issue oracle."
+      "rationale": "UI-020은 CSS 상태와 정적 assertion의 연결만 입증하며 실제 브라우저·viewport 실행 증거를 대신하지 않는다."
     },
     {
       "id": "UI-021",
@@ -2398,8 +2398,8 @@
           "file": "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
           "symbol": "structural-oracle:grid-template-columns",
           "anchor": "if (!css.includes('grid-template-columns: 34px minmax(0, 1fr);')) throw new Error('ops workspace mobile grid template missing');",
-          "line": 61,
-          "contextSha256": "b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+          "line": 59,
+          "contextSha256": "84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
         },
         "verifier": {
           "file": "server.sh",
@@ -2440,18 +2440,18 @@
           "kind": "structural-producer-assertion",
           "witness": "grid-template-columns exact CSS assertion",
           "source": "src/ingress/product_ui_css.cpp:5012",
-          "target": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:61"
+          "target": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:59"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v220-ops-workspace-redesign",
-          "source": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:61",
+          "source": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:59",
           "target": "server.sh:1805"
         }
       ],
-      "rationale": "UI-021 binds the responsive CSS state to the browser issue oracle."
+      "rationale": "UI-021은 CSS 상태와 정적 assertion의 연결만 입증하며 실제 브라우저·viewport 실행 증거를 대신하지 않는다."
     },
     {
       "id": "UI-022",

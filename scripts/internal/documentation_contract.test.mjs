@@ -36,7 +36,9 @@ test('DOC-POL-04 UI 적격 식별자·판정 분리 누락은 실패', () => {
 test('DOC-POL-05 과거 원장·완료 문구 없이도 정의만으로 검사', () => {
   const a = '[기준](docs/stream-verification.md) [UI](docs/manual-ui-fulltest.md)';
   const v = verification.slice(verification.indexOf('## 검증 정책'), verification.indexOf('## 빠른 실행 경계'));
-  const u = fulltest.slice(fulltest.indexOf('## Policy v4 증거 적격 기준'), fulltest.indexOf('## 1. 정의'));
+  const policySection = fulltest.match(/^## Policy v4 증거 적격 기준\n([\s\S]*?)(?=^## |$(?![\s\S]))/m);
+  assert(policySection, '현행 UI 정책 절이 있어야 종료 원장 독립성 검사를 구성할 수 있음');
+  const u = policySection[1];
   assert.deepEqual(validateVerificationDocumentation({agents: a, verification: v}), []);
   assert.deepEqual(validateUiPolicyDocumentation({agents: a, fulltest: u, policy}), []);
 });

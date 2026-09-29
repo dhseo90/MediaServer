@@ -1331,7 +1331,7 @@
     {
       "id": "OPS-046",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "0cfdab0754e9227a8855d1d0e1b85f6e8b693116374d184e66547b2ab3c7bd61",
+      "featureContractSha256": "e525b241ebb5473c84a1d76fd153db880e417595156c7b9ef6ad1caa95ddf2ff",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "safe076BoundaryObserved",
       "verifier": {
@@ -1343,42 +1343,42 @@
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-owner:OPS-046",
           "anchor": "check(\"SAFE-076 canonical UI evidence boundary\", () => {",
-          "line": 156,
-          "contextSha256": "5da52f95f9fc236c49cef0f7ee11f0f3bde03229487225be66fa01af7c205f83"
+          "line": 117,
+          "contextSha256": "9aa676abaaf8b21c485f4e452582929d793ca32c41dfe5125c27cf9b26c0b7de"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-dispatch:OPS-046",
-          "anchor": "const uiCriteriaSource = normalizedManualDocs;",
-          "line": 157,
-          "contextSha256": "d6bbe5d213448333756f15d32a14138e7794e11e6833f9c34c33accfeea17fbc"
+          "anchor": "const uiCriteriaSource = policy.caseEquivalence?.forbiddenEvidenceKinds || [];",
+          "line": 118,
+          "contextSha256": "df79c12b82f5f1ffa84bb169c0106c905e52990e474323378801378bf2a0a33f"
         },
         "action": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-action:OPS-046",
-          "anchor": "const rawMaterialPromoted = !uiCriteriaSource.includes(\"raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.\");",
-          "line": 158,
-          "contextSha256": "b769c9f8ef339593f139db5461288cabcc763e07d6bbd46a9d3661191345cca3"
+          "anchor": "const rawMaterialPromoted = ['raw-json-only', 'api-only', 'static-smoke', 'screenshot-only'].some(kind => !uiCriteriaSource.includes(kind));",
+          "line": 119,
+          "contextSha256": "2ddffdc6bd7414d72c56448eeefaf3b7e6b9a131f57bda0d68243330b2499bfc"
         },
         "state": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-state:safe076BoundaryObserved",
           "anchor": "const safe076BoundaryObserved = serverSh.includes(\"verify-v290-ui-fulltest-criteria-freeze\") && rawMaterialPromoted === false;",
-          "line": 159,
-          "contextSha256": "25bbf113a98f9cdf39416a326381ecea92064d2774bae712a6d134bbc0827697"
+          "line": 120,
+          "contextSha256": "7a276e99478c77f506502b690079ce02a7efd982ccfa697833980d320e291137"
         },
         "readback": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-readback:verify-v290-ui-fulltest-criteria-freeze",
           "anchor": "assert(safe076BoundaryObserved && rawMaterialPromoted === false,",
-          "line": 160,
+          "line": 121,
           "contextSha256": "93eabae628725074d378de53b836a3e613e77e447be762b25e68182f6e059ec8"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v290-ui-fulltest-criteria-freeze",
           "anchor": "verify-v290-ui-fulltest-criteria-freeze)",
-          "line": 1877,
+          "line": 2038,
           "contextSha256": "da540565096197203eb9e67e5f31289b7427d3eb646b28e541e161b6203eadf4"
         }
       },
@@ -1388,40 +1388,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-046 owner-dispatch",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:156",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:157"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:117",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:118"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-046 dispatch-action",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:157",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:158"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:118",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:119"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-046 action-state",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:158",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:159"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:119",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:120"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-046 state-readback",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:159",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:160"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:120",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:121"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v290-ui-fulltest-criteria-freeze",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:160",
-          "target": "server.sh:1877"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:121",
+          "target": "server.sh:2038"
         }
       ],
       "rationale": "OPS-046 exact reviewed source flow.",
@@ -22645,7 +22645,7 @@
     {
       "id": "SAFE-076",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "9919344d284ffa1a4bf87941297fedd187bc2615fc701956e7b831ee7157d402",
+      "featureContractSha256": "652c17923dfcbbd2567adfb9eea2b0f458934ed9e00a359ef572e90b7e4a7ce6",
       "evidenceMode": "actual-canonical-policy-safe-076",
       "evidenceToken": "safe076BoundaryObserved",
       "verifier": {
@@ -22657,42 +22657,42 @@
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-safe-076-boundary",
           "anchor": "check(\"SAFE-076 canonical UI evidence boundary\", () => {",
-          "line": 156,
-          "contextSha256": "5da52f95f9fc236c49cef0f7ee11f0f3bde03229487225be66fa01af7c205f83"
+          "line": 117,
+          "contextSha256": "9aa676abaaf8b21c485f4e452582929d793ca32c41dfe5125c27cf9b26c0b7de"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-safe-076-boundary",
-          "anchor": "const uiCriteriaSource = normalizedManualDocs;",
-          "line": 157,
-          "contextSha256": "d6bbe5d213448333756f15d32a14138e7794e11e6833f9c34c33accfeea17fbc"
+          "anchor": "const uiCriteriaSource = policy.caseEquivalence?.forbiddenEvidenceKinds || [];",
+          "line": 118,
+          "contextSha256": "df79c12b82f5f1ffa84bb169c0106c905e52990e474323378801378bf2a0a33f"
         },
         "action": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-safe-076-boundary",
-          "anchor": "const rawMaterialPromoted = !uiCriteriaSource.includes(\"raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.\");",
-          "line": 158,
-          "contextSha256": "b769c9f8ef339593f139db5461288cabcc763e07d6bbd46a9d3661191345cca3"
+          "anchor": "const rawMaterialPromoted = ['raw-json-only', 'api-only', 'static-smoke', 'screenshot-only'].some(kind => !uiCriteriaSource.includes(kind));",
+          "line": 119,
+          "contextSha256": "2ddffdc6bd7414d72c56448eeefaf3b7e6b9a131f57bda0d68243330b2499bfc"
         },
         "state": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-safe-076-boundary",
           "anchor": "const safe076BoundaryObserved = serverSh.includes(\"verify-v290-ui-fulltest-criteria-freeze\") && rawMaterialPromoted === false;",
-          "line": 159,
-          "contextSha256": "25bbf113a98f9cdf39416a326381ecea92064d2774bae712a6d134bbc0827697"
+          "line": 120,
+          "contextSha256": "7a276e99478c77f506502b690079ce02a7efd982ccfa697833980d320e291137"
         },
         "readback": {
           "file": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
           "symbol": "canonical-safe-076-boundary",
           "anchor": "assert(safe076BoundaryObserved && rawMaterialPromoted === false,",
-          "line": 160,
+          "line": 121,
           "contextSha256": "93eabae628725074d378de53b836a3e613e77e447be762b25e68182f6e059ec8"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v290-ui-fulltest-criteria-freeze",
           "anchor": "verify-v290-ui-fulltest-criteria-freeze)",
-          "line": 1877,
+          "line": 2038,
           "contextSha256": "da540565096197203eb9e67e5f31289b7427d3eb646b28e541e161b6203eadf4"
         }
       },
@@ -22702,40 +22702,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-076 owner-dispatch",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:156",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:157"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:117",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:118"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-076 dispatch-action",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:157",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:158"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:118",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:119"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-076 action-state",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:158",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:159"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:119",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:120"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-076 state-readback",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:159",
-          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:160"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:120",
+          "target": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:121"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v290-ui-fulltest-criteria-freeze",
-          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:160",
-          "target": "server.sh:1877"
+          "source": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs:121",
+          "target": "server.sh:2038"
         }
       ],
       "rationale": "SAFE-076 exact reviewed source flow."

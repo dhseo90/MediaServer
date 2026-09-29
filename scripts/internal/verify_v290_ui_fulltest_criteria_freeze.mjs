@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v2.9.0 S05 UI 풀테스트 기준 freeze 문서/게이트 경계를 검증한다.
+// 파일 용도: 기존 UI 기준 freeze 명령으로 현행 정의·Policy v4·기능 연결을 검사한다. 실제 UI를 실행하지 않는다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink, validateFeatureDocumentation, validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -19,20 +20,18 @@ Usage:
   ./server.sh verify-v290-ui-fulltest-criteria-freeze
 
 Checks:
-  - V290-S05 문서/인벤토리/release records가 v2.9 UI 풀테스트 기준 freeze를 가리키는지 확인
-  - manual UI fulltest/checklist/result template이 v2.9 current target과 latest published v2.8을 분리하는지 확인
+  - 현행 manual UI 기준·체크리스트·결과 템플릿과 기능 ID/명령 연결 확인
+  - 종료된 버전의 제목·완료 문구·실행 원장은 요구하지 않음
   - route/control/action/role/viewport/theme 기준이 개별 UI evidence로 고정됐는지 확인
-  - raw JSON/API-only/static smoke/screenshot-only/Chrome fallback을 UI 풀테스트 PASS로 승격하지 않는 경계 유지
+  - raw JSON/API-only/static smoke/screenshot-only는 불인정, 실제 자동화는 Policy v4로 별도 판정
 `);
 }
 
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
-const releaseRecords = readText("docs/release-test-records.md");
 const fulltest = readText("docs/manual-ui-fulltest.md");
 const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
@@ -42,60 +41,45 @@ const projectInventoryVerifier = readText("scripts/internal/verify_project_featu
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const normalizedManualDocs = normalizeWhitespace([fulltest, checklist, template].join("\n"));
+const agents = readText("AGENTS.md");
+const policy = JSON.parse(readText("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
 
-check("roadmap and stream verification expose V290-S05 UI criteria freeze", () => {
-  for (const snippet of [
-    "| 5 | V290-S05 | P1 | 완료 | UI fulltest criteria freeze |",
-    "`./server.sh verify-v290-ui-fulltest-criteria-freeze`",
-    "v2.9 기준 route/control/action/UI role/viewport/theme 확인 항목",
-    "자동 smoke나 raw JSON을 UI PASS로 승격하지 않음",
-    "## v2.9.0 S05 개발 기록",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S05 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V290-S05 | `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-manual-ui-evidence` |",
-    "v2.9 UI 풀테스트 route/control/action/role/viewport/theme 기준 freeze",
-    "실제 인앱 브라우저 직접 조작 PASS가 아님",
-  ]) {
-    assert(streamVerification.includes(snippet), `stream verification missing S05 snippet: ${snippet}`);
-  }
+check("현행 UI 기준·기능 ID·명령 dispatch 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: fulltest, identifiers: ['route', 'control', 'action', 'role', 'viewport', 'theme'],
+    command: 'verify-v290-ui-fulltest-criteria-freeze', script: 'verify_v290_ui_fulltest_criteria_freeze.mjs',
+    featureIds: ['OPS-046', 'SAFE-076'], inventory: featureInventory,
+    implementation: implementationManifest, verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join('; '));
 });
 
-check("manual UI docs preserve the v2.9 historical freeze under the current v3.9 target", () => {
-  assert(fulltest.includes("최신 공개 release 기준은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`"), "manual fulltest missing current published baseline");
-  assert(normalizedManualDocs.includes("`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`"), "manual UI docs missing current v3.9 baseline");
-  assert(checklist.includes("현재 release 목표는 `v3.9.0`"), "manual checklist missing current v3.9 target");
-  assert(template.includes("## v3.9.0 Release Evidence Index"), "manual result template missing current release evidence index");
-  assert(template.includes("## v2.9.0 UI Fulltest Criteria Freeze"), "manual result template missing S05 criteria freeze section");
+check("현재 기준을 체크리스트와 결과 템플릿에서 참조", () => {
+  for (const [name, text] of [['checklist', checklist], ['template', template]]) {
+    assert(hasDocumentLink(text, 'manual-ui-fulltest.md'), `${name}: 현행 UI 기준 링크 누락`);
+    assert(text.includes('PASS') && text.includes('FAIL'), `${name}: 실제 결과 상태 누락`);
+  }
 });
 
 check("manual UI docs freeze route, role, viewport, theme, control, and action coverage", () => {
   for (const snippet of [
-    "`/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`, `/client/request-access`",
-    "admin/operator/viewer/integrator role guard",
-    "320px/390px/760px/1180px viewport",
-    "light/dark theme",
-    "nav/tab/button/menu/details",
-    "textbox/textarea/password",
-    "select/checkbox/toggle/segmented control",
-    "copy/export/preview/play/stop/reconnect",
+    '/setup', '/login', '/password/change', '/invite/setup', '/ops/home', '/ops/dashboard',
+    '/ops/sources', '/ops/rules', '/ops/users', '/ops/events', '/ops/vlm', '/client/live',
+    '/client/dashboard', '/client/events', '/client/request-access',
+    'admin', 'operator', 'viewer', 'integrator', '320', '390', '760', '1180', 'light', 'dark',
+    'nav', 'tab', 'button', 'menu', 'details', 'textbox', 'textarea', 'password',
+    'select', 'checkbox', 'toggle', 'segmented', 'copy', 'export', 'preview', 'play', 'stop', 'reconnect',
   ]) {
     assert(normalizedManualDocs.includes(snippet), `manual UI docs missing criteria snippet: ${snippet}`);
   }
 });
 
-check("manual UI docs keep direct browser evidence separate from automation", () => {
-  for (const snippet of [
-    "UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다.",
-    "카테고리 묶음 판정은 금지합니다.",
-    "S05는 기준 freeze이며 실제 UI 풀테스트 실행 PASS가 아닙니다.",
-    "raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.",
-    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
-    "직접 열어보지 않은 화면",
-    "인앱 브라우저 직접 조작 미실행 항목",
-  ]) {
-    assert(normalizedManualDocs.includes(snippet), `manual UI docs missing boundary snippet: ${snippet}`);
+check("UI 정책 문서와 실제 실행 판정 경계", () => {
+  const errors = validateUiPolicyDocumentation({agents, fulltest, policy});
+  assert(errors.length === 0, errors.join('; '));
+  for (const key of ['policyVerifierPassIsUiFulltestPass', 'replayAloneIsUiFulltestPass',
+    'coverageMappingAloneIsUiFulltestPass', 'partialAutomationIsUiFulltestPass', 'historicalEvidenceIsRetroactivelyUpgraded']) {
+    assert(policy.boundaries?.[key] === false, `정의 검사·과거 자료를 실제 UI PASS로 승격할 수 없음: ${key}`);
   }
 });
 
@@ -104,13 +88,6 @@ check("feature inventory maps V290-S05 to OPS-046 and SAFE-076", () => {
   assertSummaryCountAtLeast("기능 ID 목록", 509);
   assertRangeCovers("SAFE", 76);
   assertRangeCovers("OPS", 46);
-  for (const snippet of [
-    "V290-S05 UI fulltest criteria freeze | `OPS-046`, `SAFE-076` | `verify-v290-ui-fulltest-criteria-freeze`, `verify-manual-ui-evidence`",
-    "SAFE-076 | V290-S05 UI fulltest criteria freeze boundary",
-    "OPS-046 | V290-S05 UI fulltest criteria freeze 게이트",
-  ]) {
-    assert(featureInventory.includes(snippet), `feature inventory missing S05 snippet: ${snippet}`);
-  }
   assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"),
     "feature coverage missing canonical implementation manifest validation");
   for (const id of ["SAFE-076", "OPS-046"]) {
@@ -122,20 +99,6 @@ check("feature inventory maps V290-S05 to OPS-046 and SAFE-076", () => {
   assert(projectInventoryVerifierRangeCovers("OPS", 46), "project inventory verifier missing OPS-046 coverage");
 });
 
-check("release records include S05 test item, RED failures, and not-run boundaries", () => {
-  for (const snippet of [
-    "V290 UI fulltest criteria freeze",
-    "`./server.sh verify-v290-ui-fulltest-criteria-freeze`",
-    "최초 `./server.sh verify-v290-ui-fulltest-criteria-freeze`는 command 미구현으로 fail",
-    "최초 `./server.sh verify-manual-ui-evidence`는 manual UI 문서가 v2.8 기준이라 fail",
-    "v290 S05 UI 풀테스트",
-    "v290 S05 30분/120분 longrun",
-    "v290 S05 published metadata",
-  ]) {
-    assert(releaseRecords.includes(snippet), `release records missing S05 snippet: ${snippet}`);
-  }
-});
-
 check("server and existing manual UI verifier expose S05 gates", () => {
   for (const snippet of [
     "verify-v290-ui-fulltest-criteria-freeze",
@@ -145,17 +108,15 @@ check("server and existing manual UI verifier expose S05 gates", () => {
     assert(serverSh.includes(snippet), `server.sh missing S05 command snippet: ${snippet}`);
   }
   for (const snippet of [
-    "currentTag",
     "verify-manual-ui-evidence",
-    "UI 풀테스트 판정이 PASS/FAIL만",
   ]) {
     assert(manualVerifier.includes(snippet), `manual UI verifier missing current-target snippet: ${snippet}`);
   }
 });
 
 check("SAFE-076 canonical UI evidence boundary", () => {
-  const uiCriteriaSource = normalizedManualDocs;
-  const rawMaterialPromoted = !uiCriteriaSource.includes("raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.");
+  const uiCriteriaSource = policy.caseEquivalence?.forbiddenEvidenceKinds || [];
+  const rawMaterialPromoted = ['raw-json-only', 'api-only', 'static-smoke', 'screenshot-only'].some(kind => !uiCriteriaSource.includes(kind));
   const safe076BoundaryObserved = serverSh.includes("verify-v290-ui-fulltest-criteria-freeze") && rawMaterialPromoted === false;
   assert(safe076BoundaryObserved && rawMaterialPromoted === false,
     "verify-v290-ui-fulltest-criteria-freeze raw material must not be promoted to direct browser PASS");
@@ -179,10 +140,10 @@ console.log("== v2.9.0 UI fulltest criteria freeze summary ==");
 console.log("- schema: media-server.v290-ui-fulltest-criteria-freeze.v1");
 console.log("- criteriaSource: docs/manual-ui-fulltest.md + docs/manual-ui-checklist.md + docs/manual-ui-result-template.md");
 console.log("- routeControlActionRoleViewportTheme: frozen");
-console.log("- directBrowserEvidence: required-for-ui-pass");
+console.log("- directBrowserEvidence: direct-or-policy-v4-qualified");
 console.log("- rawJsonApiOnly: not-ui-pass");
 console.log("- staticSmokeScreenshotOnly: not-ui-pass");
-console.log("- chromeFallback: not-ui-pass-without-explicit-exception");
+console.log("- chromeFallback: requires-policy-v4-qualification");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);

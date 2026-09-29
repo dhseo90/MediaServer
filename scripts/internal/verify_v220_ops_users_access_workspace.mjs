@@ -1,37 +1,28 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.2.0 F03 Ops Users / Access Workspace 재배치 산출물과 auth/access route 연결을 정적 검증한다.
+// 파일 용도: 현행 ops-users-access-workspace 소스·문서 연결을 정적으로 확인한다. CLI 이름은 호환용이다.
 import fs from 'node:fs';
+import {validateUiWorkspaceDocumentation} from './documentation_contract_lib.mjs';
 
 const checks = [];
 const read = path => fs.readFileSync(path, 'utf8');
-const source = readWebRtcHttpServerBundle(read);
+const source = readWebRtcHttpServerBundle(read) + read('src/ingress/product_ui_auth_pages.cpp');
 const auth = read('src/ingress/http_auth.cpp');
 const css = read('src/ingress/product_ui_css.cpp');
-const pageScript = read('src/ingress/product_ui_page_scripts.cpp');
-const backlog = read('docs/development-backlog.md');
+const pageScript = read('src/ingress/product_ui_ops_users_script.cpp');
 const inventory = read('docs/project-feature-test-inventory.md');
 const stream = read('docs/stream-verification.md');
-const docs = fs.existsSync('docs/v220-ops-users-access-workspace.md')
-  ? read('docs/v220-ops-users-access-workspace.md')
-  : '';
+const docs = read('docs/product-shell-component-examples.md');
 const server = read('server.sh');
 
 function check(name, condition) {
   checks.push({ name, condition });
 }
 
-check('Ops Users / Access command is exposed by server.sh', server.includes('verify-v220-ops-users-access-workspace'));
-check(
-  'Ops Users / Access docs define requested routes and task units',
-  docs.includes('/ops/users') &&
-    docs.includes('/client/request-access') &&
-    docs.includes('/invite/setup') &&
-    docs.includes('사용자') &&
-    docs.includes('초대') &&
-    docs.includes('승인') &&
-    docs.includes('role/scope')
-);
+const documentationErrors = validateUiWorkspaceDocumentation({document: docs, kind: 'ops-users-access-workspace', inventory, verification: stream, server});
+check('현행 작업 영역 계약·기능 정의·명령 연결', documentationErrors.length === 0);
+for (const error of documentationErrors) console.error('[fail] ' + error);
+
 check(
   'Ops users route exposes access workspace class and task markers',
   source.includes('ops-users-access-workspace') &&
@@ -101,16 +92,6 @@ check(
     '.ops-users-role-scope-panel',
     '.ops-users-audit-panel',
   ].every(needle => css.includes(needle))
-);
-check(
-  'roadmap and verification docs record Ops Users / Access follow-up scope',
-  backlog.includes('V220-F03 Ops Users / Access Workspace 재배치') &&
-    stream.includes('verify-v220-ops-users-access-workspace')
-);
-check(
-  'feature inventory maps Ops Users / Access workspace verifier',
-  inventory.includes('v2.2.0 F03 Ops Users / Access Workspace 재배치') &&
-    inventory.includes('verify-v220-ops-users-access-workspace')
 );
 check(
   'auth/session/secret redaction hooks stay present',

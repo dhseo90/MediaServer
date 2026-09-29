@@ -70,6 +70,38 @@ export function validateUiComponentDocumentation({document, kind, verification, 
   return errors;
 }
 
+// 작업 영역의 현재 route/정의와 정적 명령을 연결한다. 실제 UI·Auth 실행 증거나
+// canonical runtime verifier 연결을 이 동반 검사로 대체하지 않는다.
+export function validateUiWorkspaceDocumentation({document, kind, inventory, verification, server}) {
+  const contracts = {
+    'auth-setup-redesign': {routes: ['/setup', '/login', '/password/change', '/invite/setup', '/client/request-access'], ids: ['UI-002', 'UI-003', 'UI-004', 'UI-007', 'UI-008']},
+    'client-live-redesign': {routes: ['/client/live', '/client/dashboard', '/client/events'], ids: ['UI-015', 'UI-016', 'UI-017']},
+    'ops-workspace-redesign': {routes: ['/ops/home', '/ops/dashboard', '/ops/events'], ids: ['UI-009', 'UI-010', 'UI-014']},
+    'rules-workspace-redesign': {routes: ['/ops/rules'], ids: ['UI-012']},
+    'ops-channels-workspace': {routes: ['/ops/sources', 'ONVIF', 'WHEP', 'WHIP', 'PublishedView'], ids: ['UI-011']},
+    'ops-users-access-workspace': {routes: ['/ops/users', '/client/request-access', '/invite/setup'], ids: ['UI-013', 'UI-007', 'UI-008']},
+    'ops-vlm-containment': {routes: ['/ops/vlm', 'default-off', 'opsVlmRawDetails'], ids: ['UI-022', 'UI-023', 'UI-024', 'SAFE-025']},
+    'client-preview-redaction-review': {routes: ['/client/live', '/client/dashboard', '/client/events', 'ops:read'], ids: ['SRC-028', 'CLIENT-014', 'CLIENT-018', 'SAFE-018']},
+  };
+  if (!Object.hasOwn(contracts, kind)) return ['UI 작업 영역 종류 오류'];
+  const errors = [], doc = String(document || ''), {routes, ids} = contracts[kind];
+  const command = 'verify-v220-' + kind, script = 'verify_v220_' + kind.replaceAll('-', '_') + '.mjs';
+  for (const link of ['ui-guide.md', 'manual-ui-fulltest.md', '../AGENTS.md']) {
+    if (!hasDocumentLink(doc, link)) errors.push('UI 작업 영역 정책 링크 누락: ' + link);
+  }
+  for (const route of routes) if (!doc.includes(route)) errors.push('UI 작업 영역 계약 식별자 누락: ' + route);
+  const commands = new Set(doc.match(/\bverify-[a-z0-9-]+\b/g) || []);
+  if (!commands.has(command)) errors.push('UI 작업 영역 명령 안내 누락: ' + command);
+  if (!hasDocumentLink(String(verification || ''), 'product-shell-component-examples.md')) errors.push('UI 작업 영역 검증 안내 링크 누락');
+  const targets = parseServerDispatches(String(server || '')).filter(item => item.command === command);
+  if (targets.length !== 1 || targets[0].script !== script) errors.push('UI 작업 영역 dispatch 누락/중복/대상 불일치: ' + command);
+  for (const id of ids) {
+    const rows = String(inventory || '').split(/\r?\n/).filter(line => line.startsWith('|') && line.split('|')[1]?.trim() === id);
+    if (rows.length !== 1 || !rows[0].split('|')[2]?.trim()) errors.push('UI 작업 영역 현행 정의 누락/중복: ' + id);
+  }
+  return errors;
+}
+
 // 공개 필드/값은 유지하되 inline field=value와 읽기 쉬운 key/value 표를 모두 허용한다.
 export function hasDocumentFieldValue(text, field, value) {
   const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

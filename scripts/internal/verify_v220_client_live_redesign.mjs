@@ -1,38 +1,27 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.2.0 S07 Client live redesign 산출물과 viewer-safe route/CSS/문서 연결을 정적 검증한다.
+// 파일 용도: 현행 client-live-redesign 소스·문서 연결을 정적으로 확인한다. CLI 이름은 호환용이다.
 import fs from 'node:fs';
+import {validateUiWorkspaceDocumentation} from './documentation_contract_lib.mjs';
 
 const checks = [];
 const read = (path) => fs.readFileSync(path, 'utf8');
 const source = readWebRtcHttpServerBundle(read);
-const script = read('src/ingress/product_ui_page_scripts.cpp');
-const css = read('src/ingress/product_ui_css.cpp');
-const backlog = read('docs/development-backlog.md');
+const script = read('src/ingress/product_ui_client_scripts.cpp');
+const css = read('src/ingress/product_ui_client_css.cpp');
 const inventory = read('docs/project-feature-test-inventory.md');
 const stream = read('docs/stream-verification.md');
-const docsIndex = read('docs/README.md');
-const docs = fs.existsSync('docs/v220-client-live-redesign.md')
-  ? read('docs/v220-client-live-redesign.md')
-  : '';
+const docs = read('docs/product-shell-component-examples.md');
 const server = read('server.sh');
 
 function check(name, condition) {
   checks.push({ name, condition });
 }
 
-check('S07 command is exposed by server.sh', server.includes('verify-v220-client-live-redesign'));
-check(
-  'S07 docs exist and define client viewer scope',
-  docs.includes('/client/live') &&
-    docs.includes('/client/dashboard') &&
-    docs.includes('/client/events') &&
-    docs.includes('viewer redaction')
-);
-check(
-  'docs index links S07 source-of-truth',
-  docsIndex.includes('v220-client-live-redesign.md')
-);
+const documentationErrors = validateUiWorkspaceDocumentation({document: docs, kind: 'client-live-redesign', inventory, verification: stream, server});
+check('현행 작업 영역 계약·기능 정의·명령 연결', documentationErrors.length === 0);
+for (const error of documentationErrors) console.error('[fail] ' + error);
+
 check(
   'client shell exposes viewer workspace classes',
   source.includes('client-viewer-workspace') &&
@@ -97,21 +86,6 @@ check(
     '@media (max-width: 780px)',
     '@media (max-width: 560px)',
   ].every((needle) => css.includes(needle))
-);
-check(
-  'backlog records S07 closure section',
-  backlog.includes('### V220-S07 Client live redesign 종료 기준')
-);
-check(
-  'feature inventory maps S07 verifier and client route rows',
-  inventory.includes('verify-v220-client-live-redesign') &&
-    inventory.includes('UI-015') &&
-    inventory.includes('UI-016') &&
-    inventory.includes('UI-017')
-);
-check(
-  'stream verification documents S07 verifier',
-  stream.includes('verify-v220-client-live-redesign')
 );
 check(
   'viewer redaction markers and existing forbidden-text guard stay connected',

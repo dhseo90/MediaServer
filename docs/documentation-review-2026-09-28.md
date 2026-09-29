@@ -853,3 +853,29 @@ closeout/reconciliation/RC/v240/v250/Actions/CI 소비자 7개는 종료 원장�
 변경·기존 검사 의미 대조·실패→재검증·원본 보존·정리는
 [단일 실행 자료](release-artifacts/v4.1.1/ui-component-documentation/result.json)에 둔다.
 다른 UI 작업 문서·소비자, 기록 생성/수명 정리와 v4.1.1 최종 마감은 남아 있다.
+
+## 12. UI 작업 영역 문서와 현행 소비자 — 2026-09-29
+
+`138f6062` 기준 Auth·Client·Ops 요약/Rules/Channels/Users/VLM·preview 문서 8개의
+현행 계약·설계 이유를 기존 구성요소 안내로 통합했다. 운영 절차는 UI 가이드로 연결하고
+종료 단계 제목·과거 실행 목록은 옮기지 않았다. 원본 8개는 보존 commit의 바이트와
+대조했으며 아직 현재 트리에서 삭제하지 않았다.
+
+같은 8개 정적 명령의 역사 제목·backlog·직접 색인 의존을 제거하고 현재 안내·정확한
+dispatch·기능 정의로 연결했다. Auth·Client·Users는 분리된 실제 owner를 읽는다.
+form·권한·비노출·작업 순서·CSS 검사는 유지했고 `CLIENT-018` exact assertion은 동일하다.
+`UI-014`는 이벤트 화면 정의이며 VLM은 `UI-022~024`·`SAFE-025`로 구분했다.
+기능 inventory의 과거 호환 표는 현행 기준·결과 템플릿 링크로 통합했다.
+
+UI 기준서·체크리스트·결과 템플릿은 정책/실행/결과 역할로 정리했다. 과거 버전 제목·
+완료 목록·중앙 원장 요구를 제거하고, 424개 baseline과 녹화 8개/31 action·VA seed·
+EventRecord·권한·Policy v4·정리 판정은 보존한다. 결과 구조 검사와 실제 UI PASS는
+별개이며 미실행·실제 FAIL을 구분한다. 기준 freeze 명령의 OPS-046/SAFE-076 기대값도
+현행 Policy v4로 연결했다. API-only·정적 검사·raw JSON·screenshot-only는 여전히
+UI PASS가 아니며 실제 자동화는 도구 이름 대신 Policy v4 적격 조건으로 판정한다.
+
+새 자체검사는 실제 원본을 수정하지 않는 자식 프로세스 메모리 대역을 사용한다.
+종료 기록 의존의 예상 RED, 후속 실행 결과·원출력·소스 hash·검토·정리는
+[단일 실행 자료](release-artifacts/v4.1.1/ui-workspace-documentation/result.json)에 둔다.
+실제 제품·Auth·브라우저·장시간 검증은 이 작업에서 수행하지 않는다.
+이번 묶음 밖 기록 생산자/소비자 정리와 Git 보존 후 종료 자료 삭제는 아직 남아 있다.

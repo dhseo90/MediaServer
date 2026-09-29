@@ -2761,7 +2761,7 @@ Static으로만 실행 예정이며 actual completion evidence가 아닙니다.
 | V290-S02 v2.8 feature regression bundle | `OPS-043`, `SAFE-073` | `verify-v290-v28-regression-bundle` | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
 | V290-S03 2.x compatibility gate | `OPS-044`, `SAFE-074` | `verify-v290-2x-compatibility-baseline` | v2.5~v2.8 하위 verifier가 실제 실행한 범위만 PASS |
 | V290-S04 release test records enforcement | `OPS-045`, `SAFE-075` | `verify-v290-release-test-records-enforcement` | 저장소 보존형 테스트 기록 체계, pass/fail 결과표, 미실행/제외 분리, cleanup/token 기록 기준. UI/30분/120분/published metadata 실행 evidence가 아님 |
-| V290-S05 UI fulltest criteria freeze | `OPS-046`, `SAFE-076` | `verify-v290-ui-fulltest-criteria-freeze`, `verify-manual-ui-evidence` | v2.9 UI 풀테스트 route/control/action/role/viewport/theme 기준 freeze. 인앱 브라우저 직접 조작 실행 evidence가 아님 |
+| UI fulltest criteria freeze | `OPS-046`, `SAFE-076` | `verify-v290-ui-fulltest-criteria-freeze`, `verify-manual-ui-evidence` | 현행 route/control/action/role/viewport/theme·Policy v4 정의와 실제 UI 실행 증거의 분리. 명령 이름은 기존 CLI 호환용 |
 | V290-S06 release evidence hygiene | `OPS-047`, `SAFE-077` | `verify-v290-release-evidence-hygiene`, `verify-release-evidence-index`, `verify-script-inventory` | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결과 PASS/FAIL vs 미실행/제외/manual-not-run/미확인 분리. 실제 UI/30분/120분/published metadata 실행 evidence가 아님 |
 | V290-S07 public docs/assets refresh | `OPS-048`, `SAFE-078` | `verify-v290-public-docs-assets-refresh`, `verify-docs-ui-assets`, `verify-docs-links` | README/README.en/docs index/UI guide/docs asset policy/release-version policy refresh. 대표 이미지 직접 재캡처, UI 풀테스트, 30분/120분, published metadata 실행 evidence가 아님 |
 | V290-S08 final stabilization run | `OPS-049`, `SAFE-079` | `verify-v290-final-stabilization-run` | build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 안정화 실행 기록 기준. UI 풀테스트 직접 조작, 30분/120분, published metadata, field smoke 실행 evidence가 아님 |
@@ -2827,19 +2827,12 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | V250-S08 Redacted incident evidence bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050` | `verify-v250-redacted-incident-evidence-bundle` | 실제 다운로드 파일 육안 검수 전 UI PASS가 아님 |
 | V250-S09 Owner decomposition/release readiness | `UI-044`, `OPS-036`, `SAFE-051` | `verify-v250-owner-release-readiness` | close-out gate와 UI 풀테스트 기준 정리. 실제 UI 직접 조작, 30분/120분, tag/push/GitHub Release PASS가 아님 |
 
-## Historical UI Evidence Close-out Compatibility
+## UI 작업 영역과 결과 기록 연결
 
-이 절은 v2.2.0 F06 UI Evidence Close-out 준비 verifier 호환용 cross-reference입니다. 현재 v2.5.0 완료 근거가 아니며, inventory 자체는 실행 evidence가 아님.
-
-| Row | 연결 문서 | verifier | 경계 |
-| --- | --- | --- | --- |
-| V220-F02 Ops Channels Workspace | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F02 UI 실행 PASS가 아님 |
-| V220-F03 Ops Users / Access Workspace | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F03 UI 실행 PASS가 아님 |
-| V220-F04 Ops VLM UI containment | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F04 UI 실행 PASS가 아님 |
-| V220-F05 Client Preview / Viewer Redaction | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F05 UI 실행 PASS가 아님 |
-| V220-F06 UI Evidence Close-out | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F06는 결과 기록 기준 정리이며 UI 풀테스트 PASS가 아님 |
-| V220-S06 Rules workspace redesign | `UI-012` | `verify-v220-rules-workspace-redesign` | `/ops/rules` readiness/assist/catalog/detail와 기존 저장 hook의 historical compatibility. 현재 UI 직접 조작 PASS가 아님 |
-| v2.2.0 F04 Ops VLM UI containment 정리 | `UI-014`, `SAFE-025` | `verify-v220-ops-vlm-containment` | `/ops/vlm`의 default-off/privacy/profile/보조 작업 containment 정적 회귀. runtime/provider/UI 실행 PASS가 아님 |
+Auth·Client·Ops의 정적 검사 명령과 기능 ID는 [UI 구성요소 안내](product-shell-component-examples.md)에 둔다.
+실제 실행의 개별 action·권한·시각·정리 기준은 [UI 풀테스트](manual-ui-fulltest.md),
+결과 구조는 [결과 템플릿](manual-ui-result-template.md)과 `verify-manual-ui-evidence`로 연결한다.
+`verify-v220-ui-evidence-closeout`은 이 연결을 확인할 뿐 실제 UI 실행 PASS를 만들지 않는다.
 
 ## Owner Source Map
 
@@ -3651,7 +3644,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-073 | V290-S02 v2.8 기능군 회귀 묶음 boundary | 비대상 | 필요 | 안정화 | `verify-v290-v28-regression-bundle`이 v2.8 S02~S06 verifier를 v2.9 source tree에서 재실행하되 v2.8 완료 evidence 재사용, UI 직접 조작 PASS, 30분/120분, published metadata PASS로 승격하지 않음 |
 | SAFE-074 | V290-S03 2.x compatibility baseline boundary | 비대상 | 필요 | 안정화 | `verify-v290-2x-compatibility-baseline`이 v2.5~v2.8 핵심 verifier와 v2.9 S01/S02 gate를 현재 source tree에서 재실행하되 각 하위 verifier 실행 범위만 PASS로 기록하고 UI/30분/120분/published metadata PASS로 승격하지 않음 |
 | SAFE-075 | V290-S04 release test records enforcement boundary | 비대상 | 필요 | 안정화 | `verify-v290-release-test-records-enforcement`가 저장소 보존형 테스트 기록의 pass/fail 결과표, 미실행/제외 분리, `/tmp` final evidence 금지, summary-only 금지, cleanup/token 기록 경계를 확인하되 UI/30분/120분/published metadata PASS로 대체하지 않음 |
-| SAFE-076 | V290-S05 UI fulltest criteria freeze boundary | 비대상 | 필요 | 안정화 | `verify-v290-ui-fulltest-criteria-freeze`가 v2.9 UI 풀테스트 route/control/action/role/viewport/theme 기준과 raw JSON/API-only/static smoke/screenshot-only/Chrome fallback 비승격 경계를 확인하되 실제 인앱 브라우저 직접 조작 PASS로 대체하지 않음 |
+| SAFE-076 | V290-S05 UI fulltest criteria freeze boundary | 비대상 | 필요 | 안정화 | `verify-v290-ui-fulltest-criteria-freeze`가 현행 route/control/action/role/viewport/theme·Policy v4와 raw JSON/API-only/static smoke/screenshot-only 비승격을 확인. 실제 자동화는 Policy v4 적격 판정이 별도 필요하며 이 정의 검사는 실제 UI PASS가 아님 |
 | SAFE-077 | V290-S06 release evidence hygiene boundary | 비대상 | 필요 | 안정화 | `verify-v290-release-evidence-hygiene`가 release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결과 PASS/FAIL vs 미실행/제외/manual-not-run/미확인 경계를 확인하되 실제 UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 대체하지 않음 |
 | SAFE-078 | V290-S07 public docs/assets refresh boundary | 비대상 | 필요 | 안정화 | `verify-v290-public-docs-assets-refresh`가 README/README.en/docs index/UI guide/docs asset policy/release-version policy와 managed asset set을 확인하되 대표 이미지 직접 재캡처, 직접 브라우저 검수 PASS, UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 대체하지 않음 |
 | SAFE-079 | V290-S08 final stabilization run boundary | 비대상 | 필요 | 안정화 | `verify-v290-final-stabilization-run`가 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 안정화 실행 기록과 미실행 경계를 확인하되 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, field smoke, tag/push/GitHub Release PASS로 대체하지 않음 |
@@ -3809,7 +3802,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-043 | V290-S02 v2.8 기능군 회귀 묶음 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-v28-regression-bundle`이 `verify-v280-incident-action-readiness-queue`, `verify-v280-approval-gated-rule-draft`, `verify-v280-evidence-intake-field-readiness`, `verify-v280-runtime-evidence-window`, `verify-v280-client-safe-followup-digest`를 현재 source tree에서 재실행하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-044 | V290-S03 2.x compatibility baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-2x-compatibility-baseline`이 v2.5/v2.6/v2.7 핵심 feature verifier와 `verify-v290-final-contract-freeze`, `verify-v290-v28-regression-bundle`을 현재 source tree에서 재실행하되 owner release readiness, PR/main/tag/push/GitHub Release, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-045 | V290-S04 release test records enforcement 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-release-test-records-enforcement`가 `docs/release-test-records.md`의 테스트 항목/결과/deprecated/미실행/cleanup/token 기록 구조를 확인하되 실제 안정화/UI/30분/120분/published metadata 실행 완료로 대체하지 않음 |
-| OPS-046 | V290-S05 UI fulltest criteria freeze 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-ui-fulltest-criteria-freeze`와 `verify-manual-ui-evidence`가 v2.9 manual UI fulltest/checklist/result template 기준을 확인하되 UI 풀테스트 실행, 30분/120분, published metadata, tag/push/GitHub Release 완료로 대체하지 않음 |
+| OPS-046 | V290-S05 UI fulltest criteria freeze 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-ui-fulltest-criteria-freeze`와 `verify-manual-ui-evidence`가 현행 UI 기준·체크리스트·결과 템플릿 연결을 확인. 정의·결과 구조 검사를 실제 UI 실행, 30분/120분, published metadata, tag/push/GitHub Release 완료로 대체하지 않음 |
 | OPS-047 | V290-S06 release evidence hygiene 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-release-evidence-hygiene`, `verify-release-evidence-index`, `verify-script-inventory`가 release evidence index/records/inventory/manual UI evidence 연결과 PASS/FAIL vs 미실행/제외 경계를 확인하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-048 | V290-S07 public docs/assets refresh 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-public-docs-assets-refresh`, `verify-docs-ui-assets`, `verify-docs-links`가 공개 첫 화면, docs index, UI guide, docs asset policy, release/version policy를 확인하되 image recapture, release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-049 | V290-S08 final stabilization run 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-final-stabilization-run`가 release 순서의 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 결과 기록을 확인하되 release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |

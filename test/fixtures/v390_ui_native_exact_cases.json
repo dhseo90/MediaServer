@@ -5,9 +5,9 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "e01196a93921612af7e48dae344a1da3668868508a766ed08ce482fe7cdac101",
+    "implementationProjectionSha256": "c87514bf554db40dce0626dcb397280a9090193779ab314660df375882fd20d4",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "69f1129bb5083c27d8afeb3345e8c805bd6528e21b59b8c217009f615f8edeef",
+    "runtimeOracleCatalogSha256": "1d1c0dd394ba8bcdd4a9b0ae1f289bdde8a88b463c630cdbc649e12ce418e27e",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -12429,7 +12429,7 @@
             "setupId": "UI-020:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/dashboard",
-            "semanticCallChainSha256": "190a47ab6013468ae27aa4e8ce42421b78b682f0d3b6a1d88c54233aa143014f",
+            "semanticCallChainSha256": "273f21549250c805c6a835f78d63db02a9a34b8c2ea04f1b1f45b4d5add52ef4",
             "persistedMutation": false,
             "fixtureId": "ui-020-review4-fixture",
             "beforeSnapshotRef": null
@@ -12503,7 +12503,7 @@
             "contextSha256": "afb458269633c75a8ab7bbc4e82105add5fceec6661459dc124fa45f88991c04"
           },
           "verifierCommand": "verify-v220-ops-workspace-redesign",
-          "assertedSemanticDigest": "190a47ab6013468ae27aa4e8ce42421b78b682f0d3b6a1d88c54233aa143014f"
+          "assertedSemanticDigest": "273f21549250c805c6a835f78d63db02a9a34b8c2ea04f1b1f45b4d5add52ef4"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -12515,7 +12515,7 @@
             "text": "1180px 이상에서 nav/table/form/video 겹침 없음",
             "sha256": "d115472ddf4fd114482204962236d8976b8e35a3fa09356d6b685c945d648128"
           },
-          "specSha256": "8bc71183ae0e17c66c5d91faafac93609692beb7a5c4a72092db24a0e616040a",
+          "specSha256": "3e68a49eb4d039ce251f579a443825fa57ad2ca9f63558219605132cce7c1ec5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -12777,7 +12777,7 @@
             "cleanupId": "UI-020:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "190a47ab6013468ae27aa4e8ce42421b78b682f0d3b6a1d88c54233aa143014f"
+            "semanticCallChainSha256": "273f21549250c805c6a835f78d63db02a9a34b8c2ea04f1b1f45b4d5add52ef4"
           }
         ]
       },
@@ -12933,7 +12933,7 @@
           "kind": "assert-product-state",
           "dispatch": "playwright-native",
           "actionId": "UI-021:assert-product-state",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+          "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
@@ -12962,7 +12962,7 @@
             "localTransition": null,
             "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
             "readback": {
-              "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+              "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
               "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
               "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
               "allowedObservationSources": [
@@ -12973,7 +12973,7 @@
               ],
               "staticLocatorIsNotRuntimePass": true
             },
-            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
             "readbackExpectation": {
               "exists": true,
               "visible": true
@@ -12991,11 +12991,11 @@
           "actionId": "UI-021:verify-independent-readback",
           "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
           "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+          "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
           "readbackLocator": {
             "file": "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
             "symbol": "structural-oracle:grid-template-columns",
-            "contextSha256": "b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+            "contextSha256": "84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
           },
           "verifierCommand": "verify-v220-ops-workspace-redesign",
           "runtimeEvidenceRequired": true,
@@ -13015,7 +13015,7 @@
             "localTransition": null,
             "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
             "readback": {
-              "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+              "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
               "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
               "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
               "allowedObservationSources": [
@@ -13026,9 +13026,9 @@
               ],
               "staticLocatorIsNotRuntimePass": true
             },
-            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
             "readbackExpectation": {
-              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
               "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
               "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
               "runtimeEvidenceRequired": true
@@ -13063,7 +13063,7 @@
             "setupId": "UI-021:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops",
-            "semanticCallChainSha256": "766544f7df8da82c7bc9ada111c54c1a593bdb9f9cedb3106830dd77852cb394",
+            "semanticCallChainSha256": "b7ecfa3c81a65e4a36a87dbe9ffcf361642be56b33924c9b79be6948a7de9391",
             "persistedMutation": false,
             "fixtureId": "ui-021-review4-fixture",
             "beforeSnapshotRef": null
@@ -13108,7 +13108,7 @@
             "symbol": "structural-oracle:grid-template-columns",
             "anchor": "if (!css.includes('grid-template-columns: 34px minmax(0, 1fr);')) throw new Error('ops workspace mobile grid template missing');",
             "anchorSha256": "d6d74a860a2afe5ad371beb27d0d7d2b0e7540eb8d3a1d973e427b8e205a43a1",
-            "contextSha256": "b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+            "contextSha256": "84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
           }
         },
         "productAction": {
@@ -13135,17 +13135,17 @@
           }
         },
         "independentReadback": {
-          "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+          "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
           "kind": "reviewed-verifier-readback",
           "locator": {
             "file": "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
             "symbol": "structural-oracle:grid-template-columns",
             "anchor": "if (!css.includes('grid-template-columns: 34px minmax(0, 1fr);')) throw new Error('ops workspace mobile grid template missing');",
             "anchorSha256": "d6d74a860a2afe5ad371beb27d0d7d2b0e7540eb8d3a1d973e427b8e205a43a1",
-            "contextSha256": "b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+            "contextSha256": "84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
           },
           "verifierCommand": "verify-v220-ops-workspace-redesign",
-          "assertedSemanticDigest": "766544f7df8da82c7bc9ada111c54c1a593bdb9f9cedb3106830dd77852cb394"
+          "assertedSemanticDigest": "b7ecfa3c81a65e4a36a87dbe9ffcf361642be56b33924c9b79be6948a7de9391"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -13157,7 +13157,7 @@
             "text": "320px/390px에서 text/control/video overflow 없음",
             "sha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354"
           },
-          "specSha256": "f6dcc727506ae93012a78788a9bf6d142974564dd38c5df1f3f72bf1c5e2ea7e",
+          "specSha256": "d815976cba994c5e219f1ee27935a8d78b205312a24c1090727dc2c06dbf593e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -13229,7 +13229,7 @@
             "kind": "assert-product-state",
             "dispatch": "playwright-native",
             "actionId": "UI-021:assert-product-state",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
@@ -13258,7 +13258,7 @@
               "localTransition": null,
               "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
               "readback": {
-                "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+                "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
                 "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
                 "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
                 "allowedObservationSources": [
@@ -13269,7 +13269,7 @@
                 ],
                 "staticLocatorIsNotRuntimePass": true
               },
-              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
               "readbackExpectation": {
                 "exists": true,
                 "visible": true
@@ -13287,11 +13287,11 @@
             "actionId": "UI-021:verify-independent-readback",
             "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
             "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+            "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
             "readbackLocator": {
               "file": "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
               "symbol": "structural-oracle:grid-template-columns",
-              "contextSha256": "b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+              "contextSha256": "84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
             },
             "verifierCommand": "verify-v220-ops-workspace-redesign",
             "runtimeEvidenceRequired": true,
@@ -13311,7 +13311,7 @@
               "localTransition": null,
               "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
               "readback": {
-                "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+                "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
                 "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
                 "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
                 "allowedObservationSources": [
@@ -13322,9 +13322,9 @@
                 ],
                 "staticLocatorIsNotRuntimePass": true
               },
-              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
               "readbackExpectation": {
-                "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+                "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
                 "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
                 "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
                 "runtimeEvidenceRequired": true
@@ -13352,7 +13352,7 @@
             "readbackLocator": {
               "file": "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
               "symbol": "structural-oracle:grid-template-columns",
-              "contextSha256": "b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+              "contextSha256": "84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
             },
             "completion": {
               "schema": "media-server.v390-ui-action-completion.v2",
@@ -13382,7 +13382,7 @@
               "localTransition": null,
               "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
               "readback": {
-                "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+                "identity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
                 "expectedStateIdentity": "product-state:src/ingress/product_ui_css.cpp#ProductUiCss#5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f",
                 "expectedBehaviorSha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354",
                 "allowedObservationSources": [
@@ -13393,7 +13393,7 @@
                 ],
                 "staticLocatorIsNotRuntimePass": true
               },
-              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436",
+              "readbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272",
               "readbackExpectation": {
                 "exists": true,
                 "visible": true
@@ -13412,7 +13412,7 @@
             "cleanupId": "UI-021:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "766544f7df8da82c7bc9ada111c54c1a593bdb9f9cedb3106830dd77852cb394"
+            "semanticCallChainSha256": "b7ecfa3c81a65e4a36a87dbe9ffcf361642be56b33924c9b79be6948a7de9391"
           }
         ]
       },
@@ -13434,7 +13434,7 @@
         "primaryActionId": "UI-021:assert-product-state",
         "primaryActionCorrelationId": "UI-021:assert-product-state:completion",
         "primaryControlSelector": null,
-        "independentReadbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#b0bb91c32046acd158692128ec957b6bce963b0ba185c7715469c11650a02436"
+        "independentReadbackIdentity": "independent-readback:scripts/internal/verify_v220_ops_workspace_redesign.mjs#structural-oracle:grid-template-columns#84d2d039a5115eece4c04ad55ce88b268b1ab9a49504b97b926964729a631272"
       },
       "artifacts": {
         "screenshot": true,
@@ -242366,7 +242366,7 @@
             "setupId": "CLIENT-018:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/live",
-            "semanticCallChainSha256": "6c74546e1c2a9223c9bd2bb9b45e99a3c9c8d2fc26fbf9d01db5969b6f070dd9",
+            "semanticCallChainSha256": "a5de0901af4df69d86fb12983a4dec510cd22ff16e05bb23aad06d3a13fa8a75",
             "persistedMutation": false,
             "fixtureId": "client-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -242440,7 +242440,7 @@
             "contextSha256": "6f90fc1eab44fbfaf96448f48e4f72ebf7a2dcde75bce31f224213df6a3f85f2"
           },
           "verifierCommand": "verify-v220-client-preview-redaction-review",
-          "assertedSemanticDigest": "6c74546e1c2a9223c9bd2bb9b45e99a3c9c8d2fc26fbf9d01db5969b6f070dd9"
+          "assertedSemanticDigest": "a5de0901af4df69d86fb12983a4dec510cd22ff16e05bb23aad06d3a13fa8a75"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -242711,7 +242711,7 @@
             "cleanupId": "CLIENT-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "6c74546e1c2a9223c9bd2bb9b45e99a3c9c8d2fc26fbf9d01db5969b6f070dd9"
+            "semanticCallChainSha256": "a5de0901af4df69d86fb12983a4dec510cd22ff16e05bb23aad06d3a13fa8a75"
           }
         ]
       },

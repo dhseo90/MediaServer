@@ -1,39 +1,26 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.2.0 S08 Auth/setup redesign 산출물과 auth form/CSS/문서 연결을 정적 검증한다.
+// 파일 용도: 현행 auth-setup-redesign 소스·문서 연결을 정적으로 확인한다. CLI 이름은 호환용이다.
 import fs from 'node:fs';
+import {validateUiWorkspaceDocumentation} from './documentation_contract_lib.mjs';
 
 const checks = [];
 const read = (path) => fs.readFileSync(path, 'utf8');
-const source = readWebRtcHttpServerBundle(read);
+const source = readWebRtcHttpServerBundle(read) + read('src/ingress/product_ui_auth_pages.cpp');
 const css = read('src/ingress/product_ui_css.cpp');
-const backlog = read('docs/development-backlog.md');
 const inventory = read('docs/project-feature-test-inventory.md');
 const stream = read('docs/stream-verification.md');
-const docsIndex = read('docs/README.md');
-const docs = fs.existsSync('docs/v220-auth-setup-redesign.md')
-  ? read('docs/v220-auth-setup-redesign.md')
-  : '';
+const docs = read('docs/product-shell-component-examples.md');
 const server = read('server.sh');
 
 function check(name, condition) {
   checks.push({ name, condition });
 }
 
-check('S08 command is exposed by server.sh', server.includes('verify-v220-auth-setup-redesign'));
-check(
-  'S08 docs exist and define auth route scope',
-  docs.includes('/setup') &&
-    docs.includes('/login') &&
-    docs.includes('/password/change') &&
-    docs.includes('/invite/setup') &&
-    docs.includes('/client/request-access') &&
-    docs.includes('auth route guard')
-);
-check(
-  'docs index links S08 source-of-truth',
-  docsIndex.includes('v220-auth-setup-redesign.md')
-);
+const documentationErrors = validateUiWorkspaceDocumentation({document: docs, kind: 'auth-setup-redesign', inventory, verification: stream, server});
+check('현행 작업 영역 계약·기능 정의·명령 연결', documentationErrors.length === 0);
+for (const error of documentationErrors) console.error('[fail] ' + error);
+
 check(
   'auth shell exposes responsive form markers',
   source.includes('class="auth-shell auth-responsive-shell"') &&
@@ -98,23 +85,6 @@ check(
     'auth::CompleteInvitePasswordSetup',
     'auth::CreateAccessRequestFromJson',
   ].every((needle) => source.includes(needle))
-);
-check(
-  'backlog records S08 closure section',
-  backlog.includes('### V220-S08 Auth/setup redesign 종료 기준')
-);
-check(
-  'feature inventory maps S08 verifier and auth route rows',
-  inventory.includes('verify-v220-auth-setup-redesign') &&
-    inventory.includes('UI-002') &&
-    inventory.includes('UI-003') &&
-    inventory.includes('UI-004') &&
-    inventory.includes('UI-007') &&
-    inventory.includes('UI-008')
-);
-check(
-  'stream verification documents S08 verifier',
-  stream.includes('verify-v220-auth-setup-redesign')
 );
 
 let pass = 0;

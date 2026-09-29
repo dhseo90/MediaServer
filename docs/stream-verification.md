@@ -123,6 +123,22 @@ UI 구조 문서 소비자 자체검사는 `node --test scripts/internal/ui_comp
 helper API·사용처·CMake, 모듈 분리 조건을 메모리에서 훼손해 기존 실패 전파를 확인한다.
 제품 파일은 변경하지 않으며 이 정적 자체검사는 실제 UI·Auth·미디어·장시간 실행이 아니다.
 
+같은 자체검사의 `UI-WORKSPACE-DOC-01`~`03`은 Auth·Client·Ops 작업 영역 정적 명령 8개에
+적용한다. 종료 단계 문서·backlog·직접 색인이 없어도 현행 안내·기능 ID·명령으로 실행해야 한다.
+현재 문서/ID/dispatch 누락은 실패하고, 실제 소유 파일의 form·권한·비노출·작업 순서·CSS
+조건을 메모리에서 훼손하면 기존 소스 검사의 실패가 유지돼야 한다. 최초 예상 RED는
+종료 기록 읽기이며, 분리 전 파일을 읽던 기존 소비자 문제는 별도 실패로 구분한다.
+제품 파일·정적 검사 대상 원본은 불변이어야 하며 실제 Auth·브라우저 동작 PASS가 아니다.
+
+`UI-CRITERIA-DOC-01`~`03`은 같은 자체검사에서 UI 기준 freeze 소비자의 종료 원장 독립성,
+제목 변경 허용, 현행 기준·Policy v4·기능 ID·명령 dispatch 누락 거부를 확인한다.
+최초 예상 RED는 과거 backlog/실행 원장 읽기다. `MANUAL-UI-DOC` 자체검사는
+`node --test scripts/internal/manual_ui_documentation.test.mjs`로 현재 424개 기본 case와
+녹화 8개 정의, 실제 결과와 미실행/FAIL 구분, 권한·정리·증거 적격 조건 및 실패 전파를
+격리 대역에서 확인한다. 결과 문서 구조의 유효성은 실제 UI 실행 PASS가 아니다.
+판정 기준은 [UI 풀테스트](manual-ui-fulltest.md), 실행과 기록은
+[체크리스트](manual-ui-checklist.md)·[결과 템플릿](manual-ui-result-template.md)에 둔다.
+
 `DOC-VLM-FIXTURE`는 VLM 설명 생성·평가·큐·리허설의 현행 schema/기능 ID/명령 dispatch를
 확인한다. 과거 단계 제목·중앙 실행 기록·공개 색인의 직접 링크 없이도 검사하며, 실제 계약·
 기능 연결·fixture 부작용 경계와 UI/장시간 정책 링크가 빠지면 실패한다. 자연어 문장의 의미

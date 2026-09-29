@@ -1,33 +1,19 @@
-# Manual UI Full Test Standard
+# UI 풀테스트 기준
 
-이 문서는 MediaServer에서 "UI 풀테스트"라고 요청받았을 때 반드시 포함해야 하는
-기준입니다. 기능별 UI 필요 여부와 테스트 영역 분류는
-[project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
-삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
-[manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-baseline exact-ID 실행 목록은 `test/fixtures/project_feature_implementation_evidence.json`의
-UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor를
-사용하며 inventory ID와 manifest ID가 다르면 UI 풀테스트를 시작하지 않습니다.
-최신 공개 release 기준은 `v4.0.0 Local Operations Policy and Stabilization`이고
-직전 공개 제품 baseline은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
-현재 소스/UI 실행 기준은 `v4.1.0`이며, `v4.1.0 Release Correctness` 검증에 적용합니다.
-현재 대상은 baseline 424개와 inventory의
-`V410-S06-I27`~`V410-S06-I34` 녹화 8개를 합친 **432개 ID**입니다.
-기존 canonical/native manifest는 변경 없이 보존하며 424 qualifier는 baseline만
-판정합니다. 추가 8개는 결과 템플릿의 action별 행으로 별도 실행합니다.
-432는 ID 수이지 action 수가 아닙니다. 메인은 추가 action 전수 및 AGENTS 7.6.3의
-공통 조건을 포함한 exact 432개 결과로 전체 PASS를 판정합니다.
-기존 S06 과거 PASS를 이번 실행에 재사용하지 않습니다. auth-off `--ui-direct`
-fixture의 준비·종료 성공은 실제 UI action 및 role guard evidence가 아닙니다.
-이하 v4.0.0 Release Correctness 설명은 historical baseline입니다.
-v4.0.0은 previous published v3.9.1의 exact 424-case 제품 baseline을
-상속합니다. Historical v3.9.1 release correction은 `V390-REQ-001`, `V390-REQ-002`,
-`V390-REQ-003` 기준으로 manual UI 기준서 current화, 장시간/UI 테스트 시작 조건
-current화, `v3.5-v3.8 UI coverage bridge`를 닫습니다. 아래 v2.x/v3.x release별
-기준 섹션은 historical coverage bridge이며 현재 gate로 단독 사용하지 않습니다.
-현재 제품 UI 기준으로 지원 가능한 모든 exact 기능 case를 실제 브라우저 조작으로
-확인하지 않은 경우에는 완료로 쓰지 않습니다. 조작 evidence는 `AGENTS.md` 7.6.3의
-Policy v4에 따라 direct-browser, qualified-native-automation, hybrid 중 하나로 기록합니다.
+이 문서는 실제 제품 UI 실행의 합격 기준이다. 실행 순서는 [체크리스트](manual-ui-checklist.md),
+기록 형식은 [결과 템플릿](manual-ui-result-template.md), 기능별 대상·기대값은
+[기능 테스트 정의](project-feature-test-inventory.md)를 따른다.
+소스 버전은 [VERSION](../VERSION), 실행 source는 commit·worktree diff·build hash로 기록한다.
+공개 릴리즈 관측이나 과거 실행 결과를 검토 없이 현재 소스의 PASS로 이월하지 않는다.
+기존 증거의 유효성은 diff·source·환경·검증 경계로 판단한다.
+
+현재 대상은 baseline **424개 + 녹화 8개 = 432개 ID**다.
+baseline은 `test/fixtures/project_feature_implementation_evidence.json`의 UI 대상
+`manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor와 inventory를 대조한다.
+녹화는 `V410-S06-I27`~`V410-S06-I34`의 31개 action을 별도로 실행한다.
+기존 canonical/native manifest와 Policy v4 qualifier의 424개 범위는 바꾸지 않는다.
+432는 ID 수이며 action 수가 아니다. baseline qualifier만으로 전체 432개 PASS를 선언하지 않는다.
+auth-off `--ui-direct` 준비·정리 fixture는 실제 UI action이나 역할 검증 증거가 아니다.
 
 ## Policy v4 증거 적격 기준
 
@@ -55,558 +41,134 @@ fail/notRun/unsupported/unapproved exclusion/manual intervention 0이어야 한�
 `./server.sh verify-ui-fulltest-evidence-policy-v4`다. policyValidationResult와 uiFulltestPass를 분리한다.
 fixture/verifier는 이 정책을 완화하지 않으며 historical evidence를 현재 PASS로 소급 승격하지 않는다.
 
-## 1. 정의
+## 판정과 실행 승인
 
-UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저에서 열고,
-클릭과 타이핑으로 문서에 설명된 기능을 하나하나 확인하는 검수입니다. Codex
-세션의 인앱 브라우저 직접 조작은 `direct-browser` evidence입니다. Playwright,
-Selenium, Chrome/CDP 같은 실제 브라우저 자동화도 도구 이름이 아니라
-`AGENTS.md` 7.6.3 Policy v4의 exact case, completion oracle, role/viewport/theme,
-artifact integrity, redaction, visual/replay/cleanup 계약을 모두 만족하면
-`qualified-native-automation` evidence로 해당 case를 대체할 수 있습니다.
-사용자에게 pane 열기, 버튼 클릭, 팝업 확인을 요청해야만 진행되는 run은 clean
-automation PASS가 아니며 direct evidence와 섞지 않습니다. API 응답, raw JSON,
-screenshot 생성, fixture/wrapper/replay/coverage 또는 정적 스크립트 통과만으로는
-UI 풀테스트를 완료했다고 기록하지 않습니다.
+UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용한다. 실제 조작·completion oracle·관련 로그 또는
+이벤트 이력이 모두 있어야 개별 기능 PASS다. 카테고리 묶음 판정은 금지한다.
+준비 중이거나 시작하지 않은 대상은 미실행으로 기록하고, 완료 판정에서 PASS로 세지 않는다.
+사용자 승인 제외는 판정표 밖 제외 기록에 사유·후속 조건을 남긴다. 제외로 원래 전체 suite가
+충족됐다고 하지 않으며 필수 미실행·FAIL·미확인은 [릴리즈 정책](release-policy.md)의 blocker다.
 
-브라우저 선택 정책:
-
-- Codex가 테스트를 실행하는 세션에서는 인앱 브라우저 direct evidence가 기본입니다.
-- 외부 브라우저 자동화는 engine/fallback/version/provenance를 숨기지 않고 Policy v4
-  qualifier를 통과해야 UI case 대체 evidence가 됩니다. fallback이라는 이유만으로
-  자동 PASS/FAIL하지 않지만 증적 품질 조건 하나라도 빠지면 `unqualified`입니다.
-- 안정화/30분/120분 스크립트 안의 부분 UI smoke는 Policy v4 exact fulltest 실행이
-  아니면 UI 풀테스트 PASS로 쓰지 않습니다.
-
-## 2. 테스트 영역 역할 분리
-
-UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립트 테스트의 기준은
-[stream-verification.md](./stream-verification.md)에 둡니다.
-
-| 영역 | UI 풀테스트에서의 취급 |
+| 영역 | 역할과 실행 경계 |
 | --- | --- |
-| 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
-| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하되, 버전별 로드맵 개발 완료 뒤에도 명시 요청/close-out 승인 없으면 미실행으로 기록합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
-| 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
-| UI 풀테스트 | `direct-browser`, `qualified-native-automation`, `hybrid` 중 실제 evidence mode를 기록합니다. exact case별 실제 브라우저 조작, role, 반응형, 시각 품질 evidence이며 30분/120분 안정화 PASS를 대체하지 않습니다. |
+| 안정화 | 변경 영향에 맞는 focused·회귀와 긴 실행의 선수 조건 확인. 실패한 선행 조건을 건너뛰지 않는다. |
+| 30분 | `verify-predev --soak-minutes 30`. 버전 완료 필수 증거지만 별도 실행 승인을 확인한다. |
+| 120분 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`. 사용자 지시·gate·기능 매핑·미디어/수명 변화·메모리 릭/누수/drift 신호로 필요성을 판단하고 별도 승인을 받는다. |
+| UI | 실제 브라우저 exact case, 권한·반응형·시각 품질. 위 스크립트·장시간 결과와 서로 대체하지 않는다. |
 
-따라서 결과 문서에는 `스크립트 테스트`와 `UI 풀테스트` 판정을 따로 적습니다.
-UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능을 실제 브라우저에서
-실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 completion oracle으로 확인하고,
-관련 로그 또는 이벤트 이력을 확인했을 때만 `PASS`입니다. 자동화 case는 추가로
-Policy v4 qualifier를 통과해야 합니다. 그 외에는 전부 `FAIL`입니다.
-실기기/외부 credential처럼 사용자가 의도적으로 빼라고 한 항목은 UI 풀테스트
-대상에서 제외하고, 판정표 밖의 `제외 기록`에만 남깁니다.
+명령의 상세와 실패 시 처리는 [검증 정책](stream-verification.md#검증-정책),
+승인·기록 수명은 [AGENTS](../AGENTS.md)를 따른다. 이 문서나 fixture는 실행 권한을 부여하지 않는다.
 
-포함 범위:
+## 시작·중단·재검수
 
-- 프로젝트 문서 파악
-- 데이터 리셋과 throwaway fixture 준비
-- Auth, Ops, Client, 접근 요청, 제품 UI/현재 API 경계 실제 브라우저 확인
-- 문서에 나온 웹페이지 UI 기능의 클릭/타이핑 검수
-- 320px, 390px, 760px, 1180px 반응형 확인
-- light/dark theme 확인
-- UI 시각 품질 확인
-- 발견 이슈 수정 후 같은 화면 재검수
-- evidence mode와 정적/보조 자동 검증 결과의 분리 기록
+1. 현재 inventory와 baseline manifest의 ID/route/control/action 및 추가 녹화 action을 맞춘다.
+   종료된 backlog나 과거 버전의 완료 제목은 시작 조건이 아니다.
+2. Auth 환경, 소유 데이터·포트·artifact root, VA seed, 실제 브라우저 권한,
+   `verify-product-ui-no-native-dialogs`와 `verify-ui-blocking-dialog-policy`를 확인한다.
+3. 시작 조건 실패는 아직 실행하지 않은 긴 테스트의 제품 실패로 기록하지 않는다.
+   최초 명령·exit·관측값을 보존하고 승인 범위 안 원인만 수정한다.
+4. runtime/media/auth/session/registry 변경은 영향받은 실행과 증거를 재평가한다.
+   경로·기록 정정만으로 무관한 120분/UI 결과를 자동 폐기하지 않지만, 실제 증거가 없으면 미확인이다.
+5. 원출력과 실패→재검수 연결을 보존한 후 소유 PID·포트·임시 경로만 정리하고 부재를 확인한다.
+   cleanup 실패·미확인은 완료 blocker이며 후속 실행으로 덮지 않는다.
 
-## 2.1 긴 테스트 전 fail-fast 기준
+## 데이터와 계정 격리
 
-30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
-아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
+운영 원본이 아닌 throwaway 상태에서 `MEDIA_SERVER_AUTH_MODE=auto`로 실행한다.
+`MEDIA_SERVER_AUTH_USERS_FILE`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`,
+`MEDIA_SERVER_ANALYSIS_REGISTRY`, `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`,
+`MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`, `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR`,
+`MEDIA_SERVER_RECORDING_STORAGE_ROOT`와 audit 경로를 소유 실행 root 안으로 격리한다.
+Auth/registry는 JSON, audit/EventRecord는 JSON Lines, snapshot/clip/녹화는 해당 파일 저장소다.
+녹화 off여도 시작 복구가 저장소를 변경할 수 있으므로 운영 원본·보존본을 참조하지 않는다.
+세부 설정은 [설정 참조](config-reference.md), 복구 경계는 [백업 안내](ops-backup-recovery.md)를 따른다.
 
-- `docs/v390-feature-completion-inventory.md`의 `V390-REQ-001`,
-  `V390-REQ-002`, `V390-REQ-003` 상태와
-  [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 현재
-  route/control/action coverage를 먼저 확인합니다. 이 확인은 실행 PASS가 아니라
-  빠뜨릴 대상을 정하는 시작 조건입니다.
-- `docs/manual-ui-checklist.md`와 `docs/manual-ui-result-template.md`가
-  `v4.0.0 release UI gate`, `## v4.0.0 Release Evidence Index`,
-  `v3.5-v3.8 UI coverage bridge`를 포함하지 않으면 30분, 120분, UI 풀테스트를
-  시작하지 않습니다.
-- `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
-  VLM 관련 UI/비노출 항목과 v3.5~v3.8에서 추가된 Ops/Client route/control/action
-  항목이 result template 또는 project feature inventory delegation으로 연결돼 있어야 합니다.
-- auth 테스트 비밀번호 환경변수, throwaway users/source/view/analysis/event/snapshot/clip
-  경로, seed dry-run/registry dir, output artifact 경로를 시작 전에 기록합니다.
-- `verify-product-ui-no-native-dialogs`와 `verify-ui-blocking-dialog-policy`를 UI 전
-  선수 gate로 계획합니다. native dialog가 남아 있으면 UI 풀테스트를 시작하지 않습니다.
-- 30분, UI 풀테스트, 120분은 사용자 지시 또는 명시 승인 범위에서만 실행합니다.
-  120분은 AGENTS 7.6.2 직접 조건, 사용자 승인, RC/high-risk 사유,
-  memory/runtime 관찰 항목이 없으면 시작하지 않습니다.
+`/setup`으로 관리자 준비 및 테스트 계정 역할/scope를 확인한다. 비밀번호·초대 token·session cookie·
+자동 생성 비밀번호 제안은 증거에 남기지 않는다. 테스트 비밀번호 환경변수와 VA seed 절차는
+[체크리스트](manual-ui-checklist.md#준비)를 따른다.
 
-실패 후 재검수 범위:
+## 실제 조작과 권한
 
-- 시작 조건, fixture, auth env, output dir 실패는 긴 테스트 실패로 기록하지 않고,
-  해당 안정화 조건 또는 문서만 고친 뒤 다시 확인합니다.
-- 제품 runtime, media path, auth/session, registry seed를 바꾼 경우에는 영향을 받은
-  phase부터 재검수합니다. 최종 UI PASS는 모든 UI 대상 기능 ID의 evidence가 다시
-  충족될 때만 가능합니다.
-- 120분 실행 결과 summary/report/log가 이미 남아 있고 제품 runtime을 고치지 않았다면,
-  리포트 경로/문서 누락만으로 120분을 처음부터 다시 실행하지 않습니다. retained
-  artifact가 요구 범위를 직접 증명하지 못하면 PASS가 아니라 미확인으로 남깁니다.
+인앱 브라우저 direct evidence가 기본이다. Playwright/Selenium/Chrome-CDP actual runner도
+Policy v4를 충족하면 exact case 대체가 가능하다. fallback 자체가 자동 PASS/FAIL 사유는 아니지만
+engine/version·fallback·provenance를 숨기지 않는다. DOM으로 video/overlay/crop을 판정하기
+어려우면 실제 visual evidence를 결합한다. 사용자 pane attach/클릭/OS 팝업 개입은
+`manualIntervention`으로 기록하며 clean automation PASS로 처리하지 않는다.
 
-## 3. 문서 파악
+- 조작: nav/tab/button/menu/details, textbox/textarea/password,
+  select/checkbox/toggle/segmented control, copy/export/preview/play/stop/reconnect.
+- 권한: admin/operator/viewer/integrator와 미인증·pending·invite 전후의 role/scope를 각각 확인한다.
+- 위험 action: native alert/confirm/prompt가 아니라 제품 화면 안 2회 확인을 쓴다.
+  첫 클릭에는 write POST가 없고, 두 번째 클릭 뒤 의도한 상태·감사 이력만 바뀌어야 한다.
+- Ops primary nav는 Home/Dashboard/Channels/Rules/Users/Client Preview다. Users는 admin,
+  `/ops/events`는 직접 진단 route 또는 Dashboard 내부 섹션이다.
+- Client nav는 Live/Dashboard이고 `/client/events`는 primary nav가 아니다.
+  viewer의 Ops/Lab 접근을 거부하고 admin에는 `Client Preview as admin`을 표시한다.
+- client/viewer에 source URL, Developer URL, raw JSON, debug counter/BBox diagnostics,
+  rule/profile editor, model/source/auth/session material, Ops/Lab primary navigation을 노출하지 않는다.
 
-테스트 전에는 프로젝트 내 문서를 먼저 읽고 UI 기능, release boundary, 비노출 정책,
-검증 명령을 파악합니다. 최소 기준은 아래 문서입니다.
+현재 route별 control과 기대값은 [실행 체크리스트](manual-ui-checklist.md#화면별-실행)와
+[UI 안내](ui-guide.md)에 둔다. 실제로 열지 않은 화면·누르지 않은 기능·미적격 smoke만 있는
+기능은 완료 PASS가 아니다. 실제 화면·selector·전후 상태·artifact를 기능 ID별로 기록한다.
 
-- [README.md](../README.md)
-- [docs/README.md](./README.md)
-- [ui-guide.md](./ui-guide.md)
-- [development-guide.md](./development-guide.md)
-- [stream-verification.md](./stream-verification.md)
-- [config-reference.md](./config-reference.md)
-- [project-feature-test-inventory.md](./project-feature-test-inventory.md)
-- [manual-ui-checklist.md](./manual-ui-checklist.md)
-- [manual-ui-result-template.md](./manual-ui-result-template.md)
+## Auth와 VA의 독립 결과
 
-문서에 기능이 설명되어 있지만 UI에서 열지 못한 경우 해당 기능은 `FAIL`입니다.
-단, 사용자가 실기기 없음 등으로 명시 제외한 항목은 테스트 기준에서 제외하고
-별도 기록에만 남깁니다.
+비밀번호 변경은 실행 초기 임시 비밀번호→다른 강한 임시 비밀번호→로그인 확인으로 실행한다.
+`MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT` 기본값 5 때문에 즉시 원래 비밀번호 재사용은
+거부돼야 한다. 격리 계정은 검사 후 정리하며 복원이 기본 의무는 아니다.
+복원 동작도 검증한다면 history 밖으로 밀릴 만큼 서로 다른 비밀번호를 거친다.
+관리자 reset은 history 우회가 아니다. 변경 성공·즉시 재사용 거부·최종 로그인·이전 임시
+비밀번호 거부·잠금 해제를 각각 확인한다.
 
-기능별 테스트 분류는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를
-기준으로 합니다. 이 inventory는 테스트 실행 결과가 아니라 기능별 `UI 필요 여부`,
-`테스트 필요 여부`, `테스트 영역`, `PASS 판정 기준`을 고정하는 문서입니다. 따라서
-inventory에 행이 있다는 이유만으로 해당 기능의 UI 풀테스트나 안정화 테스트가
-완료됐다고 쓰지 않습니다.
+Rule/Profile CRUD는 EventRecord 발생 증거가 아니다. seed fixture
+`test/fixtures/manual_ui_fulltest_va_seed_matrix.json`의 계정·tracker/Re-ID 조합·방향별 event
+template·scenario preset·vaRule을 개별 확인한다. invalid `none + assist`도 별도 결과다.
+최종 enabled rule/template을 유지하고 `/ops/events`의 visible row·filter·pagination·archive와
+EventRecord active JSON Lines/`includeArchives=1` 응답을 대조한다.
+`eventType`, `metadata.ruleId`, zoneId/lineId/scenarioName을 연결한다.
 
-### v3.9.0 Required Closeout coverage bridge
+`presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`,
+`line-crossing:reverse`, `intrusion-dwell`, `re-entry`, `wrong-direction`,
+`intrusion-after-line-crossing`, `loitering`, `zone-occupancy`는 각각 결과 행을 남긴다.
+최종 enabled 항목 하나라도 발생 이력이 없으면 VA coverage는 PASS가 아니다.
+sample 영상·preview 재생만으로 모든 scenario가 발생했다고 하지 않는다.
 
-이 절은 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`의 manual UI 문서 기준입니다.
-`v3.5-v3.8 UI coverage bridge`는 실행 evidence가 아니라, current v3.9 UI 풀테스트를
-시작하기 전에 이전 release에서 추가된 route/control/action을 빠뜨리지 않도록
-project feature inventory에 위임하는 기준입니다.
+## 시각 품질과 반응형
 
-| Release range | Coverage delegation | Current v3.9 시작 조건 |
-| --- | --- | --- |
-| v3.5 Live Operations Control Plane | `docs/project-feature-test-inventory.md`의 `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | `/ops` live operations graph/command/staged/drill/export/field/VLM explanation controls와 `/client/live`, `/client/dashboard`, `/client/events` client-safe notice/impact rows가 결과 문서 대상에 포함돼야 함 |
-| v3.6 Operations Simulation Workspace | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | `/ops` simulation input/run/diff/safe-apply/export/field/default-off explanation controls가 결과 문서 대상에 포함돼야 함 |
-| v3.7 Site-Aware Operations and Safe Runbook Control Plane | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | site/source group, runbook, approval, site-aware notice, rule/VA what-if, field evidence, limited execution pilot, outcome/export controls가 결과 문서 대상에 포함돼야 함 |
-| v3.8 Operator-Gated Action Pilot & Outcome Loop | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | `/ops` action control workspace와 `/client/*` action notice preview, approval/readiness/receipt/default-off explanation controls가 결과 문서 대상에 포함돼야 함 |
+320px/390px/760px/1180px viewport 각각 light/dark theme에서 확인한다.
+텍스트·표·행 action·form·badge·tile·modal/menu가 겹치거나 잘리지 않아야 하며
+hover/focus/selected/disabled/loading/error/empty 상태, 대비와 접근성을 확인한다.
+영상은 전체 video viewport·control·timeline·status·VA overlay를 보존하고 과도한 축소나
+screenshot-only 판정을 피한다. 명시적 visual/geometry artifact와 필요한 리뷰를 남긴다.
 
-이 bridge를 만족해도 인앱 브라우저 UI 풀테스트, 30분, 120분, published metadata,
-release action이 실행된 것은 아닙니다. 각 실행 결과는 별도 evidence로만 기록합니다.
+## 실행 도구와 결과 해석
 
-v2.2.0 UI Evidence Close-out은 F02~F06 follow-up을 기능 inventory, manual UI checklist,
-result template에 연결하는 준비 기준입니다. F06는 UI 풀테스트 실행 결과가 아니라
-결과 기록 기준 정리 단계이므로, F06 verifier PASS를 인앱 브라우저 UI 풀테스트 PASS로
-쓰지 않습니다. 30분 또는 120분 장시간 테스트를 실행하지 않았으면 manual result의
-별도 영역에 `미실행`으로 기록합니다.
+`./server.sh verify-manual-ui-evidence`는 현행 문서·mapping 정합 검사다.
+`--result <result.md>`를 추가하면 결과의 baseline 424개·녹화 8개/31 action,
+집계·VA seed/EventRecord·보존 경로를 검사한다. 구조가 유효한 FAIL 기록은 보존할 수 있다.
+명령 exit 0은 UI 실행 PASS가 아니며 실제 artifact/권한/시각 검토나 Policy v4 qualifier를 대신하지 않는다.
+`./server.sh verify-v220-ui-evidence-closeout`도 현행 정의 연결 검사일 뿐이다.
 
-## 4. 데이터 리셋
+`./server.sh verify-ui-fulltest-one-shot`은 승인 후 격리 core/auth 서버를 실행하는
+보조 wrapper다. dialog guard, inventory coverage, screenshot/Rules/route/table smoke,
+core/auth click E2E를 묶어 summary.json/summary.md를 남긴다. 장시간 명령은 실행하지 않는다.
+`--manual-result <result.md>`가 없으면 결과 구조 검사는 skip이며 UI PASS가 아니다.
 
-UI 풀테스트는 운영 데이터가 아닌 throwaway data reset 상태에서 시작합니다.
-
-- 임시 users file
-- 임시 source registry
-- 임시 published views
-- 임시 analysis registry
-- 임시 event storage/snapshot/clip 경로
-- `MEDIA_SERVER_AUTH_MODE=auto`
-- 검증 전용 HTTP/RTSP port
-
-현재 제품 baseline의 저장소는 내부 DB가 아니라 파일 기반 runtime state입니다.
-auth는 users JSON, source/view/analysis 설정은 각 registry JSON, ops audit과
-EventRecord는 JSON Lines, snapshot/clip evidence는 지정 디렉터리에 저장됩니다.
-결과 문서에는 실제 사용한 `MEDIA_SERVER_AUTH_USERS_FILE`,
-`MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`,
-`MEDIA_SERVER_ANALYSIS_REGISTRY`,
-`MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`,
-`MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`,
-`MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR`를 적고, DB 저장이라고 추정하지 않습니다.
-
-데이터 리셋 후 `/setup`에서 admin을 직접 만들고, 결과 문서에는 비밀번호 원문,
-invite token 원문, session cookie, generated password suggestion을 남기지 않습니다.
-
-## 5. 실제 브라우저 조작과 Policy v4 evidence mode
-
-UI 풀테스트는 사용자가 대신 누르는 절차가 아니라 테스트 주체가 브라우저를
-제어해 수행하는 절차를 기본값으로 둡니다. Codex 세션의 인앱 브라우저는
-`direct-browser`, Policy v4 qualifier를 통과한 actual browser runner는
-`qualified-native-automation`, DOM만으로 닫히지 않는 시각/영상 항목에 direct 또는
-전용 visual evidence를 결합하면 `hybrid`로 기록합니다. 다음 행위가 실제
-브라우저에서 수행되어야 `확인됨`입니다.
-
-- route를 실제로 열기
-- nav/tab/button/menu/details를 클릭하기
-- textbox/textarea/password에 타이핑하기
-- select/checkbox/toggle/segmented control을 조작하기
-- copy button, export button, preview/play/stop/reconnect를 누르기
-- role별 route guard를 브라우저에서 확인하기
-- responsive viewport를 바꾸고 화면을 다시 확인하기
-- confirm/alert/prompt 같은 브라우저 native dialog가 제품 UI에 남아 있지 않은지
-  `verify-product-ui-no-native-dialogs`로 먼저 확인하기
-- blocking dialog policy에서 허용한 in-page dialog만 쓰는지
-  `verify-ui-blocking-dialog-policy`로 확인하기
-- 위험 action은 제품 화면 안 2회 확인 상태로 처리되고, 첫 클릭에는 write POST가
-  발생하지 않으며 두 번째 클릭에서만 상태가 바뀌는지 확인하기
-
-테스트가 Codex pane attach, 사용자의 클릭, 운영체제 팝업 버튼 수동 확인을 기다리면
-그 항목은 제품 FAIL이 아니라 테스트 harness FAIL입니다. harness FAIL 상태에서
-해당 기능을 PASS로 기록하지 않습니다.
-
-### v3.9.0 AI-minimized UI automation adapter / Policy v4 기준
-
-v3.9.0 Test Model Prep의 UI automation adapter는 사람이 브라우저를 매번 수동으로
-운전하지 않아도 실패 원인을 재현할 수 있는 evidence를 남기는 기준입니다. 이 기준은
-UI 풀테스트를 다섯 번째 테스트 영역으로 만들지 않고, AGENTS의 `UI` 영역 안에 둡니다.
-runner PASS 자체는 UI PASS가 아니며 `./server.sh verify-ui-fulltest-evidence-policy-v4`
-결과의 `policyValidationResult`와 `uiFulltestPass`를 분리합니다.
-
-도구 우선순위:
-
-- 1차 후보는 무료 web automation 도구인 Playwright입니다. 제품 UI가 웹 기반이고
-  route/control/action/console/trace/screenshot evidence를 한 실행에서 남길 수 있기
-  때문입니다.
-- 2차 후보는 Selenium입니다. Playwright를 사용할 수 없는 환경의 web automation
-  fallback으로만 봅니다.
-- DOM-level 확인만으로 video viewport, overlay, crop, visual artifact를 판정하기
-  어려운 경우에만 SikuliX 같은 image-based fallback을 검토합니다. 이 fallback도
-  raw screenshot 생성만으로 UI PASS를 만들 수 없습니다.
-
-failure report 필수 필드:
-
-| 필드 | 기록 기준 |
+| wrapper 필드 | 의미 |
 | --- | --- |
-| route | 실패한 제품 route 또는 route group |
-| viewport | width/height와 responsive target |
-| theme | light/dark 또는 미적용 사유 |
-| account/role | 사용한 계정 유형과 role/scope |
-| control/action | 클릭/타이핑/선택한 control과 action |
-| expected result | 기대한 UI state, URL, DOM state, log/event |
-| actual result | 실제 화면/DOM/log/event 차이 |
-| screenshot | 실패 순간 screenshot 경로 |
-| trace/video | Playwright trace/video 등 지원되는 경우의 artifact 경로 |
-| browser console | console error/warning 요약 |
-| server log reference | 관련 server log path와 tail marker |
-| cleanup/port state | 테스트 종료 후 throwaway server/port cleanup 상태 |
-| manual intervention | 사용자 클릭, pane attach, OS dialog 수동 확인이 있었는지 여부 |
+| `wrapperResult` | wrapper 자체 결과 |
+| `resultScope` | `wrapper-only` |
+| `uiFulltestEvidenceStatus` | evidence 제공 여부. 제공만으로 실제 PASS 아님 |
+| `manualResultStatus` | provided/skip/not-provided 상태 |
+| `longrunStatus` | `not-run-by-this-wrapper` |
 
-manual intervention이 있으면 해당 run은 자동 clean PASS가 아닙니다. 보고서는
-`manual intervention: yes`와 사유를 남기고, 최종 UI 풀테스트 PASS 여부는 개별
-route/control/action 결과표에서 다시 판정합니다.
+Auth/미디어·실제 UI·장시간은 별도 실행 범위를 따른다. 보조 명령은
+`verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`,
+`verify-ops-client-ui`/`--screenshots`, `verify-ops-click-e2e`/`--auth-ui-flow`,
+`verify-rule-ui` 등이며 정확한 옵션은 [검증 명령](stream-verification.md)을 따른다.
+VLM의 default-off/privacy·profile 저장/후보 선택과 실제 provider 호출은 구별하고,
+[관련 안정화 기준](vlm-stabilization-longrun-ui-criteria.md)에 따라 UI·장시간을 각각 판단한다.
 
-UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로 답합니다.
-카테고리 묶음 판정은 금지합니다. 예를 들어 `Rules PASS`, `Auth FAIL`처럼 묶지
-않고, `RULE-041 presence EventRecord 발생`, `AUTH-022 reset 후 must-change`,
-`UI-004 password change 임시 pw 로그인`처럼 개별 행으로 기록합니다.
-요약은 개별 행 이후에만 둘 수 있고, 요약이 개별 결과를 대체할 수 없습니다.
-열어보지 않은 화면, 누르지 않은 기능, 일부 조건만 확인한 기능은 `FAIL`입니다.
-제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
-
-Policy v4 자동화 동등성은 아래 추가 조건을 모두 요구합니다.
-
-- exact `manualUiCaseId`와 route/control/action source mapping
-- requested/observed role·scope, viewport, theme 일치
-- 실제 trusted interaction과 DOM transition, correlated network+DOM, persisted state,
-  EventRecord, server log 중 하나의 completion oracle
-- exact-selector visible assertion과 실제 screenshot/trace/console/server-log artifact
-- source/policy/manifest/runner fingerprint, artifact hash/type/path containment, redaction
-- completion/visual/cross-cutting/redaction ref의 실파일 bytes/SHA-256/content type과
-  exact case/correlation ID, PNG chunk/CRC/IDAT decode, interaction trace/payload schema
-- redaction scan output의 scanned artifact hash 목록과 evaluator의 독립 forbidden-material 재스캔
-- visual baseline/geometry evidence 또는 direct visual evidence가 필요한 항목의 hybrid 처리
-- replay PASS, failed/not-run/unsupported/manualIntervention 0, server/port/temp cleanup PASS
-
-전체 UI 풀테스트 PASS는 current exact UI test ID 424개와 교차 viewport/theme/role/
-redaction/video/overlay/visual/accessibility 의무가 모두 direct 또는 automation-equivalent
-PASS일 때만 가능합니다. 기존 matrix의 positive 423+negative route 1/unsupported 0은
-REVIEW4-56~60 전 historical source classification이며 current readiness가 아닙니다.
-Current 실행은 pass 0/not-run 424이고 suite PASS가 아닙니다.
-
-풀테스트 harness 자체를 한 번에 실행할 때는
-`./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용
-throwaway registry/users/event 경로와 격리 포트로 core/auth 서버를 띄운 뒤
-native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
-Rules smoke, route/rules/table guard, core/auth click
-E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다. 이 wrapper는
-`verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
-`verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
-`--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조를 함께
-검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
-v3.9.0부터 wrapper summary는 아래 필드를 반드시 포함합니다.
-
-| 필드 | 의미 | PASS로 승격 금지 |
-| --- | --- | --- |
-| `wrapperResult` | wrapper command 자체의 성공/실패입니다. | UI 풀테스트, 30분, 120분, manual result 실행 PASS가 아닙니다. |
-| `resultScope` | `wrapper-only`로 고정해 wrapper 결과 범위를 표시합니다. | release/UI 실행 범위 확장 근거가 아닙니다. |
-| `uiFulltestEvidenceStatus` | 인앱 브라우저 evidence JSON 제공 여부입니다. | `provided`여도 route/control/action 직접 결과표가 없으면 UI 풀테스트 PASS가 아닙니다. |
-| `manualResultStatus` | manual result 문서 제공/skip/not-provided 상태입니다. | `skipped` 또는 `not-provided`는 manual UI 결과 PASS가 아닙니다. |
-| `longrunStatus` | 30분, 120분 predev, runtime console 120분을 `not-run-by-this-wrapper`로 기록합니다. | longrun 실행 evidence로 사용할 수 없습니다. |
-
-auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
-
-- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
-- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
-- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
-- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
-- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
-
-다음은 `확인됨`으로 쓰지 않으며, UI 풀테스트 대상이면 `FAIL`입니다.
-
-- raw JSON/API-only 확인만 수행
-- 스크립트 screenshot만 생성
-- Policy v4 qualifier를 통과하지 않은 자동 smoke만 통과
-- 열지 않은 화면
-- 실패한 화면을 재검수하지 않음
-- 브라우저가 아닌 문서/코드만 확인
-- 사용자가 대신 누른 클릭이나 팝업 확인을 runner evidence처럼 기록
-
-## 6. 필수 화면 범위
-
-Auth:
-
-- `/`
-- `/setup`
-- `/login`
-- `/password/change`
-- `/invite/setup`
-
-Ops:
-
-- `/ops/home`
-- `/ops/dashboard`
-- `/ops/sources`
-- `/ops/rules`
-- `/ops/users`
-- `/ops/events`
-- `/ops/vlm`
-
-Client:
-
-- `/client/live`
-- `/client/dashboard`
-- `/client/events`
-- `/client/request-access`
-
-Role/scope:
-
-- admin/operator의 Ops 접근
-- viewer의 Client 접근
-- viewer의 `/ops/home` 접근 거부
-- 승인 전 접근 요청이 로그인/채널 권한을 만들지 않는 경계
-- invite setup 전후 접근 경계
-
-## 7. 기능별 필수 조작
-
-- Auth: weak password rejection, strong setup, login, must-change password,
-  password history reuse rejection, invite setup
-- Ops Home: nav, summary, status, event summary
-- Ops Dashboard: refresh, incident search, source filter, copy/share, root cause panel
-- Channels: add/edit validation, file channel, RTSP/ONVIF/WHEP input, row action, copy
-- Rules: scenario/event template, profile, VA rule validation, preview play/stop,
-  geometry default/clear, save
-- Users: user create/edit, viewer scope, password reset, disable/restore, last admin guard,
-  pending request approve/reject
-- Events: filters, include archives, prev/next, evidence/export action
-- VLM Ops: `/ops/vlm` install/model state, cloud opt-in guard, privacy transfer warning,
-  profile activation/fallback/disable/delete, raw details 접힘 영역
-- VLM Event Review: `/ops/events` VLM summary/explanation/false-positive hints/operator
-  questions 표시, client/viewer 비노출
-- Client Live: source tree, tile assignment, start/reconnect/stop, grid/density,
-  dock side, info overlay, workspace actions, copy fallback, keyboard focus
-- Client Dashboard: filter, sort, status copy, event copy
-- Request Access: public submit, pending copy, approval before/after boundary
-- v2.1.0 VLM pre-test 반영: `/ops/vlm`의 local/cloud dry-run 후보, missing-model,
-  cloud-disabled, provider-timeout 안내, privacy transfer guard, profile 저장/
-  활성화/fallback/disable/delete, raw details 접힘 영역을 기능 ID별로 확인
-- v2.1.0 client redaction: `/client/live`, `/client/dashboard`, `/client/events`에서
-  VLM model, prompt, raw response, provider, internal review card, source/debug JSON이
-  보이지 않는지 기능 ID별로 확인
-- v2.5.0 Semantic Incident Memory UI 풀테스트 기준: `/ops/events`에서 `UI-039`
-  semantic search 입력/filter/matched evidence highlight, `UI-040` timeline graph,
-  `UI-041` explainable incident brief, `UI-042` similar incident lookup, `UI-043`
-  raw signed bundle과 별도 `release-safe bundle`, `UI-044` owner/release readiness
-  기준을 기능 ID별로 확인합니다. raw JSON/API-only 확인, 자동 smoke, screenshot
-  생성만으로는 UI 풀테스트 PASS로 쓰지 않습니다. release-safe bundle은 실제 버튼
-  조작, token 요청, manifest-only/redaction policy 확인, raw evidence/source
-  locator/provider material 비노출 확인을 분리해 기록합니다.
-- v2.8.0 Operator-Supervised Action Readiness UI 풀테스트 기준: `/ops/events`에서
-  `UI-055` Incident Action Readiness Queue, `UI-057` Evidence Intake and Field
-  Readiness, `UI-058` Runtime Evidence Window를, `/ops/rules`에서 `UI-056`
-  Approval-gated Rule Draft Readiness를, `/client/live`, `/client/dashboard`,
-  `/client/events`에서 `CLIENT-024` Client-safe Follow-up Digest를 기능 ID별로
-  확인합니다. S07 release readiness는 `OPS-040`과 `SAFE-070` 기준으로 S02~S06
-  UI criteria, release evidence 문서, not-run/published metadata 경계가 같은
-  범위를 가리키는지 확인하는 기준 정리입니다.
-  raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
-- v2.9.0 Final 2.x Closure UI 풀테스트 기준: v2.9.0은 새 제품 UI route를 추가하지
-  않고 현재 2.x route/control/action/role/viewport/theme 기준을 freeze합니다. UI
-  직접 대상은 `project-feature-test-inventory.md`의 현재 UI 대상 기능 ID 전체와
-  `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/home`,
-  `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
-  `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`,
-  `/client/request-access`입니다. admin/operator/viewer/integrator role guard,
-  320px/390px/760px/1180px viewport, light/dark theme, nav/tab/button/menu/details,
-  textbox/textarea/password, select/checkbox/toggle/segmented control, copy/export/
-  preview/play/stop/reconnect action을 개별 기능 행으로 확인합니다. S05는 기준
-  freeze이며 실제 UI 풀테스트 실행 PASS가 아닙니다. raw JSON/API-only/static smoke/
-  screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
-- v2.7.0 Operational Incident Command Loop UI 풀테스트 기준: `/ops/events`에서
-  `UI-050` Incident Triage Board, `UI-051` Decision scorecard, `UI-052`
-  Operational Action Pack, `UI-053` Rule What-if Preview, `UI-054` Operator
-  outcome memory를 기능 ID별로 확인합니다. S06 release readiness는 `OPS-038`과
-  `SAFE-063` 기준으로 S01~S05 UI criteria, release evidence 문서, not-run/published
-  metadata 경계가 같은 범위를 가리키는지 확인하는 기준 정리입니다.
-  raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
-- v2.6.0 Operational Hardening UI 풀테스트 기준: `/ops/events`에서 `UI-045`
-  VLM summary candidate review와 `UI-046` incident-to-rule draft-only 연결을,
-  `/ops/sources`에서 `UI-047` ONVIF credential gate를, `/ops/dashboard`에서
-  `UI-048` page-session-only runtime trend card를, `/ops/rules`에서 `UI-049`
-  configured-zones A->B re-entry 후보를 기능 ID별로 확인합니다. S06 release
-  readiness는 `/ops/events`, `/ops/sources`, `/ops/dashboard`, `/ops/rules`,
-  release evidence 문서가 같은 not-run 경계를 가리키는지 확인하는 기준 정리입니다.
-  raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
-
-위 목록은 실행 순서 요약입니다. 실제 기능 단위 범위는
-[project-feature-test-inventory.md](./project-feature-test-inventory.md)의 기능 ID를
-기준으로 추적합니다. UI가 `비대상`인 API/계약/backend 기능은 억지로 제품 UI를
-만들지 않고 스크립트 테스트 영역에서만 판정합니다.
-
-비밀번호 변경 성공 케이스는 사용자 지정 테스트 비밀번호를 최종 상태로 보존하면서
-검수합니다.
-
-- 모든 테스트 계정은 실행자가 지정한 테스트 비밀번호로 시작합니다. 이 값은 기본
-  비밀번호가 아니며 문서와 screenshot에 원문을 남기지 않습니다.
-- 성공 flow는 `/password/change`에서 사용자 지정 테스트 비밀번호를 현재 비밀번호로
-  입력하고, 임의의 강한 임시 비밀번호로 변경한 뒤 `/login` redirect를 확인합니다.
-- 임시 비밀번호로 로그인해 실제로 변경됐는지 확인합니다.
-- 임시 비밀번호에서 사용자 지정 테스트 비밀번호로 즉시 되돌리는 시도는
-  password history 정책에 의해 거부되어야 합니다.
-- 사용자 지정 테스트 비밀번호로 최종 복원해야 하는 경우,
-  `MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT` 값을 확인합니다. 기본값은 `5`이므로
-  `원래 -> 임의1 -> 임의2 -> 원래`는 복원 조건이 아닙니다. 원래 비밀번호가
-  history 밖으로 밀려날 만큼 서로 다른 임시 비밀번호를 추가로 거친 뒤에만
-  사용자 지정 테스트 비밀번호로 복원할 수 있습니다.
-- 관리자 reset password UI/API는 password history 우회 수단으로 쓰지 않습니다.
-  reset도 같은 history 정책을 통과해야 하며, 성공 시 다음 로그인 비밀번호 변경
-  요구 상태가 될 수 있으므로 본인 변경 flow와 별도 evidence로 기록합니다.
-- 최종 확인은 이전 임시 비밀번호 로그인이 거부되고, 사용자 지정 테스트 비밀번호로
-  기대 role landing(`/ops/home` 또는 `/client/live`)에 도달하며, lockout/failure
-  상태가 남지 않는 것입니다.
-
-VA 룰/시나리오 검수는 Rule/Profile/Scenario CRUD와 EventRecord 발생 이력 확인을
-분리합니다. `/ops/rules`에서 rule/template/profile을 저장한 것만으로 이벤트 발생을
-확인했다고 쓰지 않습니다.
-
-- 최종 analysis registry의 enabled event template과 vaRule을 모두 나열합니다.
-- basic event type은 `presence`, `enter`, `exit`, `line-crossing`입니다.
-- scenario event type은 `intrusion-dwell`, `re-entry`, `wrong-direction`,
-  `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`입니다.
-- basic/scenario 최종 12개 이상 event key는 개별 PASS/FAIL 행으로 기록하고,
-  카테고리 묶음 PASS로 대체하지 않습니다.
-- UI 풀테스트 완료 전 `/ops/events`를 admin/operator 권한으로 열고 EventRecord
-  rows를 직접 확인합니다. screenshot과 함께 visible row, pagination/filter 상태,
-  archive 포함 여부를 기록합니다.
-- 파일/API 조회는 보조 evidence로만 사용합니다. 보조 대조에서는
-  `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`의 active JSON Lines와, 필요한 경우
-  `includeArchives=1` 조회를 사용해 event type, `metadata.ruleId`, `zoneId`,
-  `lineId`, `scenarioName`을 registry와 비교합니다.
-- enabled template/vaRule 중 하나라도 EventRecord 이력이 없으면 해당 event type과
-  rule id를 `FAIL`로 기록합니다. sample H.264 재생이나 preview
-  화면만으로 모든 VA 이벤트 발생을 확인했다고 쓰지 않습니다.
-
-## 8. 시각 품질과 반응형
-
-UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니다.
-
-- 320px, 390px, 760px, 1180px에서 각 주요 UI를 확인합니다.
-- form label/input/select 간격이 같은 계층에서 일관적인지 확인합니다.
-- button text, table row action, badge, tile action, modal/menu가 잘리지 않는지 봅니다.
-- client live video viewport, control, status, overlay가 잘리지 않는지 봅니다.
-- light/dark theme에서 semantic token contrast가 유지되는지 봅니다.
-- hover/focus/selected/disabled/loading/error/empty 상태가 화면을 밀거나 겹치게
-  만들지 않는지 확인합니다.
-- client/viewer 화면에 source URL, Developer URL, raw JSON, debug counter,
-  BBox diagnostics, rule/profile editor, model/source/auth material, Ops/Lab primary
-  navigation이 노출되지 않는지 확인합니다.
-
-## 9. 보조 자동 검증과 중단
-
-아래 자동 검증은 UI fulltest actual-browser evidence와 별개인 `스크립트 테스트`
-증거입니다. UI/Auth/Ops/Client 변경이 있으면 최소 아래 명령을 검토하고, 실행하지
-않은 항목은 이유를 적습니다. Policy v4-qualified fulltest runner는 이 보조 smoke와
-구분합니다.
-
-- `./server.sh build`
-- `./server.sh verify-auth-bootstrap`
-- `./server.sh verify-auth-users`
-- `./server.sh verify-auth-routes`
-- `./server.sh verify-ops-client-ui`
-- actual UI: direct-browser 또는 Policy v4-qualified browser evidence
-- screenshot smoke: `./server.sh verify-ops-client-ui --screenshots`
-- Policy v4 qualifier: `./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <summary.json>`
-- `./server.sh verify-product-ui-no-native-dialogs`
-- `./server.sh verify-ui-blocking-dialog-policy`
-- `./server.sh verify-ops-click-e2e`
-- `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`
-- `./server.sh verify-rule-ui`
-- `git diff --check`
-
-문서 변경이 있으면 아래를 검토합니다.
-
-- `./server.sh verify-docs-links`
-- `./server.sh verify-docs-ui-assets`
-- `./server.sh verify-release-metadata`
-- `./server.sh verify-manual-ui-evidence`
-
-장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
-실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남깁니다. 보조 smoke는
-UI 풀테스트 대체 evidence가 아니며 Policy v4-qualified actual-browser summary만 exact
-case 단위 대체 후보가 됩니다.
-
-VLM UI 기준:
-
-- `/ops/vlm`의 model install readiness, missing-model, cloud-disabled, provider timeout
-  안내는 직접 클릭/선택/저장/삭제 결과로 확인합니다.
-- cloud opt-in guard는 opt-in 전 provider 호출/credential 저장이 없고, opt-in 후에도
-  dry-run 선택만 반영되는지 확인합니다.
-- `/ops/events` VLM review detail은 EventRecord evidence와 함께 표시되지만
-  Event POST/WebRTC/SSE/WS payload에 섞이지 않는지 스크립트 evidence와 분리합니다.
-- `/client/live`, `/client/dashboard`, `/client/events`에는 VLM model, prompt, raw
-  response, provider, internal review card가 보이지 않아야 합니다.
-- raw JSON/API-only 확인, `verify-ops-client-ui --browser-mode static`, screenshot만으로는
-  VLM UI 풀테스트 PASS가 아닙니다.
-
-## 10. 토큰 사용량 기록
-
-모든 안정화/30분/120분/UI 풀테스트 기록에는 평균 산출을 위해 토큰 사용량을
-남깁니다. 결과 문서와 release evidence ledger에는 아래 필드를 빠뜨리지 않습니다.
-
-- `token usage source`: Codex goal usage, 명령별 summary, 또는 미집계 사유
-- `token start`: 해당 테스트 영역 시작 시점의 누적 토큰
-- `token end`: 해당 테스트 영역 종료 시점의 누적 토큰
-- `token consumed`: `token end - token start`
-- `elapsed`: 실제 테스트/기록에 걸린 시간
-
-토큰 사용량은 비용/평균 산출용 메타데이터입니다. 토큰 사용량이 적거나 많다는
-이유로 테스트 결과를 PASS/FAIL에서 바꾸지 않습니다. 자동 집계값이 없으면 임의로
-추정하지 않고 `manual-not-available` 또는 미집계 사유를 기록합니다.
-
-## 11. 보고 원칙
-
-보고는 확인된 사실과 추정을 분리합니다.
-
-- 확인됨: 실제 실행한 명령, evidence mode, 실제 브라우저로 조작한 화면, 실제 생성된 fixture, 실제 수정 파일,
-  실제 커밋 여부
-- 제외 기록: 사용자가 의도적으로 UI 풀테스트 기준에서 제외하라고 한 실기기/외부
-  credential/scope 밖 항목. 이 항목은 PASS/FAIL 판정표에 넣지 않습니다.
-- 실패: PASS 조건을 충족하지 못한 모든 UI 풀테스트 대상 기능, 실패 명령, 실패 화면,
-  영향 범위, 수정 여부, 재검수 결과
-- UI 풀테스트 판정은 개별 기능별 `PASS` 또는 `FAIL`만 사용합니다.
-
-푸시는 사용자가 명시 요청하기 전까지 수행하지 않고, 마지막에는 푸시 가능 여부와
-푸시 수행 여부를 분리해서 보고합니다.
-
-## 12. 문서 비교/병합 결과
-
-이번 재작성에서는 기존 [manual-ui-checklist.md](./manual-ui-checklist.md)를 실행
-runbook으로 전면 정리하고, 이 문서를 UI 풀테스트 세부 기준 문서로 새로
-작성했습니다. 두 문서를 비교해 중복된 정의는 이 문서에 병합했고, route별 실행
-항목과 종료 체크는 checklist에 남겼습니다. 결과 기록 항목은
-[manual-ui-result-template.md](./manual-ui-result-template.md)에 병합했습니다.
-
-앞으로 "UI 풀테스트"를 요청받으면 이 문서의 기준을 먼저 적용하고,
-checklist와 result template을 함께 사용합니다.
+결과는 실행 단위 한 곳에 명령·source/환경·UTC·exit·stdout/stderr·개별 결과·실패 연결·cleanup을
+남기고 다른 문서는 링크한다. token usage source/start/end/consumed·elapsed는 측정값만 쓰며
+없으면 미집계 사유를 남긴다. 커밋·푸시 가능 여부와 실제 수행을 구분한다.
