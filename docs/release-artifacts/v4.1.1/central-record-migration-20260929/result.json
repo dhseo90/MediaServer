@@ -1,6 +1,103 @@
 {
   "schema": "media-server.documentation-run-result.v1",
   "status": "partial-blocked",
+  "limitedClose": {
+    "observedAt": "2026-09-29T13:49:17.483Z",
+    "sourceCommit": "a67bfad7ce221117027ff4954df8b13b8391f2f9",
+    "scope": "2/4 제한 마감·독립 검토 시도·중간 보존. 3단계·푸시·릴리즈 아님",
+    "snapshot": {
+      "trackedDiffSha256": "60ebb35bbf180479933ae1a7baeb16159755544071c976b3031ee541dd80035b",
+      "fileManifestSha256": "06d342d532be952022848b870f07858462c2050da15cd33f0f726729cdf67999",
+      "paths": 47,
+      "index": "empty",
+      "untrackedFixture": "test/fixtures/v390_user_review_history.json",
+      "untrackedFixtureSha256": "46f86512529e5688a8f87158f95517576adbc302243b5fb61a16e76e7c61164f",
+      "unchangedAfterInspection": true,
+      "productPathsChanged": []
+    },
+    "independentReview": {
+      "status": "not-started-environment-blocked",
+      "tool": "collaboration.spawn_agent",
+      "attempts": 1,
+      "requestedTask": "v411_independent_close_review",
+      "actualError": "collab spawn failed: agent thread limit reached",
+      "reviewerCreated": false,
+      "decisions": [],
+      "bindingApplied": false,
+      "classification": "검토 내용 거절·저장소 검사 실패·권한 심사 거부가 아닌 실행 환경의 agent thread 한도",
+      "bypassAttempted": false
+    },
+    "structure": {
+      "correctedUnclassified": 0,
+      "remainingUnclassified": 93,
+      "mainOnlyClassificationCandidates": [
+        {
+          "owner": "application-service-interfaces",
+          "files": [
+            "include/ingress/recording_application_service.h",
+            "src/ingress/recording_application_service.cpp",
+            "src/ingress/recording_evidence_application_mapping.h"
+          ],
+          "basis": "녹화 조회·HTTP 응답의 application 경계와 analysis/application 간 동일 결과 증거 변환. 기존 application service·mapping 기준의 후보이며 하위 녹화 의존 분류는 미확정"
+        },
+        {
+          "owner": "transport-and-auth-adapter",
+          "files": [
+            "include/ingress/recording_request_gate.h",
+            "src/ingress/site_operations_request_diagnostic.h"
+          ],
+          "basis": "socket admission/종료 drain 및 HTTP 요청 phase 진단. 사용자 권한이나 제품 동작 변경 없는 exact-file 분류 후보"
+        },
+        {
+          "owner": "core-media-interfaces",
+          "files": [
+            "include/media/gstreamer_sample_observation.h"
+          ],
+          "basis": "실제 GstBuffer/probe/qdata 수명과 원본 sample 관측 결박. core-media→core-utilities 방향은 기존 허용"
+        }
+      ],
+      "recordingFilesNotIndependentlyClassified": 87,
+      "limitation": "후보 6개는 메인의 제한 열람 판단이며 독립 검토·분류 적용·의존 graph 전체 판정이 아니다. 녹화 87개를 디렉터리 이름으로 일괄 배정하거나 모두 신규 정책 필요로 단정하지 않았다.",
+      "mismatches": [
+        {
+          "from": "include/app_config.h",
+          "to": "include/core/recording_runtime_config_data.h",
+          "direction": "core-utilities -> core-media-interfaces",
+          "cause": "ordered-exact-over-directory-container에서 녹화 설정 DTO와 recording_runtime_defaults.h의 exact utility 분류 누락. 기존 analysis_runtime_config_data.h/analysis_runtime_defaults.h와 역할 대응",
+          "disposition": "검사 데이터 정정 후보. DTO뿐 아니라 포함하는 defaults의 역할도 함께 대조해야 하며 독립 검토 미실행으로 수정 보류"
+        },
+        {
+          "from": "include/analysis/frame_source_association.h",
+          "to": "include/media_types.h",
+          "direction": "analysis-services -> core-utilities",
+          "cause": "TimestampAssociationHistory가 media::Packet/SampleObservation을 실제 소비. 현행 owner 분류와 allowedDependencyDirections 아래 허용되지 않는 실제 edge",
+          "disposition": "분류명 변경으로 숨기지 않음. 허용 방향·제품 구조 변경은 이번 비범위. 기존 FAIL 유지"
+        }
+      ],
+      "policySource": "test/fixtures/v390_structure_stabilization_current_architecture_policy.json: ownerIds/allowedDependencyDirections; current_graph.json: ordered-exact-over-directory-container",
+      "classifierPolicyGraphEdited": false
+    },
+    "verification": {
+      "reused": "772d6810·a67bfad7에 보존된 자체검사·자식 실행·실패 전파 증거. 이번 실행으로 재표기하지 않음",
+      "vlm": "집중 3/3과 실제 로컬 1회·5기동·정리 PASS 유지. 최초 실패 당시 신호 미관측 한계 유지. 재실행 없음",
+      "structureReadiness": "입력/코드 미변경으로 기존 FAIL 유지, 동일 실행 반복 없음",
+      "coverage": "독립 검토 결속 선행 조건 미충족으로 미실행. 이전 FAIL 유지",
+      "currentChecks": {
+        "command": "git diff --check && node scripts/internal/verify_docs_links.mjs",
+        "chunk_id": "35fcbf",
+        "wall_time_seconds": 0.156918042,
+        "exit_code": 0,
+        "original_token_count": 47,
+        "output": "\n== Docs link verification summary ==\n- markdown files: 292\n- local links: 9192\n- local images: 14\n- local anchors: 347\n- indexed docs: 87\n- index coverage exclusions: 188\n- failures: 0\n"
+      },
+      "sourceSnapshot": "47개 내용/삭제 상태와 새 fixture hash 대조 일치, 실제 index 비어 있음"
+    },
+    "preservation": "사용자가 승인한 중간 보존 대상이다. 독립 검토 미수행과 남은 FAIL을 명시하며 완료/전체 PASS/릴리즈 승인으로 취급하지 않는다. 증거와 코드·문서 변경 보존 커밋을 구분한다.",
+    "cleanup": "이번 실행에서 테스트 서버·임시 디렉터리·검토자 생성 없음. 기존 실패 분석 증거를 삭제하지 않음.",
+    "stage2": "partial",
+    "stage3Ready": false,
+    "pushPerformed": false
+  },
   "followup": {
     "observedAt": "2026-09-29T13:36:37.359Z",
     "sourceCommit": "772d6810577b32121df03ce4cdd1d8294ecc4720",
