@@ -1,89 +1,110 @@
-# VLM Runtime Opt-in Contract
+# VLM 명시 활성화와 runtime 저장 계약
 
-이 문서는 `v2.1.0 V210-S01 VLM runtime opt-in contract`의 세부 계약 문서입니다.
-S01은 실제 VLM runtime/provider를 호출하지 않고, 운영자가 명시적으로 켜기 전까지
-모든 profile이 default-off임을 저장 계약으로 고정합니다.
+VLM 프로필을 저장하거나 검증 도구를 유지보수하는 개발자·운영자를 위한 기준입니다.
+프로필의 활성화 metadata, 로컬 연결 검사, 외부 provider 호출은 서로 다른 경로입니다.
+VLM 실행은 default-off이며, 프로필을 저장하거나 `activation.status=active`로 승인해도 현재 제품이 VLM을 자동 호출하지 않습니다.
 
-## 직접 답
+| 경로 | 실제로 하는 일 | 하지 않는 일 |
+| --- | --- | --- |
+| `/ops/vlm`·프로필 API | 후보 선택, 서버 평가 참조 확인, opt-in metadata 저장 | 모델 설치·runtime 시작·provider 호출 |
+| [로컬 smoke](vlm-local-runtime-connection-smoke.md) | 검증기 내부 loopback HTTP와 오류·정리 검사 | 사용자 Ollama/vLLM 모델 실행·품질 판정 |
+| [cloud gate](vlm-cloud-provider-field-smoke-gate.md) | 기본은 합성 사례 검사, 별도 승인 조건에서만 실제 HTTP 호출 | 기본 실행의 provider 성공 승격 |
 
-사용하기로 한 runtime 상태 contract는 `media-server.vlm-runtime-opt-in-contract.v1`
-입니다. 이 객체는 `media-server.vlm-profile.v1` profile 안의 `runtimeContract`에
-저장합니다.
+프로필 전체 payload·평가 승격은 [프로필 저장](vlm-profile-storage.md), 외부 전송 검토는
+[개인정보 전송 guard](vlm-privacy-transfer-guard.md), 화면은 [상태 UI](vlm-runtime-status-ui.md)가 기준입니다.
 
-상태 목록:
+## 저장 필드와 상태
 
-- `disabled`: 기본 상태. runtime/provider 호출 불가, activation enabled 불가.
-- `local-runtime`: 운영자 제공 local runtime 후보. S01에서는 호출 권한이 아니라
-  opt-in metadata입니다.
-- `cloud-provider`: cloud provider 후보. privacy guard와 cloud opt-in은 저장되지만
-  실제 provider field smoke는 별도 단계입니다.
-- `missing-model`: local runtime/model 준비 부족. media path 실패가 아닙니다.
-- `invalid-output`: structured output 거부 상태. sidecar/EventRecord를 쓰지 않습니다.
-- `timeout`: runtime/provider timeout 상태. Event POST/WebRTC/SSE/WS/media path 실패로
-  전파하지 않습니다.
+`media-server.vlm-profile.v1` 안의 `runtimeContract` 객체 schema는
+`media-server.vlm-runtime-opt-in-contract.v1`입니다. 현재 UI는 `targetStep=V210-S01`을
+호환 metadata로 작성합니다. 이는 실행 날짜나 현재 개발 단계가 아니며 서버의 필수값 검사와도 구분합니다.
 
-1차 선택값:
+| 필드 | 저장 검증 기준 |
+| --- | --- |
+| `schema` | `media-server.vlm-runtime-opt-in-contract.v1` |
+| `mode` | `disabled`, `local-runtime`, `cloud-provider` |
+| `status` | 아래 여섯 상태 중 하나 |
+| `defaultEnabled` | `false` |
+| `operatorOptInRequired` | `true` |
+| `runtimeCallAllowed` | `false` |
+| `providerCallAllowed` | `false` |
+| `sideEffects` | 아래 열거된 필드가 모두 명시적 `false` |
 
-- 기본값은 `disabled`이며 `defaultEnabled=false`입니다.
-- local 후보의 fallback은 `missing-model`입니다.
-- cloud 후보의 fallback은 `cloud-provider` 상태 + `providerFieldSmokeRequired=true`
-  또는 field smoke 미실행 기록입니다.
-- invalid output과 timeout은 VLM-only failure state로 남기고 기존 Event POST,
-  WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path를 바꾸지 않습니다.
+| `status` | 의미와 제한 |
+| --- | --- |
+| `disabled` | 활성화 `enabled=true`나 `status=active` 불가. `mode=disabled`이면 이 상태여야 함 |
+| `local-runtime` | local provider와 구성된 runtime의 metadata. `provider-api`·`not-configured` runtime은 불가 |
+| `cloud-provider` | cloud provider 후보. 외부 호출이나 field smoke 성공을 나타내지 않음 |
+| `missing-model` | local 준비 부족을 나타내며 cloud profile에는 불가. 활성화 `enabled=true` 불가 |
+| `invalid-output` | VLM 결과 거부 상태. 활성화 `enabled=true` 불가 |
+| `timeout` | VLM 지연 실패 상태. 활성화 `enabled=true` 불가 |
 
-제외 대상:
+cloud profile에는 `mode=cloud-provider`가 필요하고 local profile에는 그 mode를 허용하지 않습니다.
+프로필 활성화에는 별도로 서버가 검증한 평가 결과와 운영자의 저장·활성화 검토가 필요합니다.
+상태 이름을 실제 연결 측정이나 현재 runtime의 자동 상태 전이로 해석하지 않습니다.
 
-- VLM runtime 호출, cloud provider API 호출, model artifact download/bundle
-- provider credential 저장
-- VLMObservation sidecar write
-- Event POST/WebRTC/SSE/WS payload 변경
-- client/viewer 노출
+`sideEffects`의 필수 false 필드는 `runtimeVlmCallPerformed`, `cloudProviderApiCalled`,
+`modelArtifactDownloaded`, `modelArtifactBundled`, `credentialStored`, `sidecarStored`,
+`eventPostPayloadChanged`, `webrtcDataChannelSchemaChanged`, `sseMetadataSchemaChanged`,
+`wsMetadataSchemaChanged`, `rtspOrWebrtcMediaPathChanged`, `viewerClientExposureAdded`입니다.
 
-## 운영 증적 경계
+UI가 작성하는 `operatorOptInAcknowledged`, `providerFieldSmokeRequired`, `failurePolicy`는
+설명 metadata입니다. cloud 후보는 `providerFieldSmokeRequired=true`로 표시합니다.
+`failurePolicy`는 missing model의 `blocked-missing-model-no-media-path-failure`,
+invalid output의 `rejected-invalid-output-no-sidecar-write`, timeout의
+`timeout-no-media-path-failure`를 구분하지만 이 객체 자체가 호출·재시도·fallback을 실행하지는 않습니다.
 
-이 contract는 VLM runtime/provider를 자동으로 켜지 않는 default-off 경계를 고정합니다.
-관련 안정화 증적은 아래 경계를 함께 확인합니다.
+## 권한과 불변 경계
 
-- operator-approved profile promotion
-- local/provider smoke intake
-- privacy/default-off evidence
-- no VLM default-on
+`GET /ops/api/vlm/profiles` 및 개별 조회는 Ops 권한(`admin/operator`, `ops:read`)을 요구합니다.
+`POST /ops/api/vlm/profiles`, `PUT`·`DELETE /ops/api/vlm/profiles/{id}`에는 추가로 `rule:write`가 필요합니다.
+Auth/session/scope를 우회하거나 viewer/client에 프로필·진단 JSON을 노출하지 않습니다.
 
-PASS는 `defaultEnabled=false`, `runtimeCallAllowed=false`,
-`providerCallAllowed=false` 경계 증적입니다. 실제 VLM runtime call, cloud provider
-success, provider credential 저장, model/runtime bundle, sidecar write, UI 풀테스트,
-30분/120분 longrun 실행을 뜻하지 않습니다. Sidecar는 EventRecord/API schema에 섞지
-않고, Event POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도
-바꾸지 않습니다.
+이 경로는 credential·모델/runtime bundle·VLMObservation sidecar를 저장하지 않습니다.
+VLM 설명·sidecar 계약을 EventRecord/API schema에 섞거나 Event POST, WebRTC DataChannel,
+SSE/WS metadata, RTSP/WebRTC media path를 변경하지 않습니다. 모델 품질·billing·외부 정책 승인은 별도입니다.
 
-## Profile 저장 규칙
+## 검증과 결과 해석
 
-`runtimeContract` 필수 field:
-
-- `schema`: `media-server.vlm-runtime-opt-in-contract.v1`
-- `targetStep`: `V210-S01`
-- `mode`: `disabled`, `local-runtime`, `cloud-provider`
-- `status`: `disabled`, `local-runtime`, `cloud-provider`, `missing-model`,
-  `invalid-output`, `timeout`
-- `defaultEnabled=false`
-- `operatorOptInRequired=true`
-- `runtimeCallAllowed=false`
-- `providerCallAllowed=false`
-- `sideEffects.*=false`
-
-Cloud profile은 기존 `privacyGuard`의 external transfer acknowledgement와 provider
-logging/retention/terms accepted review를 계속 요구합니다. S01의 `cloud-provider`
-상태는 실제 provider 성공 evidence가 아닙니다.
-
-## 검증
-
-```bash
+```sh
 ./server.sh verify-vlm-runtime-opt-in-contract
-./server.sh verify-vlm-profile-storage
-./server.sh verify-vlm-privacy-transfer-guard
-./server.sh verify-auth-routes
-git diff --check
 ```
 
-이 검증은 local VLM runtime smoke, cloud provider field smoke, 30분 soak,
-120분 longrun, UI 풀테스트를 대신하지 않습니다.
+이 명령은 [구현](../scripts/internal/verify_vlm_runtime_opt_in_contract.mjs)의 fixture·source·문서 연결 검사입니다.
+[cases.json](../test/fixtures/vlm_runtime_opt_in_contract/cases.json)의 schema는
+`media-server.vlm-runtime-opt-in-contract-fixtures.v1`이며 여섯 정상 상태와
+`default-enabled-rejected`, `runtime-call-side-effect-rejected`를 정의합니다.
+검사 결과는 stdout의 `pass`·`fail`로 출력하고 실패 시 exit 1입니다. 이 정적 명령이 실제 API 저장을 실행하지는 않습니다.
+
+관련 명령 `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-auth-routes`는
+각자의 검사 범위와 실행 전제가 다릅니다. 기능 정의 `SAFE-025`·`LAB-038` 및
+`SAFE-027`·`SAFE-029`는 [기능 inventory](project-feature-test-inventory.md)를 따릅니다.
+
+`./server.sh verify-v230-vlm-opt-in-operational-evidence`는 위 정적 검사와 privacy 검사,
+로컬 loopback smoke, 기본 cloud gate를 묶습니다. 단순 문서 검사가 아니므로 loopback 실행 승인이 필요합니다.
+출력 schema `media-server.v230-vlm-opt-in-operational-evidence.v1`의 `targetStep=V230-S05`는
+호환 식별자입니다. 이 묶음의 통과도 실제 사용자 모델·cloud provider·UI·30분/120분 증거를 대체하지 않습니다.
+실행 승인과 결과 판정은 [검증 정책](stream-verification.md#검증-정책)을 따릅니다.
+
+상위 명령의 보존할 JSON은 `--json-report <path>`로 지정합니다. `executions`에는 자식의
+stdout/stderr·exit·signal을, `runtimeEvidence`에는 로컬·cloud 하위 report와 cleanup 결과를 포함합니다.
+이 두 하위 결과의 `jsonReport`는 null이며 정리된 임시 자식 경로를 영구 증거로 링크하지 않습니다.
+`--report <path>`의 Markdown은 요약이므로 상세 실패·정리 판단에는 JSON을 함께 보존합니다.
+
+### 실행 자료 경로 준비
+
+보고서를 쓰는 명령은 승인된 실행의 소유 경로를 먼저 준비합니다. 아래는 준비 예시이며 검사 실행 승인이 아닙니다.
+
+```sh
+vlm_run_root="$(mktemp -d "${TMPDIR:-/tmp}/media-server-vlm.XXXXXX")" || exit 1
+mkdir "$vlm_run_root/tmp" || exit 1
+export TMPDIR="$vlm_run_root/tmp"
+```
+
+명령·source·exit·stdout/stderr와 실패→재검증 연결을 실행 단위로 보존합니다.
+필요한 정제 자료 보존 후 소유 임시 경로만 정리하고 부재를 확인하는 절차는
+[기록 수명 정책](../AGENTS.md#6-기록-수명과-정리)을 따릅니다.
+
+구현 기준은 [서버 저장 검증](../src/ingress/webrtc_http_server_detail.h)의
+`ValidateVlmRuntimeOptInContract`와 [UI payload](../src/ingress/product_ui_page_scripts.cpp)의
+`buildOpsVlmRuntimeContract`입니다.

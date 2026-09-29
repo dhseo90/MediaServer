@@ -1252,6 +1252,7 @@ RC command set:
 | ONVIF·외부 연결 계약 | `verify-v230-conditional-field-evidence` | 위 두 로컬 절차와 현행 기능 정의 연결 검사. 실제 장비·외부 실행 아님 |
 | VLM cloud provider | `verify-vlm-cloud-provider-field-smoke-gate` | provider call 미실행은 PASS가 아님 |
 | VLM local runtime | `verify-vlm-local-runtime-smoke` | loopback local runtime smoke이며 cloud/provider/model 품질 evidence가 아님 |
+| VLM opt-in·정보 비노출 연결 | `verify-v230-vlm-opt-in-operational-evidence` | 현행 계약과 위 두 검사 결과를 연결. 실제 모델·provider·UI·장시간 성공 아님 |
 
 ## VLM / Runtime Boundary Commands
 

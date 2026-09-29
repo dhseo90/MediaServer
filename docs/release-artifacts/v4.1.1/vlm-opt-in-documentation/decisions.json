@@ -1,0 +1,137 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-scoped-decisions.v1",
+  "reviewerIsCandidateGenerator": false,
+  "verdict": "approved",
+  "reviewer": "codex-v411-doc-navigation-independent-source-review",
+  "reviewedAt": "2026-09-29T01:09:32.262Z",
+  "reviewPackage": {
+    "path": "/private/tmp/media-server-vlm-docs-Yg3kFC/review-package.json",
+    "sha256": "ac4e379f0a5168eaac19c6fc11bfbfa6eb4e3cbbcee4dfd889fab2b7f348172e"
+  },
+  "candidate": {
+    "candidateDigest": "e54701f518f838c81d99bd3be65d2efce6e8d153b1ab40c169de747cfc084179",
+    "stagedEquivalentTreeOid": "204b5d59a3195c382ea32e165e879f2e3d163b4d",
+    "trackedWorktreeDiffSha256": "13625859e5754309d3c02d7991892fde2e5b8016c6a1220eae09b930369c5252",
+    "changedFiles": [
+      "docs/stream-verification.md",
+      "docs/vlm-cloud-provider-field-smoke-gate.md",
+      "docs/vlm-local-runtime-connection-smoke.md",
+      "docs/vlm-privacy-transfer-guard.md",
+      "docs/vlm-runtime-opt-in-contract.md",
+      "scripts/internal/documentation_contract.test.mjs",
+      "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
+      "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs",
+      "scripts/internal/verify_vlm_local_runtime_smoke.mjs"
+    ]
+  },
+  "reviewScope": {
+    "ids": [
+      "LAB-056",
+      "LAB-057",
+      "SAFE-027",
+      "SAFE-029",
+      "SAFE-034",
+      "SAFE-035"
+    ],
+    "reviewedChanges": [
+      "scripts/internal/verify_vlm_local_runtime_smoke.mjs",
+      "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs",
+      "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
+      "scripts/internal/documentation_contract.test.mjs:DOC-VLM and DOC-VLM-RESULT",
+      "docs/stream-verification.md:VLM opt-in operational command connection"
+    ]
+  },
+  "reviewLimitations": [
+    "이 담당자가 작성한 docs/vlm-runtime-opt-in-contract.md, docs/vlm-local-runtime-connection-smoke.md, docs/vlm-cloud-provider-field-smoke-gate.md, docs/vlm-privacy-transfer-guard.md는 독립 내용 승인에서 제외한다. 메인이 별도로 전문 검토한 문서이며 여기서는 snapshot 바이트 결속과 변경 소비자의 연결만 확인했다.",
+    "독립 의미 판단은 변경된 LAB-056/LAB-057/SAFE-027/SAFE-029/SAFE-034/SAFE-035 여섯 행이다. 나머지 980개는 migration strict-equivalence 승계 대상으로서 이번에 전수 의미 재검토하지 않았다. 후보 생성은 메인이 수행했고 담당자는 후보 생성자가 아니다.",
+    "세 verifier의 전체 diff, 상위 실행·inline report·cleanup 흐름과 DOC-VLM 추가 반례를 직접 읽었다. 현행 candidate/sourceFlow/trust SHA, exact dispatch, 각 role anchor/context/body 및 package tree와 현재 tracked diff를 읽기 전용으로 대조했다. 제품 source/공개 schema/fixture와 기존 readback assertion을 변경하거나 테스트를 재실행하지 않았다.",
+    "메인 실행 기록의 stdout/stderr SHA와 최초 RED, stub 정규식 오류 및 작성 중 문서 연결 실패를 확인했다. 최종 DOC-VLM 34/34, 문서 자체검사 200/200, 관련 회귀 62/62, operational 5/5와 loopback 6개 cleanup, cloud not-run/no-call/비승격 결과는 메인 실행 증거이며 담당자의 실행으로 보고하지 않는다.",
+    "실제 사용자 모델·cloud provider·제품 서버·브라우저/UI·30분/120분 검증은 수행하지 않았다. 정적 문서 연결과 합성/loopback 도구 경계를 제품 품질 또는 실제 외부 서비스 성공으로 확장하지 않는다. 상세 실행/자식 보고서 보존은 --json-report의 부모 JSON 기준이며 Markdown은 요약이다."
+  ],
+  "decisions": [
+    {
+      "id": "LAB-056",
+      "decision": "approved",
+      "featureContractSha256": "83abf33a40ef894c7f27f2148c47df792d405409f19b7b645d06af425073a3f9",
+      "sourceFlowDigest": "7339b9bd9b88c2e09b8fb3a03880dd71eb9888683f797f2a2d77ad3d30efa11f",
+      "verifierCommand": "verify-vlm-local-runtime-smoke",
+      "verifierFile": "scripts/internal/verify_vlm_local_runtime_smoke.mjs",
+      "dispatchArmSha256": "dbd2975905a63c6f3ad3f04c02317b7da9f3786c1c49409a414a527fcf46b272",
+      "evidenceToken": "queueCleanup",
+      "actionSymbol": "runCase",
+      "stateSymbol": "runCase",
+      "justification": "LAB-056: 후보 생성자가 아닌 담당자가 메인 작성 local verifier 전체 diff와 runCase/invokeRuntime 및 JSON artifact readback을 직접 검토했다. loopback HTTP 요청, missing-runtime·timeout·invalid-output 판정, 내부 queue/server cleanup 및 queueCleanup readback assertion과 문맥은 유지된다. 변경은 과거 제목·원장 의존을 현행 schema/fixture ID·기능 정의·정확한 require/exec dispatch 연결로 바꾸고 잘못된 SAFE-034 하위 manifest 연결을 실제 LAB-056 연결로 바로잡는다. 정상·식별자/기능/dispatch 누락·manifest 오연결 반례를 읽었으며 실제 모델 품질·클라우드·제품/UI 성공으로 범위를 넓히지 않는다. readback 551→542 이동과 현행 source/trust hash를 직접 대조했다.",
+      "justificationSha256": "3a5bf074fa7227060af33e20c4977c8074296b77793c1ca4a61a51ca8501840a"
+    },
+    {
+      "id": "LAB-057",
+      "decision": "approved",
+      "featureContractSha256": "f38aa65a0be4224750b430dab496e5a4aca435f02f91f384f27ab2b20ed02895",
+      "sourceFlowDigest": "4fc5ce4041ddede289d9c34fb53765d8476797e96eac574d27f6b3138699c5fc",
+      "verifierCommand": "verify-vlm-cloud-provider-field-smoke-gate",
+      "verifierFile": "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs",
+      "dispatchArmSha256": "9df9d40c7ae1f450a184f1e6570e11d269957b1f27fe48086e67e1fc5aad3c82",
+      "evidenceToken": "releasePassEligible",
+      "actionSymbol": "evaluateFixtureCase",
+      "stateSymbol": "evaluateFixtureCase",
+      "justification": "LAB-057: cloud verifier 전체 diff와 evaluateFixtureCase/runCurrentFieldGate 및 artifact readback을 직접 검토했다. 합성 fixture의 승인·자격·실패·releasePassEligible 계산과 실제 호출의 --allow-field-call, env 승인, credential 및 provider 조건은 바뀌지 않는다. 기본 not-run은 providerApiCalled=false/releasePassEligible=false이고 actual field 실패의 exit 전파도 보존된다. 옛 제목·원장 문구 검사만 현행 schema/사례 ID·기능·exact dispatch 검사로 대체했으며 하위 manifest 연결은 실제 LAB-057로 정정하고 SAFE-035 상위 경계를 분리했다. readback assertion·문맥의 동일성과 526→512 이동을 확인했다. 이 승인은 실제 provider 호출 또는 모델 품질 승인이 아니다.",
+      "justificationSha256": "620fdec481c29c70e324d6a5707d74feb4cdc523723d6361796f6ae15aee9a7f"
+    },
+    {
+      "id": "SAFE-027",
+      "decision": "approved",
+      "featureContractSha256": "e048bf0481708953f7697376720c35fa3880085c886f06212a1d01aec502613d",
+      "sourceFlowDigest": "067ff775032534a6c5101ba45cc5b1e3f9e5af1e45a5b12b71be521f7d7bbeef",
+      "verifierCommand": "verify-v230-vlm-opt-in-operational-evidence",
+      "verifierFile": "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
+      "dispatchArmSha256": "2f6484a5bdf741ba88cef86d6998b982386722d58a5f6af6e3e9a7c486b7d7ee",
+      "evidenceToken": "ApiCalled",
+      "actionSymbol": "ValidateVlmRuntimeOptInContract",
+      "stateSymbol": "ValidateVlmRuntimeOptInContract",
+      "justification": "SAFE-027: PrepareVlmProfileDocumentLocked에서 ValidateVlmRuntimeOptInContract로 이어지는 제품 역할과 cloudProviderApiCalled=false를 요구하는 sideEffects 검증은 기준 원문과 동일하다. 상위 verifier의 providerApiCalled=false, status=not-run, releasePassEligible=false readback assertion과 문맥도 동일하며 110→105 위치만 이동했다. 변경된 withReportEvidence/runNodeScript를 직접 읽어 자식 stdout/stderr·exit/signal과 정상 JSON 보고서를 부모에 보존하고 자식 실패·보고서 오류·cleanup 실패를 부모 FAIL로 전파함을 확인했다. 상위 호출은 --allow-field-call을 전달하지 않으므로 env만으로 외부 호출이 열리지 않는다. 이 판정은 profile metadata·로컬 도구 경계를 승인하며 실제 provider 전송 성공을 뜻하지 않는다.",
+      "justificationSha256": "576721fcba6d858f894bdf6aaf9d2af620bf55353075998afbe08d9674a8ab03"
+    },
+    {
+      "id": "SAFE-029",
+      "decision": "approved",
+      "featureContractSha256": "cdfa81db433cdbcc23886ac6160ab68c4d2be5cba817d539525fccb151743d32",
+      "sourceFlowDigest": "9049f402ae1da4d0313c12dae84786f9c0e63d2f45a10f3cef6ee88d9d4872f7",
+      "verifierCommand": "verify-v230-vlm-opt-in-operational-evidence",
+      "verifierFile": "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
+      "dispatchArmSha256": "2f6484a5bdf741ba88cef86d6998b982386722d58a5f6af6e3e9a7c486b7d7ee",
+      "evidenceToken": "sidecar",
+      "actionSymbol": "ValidateVlmRuntimeOptInContract",
+      "stateSymbol": "ValidateVlmRuntimeOptInContract",
+      "justification": "SAFE-029: 기존 제품 runtime opt-in validator의 sidecarStored=false 및 외부 event/metadata/media/viewer 변경 금지 필드와 owner/dispatch/action/state hash는 불변이다. 상위 local report의 sidecarWritten=false, eventOrMetadataSchemaChanged=false, mediaPathChanged=false 및 raw material 금지 assert가 변경된 보고서 보존 callback 안에서도 유지되며 canonical readback의 72→70 이동과 같은 문맥을 확인했다. child report가 실패·누락·잘못된 JSON이거나 경계를 위반하면 성공으로 처리하지 않고, 정리 실패도 부모 실패로 남긴다. 종료 기록·중복 문구 제거를 sidecar 생성이나 공개 schema 변경 허용으로 해석하지 않았다. 실제 제품 sidecar/UI/장시간 실행은 이번 검토 대상이 아니다.",
+      "justificationSha256": "0ae7069733a6dbf16535dc5adfb99a5c891bce02a35a07aef686abc5d19025fd"
+    },
+    {
+      "id": "SAFE-034",
+      "decision": "approved",
+      "featureContractSha256": "b050850419553925ce928aa41d87924e5518772fda9005e8962263bc90becb72",
+      "sourceFlowDigest": "c7a2cbb881c83824206193d3f209754edf1dbcd1d38357c7b0a771812c83cf99",
+      "verifierCommand": "verify-v230-vlm-opt-in-operational-evidence",
+      "verifierFile": "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
+      "dispatchArmSha256": "2f6484a5bdf741ba88cef86d6998b982386722d58a5f6af6e3e9a7c486b7d7ee",
+      "evidenceToken": "credential",
+      "actionSymbol": "MakeOutcome",
+      "stateSymbol": "MakeOutcome",
+      "justification": "SAFE-034: src/analysis/vlm_feature_queue.cpp MakeOutcome의 credential/raw material 및 schema/media/viewer 비노출 기본값과 역할 hash를 직접 대조했고 변경이 없다. 상위 verifier의 local child report에서 credentialStored=false와 registryWritePerformed=false를 함께 요구하는 canonical assertion·문맥은 보존되며 83→81로 이동했다. lower LAB-056의 loopback 연결/queue cleanup 증거와 upper SAFE-034의 비노출·무변경 readback을 구분했다. stdout/stderr·신호·자식 보고서를 부모 JSON에 보존한 뒤 소유 임시 보고서를 정리하고, 정리 실패 시 remainingPath/allowlist errorCode와 FAIL을 유지한다. 대응 stub 반례도 직접 읽었다. 이 승인은 제품 C++ 실행이나 사용자 모델 연결을 실행했다는 주장이 아니다.",
+      "justificationSha256": "bcd0e813d053db324f1aa6ae9059a6e58ef772200e6df6b8ec5b354d36b48af7"
+    },
+    {
+      "id": "SAFE-035",
+      "decision": "approved",
+      "featureContractSha256": "7de70854096ad49f11a53a7db2fcd9c6d271fa29d562b7f02b8a273cfebf8e9d",
+      "sourceFlowDigest": "4274874968e43c9d08d2d680878eac9fc15c50bb59340db524217adf11b91f8a",
+      "verifierCommand": "verify-v230-vlm-opt-in-operational-evidence",
+      "verifierFile": "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
+      "dispatchArmSha256": "2f6484a5bdf741ba88cef86d6998b982386722d58a5f6af6e3e9a7c486b7d7ee",
+      "evidenceToken": "credentialMaterialStored",
+      "actionSymbol": "ValidateVlmPrivacyGuardContract",
+      "stateSymbol": "ValidateVlmPrivacyGuardContract",
+      "justification": "SAFE-035: PrepareVlmProfileDocumentLocked→ValidateVlmPrivacyGuardContract의 비밀·prompt/source/raw frame 저장 금지 및 cloud logging/retention 승인 조건은 source 바이트와 역할 hash가 그대로다. 상위 cloud report의 credentialMaterialStored=false와 registryWritePerformed=false canonical assertion, raw provider/source 정보 금지와 providerCall=false/비승격 경계를 유지하며 readback 122→117 이동 및 동일 문맥을 확인했다. lower LAB-057의 gate와 upper SAFE-035의 privacy/no-sideeffect readback을 분리하고, no-call 결과를 field PASS로 올리지 않는다. 변경된 실행/inline report/cleanup 실패 보존 흐름과 정상·오류 반례를 직접 검토했다. 제품 privacyGuard의 promptStored와 기존 gate 보고서 rawPromptStored는 서로 다른 현행 필드이며 이번 변경으로 제품 schema를 바꾸지 않는다.",
+      "justificationSha256": "30eaa84065ea2bafb6bd57fd907c862d5adad6a5ae55cd1ed27fe3d620561c21"
+    }
+  ]
+}

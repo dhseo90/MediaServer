@@ -546,6 +546,86 @@ test('DOC-FIELD-INTEGRATION 하위 실패·보고서 보존·정리 전파는 �
   });
 });
 
+test('DOC-VLM 현행 계약·기능·dispatch 연결과 역사 기록 독립성', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  for (const [name, id, schema] of [
+    ['vlm_local_runtime_smoke', 'SAFE-034', 'media-server.vlm-local-runtime-smoke-report.v1'],
+    ['vlm_cloud_provider_field_smoke_gate', 'SAFE-035', 'media-server.vlm-cloud-provider-field-smoke-gate-report.v1'],
+    ['v230_vlm_opt_in_operational_evidence', 'LAB-056', 'media-server.vlm-runtime-opt-in-contract.v1'],
+  ]) for (const mutation of ['none', 'identifier', 'feature', 'dispatch', ...(name.startsWith('vlm_') ? ['binding'] : [])]) await t.test(name + ':' + mutation, () => {
+    const program = `
+      import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';
+      import {validateFeatureDocumentation} from './scripts/internal/documentation_contract_lib.mjs';
+      const root=${JSON.stringify(root)},name=${JSON.stringify(name)},id=${JSON.stringify(id)},schema=${JSON.stringify(schema)},mutation=${JSON.stringify(mutation)};
+      const readText=p=>{if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(p))throw new Error('과거 기록 의존');let s=fs.readFileSync(path.join(root,p),'utf8');
+        if(p.endsWith('.md'))s=s.replace(/^#{1,6}.*$/gm,'# 새 제목');
+        if(mutation==='identifier'&&p.startsWith('docs/vlm-'))s=s.replaceAll(schema,'removed-contract');
+        if(mutation==='feature'&&p==='docs/project-feature-test-inventory.md')s=s.split('\\n').filter(l=>l.split('|')[1]?.trim()!==id).join('\\n');
+        if(mutation==='dispatch'&&p==='server.sh')s=s.replaceAll('verify-'+name.replaceAll('_','-'),'removed-command');
+        if(mutation==='binding'&&p==='test/fixtures/project_feature_implementation_evidence.json'){const m=JSON.parse(s);const row=m.items.find(x=>x.id===(name==='vlm_local_runtime_smoke'?'LAB-056':'LAB-057'));row.verifierEvidence.command='verify-unrelated';s=JSON.stringify(m);}return s;};
+      const src=fs.readFileSync(path.join(root,'scripts/internal/verify_'+name+'.mjs'),'utf8');
+      const block=name.startsWith('v230')?src.slice(src.indexOf('check("VLM public docs'),src.indexOf('let pass =')):src.slice(src.indexOf('check("docs, feature'),src.indexOf('let failCount ='));
+      const checks=[];vm.runInNewContext(block,{readText,validateFeatureDocumentation,assert:(v,m)=>{if(!v)throw new Error(m);},check:(n,f)=>checks.push(f)});
+      if(!checks.length)throw new Error('문서 검사 블록 누락');for(const check of checks)await check();
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:2*1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);
+    assert.equal(r.status,mutation==='none'?0:1,r.stdout+r.stderr);
+    if(mutation!=='none')assert((r.stdout+r.stderr).includes(mutation==='feature'?id:mutation==='dispatch'?'dispatch':mutation==='binding'?'manifest verifier command drift':schema),r.stdout+r.stderr);
+  });
+});
+
+test('DOC-VLM-RESULT 실패·원출력·보고서·cleanup 보존은 격리 stub으로 확인', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  for (const target of ['local', 'cloud']) for (const scenario of ['pass', 'child-fail', 'signal', 'report-fail', 'report-missing', 'report-invalid', 'boundary', 'cleanup-fail', 'static-fail']) await t.test(target + ':' + scenario, () => {
+    const program = `
+      import fs from 'node:fs';import path from 'node:path';import cp from 'node:child_process';
+      import {pathToFileURL} from 'node:url';import {syncBuiltinESMExports} from 'node:module';
+      const root=${JSON.stringify(root)},target=${JSON.stringify(target)},scenario=${JSON.stringify(scenario)},read=fs.readFileSync,exists=fs.existsSync,trace=[],reports=new Map();let count=0;
+      process.argv=[process.execPath,'verifier','--json-report','/unit-parent.json'];
+      fs.mkdtempSync=()=>'/unit-owned-'+(++count);
+      fs.existsSync=function(p){if(String(p).startsWith('/unit-owned-'))return reports.has(p);return exists.call(this,p);};
+      fs.readFileSync=function(p,opts){if(reports.has(p)){trace.push('read:'+p);return reports.get(p);}const rel=path.relative(root,String(p));if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(rel))throw new Error('과거 기록 의존');return read.call(this,p,opts);};
+      fs.unlinkSync=p=>{if(!reports.has(p))throw new Error('unexpected unlink');trace.push('unlink:'+p);reports.delete(p);};
+      fs.rmdirSync=p=>{if(!['/unit-owned-1','/unit-owned-2'].includes(p))throw new Error('unexpected rmdir');trace.push('rmdir:'+p);if(scenario==='cleanup-fail'&&p==='/unit-owned-'+(target==='local'?1:2))throw Object.assign(new Error('fixture cleanup failure'),{code:'EACCES'});};
+      fs.mkdirSync=p=>{if(p!=='/')throw new Error('unexpected mkdir');};
+      fs.writeFileSync=(p,data)=>{if(p!=='/unit-parent.json')throw new Error('unexpected write');console.log('UNIT_EVIDENCE='+JSON.stringify({payload:JSON.parse(data),trace}));};
+      cp.execFileSync=(command,args)=>{if(command==='git')return 'unit-source';throw new Error('unexpected uncaptured child');};
+      cp.spawnSync=(command,args)=>{
+        if(command!==process.execPath||args.includes('--allow-field-call'))throw new Error('승인 밖 실행');
+        const file=path.basename(args[0]);let kind='',report,stdout='';
+        if(file==='verify_vlm_runtime_opt_in_contract.mjs')stdout='VLM runtime opt-in contract summary\\n- fail: 0';
+        else if(file==='verify_vlm_privacy_transfer_guard.mjs')stdout='VLM privacy/transfer guard summary\\n- fail: 0';
+        else if(file==='verify_vlm_local_runtime_smoke.mjs'){kind='local';stdout='VLM local runtime smoke summary';report={schema:'media-server.vlm-local-runtime-smoke-report.v1',status:'pass',scope:{actualLocalHttpRoundtrip:true,actualUserModelQualityChecked:false,cloudProviderApiCalled:false,sidecarWritten:false,eventOrMetadataSchemaChanged:false,mediaPathChanged:false},cases:Array.from({length:6},()=>({credentialHeaderSeen:false,sideEffects:[]})),summary:{connectedCases:3,missingRuntimeCases:1,timeoutCases:1,invalidOutputCases:1}};}
+        else if(file==='verify_vlm_cloud_provider_field_smoke_gate.mjs'){kind='cloud';stdout='VLM cloud provider field smoke gate summary';report={schema:'media-server.vlm-cloud-provider-field-smoke-gate-report.v1',gateStatus:'pass',fieldSmoke:{status:'not-run',providerApiCalled:false,releasePassEligible:false},redaction:{credentialMaterialStored:false,rawPromptStored:false,rawProviderResponseStored:false,sourceUrlStored:false}};}
+        else throw new Error('unexpected child');
+        const chosen=kind===target;
+        if(chosen&&scenario==='report-fail')report[kind==='local'?'status':'gateStatus']='fail';
+        if(chosen&&scenario==='boundary'){if(kind==='local')report.scope.cloudProviderApiCalled=true;else report.fieldSmoke.releasePassEligible=true;}
+        if(kind&&!(chosen&&scenario==='report-missing'))reports.set(args[2],chosen&&scenario==='report-invalid'?'invalid':JSON.stringify(report));
+        const fail=chosen&&scenario==='child-fail'||!kind&&scenario==='static-fail';
+        return {status:chosen&&scenario==='signal'?null:fail?1:0,signal:chosen&&scenario==='signal'?'SIGTERM':null,stdout,stderr:fail?'fixture diagnostic':'fixture warning'};
+      };
+      syncBuiltinESMExports();await import(pathToFileURL(path.join(root,'scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs')).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:2*1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,scenario==='pass'?0:1,r.stdout+r.stderr);
+    const line=r.stdout.split('\n').find(line=>line.startsWith('UNIT_EVIDENCE='));assert(line,r.stdout+r.stderr);
+    const {payload,trace}=JSON.parse(line.slice('UNIT_EVIDENCE='.length));
+    const evidence=payload.runtimeEvidence[target==='local'?'localRuntimeSmoke':'cloudProviderGate'];
+    assert.equal(payload.status,scenario==='pass'?'pass':'fail');assert.equal(evidence.jsonReport,null);
+    assert.equal(evidence.cleanup.status,scenario==='cleanup-fail'?'fail':'complete');
+    assert.equal(evidence.execution.stderr,scenario==='child-fail'?'fixture diagnostic':'fixture warning');
+    if(!['report-missing','report-invalid'].includes(scenario))assert(evidence.report?.schema);
+    if(scenario==='child-fail')assert.equal(evidence.execution.exit,1);
+    if(scenario==='signal'){assert.equal(evidence.execution.exit,null);assert.equal(evidence.execution.signal,'SIGTERM');}
+    if(scenario==='cleanup-fail'){assert.equal(evidence.cleanup.remainingPath,'/unit-owned-'+(target==='local'?1:2));assert.equal(evidence.cleanup.errorCode,'EACCES');}
+    assert.equal(trace.filter(x=>x.startsWith('rmdir:')).length,2);
+    for(const entry of trace.filter(x=>x.startsWith('unlink:')))assert(trace.indexOf('read:'+entry.slice(7))<trace.indexOf(entry));
+    assert.equal(payload.executions.length,4);assert.equal(payload.tokenUsage.tokenStart,'미집계');
+  });
+});
+
 test('DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결', () => {
   assert.deepEqual(validateArchitectureContractDocumentation(read('docs/media-server-architecture.md')), []);
 });
