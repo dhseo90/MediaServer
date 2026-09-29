@@ -1,61 +1,63 @@
-# Development Backlog
+# 개발 backlog
 
-이 문서는 현재 source tree의 roadmap 요약을 보관합니다. 여기서 `완료`라고 표시한
-항목은 해당 source 기능과 local verifier 기준을 뜻합니다. GitHub Release publish,
-UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만 별도로 완료로 씁니다.
+현재 남은 일과 알려진 제한을 관리한다. 버전별 목표·순서·완료 기준은
+[녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)에 둔다.
+과거 실행 결과를 현재 미완료 작업이나 이번 실행의 검증 결과로 해석하지 않는다.
 
-- 2026-09-28 현행 녹화 저장: B안의 누적 저장·HTTP·재기동/완전 출력 통합과 최종 단기를
-  통과했다. 30분20회109 PASS, 공통UI424+녹화8 ID/31 action, 녹화120분10,093 PASS와
-  종료·복구·정리 증거를 B13에서 최종 제품 변경에 연결했다. 공통120분은 변경되지 않은
-  구성요소에 한정해 기존 증거를 유지한다. 이는 무기한 누수 부재나 외부 실기기 보장이 아니다.
-  제품·검증 증거와 B14 공개 저장소/배포 준비는 마감했다. 외부 릴리즈 완료는 구분한다.
-  [현재 전수 판정](release-artifacts/v4.1.0/s11-final-20260926/readiness.md)과
-  [B13 증거 연결](release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md#b13-2번-최종-소스와-증거-연결)을 우선한다.
-  아래 이전 B08/B09·LP29/LP31·S10/S11의 중간 결과는 당시 이력이다.
+## 현재 기준
 
-- 현재 버전/비범위 기준: [versioning-policy.md](./versioning-policy.md)
-- release 정책: [release-policy.md](./release-policy.md)
-- 검증 명령 기준: [stream-verification.md](./stream-verification.md)
+- 소스 버전은 `VERSION` 기준 `4.1.0`이다. `v4.1.1` 브랜치는 문서 정리 중이며
+  버전 번호 변경이나 v4.1.1 공개 완료를 뜻하지 않는다.
+- 저장소에 기록된 공개 버전은 `v4.1.0`이다. 관측 시각과 공개 URL의 기준은
+  [릴리즈 metadata](release-policy.md#소스와-기록된-공개-상태)이며 원격 상태의 실시간 확인과 구분한다.
+- v4.1.0 녹화 기반은 [릴리즈 노트](release-notes-v4.1.0.md)의 구현 범위로 마감됐다.
+  아래 옛 S05·S10·S11 등의 미완료 표시는 당시 상태이지 현재 개발 과제가 아니다.
+- 다음 제품 개발은 문서 정리 뒤 별도 승인할 v4.2.0이다. 이 backlog는 구현 권한을 부여하지 않는다.
 
-## 현재 공개 상태
+## 현재 남은 문서 정리
 
-- 현재 소스 버전: `4.1.0`
-- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
-- 현재 release target: `v4.1.0`
-- 현재 source roadmap: `v4.1.0 Recording Foundation`
-- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
-  S00~S08의 단계 구현·검증 이력을 유지한다. S09 통합 검증은 2026-09-12 종료·대체했으며,
-  현재 S10 구현·코드 고정과 S11 최종 단기 검증을 마친 단계다. 2026-09-21 LP25의 시간 표시/완료 관측/
-  요청 내 검증 재사용 및 실제5단계 통합156검사를 마쳤다. LP26에서는 현행 관측기/장시간 준비·managed UI seed와 실행 연결 대조를 보완했다.
-  LP27 HW 영향 회귀(codec67/ICE8)는 마감했다. 초기41요구 연결·복합8/실환경94 검사는 통과했으나,
-  PREP 마감에서 발견한 기존 독립검토 원장435ID 결속 문제는 LP28에서 위치 처리·실제 연결 공백을 구분해 보완했다.
-  독립 검토307행과 엄격 동등679행 재결속, 로컬 WHEP 신호/수명 검사, 소스/인벤토리/native 계약을 마감했다.
-  구형 소비자·출처·공개 설명 정합과 S10 제품287파일 고정, S11 단기 빌드·인증·녹화156·환경·버전 검사를 마쳤다.
-  LP29에서는 공통 주석 검사 누락에 따른 단기 전체 완료 표현을 정정하고 주석만 보완·영향 검증했다.
-  실제30분은20반복/108PASS·0FAIL로 완료했다. 실제UI424개는423PASS/1FAIL(EVT-058)·원인미확정이며
-  전체 증거 보존·정리를 마쳤다. 시각 교차·녹화 실UI·별도 브라우저미디어·공통/녹화120분은 남는다.
-  위 LP29 상태는 당시 이력이다. LP31 현재 source8fa98a99 실제UI baseline424/424·시각80·Policy 적격은
-  PASS이며 최신 전체 증거를 복원 대조 후 보존했다. 이 LP31 당시에는 녹화UI·브라우저미디어·
-  공통/녹화120분이 미실행이었다. 후속 B11/B12 실행과 B13 최종 소스 연결은 위 현행 판정을 따른다.
-  B14 공개 준비도 완료했다. 외부 서비스·실기기 검증은 사용자 명시 제외이며 PASS가 아니다.
-  S06 조회·재생 UI, S07 분석 관측·FrameLocator, S08 최종화·손상·시작 복구를 포함한다.
-  S08은 `11953256`까지 커밋·푸시했다. 단계별 실패·수정·검증 기록은 전용 evidence와
-  release-test-records를 따르며, 버전 전체 UI·장시간·릴리즈 완료를 뜻하지 않는다.
-- 상세 구현계획:
-  [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
-- 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
-  구현하며 후속 버전 절은 contract 소비 문맥으로만 상속함
-- 현재 장기 로드맵 변경은 v4.1.0에 포함하고 v4.1.0 머지 때 `main`에 공통 반영함
-- 의도된 공개용 영문 문서를 제외한 문서 작성과 상태 판정은 한글을 기본으로 함
-- v4.0.0 범위: 로컬 운영 정책화 및 안정화. 신규 기능은 `v4.1.0`부터
-- `v4.0.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-  있을 때만 완료로 기록합니다.
+대상은 프로젝트의 모든 문서이며 README와 AGENTS가 주요 진입점이다.
+이미 정리한 분야를 이번 단계에서 다시 감사하지 않는다.
 
-2026-09-02 이전에 이 문서에 기록된 `v4.1.0 (1)~(6)` 후보와 `evidence default-on은
-v4.1.0` 같은 문구는 당시의 historical planning context다. 현재 일정과 범위가 충돌하면
-`v4.1.0 Recording Foundation과 후속 검색 로드맵` 절과 전용 로드맵 문서를 우선한다.
+1. **backlog·로드맵 현행화:** 이 문서의 과거 본문을 읽는 직접 소비자가 남아 있어
+   backlog 전체 축약은 보류 상태다. 로드맵의 계획과 실행 이력은 분리한다.
+2. **종료 기록 의존성·보존·삭제:** 실제 회귀 입력·기능 ID·독립 기대값·실패 전파는
+   유지하고 과거 제목·완료 문구만 요구하는 의존성을 분리한다. 필요한 현행 계약을 보호한 뒤
+   보존 commit의 바이트를 대조하고 종료 기록을 삭제하는 별도 커밋을 만든다.
+   삭제된 과거 절을 가리키는 종료 기록의 링크도 이 단계에서 처리한다.
+3. **최종 정합·마감:** 현행 링크·문서 소비자·버전 설명을 맞추고 문서 정리 결과와
+   과거 제품 검증을 구분한다. 임시 전면 리뷰 보고서는 문서 정리가 끝난 뒤 삭제한다.
+4. **별도 승인 릴리즈:** 앞 단계 완료만으로 push·PR·병합·태그·Release를 실행하지 않는다.
+
+## 알려진 제한과 별도 결정 후보
+
+| 항목 | 현재 경계와 후속 결정 |
+| --- | --- |
+| 녹화·검색 | 녹화 기반과 분석 관측은 구현됐지만, 녹화 전체를 대상으로 하는 구조화·벡터·자연어 검색은 후속 계획이다. 기존 이벤트 검색과 새 녹화 검색을 혼동하지 않는다. |
+| 시간과 재생 | 원본·미디어 위치와 UTC 품질은 별개다. 불명·모호·삭제 상태를 정상 단일 결과로 만들지 않으며 모든 카메라의 촬영 시각 동기화나 자동 후속 세그먼트 재생을 보장하지 않는다. |
+| 운영 기능 승격 | `action-execution`, `persistent-credential-store`, `production-restore`, `external-vlm-provider-call`, `model-backed-reid-session`은 로컬 정책의 보류·실험 경계를 유지한다. 상태/결정 조회나 fixture 성공을 실제 실행 기능으로 승격하지 않는다. |
+| 제품화 후보 | Incident OS primary nav 승격, Evidence default-on, 로컬 Action Execution, 영구 credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 버전·범위 재승인 전 미배정 후보다. 과거의 “v4.1.0에서 구현” 문구는 현행 일정이 아니다. |
+| 추적·Re-ID 연구 | 연구 또는 opt-in 경계를 유지한다. BoT-SORT/DeepSORT·OC-SORT의 연구 자료를 현재 지원 tracker나 기본 선택으로 간주하지 않는다. |
+| 검증 범위 | 외부 서비스·실기기 검증은 사용자 제외이며 PASS가 아니다. 로컬·한정 시간의 결과를 다른 장비나 무기한 운용의 보장으로 확대하지 않는다. |
+| 표시 언어 | 영문 운영 사용자 목록의 숫자 채널 권한 보조 문구에 한글이 남을 수 있다. 권한 결함과는 구분하며 수정 일정은 미정이다. |
+| 참고 자료 | 외부 저장소는 원본 용도로 유지하며 MediaServer에 종속시키지 않는다. 라이선스 미확인 자료와 특허 위험 접근은 구현 참고에서 제외한다. 세부 기준은 로드맵의 참고·조사 경계를 따른다. |
+
+운영·계약의 상세 기준은 [문서 색인](README.md), [UI 가이드](ui-guide.md),
+[설정 참조](config-reference.md), [검증 정책](stream-verification.md),
+[버전 정책](versioning-policy.md)을 따른다. 미래 검색의 상세 요구는 여기 복제하지 않는다.
+
+## 축약 보류 중인 과거 본문
+
+아래는 종료 버전의 기록이다. 현재 범위·일정·정책은 위 현행 절과 연결 문서를 따른다.
+과거 표현과 당시 PASS/FAIL을 현재 값으로 고쳐 쓰지 않는다.
+
+`verify_feature_scope_decision_gate.mjs`는 기준 본문에도 없는 v1.8 제목·승인 문구를 요구하는
+미해결 의존성이다.
+`verify_v390_truthfulness_status_vocabulary.mjs`는 v3.9 당시 상태 행을 직접 요구한다.
+이들과 같은 과거 문구 소비자를 현행 계약·회귀 입력에서 분리하기 전에는 본문 전체를
+삭제하지 않는다. 단순 링크·주석·출처 경로 참조는 실행 입력과 구분한다.
+여기 남은 오래된 미완료 표현 중 현재 적용 여부가 확인되지 않은 것은 보류이며,
+이번 편집으로 구현 완료나 결함 해소를 새로 판정하지 않는다.
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -404,326 +406,12 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 이 보강은 다음 실제 30분/UI 재실행에서 사람이 읽을 compact 결과와 실패 시 에이전트
 전달 파일을 추가하는 범위다.
 
-## 현재 source roadmap: v4.1.0 Recording Foundation
+## v4.1.0 녹화 기반
 
-사용자와 합의한 현재 source roadmap은
-[v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md)다. v4.1.0은
-상시·이벤트 연동 녹화, 순환 보존, event 우선 재생, 검색-ready 녹화 메타데이터 기반에
-집중한다. 구조화 검색은 v4.2.0, 벡터 검색은 v4.3.0, 자연어 query API는 v4.7.0,
-대화형 검색과 정확한 녹화 재생은 v4.8.0에서 진행한다.
-
-| 단계 | 제목 | 우선순위 | 상태 | 개발 내용 |
-| --- | --- | --- | --- | --- |
-| V410-S00 | 조사·설계 freeze | P0 | 완료 | 공개 표준·라이선스 metadata, KR/US/EP/PCT clean-room 차단선, source `4.1.0` 정렬. 특정 특허 상세·외부 코드 미반입 |
-| V410-S01 | Recording contract v1 | P0 | 완료 | segment/frame/event link/analysis observation/tombstone 계약, v1 additive migration/rebuild 규칙, golden JSONL round-trip |
-| V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
-| V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
-| V410-S04 | Retention coordinator | P0 | 완료 | continuous/event 등급별 quota·기간, `(end_utc_ms, segment_id)` oldest-first, pin·hold, journal 선행 tombstone/채널별 pending 복구, dirfd 결박 unlink, 채널 간 in-flight disk reserve·실제 쓰기 정산과 writer admission |
-| V410-S05 | Event recording linker | P0 | 구현 완료·실제 foreground PASS | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·check 89개 유지, 단위 34·S05 27·계약 45·build 통과. 2026-09-05 L11을 정식 payload exact 판독으로 보완해 단위 12/0·실제 foreground 22/0 통과. 제품·DB 추가 수정 없음 |
-| V410-S06 | Priority timeline | P0 | 단계 구현·검증 완료 | RecordingReadService·HTTP runtime·Ops events의 event 우선 timeline, GET/HEAD·Range·권한·안전 전송. 버전 전체 UI 풀테스트 완료는 아님 |
-| V410-S07 | Search-ready metadata | P1 | 단계 구현·검증 완료 | AnalysisObservationProjector·catalog V2 관측과 bounded 선정·FrameLocator·이벤트 참조. 실제 검색 엔진 구현은 후속 버전 |
-| V410-S08 | Recovery/compatibility gate | P0 | 단계 구현·검증 완료 | journal 꼬리·corrupt 상태·실제 media 검사·ready 최종화 복구·application 시작 전 동기 복구, V1 golden 호환성. `11953256`까지 푸시 |
-| V410-S09 | Stabilization/readiness | P0 | 종료·대체(성공 완료 아님) | 당시 개선·실패 이력을 보존. 설계 보완은 S10, 최종 검증은 S11로 분리 |
-| V410-S10 | 시간·식별·저장 기반 보강 | P0 | 구현·코드 고정 완료 | 현행 생산·소비·저장/복구·실제 이벤트 통합·HW 영향 회귀·PREP 재결속 마감. 구형 자료는 소비자·반례에 필요한 것만 보존 |
-| V410-S11 | 최종 검증·버전 완료 | P0 | 제품 검증·B14 공개 준비 완료 | 최종 build·인증·녹화158·환경, 30분109·UI432·녹화120분10,093 및 cleanup 확인. 이 문서를 동결한 release cut 준비 시점의 PR·병합·서명 tag·GitHub Release·published metadata는 실제 실행 기록에서 별도 판정하며, tag 이후에는 그 기록이 우선함 |
-
-### v4.1.0 선행 인벤토리 정합성 부채 정리
-
-- 상태: local focused PASS. V410-S02 착수 전 기존 S00/S01에서 남긴 source-of-truth
-  부채만 정리했으며 녹화 제품 기능은 추가하지 않았다.
-- 현재 pin: `docs/project-feature-test-inventory.md`와 수동 UI seed를 current
-  `v4.1.0`, latest published `v4.0.0`으로 정렬했다.
-- 과거 기록 경계: `verify_v290_release_test_records_enforcement.mjs`는 문서 전체의
-  `미실행` 문자열이 아니라 Markdown의 pass/fail 결과 열만 검사한다. historical 상태표의
-  `미실행`은 허용하고 pass/fail 결과 열의 `미실행`은 계속 거부한다.
-- REVIEW4: `UI-019`, `SAFE-064`, `SAFE-071`, `SAFE-075`, `OPS-041`, `OPS-045`만
-  현재 작업 트리의 독립 검토 대상으로 분리하고, 나머지 980행은 strict-equivalent
-  carry-forward로 유지한다. 이 재결속은 실제 UI/장시간/release action PASS가 아니다.
-- 구현 위치: `scripts/internal/verify_project_feature_test_inventory.mjs`,
-  `scripts/internal/verify_v290_release_test_records_enforcement.mjs`,
-  `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`, REVIEW4 audit/approval/implementation/
-  native exact fixture.
-- 검증: `verify-v290-release-test-records-enforcement`, `verify-project-inventory`,
-  `verify-feature-inventory-coverage`, REVIEW4 audit/approval/migration/implementation gate,
-  docs/script inventory와 `git diff --check`.
-- 미실행/비대체: 실제 UI 풀테스트, 30분/120분, field smoke, published metadata,
-  PR/main merge/tag/GitHub Release.
-
-### v4.1.0 S00 개발 기록
-
-- 범위: P0 `V410-S00 표준·오픈소스·IP 게이트와 source baseline 정렬`.
-- `VERSION`, `CMakeLists.txt`: 현재 source target을 `4.1.0`으로 정렬했다.
-- 공개 진입 문서와 전용 로드맵: current source `v4.1.0 Recording Foundation`과 latest
-  published `v4.0.0 Local Operations Policy and Stabilization`을 분리했다.
-- `docs/research/v410-recording-storage-open-source-review.md`: GStreamer, ONVIF, SQLite,
-  MyLocalLLM, VARuleLens, 공유 대화의 URL·revision·license·허용 범위·미채택 범위를 기록했다.
-  VARuleLens는 license metadata가 없어 구현 참고에서 제외했다.
-- `docs/research/v410-recording-ip-risk-gate.md`: 특정 특허 번호·청구항·구현 상세를 반입하지
-  않는 원칙과 접근별 `허용/재설계/보류`를 기록했다. 법률 의견이나 FTO 증거가 아니다.
-- `scripts/internal/verify_v410_research_gate.sh`,
-  `scripts/internal/verify_v410_entry_baseline.sh`, `server.sh`: provenance/IP 필드와
-  branch/source/current roadmap/latest published baseline의 focused verifier를 연결했다.
-- versioning/release/public/UI 문서와 UI asset manifest, release metadata verifier의 현재형
-  source 표기를 `4.1.0`으로 맞추고 latest published `v4.0.0` 및 기존 캡처 증적은 보존했다.
-- RED: 조사 문서 부재와 source `4.0.0` 상태에서 두 verifier가 각각 예상 실패했다.
-- GREEN 중 source 정합성 확대 검증에서 정책 문구 1건과 UI manifest pin 1건의 drift가
-  발견돼 최소 수정 후 재검증했다. script inventory는 S01~S09 미래 verifier가 현재
-  명령처럼 문서화된 상태를 검출했고, 가짜 dispatch 대신 `planned-command` 표기로 교정했다.
-  최종 결과는
-  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
-- 미실행/비대체: 제품 build, 안정화 묶음, UI 풀테스트, 30분/120분 장시간 테스트,
-  external TURN/WHEP, ONVIF 실기기, 외부 VLM/provider, published metadata, V410-S01~S09.
-
-### v4.1.0 S01 개발 기록
-
-- 범위: P0 `V410-S01 Recording contract v1`만 구현했다. V410-S02~S09는 미진행이다.
-- `include/recording/recording_contracts.h`, `src/recording/recording_contracts.cpp`:
-  세그먼트, 프레임 위치, 이벤트-녹화 연결, 검색 준비 분석 관측, 삭제 tombstone의 v1
-  parser/serializer와 validation을 추가했다. 재생 가능 lifecycle은 `finalized`로 제한했다.
-- `include/recording/recording_store_port.h`: 파일 경로를 공개 JSON과 분리한 내부 저장
-  port를 추가했다. 실제 저장 구현과 recorder는 S02/S03 범위라 추가하지 않았다.
-- `test/fixtures/recording/v1/*.jsonl`: 후속 버전에서 수정하지 않는 v1 golden fixture를
-  추가했다. v1은 additive optional field만 허용하고 breaking 변경은 새 schema/fixture로
-  병행한다. rebuild는 v1 parser와 tombstone 최종 삭제 기록을 기준으로 한다.
-- `scripts/internal/recording_contract_smoke.cpp`,
-  `scripts/internal/verify_v410_recording_contracts.sh`, `server.sh`: 실제 C++ compile/run으로
-  ID, UTC 반개구간, PTS/timebase, unknown field/lifecycle, 4종 fixture round-trip,
-  tombstone ID 재사용 금지를 검증한다.
-- RED: 구현 전 focused verifier가 `src/recording/recording_contracts.cpp` 부재로 exit 1.
-- GREEN: focused verifier `45/0`, 제품 build 100% PASS. 최종 관련 검증 결과는
-  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
-- 시작 commit `b55f4bf0` clean clone에서도 동일한 project/feature inventory와 v2.9
-  release-records verifier 실패를 확인했다. S01 변경으로 생긴 회귀가 아니므로 이번
-  계약 구현에 섞어 수정하지 않고 후속 정합성 부채로 남긴다.
-- 미실행/비대체: 실제 상시/이벤트 녹화, store/catalog, 순환 삭제, timeline API/UI,
-  UI 풀테스트, 30분/120분, external field smoke, published metadata, release action.
-
-### v4.1.0 S02 개발 기록
-
-- 범위: P0 `V410-S02 Continuous segment recorder`만 구현했다. S03 이후 catalog, 보존,
-  이벤트 연결, 조회·재생 기능은 이 단계 완료 근거로 사용하지 않는다.
-- `include/core/recording_runtime_defaults.h`,
-  `include/core/recording_runtime_config_data.h`, `src/app_config.cpp`: 전역 녹화는 default-off로
-  두고 storage root, 채널 기본 quota, 10초 segment, 보존 일수를 환경변수와 fail-closed
-  validation에 연결했다. 녹화 root와 media source root의 동일 경로를 거부한다.
-- `include/ingress/source_view_registry.h`, `src/ingress/source_view_registry.cpp`,
-  application service와 `/ops/sources` form/script: source의 nested recording policy
-  `enabled/quotaBytes/retentionDays/storagePath/revision`을 create/upsert/save/load/snapshot으로
-  보존한다. 저장 성공 뒤에만 reconcile callback을 호출하고 client view에는 quota와
-  storage path를 노출하지 않는다.
-- `include/core/shared_stream.h`, `src/core/shared_stream.cpp`, `StreamRegistry`,
-  `SessionManager`: `Recorder` subscriber 역할과 역할별 계수를 additive하게 추가했다.
-  client/analysis/recorder queue는 각각 독립이고 recorder가 남아 있으면 source idle cleanup을
-  하지 않는다.
-- `include/recording/segment_writer.h`, `gstreamer_segment_writer.*`: 첫 video keyframe부터
-  H.264는 MP4, VP8은 WebM으로 작성하고 10초 도달 뒤 다음 keyframe에서 분할한다. 쓰기 중
-  파일은 `.partial`이며 EOS와 checksum 완료 뒤 final path로 rename하고 callback한다.
-  PTS rollback은 현재 segment를 닫고 새 `stream_epoch_id`에서 keyframe을 기다린다.
-- `recording_session_service.*`: 채널당 하나의 recorder만 허용하고
-  `AcquireAuxiliaryStream → AddRecordingSubscriber → StartAuxiliaryStream` 및 detach 시
-  `RemoveSubscriber → writer Stop → ReleaseAuxiliaryStreamWhenIdle` 순서를 고정했다.
-- RED: 최초 `verify-v410-recording-recorder`는 writer 구현 파일 부재로 실패했다. 구현 중
-  GStreamer 미포함 경고와 VP8 parser 경로 실패를 각각 fail-closed/직접 WebM mux 경로로
-  교정했다.
-- GREEN: `verify-v410-recording-recorder` `pass=38 fail=0`, 제품 build 100% PASS.
-  개별 항목은 global/source/channel opt-in, quota 0·root 중복, source policy round-trip과
-  viewer-safe 비노출, H.264/VP8 keyframe·분할·partial/final, PTS rollback, 느린 recorder의
-  client queue 비차단이다.
-- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간, S03 catalog/recovery,
-  순환 삭제, event 우선 timeline, published metadata, release action.
-
-### v4.1.0 S03 개발 기록
-
-- 범위: P0 `V410-S03 Catalog and recovery journal`. S04 순환 삭제와 이후 event/timeline/
-  검색 단계는 구현하지 않았다.
-- `recording_journal.*`: `recording-mutation.v1` envelope와 여섯 mutation type을
-  append-only JSONL로 기록한다. process mutex 아래 한 줄 write와 `fsync`를 끝낸 뒤 성공을
-  반환하고, replay는 중간 corrupt line과 newline 없는 마지막 truncated line을 각각 센다.
-- `recording_catalog.*`: journal을 source-of-truth로 replay하는 in-memory projection과
-  SQLite schema version 1 primary를 제공한다. mutation ID 중복은 row/합계를 늘리지 않고,
-  channel/time range query는 SQLite 사용 여부와 같은 ID·순서를 반환한다. SQLite는 WAL/FK를
-  켜며 손상 파일은 `.corrupt-<timestamp>`로 격리한 뒤 journal에서 재구축한다.
-- `recording_catalog.*`의 `RecordingStorePort` 구현: finalized segment, event link,
-  analysis observation, deletion request/tombstone을 journal→memory→SQLite 순서로 적용한다.
-  event link/observation의 없는 segment 참조는 durable append 전에 거부한다.
-- orphan 점검은 catalog에 없는 final MP4/WebM을 container magic 기준 정상/손상으로
-  분리한다. 자동 삭제나 보존 정책 적용은 S04 이전에는 수행하지 않는다.
-- `recording_supervisor.*`, `source_view_application_service.*`: 시작 snapshot, source 저장
-  callback, 5초 safety reconcile을 연결하고 같은 policy revision은 recorder를 재생성하지
-  않는다. global/source/channel opt-in을 모두 만족한 채널만 시작한다.
-- `media_server_application.cpp`: journal open → catalog open/rebuild → recording session →
-  supervisor start → HTTP/RTSP ingress 순서로 조립한다. 종료는 ingress를 먼저 닫고
-  supervisor/writer finalize 뒤 EventStorage를 닫는다.
-- RED: 최초 `verify-v410-recording-catalog`는 journal/catalog 구현 파일 부재로 실패했다.
-- GREEN: `verify-v410-recording-catalog` C++ `pass=24 fail=0`과 composition 정적 확인 8건,
-  `verify-v410-recording-recorder` `pass=38 fail=0`, 제품 build 100% PASS.
-- 미실행/비대체: retention unlink/overwrite, event link runtime bridge, timeline API/UI,
-  UI 풀테스트, 30분/120분, external field smoke, published metadata, release action.
-
-### v4.1.0 S04 개발 기록
-
-- S04 종료 당시 범위: P0 `V410-S04 Retention coordinator`만 구현했고 S05 event recording
-  linker와 이후 timeline/검색 단계는 시작하지 않았다. 현재 S05 상태는 아래 별도 기록을
-  따른다.
-- `retention_coordinator.*`: catalog snapshot에서 continuous/event 용량·기간을
-  독립 계산하고 `(end_utc_ms, segment_id)` oldest-first 선택을 수행한다.
-  새 segment 예상 크기를 continuous quota에 포함하고 채널 간 in-flight
-  reserve를 직렬화해 같은 물리 여유 공간을 중복 승인하지 않는다. partial 파일의 실제
-  쓰기 진행량은 물리 free와 예약에서 이중 차감되지 않게 정산한다.
-- `recording_catalog.*`, `recording_contracts.*`: pin·process-lifetime hold를 삭제
-  transition에서 다시 확인하고 hold를 SQLite int64 범위로 제한한다.
-  `deletion_requested → media unlink → deletion_completed/tombstone`를 적용하며,
-  unlink 후 tombstone 실패로 남은 pending을 다음 tick에서 idempotent하게 재시도하며,
-  한 채널의 복구 실패가 다른 채널 admission과 주기 정리를 막지 않는다.
-- catalog replay containment와 실제 삭제의 `openat`/`unlinkat` dirfd 결박을 함께
-  적용해 `..` 경로와 검사 뒤 상위 디렉터리 symlink 교체 경쟁에서도 root 밖 파일이
-  삭제되지 않게 했다.
-- `gstreamer_segment_writer.*`, `recording_supervisor.*`, `media_server_application.cpp`:
-  keyframe segment open 직전 admission, container overhead 포함 예약 상한, partial/final
-  실제 크기 보고와 finalize/실패 시 예약 반환, 주기
-  cleanup, 해당 채널만 `storage-blocked`, 공간 회복 뒤 새 epoch 재개를
-  제품 composition root에 연결했다. live/client/analysis subscriber 경로는
-  변경하지 않았다.
-- writer는 final media를 열기 전에 cleanup-pending 마커를 storage root dirfd에서
-  `openat(O_NOFOLLOW|O_EXCL)`로 만들고 file과 parent directory까지 fsync한다. catalog
-  finalize 또는 file cleanup 뒤 마커 안전 제거·directory fsync까지 성공해야 예약을
-  반환하며, 삭제·single-link 안전 truncate·마커 제거 중 하나라도 실패하면 예약을 유지한다.
-  policy disable/재활성화도 미해결 예약을 지우지
-  않으며 재시작 catalog 복구는 추적 media를 보존하고 미추적 media/partial/마커를 안전하게
-  제거한다. 복구 cleanup 실패는 catalog open을 fail-closed한다.
-- source recording policy는 `continuousMaxBytes/continuousMaxAgeMs`와
-  `eventMaxBytes/eventMaxAgeMs`를 분리하고 legacy `quotaBytes/retentionDays`를
-  양쪽으로 이행한다. 명시한 음수·비정상 숫자는 default로 대체하지
-  않고 거부하며 Ops 복제도 기존 event policy를 보존한다. event quota가 보호 항목 때문에
-  초과돼도 continuous quota와 disk reserve가 정상이면 상시녹화 admission은 독립 허용한다.
-- SQLite 실시간 projection 실패는 journal과 in-memory 적용을 유지한 채 즉시 DB를 닫고
-  `jsonl-fallback`으로 전환하며, 다음 시작에서 journal 전체를 SQLite로 재구축한다.
-- RED: 최초 focused verifier는 coordinator 구현 부재로 compile 실패했다.
-  후속 안전성 RED는 reservation/root 계약 부재 compile 실패와 입력 검증
-  `fail=2`를 확인했다.
-- GREEN: `verify-v410-recording-retention` `pass=56 fail=0`,
-  `verify-v410-recording-recorder` `pass=67 fail=0`,
-  `verify-v410-recording-catalog` C++ `pass=37 fail=0`. contracts/제품 build와
-  docs/inventory/diff 검증 결과는
-  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
-- S04 종료 당시 미실행/비대체: S05~S09, 실제 UI 풀테스트, 30분/120분 장시간,
-  실장비 disk-full field smoke, published metadata, PR/main merge/tag/GitHub Release.
-
-### v4.1.0 S05 개발 기록
-
-- 실제 서비스 ID 연결 보완(2026-09-04): 기존 fixture PASS는 아래 역사로 보존한다.
-  실제 foreground의 숫자 녹화 channel과 path형 EventRecord 사이 내구 link 누락 RED를
-  확인했다. 사용자 승인으로 `RecordingSessionService`의 actual stream key 게시·조회와
-  `CatalogEventRecordingBridge::TryResolve`의 신규 link 한정 매핑을 구현했다.
-  기존 EventRecord/schema·epoch는 유지한다. focused 13개 GREEN 뒤 Node 경로 누락과
-  등록기 단위 입력 결합을 보완해 S05·contract·build를 재통과했다. 실제 서비스는
-  숫자 link 접수 뒤 L11 검증기가 JSON 내부 source_id를 SQL 열로 오인해 낸
-  false FAIL은 원본 evidence로 보존했다. 2026-09-05 정식 v1 payload exact 판독기와
-  12개 양·음성 시험을 추가하고 별도 runner로 실제 foreground 22/0을 확인했다.
-  제품·DB 추가 수정은 없으며 파생 clip 전체 coverage PASS로 확대하지 않는다.
-  상세 개별 항목·최초 RED는 `release-test-records.md`의 V410-IDMAP 등록군에 기록한다.
-
-- 후속 환경 보완(2026-09-04): `env_common.sh`·`gst_plugin_cache.py`에 프로젝트 한정
-  headless 검색/캐시, 실행 wrapper에 환경 전달을 추가하고 **수정·제한 범위 재검증 통과**.
-  최초 17개 중 runner 12개 실패는 보존하고, Bash 3.2·fixture·상속·`.so`·root 순서·CLI
-  무부작용을 보완해 환경 20/0을 확인했다. 실제 macOS cold/warm 1525 features 일치,
-  필수 factory 44개·READY·무음 H264·plugin 우선순위와 S05·증분 build도 통과했다.
-  승인 후 S05 등록기 총계를 보완해 단위 34/0, 기존 986개/S05 27개 판정은 유지했다.
-  SSIM blacklist 원인·다른 PC·실제 launchd/UI·장시간은 미확인/미실행이며,
-  개별 결과와 최초 실패는 `release-test-records.md`에 기록했다. 커밋·푸시는 미수행이다.
-- S06 전 운영 격리(2026-09-05): `MEDIA_SERVER_STATE_DIR`와
-  `MEDIA_SERVER_LAUNCHD_LABEL`을 start/stop/check/diagnose 공통 경계에 연결했다. 전용
-  상태의 unsafe 경로·state leaf symlink·잘못된 label을 실행 전 거부하고, stop은 exact
-  label과 설정/기록 포트 listener에 결속된 PID만 종료한다. 기본 포트·고정 label fallback은
-  전용 상태에서 사용하지 않으며, start도 이미 등록된 exact label을 선제 종료하지 않고
-  fail-closed한다. 기존 기본 실행은 호환 유지한다. TDD RED 뒤 실행 기반 13/0, 기존
-  GStreamer 환경 20/0, Bash syntax와 diff check가 통과했다. 실제
-  nohup/launchd·재시작·녹화·이벤트 연결과 SSIM 원인 판정은 다음 선행 항목으로 미실행이며
-  S06은 시작하지 않았다.
-- 잔여 통합 검증 종료: 선행 `d7ee14a1` 이후 제품 로직 변경 없이 실제 EventStorage
-  비활성/활성 큐 포화와 journal 기반 별도 프로세스 복구를 추가했다.
-  `event_storage_recording_runtime_smoke.cpp`·runtime runner가 실제 H264 파생까지 확인하고,
-  I02에 20개 check를 더했다. 최종 C++ 140/0, application 7/0, runtime 20/0,
-  source mutation 2/0, 등록기 단위 26/0, action 27/0(check 89개).
-  두 mutation 결과까지 exact 대조하도록 독립 검토 지적을 보강했다.
-  S05 범위에서 새로 확인된 미해결 제품 결함은 없다. 환경의 기존 GI/GTK 경고,
-  장시간·UI·실기기 미실행은 해결된 것으로 기록하지 않는다.
-- 범위: P0 `V410-S05 Event recording linker`만 구현했다. S06 priority timeline과 이후
-  API/UI·검색 단계는 시작하지 않았다.
-- `event_storage.h/.cpp`, `event_storage_application_service.*`,
-  `webrtc_http_server_ops_incidents.cpp`: `EventRecord`에 optional time anchor/epoch와 recording
-  link/completeness를 추가하고, internal media event는 `media-pts-ms`를 명시한다. 시간축이
-  없는 외부 입력은 임의 UTC로 해석하지 않는다. EventStorage JSONL이 꺼져 있어도 녹화
-  bridge가 등록돼 있으면 이벤트를 전달하며, bounded queue보다 catalog link를 먼저 내구
-  기록한다. derived clip이 준비되지 않은 경우에만 기존
-  bounded frame-buffer hook을 실행해 fallback을 같은 link에 기록한다.
-- `event_recording_bridge.*`: event ID별 bounded 비동기 job, 요청 범위 병합, finalized
-  continuous overlap의 반개구간 정렬, 같은 epoch/codec 확인, 원자적 source lease,
-  범위 결속 결정적 link/segment ID, same-process mapping 재시도와 pending 재시작 복구를
-  구현했다. complete event update가 범위를 넓히면 새 segment를 파생한다. gap·시간축
-  불명확·epoch/codec 불일치·lease 실패는 complete로 승격하지 않고 missing range와 원인을
-  남긴다. 유일 source epoch는 결정 ID 계산 전에 고정하며, 실제 remux 중에는 admission
-  직렬화 lock을 풀어 다른 event의 durable link 기록을 막지 않는다. marker 제거 뒤
-  resource-release pending을 내구 기록하고 source/output hold와 reservation 해제가 끝난
-  뒤에만 complete로 승격한다. catalog는 terminal 미완료 link 참조 media의 삭제를 거부한다.
-  복구 중 event/fallback update는 단계를 보존하고 UTC 확장은 `deferred_requested_range`에
-  내구 기록한 뒤 자원 정리 후 새 파생 요청으로 전환한다.
-- `event_clip_deriver.*`: 검증된 video-only H.264/MP4 overlap을 decoder/encoder 없이
-  seek해 MPEG-TS로 remux하고 source/output fd, owner-only directory와 output inode를
-  결박한다. UUID `.partial.<uuid>`, 이를 정확히 지목하는 durable v2 cleanup marker,
-  no-replace publish, fsync, SHA-256과 실제
-  packet timestamp로 측정한 요청/실제 범위를 기록한다. VP8/WebM event 파생은 재생
-  불가능한 결과를 허용하지 않고 fail-closed한다.
-- `recording_catalog.*`, `recording_contracts.*`, `retention_coordinator.*`: event link 조회·목록,
-  source lease의 hold 일괄 획득/해제, 동일 event ID 충돌 거부, Event 등급 admission·oldest-first
-  정리와 reservation, terminal link까지 source/output hold, tombstone ID 재사용 거부,
-  소유권 불명 final의 orphan 보존, optional actual range/derivation mode/time basis/
-  completeness reason의 additive 계약 및 SQLite/JSONL projection을 연결했다.
-- `media_server_application.cpp`: recording enabled일 때 bridge/deriver를 조립하고 외부
-  ingress 시작 전에 bridge를 등록한다. 종료 시 ingress → continuous finalize →
-  EventStorage drain → event bridge drain/해제 순서를 적용했다.
-- RED/수정: 최초 전용 verifier는 신규 bridge/deriver 부재로 compile 실패했다. 구현 뒤
-  async job의 이동된 event ID 재사용, completeness reason/status 혼용, `/tmp`와
-  `/private/tmp` canonical root 불일치와 GStreamer output fd 경계를 각각 재현해 수정했다.
-  Matroska 산출물은 seek 뒤 header 누락으로 demux가 실패해 순차 MPEG-TS 출력으로 교체했다.
-  final 파생 writer는 owner-only 디렉터리 안에 `O_NOFOLLOW|O_EXCL`로 선점한 nonce partial
-  fd를 `fdsink`에 직접 전달하고 pipeline 뒤 inode를 재검증해 no-replace로 publish한다.
-  crash marker가 소유한 partial과 foreign fixed partial을 구분하도록 continuous writer도
-  같은 v2 nonce 규약으로 이행했다.
-- GREEN: `verify-v410-event-recording` C++ `pass=140 fail=0`과 EventStorage application-only
-  계약 `6/0`, contracts `45/0`, retention `56/0`, recorder `71/0`, catalog C++ `45/0`과
-  composition 정적 항목 9건, 제품 build를 확인했다. 최종 inventory 검증 결과는
-  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
-- 등록 보정 후 최종 재실행: C++ 140/0, application-only 7/0, 등록기 단위 16/0,
-  개별 기능 27/0(check 69개). 소스 감사 51/0, 승인 986개, 구현 검증 오류 0·negative
-  15/15, 중앙 inventory 18/0, coverage 8/0. 874 carry +112개 독립 검토를 공식 producer로
-  적용했다. 이전 등록 누락 FAIL과 리뷰 지적 3개, 수정·재실행 이력 및 원문 증거는
-  [release-test-records.md](./release-test-records.md)에 보존한다.
-- 미실행/비대체: S06~S09, 실제 UI 풀테스트, 30분/120분 장시간, 실장비 field smoke,
-  published metadata, PR/main merge/tag/GitHub Release.
-
-기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
-Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가
-아니다. 삭제하지 않고 보류 후보로 유지하되, 사용자가 별도 버전과 순서를 승인하기 전에는
-자동 착수하지 않는다.
-
-### v4.0.0 / 과거 v4.1.0 후보 모델 추천
-
-아래 v4.1.0 후보 행은 과거 기록이며 현재 Recording Foundation 실행계획이 아니다.
-
-런타임 패밀리: Grok. 현재 에이전트가 Grok이므로 Codex 등급명을 쓰지 않는다.
-
-| 항목 | 추천 모델 | 추론 수준 | 선정 근거 |
-| --- | --- | --- | --- |
-| v4.0.0 (1) baseline 정렬 | grok-4.6 | 중간 (medium) | 영향도 1, 불확실성 0, 검증 난이도 1, 변경 범위 1, 총 4점. 상향 없음 |
-| v4.0.0 (2) User Review Gate | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 0, 총 5점. 범위 결정이라 추론만 상향 |
-| v4.0.0 (3) 검증 계층 축소 규칙 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. 거짓 PASS 위험으로 13.4 상향 |
-| v4.0.0 (4) 로컬 운영 정책 freeze | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 5점. 운영 정책/권한 경계라 최소 high |
-| v4.0.0 (5) Incident OS 정책화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. UI/권한 교차 |
-| v4.0.0 (6) Evidence 운영 정책화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 저장/프라이버시 정책. Event POST schema는 변경 금지 |
-| v4.0.0 (7) 로컬 운영 안정화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 기존 회귀와 오판 방지 |
-| v4.0.0 (8) close-out | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 13.4 |
-| 과거 v4.1.0 후보 (3) 로컬 Action Execution | grok-4.6 | 매우 높음 (xhigh) | 현재 v4.1.0 비범위. 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. auth/write/audit. TUI는 max 미지원 |
+구현 범위는 [릴리즈 노트](release-notes-v4.1.0.md), 후속 소비 계약은
+[녹화·검색 로드맵](v410-v49-recording-search-roadmap.md#v410-—-recording-foundation)을 따른다.
+S09의 중간 실패는 성공으로 바꾸지 않고, S10 설계 보강과 S11 최종 검증을 거쳐
+마감한 v4.1.0의 기록과 구분한다. 단계별 실행 일지는 현재 backlog에 다시 누적하지 않는다.
 
 ## Historical archive: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
