@@ -620,7 +620,7 @@
       "status": "source-resolved-reviewed-proof",
       "featureContractSha256": "df510ca894ec6b73094e8a426c0ec9fac8ffead68d9bb42d7c8286deab7f79c2",
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "v280EvidenceHeading",
+      "evidenceToken": "v280BoundaryObserved",
       "verifier": {
         "command": "verify-release-evidence-index",
         "file": "scripts/internal/verify_release_evidence_index.mjs"
@@ -629,37 +629,37 @@
         "owner": {
           "file": "scripts/internal/verify_release_evidence_index.mjs",
           "symbol": "owner:OPS-039",
-          "anchor": "check(\"release test records own detailed item and result tables\", () => {",
-          "line": 69,
-          "contextSha256": "82f02d9be42e437425d2730752ba0bf00271eccf9c010dc27e211ab8d41153e6"
+          "anchor": "check('OPS-039 source/published/next/runway 경계 회귀 정의', () => {",
+          "line": 22,
+          "contextSha256": "91c96c4a67da4e337df5d541625e85b4d8f3b2d250554080350f62f7ad0fba06"
         },
         "dispatch": {
           "file": "scripts/internal/verify_release_evidence_index.mjs",
           "symbol": "dispatch:OPS-039",
-          "anchor": "const records = readText(\"docs/release-test-records.md\");",
-          "line": 70,
-          "contextSha256": "d6aeb2a06a204d1ab198767dd414dde6ae0c1c8066759c25610e1b6acfc64962"
+          "anchor": "const fixture = JSON.parse(read('test/fixtures/release_metadata_boundary.json'));",
+          "line": 23,
+          "contextSha256": "873226f98b9921b4bd04952f615eff103ec00250390f79311726fa52cd30aeaa"
         },
         "action": {
           "file": "scripts/internal/verify_release_evidence_index.mjs",
           "symbol": "action:OPS-039",
-          "anchor": "const v280EvidenceHeading = records.includes(\"### v2.8.0\") ? \"### v2.8.0\" : \"\";",
-          "line": 71,
-          "contextSha256": "bf18e3f01cbf4ad2ce437e9f7851fe8afd6748e4afda3e69c383f22100db3f26"
+          "anchor": "const boundary = fixture.v280Boundary;",
+          "line": 24,
+          "contextSha256": "0e6ff31acd0b9042ecb2cb89aed3bbf02e757eeb29d1bab69d529b68149d623d"
         },
         "state": {
           "file": "scripts/internal/verify_release_evidence_index.mjs",
-          "symbol": "state:v280EvidenceHeading",
-          "anchor": "const v280EvidenceSection = records.split(v280EvidenceHeading)[1]?.split(\"\\n### v2.9.0\")[0] || \"\";",
-          "line": 72,
-          "contextSha256": "8db7a1b8fef6acbb8865d6101e1154f3dad5dbe4326e01552c8d77f81dacb1fe"
+          "symbol": "state:v280BoundaryObserved",
+          "anchor": "const v280BoundaryObserved = fixture.schema === 'media-server.release-boundary-fixture.v1' &&",
+          "line": 25,
+          "contextSha256": "c856449ecca92478d2226652766d70dda3aa3193e60cfabaddbe6c29f19031bf"
         },
         "readback": {
           "file": "scripts/internal/verify_release_evidence_index.mjs",
           "symbol": "readback:OPS-039",
-          "anchor": "assert(v280EvidenceSection.length > 0 && v280EvidenceSection.includes(v280EvidenceHeading) === false,",
-          "line": 89,
-          "contextSha256": "c8b5bfcddc1b59152ddb70ee6f2f6276eb6fd10d873de9240dc7e61d6c04ec2f"
+          "anchor": "assert(v280BoundaryObserved, 'OPS-039 회귀 정의 누락/값/출처/실행 증거 경계 불일치');",
+          "line": 35,
+          "contextSha256": "430cdbe4ffcdb72c6255ef5091fc36d5e96f29430ede82ba0b99d11291d61088"
         },
         "verifier": {
           "file": "server.sh",
@@ -675,43 +675,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-039 owner-dispatch",
-          "source": "scripts/internal/verify_release_evidence_index.mjs:69",
-          "target": "scripts/internal/verify_release_evidence_index.mjs:70"
+          "source": "scripts/internal/verify_release_evidence_index.mjs:22",
+          "target": "scripts/internal/verify_release_evidence_index.mjs:23"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-039 dispatch-action",
-          "source": "scripts/internal/verify_release_evidence_index.mjs:70",
-          "target": "scripts/internal/verify_release_evidence_index.mjs:71"
+          "source": "scripts/internal/verify_release_evidence_index.mjs:23",
+          "target": "scripts/internal/verify_release_evidence_index.mjs:24"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-039 action-state",
-          "source": "scripts/internal/verify_release_evidence_index.mjs:71",
-          "target": "scripts/internal/verify_release_evidence_index.mjs:72"
+          "source": "scripts/internal/verify_release_evidence_index.mjs:24",
+          "target": "scripts/internal/verify_release_evidence_index.mjs:25"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-039 state-readback",
-          "source": "scripts/internal/verify_release_evidence_index.mjs:72",
-          "target": "scripts/internal/verify_release_evidence_index.mjs:89"
+          "source": "scripts/internal/verify_release_evidence_index.mjs:25",
+          "target": "scripts/internal/verify_release_evidence_index.mjs:35"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-release-evidence-index",
-          "source": "scripts/internal/verify_release_evidence_index.mjs:89",
+          "source": "scripts/internal/verify_release_evidence_index.mjs:35",
           "target": "server.sh:1753"
         }
       ],
-      "rationale": "OPS-039 exact reviewed source flow.",
+      "rationale": "OPS-039의 source/published/next 및 2.x/3.0 경계 기대값은 유지하며 종료 원장의 제목 대신 출처가 명시된 최소 fixture의 실제 값·비실행 경계를 검사한다.",
       "failureReason": ""
     },
     {
@@ -1228,9 +1228,9 @@
     {
       "id": "OPS-045",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "c5be111329585141aa81686ef8e5eb74fcf67fe17e83658185d0d085b0a248a4",
+      "featureContractSha256": "bc43400129f7c3b606685ad12123c038ca09dd63a9b70c7084bda00a360198af",
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "releaseRecordsWritePerformed",
+      "evidenceToken": "recordsBoundaryObserved",
       "verifier": {
         "command": "verify-v290-release-test-records-enforcement",
         "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs"
@@ -1238,38 +1238,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "symbol": "canonical-owner:OPS-045",
-          "anchor": "check(\"canonical records gate rejects tmp evidence without writing the records source\", () => {",
-          "line": 146,
-          "contextSha256": "32d81581f62d4f8167771457b9280d72f5290cc2b03e7d78f382f4403cf22f49"
+          "symbol": "owner:OPS-045",
+          "anchor": "if (resultPath) check('명시 결과 구조·미완료/FAIL·최종 증거·입력 불변', () => {",
+          "line": 122,
+          "contextSha256": "c60de002d3e033fc233330e1eb104e6ce3080f7c0d1ee1be794a709a90c1529a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "symbol": "canonical-dispatch:OPS-045",
-          "anchor": "const releaseRecordsShaAfter = sha256Text(readText(\"docs/release-test-records.md\"));",
-          "line": 147,
-          "contextSha256": "abb50b78f2c439dafdb6e9b47df2202368ad90eba51e2cc8cafd91eabf7ed13e"
+          "symbol": "dispatch:OPS-045",
+          "anchor": "const before = inputRead(resultPath);",
+          "line": 124,
+          "contextSha256": "1c5641871d8346f3e0aea2c176d77b1f3f6279c0a0058b7605842bec53c574b9"
         },
         "action": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "symbol": "canonical-action:OPS-045",
-          "anchor": "const releaseRecordsHashStable = releaseRecordsShaBefore === releaseRecordsShaAfter;",
-          "line": 151,
-          "contextSha256": "af3c01bd23b21a0ebdd1d6e0c259a12bec72ea4c1a8f7723b6c655874db8512e"
+          "symbol": "action:OPS-045",
+          "anchor": "const parsed = validateReleaseRecordResult(Buffer.isBuffer(before) ? before.toString('utf8') : before);",
+          "line": 125,
+          "contextSha256": "59b793179b226dd110a61e3debee3c53471ffcaa9c8a49fe2b6a30519e3fad67"
         },
         "state": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "symbol": "canonical-state:releaseRecordsWritePerformed",
-          "anchor": "const releaseRecordsWritePerformed = !releaseRecordsHashStable;",
-          "line": 152,
-          "contextSha256": "5fb46bba5fb6e36ad0ed404563b788d8bdbe6dd6e7b460d6c64f3e6f035e2281"
+          "symbol": "state:recordsBoundaryObserved",
+          "anchor": "const recordsBoundaryObserved = inputUnchanged && parsed.errors.length === 0;",
+          "line": 130,
+          "contextSha256": "9f39b1bdf012198a85522924d16b8a0dae8a20e2d818c6e0be689030f5c08c29"
         },
         "readback": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "symbol": "canonical-readback:verify-v290-release-test-records-enforcement",
-          "anchor": "assert(releaseRecordsWritePerformed === false && tmpFinalEvidenceRejected,",
-          "line": 153,
-          "contextSha256": "fc0533f873fdc537d70308b81c771cce7ee523fda24eb97ecfdea157637df2ae"
+          "symbol": "readback:OPS-045",
+          "anchor": "if (!recordsBoundaryObserved) throw new Error([...parsed.errors, ...(!inputUnchanged ? ['입력 원본 변경 감지'] : [])].join('; '));",
+          "line": 131,
+          "contextSha256": "8d34e28e5539029faf861649e7c4f90dc6d0219209456d07b035aa5e3250ba90"
         },
         "verifier": {
           "file": "server.sh",
@@ -1285,43 +1285,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-045 owner-dispatch",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:146",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:147"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:122",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:124"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-045 dispatch-action",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:147",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:151"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:124",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:125"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-045 action-state",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:151",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:152"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:125",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:130"
         },
         {
           "from": "state",
           "to": "readback",
-          "kind": "structural-producer-assertion",
+          "kind": "runtime-readback",
           "witness": "OPS-045 state-readback",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:152",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:153"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:130",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:131"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v290-release-test-records-enforcement",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:153",
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:131",
           "target": "server.sh:1873"
         }
       ],
-      "rationale": "OPS-045 exact reviewed source flow.",
+      "rationale": "현행 기록 정책과 명시 실행 결과를 분리한다. 실제 결과 파서·입력 hash 대조와 오류 전파를 연결하며 입력 없는 기본 검사는 실행 결과 미검사이고 실제 제품 PASS로 승격하지 않는다.",
       "failureReason": "",
       "sharedContract": {
         "id": "media-server.actual-contract.ops-045-safe-075",
@@ -1430,7 +1430,7 @@
     {
       "id": "OPS-047",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "1b8c95a4c1b054973a3205416e683a945182d068b73f39265beb7f03843547c8",
+      "featureContractSha256": "7e8e3dae0b01765919e7ca4da0c5f98105736bf44eba00a9fe27dc9ec9abacdc",
       "evidenceMode": "canonical-functional-source-readback",
       "evidenceToken": "safe077BoundaryObserved",
       "verifier": {
@@ -1440,38 +1440,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "line": 143,
-          "anchor": "check(\"SAFE-077 canonical release evidence hygiene boundary\", () => {",
-          "symbol": "canonical-owner:OPS-047",
-          "contextSha256": "584080828c4e578550718166dadb02d22dfd46630ca03c6bf9c485d81a562b4f"
+          "line": 11,
+          "anchor": "export function verifyReleaseEvidenceHygiene({read = readText} = {}) {",
+          "symbol": "owner:OPS-047",
+          "contextSha256": "1cd76ac081c117060506226ddab8213e2d6d6ae6072066cc6fd837aac8235a1a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "line": 144,
-          "anchor": "const hygieneCommandDocumented = serverSh.includes(\"verify-v290-release-evidence-hygiene\");",
-          "symbol": "flow:OPS-047",
-          "contextSha256": "130292bd758d24c6e6f57f28018d792a6c7518e1ecf0dc7c72605be4ff285ad8"
+          "line": 14,
+          "anchor": "const recordInputs = {read, kind: 'hygiene'};",
+          "symbol": "dispatch:OPS-047",
+          "contextSha256": "bfed773efbe5a1fefc8703a9e8c9bfe76ee26a0db7f9b4fa9a655d322f287fba"
         },
         "action": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "line": 145,
-          "anchor": "const hygieneStatesSeparated = normalizedEvidence.includes(\"미실행/제외/manual-not-run/미확인\");",
-          "symbol": "flow:OPS-047",
-          "contextSha256": "5749ecf907c2fd2329252975861839f6713890f9e6a58a73d9295c09705caedb"
+          "line": 15,
+          "anchor": "const errors = validateReleaseRecordDocumentation(recordInputs);",
+          "symbol": "action:OPS-047",
+          "contextSha256": "00b3968e6ad95d00c32b8f8e42aa2d61fea106c8040111e6175d01fd31284296"
         },
         "state": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "line": 146,
-          "anchor": "const safe077BoundaryObserved = hygieneCommandDocumented && hygieneStatesSeparated;",
-          "symbol": "flow:OPS-047:asserted-state",
-          "contextSha256": "6f8c13c7c568659e781373fa286af3d9acddd9b0fac6e3902d3149612c3948a3"
+          "line": 16,
+          "anchor": "const safe077BoundaryObserved = errors.length === 0;",
+          "symbol": "state:safe077BoundaryObserved",
+          "contextSha256": "7a313ca433cc0ca67d7a7fd58350823674e716f72bc89d58c3b7643bae9e3a72"
         },
         "readback": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "line": 147,
-          "anchor": "assert(safe077BoundaryObserved && (hygieneCommandDocumented && hygieneStatesSeparated),",
-          "symbol": "canonical-readback:verify-v290-release-evidence-hygiene",
-          "contextSha256": "57491eb07d2bfa3f90d3a009e938a0eb6b7eaeca9c60272fce077369cf8a6828"
+          "line": 17,
+          "anchor": "if (!safe077BoundaryObserved) throw new Error(errors.join('; '));",
+          "symbol": "readback:OPS-047",
+          "contextSha256": "28c761a929723d6187d3e63c8c3705fe9c48b669bf6b8e8d96b312f5e3f435e3"
         },
         "verifier": {
           "file": "server.sh",
@@ -1487,44 +1487,48 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-047 owner-dispatch",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:143",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:144"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:11",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:14"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-047 dispatch-action",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:144",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:145"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:14",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:15"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "OPS-047 action-state",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:145",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:146"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:15",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:16"
         },
         {
           "from": "state",
           "to": "readback",
-          "kind": "structural-producer-assertion",
+          "kind": "runtime-readback",
           "witness": "OPS-047 state-readback",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:146",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:147"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:16",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:17"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v290-release-evidence-hygiene",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:147",
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:17",
           "target": "server.sh:1881"
         }
       ],
-      "rationale": "OPS-047 exact reviewed source flow.",
-      "failureReason": ""
+      "rationale": "종료 원장·완료 문구 대신 현행 정책·기능 정의·정확한 명령·실제 UI 기준의 연결을 검사하고 오류를 반환한다. 이 구조 검사는 실제 테스트·공개 실행을 수행하거나 PASS로 대체하지 않는다.",
+      "failureReason": "",
+      "sharedContract": {
+        "id": "media-server.actual-contract.release-record-hygiene",
+        "facet": "ops-gate"
+      }
     },
     {
       "id": "OPS-048",
@@ -22542,9 +22546,9 @@
     {
       "id": "SAFE-075",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "8357b97979ddfe4f1c42139913cafe441ce084f0c1c8abb45f1be4977fa959c8",
+      "featureContractSha256": "7eccc634725f1d1d3821535c16df5b37c67a46a21afa57e28f988b807b79c071",
       "evidenceMode": "canonical-records-no-write-runtime-policy",
-      "evidenceToken": "releaseRecordsWritePerformed",
+      "evidenceToken": "recordsBoundaryObserved",
       "verifier": {
         "command": "verify-v290-release-test-records-enforcement",
         "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs"
@@ -22552,38 +22556,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "line": 146,
-          "anchor": "check(\"canonical records gate rejects tmp evidence without writing the records source\", () => {",
-          "symbol": "check:canonical-records-gate",
-          "contextSha256": "32d81581f62d4f8167771457b9280d72f5290cc2b03e7d78f382f4403cf22f49"
+          "line": 122,
+          "anchor": "if (resultPath) check('명시 결과 구조·미완료/FAIL·최종 증거·입력 불변', () => {",
+          "symbol": "owner:SAFE-075",
+          "contextSha256": "c60de002d3e033fc233330e1eb104e6ce3080f7c0d1ee1be794a709a90c1529a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "line": 147,
-          "anchor": "const releaseRecordsShaAfter = sha256Text(readText(\"docs/release-test-records.md\"));",
-          "symbol": "flow:SAFE-075",
-          "contextSha256": "abb50b78f2c439dafdb6e9b47df2202368ad90eba51e2cc8cafd91eabf7ed13e"
+          "line": 124,
+          "anchor": "const before = inputRead(resultPath);",
+          "symbol": "dispatch:SAFE-075",
+          "contextSha256": "1c5641871d8346f3e0aea2c176d77b1f3f6279c0a0058b7605842bec53c574b9"
         },
         "action": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "line": 151,
-          "anchor": "const releaseRecordsHashStable = releaseRecordsShaBefore === releaseRecordsShaAfter;",
-          "symbol": "flow:SAFE-075",
-          "contextSha256": "af3c01bd23b21a0ebdd1d6e0c259a12bec72ea4c1a8f7723b6c655874db8512e"
+          "line": 125,
+          "anchor": "const parsed = validateReleaseRecordResult(Buffer.isBuffer(before) ? before.toString('utf8') : before);",
+          "symbol": "action:SAFE-075",
+          "contextSha256": "59b793179b226dd110a61e3debee3c53471ffcaa9c8a49fe2b6a30519e3fad67"
         },
         "state": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "line": 152,
-          "anchor": "const releaseRecordsWritePerformed = !releaseRecordsHashStable;",
-          "symbol": "flow:SAFE-075",
-          "contextSha256": "5fb46bba5fb6e36ad0ed404563b788d8bdbe6dd6e7b460d6c64f3e6f035e2281"
+          "line": 130,
+          "anchor": "const recordsBoundaryObserved = inputUnchanged && parsed.errors.length === 0;",
+          "symbol": "state:recordsBoundaryObserved",
+          "contextSha256": "9f39b1bdf012198a85522924d16b8a0dae8a20e2d818c6e0be689030f5c08c29"
         },
         "readback": {
           "file": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-          "line": 153,
-          "anchor": "assert(releaseRecordsWritePerformed === false && tmpFinalEvidenceRejected,",
-          "symbol": "flow:SAFE-075",
-          "contextSha256": "fc0533f873fdc537d70308b81c771cce7ee523fda24eb97ecfdea157637df2ae"
+          "line": 131,
+          "anchor": "if (!recordsBoundaryObserved) throw new Error([...parsed.errors, ...(!inputUnchanged ? ['입력 원본 변경 감지'] : [])].join('; '));",
+          "symbol": "readback:SAFE-075",
+          "contextSha256": "8d34e28e5539029faf861649e7c4f90dc6d0219209456d07b035aa5e3250ba90"
         },
         "verifier": {
           "file": "server.sh",
@@ -22599,43 +22603,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-075 owner-dispatch",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:146",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:147"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:122",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:124"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-075 dispatch-action",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:147",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:151"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:124",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:125"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-075 action-state",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:151",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:152"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:125",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:130"
         },
         {
           "from": "state",
           "to": "readback",
-          "kind": "structural-producer-assertion",
+          "kind": "runtime-readback",
           "witness": "SAFE-075 state-readback",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:152",
-          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:153"
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:130",
+          "target": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:131"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v290-release-test-records-enforcement",
-          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:153",
+          "source": "scripts/internal/verify_v290_release_test_records_enforcement.mjs:131",
           "target": "server.sh:1873"
         }
       ],
-      "rationale": "SAFE-075 exact reviewed source flow.",
+      "rationale": "정책 문구에서 실패 여부를 추정하지 않고 실제 입력의 PASS/FAIL·미완료·최종 임시 증거·원본 불변을 검사한다. 기본 합성 반례와 명시 입력 모두 오류를 실패로 전파하며 제품/UI/장시간 실행 증거를 주장하지 않는다.",
       "failureReason": "",
       "sharedContract": {
         "id": "media-server.actual-contract.ops-045-safe-075",
@@ -22743,7 +22747,7 @@
     {
       "id": "SAFE-077",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "e8c082835ad9be51a56b8b0ceea68bbcbbcebebbb84984ae26cf85fc8fc5b356",
+      "featureContractSha256": "0691110bca56ff18dbe4a15cb03e3f26bbdd71132ac12eaf46469f0dab021377",
       "evidenceMode": "actual-canonical-policy-safe-077",
       "evidenceToken": "safe077BoundaryObserved",
       "verifier": {
@@ -22753,38 +22757,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "symbol": "canonical-safe-077-boundary",
-          "anchor": "check(\"SAFE-077 canonical release evidence hygiene boundary\", () => {",
-          "line": 143,
-          "contextSha256": "584080828c4e578550718166dadb02d22dfd46630ca03c6bf9c485d81a562b4f"
+          "symbol": "owner:SAFE-077",
+          "anchor": "export function verifyReleaseEvidenceHygiene({read = readText} = {}) {",
+          "line": 11,
+          "contextSha256": "1cd76ac081c117060506226ddab8213e2d6d6ae6072066cc6fd837aac8235a1a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "symbol": "canonical-safe-077-boundary",
-          "anchor": "const hygieneCommandDocumented = serverSh.includes(\"verify-v290-release-evidence-hygiene\");",
-          "line": 144,
-          "contextSha256": "130292bd758d24c6e6f57f28018d792a6c7518e1ecf0dc7c72605be4ff285ad8"
+          "symbol": "dispatch:SAFE-077",
+          "anchor": "const recordInputs = {read, kind: 'hygiene'};",
+          "line": 14,
+          "contextSha256": "bfed773efbe5a1fefc8703a9e8c9bfe76ee26a0db7f9b4fa9a655d322f287fba"
         },
         "action": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "symbol": "canonical-safe-077-boundary",
-          "anchor": "const hygieneStatesSeparated = normalizedEvidence.includes(\"미실행/제외/manual-not-run/미확인\");",
-          "line": 145,
-          "contextSha256": "5749ecf907c2fd2329252975861839f6713890f9e6a58a73d9295c09705caedb"
+          "symbol": "action:SAFE-077",
+          "anchor": "const errors = validateReleaseRecordDocumentation(recordInputs);",
+          "line": 15,
+          "contextSha256": "00b3968e6ad95d00c32b8f8e42aa2d61fea106c8040111e6175d01fd31284296"
         },
         "state": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "symbol": "canonical-safe-077-boundary",
-          "anchor": "const safe077BoundaryObserved = hygieneCommandDocumented && hygieneStatesSeparated;",
-          "line": 146,
-          "contextSha256": "6f8c13c7c568659e781373fa286af3d9acddd9b0fac6e3902d3149612c3948a3"
+          "symbol": "state:safe077BoundaryObserved",
+          "anchor": "const safe077BoundaryObserved = errors.length === 0;",
+          "line": 16,
+          "contextSha256": "7a313ca433cc0ca67d7a7fd58350823674e716f72bc89d58c3b7643bae9e3a72"
         },
         "readback": {
           "file": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-          "symbol": "canonical-safe-077-boundary",
-          "anchor": "assert(safe077BoundaryObserved && (hygieneCommandDocumented && hygieneStatesSeparated),",
-          "line": 147,
-          "contextSha256": "57491eb07d2bfa3f90d3a009e938a0eb6b7eaeca9c60272fce077369cf8a6828"
+          "symbol": "readback:SAFE-077",
+          "anchor": "if (!safe077BoundaryObserved) throw new Error(errors.join('; '));",
+          "line": 17,
+          "contextSha256": "28c761a929723d6187d3e63c8c3705fe9c48b669bf6b8e8d96b312f5e3f435e3"
         },
         "verifier": {
           "file": "server.sh",
@@ -22800,43 +22804,47 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-077 owner-dispatch",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:143",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:144"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:11",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:14"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "co-asserted-boundary",
+          "kind": "assignment-def-use",
           "witness": "SAFE-077 dispatch-action",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:144",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:145"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:14",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:15"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-077 action-state",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:145",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:146"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:15",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:16"
         },
         {
           "from": "state",
           "to": "readback",
-          "kind": "structural-producer-assertion",
+          "kind": "runtime-readback",
           "witness": "SAFE-077 state-readback",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:146",
-          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:147"
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:16",
+          "target": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:17"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v290-release-evidence-hygiene",
-          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:147",
+          "source": "scripts/internal/verify_v290_release_evidence_hygiene.mjs:17",
           "target": "server.sh:1881"
         }
       ],
-      "rationale": "SAFE-077 exact reviewed source flow."
+      "rationale": "현행 정의·기록·실제 UI 기준 연결 및 PASS/FAIL·미실행 분리의 source 경계를 유지한다. 종료된 Markdown의 존재를 요구하지 않되 누락·잘못된 dispatch는 실패하고 UI/장시간/published PASS로 승격하지 않는다.",
+      "sharedContract": {
+        "id": "media-server.actual-contract.release-record-hygiene",
+        "facet": "safety-invariant"
+      }
     },
     {
       "id": "SAFE-078",

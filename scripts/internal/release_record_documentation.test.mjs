@@ -1,0 +1,179 @@
+// 파일 용도: 기록 정책/결과 파서의 합성 자체검사. 제품·실제 실행 기록 PASS가 아니다.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {verifyReleaseEvidenceIndex} from './verify_release_evidence_index.mjs';
+import {verifyTestEvidenceConsistency, renderMarkdown} from './verify_v230_test_evidence_consistency.mjs';
+import {verifyReleaseTestRecords, validateReleaseRecordResult} from './verify_v290_release_test_records_enforcement.mjs';
+import {verifyReleaseEvidenceHygiene} from './verify_v290_release_evidence_hygiene.mjs';
+
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const files = ['AGENTS.md', 'docs/stream-verification.md', 'docs/release-policy.md',
+  'docs/manual-ui-fulltest.md', 'docs/project-feature-test-inventory.md', 'server.sh',
+  'test/fixtures/project_feature_implementation_evidence.json', 'test/fixtures/release_metadata_boundary.json'];
+const originals = new Map(files.map(p => [p, fs.readFileSync(root + p, 'utf8')]));
+const hash = s => crypto.createHash('sha256').update(s).digest('hex');
+const cases = [
+  ['index', verifyReleaseEvidenceIndex, 'verify-release-evidence-index', 'verify_release_evidence_index.mjs'],
+  ['consistency', verifyTestEvidenceConsistency, 'verify-v230-test-evidence-consistency', 'verify_v230_test_evidence_consistency.mjs'],
+  ['records', verifyReleaseTestRecords, 'verify-v290-release-test-records-enforcement', 'verify_v290_release_test_records_enforcement.mjs'],
+  ['hygiene', verifyReleaseEvidenceHygiene, 'verify-v290-release-evidence-hygiene', 'verify_v290_release_evidence_hygiene.mjs'],
+];
+const good = '| 항목 | 결과(pass/fail) | 최종 evidence |\n| --- | --- | --- |\n| 합성 검사 | PASS | [원출력](artifacts/run.json) |\n';
+function run(fn, mutate = () => {}, result, changeOnRead = false) {
+  const memory = new Map(originals); mutate(memory);
+  if (result !== undefined) memory.set('/memory/result.md', result);
+  let resultReads = 0;
+  const read = p => {
+    assert(memory.has(p), '허용 입력 밖/종료 원장 읽기: ' + p);
+    if (p === '/memory/result.md' && ++resultReads > 1 && changeOnRead) return memory.get(p) + '\nchanged';
+    return memory.get(p);
+  };
+  const report = fn({read, resultPath: result === undefined ? '' : '/memory/result.md', provenance: {branch: 'unknown', head: 'unknown'}});
+  for (const [p, s] of originals) assert.equal(hash(fs.readFileSync(root + p)), hash(s), p + ' 원본 불변');
+  if (result !== undefined) assert.equal(memory.get('/memory/result.md'), result, '사용자 입력 불변');
+  return report;
+}
+const edit = (p, from, to = '') => m => {assert(m.get(p).includes(from), '반례 대상 없음');m.set(p, m.get(p).replaceAll(from, to));};
+for (const [name, mutate] of [
+  ['누락', x => {delete x.v280Boundary;}],
+  ['source 오류', x => {x.v280Boundary.sourceVersion = '2.9.0';}],
+  ['published 오류', x => {x.v280Boundary.publishedTag = 'v2.8.0';}],
+  ['next 오류', x => {x.v280Boundary.nextSourceTag = 'v2.9.0';}],
+  ['runway 오류', x => {x.v280Boundary.runwayVersions.pop();}],
+  ['major 오류', x => {x.v280Boundary.majorBoundary = '2.9.0';}],
+  ['출처 오류', x => {x.v280Boundary.provenance.featureId = 'OPS-041';}],
+  ['실행 증거 위장', x => {x.executionEvidence = true;}],
+  ['boundary 실행 증거 위장', x => {x.v280Boundary.status = 'PASS';}],
+]) test('RECORD-DOC OPS-039 ' + name, () => {
+  const r = run(verifyReleaseEvidenceIndex, m => {const p = 'test/fixtures/release_metadata_boundary.json', x = JSON.parse(m.get(p));mutate(x);m.set(p, JSON.stringify(x));});
+  assert.equal(r.exitCode, 1); assert.match(JSON.stringify(r.checks), /OPS-039/);
+});
+for (const [name, fn, command, script] of cases) {
+  test('RECORD-DOC 종료 기록/Git 없는 읽기 입력 ' + name, () => {
+    const r = run(fn); assert.equal(r.exitCode, 0, JSON.stringify(r.checks));
+  });
+  test('RECORD-DOC 정책 링크 누락 ' + name, () => {
+    const r = run(fn, edit('AGENTS.md', 'docs/stream-verification.md', 'missing.md'));
+    assert.equal(r.exitCode, 1); assert.match(JSON.stringify(r.checks), /링크/);
+  });
+  test('RECORD-DOC 현행 명령 안내 누락 ' + name, () => {
+    assert.equal(run(fn, edit('docs/stream-verification.md', command, 'removed-command')).exitCode, 1);
+  });
+  test('RECORD-DOC require/exec 동시 오연결 ' + name, () => {
+    assert.equal(run(fn, edit('server.sh', script, 'wrong.mjs')).exitCode, 1);
+  });
+}
+for (const [fn, id] of [[verifyReleaseTestRecords, 'SAFE-075'], [verifyReleaseTestRecords, 'OPS-045'],
+  [verifyReleaseEvidenceHygiene, 'SAFE-077'], [verifyReleaseEvidenceHygiene, 'OPS-047']]) {
+  test('RECORD-DOC exact 기능 ID 누락 ' + id, () => {
+    assert.equal(run(fn, m => m.set('docs/project-feature-test-inventory.md', m.get('docs/project-feature-test-inventory.md').replace(new RegExp('^\\| ' + id + ' \\|.*$', 'm'), ''))).exitCode, 1);
+  });
+}
+test('RECORD-RESULT 입력 없는 검사는 실제 결과 미실행', () => {
+  const r = run(verifyReleaseTestRecords); assert.equal(r.resultInspection.status, 'not-run');
+  assert.equal(r.executionEvidenceVerified, false);
+});
+test('RECORD-RESULT 합성 PASS 구조와 본문 임시 정리 언급', () => {
+  const r = run(verifyReleaseTestRecords, undefined, good + '\n임시자료 정리: /tmp/run, /private/tmp/run, $TMPDIR\n');
+  assert.equal(r.exitCode, 0, JSON.stringify(r)); assert.equal(r.resultInspection.resultRows[0].value, 'PASS');
+  assert.equal(r.executionEvidenceVerified, false);
+});
+test('RECORD-RESULT 실제 FAIL 보존/exit1', () => {
+  const r = run(verifyReleaseTestRecords, undefined, good.replace('| PASS |', '| FAIL |'));
+  assert.equal(r.exitCode, 1); assert.equal(r.resultInspection.resultRows[0].value, 'FAIL');
+});
+for (const status of ['미실행', '제외', '미확인', 'manual-not-run', '부분']) {
+  test('RECORD-RESULT 별도 상태표 미완료 ' + status, () => {
+    const r = run(verifyReleaseTestRecords, undefined, good + '\n| 항목 | 상태 |\n| --- | --- |\n| UI | ' + status + ' |\n');
+    assert.equal(r.exitCode, 1); assert.equal(r.resultInspection.statusRows[0].value, status);
+  });
+}
+for (const [name, result] of [['빈 문서', ''], ['빈 표', good.split('| 합성')[0]],
+  ['미인식 결과', good.replace('PASS', 'okay')], ['미실행 결과 칸', good.replace('PASS', '미실행')],
+  ['깨진 행', good.replace('| PASS |', '| PASS | extra |')], ['code fence뿐', '```md\n' + good + '```']]) {
+  test('RECORD-RESULT 거부 ' + name, () => assert.equal(run(verifyReleaseTestRecords, undefined, result).exitCode, 1));
+}
+for (const target of ['/tmp/run.json', '/private/tmp/run.json', '$TMPDIR/run.json', 'file:///tmp/run.json']) {
+  test('RECORD-RESULT 최종 임시 링크 거부 ' + target, () => {
+    assert.equal(run(verifyReleaseTestRecords, undefined, good.replace('artifacts/run.json', target)).exitCode, 1);
+  });
+}
+test('RECORD-RESULT 입력 전후 hash 변화 거부', () => {
+  const r = run(verifyReleaseTestRecords, undefined, good, true);
+  assert.equal(r.exitCode, 1); assert.equal(r.resultInspection.inputUnchanged, false);
+});
+for (const [name, input, valid] of [
+  ['shortcut 임시', good.replace('[원출력](artifacts/run.json)', '[출력]') + '\n[출력]: /tmp/run.json', false],
+  ['autolink 임시', good.replace('[원출력](artifacts/run.json)', '<file:///tmp/run.json>'), false],
+  ['reference 미해결', good.replace('[원출력](artifacts/run.json)', '[없는 출력]'), false],
+  ['reference 중복 정의', good.replace('[원출력](artifacts/run.json)', '[출력]') + '\n[출력]: /tmp/run.json\n[출력]: artifacts/run.json', false],
+  ['shortcut 정상', good.replace('[원출력](artifacts/run.json)', '[출력]') + '\n[출력]: artifacts/run.json', true],
+  ['autolink 정상', good.replace('[원출력](artifacts/run.json)', '<https://example.invalid/run.json>'), true],
+]) test('RECORD-RESULT ' + name, () => assert.equal(run(verifyReleaseTestRecords, undefined, input).exitCode, valid ? 0 : 1));
+test('RECORD-RESULT status 표는 result 행으로 세지 않음', () => {
+  const r = validateReleaseRecordResult('| 항목 | 상태 |\n| --- | --- |\n| UI | 미실행 |');
+  assert.equal(r.resultRows.length, 0); assert.equal(r.statusRows.length, 1); assert(r.errors.length > 0);
+});
+test('RECORD-CONSISTENCY 기존 JSON 키/미실행/미집계 및 Markdown 경계', () => {
+  const r = run(verifyTestEvidenceConsistency);
+  for (const key of ['schema','generatedAt','status','targetStep','activeRoadmap','branch','head','checks','completionBoundary','evidence']) assert(Object.hasOwn(r, key), key);
+  assert.equal(r.schema, 'media-server.v230-test-evidence-consistency.v1');
+  assert.equal(new Set(r.evidence.map(x => x.area)).size, 4);
+  assert(r.evidence.every(x => x.status !== 'pass' && x.tokenUsage.tokenConsumed === '미집계'));
+  assert.match(renderMarkdown(r), /미실행/);
+  const failed = run(verifyTestEvidenceConsistency, edit('AGENTS.md', 'docs/stream-verification.md', 'missing.md'));
+  assert.equal(failed.status, 'fail'); assert.equal(failed.exitCode, 1); assert.match(renderMarkdown(failed), /fail/);
+});
+
+// 실제 CLI의 exit/output 분기를 자식 메모리에서 검사한다. 원장/Git/사용자 파일 쓰기는 차단한다.
+function cli(script, {args = [], result, missingLink = false, writeError = false} = {}) {
+  const source = `
+    import fs from 'node:fs'; import cp from 'node:child_process';
+    import {syncBuiltinESMExports} from 'node:module'; import {pathToFileURL} from 'node:url';
+    const root=${JSON.stringify(root)}, script=${JSON.stringify(script)}, outputs={};
+    const original=fs.readFileSync;
+    fs.readFileSync=function(p,opts){
+      const name=String(p), rel=name.startsWith(root)?name.slice(root.length):name;
+      if(['docs/release-evidence-index.md','docs/release-test-records.md','docs/development-backlog.md'].includes(rel))throw new Error('종료 원장 읽기');
+      if(name==='/memory/result.md')return opts==='utf8'?${JSON.stringify(result ?? '')}:Buffer.from(${JSON.stringify(result ?? '')});
+      const raw=original.call(this,p,opts);
+      if(${missingLink}&&rel==='AGENTS.md'){const text=String(raw).replaceAll('docs/stream-verification.md','missing.md');return Buffer.isBuffer(raw)?Buffer.from(text):text;}
+      return raw;
+    };
+    fs.mkdirSync=function(p){if(!String(p).startsWith('/memory'))throw new Error('허용하지 않은 쓰기');};
+    fs.writeFileSync=function(p,text){if(${writeError})throw new Error('synthetic output write failure');if(!String(p).startsWith('/memory'))throw new Error('허용하지 않은 쓰기');outputs[p]=String(text);};
+    cp.spawnSync=function(command){if(command!=='git')throw new Error('외부/제품 명령 금지');return {status:128,stdout:'',stderr:'source archive'};};
+    syncBuiltinESMExports(); process.argv=[process.execPath,root+'scripts/internal/'+script,...${JSON.stringify(args)}];
+    process.on('exit',()=>process.stdout.write('\\n__reports__'+JSON.stringify(outputs)+'\\n'));
+    await import(pathToFileURL(process.argv[1]).href);
+  `;
+  return spawnSync(process.execPath, ['--input-type=module', '-e', source], {cwd: root, encoding: 'utf8'});
+}
+for (const [name, , , script] of cases) test('RECORD-DOC CLI 실제 실패 exit ' + name, () => {
+  const r = cli(script, {missingLink: true}); assert.equal(r.status, 1, r.stderr + r.stdout);
+  assert.match(r.stdout, /\[fail\]/); assert.match(r.stdout, /링크/);
+});
+test('RECORD-RESULT CLI FAIL 원문 보존/실제 exit', () => {
+  const r = cli('verify_v290_release_test_records_enforcement.mjs', {args: ['--result', '/memory/result.md'], result: good.replace('| PASS |', '| FAIL |')});
+  assert.equal(r.status, 1, r.stderr); assert.match(r.stdout, /"value":"FAIL"/); assert.match(r.stdout, /"inputUnchanged":true/);
+});
+test('RECORD-CONSISTENCY CLI JSON/Markdown 출력과 archive provenance', () => {
+  const r = cli('verify_v230_test_evidence_consistency.mjs', {args: ['--report', '/memory/report.md', '--json-report', '/memory/report.json']});
+  assert.equal(r.status, 0, r.stderr + r.stdout);
+  const outputs = JSON.parse(r.stdout.split('__reports__')[1]), report = JSON.parse(outputs['/memory/report.json']);
+  assert.equal(report.branch, 'unknown'); assert.equal(report.head, 'unknown'); assert.equal(report.status, 'pass');
+  assert.match(outputs['/memory/report.md'], /미실행/);
+});
+test('RECORD-CONSISTENCY CLI 실패도 report 보존/exit1', () => {
+  const r = cli('verify_v230_test_evidence_consistency.mjs', {missingLink: true, args: ['--json-report', '/memory/report.json']});
+  assert.equal(r.status, 1, r.stderr);
+  const outputs = JSON.parse(r.stdout.split('__reports__')[1]); assert.equal(JSON.parse(outputs['/memory/report.json']).status, 'fail');
+});
+test('RECORD-CONSISTENCY CLI output 쓰기 실패 전파', () => {
+  const r = cli('verify_v230_test_evidence_consistency.mjs', {writeError: true, args: ['--json-report', '/memory/report.json']});
+  assert.equal(r.status, 1); assert.match(r.stderr, /synthetic output write failure/);
+});

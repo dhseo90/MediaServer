@@ -26,6 +26,19 @@
       }
     }
   },
+  "v280Boundary": {
+    "provenance": {
+      "commit": "36ce1bb67015bb79f2bce3edb414e175e16df914",
+      "path": "docs/project-feature-test-inventory.md",
+      "featureId": "OPS-039",
+      "basis": "OPS-039 및 V280-S00/S01의 현재 회귀 정의. 과거 실행 결과가 아님."
+    },
+    "sourceVersion": "2.8.0",
+    "publishedTag": "v2.7.0",
+    "nextSourceTag": "v2.8.0",
+    "runwayVersions": ["2.8.0", "2.9.0"],
+    "majorBoundary": "3.0.0"
+  },
   "syntheticFields": ["repository", "releaseNotes", "roadmap", "published.url", "published.observedAt"],
   "executionEvidence": false
 }

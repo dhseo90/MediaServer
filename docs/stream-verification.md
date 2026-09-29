@@ -139,6 +139,29 @@ helper API·사용처·CMake, 모듈 분리 조건을 메모리에서 훼손해 
 판정 기준은 [UI 풀테스트](manual-ui-fulltest.md), 실행과 기록은
 [체크리스트](manual-ui-checklist.md)·[결과 템플릿](manual-ui-result-template.md)에 둔다.
 
+기록 문서 소비자 자체검사는 `node --test scripts/internal/release_record_documentation.test.mjs`다.
+`RECORD-DOC`는 아래 네 명령이 종료 원장·backlog·과거 제목 없이 현행 정책/기능 ID/정확한
+dispatch로 실행되는지 확인한다. 현재 링크·명령·ID 누락은 실패해야 한다. `OPS-039`의
+source/공개 버전·2.x/3.0 경계는 `test/fixtures/release_metadata_boundary.json`의
+`v280Boundary`에 분리한 회귀 입력과 독립 예상값으로 검사한다. 이 입력은 당시 PASS 기록이 아니다.
+`RECORD-RESULT`는 합성 PASS/FAIL, 별도 미완료 상태, 빈/깨진/미인식 표, 코드 예제,
+최종 임시 증거 링크, 입력 전후 hash·원본 불변과 실패 exit를 확인한다. `RECORD-CONSISTENCY`는
+기존 v230 JSON/Markdown 출력 키, 네 영역·미실행·token 미집계 및 실패 전파를 유지한다.
+최초 예상 RED는 종료 기록을 읽거나 새 검사 진입점이 없는 상태이며 환경 오류는 포함하지 않는다.
+
+| 명령 | 기본 검사 범위 |
+| --- | --- |
+| `verify-release-evidence-index` | 현행 정책·정의의 연결 및 출처가 있는 버전 경계 회귀 입력 |
+| `verify-v230-test-evidence-consistency` | 네 검증 영역과 기록 기준. 기존 `--report`/`--json-report` 출력 유지 |
+| `verify-v290-release-test-records-enforcement` | 현행 기록 정책. 선택 `--result <Markdown 파일>`로 명시한 결과표의 구조·판정 검사 |
+| `verify-v290-release-evidence-hygiene` | 기록 정책·기능 정의·명령·실제 UI 기준 연결과 비승격 경계 |
+
+기본 검사는 실제 실행 결과를 읽거나 생성하지 않는다. `--result`의 PASS/FAIL 행과 별도
+미실행/부분/제외/미확인 상태를 구분하며 FAIL·미완료·깨진 결과는 exit 1이다. `/tmp` 등
+임시 경로를 최종 증거 링크로 사용하면 거부하되 임시자료 정리 설명 자체는 허용한다.
+구조 검사는 원출력의 실제 실행·artifact 내용/hash·제품/UI/장시간/공개 릴리즈를 보증하지 않는다.
+입력 원문을 쓰거나 과거 Git 로그를 fetch하지 않으며 Git 없는 source archive에서도 실행한다.
+
 `DOC-VLM-FIXTURE`는 VLM 설명 생성·평가·큐·리허설의 현행 schema/기능 ID/명령 dispatch를
 확인한다. 과거 단계 제목·중앙 실행 기록·공개 색인의 직접 링크 없이도 검사하며, 실제 계약·
 기능 연결·fixture 부작용 경계와 UI/장시간 정책 링크가 빠지면 실패한다. 자연어 문장의 의미
@@ -155,6 +178,9 @@ provider·브라우저·장시간 검증을 이 도구 자체검사 결과로 �
 혼입·UI 판정 훼손을 거부하는지 확인한다. RC 출력은 격리된 합성 결과를 사용하고 정리를
 확인하며 실제 120분 실행이 아니다. RC 정리 실패 뒤 추가 fixture 검사는 미실행이며
 Actions 쓰기 권한·warning 차단과 notice 허용을 별도 반례로 확인한다.
+v250 UI 정의는 현재 inventory와 canonical case의 `UI-039`~`UI-044` route/action 및
+기준서·체크리스트의 정의 링크로 확인한다. 같은 목록을 여러 문서에 복사하지 않으며
+정의·링크·action 누락 반례를 유지한다.
 선택 `--history`는 기록 형식만 확인하고 현재 PASS로 승격하지 않는다.
 `REL-DOC-01`~`REL-DOC-13`은 명시 metadata, source/target/공개 관측 분리, 문구 변경 허용,
 버전·서명/배포 정책·링크 오류 거부, Git 없는 소스 실행, 파일 누락·경로 이탈, 실패 exit·보고서를 확인한다.

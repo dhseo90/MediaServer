@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {validateReleasePolicyDocumentation,validateReleaseCommandDispatch} from "./release_documentation_contract.mjs";
-import {validateVerificationDocumentation, validateUiPolicyDocumentation} from "./documentation_contract_lib.mjs";
+import {hasDocumentLink, validateVerificationDocumentation, validateUiPolicyDocumentation} from "./documentation_contract_lib.mjs";
 import {validatePolicy} from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -112,22 +112,26 @@ check("feature inventory maps S09 readiness IDs and coverage", () => {
     "feature coverage must validate verifier evidence for every inventory row");
 });
 
-check("manual UI criteria records v2.5.0 incident memory controls without claiming execution", () => {
+check("manual UI criteria link current incident memory definitions without claiming execution", () => {
   const fulltest = readText("docs/manual-ui-fulltest.md");
   const checklist = readText("docs/manual-ui-checklist.md");
   for (const text of [fulltest, checklist]) {
-    for (const snippet of [
-      "UI-039",
-      "UI-040",
-      "UI-041",
-      "UI-042",
-      "UI-043",
-      "UI-044",
-      "release-safe bundle",
-    ]) {
-      assert(text.includes(snippet), `manual UI criteria missing S09 snippet: ${snippet}`);
-    }
+    assert(hasDocumentLink(text, "project-feature-test-inventory.md"), "manual UI criteria missing current feature definitions link");
   }
+  const inventory = readText("docs/project-feature-test-inventory.md");
+  const cases = JSON.parse(readText("test/fixtures/ui_fulltest_case_manifest_policy_v4.json")).cases;
+  const expected = {"UI-039": "renderIncidentMemorySearch", "UI-040": "renderIncidentTimelineGraph",
+    "UI-041": "renderExplainableIncidentBrief", "UI-042": "renderSimilarIncidentLookup",
+    "UI-043": "BuildEventEvidenceBundleZip", "UI-044": "renderIncidentMemorySearch"};
+  for (const [id, action] of Object.entries(expected)) {
+    const definitions = inventory.split(/\r?\n/).filter(line => line.startsWith(`| ${id} |`));
+    assert(definitions.length === 1 && definitions[0].includes("/ops/events"), `manual UI current definition missing: ${id}`);
+    const matches = cases.filter(item => item.featureId === id);
+    assert(matches.length === 1 && matches[0].route === "/ops/events" && matches[0].controlAction.actionAnchor === action,
+      `manual UI current route/action missing: ${id}`);
+  }
+  assert(inventory.split(/\r?\n/).find(line => line.startsWith("| UI-043 |")).includes("release-safe bundle"),
+    "manual UI current release-safe bundle boundary missing");
 });
 
 check("현행 릴리즈 정책과 제품 경계가 독립적으로 유지됨", () => {

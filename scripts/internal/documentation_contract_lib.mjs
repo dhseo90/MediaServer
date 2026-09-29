@@ -31,6 +31,54 @@ export function hasDocumentLink(text, target) {
     .some((match) => match[1].split('#')[0].replace(/^\.\//, '') === target);
 }
 
+// 기록 정책의 현재 진입점/기능/명령 연결만 확인한다. 자연어 의미 전체나 실제 실행
+// 결과를 판정하지 않으며 종료 원장·과거 PASS는 읽지 않는다.
+export function validateReleaseRecordDocumentation({read, kind}) {
+  const contracts = {
+    index: ['verify-release-evidence-index', 'verify_release_evidence_index.mjs', ['OPS-039']],
+    consistency: ['verify-v230-test-evidence-consistency', 'verify_v230_test_evidence_consistency.mjs', []],
+    records: ['verify-v290-release-test-records-enforcement', 'verify_v290_release_test_records_enforcement.mjs', ['SAFE-075', 'OPS-045']],
+    hygiene: ['verify-v290-release-evidence-hygiene', 'verify_v290_release_evidence_hygiene.mjs', ['SAFE-077', 'OPS-047']],
+  };
+  if (!Object.hasOwn(contracts, kind)) return ['기록 검사 종류 오류'];
+  const [command, script, featureIds] = contracts[kind], errors = [];
+  const agents = read('AGENTS.md'), policy = read('docs/release-policy.md');
+  const verification = read('docs/stream-verification.md'), server = read('server.sh');
+  const inventory = read('docs/project-feature-test-inventory.md');
+  const implementation = JSON.parse(read('test/fixtures/project_feature_implementation_evidence.json'));
+  for (const target of ['docs/stream-verification.md', 'docs/release-policy.md', 'docs/project-feature-test-inventory.md', 'docs/manual-ui-fulltest.md']) {
+    if (!hasDocumentLink(agents, target)) errors.push('AGENTS 기록 기준 링크 누락: ' + target);
+  }
+  for (const target of ['../AGENTS.md', 'stream-verification.md', 'project-feature-test-inventory.md', 'manual-ui-fulltest.md']) {
+    if (!hasDocumentLink(policy, target)) errors.push('릴리즈 기록 정책 링크 누락: ' + target);
+  }
+  for (const target of ['../AGENTS.md', 'project-feature-test-inventory.md', 'manual-ui-fulltest.md']) {
+    if (!hasDocumentLink(verification, target)) errors.push('검증 기준 링크 누락: ' + target);
+  }
+  // 안정된 용어의 연결 확인이다. 문장/제목이나 과거 token 수치를 고정하지 않는다.
+  for (const identifier of ['PASS', 'FAIL', 'manual-not-run', 'cleanup', 'token', 'elapsed', 'stdout/stderr']) {
+    if (!policy.includes(identifier)) errors.push('기록 정책 식별자 누락: ' + identifier);
+  }
+  const fulltest = read('docs/manual-ui-fulltest.md');
+  if (!hasDocumentLink(fulltest, 'stream-verification.md') || !fulltest.includes('Policy v4')) errors.push('실제 UI 기준 연결 누락');
+  const commands = new Set(verification.match(/\bverify-[a-z0-9-]+\b/g) || []);
+  if (!commands.has(command)) errors.push('기록 명령 안내 누락: ' + command);
+  const dispatch = parseServerDispatches(server);
+  const companions = kind === 'consistency' ? ['verify-release-evidence-index', 'verify-feature-inventory-coverage', 'verify-longrun-separation', 'verify-manual-ui-evidence']
+    : kind === 'hygiene' ? ['verify-release-evidence-index', 'verify-script-inventory', 'verify-manual-ui-evidence'] : [];
+  for (const [name, file] of [[command, script], ...companions.map(name => [name, name.replaceAll('-', '_') + '.mjs'])]) {
+    const targets = dispatch.filter(item => item.command === name);
+    if (targets.length !== 1 || targets[0].script !== file) errors.push('기록 dispatch 누락/중복/대상 불일치: ' + name);
+  }
+  if (featureIds.length) errors.push(...validateFeatureDocumentation({document: policy,
+    identifiers: ['PASS', 'FAIL'], command, script, featureIds, inventory, implementation, verification, server}));
+  for (const id of featureIds) {
+    const entries = implementation.items?.filter(item => item.id === id) || [];
+    if (entries.length !== 1 || entries[0].verifierEvidence?.command !== command) errors.push(id + ' canonical 명령 연결 누락/중복');
+  }
+  return errors;
+}
+
 // 기존 UI 명령은 유지하고 현재 기술 안내·정확한 dispatch만 연결한다.
 // 제목·옛 단계 완료/미실행·과거 실행 원장은 입력이 아니다. 실제 화면 판정은 별도다.
 export function validateUiComponentDocumentation({document, kind, verification, server}) {
