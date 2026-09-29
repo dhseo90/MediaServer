@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: ONVIF 현장 smoke 산출물 redaction checklist 문서가 필수 기준을 담는지 검증한다.
-// 동작 요약: 체크리스트 항목, 금지 값, 검증 명령, 기록 템플릿의 필수 문구를 정적으로 확인한다.
+// 동작 요약: 현행 식별자·금지 값·검증 명령 연결을 정적으로 확인한다. 실제 자료를 정제하지 않는다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFieldGateDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -36,53 +37,12 @@ const args = parseArgs(rawArgs);
 const docPath = path.resolve(rootDir, args.doc || "docs/onvif-field-smoke-artifact-redaction.md");
 const doc = fs.readFileSync(docPath, "utf8");
 
-assertIncludes([
-  "# ONVIF Field Smoke Artifact Redaction Checklist",
-  "## 공유 가능 산출물",
-  "## 금지 값",
-  "## Artifact Checklist",
-  "## Operator Checklist",
-  "## Gate Decision",
-  "## Failure Wording",
-  "## 기록 템플릿",
-  "## 검증 명령",
-  "source locator",
-  "ONVIF endpoint",
-  "credential reference",
-  "raw diagnostic JSON",
-  "./onvif-field-smoke-gate.md",
-  "gateDecision",
-  "playbackStatus",
-  "redactionArtifactReview",
-  "fieldSmokeReportReview",
-  "releaseDevelopmentStatus=procedure-fixed",
-  "no-device suite 통과는 field smoke gate pass가 아닙니다",
-  "/client/api/views",
-  "/ops/sources",
-  "/ops/rules",
-  "clientRedaction",
-  "opsCopyParity",
-  "probeErrorWording",
-  "realDeviceEndpointSuccess=unverified",
-  "realDeviceTestPerformed=false",
-  "no-device suite 통과는 실장비 endpoint 성공으로 쓰지 않습니다",
-  "credential store, Digest, WS-Security, WS-Discovery, Profile G",
-  "skipped: real device endpoint not provided; no-device suite result only",
-  "failed: credential required or rejected; credential reference only, plaintext omitted",
-  "failed: ONVIF probe failed with sanitized transport or service error; raw SOAP omitted",
-  "blocked: Digest or WS-Security required; out of current live source scope",
-  "operatorChecklistStatus",
-  "failureWording",
-  "verify-onvif-probe-error-wording",
-  "verify-onvif-field-smoke-gate",
-  "verify-onvif-ops-sources-ui",
-  "verify-docs-links",
-  "git diff --check",
-]);
+const errors = validateFieldGateDocumentation(doc, "redaction");
+assert(errors.length === 0, errors.join("; "));
+console.log("[pass] ONVIF field smoke redaction current contract and command links");
 
 const checklistItems = [...doc.matchAll(/^- \[ \] /gm)].length;
-assert(checklistItems >= 10, `expected at least 10 checklist items, got ${checklistItems}`);
-console.log(`[pass] ONVIF field smoke redaction checklist actionable item count ${checklistItems}`);
+// 항목 수는 정보만 제공한다. 중복 체크박스로 계약 누락을 대체하지 않는다.
 
 assertForbiddenAbsent([
   "operator-entered-secret",
@@ -99,13 +59,7 @@ console.log("== ONVIF field smoke redaction checklist summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);
 console.log(`- checklistItems: ${checklistItems}`);
 console.log("- failures: 0");
-
-function assertIncludes(terms) {
-  for (const term of terms) {
-    assert(doc.includes(term), `missing required wording: ${term}`);
-    console.log(`[pass] ONVIF field smoke redaction checklist contains required wording ${JSON.stringify(term)}`);
-  }
-}
+console.log("- actual device/network/playback/UI not-run; artifact sanitization not-run");
 
 function assertForbiddenAbsent(terms) {
   for (const term of terms) {

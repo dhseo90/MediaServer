@@ -453,6 +453,99 @@ test('DOC-ONVIF-SUITE 실행기 실패 전파·후속 중단·summary는 격리 
   assert.equal(fs.existsSync(new URL('../../in-memory-summary.json',import.meta.url)),false);
 });
 
+test('DOC-FIELD-CONTRACT 현행 field 정의·반례와 과거 원장 독립', async t => {
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const gate='verify_onvif_field_smoke_gate.mjs',redaction='verify_onvif_field_smoke_redaction.mjs',external='verify_external_turn_whep_field_gate.mjs';
+  const gateDoc='docs/onvif-field-smoke-gate.md',redactionDoc='docs/onvif-field-smoke-artifact-redaction.md',externalDoc='docs/external-turn-whep-field-gate.md';
+  const summary='test/fixtures/onvif_field_smoke_artifact_sample/redacted_probe_summary.json';
+  const cases=[
+    ['gate 제목·링크 표현 변경',gate,{prose:true},0,''],
+    ['redaction 제목·체크박스 형식 변경',redaction,{prose:true},0,''],
+    ['외부 gate 과거 문구 없이 검사',external,{prose:true},0,''],
+    ['gate schema 누락',gate,{path:gateDoc,from:'media-server.onvif-field-smoke-gate.v1'},1,'definition missing'],
+    ['gate 실패 상태 누락',gate,{path:gateDoc,from:'`not-run`, `blocked`, `failed`, `passed`',to:'`passed`'},1,'states missing/invalid'],
+    ['무장비 성공 승격',gate,{path:gateDoc,from:'`noDeviceSuiteCountsAsFieldSuccess` | `false`',to:'`noDeviceSuiteCountsAsFieldSuccess` | `true`'},1,'field/value missing'],
+    ['gate 정제 flag 누락',gate,{path:gateDoc,from:'endpointRedacted'},1,'field/value missing'],
+    ['현재 색인 링크 누락',gate,{path:'docs/README.md',from:'onvif-field-smoke-gate.md'},1,'current docs missing gate link'],
+    ['sample 실장비 성공 승격',gate,{path:summary,sampleFieldPass:true},1,'real device status mismatch'],
+    ['sample 원문 포함',gate,{path:summary,leak:true},1,'leaked forbidden literal'],
+    ['redaction source 계약 누락',redaction,{path:redactionDoc,from:'sourceDraft'},1,'definition missing'],
+    ['redaction 현행 gate 링크 누락',redaction,{path:redactionDoc,from:'onvif-field-smoke-gate.md'},1,'contract link missing'],
+    ['redaction secret 예시 거부',redaction,{path:redactionDoc,append:'\noperator-entered-secret\n'},1,'forbidden literal'],
+    ['외부 미접속 기본값 변경',external,{path:externalDoc,from:'`externalNetworkAttempted` | `false`',to:'`externalNetworkAttempted` | `true`'},1,'field/value missing'],
+    ['외부 실패 fixture를 성공으로 바꿈',external,{path:'test/fixtures/external_turn_whep_field_gate/cases.json',fixtureFail:true},1,'fixture expectation mismatch'],
+    ['현행 SAFE-039 명령 연결 누락',external,{path:'docs/project-feature-test-inventory.md',removeFeature:true},1,'SAFE-039'],
+    ['실행 대상 오연결',external,{path:'server.sh',dispatch:true},1,'dispatch'],
+    ['coverage의 exact 명령 오연결',external,{path:'test/fixtures/project_feature_implementation_evidence.json',coverageDrift:true},1,'semantic coverage'],
+    ['통합검사의 자식 호출 누락',external,{path:'scripts/internal/verify_v230_conditional_field_evidence.mjs',from:'runNodeScript("verify_external_turn_whep_field_gate.mjs"'},1,'must execute'],
+    ['명시 역사 감사는 누락 거부',gate,{historical:true},1,'backlog missing gate term'],
+  ];
+  for(const [name,verifier,mutation,expected,reason] of cases) await t.test(name,()=>{
+    const before=mutation.path?crypto.createHash('sha256').update(read(mutation.path)).digest('hex'):null;
+    const program=`
+      import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)},m=${JSON.stringify(mutation)},read=fs.readFileSync;
+      if(m.historical)process.argv=[process.execPath,'verifier','--backlog','docs/development-backlog.md'];
+      fs.readFileSync=function(file,opts){const rel=path.relative(root,String(file));
+        if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(rel)){if(m.historical)return '';throw new Error('과거 원장 읽기 금지');}
+        const raw=read.call(this,file,opts);let text=String(raw);
+        if(m.prose&&[${JSON.stringify(gateDoc)},${JSON.stringify(redactionDoc)},${JSON.stringify(externalDoc)},'docs/onvif-live-source-support.md','docs/onvif-no-device-verification.md'].includes(rel))text=text.replace(/^#{1,6}.*$/gm,'# 다른 제목').replaceAll('(./','(').replaceAll('- [ ] ','- ');
+        if(rel===m.path){if(m.from)text=text.replaceAll(m.from,m.to||'');if(m.append)text+=m.append;
+          if(m.sampleFieldPass){const j=JSON.parse(text);j.gateDecision.realDeviceEndpointSuccess='pass';text=JSON.stringify(j);}
+          if(m.leak){const j=JSON.parse(text);j.notes='operator-entered-secret';text=JSON.stringify(j);}
+          if(m.fixtureFail){const j=JSON.parse(text);j.cases.find(c=>c.id==='approved-turn-relay-fail-not-release-pass').turnOutcome='pass';text=JSON.stringify(j);}
+          if(m.coverageDrift){const j=JSON.parse(text);j.items.find(c=>c.id==='MEDIA-021').semanticEvidence.verifierAssertion.command='verify-unrelated';text=JSON.stringify(j);}
+          if(m.removeFeature)text=text.split('\\n').filter(line=>!line.startsWith('| SAFE-039 |')).join('\\n');
+          if(m.dispatch){const start=text.indexOf('  verify-external-turn-whep-field-gate)'),end=text.indexOf('    ;;',start);if(start<0||end<0)throw new Error('dispatch fixture missing');text=text.slice(0,start)+text.slice(start,end).replaceAll('verify_external_turn_whep_field_gate.mjs','verify_other.mjs')+text.slice(end);}
+        }return Buffer.isBuffer(raw)?Buffer.from(text):text;};
+      for(const k of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[k]=()=>{throw new Error('정적 검사 파일 쓰기 금지');};
+      await import(pathToFileURL(path.join(root,'scripts/internal',${JSON.stringify(verifier)})).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:2*1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,expected,r.stdout+r.stderr);
+    if(reason)assert((r.stdout+r.stderr).includes(reason),r.stdout+r.stderr);
+    if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),before,'원본 불변');
+  });
+});
+
+test('DOC-FIELD-INTEGRATION 하위 실패·보고서 보존·정리 전파는 격리 stub으로 확인',async t=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  for(const scenario of ['pass','success-stderr','git-missing','onvif-fail','child-fail','report-fail','report-missing','report-invalid','network-claim','cleanup-fail']) await t.test(scenario,()=>{
+    const program=`
+      import fs from 'node:fs';import path from 'node:path';import cp from 'node:child_process';
+      import {pathToFileURL} from 'node:url';import {syncBuiltinESMExports} from 'node:module';
+      const root=${JSON.stringify(root)},scenario=${JSON.stringify(scenario)},read=fs.readFileSync,exists=fs.existsSync,trace=[];
+      const report={schema:'media-server.external-turn-whep-field-gate-report.v1',gateStatus:scenario==='report-fail'?'fail':'pass',externalNetworkAttempted:scenario==='network-claim',fieldSmokeStatus:'not-run',turnRelayStatus:'not-run',whepPlaybackStatus:'not-run',defaultReleasePassClaimAllowed:false};
+      process.argv=[process.execPath,'verifier','--json-report','/unit-parent.json'];
+      fs.mkdtempSync=()=>'/unit-owned';
+      fs.existsSync=function(p){if(p==='/unit-owned/external-turn-whep.json')return scenario!=='report-missing';return exists.call(this,p);};
+      fs.readFileSync=function(p,opts){if(p==='/unit-owned/external-turn-whep.json'){trace.push('read-child');return scenario==='report-invalid'?'invalid':JSON.stringify(report);}const rel=path.relative(root,String(p));if(['docs/development-backlog.md','docs/release-test-records.md','docs/release-evidence-index.md'].includes(rel))throw new Error('과거 원장 읽기 금지');return read.call(this,p,opts);};
+      fs.unlinkSync=p=>{if(p!=='/unit-owned/external-turn-whep.json')throw new Error('unexpected unlink');trace.push('unlink');};
+      fs.rmdirSync=p=>{if(p!=='/unit-owned')throw new Error('unexpected rmdir');trace.push('rmdir');if(scenario==='cleanup-fail')throw Object.assign(new Error('fixture cleanup failure'),{code:'EACCES'});};
+      fs.mkdirSync=p=>{if(p!=='/')throw new Error('unexpected mkdir');};
+      fs.writeFileSync=(p,data)=>{if(p!=='/unit-parent.json')throw new Error('unexpected write');console.log('UNIT_EVIDENCE='+JSON.stringify({payload:JSON.parse(data),trace}));};
+      cp.execFileSync=(command,args)=>{if(command==='git'){if(scenario==='git-missing')throw new Error('not a repository');return 'unit-source';}const file=String(args[0]);if(file.endsWith('verify_onvif_field_smoke_gate.mjs')){if(scenario==='onvif-fail')throw new Error('fixture onvif child failed');return 'ONVIF field smoke gate summary\\nrealDeviceEndpointSuccess: unverified unless field gate report proves pass';}if(file.endsWith('verify_external_turn_whep_field_gate.mjs')){if(scenario==='child-fail'){const error=new Error('child failed');error.status=1;error.stdout='failed check';error.stderr='fixture diagnostic';throw error;}return 'External TURN/WHEP field gate summary';}throw new Error('unexpected child process');};
+      cp.spawnSync=(command,args)=>{if(command!==process.execPath||!String(args[0]).endsWith('verify_external_turn_whep_field_gate.mjs'))throw new Error('unexpected captured child');return {status:scenario==='child-fail'?1:0,signal:null,stdout:scenario==='child-fail'?'failed check':'External TURN/WHEP field gate summary',stderr:scenario==='child-fail'?'fixture diagnostic':scenario==='success-stderr'?'fixture warning':''};};
+      syncBuiltinESMExports();
+      await import(pathToFileURL(path.join(root,'scripts/internal/verify_v230_conditional_field_evidence.mjs')).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:2*1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);
+    const good=['pass','success-stderr','git-missing'].includes(scenario);assert.equal(r.status,good?0:1,r.stdout+r.stderr);
+    const row=r.stdout.split('\n').find(line=>line.startsWith('UNIT_EVIDENCE='));assert(row,r.stdout+r.stderr);
+    const {payload,trace}=JSON.parse(row.slice('UNIT_EVIDENCE='.length)),evidence=payload.runtimeEvidence.externalTurnWhepGate;
+    assert.equal(payload.status,good?'pass':'fail');assert.equal(evidence.jsonReport,null);
+    assert.equal(evidence.cleanup.status,scenario==='cleanup-fail'?'fail':'complete');
+    assert(trace.includes('rmdir'));
+    if(!['report-missing','report-invalid'].includes(scenario)){assert.deepEqual(evidence.report.schema,'media-server.external-turn-whep-field-gate-report.v1');assert(trace.indexOf('read-child')<trace.indexOf('unlink'));}
+    if(scenario==='child-fail'){assert.equal(evidence.execution.exit,1);assert.equal(evidence.execution.stderr,'fixture diagnostic');assert.equal(evidence.failureReason,'external field child command failed');}
+    if(scenario==='success-stderr')assert.equal(evidence.execution.stderr,'fixture warning');
+    if(scenario==='cleanup-fail'){assert.equal(evidence.cleanup.remainingPath,'/unit-owned');assert.equal(evidence.cleanup.errorCode,'EACCES');}
+    else assert.equal(evidence.cleanup.remainingPath,undefined);
+    if(scenario==='git-missing'){assert.equal(payload.branch,'unknown');assert.equal(payload.head,'unknown');}
+  });
+});
+
 test('DOC-ARCH-01 현행 구조 문서의 권한·공개 소비 경로 연결', () => {
   assert.deepEqual(validateArchitectureContractDocumentation(read('docs/media-server-architecture.md')), []);
 });

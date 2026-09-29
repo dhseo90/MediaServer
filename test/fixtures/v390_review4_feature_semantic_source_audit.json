@@ -115095,8 +115095,8 @@
           "file": "scripts/internal/verify_v230_conditional_field_evidence.mjs",
           "symbol": "MEDIA-021:canonical-readback",
           "anchor": "assert(report.schema === \"media-server.external-turn-whep-field-gate-report.v1\" && report.externalNetworkAttempted === false && report.whepPlaybackStatus === \"not-run\", \"MEDIA-021 externalWhepContacted report boundary mismatch\");",
-          "line": 71,
-          "contextSha256": "c0be7a6d0a94e6d2f83f3f633472a81a834e42b52ec0e4f42e12628ca1ca378b"
+          "line": 90,
+          "contextSha256": "8b638c747169ee251ff36fdd446e485d2cca314146ad146c7059a06a4aa640ae"
         },
         "verifier": {
           "file": "server.sh",
@@ -115137,14 +115137,14 @@
           "kind": "runtime-readback",
           "witness": "verify-v230-conditional-field-evidence independently observes externalWhepContacted through a runtime condition and fails on mismatch.",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6652",
-          "target": "scripts/internal/verify_v230_conditional_field_evidence.mjs:71"
+          "target": "scripts/internal/verify_v230_conditional_field_evidence.mjs:90"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v230-conditional-field-evidence",
-          "source": "scripts/internal/verify_v230_conditional_field_evidence.mjs:71",
+          "source": "scripts/internal/verify_v230_conditional_field_evidence.mjs:90",
           "target": "server.sh:1942"
         }
       ],
@@ -115202,7 +115202,7 @@
           "sha256": "9012a78585450dabc854746ef5af452d1b5c74f7bbd3c1c407b3755459f47cb1"
         }
       },
-      "sourceFlowDigest": "80294cfc7d78f242ef50df1c8b98c543993517ac1df67872246efa06d9e126d1",
+      "sourceFlowDigest": "e0cd049b0f3590b497666948f025aee8693d498503465c3893dd06d471f85fd0",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -115245,10 +115245,10 @@
           "readback": {
             "file": "scripts/internal/verify_v230_conditional_field_evidence.mjs",
             "symbol": "MEDIA-021:canonical-readback",
-            "trackedBlobSha256": "5860e5929122f8d0fe4b0f0f07e1409be3aa5ccfc1b0735b9590705ace7ace57",
-            "enclosingBodySha256": "5ec83b75829002d2de5a35385d3cbe3e6a8238e01561eb27a93c85d41113250d",
-            "enclosingBodyStartLine": 66,
-            "enclosingBodyEndLine": 86,
+            "trackedBlobSha256": "a38120ee915ecd67c1ea01a4c53c5aa04b335e7567cf78d1dfe017a12bec53e5",
+            "enclosingBodySha256": "8dd177dd73c83aea6cb22aaf1c5f47165301ecb515e93c97f1e50f782b37658d",
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 116,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -115260,7 +115260,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "5860e5929122f8d0fe4b0f0f07e1409be3aa5ccfc1b0735b9590705ace7ace57",
+        "verifierFileSha256": "a38120ee915ecd67c1ea01a4c53c5aa04b335e7567cf78d1dfe017a12bec53e5",
         "dispatch": {
           "command": "verify-v230-conditional-field-evidence",
           "file": "scripts/internal/verify_v230_conditional_field_evidence.mjs",
@@ -235275,5 +235275,5 @@
       }
     }
   ],
-  "candidateDigest": "2475b3c1d1b981e077ba6c5ff61b5914e5f114cc54ffff4ec91934a849694fb9"
+  "candidateDigest": "e4c218abe3191a8f7e83351aff8db5c2ff1583ffc60c932a00b49a67859079c1"
 }

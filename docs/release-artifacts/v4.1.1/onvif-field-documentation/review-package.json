@@ -1,0 +1,44 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "e4c218abe3191a8f7e83351aff8db5c2ff1583ffc60c932a00b49a67859079c1",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "MEDIA-021"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "50809263ee57b63ec032c6c25a4b03d8b4df89e9",
+    "trackedWorktreeDiffSha256": "f0861ab2ee813ba467a8499bee0d576c41b5ec57559fa2597147b98053c18d4c",
+    "changedFiles": [
+      "docs/external-turn-whep-field-gate.md",
+      "docs/onvif-field-smoke-artifact-redaction.md",
+      "docs/onvif-field-smoke-gate.md",
+      "docs/stream-verification.md",
+      "scripts/internal/documentation_contract.test.mjs",
+      "scripts/internal/documentation_contract_lib.mjs",
+      "scripts/internal/verify_external_turn_whep_field_gate.mjs",
+      "scripts/internal/verify_onvif_field_smoke_gate.mjs",
+      "scripts/internal/verify_onvif_field_smoke_redaction.mjs",
+      "scripts/internal/verify_v230_conditional_field_evidence.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "MEDIA-021",
+      "featureContractSha256": "abfedc90c3d524d088a2c9c762d7e0eb13fa77f2e42934aca6a58e1909a31c1c",
+      "sourceFlowDigest": "e0cd049b0f3590b497666948f025aee8693d498503465c3893dd06d471f85fd0",
+      "currentTrustBindingsSha256": "3a04009a8cdf99a8e07b82a07bfcdfb7ac09b3e40fcadd0f206728feb8472946"
+    }
+  ],
+  "reviewNotes": [
+    "메인이 작성한 현장 문서 소비자와 도구 자체검사 및 MEDIA-021 readback 위치·trust 변경을 독립 검토한다. 담당자 작성 ONVIF 문서 2개는 메인이 별도로 전문 검토했으며 이 독립 승인 대상이 아니다.",
+    "제품 owner/dispatch/action/state, 기존 MEDIA-021 boundary assertion, 기능 정의·fixture·실장비 미실행 경계를 유지한다. 이 검토와 로컬 fixture 통과는 외부 TURN/WHEP·ONVIF 실제 실행 증거가 아니다.",
+    "나머지 985개는 엄격 동등성 승계 후보이며 후보 생성자가 새 독립 승인을 작성하지 않는다.",
+    "독립 검토 지적 2건을 보완: 성공 child stderr 실제 캡처, cleanup 실패 시 소유 잔여 경로와 정제 오류 코드 보존. 예상 RED→focused32 및 전체166 자체검사 통과, 실제 로컬 conditional4개 통과."
+  ]
+}

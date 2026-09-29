@@ -14960,8 +14960,8 @@
           "file": "scripts/internal/verify_v230_conditional_field_evidence.mjs",
           "symbol": "MEDIA-021:canonical-readback",
           "anchor": "assert(report.schema === \"media-server.external-turn-whep-field-gate-report.v1\" && report.externalNetworkAttempted === false && report.whepPlaybackStatus === \"not-run\", \"MEDIA-021 externalWhepContacted report boundary mismatch\");",
-          "line": 71,
-          "contextSha256": "c0be7a6d0a94e6d2f83f3f633472a81a834e42b52ec0e4f42e12628ca1ca378b"
+          "line": 90,
+          "contextSha256": "8b638c747169ee251ff36fdd446e485d2cca314146ad146c7059a06a4aa640ae"
         },
         "verifier": {
           "file": "server.sh",
@@ -15002,14 +15002,14 @@
           "kind": "runtime-readback",
           "witness": "verify-v230-conditional-field-evidence independently observes externalWhepContacted through a runtime condition and fails on mismatch.",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6652",
-          "target": "scripts/internal/verify_v230_conditional_field_evidence.mjs:71"
+          "target": "scripts/internal/verify_v230_conditional_field_evidence.mjs:90"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v230-conditional-field-evidence",
-          "source": "scripts/internal/verify_v230_conditional_field_evidence.mjs:71",
+          "source": "scripts/internal/verify_v230_conditional_field_evidence.mjs:90",
           "target": "server.sh:1781"
         }
       ],

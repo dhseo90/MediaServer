@@ -1,142 +1,90 @@
-# External TURN/WHEP Field Gate
+# 외부 TURN·WHEP 검증과 조건부 증거
 
-이 문서는 `v2.1.0 V210-S10 External TURN/WHEP field gate`의 세부 gate 기준입니다.
-기본 release 검증과 외부 TURN/WHEP credential 운영 검증을 분리해, 미실행 또는
-실패한 external field smoke를 release PASS로 과장하지 않게 합니다.
+외부 relay·재생 검증을 준비하는 운영자와 검증기 유지보수자를 위한 현행 계약입니다.
+로컬 절차/fixture 검사와 실제 외부 실행을 분리합니다. 과거 버전의 수행·완료 기록은 이 문서의 역할이 아닙니다.
+현재 테스트 정의는 [기능 inventory](./project-feature-test-inventory.md)의 `MEDIA-021`·`SAFE-039`,
+실행 승인과 릴리즈 판정은 [검증 정책](./stream-verification.md#검증-정책)이 기준입니다.
 
-## 직접 답
+## 실행 범위
 
-v2.1.0 S10의 1차 gate는 `./server.sh verify-external-turn-whep-field-gate`입니다.
-이 gate는 실제 외부 TURN relay나 외부 WHEP playback endpoint에 접속하지 않고,
-field smoke 절차, report schema, redaction, 미실행/실패/PASS 분리 기준을 검증합니다.
+`./server.sh verify-external-turn-whep-field-gate`는 합성 사례와 문서/명령 연결을 검사하며,
+실제 TURN credential, WHEP endpoint, 방화벽 또는 relay 운영 권한을 사용하지 않습니다.
+환경에 endpoint가 있더라도 이 명령이 외부 연결을 시작하지는 않습니다.
+출력 `gateStatus=pass`는 이 로컬 검사 통과이지 운영 TURN 인증이나 WHEP 재생 성공이 아닙니다.
 
-외부 TURN relay auth 성공이나 외부 WHEP playback 성공은 현재 기본 release 완료
-조건이 아닙니다. 실제 endpoint, credential, 방화벽, 운영 relay 권한이 준비된 경우에만
-별도 field smoke report로 남기며, 그 결과도 `verify-webrtc-ice` 같은 로컬 ICE
-검증이나 UI 풀테스트 PASS를 대체하지 않습니다.
+실제 현장 검증은 대상·자격증명·네트워크·재생·정리 범위를 별도로 승인받은 환경에서만 수행합니다.
+사용자가 외부 검증을 제외한 경우 이를 추가 릴리즈 과제로 되살리지 않습니다.
+로컬 coturn, loopback WHEP, `verify-webrtc-ice`, 실제 UI, 30분/120분 결과는 서로 대체하지 않습니다.
+RTSP/WebRTC media path, Event POST, WebRTC DataChannel/SSE/WS metadata와 Auth/scope를
+이 절차를 통과시키기 위해 변경하지 않습니다.
 
-## Gate 원칙
+## 상태와 보고서
 
-- 기본 gate는 external endpoint에 네트워크 요청을 보내지 않습니다.
-- TURN credential, WHEP URL, ICE candidate, source URL, auth token은 report에 원문 저장하지 않습니다.
-- 외부 TURN/WHEP 미실행은 `not-run`이며 PASS가 아닙니다.
-- credential 또는 endpoint 누락은 `blocked`이며 PASS가 아닙니다.
-- relay 실패, WHEP session 실패, playback 실패는 `failed`이며 PASS가 아닙니다.
-- 외부 TURN/WHEP field PASS는 별도 field evidence일 뿐 기본 release PASS와 동일하지 않습니다.
-- 로컬 coturn, loopback WHEP fixture, `verify-webrtc-ice` 기본 성공은 운영 TURN/WHEP credential 성공을 대체하지 않습니다.
-- RTSP/WebRTC media path, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 이 gate에서 변경하지 않습니다.
+기존 출력 schema는 `media-server.external-turn-whep-field-gate-report.v1`입니다.
+`targetStep=V210-S10`은 호환 식별자이며 현재 버전의 개발 완료를 뜻하지 않습니다.
 
-## 상태 모델
-
-| 필드 | 값 | 의미 |
+| 필드 | 허용 값 | 의미 |
 | --- | --- | --- |
-| `gateStatus` | `pass`, `fail` | 절차와 문서/verifier 연결 상태 |
-| `fieldSmokeStatus` | `not-run`, `blocked`, `failed`, `passed` | 실제 external field smoke 상태 |
-| `turnRelayStatus` | `not-run`, `missing-credential`, `failed`, `passed` | 외부 TURN relay/auth 상태 |
-| `whepPlaybackStatus` | `not-run`, `missing-endpoint`, `failed`, `passed` | 외부 WHEP playback 상태 |
-| `defaultReleasePassClaimAllowed` | `false` | field smoke를 기본 release PASS로 쓸 수 있는지 여부 |
-| `redactionReview` | `pass`, `fail` | credential/URL/candidate 원문 미저장 검토 |
+| `gateStatus` | `pass`, `fail` | 로컬 검사 결과 |
+| `fieldSmokeStatus` | `not-run`, `blocked`, `failed`, `passed` | 실제 실행에 대한 분류. 기본값은 `not-run` |
+| `turnRelayStatus` | `not-run`, `missing-credential`, `failed`, `passed` | TURN 판정. 기본값은 `not-run` |
+| `whepPlaybackStatus` | `not-run`, `missing-endpoint`, `failed`, `passed` | WHEP 판정. 기본값은 `not-run` |
+| `externalNetworkAttempted` | `false` | 이 로컬 명령은 외부 접속을 하지 않음 |
+| `fieldGatePassEligible` | `false` | 기본 실행은 실제 현장 PASS 자격이 없음 |
+| `defaultReleasePassClaimAllowed` | `false` | 현장 결과를 기본 릴리즈 전체 PASS로 승격하지 않음 |
 
-## Fixture Matrix
+보고서는 `generatedAt`, `fixturePath`, `checks`, `cases`, `summary`를 포함합니다.
+`cases` 안의 passed 사례는 합성 입력의 예상 판정일 뿐 최상위 미실행 상태를 바꾸지 않습니다.
+`redaction`의 `credentialMaterialStored`, `rawTurnServerStored`, `rawWhepUrlStored`,
+`rawIceCandidateStored`, `sourceUrlStored`, `viewerClientExposureAdded`는 모두 false여야 합니다.
+실제 자료의 정제 검토를 했다는 `redactionReview` 필드는 이 명령이 생성하지 않습니다.
 
-`test/fixtures/external_turn_whep_field_gate/cases.json`는
-`media-server.external-turn-whep-field-gate-fixtures.v1` schema로 아래 case를 고정합니다.
+명시된 `--report <path>`는 Markdown, `--json-report <path>`는 구조화 결과를 저장합니다.
+경로를 생략하면 stdout만 출력합니다. 출력 경로는 실행 소유 경로로 정하고,
+실패 결과도 보존한 뒤 [기록 수명](../AGENTS.md#6-기록-수명과-정리)에 따라 정제·보존·정리합니다.
+명령이 끝났다는 이유만으로 임시 경로를 영구 증거 링크로 사용하지 않습니다.
 
-| case | 의미 |
+## 합성 회귀 사례
+
+[cases.json](../test/fixtures/external_turn_whep_field_gate/cases.json)은
+`media-server.external-turn-whep-field-gate-fixtures.v1` 형식의 현재 테스트 정의입니다.
+위치는 `test/fixtures/external_turn_whep_field_gate/cases.json`이며, 과거 실행 로그가 아닙니다.
+
+| 사례 ID | 독립 예상 결과 |
 | --- | --- |
-| `not-approved-not-run` | 운영 승인과 endpoint/credential이 없으면 외부 call 없이 `not-run` |
-| `approved-missing-turn-credential-blocked` | WHEP endpoint가 있어도 TURN credential이 없으면 `blocked` |
-| `approved-missing-whep-endpoint-blocked` | TURN credential이 있어도 WHEP endpoint가 없으면 `blocked` |
-| `approved-turn-relay-fail-not-release-pass` | TURN relay/auth 실패는 field 실패이며 release PASS 아님 |
-| `approved-whep-playback-fail-not-release-pass` | WHEP playback 실패는 field 실패이며 release PASS 아님 |
-| `approved-turn-whep-pass-field-only` | TURN/WHEP 모두 통과해도 별도 field PASS이며 기본 release PASS 아님 |
+| `not-approved-not-run` | 승인 없으면 TURN/WHEP와 현장 상태 모두 not-run |
+| `approved-missing-turn-credential-blocked` | credential 누락이면 blocked |
+| `approved-missing-whep-endpoint-blocked` | endpoint 누락이면 blocked |
+| `approved-turn-relay-fail-not-release-pass` | relay 실패는 failed이며 릴리즈 PASS 아님 |
+| `approved-whep-playback-fail-not-release-pass` | 재생 실패는 failed이며 릴리즈 PASS 아님 |
+| `approved-turn-whep-pass-field-only` | 둘 다 성공하고 정제 조건을 만족해도 현장 자격만 충족 |
 
-## 실행 절차
+미실행·차단·실패·성공은 다른 상태입니다. 합성 통과를 실제 성공으로 복사하지 않습니다.
+실제 보고서에는 원문 서버 주소·credential·WHEP URL/query/token·ICE candidate·source URL을
+저장하지 않고 승인된 별칭, candidate 종류/수, HTTP/session/playback 상태 등 필요한 정제 정보만 남깁니다.
 
-기본 절차 고정:
+## 조건부 통합검사
 
-```bash
-./server.sh verify-external-turn-whep-field-gate \
-  --report /tmp/media_server_external_turn_whep_field_gate.md \
-  --json-report /tmp/media_server_external_turn_whep_field_gate.json
-./server.sh verify-webrtc-ice
-git diff --check
-```
-
-실제 external field smoke는 운영자가 endpoint와 credential을 준비한 별도 환경에서만
-수동으로 수행합니다. 이 repository의 기본 verifier는 외부 접속을 수행하지 않으며,
-field report에는 아래 항목만 redacted 상태로 남깁니다.
-
-| 항목 | 기록 방식 |
-| --- | --- |
-| TURN 서버 | host 원문 대신 `redacted-turn-endpoint` 또는 운영자가 승인한 별칭 |
-| TURN credential | `credentialSource=env`, 원문 금지 |
-| WHEP URL | `redacted-whep-endpoint`, query/token 원문 금지 |
-| ICE candidate | candidate type/count 요약만 허용 |
-| WHEP playback | HTTP/session/playback status 요약만 허용 |
-
-## Report Schema
-
-`media-server.external-turn-whep-field-gate-report.v1` report는 아래를 포함해야 합니다.
-
-- `targetStep=V210-S10`
-- `defaultReleasePassClaimAllowed=false`
-- `fieldSmokeStatus`
-- `turnRelayStatus`
-- `whepPlaybackStatus`
-- `redaction.credentialMaterialStored=false`
-- `redaction.rawTurnServerStored=false`
-- `redaction.rawWhepUrlStored=false`
-- `redaction.rawIceCandidateStored=false`
-- `redaction.sourceUrlStored=false`
-- `redaction.viewerClientExposureAdded=false`
-- `checks[]`
-
-## 미실행/제외 기록
-
-현재 개발 환경에는 외부 TURN credential과 외부 WHEP playback endpoint가 준비되어
-있지 않습니다. 따라서 이번 v2.1.0 S10 개발에서는 실제 external TURN/WHEP field
-smoke를 실행하지 않고, `not-run` 상태와 제외 사유를 report에 남기는 절차만
-완료합니다.
-
-```text
-external TURN relay/auth: 미실행
-external WHEP playback: 미실행
-이유: 사용자 승인 endpoint/credential 없음, 접속 불가 외부 서버는 기본 개발 범위 제외
-대체 불가: verify-webrtc-ice, local coturn, UI fulltest, 30분/120분 longrun
-```
-
-## 완료 판정
-
-S10 개발 완료는 아래가 모두 참일 때만 보고합니다.
-
-- `verify-external-turn-whep-field-gate`가 fixture와 문서 연결을 PASS로 확인
-- `verify-webrtc-ice`가 기존 ICE policy를 확인하거나, 실행 불가 사유가 별도로 기록됨
-- 외부 TURN/WHEP 실제 성공을 완료로 보고하지 않음
-- 미실행/제외 항목이 feature inventory와 release evidence에서 PASS 행으로 섞이지 않음
-- RTSP/WebRTC media path, Event POST, WebRTC/SSE/WS metadata schema를 변경하지 않음
-
-## v2.3.0 Conditional field evidence
-
-`media-server.v230-conditional-field-evidence.v1`은 external TURN/WHEP gate를
-v2.3.0 S04 조건부 field evidence 기준으로 다시 연결합니다. 이 기준은
-`approved environment only` 원칙을 따르며, 운영자가 승인한 TURN relay credential,
-WHEP playback endpoint, 방화벽/relay 권한이 있을 때만 실제 field smoke 결과를
-`redacted field report`로 남깁니다.
-
-- `not-run is not PASS`: 승인된 endpoint/credential이 없으면
-  `fieldSmokeStatus=not-run`, `turnRelayStatus=not-run`,
-  `whepPlaybackStatus=not-run`으로 남기며 default release PASS로 쓰지 않습니다.
-- external TURN relay/auth 또는 external WHEP playback 성공은 redacted field report에만
-  남기고, local ICE, local coturn, loopback WHEP, UI 풀테스트, 30분/120분 longrun PASS로
-  대체하지 않습니다.
-- report에는 raw TURN server, credential, raw WHEP URL, raw ICE candidate, source URL,
-  auth token을 저장하지 않습니다.
-- 이 gate는 RTSP/WebRTC media path, Event POST payload, WebRTC DataChannel schema,
-  SSE/WS metadata schema를 변경하지 않습니다.
-
-v2.3.0 연결 검증:
-
-```bash
+```sh
+./server.sh verify-external-turn-whep-field-gate
 ./server.sh verify-v230-conditional-field-evidence
 ```
+
+두 번째 명령은 [ONVIF 절차 검사](./onvif-field-smoke-gate.md)와 위 로컬 검사를 함께 실행합니다.
+`media-server.v230-conditional-field-evidence.v1`, `targetStep=V230-S04`와 CLI 이름은 유지합니다.
+이름에 과거 버전이 있어도 현행 기능 연결 검사이며, 과거 완료 원장을 읽어 PASS를 만들지 않습니다.
+`SRC-014`·`MEDIA-021`·`SAFE-039` 정의, 실제 dispatch, 제품의 외부 미접속 표시를 대조합니다.
+
+통합 명령도 `--report`와 `--json-report`를 받습니다. 자식 검사의 결과는 부모 JSON의
+`runtimeEvidence.externalTurnWhepGate.report`에 보존하고, 폐기한 임시 경로를 증거로 남기지 않습니다.
+기존 `jsonReport` 필드는 null이며, 소비자는 포함된 `report`를 읽습니다.
+자식이 실패해도 해당 실패 결과를 먼저 보존하고 임시 JSON·디렉터리를 정리합니다.
+실패/정리 오류는 부모의 실패로 전파되며 최상위 `status`를 pass로 덮지 않습니다.
+`execution`은 성공·실패 모두 실제 stdout/stderr·exit·signal을 보존합니다.
+정리 실패 때만 `cleanup.remainingPath`에 소유 임시 디렉터리와 `errorCode`를 남깁니다.
+이는 후속 정리를 위한 위치이지 영구 증거 링크가 아니며, 확인되지 않은 오류 원문은 복사하지 않습니다.
+
+부모 `runtimeEvidence`의 pass는 하위 로컬 검사가 통과했다는 뜻입니다.
+실제 ONVIF 장비 성공과 외부 credential·relay·WHEP 재생은 미실행이며, 별도로 승인된 실행과
+정제 증거 없이는 PASS로 쓸 수 없습니다. source archive에서 Git 정보가 없으면
+`branch`·`head`가 `unknown`일 수 있지만 과거 로그를 fetch하거나 복원할 필요는 없습니다.

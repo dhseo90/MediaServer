@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.8.0 ONVIF field smoke gate 절차와 sample artifact 기준을 정적으로 검증한다.
+// 파일 용도: 현행 ONVIF field smoke 절차와 sample artifact 기준을 정적으로 검증한다.
 // 동작 요약: 실제 장비 성공을 개발 완료로 과장하지 않고 gate/report/redaction 상태를 분리했는지 확인한다.
 
 import fs from "node:fs";
@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { hasDocumentFieldValue } from "./documentation_contract_lib.mjs";
+import { hasDocumentFieldValue, hasDocumentLink, validateFieldGateDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -22,13 +22,13 @@ Usage:
 
 Options:
   --doc <path>            Gate 절차 문서입니다. 기본 docs/onvif-field-smoke-gate.md.
-  --backlog <path>        Roadmap 문서입니다. 기본 docs/development-backlog.md.
+  --backlog <path>        명시한 과거 roadmap의 종료 문구를 추가 감사합니다. 기본 실행에서는 읽지 않습니다.
   --redaction-doc <path>  Redaction checklist 문서입니다. 기본 docs/onvif-field-smoke-artifact-redaction.md.
   --bundle-dir <path>     Sample bundle directory입니다. 기본 test/fixtures/onvif_field_smoke_artifact_sample.
   -h, --help              도움말 출력
 
 Checks:
-  - V180-current-P0-02가 별도 field smoke gate 절차와 verifier를 연결함
+  - 현행 절차가 field smoke gate 계약과 verifier를 연결함
   - 실제 장비 성공과 release 개발 완료 상태를 분리함
   - sample bundle/report template이 gateDecision, playbackStatus, review status를 포함함
   - credential store, Digest/WS-Security, WS-Discovery, Profile G를 이 gate에서 열지 않음
@@ -40,12 +40,10 @@ assertKnownOptions(rawArgs, ["doc", "backlog", "redaction-doc", "bundle-dir", "h
 const args = parseArgs(rawArgs);
 const gateSchema = "media-server.onvif-field-smoke-gate.v1";
 const gateDocPath = resolveArgPath(args.doc, "docs/onvif-field-smoke-gate.md");
-const backlogPath = resolveArgPath(args.backlog, "docs/development-backlog.md");
 const redactionDocPath = resolveArgPath(args.redactionDoc, "docs/onvif-field-smoke-artifact-redaction.md");
 const bundleDir = resolveArgPath(args.bundleDir, "test/fixtures/onvif_field_smoke_artifact_sample");
 
 const gateDoc = readText(gateDocPath);
-const backlog = readText(backlogPath);
 const redactionDoc = readText(redactionDocPath);
 const liveSupportDoc = readText(path.join(rootDir, "docs/onvif-live-source-support.md"));
 const noDeviceDoc = readText(path.join(rootDir, "docs/onvif-no-device-verification.md"));
@@ -65,64 +63,19 @@ const combinedSample = [
 
 const checks = [];
 
-check("gate document fixes V180-current-P0-02 procedure boundaries", () => {
-  for (const term of [
-    "# ONVIF Field Smoke Gate",
-    "v1.8.0 `V180-current-P0-02 ONVIF field smoke gate`",
-    "## Gate 원칙",
-    "## Gate 상태",
-    "## 실행 절차",
-    "## 산출물 Review",
-    "## 개발 종료 판정",
-    "no-device suite만으로는 `passed`가 될 수 없습니다",
-    "`releaseDevelopmentStatus` | `procedure-fixed`",
-    "`gateDecision` | `not-run`, `blocked`, `failed`, `passed`",
-    "`realDeviceEndpointSuccess` | `pass`, `fail`, `unverified`",
-    "`playbackStatus` | `pass`, `fail`, `skipped`",
-    "`redactionArtifactReview` | `pass`, `fail`",
-    "`fieldSmokeReportReview` | `pass`, `fail`",
-    "RTSP/RTSPS playback",
-    "endpointRedacted=true",
-    "streamUriRedacted=true",
-    "rawSoapIncluded=false",
-    "plaintextSecretIncluded=false",
-    "credentialRef present, plaintext omitted",
-    "verify-onvif-no-device-suite",
-    "verify-onvif-field-smoke-gate",
-    "verify-onvif-field-smoke-redaction",
-    "verify-onvif-field-smoke-sample-bundle",
-    "verify-onvif-field-http-probe --allow-missing-endpoint",
-    "git diff --check",
-  ]) {
-    assertContains(gateDoc, term, `gate doc missing required term: ${term}`);
-  }
-});
-
-check("gate document keeps unsupported ONVIF expansions out of scope", () => {
-  for (const term of [
-    "Digest",
-    "WS-Security",
-    "persistent credential store",
-    "WS-Discovery",
-    "Profile G",
-    "구현하지 않습니다",
-    "RTSP/WebRTC media path",
-    "SourceRegistry/PublishedView payload schema",
-    "client redaction 계약",
-  ]) {
-    assertContains(gateDoc, term, `gate doc missing boundary term: ${term}`);
-  }
+check("gate document links current procedure, states, and safety boundaries", () => {
+  const errors = validateFieldGateDocumentation(gateDoc, "onvif");
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("current docs link the fixed field smoke gate verifier", () => {
   const docsIndex = readText("docs/README.md");
-  for (const term of [
-    "ONVIF field smoke gate",
-    "onvif-field-smoke-gate.md",
-    "verify-onvif-field-smoke-gate",
-  ]) {
-    assertContains(docsIndex + gateDoc, term, `current docs missing gate term: ${term}`);
-  }
+  assert(hasDocumentLink(docsIndex, "onvif-field-smoke-gate.md"), "current docs missing gate link");
+});
+
+// 기존 명시 --backlog 호출은 과거 감사로 유지한다. 일반 제품/문서 gate의 선수조건은 아니다.
+if (args.backlog) check("explicit historical backlog audit", () => {
+  const backlog = readText(resolveArgPath(args.backlog, ""));
   for (const term of [
     "release 개발 완료와 별도 field gate 결과를 분리",
     "실장비 endpoint 성공 미확인",
@@ -133,7 +86,7 @@ check("current docs link the fixed field smoke gate verifier", () => {
 });
 
 check("redaction doc points at the gate procedure", () => {
-  assertContains(redactionDoc, "./onvif-field-smoke-gate.md", "redaction doc missing gate doc link");
+  assert(hasDocumentLink(redactionDoc, "onvif-field-smoke-gate.md"), "redaction doc missing gate doc link");
   assertContains(redactionDoc, "verify-onvif-field-smoke-gate", "redaction doc missing gate verifier command");
   assertContains(redactionDoc, "gateDecision", "redaction doc missing gateDecision");
   assertContains(redactionDoc, "playbackStatus", "redaction doc missing playbackStatus");
@@ -142,12 +95,12 @@ check("redaction doc points at the gate procedure", () => {
 });
 
 check("live support doc points at the gate procedure", () => {
-  assertContains(liveSupportDoc, "./onvif-field-smoke-gate.md", "live support doc missing gate doc link");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-field-smoke-gate.md"), "live support doc missing gate doc link");
   assertContains(gateDoc, "verify-onvif-field-smoke-gate", "linked gate doc missing verifier command");
 });
 
 check("no-device doc points at the gate procedure", () => {
-  assertContains(noDeviceDoc, "./onvif-field-smoke-gate.md", "no-device doc missing gate doc link");
+  assert(hasDocumentLink(noDeviceDoc, "onvif-field-smoke-gate.md"), "no-device doc missing gate doc link");
   assertContains(noDeviceDoc, "verify-onvif-field-smoke-gate", "no-device doc missing gate verifier command");
 });
 
@@ -223,6 +176,8 @@ console.log("== ONVIF field smoke gate summary ==");
 console.log(`- doc: ${path.relative(rootDir, gateDocPath)}`);
 console.log("- releaseDevelopmentStatus: procedure-fixed");
 console.log("- realDeviceEndpointSuccess: unverified unless field gate report proves pass");
+console.log(`- historical backlog audit: ${args.backlog ? "executed" : "not-run"}`);
+console.log("- actual device/network/playback/UI not-run");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

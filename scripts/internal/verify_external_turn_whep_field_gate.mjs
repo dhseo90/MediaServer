@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v2.1.0 S10 external TURN/WHEP field gate 절차와 PASS 분리 기준을 검증한다.
+// 파일 용도: 현행 external TURN/WHEP 절차와 합성 판정·실제 실행의 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFieldGateDocumentation, validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -123,39 +124,25 @@ check("default execution remains no-network and sanitized", () => {
 });
 
 check("docs, feature inventory, server command, and coverage are wired", () => {
-  const docs = [
-    readText("docs/external-turn-whep-field-gate.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/README.md"),
-  ].join("\n");
+  const docs = readText("docs/external-turn-whep-field-gate.md");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
+  const media = implementation.items.filter(item => item.id === "MEDIA-021");
   const webrtcIce = readText("scripts/internal/verify_webrtc_ice_config.sh");
-  for (const snippet of [
-    "V210-S10",
-    "External TURN/WHEP field gate",
-    "media-server.external-turn-whep-field-gate-fixtures.v1",
-    "media-server.external-turn-whep-field-gate-report.v1",
-    "verify-external-turn-whep-field-gate",
-    "approved-turn-relay-fail-not-release-pass",
-    "approved-whep-playback-fail-not-release-pass",
-    "approved-turn-whep-pass-field-only",
-    "MEDIA-021",
-    "SAFE-039",
-  ]) {
-    assert(docs.includes(snippet), `docs missing external TURN/WHEP field gate snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "verify-external-turn-whep-field-gate",
-    "verify_external_turn_whep_field_gate.mjs",
-  ]) {
-    assert(serverSh.includes(snippet), `server.sh missing external TURN/WHEP snippet: ${snippet}`);
-  }
+  const errors = [...validateFieldGateDocumentation(docs, "external"), ...validateFeatureDocumentation({
+    document: docs, identifiers: fixture.cases.map(item => item.id),
+    command: "verify-external-turn-whep-field-gate", script: "verify_external_turn_whep_field_gate.mjs",
+    featureIds: ["SAFE-039"], inventory: readText("docs/project-feature-test-inventory.md"),
+    verification: readText("docs/stream-verification.md"), server: serverSh,
+  })];
+  assert(errors.length === 0, errors.join("; "));
   assert(scriptInventory.includes("verify_external_turn_whep_field_gate.mjs"), "script inventory missing external TURN/WHEP verifier");
-  assert(coverage.includes("verify-external-turn-whep-field-gate"), "feature inventory coverage missing external TURN/WHEP verifier");
+  // coverage는 이제 명령 이름 고정 목록이 아니라 exact semantic manifest를 소비한다.
+  assert(media.length === 1 && media[0].semanticEvidence?.verifierAssertion?.command === "verify-v230-conditional-field-evidence",
+    "MEDIA-021 semantic coverage must use the conditional field verifier");
+  assert(readText("scripts/internal/verify_v230_conditional_field_evidence.mjs").includes('runNodeScript("verify_external_turn_whep_field_gate.mjs"'),
+    "conditional verifier must execute the external field gate");
   assert(webrtcIce.includes("verify-external-turn-whep-field-gate"), "WebRTC ICE verifier help/hints missing external field gate boundary");
 });
 
@@ -242,7 +229,7 @@ function evaluateWhepStatus(item) {
 
 function renderMarkdown(payload) {
   const lines = [
-    "# External TURN/WHEP Field Gate Report",
+    "# 외부 TURN·WHEP 로컬 절차 검사 결과",
     "",
     `- schema: ${payload.schema}`,
     `- targetStep: ${payload.targetStep}`,
@@ -255,7 +242,7 @@ function renderMarkdown(payload) {
     `- fieldGatePassEligible: ${payload.fieldGatePassEligible}`,
     `- defaultReleasePassClaimAllowed: ${payload.defaultReleasePassClaimAllowed}`,
     "",
-    "## Fixture Cases",
+    "## 합성 회귀 사례",
     "",
     "| case | fieldSmokeStatus | TURN | WHEP | fieldEligible | defaultReleasePASS | status |",
     "| --- | --- | --- | --- | --- | --- | --- |",
@@ -263,7 +250,7 @@ function renderMarkdown(payload) {
   for (const item of payload.cases) {
     lines.push(`| ${cell(item.id)} | ${item.fieldSmokeStatus} | ${item.turnRelayStatus} | ${item.whepPlaybackStatus} | ${item.fieldGatePassEligible} | ${item.defaultReleasePassClaimAllowed} | ${item.status} |`);
   }
-  lines.push("", "## Checks", "", "| check | status | message |", "| --- | --- | --- |");
+  lines.push("", "## 검사 결과", "", "| check | status | message |", "| --- | --- | --- |");
   for (const checkItem of payload.checks) {
     lines.push(`| ${cell(checkItem.name)} | ${checkItem.status} | ${cell(checkItem.message || "")} |`);
   }

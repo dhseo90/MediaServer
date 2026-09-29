@@ -41,6 +41,56 @@ export function hasDocumentFieldValue(text, field, value) {
   });
 }
 
+// 현장 검증의 현행 식별자/기본 상태를 연결한다. 옛 제목·완료 기록·체크박스 개수는 계약이 아니다.
+// 문서와 fixture 검사는 실장비·외부 네트워크 성공이나 자연어 의미 전체를 증명하지 않는다.
+export function validateFieldGateDocumentation(text, kind) {
+  const doc = String(text || ''), errors = [];
+  const contracts = {
+    onvif: {
+      ids: ['media-server.onvif-field-smoke-gate.v1', 'realDeviceTestPerformed', 'verificationStatus',
+        'RTSP/RTSPS', 'source:write', 'sourceDraft', '--credential-ref-present', '--allow-missing-endpoint',
+        'MEDIA_SERVER_ONVIF_FIELD_ENDPOINT', 'Digest', 'WS-Security', 'persistent credential store',
+        'WS-Discovery', 'Profile G', 'RTSP/WebRTC media path', 'SourceRegistry/PublishedView',
+        'verify-onvif-field-smoke-gate', 'verify-onvif-field-smoke-redaction', 'verify-onvif-field-smoke-sample-bundle'],
+      links: ['onvif-field-smoke-artifact-redaction.md', 'onvif-live-source-support.md',
+        'onvif-no-device-verification.md', 'onvif-credential-reference-policy.md'],
+      fields: [['releaseDevelopmentStatus', 'procedure-fixed'], ['noDeviceSuiteCountsAsFieldSuccess', 'false'],
+        ['endpointRedacted', 'true'], ['streamUriRedacted', 'true'], ['rawSoapIncluded', 'false'], ['plaintextSecretIncluded', 'false']],
+      states: {gateDecision: ['not-run', 'blocked', 'failed', 'passed'], realDeviceEndpointSuccess: ['pass', 'fail', 'unverified'],
+        playbackStatus: ['pass', 'fail', 'skipped'], redactionArtifactReview: ['pass', 'fail'], fieldSmokeReportReview: ['pass', 'fail']},
+    },
+    redaction: {
+      ids: ['sourceDraft', 'source locator', 'ONVIF endpoint', 'credential reference', 'raw diagnostic JSON',
+        '/client/api/views', '/ops/sources', '/ops/rules', 'clientRedaction', 'opsCopyParity', 'probeErrorWording',
+        'gateDecision', 'playbackStatus', 'redactionArtifactReview', 'fieldSmokeReportReview', 'operatorChecklistStatus',
+        'failureWording', 'verificationStatus', 'evidenceIndex', 'verify-onvif-probe-error-wording',
+        'verify-onvif-field-smoke-gate', 'verify-onvif-field-smoke-redaction'],
+      links: ['onvif-field-smoke-gate.md'], fields: [], states: {},
+    },
+    external: {
+      ids: ['media-server.external-turn-whep-field-gate-fixtures.v1', 'media-server.external-turn-whep-field-gate-report.v1',
+        'test/fixtures/external_turn_whep_field_gate/cases.json', 'verify-external-turn-whep-field-gate',
+        'credentialMaterialStored', 'rawTurnServerStored', 'rawWhepUrlStored', 'rawIceCandidateStored', 'sourceUrlStored',
+        'viewerClientExposureAdded', 'MEDIA-021', 'SAFE-039', 'checks', 'cases', 'summary'],
+      links: ['onvif-field-smoke-gate.md'],
+      fields: [['externalNetworkAttempted', 'false'], ['defaultReleasePassClaimAllowed', 'false'], ['fieldGatePassEligible', 'false']],
+      states: {gateStatus: ['pass', 'fail'], fieldSmokeStatus: ['not-run', 'blocked', 'failed', 'passed'],
+        turnRelayStatus: ['not-run', 'missing-credential', 'failed', 'passed'], whepPlaybackStatus: ['not-run', 'missing-endpoint', 'failed', 'passed']},
+    },
+  };
+  const contract = contracts[kind];
+  if (!contract) return ['unknown field document kind: ' + kind];
+  for (const id of contract.ids) if (!doc.includes(id)) errors.push('field ' + kind + ' definition missing: ' + id);
+  for (const link of contract.links) if (!hasDocumentLink(doc, link)) errors.push('field ' + kind + ' contract link missing: ' + link);
+  for (const [field, value] of contract.fields) if (!hasDocumentFieldValue(doc, field, value)) errors.push('field ' + kind + ' field/value missing: ' + field);
+  for (const [field, values] of Object.entries(contract.states)) {
+    const rows = doc.split('\n').map(line => line.split('|').slice(1, -1).map(cell => cell.replace(/`/g, '').trim())).filter(cells => cells[0] === field);
+    const actual = rows[0]?.[1]?.split(',').map(value => value.trim());
+    if (rows.length !== 1 || !actual || actual.length !== values.length || values.some(value => !actual.includes(value))) errors.push('field ' + kind + ' states missing/invalid: ' + field);
+  }
+  return errors;
+}
+
 // 지원 표의 기술 식별자와 조건을 검사한다. 도입 버전·옛 제목·실행 성공 문구는 계약이 아니다.
 // 표 행 안의 조건을 보므로 다른 행의 비지원 문구로 잘못된 지원 선언을 가리지 않는다.
 // 이 정적 연결 검사만으로 실장비·네트워크 동작을 PASS로 판정하지 않는다.
