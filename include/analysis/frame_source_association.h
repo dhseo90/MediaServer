@@ -2,7 +2,7 @@
 #pragma once
 
 #include "analysis/analysis_types.h"
-#include "media_types.h"
+#include "core/media_packet_contract.h"
 #include <algorithm>
 #include <deque>
 #include <limits>

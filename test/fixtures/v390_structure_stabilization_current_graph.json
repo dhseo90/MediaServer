@@ -54,6 +54,9 @@
         "src/ingress/event_feature_search_application_service.cpp",
         "include/ingress/event_storage_application_service.h",
         "src/ingress/event_storage_application_service.cpp",
+        "include/ingress/recording_application_service.h",
+        "src/ingress/recording_application_service.cpp",
+        "src/ingress/recording_evidence_application_mapping.h",
         "include/ingress/event_rule_application_service.h",
         "src/ingress/event_rule_application_service.cpp",
         "include/ingress/analysis_session_read_application_service.h",
@@ -138,6 +141,8 @@
       "id": "transport-and-auth-adapter",
       "exactFiles": [
         "include/ingress/http_auth.h",
+        "include/ingress/recording_request_gate.h",
+        "src/ingress/site_operations_request_diagnostic.h",
         "include/ingress/webrtc_http_runtime_config.h",
         "src/ingress/http_auth.cpp",
         "include/ingress/webrtc_http_server.h",
@@ -174,6 +179,8 @@
         "include/media_types.h",
         "include/core/analysis_runtime_config_data.h",
         "include/core/analysis_runtime_defaults.h",
+        "include/core/recording_runtime_config_data.h",
+        "include/core/recording_runtime_defaults.h",
         "include/core/command_runner.h",
         "src/core/command_runner.cpp",
         "include/core/resource_guard.h",
@@ -192,6 +199,7 @@
       "id": "core-media-interfaces",
       "exactFiles": [
         "include/ingress/rtsp_request_context.h",
+        "include/media/gstreamer_sample_observation.h",
         "src/ingress/rtsp_request_context.cpp"
       ],
       "prefixes": [

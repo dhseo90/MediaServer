@@ -1,6 +1,9 @@
 // 파일 용도: 현행 문서의 정책 진입점·공개 식별자 연결을 검사한다. 과거 실행 결과는 읽지 않는다.
 import {parseServerDispatches} from './script_dispatch_parser.mjs';
 
+// 기존 문서 검사와 같은 명령 식별자를 사용한다. 호출자는 정확한 기능 행만 전달한다.
+const declaredFeatureCommands = row => new Set(String(row || '').match(/\bverify-[a-z0-9-]+\b/g) || []);
+
 // v3.9 당시 두 상태의 회귀 입력이다. 현재 사용자의 승인 여부를 판정하지 않는다.
 // provenance는 보존 시 Git blob과 대조하며 일반 실행은 Git/네트워크를 읽지 않는다.
 export function validateV390ReviewHistory(value) {
@@ -27,7 +30,8 @@ export function validateCurrentGateDocumentation({read, command, script, feature
   const verification = read('docs/stream-verification.md');
   const implementation = JSON.parse(read('test/fixtures/project_feature_implementation_evidence.json'));
   const errors = [];
-  const targets = parseServerDispatches(read('server.sh')).filter(item => item.command === command);
+  const dispatches = parseServerDispatches(read('server.sh'));
+  const targets = dispatches.filter(item => item.command === command);
   if (targets.length !== 1 || targets[0].script !== script) errors.push('현행 dispatch 불일치: ' + command);
   if (!(verification.match(/\bverify-[a-z0-9-]+\b/g) || []).includes(command)) errors.push('검증 명령 안내 누락: ' + command);
   if (!Array.isArray(featureIds) || !featureIds.length || new Set(featureIds).size !== featureIds.length) errors.push('기능 ID 목록 누락/중복');
@@ -35,8 +39,18 @@ export function validateCurrentGateDocumentation({read, command, script, feature
     const rows = inventory.split(/\r?\n/).filter(line => line.startsWith('|') && line.split('|')[1]?.trim() === id);
     const mappings = inventory.split(/\r?\n/).filter(line => line.startsWith('|') && line.includes('`' + id + '`') && line.includes('`' + command + '`'));
     const entries = implementation.items?.filter(item => item.id === id) || [];
+    const evidence = entries[0]?.verifierEvidence;
+    const canonicalTargets = dispatches.filter(item => item.command === evidence?.command);
+    const manifestBound = canonicalTargets.length === 1 &&
+      canonicalTargets[0].script === evidence?.file?.split('/').at(-1);
+    const declared = declaredFeatureCommands(rows[0]);
+    const companion = evidence?.command !== command && mappings.length > 0;
+    // 명령 생략은 기존 canonical/companion 연결을 사용한다. 명시 행은 gate 또는
+    // 요약 표로 연결된 canonical을 포함해야 하며 다른 명령을 manifest로 덮지 않는다.
+    const rowLinked = declared.size === 0 || declared.has(command) ||
+      (companion && declared.has(evidence?.command));
     if (rows.length !== 1 || !rows[0].split('|')[2]?.trim() || entries.length !== 1 ||
-        (entries[0].verifierEvidence?.command !== command && mappings.length === 0)) errors.push('현행 기능 정의/명령 연결 불일치: ' + id);
+        !manifestBound || !rowLinked || (evidence?.command !== command && !companion)) errors.push('현행 기능 정의/명령 연결 불일치: ' + id);
   }
   for (const target of ['../AGENTS.md', 'project-feature-test-inventory.md', 'manual-ui-fulltest.md']) {
     if (!hasDocumentLink(verification, target)) errors.push('검증 정책 연결 누락: ' + target);
@@ -56,7 +70,7 @@ export function validateFeatureDocumentation({document, identifiers, command, sc
   if (!Array.isArray(featureIds) || !featureIds.length || new Set(featureIds).size !== featureIds.length || featureIds.some(id => !/^[A-Z]+-\d+$/.test(id))) errors.push('기능 ID 목록 누락/중복/형식 오류');
   else for (const id of featureIds) {
     const rows = String(inventory || '').split(/\r?\n/).filter(line => line.startsWith('|') && line.split('|')[1]?.trim() === id);
-    const declaredCommands = commands(rows[0]);
+    const declaredCommands = declaredFeatureCommands(rows[0]);
     // UI 정의처럼 명령이 표에 없는 경우에만 기존 구현 manifest의 exact 연결을 사용한다.
     // 명시된 다른 명령을 manifest로 덮어쓰거나, 이 연결 검사를 독립 승인 검토로 간주하지 않는다.
     const entries = Array.isArray(implementation?.items) ? implementation.items.filter(item => item.id === id) : [];

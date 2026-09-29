@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
 import { stopServer as stopOwnedServer, assertPortClosed } from "./verify_v410_recording_ui_contract.mjs";
+import { createProcessCleanup } from "./recording_process_cleanup.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -23,6 +24,8 @@ const eventPath = path.join(workDir, "events.jsonl");
 const observationPath = path.join(workDir, "events.vlm-observations.jsonl");
 const serverLog = [];
 let serverProcess = null;
+const serverShutdownResults = [];
+let verificationFailure = null;
 
 if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`v3.9.0 VLM incident-to-rule provenance verification
@@ -41,6 +44,7 @@ Checks:
 
 assertKnownOptions(rawArgs, ["h", "help"]);
 
+try {
 const files = {
   store: read("src/analysis/vlm_observation_store.cpp"),
   server: readWebRtcHttpServerBundle(read),
@@ -94,7 +98,6 @@ for (const [label, content] of Object.entries({ inventory: files.inventory })) {
     assert(content.includes(snippet), `${label} missing ${snippet}`);
   }
 }
-try {
   const documentationErrors = validateCurrentGateDocumentation({read,
     command: 'verify-v390-vlm-incident-rule-provenance', script: 'verify_v390_vlm_incident_rule_provenance.mjs',
     featureIds: ['RULE-112', 'LAB-126', 'SAFE-213', 'OPS-180']});
@@ -291,11 +294,12 @@ try {
   console.log("- reload deleted observation/EventRecord quarantine cases: 2");
   console.log("- deleted observation/EventRecord no-write cases: 2");
   console.log("- generated rule binding no-write cases: 2");
-  console.log("- failures: 0");
+} catch (error) {
+  verificationFailure = error;
 } finally {
-  await stopServer();
-  fs.rmSync(workDir, { recursive: true, force: true });
+  await finishVerification(verificationFailure);
 }
+console.log("- failures: 0");
 
 async function readPersistedRuleProvenance(baseUrl, candidate, ruleRegistryWritePerformedBeforeManualSave, autoRuleAppliedBeforeManualSave) {
   const readback = await request(baseUrl, "GET", "/lab/analysis/rules/701");
@@ -430,10 +434,43 @@ async function stopServer() {
   const child = serverProcess;
   if (!child) return;
   // 종료 타이머는 이 자식만 소유하며 exit 때 해제한다. 다음 기동을 참조하지 않는다.
-  await stopOwnedServer(child, {graceMs: 5000, forceWaitMs: 5000});
-  for (const port of Object.values(child.verificationPorts)) await assertPortClosed(port);
-  console.log('[lifecycle] ' + JSON.stringify({phase: 'cleanup', pid: child.pid, exit: child.exitCode, signal: child.signalCode, portsClosed: true}));
+  child.verificationCleanup ??= createProcessCleanup({
+    child, ports: Object.entries(child.verificationPorts).map(([kind, port]) => ({kind, port})),
+    stopServer: owned => stopOwnedServer(owned, {graceMs: 5000, forceWaitMs: 5000}), assertPortClosed,
+  });
+  const result = await child.verificationCleanup();
+  if (!serverShutdownResults.includes(result)) {
+    serverShutdownResults.push(result);
+    console.log('[lifecycle] ' + JSON.stringify({phase: 'cleanup', ...result}));
+  }
+  if (!result.normalShutdownPass) {
+    child.verificationCleanupError ??= new Error(`VLM 종료/포트 확인 실패: ${result.stopCode}`);
+    throw child.verificationCleanupError;
+  }
   if (serverProcess === child) serverProcess = null;
+}
+
+async function finishVerification(primaryFailure) {
+  const errors = primaryFailure ? [primaryFailure] : [];
+  try { await stopServer(); }
+  catch (error) { if (!errors.includes(error)) errors.push(error); }
+  // 실패한 종료를 재시도하거나 정상으로 승격하지 않는다. 관측된 종료와 포트 확인은
+  // 정상 종료 판정과 별개이며, 미관측 프로세스가 있으면 자료에 접근해 삭제하지 않는다.
+  const safe = serverShutdownResults.every(result => result.archiveSafe) &&
+    (!serverProcess || serverShutdownResults.some(result => result.pid === serverProcess.pid && result.archiveSafe));
+  let artifactStatus = safe ? 'retained-for-failure' : 'retained-unsafe';
+  if (safe && errors.length === 0) {
+    try {
+      fs.rmSync(workDir, {recursive: true, force: true});
+      if (fs.existsSync(workDir)) throw new Error('VLM 임시 자료 삭제 후 부재 확인 실패');
+      artifactStatus = 'removed';
+    } catch (error) { artifactStatus = 'remove-failed'; errors.push(error); }
+  }
+  if (!safe && errors.length === 0) errors.push(new Error('VLM 자료 정리 안전성 미확인'));
+  console.log('[lifecycle] ' + JSON.stringify({phase: 'artifacts', status: artifactStatus,
+    shutdownConfirmed: safe, ...(artifactStatus === 'removed' ? {} : {retainedPath: workDir})}));
+  // 실패 자료는 지정 임시 경로에 유지한다. 호출자가 원출력을 보존한 뒤 정리할 수 있다.
+  if (errors.length) throw new AggregateError(errors, 'VLM 검사/정리 실패', {cause: primaryFailure || errors[0]});
 }
 
 async function request(baseUrl, method, route, body) {

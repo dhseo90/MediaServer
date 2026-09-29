@@ -54,6 +54,53 @@ function currentReviewGate(mutate = () => {}) {
   }, command: 'verify-v390-user-review-gate', script: 'verify_v390_user_review_gate.mjs', featureIds: ['SAFE-198','OPS-165']});
 }
 test('REVIEW-CURRENT 중앙 기록/Git 없는 현행 정의 연결', () => assert.deepEqual(currentReviewGate(), []));
+function changeReviewRow(memory, transform) {
+  const file = 'docs/project-feature-test-inventory.md';
+  memory.set(file, memory.get(file).replace(/^\| SAFE-198 \|.*$/m, transform));
+}
+function changeReviewManifest(memory, command) {
+  const file = 'test/fixtures/project_feature_implementation_evidence.json';
+  const value = JSON.parse(memory.get(file));
+  value.items.find(item => item.id === 'SAFE-198').verifierEvidence.command = command;
+  memory.set(file, JSON.stringify(value));
+}
+test('REVIEW-CURRENT-A 기능 행의 다른 명령을 manifest로 덮지 않음', () => {
+  assert(currentReviewGate(m => changeReviewRow(m, row => row.replaceAll('verify-v390-user-review-gate', 'verify-other-gate'))).length > 0);
+});
+test('REVIEW-CURRENT-A manifest와 명시 기능 행 불일치 거부', () => {
+  assert(currentReviewGate(m => changeReviewManifest(m, 'verify-other-gate')).length > 0);
+});
+test('REVIEW-CURRENT-A 복수 명령은 허용', () => {
+  assert.deepEqual(currentReviewGate(m => changeReviewRow(m, row => row.replace('`verify-v390-user-review-gate`', '`verify-v390-user-review-gate`, `verify-feature-inventory-coverage`'))), []);
+});
+test('REVIEW-CURRENT-A 명령 생략은 정확한 canonical manifest로 연결', () => {
+  assert.deepEqual(currentReviewGate(m => changeReviewRow(m, row => row.replaceAll('`verify-v390-user-review-gate`', '해당 회귀 검사'))), []);
+});
+test('REVIEW-CURRENT-A 생략과 다른 manifest 조합 거부', () => {
+  assert(currentReviewGate(m => {
+    changeReviewRow(m, row => row.replaceAll('`verify-v390-user-review-gate`', '해당 회귀 검사'));
+    changeReviewManifest(m, 'verify-other-gate');
+  }).length > 0);
+});
+test('REVIEW-CURRENT-A 기존 직접 호출자의 canonical·companion·생략 형식', () => {
+  // 제품/구조 검증기 자체를 import하지 않고 해당 문서 연결 호출의 입력만 재사용한다.
+  const directory = new URL('./', import.meta.url);
+  let checked = 0;
+  for (const name of fs.readdirSync(directory).filter(name => /^verify_v390_.*\.mjs$/.test(name))) {
+    const source = fs.readFileSync(new URL(name, directory), 'utf8');
+    const call = source.match(/validateCurrentGateDocumentation\(\{([\s\S]*?)\}\)/);
+    const list = call?.[1].match(/featureIds:\s*\[([^\]]+)\]/)?.[1];
+    if (!list) continue; // truthfulness의 세 연결은 각 직접 호출자에서 함께 확인한다.
+    const featureIds = [...list.matchAll(/['"]([A-Z]+-\d+)['"]/g)].map(match => match[1]);
+    const command = source.match(/const command = "([^"]+)"/)?.[1] || call[1].match(/command:\s*'([^']+)'/)?.[1];
+    const errors = validateCurrentGateDocumentation({read: p => {
+      assert(originals.has(p), '종료 기록 또는 미등록 읽기: ' + p); return originals.get(p);
+    }, command, script: name, featureIds});
+    assert.deepEqual(errors, [], name);
+    checked++;
+  }
+  assert.equal(checked, 15, '검토한 직접 호출자 집합 변경');
+});
 for (const mode of ['normal', 'missing-fixture', 'wrong-provenance', 'pending-as-approved']) {
   test('REVIEW-CLI 중앙 기록 없는 실제 자식 ' + mode, () => {
     const source = `
