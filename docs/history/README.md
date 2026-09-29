@@ -31,6 +31,19 @@
 
 ## 작업 파일을 덮어쓰지 않고 읽기
 
+임시 문서 리뷰와 1단계 인계의 원본은 로컬 보존 기준
+`ca3e76e871d05577e6d461746a8918ac618a64a5`에서 조회한다.
+유효한 미해결 사항은 [backlog](../development-backlog.md)에 두며 이 이력 안내가
+중앙 원장·backlog 잔여 축약의 완료를 의미하지는 않는다.
+
+- 임시 리뷰: `docs/documentation-review-2026-09-28.md`
+- 1단계 최초 실패·재검증: `docs/release-artifacts/v4.1.1/backlog-roadmap-20260929/result.json`
+
+후보 범위 검사 보완과 핵심 잔여 확인의 원출력은 로컬 커밋
+`1cc3bea3617cf0027c6773fe60f6eeeba7f14cf6`의
+`docs/release-artifacts/v4.1.1/core-record-dependencies-20260929/result.json`에 보존한다.
+기존 4개 FAIL과 보완 후 결과는 별개이며, 3단계 진입 판정은 backlog의 현재 장애물을 따른다.
+
 저장소 루트에서 과거 문서 도구 검사의 원본을 읽는 예입니다.
 
 ```sh
