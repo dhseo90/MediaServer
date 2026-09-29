@@ -1,6 +1,49 @@
 // 파일 용도: 현행 문서의 정책 진입점·공개 식별자 연결을 검사한다. 과거 실행 결과는 읽지 않는다.
 import {parseServerDispatches} from './script_dispatch_parser.mjs';
 
+// v3.9 당시 두 상태의 회귀 입력이다. 현재 사용자의 승인 여부를 판정하지 않는다.
+// provenance는 보존 시 Git blob과 대조하며 일반 실행은 Git/네트워크를 읽지 않는다.
+export function validateV390ReviewHistory(value) {
+  const errors = [];
+  if (value?.schema !== 'media-server.v390-user-review-history.v1' || value.sourceVersion !== '3.9.0') errors.push('역사 입력 schema/version 오류');
+  const source = value?.provenance;
+  if (source?.commit !== '68566d63b13396b359a3b493a5b7e4d8a70015d6' ||
+      source.path !== 'docs/development-backlog.md' || source.blob !== 'faceed411318832bea238e74a8948f7b063537f3' ||
+      source.section !== 'Foundation initial review-ready 상태(historical snapshot) / Current user approval/closure reconciliation') errors.push('역사 입력 출처 불일치');
+  if (value?.initial?.approval !== 'pending-user-approval' || value.initial.development !== 'blocked-before-user-approval') errors.push('승인 전 pending/blocked 경계 오류');
+  if (value?.laterRecordedClosure?.approval !== 'approved-through-recorded-user-goals' || value.laterRecordedClosure.development !== 'closed-with-evidence') errors.push('기록된 후속 closure 불일치');
+  if (JSON.stringify(value?.requiredOrder) !== JSON.stringify(['V390-REQ-001', 'V390-REQ-002', 'V390-REQ-003'])) errors.push('역사 required 순서 불일치');
+  if (value?.closureIsExecutionEvidence !== false) errors.push('closure의 실행 증거 승격 금지');
+  return {errors, historicalSnapshotPreserved: errors.length === 0,
+    currentApprovalStatus: 'not-assessed', currentFeatureDevelopmentStatus: 'not-assessed',
+    executionPassClaimed: false};
+}
+
+// 종료 원장 대신 현행 기능 정의·명령 dispatch·검증 정책을 연결한다.
+// companion 명령은 요약 매핑에서, canonical 명령은 구현 manifest에서도 확인한다.
+// 실제 제품 검사와 과거 승인 회귀는 각 호출자의 독립 assertion에 남는다.
+export function validateCurrentGateDocumentation({read, command, script, featureIds}) {
+  const inventory = read('docs/project-feature-test-inventory.md');
+  const verification = read('docs/stream-verification.md');
+  const implementation = JSON.parse(read('test/fixtures/project_feature_implementation_evidence.json'));
+  const errors = [];
+  const targets = parseServerDispatches(read('server.sh')).filter(item => item.command === command);
+  if (targets.length !== 1 || targets[0].script !== script) errors.push('현행 dispatch 불일치: ' + command);
+  if (!(verification.match(/\bverify-[a-z0-9-]+\b/g) || []).includes(command)) errors.push('검증 명령 안내 누락: ' + command);
+  if (!Array.isArray(featureIds) || !featureIds.length || new Set(featureIds).size !== featureIds.length) errors.push('기능 ID 목록 누락/중복');
+  for (const id of featureIds || []) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.startsWith('|') && line.split('|')[1]?.trim() === id);
+    const mappings = inventory.split(/\r?\n/).filter(line => line.startsWith('|') && line.includes('`' + id + '`') && line.includes('`' + command + '`'));
+    const entries = implementation.items?.filter(item => item.id === id) || [];
+    if (rows.length !== 1 || !rows[0].split('|')[2]?.trim() || entries.length !== 1 ||
+        (entries[0].verifierEvidence?.command !== command && mappings.length === 0)) errors.push('현행 기능 정의/명령 연결 불일치: ' + id);
+  }
+  for (const target of ['../AGENTS.md', 'project-feature-test-inventory.md', 'manual-ui-fulltest.md']) {
+    if (!hasDocumentLink(verification, target)) errors.push('검증 정책 연결 누락: ' + target);
+  }
+  return errors;
+}
+
 // 문서 표현·역사 기록 대신 현재 계약 식별자와 exact 기능/명령 연결을 확인한다.
 // 실제 제품 동작·승인·UI/장시간 실행 판정은 이 함수의 범위가 아니다.
 export function validateFeatureDocumentation({document, identifiers, command, script, featureIds, inventory, implementation, verification, server}) {

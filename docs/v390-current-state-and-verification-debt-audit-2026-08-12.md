@@ -3,7 +3,7 @@
 > **역사 기록 / 현재 판정으로 대체됨 (2026-08-13):** 이 감사의 수치와 결론은 `dc996dd4` 시점에 한정됩니다.
 > 최신 actual source `c6b3d20a`의 `./test_release.sh`는 30분, exact UI `424/424`, Policy v4
 > `424/424`, 120분, cleanup과 final integrity를 모두 PASS했습니다. 검증 부채에 대한 역사 분석은
-> 유지하지만 현재 릴리즈 상태는 [release-test-records.md](release-test-records.md)를 따릅니다.
+> 유지하지만 현재 릴리즈 상태는 [release-test-records.md](history/README.md#중앙-기록과-backlog-종료-본문)를 따릅니다.
 
 작성일: 2026-08-12
 대상 저장소: `${REPO_ROOT}`

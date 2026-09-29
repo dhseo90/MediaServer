@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -38,12 +40,9 @@ const currentGraphCommand = "verify-v390-review4-structure-stabilization-executi
 
 const files = {
   plan: readText(planPath),
-  backlog: readText("docs/development-backlog.md"),
   v390Inventory: readText("docs/v390-feature-completion-inventory.md"),
   streamVerification: readText("docs/stream-verification.md"),
   projectInventory: readText("docs/project-feature-test-inventory.md"),
-  releaseRecords: readText("docs/release-test-records.md"),
-  releaseEvidence: readText("docs/release-evidence-index.md"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   coverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
@@ -51,7 +50,11 @@ const files = {
 };
 
 const checks = [];
-const normalizedRecords = normalizeWhitespace(files.releaseRecords);
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["SAFE-211","OPS-178"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("typed handoff is bound to the actual current source graph", verifyTypedHandoffState);
 
@@ -150,15 +153,6 @@ check("v390 inventory records handoff-ready status without claiming refactor com
 
 check("roadmap and stream verification expose Step 19 as completed handoff planning", () => {
   for (const snippet of [
-    "| 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 |",
-    "V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관",
-    "## v3.9.0 Structure & Release 개발 기록",
-    "Step 19 `structure stabilization handoff 상세계획`",
-    "`./server.sh verify-v390-structure-stabilization-handoff`",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog Step 19");
-  }
-  for (const snippet of [
     "| v3.9.0 (19) | `./server.sh verify-v390-structure-stabilization-handoff` |",
     "v3.9.0 structure stabilization handoff",
     "behavior-preserving extraction plan",
@@ -181,26 +175,6 @@ check("project inventory maps Step 19 to SAFE-211 and OPS-178", () => {
   assertIncludes(files.projectInventoryVerifier, '"OPS-178"', "project inventory verifier OPS-178");
 });
 
-check("release records and evidence index track Step 19 handoff and not-run boundaries", () => {
-  for (const snippet of [
-    "V390 Structure Stabilization Handoff",
-    "v390 Step 19 RED structure stabilization handoff gate",
-    "v390 Step 19 structure stabilization handoff final",
-    "v3.9.0 Structure Stabilization Handoff",
-    command,
-    "SAFE-211",
-    "OPS-178",
-  ]) {
-    assertIncludes(files.releaseRecords + "\n" + files.releaseEvidence, snippet, "release records/evidence Step 19");
-  }
-  for (const snippet of [
-    "v390 구조 안정화 구현",
-    "Step 19 계획 완료는 실제 route/API/UI extraction 구현 PASS가 아님",
-    "UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence로 사용할 수 없음",
-  ]) {
-    assert(normalizedRecords.includes(normalizeWhitespace(snippet)), `release records missing Step 19 boundary: ${snippet}`);
-  }
-});
 
 check("server dispatch and script inventory expose Step 19 command", () => {
   assertIncludes(files.serverSh, command, "server.sh Step 19 dispatch");

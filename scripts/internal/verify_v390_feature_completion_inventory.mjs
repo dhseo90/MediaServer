@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -62,16 +64,18 @@ const expectedSourceGroups = [
 
 const files = {
   inventory: readText(inventoryPath),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   projectInventory: readText("docs/project-feature-test-inventory.md"),
-  releaseRecords: readText("docs/release-test-records.md"),
-  releaseEvidence: readText("docs/release-evidence-index.md"),
   serverSh: readText("server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
 };
 
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["SAFE-197","OPS-164"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("inventory title is exact", () => {
   const firstLine = files.inventory.split(/\r?\n/, 1)[0];
@@ -133,9 +137,6 @@ check("review gate phrases require user approval of the development list", () =>
   }
 });
 
-check("development backlog blocks feature development before discovery approval", () => {
-  assertIncludes(files.backlog, "discovery 결과 승인 전 기능 개발 금지", "development backlog");
-});
 
 check("stream verification records v3.9 feature inventory command boundary", () => {
   for (const snippet of [
@@ -162,25 +163,6 @@ check("project inventory maps v3.9 feature completion IDs", () => {
   }
 });
 
-check("release records and evidence index track feature inventory review gate", () => {
-  for (const snippet of [
-    "v390 Step 2 RED feature completion inventory gate",
-    "v390 Step 2 feature completion inventory final",
-    "v390 discovery user review gate",
-    "#### v3.9.0 미실행/제외",
-    "v390 기능 개발",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.9 feature completion");
-  }
-  for (const snippet of [
-    "v3.9.0 feature completion inventory",
-    "OPS-164",
-    "SAFE-197",
-    "실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현",
-  ]) {
-    assertIncludes(files.releaseEvidence, snippet, "release evidence v3.9 feature completion");
-  }
-});
 
 check("server.sh help and dispatch include the feature completion inventory verifier", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

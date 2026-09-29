@@ -47,7 +47,7 @@ PID별 표본 연속성, 녹화 비활성화 후 정상 종료·새 PID 복구·
 authSuiteCompleted=true이며 fullFoundationPass=false다. 비밀번호 원문은 기록하지
 않았고, 해시 계정 파일이 있던 격리 앱 root328175375bytes와 GST root62691bytes의
 삭제를 메인이 직접 확인했다. 개별 결과와 최초 실패 이력은
-[중앙 테스트 기록](release-test-records.md)에 보존한다. 30분/120분/UI는 이번 실행에
+[중앙 테스트 기록](history/README.md#중앙-기록과-backlog-종료-본문)에 보존한다. 30분/120분/UI는 이번 실행에
 포함하지 않았으며 S09 전체 완료 또는 릴리즈 가능 판정이 아니다.
 
 ### Enqueue 수정 후 실제 관측 재검증
@@ -374,7 +374,7 @@ S06 조회·재생 API와 Ops 화면, 잔여 1~5번의 수정·검증을 완료�
 - 실패 수정: Range 헤더 조회, frozen 환경·source/partial fixture,
   날짜 배치, 삭제 ID fallback 재사용, 녹화 global off의 registry 기동 실패.
 - 개별 실행·실패·수정·cleanup의 source-of-truth는
-  [release-test-records.md](release-test-records.md)의 S06 잔여 3~6번 기록이다.
+  [release-test-records.md](history/README.md#중앙-기록과-backlog-종료-본문)의 S06 잔여 3~6번 기록이다.
 - 버전 전체 UI 풀테스트·30분·120분은 미실행이다. 이 단계의 완료를 v4.1.0 출시 가능이나
   전체 UI PASS로 확대하지 않는다. S07 이후 개발과 버전 종료 판정은 별도다.
 
@@ -493,7 +493,7 @@ action 27/0(check 89개), 제품 증분 build가 통과했다. 소스 감사 51/
 브라우저·장시간 검증은 미실행이다. 이 절 당시 미확인이던 SSIM blacklist는 위 2026-09-05
 후속 조사에서 GstValidate 전용 초기화 경계로 분류했다. GTK/GI 경고 해소를 모든
 플러그인·모든 PC 호환성 완료로 확대하지 않는다.
-최초 실패·수정 파일/함수·개별 실행·cleanup은 [저장소 테스트 기록](release-test-records.md)에
+최초 실패·수정 파일/함수·개별 실행·cleanup은 [저장소 테스트 기록](history/README.md#중앙-기록과-backlog-종료-본문)에
 보존했다. 패키지/전역 설정·C++ 녹화 로직·S06 이후는 변경하지 않았으며 커밋·푸시는 미수행이다.
 
 ## V410-S05 이벤트 녹화 연결과 파생 clip
@@ -514,7 +514,7 @@ action 27/0(check 89개), 제품 증분 build가 통과했다. 소스 감사 51/
   등록 보정 당시 재검증은 C++ 140/0, application-only 7/0, 등록기 단위 16/0, 개별 동작 27/0
   (당시 check 69개), 소스 감사 51/0, 승인 986개, 구현 오류 0·negative 15/15,
   중앙 inventory 18/0, coverage 8/0이다.
-  [개별 결과 및 독립 검토 기록](release-test-records.md)을 최종 증거로 사용한다.
+  [개별 결과 및 독립 검토 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 최종 증거로 사용한다.
 - S05 잔여 통합 검증 완료(선행 커밋 `d7ee14a1` 이후):
   `event_storage_recording_runtime_smoke.cpp`의 `VerifyAdmission`/`VerifyRecovery`와
   `verify_v410_event_storage_recording_runtime.mjs`를 기존 S05 dispatch에 연결했다.

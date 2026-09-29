@@ -17,9 +17,8 @@
 | v4.1.1 문서 도구 검사 결과 | `docs/release-artifacts/v4.1.1/` | 이미 마감된 중간 결과만 정리. 미해결 인계와 현행 검사 입력은 유지 |
 | 과거 UI 구현 설명 | `docs/v220-*.md`, `docs/v230-ui-renderer-module-decomposition.md` | 현행 설명이 [공통 컴포넌트 예시](../product-shell-component-examples.md)에 통합된 13개 문서만 정리. 접두사가 같은 모든 문서를 뜻하지 않음 |
 
-중앙 실행 원장과 일부 계획·증거는 아직 남아 있습니다. 현행 검사가 읽는 입력과
-현재 계약을 분리하지 않은 자료를 과거 버전이라는 이유만으로 삭제하지 않습니다.
-따라서 이 표는 전체 문서 정리 완료나 모든 기록의 삭제를 뜻하지 않습니다.
+일부 계획·증거는 현재 계약과 회귀 입력이므로 유지합니다. 과거 버전이라는 이유만으로
+삭제하지 않으며 이 표는 전체 문서 정리 완료나 모든 기록의 삭제를 뜻하지 않습니다.
 상세한 삭제 경로는 정리 커밋의 삭제 목록과 별도 보존된 실행 자료로 확인합니다.
 
 이번 정리의 정확한 대상 1,622개와 검사·실패·재검증 원출력은 로컬 커밋
@@ -34,7 +33,7 @@
 임시 문서 리뷰와 1단계 인계의 원본은 로컬 보존 기준
 `ca3e76e871d05577e6d461746a8918ac618a64a5`에서 조회한다.
 유효한 미해결 사항은 [backlog](../development-backlog.md)에 두며 이 이력 안내가
-중앙 원장·backlog 잔여 축약의 완료를 의미하지는 않는다.
+현재 실행 결과나 승인을 대신하지 않는다.
 
 - 임시 리뷰: `docs/documentation-review-2026-09-28.md`
 - 1단계 최초 실패·재검증: `docs/release-artifacts/v4.1.1/backlog-roadmap-20260929/result.json`
@@ -58,3 +57,21 @@ shallow clone이나 source archive에 해당 커밋이 없을 수 있습니다. 
 조회는 불가능하지만, 일반 빌드·현재 테스트를 위해 과거 로그를 복원하지는 않습니다.
 새 정리 실행 자료의 로컬 보존과 원격 보존은 별개이며, 푸시 전에는 원격 보존 완료로
 간주하지 않습니다. 현재 트리 정리는 Git 이력 자체의 용량을 줄이는 작업이 아닙니다.
+
+## 중앙 기록과 backlog 종료 본문
+
+세 원본은 로컬 보존 커밋 `68566d63b13396b359a3b493a5b7e4d8a70015d6`에 있다.
+삭제·축약 전 전체 바이트를 대조했다. 이 커밋의 원격 보존은 이번 작업에서 확인하지 않는다.
+
+- `docs/development-backlog.md`: 종료 개발 이력. 현재 미완료 작업은 현행 backlog에 유지한다.
+- `docs/release-test-records.md`: 버전별 최초 실패·재검증·개별 실행 결과.
+- `docs/release-evidence-index.md`: 당시 증거 연결과 중복 실행 요약.
+
+```sh
+git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/release-test-records.md
+git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/release-evidence-index.md
+git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
+```
+
+원문의 절 제목과 기능 ID로 검색한다. 과거 `approved`/`closed`는 당시 상태이며,
+일반 회귀는 현행 정의와 출처가 있는 최소 fixture를 사용하고 이 원장을 자동 복원하지 않는다.

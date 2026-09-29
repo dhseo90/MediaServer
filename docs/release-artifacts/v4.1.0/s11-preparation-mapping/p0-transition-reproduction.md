@@ -1244,7 +1244,7 @@ runner는 `env -i PATH="$PATH" HOME=/tmp TMPDIR=/tmp` 아래 실행했다. CP �
 강제 종료/출력 상한 음성은 이번 정상 실행으로 검증했다고 주장하지 않는다. token start/end/consumed는 실제 집계 소스가 없어 미집계다. elapsed/source는 각 runner의 bash SECONDS 또는 steady clock 출력이며 빌드 전체 elapsed는 별도 계측하지 않았다. 에이전트는 commit/push를 수행하지 않았다. 현재 최종 판정은 이 절이며 아래 1번/중간 단계 문구는 당시 상태 이력으로 보존한다.
 
 
-독자: P0 구현/검토 담당. 수명: 이번 독립 재현과 후속 최적화의 실행 증거. 정책은 AGENTS, 중앙 정의는 [중앙 테스트 기록](../../../release-test-records.md)이 우선한다. 이전 actual 실패는 별도 통합 준비 기록에 보존하며 이번 완료 범위와 구분한다.
+독자: P0 구현/검토 담당. 수명: 이번 독립 재현과 후속 최적화의 실행 증거. 정책은 AGENTS, 중앙 정의는 [중앙 테스트 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)이 우선한다. 이전 actual 실패는 별도 통합 준비 기록에 보존하며 이번 완료 범위와 구분한다.
 
 ## 실행 전 정의
 

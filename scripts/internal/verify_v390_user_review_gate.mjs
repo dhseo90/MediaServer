@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9.0 initial review gate snapshot과 current 사용자 승인/closure reconciliation을 검증한다.
+// 파일 용도: v3.9.0 승인/closure 회귀 입력과 현행 정의를 검사한다. 현재 작업의 승인·완료 판정이 아니다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -7,6 +7,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+import { validateV390ReviewHistory, validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -20,10 +22,10 @@ Usage:
 
 Checks:
   - v3.9.0 Foundation Step 3 initial review-ready state is preserved as a historical snapshot
-  - later recorded user goals reconcile the current state to approved/closed-with-evidence
+  - preserved v3.9 history reconciles pending/blocked and later recorded closure; not current authorization
   - required/candidate/structure/excluded lists are fixed for user review
   - initial feature development remained blocked until explicit user approval
-  - stream verification, project inventory, release records/evidence, server dispatch, and script inventory track this gate
+  - current feature definitions, dispatch and policy are checked without historical central ledgers
 
 Not run by this command:
   - feature implementation
@@ -38,35 +40,19 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v390-user-review-gate";
 const targetScript = "verify_v390_user_review_gate.mjs";
 const files = {
-  backlog: readText("docs/development-backlog.md"),
   featureInventory: readText("docs/v390-feature-completion-inventory.md"),
   streamVerification: readText("docs/stream-verification.md"),
   projectInventory: readText("docs/project-feature-test-inventory.md"),
-  releaseRecords: readText("docs/release-test-records.md"),
-  releaseEvidence: readText("docs/release-evidence-index.md"),
   serverSh: readText("server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
 };
 
 const checks = [];
+const historical = JSON.parse(readText("test/fixtures/v390_user_review_history.json"));
+const history = validateV390ReviewHistory(historical);
 
-check("development backlog preserves the initial gate and records current approval closure", () => {
-  for (const snippet of [
-    "| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료/initial snapshot historical/current closed |",
-    "## v3.9.0 Foundation 개발 기록",
-    "Step 3 `User Review Gate / 개발 순서 확정`",
-    "`scripts/internal/verify_v390_user_review_gate.mjs`",
-    "`./server.sh verify-v390-user-review-gate`",
-    "Foundation initial review-ready 상태(historical snapshot)",
-    "승인 상태: `pending-user-approval`",
-    "기능 개발 상태: `blocked-before-user-approval`",
-    "다음 개발 착수는 사용자가 v3.9 required/candidate list를 승인한 뒤에만 가능",
-    "Current user approval/closure reconciliation",
-    "current 승인 상태: `approved-through-recorded-user-goals`",
-    "current 기능 개발 상태: `closed-with-evidence`",
-  ]) {
-    assertIncludes(files.backlog, snippet, "development backlog");
-  }
+check("historical review input preserves pending/blocked and later closure", () => {
+  assert(history.errors.length === 0, history.errors.join("; "));
 });
 
 check("feature inventory separates the initial snapshot from current closure", () => {
@@ -110,7 +96,7 @@ check("stream verification and project inventory map Step 3", () => {
   for (const snippet of [
     "v3.9.0 (3)",
     command,
-    "initial historical review-ready snapshot",
+    "test/fixtures/v390_user_review_history.json",
     "approved-through-recorded-user-goals",
     "closed-with-evidence",
   ]) {
@@ -128,61 +114,43 @@ check("stream verification and project inventory map Step 3", () => {
   }
 });
 
-check("release records and evidence index track Step 3 without approval overclaim", () => {
-  for (const snippet of [
-    "v390 Step 3 RED user review gate",
-    "v390 Step 3 user review gate final",
-    "review-ready 목록과 승인 전 기능 개발 중단 경계",
-    "v390 initial 사용자 review approval",
-    "initial historical snapshot에서는 승인 전",
-    "v390 current user approval closure reconciliation",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records");
-  }
-  for (const snippet of [
-    "v3.9.0 user review gate",
-    command,
-    "OPS-165",
-    "SAFE-198",
-    "current 승인/기능 closure는 기록하되",
-    "UI 풀테스트, 30분/120분, published metadata, release action evidence로 대체하지 않음",
-    "Initial Historical Snapshot",
-    "Current User Approval and Closure Status",
-  ]) {
-    assertIncludes(files.releaseEvidence, snippet, "release evidence");
-  }
+check("current feature definitions and dispatch are independent of historical records", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["SAFE-198", "OPS-165"]});
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server.sh and script inventory include the Step 3 verifier", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh dispatch target");
-  assertIncludes(files.serverSh, "v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.", "server.sh help phrase");
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
 });
 
 check("SAFE-198 canonical user review closure boundary", () => {
-  const historicalSnapshotPreserved = files.backlog.includes("pending-user-approval") && files.backlog.includes("blocked-before-user-approval");
-  const currentApprovalClosed = files.backlog.includes("approved-through-recorded-user-goals") && files.backlog.includes("closed-with-evidence");
-  const executionPassClaimed = !(files.releaseRecords.includes("v390 Step 3 user review gate final") && files.releaseRecords.includes("UI 풀테스트, 30분/120분, published metadata, release action은 not-run-by-this-command"));
-  const safe198BoundaryObserved = historicalSnapshotPreserved && currentApprovalClosed && files.projectInventory.includes("SAFE-198");
+  const historicalSnapshotPreserved = history.historicalSnapshotPreserved;
+  const historicalApprovalClosed = historicalSnapshotPreserved && historical.laterRecordedClosure.development === "closed-with-evidence";
+  const executionPassClaimed = history.executionPassClaimed;
+  const safe198BoundaryObserved = historicalSnapshotPreserved && historicalApprovalClosed && files.projectInventory.includes("SAFE-198");
   const ops165ReviewObserved = safe198BoundaryObserved;
-  assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false,
-    "SAFE-198 user review closure must not substitute UI longrun published metadata or release execution PASS");
+  assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false &&
+    history.currentApprovalStatus === "not-assessed" && history.currentFeatureDevelopmentStatus === "not-assessed",
+    "SAFE-198 historical review must not authorize current work or claim UI longrun published metadata release execution PASS");
 });
 
 const results = runChecks();
 console.log("");
 console.log("== v3.9.0 user review gate summary ==");
-console.log("- schema: media-server.v390-user-review-gate.v1");
+console.log("- schema: media-server.v390-user-review-gate.v2");
 console.log(`- command: ${command}`);
 console.log("- reviewReadyStatus: ready-for-user-review");
 console.log("- approvalStatusAtReviewGate: pending-user-approval");
 console.log("- featureDevelopmentAtReviewGate: blocked-before-user-approval");
-console.log("- currentApprovalStatus: approved-through-recorded-user-goals");
-console.log("- currentFeatureDevelopmentStatus: closed-with-evidence");
-console.log("- currentActiveCandidateDevelopment: none");
-console.log("- closedCandidateDevelopment: V390-CAND-001..V390-CAND-010");
-console.log("- userApprovalReconciliation: verified-by-this-command");
+console.log("- currentApprovalStatus: not-assessed");
+console.log("- historicalApprovalStatus: approved-through-recorded-user-goals");
+console.log("- currentFeatureDevelopmentStatus: not-assessed");
+console.log("- historicalFeatureDevelopmentStatus: closed-with-evidence");
+console.log("- historicalActiveCandidateDevelopment: none");
+console.log("- historicalClosedCandidateDevelopment: V390-CAND-001..V390-CAND-010");
+console.log("- userApprovalReconciliation: historical-regression-only");
 console.log("- featureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30Or120: not-run-by-this-command");

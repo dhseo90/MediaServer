@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -36,6 +38,11 @@ const route = "/ops/api/onvif/credential-provider-status";
 const featureIds = ["UI-108", "SRC-065", "SAFE-203", "OPS-170"];
 const files = loadFiles();
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["UI-108","SRC-065","SAFE-203","OPS-170"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("Ops server builds the v3.9 ONVIF credential provider status summary", () => {
   for (const snippet of [
@@ -175,16 +182,6 @@ check("Ops sources UI renders the sanitized provider summary without secret/refe
 
 check("roadmap, stream verification, inventory, and release records map v3.9 Step 11", () => {
   for (const snippet of [
-    "| 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 |",
-    "## v3.9.0 Product Completion 개발 기록",
-    "V390-CAND-001",
-    route,
-    "OpsV390OnvifCredentialProviderStatusSummaryJson",
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.9 Step 11");
-  }
-  for (const snippet of [
     `| v3.9.0 (11) | \`./server.sh ${command}\` | ONVIF credential/provider status summary.`,
     "primary provider `none`",
     "fallback `in-memory-fixture`",
@@ -200,16 +197,6 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "OPS-170 | V390 Step 11 ONVIF provider status gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 11");
-  }
-  for (const snippet of [
-    "V390 ONVIF Credential Provider Status Summary",
-    `\`./server.sh ${command}\``,
-    "v390 Step 11 RED ONVIF credential/provider status gate",
-    "v390 Step 11 ONVIF credential/provider status final",
-    "v390 Step 11 UI 풀테스트",
-    "v390 Step 11 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.9 Step 11");
   }
 });
 
@@ -271,14 +258,14 @@ function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
     opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
-    backlog: readText("docs/development-backlog.md"),
+
     streamVerification: readText("docs/stream-verification.md"),
     v390Inventory: readText("docs/v390-feature-completion-inventory.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
+
     serverSh: readText("server.sh"),
   };
 }

@@ -9,6 +9,7 @@ import {verifyReleaseEvidenceIndex} from './verify_release_evidence_index.mjs';
 import {verifyTestEvidenceConsistency, renderMarkdown} from './verify_v230_test_evidence_consistency.mjs';
 import {verifyReleaseTestRecords, validateReleaseRecordResult} from './verify_v290_release_test_records_enforcement.mjs';
 import {verifyReleaseEvidenceHygiene} from './verify_v290_release_evidence_hygiene.mjs';
+import {validateV390ReviewHistory, validateCurrentGateDocumentation} from './documentation_contract_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const files = ['AGENTS.md', 'docs/stream-verification.md', 'docs/release-policy.md',
@@ -16,6 +17,82 @@ const files = ['AGENTS.md', 'docs/stream-verification.md', 'docs/release-policy.
   'test/fixtures/project_feature_implementation_evidence.json', 'test/fixtures/release_metadata_boundary.json'];
 const originals = new Map(files.map(p => [p, fs.readFileSync(root + p, 'utf8')]));
 const hash = s => crypto.createHash('sha256').update(s).digest('hex');
+const reviewHistoryPath = 'test/fixtures/v390_user_review_history.json';
+const reviewHistory = JSON.parse(fs.readFileSync(root + reviewHistoryPath, 'utf8'));
+test('REVIEW-HISTORY 승인 전·기록된 종료는 현재 승인/실행 PASS가 아니다', () => {
+  const report = validateV390ReviewHistory(reviewHistory);
+  assert.deepEqual(report.errors, []);
+  assert.equal(report.currentApprovalStatus, 'not-assessed');
+  assert.equal(report.currentFeatureDevelopmentStatus, 'not-assessed');
+  assert.equal(report.executionPassClaimed, false);
+});
+for (const [name, mutate] of [
+  ['schema', v => {v.schema = 'PASS';}],
+  ['version', v => {v.sourceVersion = '4.1.1';}],
+  ['출처 누락', v => {delete v.provenance;}],
+  ['commit', v => {v.provenance.commit = '0'.repeat(40);}],
+  ['path', v => {v.provenance.path = 'other.md';}],
+  ['blob', v => {v.provenance.blob = '0'.repeat(40);}],
+  ['section', v => {v.provenance.section = 'approved';}],
+  ['pending를 승인 처리', v => {v.initial.approval = 'approved-through-recorded-user-goals';}],
+  ['blocked를 완료 처리', v => {v.initial.development = 'closed-with-evidence';}],
+  ['closure 누락', v => {delete v.laterRecordedClosure;}],
+  ['후속 미승인을 완료 처리', v => {v.laterRecordedClosure.approval = 'pending-user-approval';}],
+  ['개발 순서', v => {v.requiredOrder.reverse();}],
+  ['과거 결과로 실행 PASS 승격', v => {v.closureIsExecutionEvidence = true;}],
+]) test('REVIEW-HISTORY 반례 ' + name, () => {
+  const value = structuredClone(reviewHistory); mutate(value);
+  const report = validateV390ReviewHistory(value);
+  assert(report.errors.length > 0);
+  assert.equal(report.currentApprovalStatus, 'not-assessed');
+  assert.equal(report.executionPassClaimed, false);
+});
+function currentReviewGate(mutate = () => {}) {
+  const memory = new Map(originals); mutate(memory);
+  return validateCurrentGateDocumentation({read: p => {
+    assert(memory.has(p), '중앙 기록/Git 읽기 금지: ' + p); return memory.get(p);
+  }, command: 'verify-v390-user-review-gate', script: 'verify_v390_user_review_gate.mjs', featureIds: ['SAFE-198','OPS-165']});
+}
+test('REVIEW-CURRENT 중앙 기록/Git 없는 현행 정의 연결', () => assert.deepEqual(currentReviewGate(), []));
+for (const mode of ['normal', 'missing-fixture', 'wrong-provenance', 'pending-as-approved']) {
+  test('REVIEW-CLI 중앙 기록 없는 실제 자식 ' + mode, () => {
+    const source = `
+      import fs from 'node:fs'; import {syncBuiltinESMExports} from 'node:module';
+      const original=fs.readFileSync, root=${JSON.stringify(root)}, mode=${JSON.stringify(mode)};
+      fs.readFileSync=function(p,...args) {
+        const name=String(p);
+        if (['development-backlog.md','release-test-records.md','release-evidence-index.md'].some(x=>name.endsWith('/docs/'+x))) throw Error('central-record-read-forbidden');
+        if (name === root + ${JSON.stringify(reviewHistoryPath)}) {
+          if(mode==='missing-fixture') throw Error('fixture-missing');
+          const value=JSON.parse(original.call(this,p,...args));
+          if(mode==='wrong-provenance') value.provenance.blob='wrong';
+          if(mode==='pending-as-approved') value.initial.approval='approved-through-recorded-user-goals';
+          return JSON.stringify(value);
+        }
+        return original.call(this,p,...args);
+      };
+      syncBuiltinESMExports();
+      await import(${JSON.stringify(new URL('./verify_v390_user_review_gate.mjs', import.meta.url).href)});
+    `;
+    const r = spawnSync(process.execPath, ['--input-type=module', '-e', source], {encoding:'utf8', timeout:15000});
+    assert.equal(r.signal, null, r.stderr);
+    assert.equal(r.status, mode === 'normal' ? 0 : 1, r.stdout + r.stderr);
+    assert(!r.stderr.includes('central-record-read-forbidden'), r.stderr);
+    if (mode === 'normal') {
+      assert.match(r.stdout, /currentApprovalStatus: not-assessed/);
+      assert.match(r.stdout, /currentFeatureDevelopmentStatus: not-assessed/);
+      assert.match(r.stdout, /historical-regression-only/);
+      assert(!r.stdout.includes('currentApprovalStatus: approved'));
+    }
+  });
+}
+for (const [name, mutate] of [
+  ['기능 ID', m => m.set('docs/project-feature-test-inventory.md', m.get('docs/project-feature-test-inventory.md').replace(/^\| SAFE-198 \|.*$/m, ''))],
+  ['명령 안내', m => m.set('docs/stream-verification.md', m.get('docs/stream-verification.md').replaceAll('verify-v390-user-review-gate', 'removed-command'))],
+  ['dispatch', m => m.set('server.sh', m.get('server.sh').replaceAll('verify_v390_user_review_gate.mjs', 'wrong.mjs'))],
+  ['정책 링크', m => m.set('docs/stream-verification.md', m.get('docs/stream-verification.md').replaceAll('../AGENTS.md', '../missing.md'))],
+  ['정의 중복', m => {const p='docs/project-feature-test-inventory.md';m.set(p,m.get(p)+'\n'+m.get(p).match(/^\| SAFE-198 \|.*$/m)[0]);}],
+]) test('REVIEW-CURRENT 반례 ' + name, () => assert(currentReviewGate(mutate).length > 0));
 const cases = [
   ['index', verifyReleaseEvidenceIndex, 'verify-release-evidence-index', 'verify_release_evidence_index.mjs'],
   ['consistency', verifyTestEvidenceConsistency, 'verify-v230-test-evidence-consistency', 'verify_v230_test_evidence_consistency.mjs'],

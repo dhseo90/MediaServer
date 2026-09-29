@@ -481,7 +481,7 @@ Usage:
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
-                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
+                 v3.9.0 과거 review 회귀 입력과 현행 정의 연결을 검사합니다. 현재 승인은 판정하지 않습니다.
   verify-v390-evidence-test-gate-prep
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
   verify-v390-server-longrun
@@ -1002,7 +1002,7 @@ Usage:
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
-                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
+                 v3.9.0 과거 review 회귀 입력과 현행 정의 연결을 검사합니다. 현재 승인은 판정하지 않습니다.
   verify-v390-evidence-test-gate-prep
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
   verify-v390-server-longrun

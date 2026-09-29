@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -41,6 +43,11 @@ const rulePackageRoute = "/ops/api/actions/rule-draft-package";
 const featureIds = ["UI-113", "EVT-087", "SAFE-208", "OPS-175"];
 const files = loadFiles();
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["UI-113","EVT-087","SAFE-208","OPS-175"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("Ops server exposes the v3.9 action execution deferral decision", () => {
   const source = `${files.server}\n${files.handlerHeader}\n${files.handlerSource}\n${files.uiWorkspaceHeader}\n${files.uiWorkspaceSource}`;
@@ -266,15 +273,6 @@ check("client/viewer scripts do not receive action deferral internals", () => {
 
 check("roadmap, action docs, stream verification, inventory, and release records map v3.9 Step 16", () => {
   for (const snippet of [
-    "| 16 | v3.9.0 (16) action execution deferral decision | P1 | 완료 |",
-    "V390-CAND-006",
-    route,
-    "OpsV390ActionExecutionDeferralDecisionJson",
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.9 Step 16");
-  }
-  for (const snippet of [
     `| v3.9.0 (16) | \`./server.sh ${command}\` | Action execution deferral decision.`,
     "defer-all-action-writes",
     "source recheck, client notice send, rule apply",
@@ -289,16 +287,6 @@ check("roadmap, action docs, stream verification, inventory, and release records
     "OPS-175 | V390 Step 16 action execution deferral gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 16");
-  }
-  for (const snippet of [
-    "V390 Action Execution Deferral Decision",
-    `\`./server.sh ${command}\``,
-    "v390 Step 16 RED action execution deferral decision gate",
-    "v390 Step 16 action execution deferral decision final",
-    "v390 Step 16 UI 풀테스트",
-    "v390 Step 16 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.9 Step 16");
   }
   for (const snippet of [
     "| V390-CAND-006 |",
@@ -350,7 +338,7 @@ function loadFiles() {
     uiWorkspaceSource: readTextIfExists("src/ingress/product_ui_action_execution_deferral.cpp"),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
-    backlog: readText("docs/development-backlog.md"),
+
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     v390Inventory: readText("docs/v390-feature-completion-inventory.md"),
@@ -358,7 +346,7 @@ function loadFiles() {
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
+
     serverSh: readText("server.sh"),
   };
 }

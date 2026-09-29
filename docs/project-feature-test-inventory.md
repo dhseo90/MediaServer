@@ -1,9 +1,13 @@
 # 프로젝트 기능별 테스트 목록
 
+현재 검사 정의·기능 ID·독립 기대값은 이 문서와 연결된 검증 코드·fixture에 둔다.
+종료 버전의 실행 시점·실패·승인 기록은 [Git 이력 안내](history/README.md)에서 조회한다.
+아래 역사 링크는 출처 조회용이며 일반 검사 실행의 입력이나 현재 승인·PASS가 아니다.
+
 ## B14 공개 증거 정제 사전 등록
 
 기존 OPS-163/SAFE-196 공개 준비의 자료/검증 경계 보완이며 새 제품 기능 ID가 아니다.
-[중앙 B14 정의](release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28)를 따른다.
+[중앙 B14 정의](history/README.md#중앙-기록과-backlog-종료-본문)를 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -13,7 +17,8 @@
 
 ## B11 저장·관측 구조 보완 사전 등록
 
-실행 전 정의는 [중앙 기록의 B11 절](release-test-records.md), 불변 조건은 [B11 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b11-삭제-완료-상세의-현재-상태-분리-2026-09-26)이다.
+현재 정의는 아래 표와 `verify_recording_generation_scale.sh`, `verify_recording_current_observer.sh`의 독립 기대값이며,
+불변 조건은 [B11 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md#b11-삭제-완료-상세의-현재-상태-분리-2026-09-26)이다.
 새 제품/UI 기능 ID가 아니라 내부 구현·회귀 검증 단위다.
 
 | 기능 ID | 기능/검증 | 안정화 | 30분 | 120분 | UI |
@@ -280,7 +285,7 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 
 독자: 녹화 저장·검증 구현자. 수명: B안 snapshot 구조 구현부터 제품 복원 판정까지.
 아래는 구현·실행 전 단기 반례 정의다. 값 코덱 결과는 catalog export/import·Open·SQLite·
-30분/120분/UI 결과가 아니다. [중앙 기록](release-test-records.md#v410-s11-b안-저장-구조-구현)을 따른다.
+30분/120분/UI 결과가 아니다. [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -295,7 +300,7 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 
 독자: 녹화 저장·검증 구현자. 수명: B안 과거 증거 참조 폐쇄부터 S11 영향 판정까지.
 아래는 구현·실행 전 반례 정의다. 독립 코덱 검증은 제품의 snapshot 결박·재기동 복구 또는
-장시간 검증을 대체하지 않는다. 결과는 [중앙 기록](release-test-records.md#v410-s11-b안-저장-구조-구현)을 따른다.
+장시간 검증을 대체하지 않는다. 결과는 [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -310,7 +315,7 @@ S11 코드 고정까지. 제품 Open에 아직 연결되지 않은 reader 단위
 ## S11 B-02 세대 manifest 저장 단위
 
 독자: 녹화 저장·검증 구현자. 수명: B안 형식 구현부터 S11 영향 판정까지.
-아래는 구현 전 단기 반례 등록이며 실행 결과는 [중앙 기록](release-test-records.md#v410-s11-b안-저장-구조-구현)을 따른다.
+아래는 구현 전 단기 반례 등록이며 실행 결과는 [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장시간 합격을 뜻하지 않는다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
@@ -336,7 +341,7 @@ manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장�
 ## S11 B-03 예약 이력 snapshot 코덱 단위
 
 독자: 녹화 저장·검증 구현자. 수명: B안 현재 상태·복구 연결까지. 아래는 구현 전 단기 반례
-정의이며 [중앙 기록](release-test-records.md#v410-s11-b안-저장-구조-구현)을 따른다.
+정의이며 [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 독립 값 코덱은 실제 Journal 복원 또는 B-03 정상 저장 연결 PASS가 아니다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
@@ -354,7 +359,7 @@ manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장�
 독자: v4.1.0 녹화 저장 구현·검증 담당자. 수명: O29 구조 선택과 영향 회귀까지.
 현재 제품 코드의 상주/비상주, 자동/일반, 무변경/축소 후보를 소유 임시 저장소에서 구분한다.
 이 단기 반례는 실제 앱·장시간·UI의 합격 증거가 아니다. 실행 정의·실패·결과는
-[중앙 기록](release-test-records.md#v410-s11-o29-저장-처리-구조-선행-판정)을 따른다.
+[중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -366,7 +371,7 @@ manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장�
 
 ## S11 O28 근본 원인 분석 진단
 
-독자: v4.1.0 검증 개발 담당자. 수명: 원인 확정까지. 아래 항목은 제품/장시간 합격이 아닌 진단 정확도이며 정의·결과는 [중앙 기록](release-test-records.md)에 보존한다.
+독자: v4.1.0 검증 개발 담당자. 수명: 원인 확정까지. 아래 항목은 제품/장시간 합격이 아닌 진단 정확도이며 정의·결과는 [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)에 보존한다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -389,7 +394,7 @@ manifest 단독 검사는 제품의 snapshot·증분·복구 또는 최종 장�
 ## S11 O27 임시 진단 분기 정리
 
 독자: v4.1.0 검증 담당자. 수명: S11 원인 분석까지. O26 전용 실행 분기는 폐기했으며
-S11-O26-01/02의 정의·실패·관측값은 [중앙 기록](release-test-records.md#s11-o27-불필요-진단-분기-정리근본-분석-준비-2026-09-24)에 보존한다.
+S11-O26-01/02의 정의·실패·관측값은 [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)에 보존한다.
 자원 진단 요구 자체를 완료/제외로 바꾸지 않는다. 기존 제품·저장 계약과 장시간 합격 기준은 유지한다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
@@ -420,7 +425,7 @@ S11-O26-01/02의 정의·실패·관측값은 [중앙 기록](release-test-recor
 | S11-O25-04 | 준비 완료 이벤트의 렌더 대기 순서 | 내구 접수 순서·동시각 안정성·queue node 소유와 실행 중 선점/미준비 대기 금지를 이벤트 통합으로 대조 | 미실행 | 미실행 | 비대상: 내부 렌더 큐 계약 |
 
 실행 전 정의와 최초 페이지 실패, 예상 RED, 작업 대기 실패, 권한 실패, 최종 집중·실제 앱 결과는
-[중앙 O25 기록](release-test-records.md#v410-s11-o25-실제-앱-전체-페이지-경계-보완-실행-전-정의-2026-09-24)을 따른다.
+[중앙 O25 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 inventory 연결 보완은 과거 실패를 지우거나 기존 결과를 새 실행으로 바꾸지 않는다.
 
 ## S11 상태 조회 전용 체크포인트 snapshot 사전등록
@@ -511,7 +516,7 @@ API-focused 통과를 실제 UI 풀테스트 PASS로 사용하지 않는다.
 RetentionCandidate Channel/Class/Size 접근자 보완 뒤73/73·exit0. 실제파일/원장과 API 용량 일치,
 삭제13개씩은 현재 사용량에서 제외됐다. IAB `/ops/events` AX와 동일 격리서버 API200의 채널별
 상시/이벤트 값도 직접 대조했다. screenshot/trace 미보존으로 집중표시 확인에 한정하며 UI full424 PASS는 아니다.
-[개별 실패/성공·cleanup](release-test-records.md#v410-s11-lp26-o11-상태-용량-집계)을 따른다.
+[개별 실패/성공·cleanup](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 ## LP26-O10 격리 누적 선행 진단 사전등록
 
@@ -521,7 +526,7 @@ LP26-O10-G01 관측 cadence 보완: 표본 `phaseAt` 기준5초 start-to-start �
 G01 결과: 예상RED4→GREEN4, 관련 회귀107개 통과. 당시2049 복구 미해결 상태는 아래 stage2 최종 결과와 구분한다.
 
 제품 기능 추가가 아닌 synthetic 관측이다. 기존 serializer로 ID/order/segment/binding/tombstone을 다시 결박한다.
-정의·실제 결과는 [중앙 기록](release-test-records.md#v410-s11-lp26-o10-격리-누적-선행-진단)을 따른다.
+정의·실제 결과는 [중앙 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -533,11 +538,11 @@ G01 결과: 예상RED4→GREEN4, 관련 회귀107개 통과. 당시2049 복구 �
 
 선행진단 당시: small16와1020은 명시된 strict/count/cache/rotation oracle 통과,
 2049는 initial8196행 관측 후 독립 recovery15초 FAIL이며 해당 실행의 뒤 단계는 미실행이다. 최초 실패는 보존한다.
-[결과·실패 이력·정리](release-test-records.md#lp26-o10-선행-진단-결과)를 참조한다.
+[결과·실패 이력·정리](history/README.md#중앙-기록과-backlog-종료-본문)를 참조한다.
 
 후속 stage2 최종 범위는 **bounded focused 통과**다. 동일원장 재사전검증 생략·SQLite batch·원장 view에
 결박된 live binding 재사용 후2049 복구12.127초, 두 checkpoint7.837/8.427초, 실제 앱30초 준비 실행이 통과했다.
-기존 LP24 recovery14/14·LP15 checkpoint46/46 회귀와 실패/cleanup은 [stage2 기록](release-test-records.md#lp26-o10-stage2-bounded-focused-최종-결과)을 따른다.
+기존 LP24 recovery14/14·LP15 checkpoint46/46 회귀와 실패/cleanup은 [stage2 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 누적1020 동시 HTTP부하·120분·전체통합은4번 잔여이며 위 수치로 PASS를 대신하지 않는다.
 
 문서 마감 검증 사전정의: `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`,
@@ -554,13 +559,21 @@ G01 결과: 예상RED4→GREEN4, 관련 회귀107개 통과. 당시2049 복구 �
 | LP26-O09-C | 마지막 slow mutex/checkpoint/status 숫자 증거, 출력 상한 | C++ trace smoke 단위검사 | 미승인·미실행 | 미승인·미실행 | 비대상 |
 | LP26-O09-D | 실패에도 resource 요약·단계 elapsed·정리 | verifier 연결 직접검토·관련 관측 회귀 | 미승인·미실행 | 미승인·미실행 | 비대상 |
 
-Stage 1 개발/단기 확인 결과는 [중앙 실행 기록](release-test-records.md#lp26-o09-실행-결과와-제한)을 따른다.
+Stage 1 개발/단기 확인 결과는 [중앙 실행 기록](history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 실앱·장시간·UI 미실행과 기존120분 실패는 유지한다.
 
 ## S11-I30 이벤트 우선 재생 형식 보완 사전등록
 
 기존 제품 기능 `V410-S06-I30`의 실제 브라우저 실패를 보완하는 검사이며 새 제품 ID를
-가산하지 않는다. [R01~R04 실행 전 정의](release-test-records.md#v410-s11-i30-이벤트-우선-재생-형식-보완-—-실행-전-정의)를 따른다.
+가산하지 않는다. 원래 정의의 출처는 `68566d63:docs/release-test-records.md`의 S11-I30 실행 전 정의다.
+
+| ID | 현재 회귀 기대값 |
+| --- | --- |
+| S11-I30-R01 | managed 신규 DerivedJob의 원본별 MP4·AU/디코딩·checksum·크기·FD 소유권. 비활성 V1 TS 다중 원본·복구 회귀와 구분 |
+| S11-I30-R02 | intent/Ready/Complete·원자 확정·취소·부분 출력·재시작·삭제/pin/hold가 container에 일치하고 손상·경로 교차 거부 |
+| S11-I30-R03 | event 우선 선택·video/mp4/Range·역할 scope 및 실제 브라우저 play/pause/seek·영상 크기/시간 진행. continuous 성공으로 대체 금지 |
+| S11-I30-R04 | 원본/출력 프레임·PTS/DTS·구간 충족·B-frame/복수 원본·크기·잠금 비용. 근거 없는 complete 승격 금지 |
+
 안정화: 현재 제품의 managed 출력별 MP4/프레임·시간·FD/원자 확정·복구·HTTP/권한과
 비활성 V1 경로의 기존 TS 다중 원본·복구 계약 회귀.
 30분: 기존 승인된 최종 30분 증거의 유지/부분 무효를 변경 diff로 판정.
@@ -2453,7 +2466,7 @@ Static으로만 실행 예정이며 actual completion evidence가 아닙니다.
 | V390-REVIEW4-65 bootstrap/action document redirect lifecycle 분리 | `OPS-169`, `SAFE-202`, canonical exact 424개·initial document hop 425개·request completion 391개·document form 11개와 latest runner-start RED | `verify-v390-ui-page-owned-request-lifecycle-contract`, `verify-v390-ui-action-request-background-ledger-contract`, `verify-v390-ui-document-form-response-binding-contract`, `verify-v390-ui-browser-callback-free-identifier-contract`, `verify-v390-ui-native-adapter-contract`, `verify-v390-ui-native-exact-cases-contract`, `verify-v390-ui-completion-oracle-contract`, `verify-v390-ui-native-diagnostic-trace-replay-contract`, `verify-v390-ui-remaining-actual-trace-replay-contract`, `verify-v390-ui-policy-v4-producer-contract`, `verify-v390-test-acceptance-bundle-contract`, `verify-v390-final-evidence-integrity-contract`, `verify-script-inventory` | 시작 SHA `6c5c2f61...` latest actual은 canonical 실행 전 `424/0`, UI-001 `GET / → 302 → GET /login` bootstrap redirect에서 `bootstrap/redirect lifecycle mixing is forbidden`으로 중단됐습니다. Initial census는 redirect `1`·no redirect `423`, document form은 redirect `9`·same-route rejection `2`입니다. 분류기는 settling state, exact initial/form navigation invocation, action invocation/phase, request kind/resource type, redirectedFrom object chain을 함께 검증합니다. Bootstrap 두 hop은 `page/page/bootstrap/initial-page-load`, primary POST는 `action/explicit-action-registration/primary-action/primary-action`, action destination GET은 `page/document-navigation-ledger/document-navigation-chain/document-navigation-chain`이며 서로의 cardinality/ledger에 포함되지 않습니다. Missing/duplicate/cross-chain/stale/wrong invocation·object·status·Location·action correlation은 fail-closed이고 actual browser/diagnostic actual/`test_ui.sh`는 별도입니다 |
 | v3.9.0 (1) v3.9.0 baseline 정렬 | `OPS-163`, `SAFE-196` | `verify-v390-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬 기준. v3.9 feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | `OPS-164`, `SAFE-197` | `verify-v390-feature-completion-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계 기준. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |
-| v3.9.0 (3) User Review Gate / 개발 순서 확정 | `OPS-165`, `SAFE-198` | `verify-v390-user-review-gate`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | initial review-ready/`blocked-before-user-approval` 상태를 historical snapshot으로 보존하고 current `approved-through-recorded-user-goals`/`closed-with-evidence`/active candidate 없음 상태를 분리 검증합니다. UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도입니다 |
+| v3.9.0 (3) User Review Gate / 개발 순서 확정 | `OPS-165`, `SAFE-198` | `verify-v390-user-review-gate`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | 출처 있는 역사 fixture의 승인 전 `pending-user-approval`/`blocked-before-user-approval`와 기록된 후속 `approved-through-recorded-user-goals`/`closed-with-evidence`를 구분합니다. 현행 정의·dispatch 연결과 과거 회귀 결과는 별개이며 현재 승인·개발 완료는 `not-assessed`입니다. |
 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | `OPS-166`, `SAFE-199` | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-feature-inventory-coverage`, `verify-script-inventory` | UI wrapper `wrapperResult`, `resultScope`, `uiFulltestEvidenceStatus`, `manualResultStatus`, `longrunStatus` schema와 문서 경계를 확인합니다. wrapper PASS를 UI 풀테스트 직접 조작, 30분/120분, manual result, published metadata evidence로 승격하지 않습니다 |
 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | `OPS-167`, `SAFE-200` | `verify-v390-evidence-test-gate-prep`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `verify-script-inventory` | feature inventory coverage report가 `coverageStatus: covered/missing`와 `executionEvidenceStatus: not-execution-evidence`를 사용해 mapping coverage와 실행 PASS를 분리합니다 |
 | v3.9.0 R1 / V390-ADD1-10 / V390-REVIEW2-31 AI-minimized server longrun first-fail runner | `OPS-168`, `SAFE-201` | `verify-v390-server-longrun`, `verify-v390-server-longrun-runner-contract`, `verify-v390-evidence-test-gate-prep`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate` | 30분/120분 runner의 one command, fixed phase/case order, first failure 즉시 중단, later phase/case `not-run`, delegated predev first failure, context, 분리 stderr tail, reproduction command, cleanup/artifact policy를 `media-server.v390-server-longrun.v1` summary/report와 실행 fixture contract로 확인합니다. V390-REVIEW2-31은 `server-start-queue-256`/`integrated-smoke`/soak case/`main-runtime-idle`의 실제 delegated 결과를 parent `start-server`/`integrated-smoke`/`soak-case-loop`/`runtime-idle` ledger에 투영하고 실행 전 synthetic PASS가 없음을 start·smoke·runtime failure negative fixture로 검증합니다. fixture output은 `fixture-only-not-real-duration`이며 실제 30분/120분 longrun 실행 evidence가 아닙니다 |
@@ -3766,7 +3779,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-195 | V380 Step 16 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | 현행 릴리즈 metadata·서명 정책·UI 증거 적격·검증 안내의 누락/완화를 거부한다. `verify-v380-stabilization-release-readiness`는 종료 기록을 요구하지 않는 정적 준비 검사이며 UI 풀테스트·30분/120분·published metadata·release action·field smoke 실행 PASS를 대신하지 않는다. |
 | SAFE-196 | V390 Step 0 source baseline no-overclaim boundary | 비대상 | 필요 | 안정화 | `verify-v390-entry-baseline`이 현행 VERSION/CMake·릴리즈 문서·dispatch·정의 연결과 출처 있는 과거 source `3.9.0` / published `v3.8.0` / roadmap 입력을 구분한다. 종료 원장·완료 표를 요구하지 않으며 feature discovery/dev·UI·장시간·공개 실행 PASS로 승격하지 않는다 |
 | SAFE-197 | V390 Step 1 feature completion inventory review boundary | 비대상 | 필요 | 안정화 | `verify-v390-feature-completion-inventory`가 feature completion inventory scaffold, discovery source groups, disposition vocabulary, user review gate, project inventory/release records/evidence 연결을 확인하되 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action PASS로 대체하지 않음 |
-| SAFE-198 | V390 Step 3 user review approval boundary | 비대상 | 필요 | 안정화 | `verify-v390-user-review-gate`가 initial review-ready/blocked snapshot과 current approved/closed reconciliation을 구분하며, current closure를 UI 풀테스트, 30분/120분, published metadata, release action PASS로 대체하지 않음 |
+| SAFE-198 | V390 Step 3 user review approval boundary | 비대상 | 필요 | 안정화 | `verify-v390-user-review-gate`가 출처 있는 역사 입력의 pending/blocked와 후속 approved/closed를 구분하고, 과거 closure나 회귀 PASS를 현재 작업 승인·개발 완료·UI·장시간·공개·릴리즈 실행 PASS로 승격하지 않음 |
 | SAFE-199 | V390 Step 7 UI wrapper result schema truthfulness boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`가 `verify-ui-fulltest-one-shot` summary의 `wrapperResult`, `resultScope`, `uiFulltestEvidenceStatus`, `manualResultStatus`, `longrunStatus`, `evidenceBoundary`를 확인하되 wrapper PASS를 UI 풀테스트 직접 조작, 30분/120분, manual result, published metadata PASS로 대체하지 않음 |
 | SAFE-200 | V390 Step 8 feature coverage wording truthfulness boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`와 `verify-feature-inventory-coverage`가 per-feature report를 `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`로 기록하는지 확인하되 coverage mapping을 실행 PASS로 대체하지 않음 |
 | SAFE-201 | V390 R1/V390-ADD1-10 longrun runner first-fail boundary | 비대상 | 필요 | 안정화 | `verify-v390-server-longrun-runner-contract`와 `verify-v390-server-longrun` fixture가 one command, fixed phase/case order, delegated ID/order/uniqueness/count, 첫 실패 즉시 중단, later phase/case `not-run`, context, 분리 stderr tail, 재현 명령, cleanup/artifact policy를 확인하되 실제 30분/120분 longrun 실행 evidence가 아닙니다 |
@@ -3921,7 +3934,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-162 | V380 Step 16 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | 현행 기능 정의·독립 명령 및 기존 동반 검증/close-out dry-run의 안내·server dispatch 연결을 확인한다. `verify-v380-stabilization-release-readiness`는 종료 기록을 요구하지 않는 정적 준비 검사이며 UI 풀테스트·30분/120분·published metadata·release action·field smoke 실행 PASS를 대신하지 않는다. |
 | OPS-163 | V390 Step 0 Source Baseline Alignment 게이트 | 비대상 | 필요 | 안정화 | `verify-v390-entry-baseline`이 현행 문서 정합성과 v3.9 source / v3.8 published 회귀 입력·기능 ID·실제 명령 연결을 확인한다. `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`의 개별 검사 책임을 유지하며 discovery/dev·UI·장시간·공개 실행을 대체하지 않는다 |
 | OPS-164 | V390 Step 2 Feature Completion Inventory/Discovery Gate | 비대상 | 필요 | 안정화 | `verify-v390-feature-completion-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 v3.9 feature completion inventory scaffold와 user review gate를 연결하되 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
-| OPS-165 | V390 Step 3 User Review Gate / 개발 순서 확정 | 비대상 | 필요 | 안정화 | `verify-v390-user-review-gate`, inventory/coverage/script gate가 initial historical snapshot과 current approved-through-recorded-user-goals/closed-with-evidence 상태를 연결하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
+| OPS-165 | V390 Step 3 User Review Gate / 개발 순서 확정 | 비대상 | 필요 | 안정화 | `verify-v390-user-review-gate`가 역사 회귀 입력과 현행 기능 정의·명령 dispatch·정책 연결을 검사하며 현재 작업 승인·개발 완료는 not-assessed로 보고하고 실제 UI·장시간·공개·릴리즈 실행 PASS를 주장하지 않음 |
 | OPS-166 | V390 Step 7 UI wrapper/result schema 오판 방지 gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 wrapper result schema와 manual UI 문서 경계를 연결하되 wrapper PASS를 UI 풀테스트 직접 조작, 30분/120분, manual result, release 실행 PASS로 대체하지 않음 |
 | OPS-167 | V390 Step 8 feature inventory coverage wording gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `verify-script-inventory`가 coverage mapping을 `covered/missing`으로 기록하고 `not-execution-evidence` 경계를 확인하되 기능 실행/테스트 PASS로 대체하지 않음 |
 | OPS-168 | V390 R1/V390-ADD1-10 AI-minimized server longrun first-fail gate | 비대상 | 필요 | 안정화 | `verify-v390-server-longrun`, `verify-v390-server-longrun-runner-contract`, `verify-v390-evidence-test-gate-prep`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate`가 delegated exact phase/case manifest, global ID/order/uniqueness/count, 첫 실패 즉시 중단, later case `not-run`, context/stderr/reproduction failure report를 runner/fixture contract로 확인하되 실제 30분/120분 longrun 실행 evidence가 아닙니다 |

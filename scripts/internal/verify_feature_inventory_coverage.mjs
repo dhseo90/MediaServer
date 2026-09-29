@@ -113,7 +113,6 @@ check("coverage docs and server command are wired", () => {
   const docs = [
     readText("docs/project-feature-test-inventory.md"),
     readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
   ].join("\n");
   const server = readText("server.sh");
 for (const snippet of [

@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -64,6 +66,11 @@ const actualGraphFixture = JSON.parse(read(fixture.actualGraphEvidence.path));
 const execution = JSON.parse(read(executionPath));
 const currentGraph = JSON.parse(read(execution.currentGraph.path));
 const completionGraph = JSON.parse(read(execution.completionGraph.path));
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: read, command, script: targetScript, featureIds: ["SAFE-215","OPS-182"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("machine-readable readiness contract is complete", () => {
   const server = read("server.sh");
@@ -254,9 +261,6 @@ check("historical REVIEW4-51 decision/readiness remain frozen and separate from 
     execution.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true,
   "REVIEW4-65 generated acceptance artifacts are not separated from REVIEW4-64 completion");
   for (const [label, text, snippets] of [
-    ["backlog", read("docs/development-backlog.md"), ["V390-REVIEW4-51", "current `v3.9.0` branch", "64 뒤 65 acceptance"]],
-    ["records", read("docs/release-test-records.md"), ["V390-REVIEW4-51", "base `027678ba`", "64 후 65 acceptance"]],
-    ["evidence", read("docs/release-evidence-index.md"), ["V390-REVIEW4-51", "approved-actual-refactor-after-review4-50-63", "V390-REVIEW4-65"]],
     ["stream", read("docs/stream-verification.md"), ["V390-REVIEW4-51", "approved-actual-refactor-after-review4-50-63", "V390-REVIEW4-65"]],
   ]) {
     for (const snippet of snippets) {
@@ -299,16 +303,10 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
 });
 
 check("roadmap and evidence preserve historical readiness and expose current REVIEW4-64 completion", () => {
-  const backlog = read("docs/development-backlog.md");
   const inventory = read("docs/project-feature-test-inventory.md");
-  const records = read("docs/release-test-records.md");
-  const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["structure stabilization implementation readiness", "gate 준비", "V390-REVIEW4-64 current continuation Slice 32", "REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다"]],
     ["inventory", inventory, ["SAFE-215", "OPS-182", command]],
-    ["records", records, ["V390 Structure Stabilization Readiness", "Development 17 structure readiness final", "V390-REVIEW4-64 continuation Slice 32 WebRTC media application final", "65 독립 acceptance PASS는 아닙니다"]],
-    ["evidence", evidence, ["Development 17 structure stabilization readiness", "SAFE-215", "OPS-182"]],
     ["stream", stream, ["Development 17", command, "approved-scheduled-after-review4-50-63", "not-executed"]],
   ]) {
     for (const snippet of snippets) assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);

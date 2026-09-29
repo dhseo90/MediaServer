@@ -618,7 +618,7 @@ projection·시간·plain 원장 호환은 유지하고 logical admission은 압
 
 최종 append222·active4·cold4·checkpoint143·consumer268·observer33·계약135, 총809개
 assertion과 build가 PASS했고 모든 focused 임시 root를 제거했다. 최초 실패 증거와 focused
-원출력은 [중앙 기록](../../../release-test-records.md#b11-g03-저장-상한-원인-보완)을 따른다.
+원출력은 [중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 제품 저장 경로가 바뀌었으므로 최종30분은 해당 변경분에 대해 재실행하고, 논리 API/UI가
 불변인 녹화 UI31 action은 유지 판정한 뒤 녹화120분 전체를 처음부터 다시 실행한다.
 이 focused PASS 자체는 장시간 PASS가 아니다.

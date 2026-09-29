@@ -698,7 +698,7 @@ token start/end/consumed는 미집계(하위작업 집계 없음);elapsed/source
 
 
 독자: S11 녹화 누적 비용 분석 담당자. lifecycle: 이번 선행진단의 최초 실패·교정·단회 재검증을 보존한다.
-정책 source-of-truth는 AGENTS.md, 실행 정의와 색인은 [중앙 기록](../../../release-test-records.md)을 따른다.
+정책 source-of-truth는 AGENTS.md, 실행 정의와 색인은 [중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 최종 stage2 판정은 **bounded focused 통과**다. 제품 복구 보완 후2049원본/8196행의 독립 복구와
 checkpoint·회전 관측 및 실제 앱30초 준비 실행을 통과했다. 누적 실제HTTP·120분·전체통합은4번 잔여다.

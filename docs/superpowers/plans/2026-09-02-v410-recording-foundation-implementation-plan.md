@@ -1003,7 +1003,7 @@ JSONL 비활성/활성·queue=2에서 퇴출·5개 내구 PTS 연결 보존을 �
 I02에 20개 check를 선등록했다. 기존 고정 action ID 27개를 유지한다.
 실제 runtime 20/0·mutation 2/0, C++ 140/0·application 7/0·등록기 단위 26/0·
 action 27/0(check 89개). mutation 로그 소비자 보강의 TDD RED/수정 이력 및 최종 결과는
-[테스트 기록](../../release-test-records.md)에 남긴다. S06 이후는 착수하지 않는다.
+[테스트 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)에 남긴다. S06 이후는 착수하지 않는다.
 
 ### 중단 재개 보정 계획 (2026-09-04)
 
@@ -1156,7 +1156,7 @@ git commit -m "feat: 이벤트 녹화 연결과 파생 clip 추가"
 event 우선 읽기 서비스·권한별 상태/timeline·opaque media 해석·GET/HEAD Range·전송 gate와
 Ops 필터/목록/재생 UI를 구현했다. 잔여 1~5번은 afb6c5a3, 9de62e0e, f03ec0a6,
 a4a02991, 4da626e6으로 분할 커밋했다. 제품/검증 구현 위치와 개별 결과는
-[실행 기록](../../release-test-records.md)의 S06 잔여 3~6번을 따른다.
+[실행 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)의 S06 잔여 3~6번을 따른다.
 1970은 검증 fixture의 epoch 시간이며 운영 녹화 시간은 변경하지 않았다.
 S06 범위 직접 UI와 관련 회귀 통과는 버전 전체 UI·30분/120분 PASS가 아니다.
 S07과 릴리즈 action은 이번 문서 마감 범위 밖이다.
@@ -2482,7 +2482,7 @@ browser mode와 legacy UI seed는 이번 실행·수정에서 제외하며 후�
 사용자가 3D-2 개발·관련 단기 검증·마지막 커밋/푸시를 승인했다. 기존 `v4.1.0` checkout을 유지한다.
 메인은 아래 구성/안전 판단과 최종 diff·증거 검토, 기존 단일 Astra/medium 담당자는 확정 구현을 맡는다.
 하위 위임은 금지한다. 구현과 관련 단기 검증을 마쳤으며, 실제 명령·개별 결과·최초 실패와 정리는
-[중앙 테스트 기록](../../release-test-records.md)의 3D-2 및 연결된 D01/D02 실행 기록을 따른다.
+[중앙 테스트 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)의 3D-2 및 연결된 D01/D02 실행 기록을 따른다.
 실제 file source의 off→on→off→on, 동일 store ID 유지, 기본 10초 세그먼트·후행 5초 출력의
 실제 디코딩, 별도 프로세스 중단 복구 및 접수/종료 잠금 경계를 검사했다. macOS 격리 단기 증거이며
 Linux·외부 입력·실제 서버 전체·공개 UI·30분/120분 최종 묶음의 PASS로 확대하지 않는다.

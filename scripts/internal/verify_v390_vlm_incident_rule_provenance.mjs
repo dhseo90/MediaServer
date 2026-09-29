@@ -11,6 +11,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+import { stopServer as stopOwnedServer, assertPortClosed } from "./verify_v410_recording_ui_contract.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -47,9 +49,7 @@ const files = {
   strictJsonHeader: read("include/domain/strict_json.h"),
   strictJsonSource: read("src/domain/strict_json.cpp"),
   ui: read("src/ingress/product_ui_page_scripts.cpp"),
-  backlog: read("docs/development-backlog.md"),
   inventory: read("docs/project-feature-test-inventory.md"),
-  records: read("docs/release-test-records.md"),
 };
 
 for (const snippet of [
@@ -89,14 +89,16 @@ for (const snippet of [
   "vlmProvenance",
 ]) assert(files.ui.includes(snippet), `Ops rule draft propagation missing ${snippet}`);
 
-for (const [label, content] of Object.entries({ backlog: files.backlog, inventory: files.inventory, records: files.records })) {
+for (const [label, content] of Object.entries({ inventory: files.inventory })) {
   for (const snippet of ["VLM incident-to-rule provenance", "RULE-112", "LAB-126", "SAFE-213", "OPS-180"]) {
     assert(content.includes(snippet), `${label} missing ${snippet}`);
   }
 }
-assert(files.backlog.includes("완료/커밋 `260cbd9e`"), "backlog missing Development 15 commit reconciliation");
-
 try {
+  const documentationErrors = validateCurrentGateDocumentation({read,
+    command: 'verify-v390-vlm-incident-rule-provenance', script: 'verify_v390_vlm_incident_rule_provenance.mjs',
+    featureIds: ['RULE-112', 'LAB-126', 'SAFE-213', 'OPS-180']});
+  assert(documentationErrors.length === 0, documentationErrors.join('; '));
   prepareObservationFixture();
   let ports = { http: await freePort(), rtsp: await freePort() };
   serverProcess = startServer(ports);
@@ -364,6 +366,7 @@ function buildRule(id, provenance) {
 }
 
 function startServer(ports) {
+  serverLog.length = 0;
   const child = spawn("./server.sh", ["foreground"], {
     cwd: rootDir,
     env: {
@@ -381,10 +384,16 @@ function startServer(ports) {
       MEDIA_SERVER_SOURCE_REGISTRY: path.join(workDir, "sources.json"),
       MEDIA_SERVER_PUBLISHED_VIEWS: path.join(workDir, "views.json"),
       MEDIA_SERVER_AUTH_USERS_FILE: path.join(workDir, "users.json"),
+      MEDIA_SERVER_RECORDING_ENABLED: "0",
+      MEDIA_SERVER_RECORDING_STORAGE_ROOT: path.join(workDir, "recordings"),
       MEDIA_SERVER_BUILD_DIR: process.env.MEDIA_SERVER_BUILD_DIR || path.join(rootDir, "build-gst-onnx"),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
+  child.verificationPorts = ports;
+  console.log('[lifecycle] ' + JSON.stringify({phase: 'start', pid: child.pid, ports}));
+  child.once('exit', (code, signal) => console.log('[lifecycle] ' + JSON.stringify({phase: 'exit', pid: child.pid, code, signal})));
+  child.once('error', error => { child.verificationStartError = error.code || 'unknown'; });
   child.stdout.on("data", rememberLog);
   child.stderr.on("data", rememberLog);
   return child;
@@ -399,12 +408,18 @@ function rememberLog(chunk) {
 }
 
 async function waitForHealth(baseUrl) {
+  const child = serverProcess;
   const deadline = Date.now() + 90000;
   while (Date.now() < deadline) {
-    if (serverProcess.exitCode !== null) throw new Error(`server exited early: ${serverLog.slice(-30).join(" | ")}`);
+    if (child.verificationStartError || child.exitCode !== null || child.signalCode !== null) {
+      throw new Error(`server exited before health: pid=${child.pid}, exit=${child.exitCode}, signal=${child.signalCode}, spawn=${child.verificationStartError || 'none'}`);
+    }
     try {
-      const response = await fetch(`${baseUrl}/health`);
-      if (response.ok) return;
+      const response = await fetch(`${baseUrl}/health`, {signal: AbortSignal.timeout(Math.min(1000, Math.max(1, deadline - Date.now())))});
+      if (response.ok) {
+        console.log('[lifecycle] ' + JSON.stringify({phase: 'health', pid: child.pid, status: response.status}));
+        return;
+      }
     } catch {}
     await delay(200);
   }
@@ -412,12 +427,13 @@ async function waitForHealth(baseUrl) {
 }
 
 async function stopServer() {
-  if (!serverProcess || serverProcess.exitCode !== null) return;
-  serverProcess.kill("SIGTERM");
-  await Promise.race([
-    new Promise(resolve => serverProcess.once("exit", resolve)),
-    delay(5000).then(() => { if (serverProcess.exitCode === null) serverProcess.kill("SIGKILL"); }),
-  ]);
+  const child = serverProcess;
+  if (!child) return;
+  // 종료 타이머는 이 자식만 소유하며 exit 때 해제한다. 다음 기동을 참조하지 않는다.
+  await stopOwnedServer(child, {graceMs: 5000, forceWaitMs: 5000});
+  for (const port of Object.values(child.verificationPorts)) await assertPortClosed(port);
+  console.log('[lifecycle] ' + JSON.stringify({phase: 'cleanup', pid: child.pid, exit: child.exitCode, signal: child.signalCode, portsClosed: true}));
+  if (serverProcess === child) serverProcess = null;
 }
 
 async function request(baseUrl, method, route, body) {

@@ -10198,7 +10198,10 @@
     },
     {
       "id": "OPS-135",
-      "sharedContract": {"id":"media-server.actual-contract.cross-site-safe-apply-readiness","facet":"ops-gate"},
+      "sharedContract": {
+        "id": "media-server.actual-contract.cross-site-safe-apply-readiness",
+        "facet": "ops-gate"
+      },
       "status": "source-resolved-reviewed-proof",
       "featureContractSha256": "f64effded3f93f3cd14f957bebd96f128e142f007b0ea552ac5b49704a92493d",
       "evidenceMode": "runtime-http-registry-before-after-readback",
@@ -13252,7 +13255,7 @@
     {
       "id": "OPS-165",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "b16d8f1760a075406e348519d47203e78e1f62b3d162b39b6783a8b6a69613f6",
+      "featureContractSha256": "c69da6ea6f96eb915dd061f2d32c29ded4f3a9733a409a83388bd35da0137970",
       "evidenceMode": "canonical-bounded-gate-assertion",
       "evidenceToken": "safe198BoundaryObserved",
       "verifier": {
@@ -13265,42 +13268,42 @@
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
           "symbol": "canonical-owner:OPS-165",
           "anchor": "check(\"SAFE-198 canonical user review closure boundary\", () => {",
-          "line": 163,
-          "contextSha256": "bb8864f1895660747997c88d6cf082f4450330a6a7344d5f62f4a0a8463c4044"
+          "line": 128,
+          "contextSha256": "17faaae88b02697bf3e2946109fc7a6400e8bcbb5be295926183d420526f8fb7"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
           "symbol": "canonical-dispatch:OPS-165",
-          "anchor": "const historicalSnapshotPreserved = files.backlog.includes(\"pending-user-approval\") && files.backlog.includes(\"blocked-before-user-approval\");",
-          "line": 164,
-          "contextSha256": "79d8e581f8ac963d9d7daa4f76b8d9a7d64c0a83d1b4c2db6e310cb55be4117f"
+          "anchor": "const historicalSnapshotPreserved = history.historicalSnapshotPreserved;",
+          "line": 129,
+          "contextSha256": "519a339ebabf357f4240660b8a089fd73ae47cb1673c47b12de738e95e842ced"
         },
         "action": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
           "symbol": "canonical-action:OPS-165",
-          "anchor": "const safe198BoundaryObserved = historicalSnapshotPreserved && currentApprovalClosed && files.projectInventory.includes(\"SAFE-198\");",
-          "line": 167,
-          "contextSha256": "345294e886ca5d17eaa0a045fbfd46368796988623e4f202df9a559dd9791ba5"
+          "anchor": "const safe198BoundaryObserved = historicalSnapshotPreserved && historicalApprovalClosed && files.projectInventory.includes(\"SAFE-198\");",
+          "line": 132,
+          "contextSha256": "28a5b5454c84cff2dd703cbc6e4a1b70a7722241bb88315d58b73a9d03c817b1"
         },
         "state": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
           "symbol": "canonical-state:OPS-165",
           "anchor": "const ops165ReviewObserved = safe198BoundaryObserved;",
-          "line": 168,
-          "contextSha256": "62fab134b53dcadabbf01020c29c58c822578610485811ca6273bd6209d3007d"
+          "line": 133,
+          "contextSha256": "ca7161ac84f57affd4a4b68516fddd87227efd37e98cf33f32d218d3627d3a4d"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
           "symbol": "canonical-readback:OPS-165",
-          "anchor": "assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false,",
-          "line": 169,
-          "contextSha256": "b21ed34585ac6aac6adc650ceed7eb853b9018bb1d3ce7f19a6e99307111e73f"
+          "anchor": "assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false &&",
+          "line": 134,
+          "contextSha256": "ed49d38c6e8e25b28da420338cf701b2081d4b003685b4e7e6aec2025a28673f"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-user-review-gate",
           "anchor": "verify-v390-user-review-gate)",
-          "line": 2257,
+          "line": 2426,
           "contextSha256": "8d25325274c588f23b74b20a2bb6da400d69650b93d68e616eb12b808b70a1f0"
         }
       },
@@ -13310,43 +13313,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-165 owner-dispatch",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:163",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:164"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:128",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:129"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-165 dispatch-action",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:164",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:167"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:129",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:132"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-165 action-state",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:167",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:168"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:132",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:133"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-165 state-readback",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:168",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:169"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:133",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:134"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-user-review-gate",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:169",
-          "target": "server.sh:2257"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:134",
+          "target": "server.sh:2426"
         }
       ],
-      "rationale": "OPS-165 exact reviewed source flow.",
+      "rationale": "보존된 v3.9 상태의 출처·pending/blocked·후속 closure를 독립 기대값과 반례로 검사한다. 현재 승인은 not-assessed이며 과거 회귀 PASS가 현재 실행 증거로 승격되지 않는 assertion을 검토한다.",
       "failureReason": "",
       "sharedContract": {
         "id": "media-server.actual-contract.ops-165-safe-198",
@@ -34761,7 +34764,7 @@
     {
       "id": "SAFE-198",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "a851bf7828b52fd8ef4b95a6bc04e711e7381dd3d0bbd2ae9da14d372cbe594e",
+      "featureContractSha256": "1606775e54a962fdb25c51aa7bac0023df4f995fa28b266c338f859328e78648",
       "evidenceMode": "canonical-functional-source-assertion",
       "evidenceToken": "ops165ReviewObserved",
       "verifier": {
@@ -34771,44 +34774,44 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
-          "line": 163,
+          "line": 128,
           "anchor": "check(\"SAFE-198 canonical user review closure boundary\", () => {",
           "symbol": "check:SAFE-198 canonical user review closure boundary",
-          "contextSha256": "bb8864f1895660747997c88d6cf082f4450330a6a7344d5f62f4a0a8463c4044"
+          "contextSha256": "17faaae88b02697bf3e2946109fc7a6400e8bcbb5be295926183d420526f8fb7"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
-          "line": 164,
-          "anchor": "const historicalSnapshotPreserved = files.backlog.includes(\"pending-user-approval\") && files.backlog.includes(\"blocked-before-user-approval\");",
+          "line": 129,
+          "anchor": "const historicalSnapshotPreserved = history.historicalSnapshotPreserved;",
           "symbol": "check:SAFE-198 canonical user review closure boundary",
-          "contextSha256": "79d8e581f8ac963d9d7daa4f76b8d9a7d64c0a83d1b4c2db6e310cb55be4117f"
+          "contextSha256": "519a339ebabf357f4240660b8a089fd73ae47cb1673c47b12de738e95e842ced"
         },
         "action": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
-          "line": 167,
-          "anchor": "const safe198BoundaryObserved = historicalSnapshotPreserved && currentApprovalClosed && files.projectInventory.includes(\"SAFE-198\");",
+          "line": 132,
+          "anchor": "const safe198BoundaryObserved = historicalSnapshotPreserved && historicalApprovalClosed && files.projectInventory.includes(\"SAFE-198\");",
           "symbol": "check:SAFE-198 canonical user review closure boundary",
-          "contextSha256": "345294e886ca5d17eaa0a045fbfd46368796988623e4f202df9a559dd9791ba5"
+          "contextSha256": "28a5b5454c84cff2dd703cbc6e4a1b70a7722241bb88315d58b73a9d03c817b1"
         },
         "state": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
-          "line": 168,
+          "line": 133,
           "anchor": "const ops165ReviewObserved = safe198BoundaryObserved;",
           "symbol": "check:SAFE-198 canonical user review closure boundary",
-          "contextSha256": "62fab134b53dcadabbf01020c29c58c822578610485811ca6273bd6209d3007d"
+          "contextSha256": "ca7161ac84f57affd4a4b68516fddd87227efd37e98cf33f32d218d3627d3a4d"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_user_review_gate.mjs",
-          "line": 169,
-          "anchor": "assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false,",
+          "line": 134,
+          "anchor": "assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false &&",
           "symbol": "check:SAFE-198 canonical user review closure boundary",
-          "contextSha256": "b21ed34585ac6aac6adc650ceed7eb853b9018bb1d3ce7f19a6e99307111e73f"
+          "contextSha256": "ed49d38c6e8e25b28da420338cf701b2081d4b003685b4e7e6aec2025a28673f"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-user-review-gate",
           "anchor": "verify-v390-user-review-gate)",
-          "line": 2257,
+          "line": 2426,
           "contextSha256": "8d25325274c588f23b74b20a2bb6da400d69650b93d68e616eb12b808b70a1f0"
         }
       },
@@ -34818,43 +34821,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-198 owner-dispatch",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:163",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:164"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:128",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:129"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-198 dispatch-action",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:164",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:167"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:129",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:132"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-198 action-state",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:167",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:168"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:132",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:133"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-198 state-readback",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:168",
-          "target": "scripts/internal/verify_v390_user_review_gate.mjs:169"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:133",
+          "target": "scripts/internal/verify_v390_user_review_gate.mjs:134"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-user-review-gate",
-          "source": "scripts/internal/verify_v390_user_review_gate.mjs:169",
-          "target": "server.sh:2257"
+          "source": "scripts/internal/verify_v390_user_review_gate.mjs:134",
+          "target": "server.sh:2426"
         }
       ],
-      "rationale": "SAFE-198 exact reviewed source flow.",
+      "rationale": "보존된 v3.9 상태의 출처·pending/blocked·후속 closure를 독립 기대값과 반례로 검사한다. 현재 승인은 not-assessed이며 과거 회귀 PASS가 현재 실행 증거로 승격되지 않는 assertion을 검토한다.",
       "sharedContract": {
         "id": "media-server.actual-contract.ops-165-safe-198",
         "facet": "safety-invariant"
