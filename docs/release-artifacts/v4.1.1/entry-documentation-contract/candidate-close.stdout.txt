@@ -1,5 +1,0 @@
-{
-  "candidatePath": "<run-temp>/fresh-close.json",
-  "candidateDigest": "cc9fbd35278a4c81f07d936c461f2dd6465f45dc8cbdfde37f8c27b6b84cc8bf",
-  "items": 986
-}

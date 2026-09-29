@@ -106,6 +106,7 @@ VLM은 기본 비활성입니다. 모델 선택, runtime opt-in, 검토와 후�
 | 공개 저장소와 선택 bundle 점검 | [공개 저장소 점검](public-repo-final-review.md), [runtime/model bundle 준비](runtime-model-bundle-rc-rehearsal.md) |
 | 샘플 출처와 대표 이미지 관리 | [샘플 출처](sample-fixture-provenance.md), [이미지 정책](assets/ui/README.md) |
 | 미해결 항목과 후속 개발 확인 | [backlog](development-backlog.md), [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md) |
+| 현재 트리에서 정리된 종료 기록 조회 | [Git 이력 안내](history/README.md) |
 | 녹화 저장의 설계 근거와 라이선스 판단 확인 | [저장 표준·오픈소스 검토](research/v410-recording-storage-open-source-review.md), [IP 위험 차단 게이트](research/v410-recording-ip-risk-gate.md) |
 
 기능별 테스트 정의와 실행 명령은 검증 문서에서 찾을 수 있습니다.

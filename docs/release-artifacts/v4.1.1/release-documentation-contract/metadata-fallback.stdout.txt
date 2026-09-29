@@ -1,6 +1,0 @@
-[pass] GitHub metadata fallback failure classes
-[pass] GitHub REST API release normalization
-
-== Release metadata fallback policy self-test summary ==
-- pass: 2
-- fail: 0

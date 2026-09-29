@@ -451,7 +451,7 @@ TDD에서 3초 post-event 대기에 실제 worker가 진입한 뒤 `StopEventSto
 segment, 실제 EventRecord와 catalog exact link, 재시작 source/catalog, 새 segment/event/link,
 강제 종료 0회, 정상 stop과 PID·포트·label·state·임시 root 정리를 확인했다. `nohup`은
 재시작 old PID 약 2.0초·최종 stop 약 1.3초, `launchd`는 약 1.3초·1.5초에 종료됐다.
-[실패·sample·최종 실제 결과](release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
+[실패·sample·최종 실제 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
 소급 삭제하지 않고 보존한다.
 
 종료 로직 변경 뒤 프로젝트 인벤토리가 `EVT-008/009`의 stored blob trust drift를
@@ -459,7 +459,7 @@ fail-closed로 탐지했다. 오래된 proof locator까지 보정한 뒤 독립 
 함수 본문과 source-flow 불변을 확인했다. 공식 migration은 984행 동등 이관과 2행 독립
 승인을 분리해 audit·approval·implementation manifest를 재결속했다. 독립 approval
 986/986, 구현 증적 986/986·negative 15/15, 프로젝트 인벤토리 18/0이며 상세 판정은
-[의미 증적 재결속 기록](release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)에
+[의미 증적 재결속 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)에
 보존한다.
 
 ## S05 종료 선행 3/3 — SSIM blacklist 분류
@@ -526,7 +526,7 @@ action 27/0(check 89개), 제품 증분 build가 통과했다. 소스 감사 51/
   추가 변경하지 않았다. 전체 서버/HTTP/환경변수 파싱/라이브 입력 재시작의 증거는 아니다.
   최종 정식 실행은 C++ 140/0, application 7/0, runtime 20/0, source mutation 2/0,
   등록기 단위 26/0, 개별 동작 27/0(check 89개)다.
-  [통합 개별 결과](release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)에
+  [통합 개별 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)에
   실제 assertion·check·소스 SHA와 cleanup을 보존한다. 독립 검토의 mutation 로그 누락
   대조 지적 1건도 TDD RED 후 보강해 CLOSED했다. 기존 canonical 986개 직접 결박은
   변경되지 않아 새로운 승인 원장 이행은 하지 않았다.

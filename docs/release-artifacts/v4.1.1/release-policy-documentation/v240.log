@@ -1,8 +1,0 @@
-[pass] 현행 릴리즈 정책·검증 정의와 준비 명령 연결
-[pass] server entrypoint exposes the S08 verifier
-
-== v2.4.0 S08 release readiness gate summary ==
-- schema: media-server.v240-release-readiness-gate.v1
-- pass: 2
-- fail: 0
-- 범위: 현재 정의·정책 연결 검사이며 실제 릴리즈·UI·장시간 실행은 미수행입니다.

@@ -114,7 +114,7 @@
 
 실행 전 등록 후 내부 값 codec74개·빌드 통과, 교체 descriptor/ID 호환 보완 후101개·manifest 영향 회귀 통과.
 보완 이후 전체 서버 빌드도 게시 통합 소스에서 통과했다. 값 codec 자체는 실제 게시·복구·삭제의 검증 권위가 아니다.
-개별 결과는 [B-04 영수증 기록](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)을 따른다.
+개별 결과는 [B-04 영수증 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)을 따른다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -129,7 +129,7 @@
 
 ## S11 B-04 실제 전환 후보
 
-실행 전 등록 후 [68개·빌드 통과](release-artifacts/v4.1.0/b04-cutover-candidate-20260925/results.md).
+실행 전 등록 후 [68개·빌드 통과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-cutover-candidate-20260925/results.md).
 caller 소유 새 stage의 비공개 후보만 생성하며 marker/manifest 게시·복구는 후속이다.
 
 | ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |

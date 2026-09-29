@@ -500,7 +500,7 @@ S11 마감과 푸시는 보류했다. 제품 코드는 이번 작업에서 변�
 | --- | --- | --- | --- |
 | 브랜치·버전 | `v4.1.0`·`4.1.0` | 일치 | `git branch --show-current`, `VERSION`, `CMakeLists.txt:3` |
 | 커밋·원격 | S11 성공 범위만 커밋, 푸시 전 clean·gate | HEAD `4fc1b768`, upstream 대비 ahead 3/behind 0, 실패·잔여 기록 6파일 미커밋 | `git log -4`, `git status`, `git rev-list --left-right --count HEAD...@{upstream}` |
-| 단기 gate | 현재 코드 build·인증·미디어·문서 | B09-F01 당시 통과; 이번 최종 소스의 주석 외 제품 변경 없음 | [B09 결과](../b09-final-short-20260926/results.md), [30분 결과](results.md) |
+| 단기 gate | 현재 코드 build·인증·미디어·문서 | B09-F01 당시 통과; 이번 최종 소스의 주석 외 제품 변경 없음 | [B09 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b09-final-short-20260926/results.md), [30분 결과](results.md) |
 | 30분 | 실제 30분과 정리 | 2,437초·20회·109 PASS/0 FAIL, 외부 TURN 1건 제외 | [전수](predev-30-items.md), [원출력](predev-30.log.gz) |
 | 실제 UI | 현재 버전 424+녹화 8 ID·31 action | 공통 424/424 적격; 녹화 31 action은 부분 관측 뒤 탭 충돌 | [공통 전수](ui-baseline-items.md), [녹화 시도](recording-ui-attempt.md) |
 | 120분 | 녹화 전용·자원 증거 | 이번 미실행; 과거 공통 120분은 이전 바이너리·녹화 비활성 범위 | [과거 공통 결과](../s11-recording-ui-20260923/common-120-pass.md) |
@@ -509,7 +509,7 @@ S11 마감과 푸시는 보류했다. 제품 코드는 이번 작업에서 변�
 
 | roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
 | --- | --- | --- | --- | --- |
-| S10 | 제품 코드 고정·증거 연결 이력 | B09 단기 PASS 기록과 현재 버전 확인; 이번 턴 제품 변경 없음 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [B09](../b09-final-short-20260926/results.md) |
+| S10 | 제품 코드 고정·증거 연결 이력 | B09 단기 PASS 기록과 현재 버전 확인; 이번 턴 제품 변경 없음 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [B09](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b09-final-short-20260926/results.md) |
 | S11 30분 | PASS | 실제 109/109 실행 PASS | 없음 | [결과](results.md) |
 | S11 UI | 공통 PASS·녹화 미완료 | 공통 424 PASS, 녹화 탭 충돌·전체 미완료 | 없음 | [결과](results.md), [실패](recording-ui-attempt.md) |
 | S11 120분·릴리즈 | 미완료 | 이번 녹화 120분 미실행, 외부 release action 미승인 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [결과](results.md) |

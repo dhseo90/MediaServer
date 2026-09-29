@@ -1,5 +1,0 @@
-[pass] J01 실제 선택→compact 내구 job 계약 왕복
-[detail] error=
-[summary] pass=1 fail=0
-[cleanup] path=<owned-temp>/media-server-derived-jobs.egYFkT bytes=3605944 removed=true
-[elapsed] seconds=5 source=bash-SECONDS

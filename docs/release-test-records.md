@@ -552,8 +552,8 @@ L01 녹화120분은 이후 약18분48초에 관측 native3초 시간초과로 �
 
 현재 판정: 작은1/16/32와 큰1,020/2,049 누적 수치 검사는 exit0이다. 이전snapshot131,857,206B
 잔존과 잠금진단 손실을 확인해8번 전체는 미완료다. 실제 HTTP/5단계 통합·9번은 미실행으로 보류했다.
-[실행·개별 결과·원인·정리](release-artifacts/v4.1.0/b07-scale-integration-20260925/results.md)와
-[요청1~9 대조·릴리즈 잔여 전수](release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)를 따른다.
+[실행·개별 결과·원인·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b07-scale-integration-20260925/results.md)와
+[요청1~9 대조·릴리즈 잔여 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b07-scale-integration-20260925/readiness.md)를 따른다.
 완료된 진단 단위만 커밋 대상으로 삼으며 안전한 snapshot 회수 계약의 범위 판단 전 제품 삭제를 추가하지 않는다.
 
 원래8번이다.7번7b62c8ea 이후 실제 B RuntimeStorage를 대상으로 비용·안전성·HTTP를
@@ -590,8 +590,8 @@ L01 녹화120분은 이후 약18분48초에 관측 native3초 시간초과로 �
 이 표는 실행 전 정의이며 아직 결과가 아니다. 30분·실제 UI·120분은 별도 실행 승인과
 최종 변경 영향 판정 대상이다. 외부 서비스·실기기는 사용자 지시로 제외하며 PASS가 아니다.
 
-회수 구현 단위의 실제 결과는 [B-08 집중 결과](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
-[최종 유효 집중 621개 개별 행](release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/items.md)에 보존한다.
+회수 구현 단위의 실제 결과는 [B-08 집중 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/results.md)와
+[최종 유효 집중 621개 개별 행](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-snapshot-retirement-20260925/items.md)에 보존한다.
 B08-R01/R02 집중 검사와 관련 build·runtime·consumer는 통과했으나, 최초 RED·
 SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B08-H01은 첫
 격리 준비 실패 뒤 같은 단기 검사를 권한 조정 환경에서 통과했다. B08-I01은
@@ -601,26 +601,26 @@ SQL fixture·테스트 빌드 실패 이력은 같은 결과표에 남겼다. B0
 통과했고, 최종 실제 통합 재실행도 35+40+10+46+27개로 통과했다.
 두 기동의 각각 새 출력2개·HTTP/파일 hash·기존 출력 보존·정리를 확인했으며,
 timeline 114회 최대 3,717ms는 기존 4초 미만이다.
-[실패 이력·27개 개별 결과·원출력](release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)을
+[실패 이력·27개 개별 결과·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)을
 따른다. B09-F01은 미실행이며 30분·장시간/UI PASS가 아니다.
 
 B08-C01 회수 후 누적 검사는 1/16/32와 1,020/2,049개에서 exit0이다.
 각 checkpoint의 현재 snapshot은 정확히 1개였고 삭제 큰 입력의 최종
 snapshot은 7,027,713B, 전체 저장소는 59,925,722B였다. trace tail 64행과
 독립 완료 구간 집계, 실제 파일·삭제·재개방·상한을 확인했다.
-[원출력·최초 RED·조건·한계·정리](release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md)를 따른다.
+[원출력·최초 RED·조건·한계·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-scale-after-retirement-20260925/results.md)를 따른다.
 관측 호출 간격을 줄였으므로 전체 실행시간을 제품 성능 개선으로 해석하지 않는다.
 실제 JS/HTTP 단기는 위 B08-H01 범위에서 실행했고, 5단계 통합은 B08-I01에서
 최종 통과했다. B09-F01은 아직 미실행이다.
 B08-Q01~Q04의 첫 예상 RED는 전체 archive 읽기 2회였고, 최종 집중 검사는
-네 구성 52/52 PASS·fixture 정리 PASS다. [개별 52행](release-artifacts/v4.1.0/b08-actual-app-20260925/request-proof-items.md)과
-[준비 오류·재검증 이력](release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)을
+네 구성 52/52 PASS·fixture 정리 PASS다. [개별 52행](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-actual-app-20260925/request-proof-items.md)과
+[준비 오류·재검증 이력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)을
 보존한다. 이는 실제 앱 통합의 4초 판정을 대체하지 않는다.
 
 B09-F01 최종 단기는 현재 소스 빌드·격리 인증19/72/146·GStreamer 환경20·
 인벤토리986·기능 커버리지986·버전18·close-out dry-run6·문서 자산10을
 확인했다. 최초 인증 UDP 준비 실패와 인벤토리 hash drift 17/1, 독립 증적
-음성 반례 전수 중단은 [B09 실행 기록](release-artifacts/v4.1.0/b09-final-short-20260926/results.md)에
+음성 반례 전수 중단은 [B09 실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b09-final-short-20260926/results.md)에
 분리 보존한다. 문서 링크0오류·스크립트12/12·공백·소유 임시자료 정리도 통과해
 현재 B09-F01 단기 gate와 B안 개발1~9의 로컬 코드 고정은 완료했다.
 30분·실제 UI·120분·외부 릴리즈 동작은 이번 단기 PASS가 아니다.
@@ -671,7 +671,7 @@ I30 일시정지·탐색과 I31~I34, 전체 432개 적격은 미완료다. 인�
 
 ## B-06 현행 검증 연결 실행 전 정의 (2026-09-25)
 
-현재 결과: 검증기 연결과 관련 단기를 마쳤다. [개별 결과·실패·소비자 감사·정리](release-artifacts/v4.1.0/b06-verifier-connection-20260925/results.md).
+현재 결과: 검증기 연결과 관련 단기를 마쳤다. [개별 결과·실패·소비자 감사·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b06-verifier-connection-20260925/results.md).
 실제 서버 통합·누적 자원·장시간/UI의 완료를 뜻하지 않는다.
 
 원래7번이다. B 기본 구성 뒤에도 구형 고정 파일을 읽는 검사만 보완한다.
@@ -711,7 +711,7 @@ V03의 실제 writer/삭제/봉인 자료, 최초 busy 뒤 형식 소실,128행 
 
 ## B-05 기본 구성 연결 실행 전 정의 (2026-09-25)
 
-현재 단위의 [범위·실패·개별 결과 기록](release-artifacts/v4.1.0/b05-consumers-runtime-20260925/results.md)을 연결한다.
+현재 단위의 [범위·실패·개별 결과 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b05-consumers-runtime-20260925/results.md)을 연결한다.
 
 실행 결과: 소비자 집중118·관련 회귀670·runtime33·실제 기본 구성46, 합계867개와
 최종 제품 빌드가 통과했다. 최초 fixture compile 실패와 예상 RED는 위 기록에 보존한다.
@@ -796,7 +796,7 @@ token start/end/consumed의 계측 source는 없어 미집계다. 임시 실행 
 최종 scratch 59/59(Z01 13/Z02 11/Z03 18+기존 Y17), projection 30/30, 기존 Catalog 249개,
 B Journal 78개와 전체 build가 각각 exit0이다. 메인이 diff와 원출력을 직접 대조했다.
 준비 경로·컴파일·opt-in 누락·명령 오타와 실제 예상 RED를 구분해 전부 보존했다.
-[명령·개별 416개 결과·원출력·정리](release-artifacts/v4.1.0/b02-cut-equivalence-20260925/results.md)를 따른다.
+[명령·개별 416개 결과·원출력·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-cut-equivalence-20260925/results.md)를 따른다.
 원본 로그 이관 전 한 번의 출력 취득이 도구 출력 길이 상한으로 잘렸으며, 이를 증거로 쓰지 않고
 로컬 원파일의 hash·전수 결과 행·cleanup을 크기 제한 안에서 별도로 읽었다. 검증 실행 실패는 아니다.
 공개 B Catalog Open·SQLite·Append·Checkpoint, 누적·실제 앱·최종 검증은 이 단위의 PASS 범위가 아니다.
@@ -830,7 +830,7 @@ B Journal 78개와 전체 build가 각각 exit0이다. 메인이 diff와 원출�
 예외 없는 map 교체로 공개한다. Open 불가만 fallback이며 SQL 전이 실패는 실패로 유지한다.
 늦은 cold 손상 뒤 조회·같은 인스턴스 Open도 차단한다. v1 캐시·미디어·cleanup marker는 보존한다.
 내구 쓰기·예약·checkpoint·writer·전환·실제 앱 연결은 미구현/미실행이며 후속 범위다.
-[492개 최종 assertion·최초 실패·원출력·정리 전수](release-artifacts/v4.1.0/b02-public-read-20260925/results.md)를 보존했다.
+[492개 최종 assertion·최초 실패·원출력·정리 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-public-read-20260925/results.md)를 보존했다.
 임시 원출력 11개와 중복 비압축 빌드/Catalog 로그 2개는 압축 해제 byte 일치·소유 확인 후 삭제하고 부재를 확인했다.
 
 ### B-03 내구 기록 전 검증 실행 전 정의
@@ -865,7 +865,7 @@ typed 상태·ID·revision·hold·원장/SQL 불변, 기존 수용·손상 poiso
 빈 managed store의 다른 store 예약 반례를 추가하고 기존 store 결박으로 보완했다.
 최종 focused510·scratch59·공개읽기106·Journal78·Catalog249·파생작업23(총1,025개)과
 전체 빌드가 exit0이다. 초기 fixture 오류와 예상 RED는 구분해 보존했다.
-[개별 결과·원출력·한계·정리](release-artifacts/v4.1.0/b03-preappend-20260925/results.md)를 따른다.
+[개별 결과·원출력·한계·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b03-preappend-20260925/results.md)를 따른다.
 B 내구 append·예약·checkpoint는 여전히 차단하며 실제 쓰기 완료로 판정하지 않는다.
 
 ### B-03 증분 쓰기 실행 전 정의
@@ -897,7 +897,7 @@ source·cleanup·전수 assertion을 대조한다. 실제 앱·UI·30분·120분
 영향 회귀966개와 전체 빌드가 각각 exit0이다. 메인이 제품 diff·실제 SQL 오류 반례·
 최종 source30개 hash 불변·원출력·fixture13개 부재를 직접 대조했다.
 SQL 오류 뒤 빠른 성공 반환 결함을 B 권위 선검사로 수정했고 fixture 준비 오류와 구분해 보존했다.
-[개별 결과·실패 이력·원출력·정리](release-artifacts/v4.1.0/b03-append-20260925/results.md)를 따른다.
+[개별 결과·실패 이력·원출력·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b03-append-20260925/results.md)를 따른다.
 기본 read-only·v1·서버 구성은 유지하며 B checkpoint·cutover·실제 소비자 연결은 아직 완료하지 않았다.
 
 ### B-03 세대 회전 실행 전 정의
@@ -928,7 +928,7 @@ Journal78·Catalog249·파생작업23(합계1,463 assertion)과 최종 제품 �
 회전의 과거 상세 읽기/파싱은0, 현재 증분 직렬화는1이었다. 누적 자원 판정은 아직 아니다.
 실제 SQLite UPDATE/COMMIT 실패·cleanup 중 동일 inode 변조·미완결 tail 반례를 포함했다.
 runner 준비 실패와 예상 RED, 리뷰 후 테스트 보강 이력을 구분해
-[원출력·개별 결과·정리 전수](release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)에 보존한다.
+[원출력·개별 결과·정리 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b03-checkpoint-20260925/results.md)에 보존한다.
 기존 자료 전환·중단 복구·실제 소비자·기본 활성화·최종 검증은 뒤 단계다.
 
 ### B-04 원문 전환 준비 실행 전 정의
@@ -956,7 +956,7 @@ assertion만 예상 RED로 지정한다. 컴파일·준비 실패는 RED가 아�
 plain outer 표현과 압축 wrapper·receipt 의미·재시도 순서를 보존하며, 전체 SHA·전후 stat
 일치 뒤에만 summary를 반환한다. 중간 callback 일부 전달을 완료로 취급하지 않는다.
 초기 예상 RED와 crypto-off 테스트 컴파일 오류를 구분해
-[원출력·개별 결과·정리](release-artifacts/v4.1.0/b04-cutover-input-20260925/results.md)에 보존한다.
+[원출력·개별 결과·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-cutover-input-20260925/results.md)에 보존한다.
 기존 Journal/Catalog 4파일은54eaba09와 같아 이전 Journal78/Catalog249를 유지하고 재실행하지 않았다.
 전환 후보의 domain·소유 동등성, marker·manifest 게시·중단 복구와 실제 소비자는 아직 후속이다.
 
@@ -986,7 +986,7 @@ UI·30분·120분은 이 세션의 PASS로 대체하지 않는다.
 
 최종 세션46, snapshot 경계8+회전123, Journal78, Catalog249, B append219, 공개읽기106의
 829개 assertion과 전체 build가 exit0이다. 최초 stub RED와 반례 보강39→44→46 이력을
-[전체 원출력·개별 결과·정리](release-artifacts/v4.1.0/b04-cutover-session-20260925/results.md)에 보존한다.
+[전체 원출력·개별 결과·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-cutover-session-20260925/results.md)에 보존한다.
 메인은 diff·고정 source hash·전수 출력·fixture 부재를 직접 대조했다. 기존 Catalog Open과
 SQLite·미디어·cleanup marker를 건드리지 않는 private 세션이며 공개 snapshot 권한은 유지했다.
 원문2회 streaming·행 logical identity/range/ref·whole SHA/stat 검증의 한계를 명시했고,
@@ -1015,7 +1015,7 @@ focused는 `bash scripts/internal/verify_recording_cutover_candidate.sh`다. 예
 정상 기존 원장 거부 assertion이며 빌드/준비 실패는 별도다. 후보/관련 저장 회귀·전체 build만
 이 단위에서 실행하고 실제 서버·장시간·UI는 후보 PASS로 대체하지 않는다.
 
-후보 생성은 [최종68개·전체 빌드 통과](release-artifacts/v4.1.0/b04-cutover-candidate-20260925/results.md)다.
+후보 생성은 [최종68개·전체 빌드 통과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-cutover-candidate-20260925/results.md)다.
 원본 보존·16종 현재 값·65조각·Ready/Committed·inactive cold·손상/소유 결박을 확인했다.
 준비 경로/fixture 순서의 최초 실패, source 변경 중 실행한 증거 제외, 메인 inode 리뷰 보완을 보존한다.
 이 당시에는 실제 형식 게시·중단 복구를 실행하지 않았으며 후속 결과는 아래 절을 따른다.
@@ -1048,7 +1048,7 @@ T02/T03은 receipt 두 고정 경로 nlink2 및 marker 원본 inode 복원, 준�
 rollback-only 정리로만 허용하며 B 게시 PASS로 쓰지 않는다. T04의 다른 inode/hash·nlink3·
 unknown/stat 오류는 계속 보존·거부한다. 개별 subcase는 runner 원출력에 남긴다.
 
-게시·복구 구현의 [실행 기록](release-artifacts/v4.1.0/b04-generation-transaction-20260925/results.md)에
+게시·복구 구현의 [실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-generation-transaction-20260925/results.md)에
 최초 stub RED·컴파일/fixture 오류·stage lock 제품 결함 및 최종165개 통과를 구분해 보존한다.
 checkpoint133·후보68·세션46·공개읽기106·append219·preappend510·Journal78·기존Catalog249와
 전체 빌드가 통과했다. 합계1,574 assertion이며 실제 앱·누적 비용·최종 검증은 이 결과가 아니다.
@@ -1078,7 +1078,7 @@ PREPARED/PUBLISH_INTENT는 진행 단계이지 검증 성공 권위가 아니다
 집중 명령은 `bash scripts/internal/verify_recording_generation_receipt.sh`이며 stub의 정상 값
 직렬화 거부만 예상 RED다. 실제 marker·manifest·원장·사용자 자료는 사용하지 않는다.
 
-게시 영수증 값 codec은 [최종74개·전체 빌드 통과](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)다.
+게시 영수증 값 codec은 [최종74개·전체 빌드 통과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)다.
 최초 stub RED1건과 중간69개를 보존한다. source/target/소유 descriptor의 값 검사일 뿐
 실제 파일 게시·삭제·중단 복구의 권위가 아니다. 후보 생성은 위68개로 확인했고 실제 전환 통합은 진행 중이다.
 
@@ -1094,7 +1094,7 @@ PREPARED/PUBLISH_INTENT는 진행 단계이지 검증 성공 권위가 아니다
 
 R07 descriptor 소실 RED(72 PASS/1 FAIL)→93 PASS, 관계 반례 독립 보완 후93 PASS,
 R08 기존 ID 거부 RED(98 PASS/1 FAIL)→최종101 PASS다. manifest 영향 회귀16그룹/113 assertions도
-통과했다. [보완 원출력·개별 결과·한계](release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)를
+통과했다. [보완 원출력·개별 결과·한계](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b04-generation-receipt-20260925/results.md)를
 보존하며 전체 서버 재빌드는 게시 통합 고정 뒤 실행한다. 실제 게시·복구 PASS는 아니다.
 
 | 단계 | 실행 상태 | 현재 판정·다음 조건 |
@@ -1290,8 +1290,8 @@ JSONL bytes와 합성 locator의 원문을 byte 단위로 대조하고, source�
 store의 안전한 cutover를 통과시킨 것이 아니다.**
 
 첫 두 실행은 각각 관리 root 미생성, 관리 SQLite 고정 경로 불일치로 새 assertion 전에
-중단됐다. [첫 원출력](release-artifacts/v4.1.0/b02-catalog-export-20260925/b02-p02-catalog-focused.log.gz),
-[두 번째 원출력](release-artifacts/v4.1.0/b02-catalog-export-20260925/b02-p02-catalog-focused-retry.log.gz)의
+중단됐다. [첫 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-catalog-export-20260925/b02-p02-catalog-focused.log.gz),
+[두 번째 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-catalog-export-20260925/b02-p02-catalog-focused-retry.log.gz)의
 exit는 모두 1, 기존 236건 pass·새 setup 1건 fail, 임시 root 제거는 true다.
 메인이 fixture 전체 경로를 재검토해 `/tmp` symlink 대신 정규 root와 고정 SQLite 경로를
 사용했다. 그 뒤 실제 bound 경로 거부가 확인되어 fixture 절대 경로를 정규화했다.
@@ -1301,7 +1301,7 @@ exit는 모두 1, 기존 236건 pass·새 setup 1건 fail, 임시 root 제거는
 못했으므로 해당 실행을 PASS 근거로 사용하지 않는다. 각 실패 runner의 정리는
 `removed=true`였다.
 
-[최종 원출력](release-artifacts/v4.1.0/b02-catalog-export-20260925/final-focused.log.gz)은
+[최종 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-catalog-export-20260925/final-focused.log.gz)은
 `./server.sh verify-v410-recording-catalog` exit 0, 제품 237/237, crypto-off 3/3,
 정적 연결 10/10, root 28,663,906바이트 정리 `removed=true`다. SHA-256은
 `05d09b10d76d5a4cdc82976de2eecc11d4a21069e34eefe672175c08e6c3f926`(압축 해제 원문)이다.
@@ -1384,7 +1384,7 @@ active 적용·세대 게시·v1 전환은 뒤 단계로 남긴다.
 
 ### B-02 snapshot domain 임시 복원 실제 결과
 
-2026-09-25 최종 공개 dispatch `./server.sh verify-v410-recording-generation-projection`는 exit 0으로 아래 29개 독립 assertion을 모두 통과했다. [전체 원출력](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-6c133438e01ab3fd.txt)에는 source hash·시각·개별 판정·7,391,722바이트 임시 자료 삭제가 있다. 임시 투영을 구성한 focused 결과이지 실제 B Open, active 적용, SQLite 또는 전환 PASS가 아니다.
+2026-09-25 최종 공개 dispatch `./server.sh verify-v410-recording-generation-projection`는 exit 0으로 아래 29개 독립 assertion을 모두 통과했다. [전체 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-6c133438e01ab3fd.txt)에는 source hash·시각·개별 판정·7,391,722바이트 임시 자료 삭제가 있다. 임시 투영을 구성한 focused 결과이지 실제 B Open, active 적용, SQLite 또는 전환 PASS가 아니다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -1420,7 +1420,7 @@ active 적용·세대 게시·v1 전환은 뒤 단계로 남긴다.
 
 X05 연결: `./server.sh build` exit 0, 공개 dispatch exit 0·29/29, `./server.sh verify-v410-recording-catalog` 237/237 및 crypto-off 3/3·정리 완료, `./server.sh verify-script-inventory` 12/12, `./server.sh verify-project-inventory` 18/18·기능 986개 정합, 문서 링크 328개 문서/12,805개 로컬 링크/오류 0, 문서 자산 10/10, `git diff --check` exit 0. 토큰 start/end/consumed는 계측 source가 없어 미집계이며 elapsed는 공개 focused 약 11초다.
 
-첫 세 번의 실패는 각각 runner 소스 경로 오타(제품 미실행), 미존재 함수 호출로 인한 신규 코드 컴파일 실패(제품 assertion 미실행), V2 locator fixture의 기존 domain 조건 위반(X01 FAIL)이다. 네 번째 그룹 출력과 보강 뒤 내부 집중 결과도 보존했다. 이력을 예상 RED나 제품 회귀로 바꾸지 않았다. [첫 실패](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-f6667115a57458f2.txt) · [두 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-43d5044bb5c6711e.txt) · [세 번째 실패](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-639833075d229dbc.txt) · [네 번째 결과](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-e6555bc93bb6cd75.txt) · [보강 결과](release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-d05107a83b85f683.txt). 공개 dispatch를 처음 연결한 정적 inventory는 실행 권한 누락으로 11 PASS/1 FAIL이었고 실행 bit 보정 뒤 같은 검사 12/12로 통과했다. 해당 실패도 완료 이력에서 삭제하지 않는다.
+첫 세 번의 실패는 각각 runner 소스 경로 오타(제품 미실행), 미존재 함수 호출로 인한 신규 코드 컴파일 실패(제품 assertion 미실행), V2 locator fixture의 기존 domain 조건 위반(X01 FAIL)이다. 네 번째 그룹 출력과 보강 뒤 내부 집중 결과도 보존했다. 이력을 예상 RED나 제품 회귀로 바꾸지 않았다. [첫 실패](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-f6667115a57458f2.txt) · [두 번째 실패](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-43d5044bb5c6711e.txt) · [세 번째 실패](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-639833075d229dbc.txt) · [네 번째 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-e6555bc93bb6cd75.txt) · [보강 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-projection-20260925/public-evidence-d05107a83b85f683.txt). 공개 dispatch를 처음 연결한 정적 inventory는 실행 권한 누락으로 11 PASS/1 FAIL이었고 실행 bit 보정 뒤 같은 검사 12/12로 통과했다. 해당 실패도 완료 이력에서 삭제하지 않는다.
 
 ### B-02 Journal B read-only 권위 연결 실행 전 정의
 
@@ -1472,7 +1472,7 @@ exit 0, Y01 4건·Y02 8건·Y03 3건·Y04 2건으로 17/17 PASS다. 암호화·b
 지원 조합 세 가지를 실행했고, 제품 `./server.sh build` exit 0, 기존
 `verify-v410-recording-catalog` 249/249, B Journal 78/78, 프로젝트 인벤토리
 18/18·기존 기능 행 986개를 확인했다. 원출력·source hash·실패 이력은
-[B02-Y 실행 자료](release-artifacts/v4.1.0/b02-catalog-scratch-20260925/README.md)에 있다.
+[B02-Y 실행 자료](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-catalog-scratch-20260925/README.md)에 있다.
 메인 diff 검토에서 활성 작업이 보호하는 source 상세를 비활성처럼 해제하는 계약 위반을
 발견했다. Y03 oracle를 먼저 고쳐 예상 RED exit 1을 확인한 뒤, 활성 source만 검증된
 resident로 유지하고 비활성만 해제하도록 수정했다. 이후 focused 17/17, 빌드,
@@ -1528,7 +1528,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 
 ### B-02 Journal B 읽기 권위 집중 검증 결과
 
-2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-d56f2b95a6a7116c.txt)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
+2026-09-25 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 경로 exit 0, J04 9건·J05 18건·J06 13건으로 40/40개 개별 판정이 통과했다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 각각 빌드·실행했다. 최종 원출력 SHA-256 `4cc465576b42a351bea41561accbb98b5d7024ea7b6e6e2fbe48469fae4f36fd`는 [최종 공개 실행 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-d56f2b95a6a7116c.txt)에 보존했다. 시작·종료는 로그의 UTC 03:06:04~03:06:22, 약 18초이며 소유 격리 root 11,355,541바이트를 삭제해 `removed=true`로 확인했다. 토큰 시작·끝·소비량은 계측 source가 없어 미집계다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1573,9 +1573,9 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 | B02-J06 v1 checkpoint remains available | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 checkpoint remains available` |
 | B02-J06 v1 reopen unchanged | 공개 집중 검증에서 해당 제어·반례의 실제 판정 확인 | pass | 원출력의 `v1 reopen unchanged` |
 
-첫 실행은 crypto-on B·v1 일부 검사 뒤 crypto-off 컴파일의 미사용 함수 `-Werror`로 exit 1이었다. 예상 RED나 B 기능 PASS로 보지 않는다. [첫 실패 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-e6943c3aa9c06665.txt)을 보존했고 소유 root 4,157,460바이트를 삭제했다. 미사용 경계를 보정한 두 번째 집중 실행은 36/36 exit 0이며 [원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-5dca9e2ce7c526a9.txt), 소유 root 11,348,777바이트 정리 기록을 보존했다. 메인 검토에서 B `path()`의 레거시 경로 오인과 누락 marker/manifest·cut 반례를 보완한 뒤 [첫 공개 40/40](release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-568fccd002bb317c.txt)을 확인했다. 검증 스크립트의 부정확한 주석만 바로잡은 후 같은 40/40을 최종 소스에서 한 번 더 확인했다.
+첫 실행은 crypto-on B·v1 일부 검사 뒤 crypto-off 컴파일의 미사용 함수 `-Werror`로 exit 1이었다. 예상 RED나 B 기능 PASS로 보지 않는다. [첫 실패 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-e6943c3aa9c06665.txt)을 보존했고 소유 root 4,157,460바이트를 삭제했다. 미사용 경계를 보정한 두 번째 집중 실행은 36/36 exit 0이며 [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-5dca9e2ce7c526a9.txt), 소유 root 11,348,777바이트 정리 기록을 보존했다. 메인 검토에서 B `path()`의 레거시 경로 오인과 누락 marker/manifest·cut 반례를 보완한 뒤 [첫 공개 40/40](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-readonly-20260925/public-evidence-568fccd002bb317c.txt)을 확인했다. 검증 스크립트의 부정확한 주석만 바로잡은 후 같은 40/40을 최종 소스에서 한 번 더 확인했다.
 
-영향 확인: `./server.sh build` exit 0; `./server.sh verify-v410-recording-catalog` exit 0·기존 `[pass]` 249행·임시 root 28,671,794바이트 삭제([압축 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/v1-catalog-regression.log.gz), 압축 해제 SHA-256 `3864537d90d9d1e31e51444bce2c071d18ee25b0ff151ccc76ddb7714d561e3e`); `./server.sh verify-script-inventory` 12/12; `./server.sh verify-project-inventory` 18/18·기능 986행([압축 원출력](release-artifacts/v4.1.0/b02-journal-readonly-20260925/project-inventory.log.gz), 압축 해제 SHA-256 `24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00`); `./server.sh verify-docs-links` 문서 328/로컬 링크 12,809/오류 0, `./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit 0. 이는 기존 v1 영향 및 B 읽기 경계에 대한 결과이지 Catalog B Open·active 적용·Append·SQLite·세대 게시 또는 RAM 비용 판정이 아니다.
+영향 확인: `./server.sh build` exit 0; `./server.sh verify-v410-recording-catalog` exit 0·기존 `[pass]` 249행·임시 root 28,671,794바이트 삭제([압축 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-readonly-20260925/v1-catalog-regression.log.gz), 압축 해제 SHA-256 `3864537d90d9d1e31e51444bce2c071d18ee25b0ff151ccc76ddb7714d561e3e`); `./server.sh verify-script-inventory` 12/12; `./server.sh verify-project-inventory` 18/18·기능 986행([압축 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-readonly-20260925/project-inventory.log.gz), 압축 해제 SHA-256 `24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00`); `./server.sh verify-docs-links` 문서 328/로컬 링크 12,809/오류 0, `./server.sh verify-docs-ui-assets` 10/10, `git diff --check` exit 0. 이는 기존 v1 영향 및 B 읽기 경계에 대한 결과이지 Catalog B Open·active 적용·Append·SQLite·세대 게시 또는 RAM 비용 판정이 아니다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
@@ -1585,7 +1585,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 
 ### B-02 Journal 활성 ID·예약 인덱스 집중 검증 결과
 
-2026-09-25 최종 소스에서 `./server.sh verify-v410-recording-journal-generation-readonly` exit 0. J04 9건·J05 18건·J06 13건·J08 7건·J09 15건, 총 62/62개 개별 판정이다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off 실행을 포함한다. [공개 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-9d647e33f18e936d.txt) SHA-256 `54cba47098ac88b3a1cf741dfb80f820e1ca726e5b3719ab35103f3480dd643a`; UTC 03:19:56~03:20:14, 약 18초. 이전 J04~J06 40개 개별 행은 위 표에 있고, 이번에 새로 등록한 J08~J09 22개는 아래와 같다.
+2026-09-25 최종 소스에서 `./server.sh verify-v410-recording-journal-generation-readonly` exit 0. J04 9건·J05 18건·J06 13건·J08 7건·J09 15건, 총 62/62개 개별 판정이다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off 실행을 포함한다. [공개 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-9d647e33f18e936d.txt) SHA-256 `54cba47098ac88b3a1cf741dfb80f820e1ca726e5b3719ab35103f3480dd643a`; UTC 03:19:56~03:20:14, 약 18초. 이전 J04~J06 40개 개별 행은 위 표에 있고, 이번에 새로 등록한 J08~J09 22개는 아래와 같다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1612,7 +1612,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 | B02-J08 last uint64 ordinal accepted read-only | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `last uint64 ordinal accepted read-only`; 최초 RED는 아래 이력 참조 |
 | B02-J09 ordinal overflow rejected | 기존 과거 ID·예약과 활성행의 동일 재시도/충돌·순서 판정 | pass | 공개 원출력의 `ordinal overflow rejected`; 최초 RED는 아래 이력 참조 |
 
-구현 전 예상 RED는 J09 충돌 반례 14개가 기존 B Open에서 허용돼 실패한 것으로, [RED 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-7702fea5065e54d1.txt)에 보존했다. 이것을 최종 FAIL이나 임의 제품 회귀로 바꾸지 않는다. 구현 후 [GREEN](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-0cd29e83850ae9e3.txt) 60/60, event↔receipt 과거 호환 반례를 추가한 [담당자 최종](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-bfdd147f3004023e.txt) 62/62, 메인 공개 재실행 62/62 순으로 확인했다. 기존 v1 Catalog [회귀 원출력](release-artifacts/v4.1.0/b02-journal-active-index-20260925/v1-catalog-regression.log.gz)은 exit 0·[pass] 249행·압축 해제 SHA-256 `81c25bb8404021787261d24d54e43547def5f0333707e4080f0bade6fd97be80`이다. `./server.sh build`도 exit 0. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-journal-active-index-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-f10beaa4a9d1969e.txt), `./server.sh verify-docs-links` [문서 328·링크 12,820·오류 0](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-a334d54124f2e3d7.txt), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-f31de1a161c46ac7.txt), `git diff --check` exit 0이다. 이 판정은 Journal B Open의 읽기·ID/예약 검증 경계이며 Catalog B Open, active domain 적용, SQLite, Append/예약, 세대 게시, RAM 비용의 완료 증거가 아니다. token start/end/consumed는 집계 source가 없어 미집계다.
+구현 전 예상 RED는 J09 충돌 반례 14개가 기존 B Open에서 허용돼 실패한 것으로, [RED 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-7702fea5065e54d1.txt)에 보존했다. 이것을 최종 FAIL이나 임의 제품 회귀로 바꾸지 않는다. 구현 후 [GREEN](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-0cd29e83850ae9e3.txt) 60/60, event↔receipt 과거 호환 반례를 추가한 [담당자 최종](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-bfdd147f3004023e.txt) 62/62, 메인 공개 재실행 62/62 순으로 확인했다. 기존 v1 Catalog [회귀 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/v1-catalog-regression.log.gz)은 exit 0·[pass] 249행·압축 해제 SHA-256 `81c25bb8404021787261d24d54e43547def5f0333707e4080f0bade6fd97be80`이다. `./server.sh build`도 exit 0. `./server.sh verify-project-inventory` [18/18·기능 986행](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-f10beaa4a9d1969e.txt), `./server.sh verify-docs-links` [문서 328·링크 12,820·오류 0](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-a334d54124f2e3d7.txt), `./server.sh verify-docs-ui-assets` [10/10](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-journal-active-index-20260925/public-evidence-f31de1a161c46ac7.txt), `git diff --check` exit 0이다. 이 판정은 Journal B Open의 읽기·ID/예약 검증 경계이며 Catalog B Open, active domain 적용, SQLite, Append/예약, 세대 게시, RAM 비용의 완료 증거가 아니다. token start/end/consumed는 집계 source가 없어 미집계다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
@@ -1624,7 +1624,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 
 ### B-02 Journal 복원 링크 집중 검증 결과
 
-2026-09-25 최종 소스의 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 실행은 exit 0, 기존 62개와 J10 6개·J11 10개를 합쳐 78/78개 개별 PASS였다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 모두 실행했다. [공개 원출력](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-9219f99f0567053d.txt) SHA-256 `d908e1019e33439f2bef182eeca84c0472bd10509d734c05d11934d48a847b1f`에 시작·종료·source hash·cleanup을 보존했다. 기존 J04~J09 62개 결과 행은 위 두 표에 있고 이번 신규 16개는 다음과 같다.
+2026-09-25 최종 소스의 `./server.sh verify-v410-recording-journal-generation-readonly` 공개 실행은 exit 0, 기존 62개와 J10 6개·J11 10개를 합쳐 78/78개 개별 PASS였다. crypto-on/backend-on, crypto-off/backend-on, crypto-on/backend-off를 모두 실행했다. [공개 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-9219f99f0567053d.txt) SHA-256 `d908e1019e33439f2bef182eeca84c0472bd10509d734c05d11934d48a847b1f`에 시작·종료·source hash·cleanup을 보존했다. 기존 J04~J09 62개 결과 행은 위 두 표에 있고 이번 신규 16개는 다음과 같다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -1645,7 +1645,7 @@ manifest SHA를 갱신해 재검사했다. 이전 실패를 최종 PASS로 소�
 | B02-J11 historical archive corruption preserves output | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `historical archive corruption preserves output`; 구현 전/fixture 실패 이력은 아래 참조 |
 | B02-J11 destroyed owner link rejected after reopen | B 복원 링크 원문 취득·권위·수명 반례 | pass | 공개 원출력 `destroyed owner link rejected after reopen`; 구현 전/fixture 실패 이력은 아래 참조 |
 
-구현 전 [예상 RED](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-624f4b530a4f8a91.txt)는 신규 J10/J11 두 assertion 실패·exit 1이고 기존 검사 경로는 통과했다. 첫 [GREEN](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-62e95db40abb030f.txt)은 exit 0이다. 추가 반례 fixture의 Receipt 필수 필드 누락은 [준비 실패](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-a7e63604f674f5d3.txt) exit 2로 별도 보존하고 제품 RED/PASS로 계산하지 않는다. 기존 canonical Receipt 형식으로 fixture만 수정한 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-4d69aba55098c4cd.txt), cold root를 Journal 소유 root로 바로잡은 [78/78](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-0e8e77d8acea7733.txt), 메인 공개 실행 78/78 순으로 확인했다. 제품 [빌드](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-7f2eb5b0de6fcf19.txt) exit 0, [v1 Catalog 회귀](release-artifacts/v4.1.0/b02-generation-links-20260925/v1-catalog.log.gz) exit 0·[pass] 249행·압축 해제 SHA-256 `60f5d9c739ad26a810f4e7f01e471a3f33448072f0ebe870c80088c63d31c577`, [cold mutation 단위](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-4a3732e9e8a3f4a9.txt) exit 0·C01~C04 PASS다. `./server.sh verify-project-inventory` [18/18·기능 986행](release-artifacts/v4.1.0/b02-generation-links-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-d202ac6bdce93382.txt), `./server.sh verify-docs-links` [문서 328·링크 12,833·오류 0](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-2353b8a9657e3380.txt), `./server.sh verify-docs-ui-assets` [10/10](release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-e62cff1a307e1536.txt), `git diff --check` exit 0이다. 이 링크는 Catalog B Open/Attach·active domain 적용·SQLite·쓰기와 아직 연결되지 않았고, 과거 archive 사용 시 전체 SHA 확인 비용과 RAM 상한 판정은 남는다. token start/end/consumed는 계측 source가 없어 미집계다.
+구현 전 [예상 RED](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-624f4b530a4f8a91.txt)는 신규 J10/J11 두 assertion 실패·exit 1이고 기존 검사 경로는 통과했다. 첫 [GREEN](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-62e95db40abb030f.txt)은 exit 0이다. 추가 반례 fixture의 Receipt 필수 필드 누락은 [준비 실패](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-a7e63604f674f5d3.txt) exit 2로 별도 보존하고 제품 RED/PASS로 계산하지 않는다. 기존 canonical Receipt 형식으로 fixture만 수정한 [78/78](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-4d69aba55098c4cd.txt), cold root를 Journal 소유 root로 바로잡은 [78/78](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-0e8e77d8acea7733.txt), 메인 공개 실행 78/78 순으로 확인했다. 제품 [빌드](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-7f2eb5b0de6fcf19.txt) exit 0, [v1 Catalog 회귀](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/v1-catalog.log.gz) exit 0·[pass] 249행·압축 해제 SHA-256 `60f5d9c739ad26a810f4e7f01e471a3f33448072f0ebe870c80088c63d31c577`, [cold mutation 단위](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-4a3732e9e8a3f4a9.txt) exit 0·C01~C04 PASS다. `./server.sh verify-project-inventory` [18/18·기능 986행](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/project-inventory.log.gz), `./server.sh verify-script-inventory` [12/12](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-d202ac6bdce93382.txt), `./server.sh verify-docs-links` [문서 328·링크 12,833·오류 0](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-2353b8a9657e3380.txt), `./server.sh verify-docs-ui-assets` [10/10](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-generation-links-20260925/public-evidence-e62cff1a307e1536.txt), `git diff --check` exit 0이다. 이 링크는 Catalog B Open/Attach·active domain 적용·SQLite·쓰기와 아직 연결되지 않았고, 과거 archive 사용 시 전체 SHA 확인 비용과 RAM 상한 판정은 남는다. token start/end/consumed는 계측 source가 없어 미집계다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | ---: | --- | --- | --- |
@@ -1703,7 +1703,7 @@ O_EXCL 실패는 새 파일을 만들지 않았고 도구 응답만 남았다.
 
 2026-09-25 담당자 직접 `bash scripts/internal/verify_recording_generation_cold_mutation.sh`
 exit 0, C01~C04 전부 PASS, `01:57:30Z`~`01:57:35Z`.
-[원출력](release-artifacts/v4.1.0/b02-cold-20260925/public-evidence-fc82537089b7d300.txt)은 1,541바이트,
+[원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-cold-20260925/public-evidence-fc82537089b7d300.txt)은 1,541바이트,
 SHA-256 `77d9e1d77256289f6b5bb46f5d7971e5434f9033213eda8eaf2371b70fdda784`다.
 저장소 사본과 담당자 `/private/tmp/b02-cold-focused-first.log`의 byte 일치를 확인한 뒤
 담당자 소유 원본을 삭제하고 부재를 확인했다. 첫 공개 dispatch는 runner 실행권한
@@ -1738,7 +1738,7 @@ snapshot domain 복원은 미실행이다. token start/end/consumed는 집계 so
 
 2026-09-25 active reader 최초 독립 실행은 `bash scripts/internal/verify_recording_generation_active.sh`
 exit 0, A01~A04 모두 PASS, 시작 `01:40:07Z`·종료 `01:40:12Z`였다.
-[원출력](release-artifacts/v4.1.0/b02-active-20260925/public-evidence-1db8bd1f98beb9e3.txt)은
+[원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-active-20260925/public-evidence-1db8bd1f98beb9e3.txt)은
 `6da101865346ef31da2e69e9213ac6a4918df3702d082ed2620ef3bd8f38b5e4`
 (1,485바이트)이며 저장소 사본과 담당자 임시 원본의 byte 일치를 확인했다.
 임시 원본 `/private/tmp/b02-active-focused-first.log`는 소유권·크기 확인 후 삭제해 부재를 확인했다.
@@ -1787,7 +1787,7 @@ crypto-on 10/10, crypto-off 4/4 시나리오로 통과했고 `[cleanup] removed=
 
 실행 전 T01~T03을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`
 exit0, crypto-on S01~S04·T01~T02 6/6, crypto-off S05·T03 2/2,
-cleanup `removed=true`였다. [원출력](release-artifacts/v4.1.0/b02-thin-summary-20260925/public-evidence-f882e3166083d54d.txt)은
+cleanup `removed=true`였다. [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-thin-summary-20260925/public-evidence-f882e3166083d54d.txt)은
 임시 로그와 byte 일치하며 SHA-256은
 `ef169ed4d36d9d91cb0ed7ba051eb3610696fe5787f505573e26cdfba2ec97d3`이다.
 요약 parser의 성공은 `latestMutationId`가 실제 검증된 archive 원문을 가리킨다는
@@ -1843,7 +1843,7 @@ H01~H06 exit0, `./server.sh verify-v410-recording-order-snapshot` O01~O06 exit0,
 
 처음 focused 실행은 G01/G02 모두 pass였으나 사전등록에 적힌 v2 marker 교체 반례가
 신규 G01/G02에 빠져 있었다. smoke 범위만 보완하고 같은 명령을 재실행했다. 최종 원출력은
-[focused.log.gz.b64](release-artifacts/v4.1.0/b02-format-guard-20260925/focused.log.gz.b64)에
+[focused.log.gz.b64](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-format-guard-20260925/focused.log.gz.b64)에
 gzip/base64로 보존했다. decode한 원출력의
 SHA-256은 `a1c3bc142b24b79fd4c3c1abcbe3612cc118188a2718aca02fe239e23cd28a15`,
 14,555바이트다. `./server.sh verify-v410-recording-catalog` exit0, 기본 smoke pass236/fail0,
@@ -1876,7 +1876,7 @@ token start/end/consumed는 집계 source가 없어 미집계다.
 첫 실행 뒤 I02 사전등록의 “현재 manifest와 다른 세대” 표현이 descriptor 단독 API의 입력보다
 넓은 것을 메인이 발견했다. 현재 manifest와의 대조는 후속 제품 Open의 책임으로 명확히
 정정하고 같은 focused 명령을 재실행했다. 최종 원출력은
-[focused.log](release-artifacts/v4.1.0/b02-immutable-read-20260925/public-evidence-b6385d60a0438e61.txt),
+[focused.log](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-immutable-read-20260925/public-evidence-b6385d60a0438e61.txt),
 SHA-256 `849e1c6f3ecbb010018a32b6ab3c7c888a9258d5d44a4b9af7202d985d47ddab`이다.
 `./server.sh verify-v410-recording-generation` exit0, crypto-on M01~M05+I01~I03
 8/8, crypto-off M06+I04 2/2, cleanup `removed=true`였다. byte admission·digest·
@@ -1906,7 +1906,7 @@ nofollow/inode/size/time/root 재결박과 실패 output 불변을 검사한 독
 ### B-02 불변 세대 파일 cold 구간 읽기 단위 결과
 
 I05/I06을 실행 전에 등록했다. `./server.sh verify-v410-recording-generation`은
-crypto-on 9/9, crypto-off 3/3, 실패 0, exit0이었다. [원출력](release-artifacts/v4.1.0/b02-immutable-range-20260925/public-evidence-4decb90a3b62ce71.txt)은
+crypto-on 9/9, crypto-off 3/3, 실패 0, exit0이었다. [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b02-immutable-range-20260925/public-evidence-4decb90a3b62ce71.txt)은
 임시 로그와 `cmp`로 일치하며 SHA-256은
 `39ee6b9dddadc58d696a2191383c85afec141e1683d988d08a0a748ef339d900`이다.
 전체 파일 SHA 확인을 유지하면서 지정 구간만 반환한다. 그러므로 메모리 상한은
@@ -1954,8 +1954,8 @@ exit0으로 통과했다. 두 준비 실패는 제품의 예상 RED 또는 B-02 
 | B02-D02 | `./server.sh verify-docs-ui-assets`, 개별 10/10·실패0, exit0 | pass |
 | B02-D03 | `git diff --check`, exit0·출력 없음 | pass |
 
-[검증 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/public-evidence-71febc4d2f1d2eee.txt)와
-[빌드 출력 전사](release-artifacts/v4.1.0/s11-b-generation-20260925/public-evidence-1cbc098546070db2.txt)를 보존한다.
+[검증 출력 전사](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s11-b-generation-20260925/public-evidence-71febc4d2f1d2eee.txt)와
+[빌드 출력 전사](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s11-b-generation-20260925/public-evidence-1cbc098546070db2.txt)를 보존한다.
 두 파일은 도구 응답을 전사한 것으로 직접 캡처한 raw stream이 아니다. 최초 두 실패의 raw
 stream도 저장소에 보존하지 못했다. 현재 제품의 journal·catalog는 신규 helper를 호출하지
 않으며 이 결과는 B-02 전체나 B-03~B-08 완료 증거가 아니다.
@@ -2369,7 +2369,7 @@ stage2는 **bounded focused 통과**다. build/LP15 raw미보존은 명시적 �
 시작 기준 HEAD dccd425f, v4.1.0 clean을 직접 확인했다. 제품 코드는 수정하지 않는다.
 실행 준비 중 메인 담당이 LP15 계측 wrapper 호환 보완을 별도 커밋한 HEAD 4f39b2f6을 측정 provenance로 사용한다.
 해당 호환 검사의 최초 sysctl 실패→getrusage-self 보완→기능46/46·peak179,994,624bytes·exit0·cleanup 근거는
-[LP26-O09 결과 추가기록](release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에 보존돼 있다.
+[LP26-O09 결과 추가기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에 보존돼 있다.
 
 ### LP26-O10-G01 관측 cadence 보완 실행 전 정의
 
@@ -2484,7 +2484,7 @@ strict Open zero recovery errors, cache 허용 시 두번째 originalApplied=0/�
 
 ### LP26-O09 실행 결과와 제한
 
-2026-09-23 Stage 1 진단 보완의 [개별 결과·명령·cleanup 전수표](release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에
+2026-09-23 Stage 1 진단 보완의 [개별 결과·명령·cleanup 전수표](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에
 RED32행(예상실패7 포함)·최초GREEN32행·관련focused119행·최종focused120행을 모두 보존했다.
 최종 harness76/76은 legacy script1개를 포함하므로 실제 개별 검사는120개다.
 `./server.sh build` exit0, 두 `node --check` 및 `git diff --check` exit0이다.
@@ -11342,7 +11342,7 @@ elapsed는 도구 wall time을 실제 소요로 신뢰할 수 없어 미집계(s
 
 D02 closing 묶음: D02-07의 CommittedDurable 직후 별도 프로세스 `_exit(23)`→temp/final nlink2·보호/예약 복원→runtime reconcile→물리검사 완료, CreatedBeforeReceipt 직후 `_exit(23)`→소유 미확인 blocked/producer 미시작·파일 무삭제, 파일 없는 Intent→Failed cleanup→producer 허용을 개별 검사한다. D02-08은 초기 provider의 조회 재진입 및 StopAndDrain 호출→Submit 재검사·신규 accepted 없음, 동시 같은 reference의 단일 내구 소유도 검사한다. 5.3b의 모든 fault를 반복하지 않고 새 runtime 시작/잠금 연결만 대조한다.
 
-실행 결과: 신규46 + 직접 영향 회귀478 = **524 pass / 0 fail**, 최종 제품 build exit0. 정상42개는 유효 증거를 유지하고 provider1 및 recovery-only3을 추가했다. closing full runner의 child 준비 exit134는 양수 created_at_ms 기존 계약을 위반한 fixture 오류였으며 예상 child23과 구분해 보존했다. 제품 조건을 완화하지 않고 fixture 수정 후 해당 복구 묶음만 exit0 재검증했다. [D02 보고서](release-artifacts/v4.1.0/s10-default-composition/D02-report.md)에 exact 명령/exit·실제 decoder와 synthetic recovery 증거의 구분·비차단 cache unknown 한계를, [개별 결과](release-artifacts/v4.1.0/s10-default-composition/D02-results.md)에 현재524행·historical119행·소유 임시 root19개 cleanup을 보존했다. 장시간/UI/공개 조회·전체 application 서버 end-to-end의 완료 증거가 아니다.
+실행 결과: 신규46 + 직접 영향 회귀478 = **524 pass / 0 fail**, 최종 제품 build exit0. 정상42개는 유효 증거를 유지하고 provider1 및 recovery-only3을 추가했다. closing full runner의 child 준비 exit134는 양수 created_at_ms 기존 계약을 위반한 fixture 오류였으며 예상 child23과 구분해 보존했다. 제품 조건을 완화하지 않고 fixture 수정 후 해당 복구 묶음만 exit0 재검증했다. [D02 보고서](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-default-composition/D02-report.md)에 exact 명령/exit·실제 decoder와 synthetic recovery 증거의 구분·비차단 cache unknown 한계를, [개별 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-default-composition/D02-results.md)에 현재524행·historical119행·소유 임시 root19개 cleanup을 보존했다. 장시간/UI/공개 조회·전체 application 서버 end-to-end의 완료 증거가 아니다.
 
 첫 명령 `bash scripts/internal/verify_recording_default_composition.sh`는 빈 store ID의 자동 생성 부재로 D02-01 예상 RED를 지정한다. 이후 cache/실제 composition 개별 묶음은 같은 runner에 이어 등록된 oracle로 검증한다. 외부/운영/port 서버/장시간/UI는 실행하지 않는다. 안정화 진행 대상·단기 승인, 30분/UI 미승인·미실행, 120분 S11 최종 cut 영향 대조 조건부/이번 미승인이다.
 
@@ -11364,7 +11364,7 @@ D02 closing 묶음: D02-07의 CommittedDurable 직후 별도 프로세스 `_exit
 
 명령: `bash scripts/internal/verify_recording_numeric_reference.sh`. 실행 전 예상 RED는 D01-01/04/06/07/08/09의 숫자 참조 opaque 거부다. 빌드/준비 실패는 RED가 아니다. V1 reference helper는 변경하지 않고 새 경로는 기존 opaque의 길이128/문자/경로 제약 중 숫자-only 거부만 제거한다. application 구성·공개 DTO·UI는 제외한다. build와 identity/catalog/consumer connection/reference/range/retention 직접 영향 단기 검증만 승인 범위다.
 
-실행 결과: 최종 focused 11 + identity 23 + consumer reference 19 + connection 22 + range 16 + catalog 246 + retention 24 = **361 pass / 0 fail**, 각각 exit 0. 제품 build exit 0. 최초 준비 오류 exit1/134, 예상 RED 3 pass/6 fail, 첫 GREEN 9 pass를 보존했다. [D01 보고서](release-artifacts/v4.1.0/s10-default-composition/D01-report.md)의 exact 명령/exit와 [전수 결과](release-artifacts/v4.1.0/s10-default-composition/D01-results.md)의 개별 결과·소유 임시 경로 11개 cleanup을 대조했다. 제품/CMake 구성 연결인 D02 완료 증거가 아니다.
+실행 결과: 최종 focused 11 + identity 23 + consumer reference 19 + connection 22 + range 16 + catalog 246 + retention 24 = **361 pass / 0 fail**, 각각 exit 0. 제품 build exit 0. 최초 준비 오류 exit1/134, 예상 RED 3 pass/6 fail, 첫 GREEN 9 pass를 보존했다. [D01 보고서](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-default-composition/D01-report.md)의 exact 명령/exit와 [전수 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-default-composition/D01-results.md)의 개별 결과·소유 임시 경로 11개 cleanup을 대조했다. 제품/CMake 구성 연결인 D02 완료 증거가 아니다.
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -11477,7 +11477,7 @@ E19 실행 묶음(실행 전 고정): `verify_recording_derived_selection.sh`, `
 | source fingerprint | 변경 제품/CMake/runner/fixture 22개 SHA-256 검증 전부 OK | pass |
 | 문서/diff 검사 | `./server.sh verify-docs-links`, exit 0: markdown 248/local links 3321/images 22/anchors 110/indexed 76/exclusions 162/failures 0. `git diff --check`, exit 0. 메인 최신 plan/spec 포함, 제품 717개와 별도 | pass |
 
-최종 **717개 pass / 0 fail**, historical **382행**은 [전수 결과](release-artifacts/v4.1.0/s10-derived-event-integration/results.md), 명령·exit·최초 실패/예상 RED·범위와 한계는 [보고서](release-artifacts/v4.1.0/s10-derived-event-integration/report.md), 실제 변경 파일은 [fingerprint](release-artifacts/v4.1.0/s10-derived-event-integration/public-evidence-9911ac94c9f99312.txt)에 보존했다. token start/end/consumed는 하위 작업별 계측 도구가 없어 미집계이며 elapsed는 지원 runner의 SECONDS 원출력, 미지원 runner는 미집계다. 30분/UI 미실행, 120분 조건부 진행(S11 최종 cut 영향 대조, 이번 실행 미승인), 공개 route/default 구성·3D/S11 미구현은 이번 단기 PASS에 포함하지 않는다.
+최종 **717개 pass / 0 fail**, historical **382행**은 [전수 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-event-integration/results.md), 명령·exit·최초 실패/예상 RED·범위와 한계는 [보고서](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-event-integration/report.md), 실제 변경 파일은 [fingerprint](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-event-integration/public-evidence-9911ac94c9f99312.txt)에 보존했다. token start/end/consumed는 하위 작업별 계측 도구가 없어 미집계이며 elapsed는 지원 runner의 SECONDS 원출력, 미지원 runner는 미집계다. 30분/UI 미실행, 120분 조건부 진행(S11 최종 cut 영향 대조, 이번 실행 미승인), 공개 route/default 구성·3D/S11 미구현은 이번 단기 PASS에 포함하지 않는다.
 
 ## S10 3C-5.3b 사전등록 — 2026-09-13
 
@@ -11514,91 +11514,91 @@ F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance re
 
 ## S10 3C-5.3b 실행 결과 — 2026-09-13
 
-상세 [단위 보고서](release-artifacts/v4.1.0/s10-derived-job-service/report.md), [최종 개별 429행과 cleanup19행](release-artifacts/v4.1.0/s10-derived-job-service/results.md)에 실제 명령·exit·전수 결과·실패 이력·한계를 보존했다. 최종 focused49(43+6), 기존 job23, catalog246, retention56, V2retention24, remux31 전수 PASS다. build/diffcheck exit0. 메인 docs-links exit0(markdown246/local3141/images22/anchors110/index76/exclusions160/fail0)은 제품429개와 별도다. 5.4/3D/S11·장시간/UI·커밋/푸시는 수행하지 않았다.
+상세 [단위 보고서](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/report.md), [최종 개별 429행과 cleanup19행](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/results.md)에 실제 명령·exit·전수 결과·실패 이력·한계를 보존했다. 최종 focused49(43+6), 기존 job23, catalog246, retention56, V2retention24, remux31 전수 PASS다. build/diffcheck exit0. 메인 docs-links exit0(markdown246/local3141/images22/anchors110/index76/exclusions160/fail0)은 제품429개와 별도다. 5.4/3D/S11·장시간/UI·커밋/푸시는 수행하지 않았다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| F12 실제 remux의 다른 selection 결박 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 66행 | pass |
-| F12 실제 remux provenance의 요청 범위 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 67행 | pass |
-| F12 실제 remux의 foreign unfulfilled 범위 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 68행 | pass |
-| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 69행 | pass |
-| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 73행 | pass |
-| F15 단일 service·동시 Run·외부 terminal release 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 74행 | pass |
-| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 75행 | pass |
-| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 76행 | pass |
-| F12 Complete 출처 전수 canonical roundtrip | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 77행 | pass |
-| F12 Ready 포함 Intent 잘못된 상태 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 78행 | pass |
-| F12 미지원 필드 엄격 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 79행 | pass |
-| F14 Ready JSON 4MiB 명시 상한 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 80행 | pass |
-| F12 출력 receipt inode 별칭 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 81행 | pass |
-| F03 Intent 생성 전 프로세스 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 83행 | pass |
-| F04 receipt 전 실물의 소유권 미확인 보호 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 84행 | pass |
-| F05 receipt 이후 Intent 중단 소유물 정리 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 85행 | pass |
-| F06 Ready 중단 뒤 재렌더 없이 완료 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 86행 | pass |
-| F07 첫 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 87행 | pass |
-| F07 두 번째 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 88행 | pass |
-| F08 전체 publish 후 commit 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 89행 | pass |
-| F09 원자 commit 후 cleanup 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 90행 | pass |
-| F10 첫 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 91행 | pass |
-| F10 두 번째 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 92행 | pass |
-| F10 attempt 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 93행 | pass |
-| F10 job 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 94행 | pass |
-| F10 Complete mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 95행 | pass |
-| F10 Failed cleanup attempt 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 96행 | pass |
-| F10 Failed cleanup job 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 97행 | pass |
-| F10 Failed mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 98행 | pass |
-| F11 hash 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 99행 | pass |
-| F11 missing 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 100행 | pass |
-| F11 foreign 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 101행 | pass |
-| F11 symlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 102행 | pass |
-| F11 fifo 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 103행 | pass |
-| F11 hardlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 104행 | pass |
-| F11 parent 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 105행 | pass |
-| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 106행 | pass |
-| F14 cancel 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 107행 | pass |
-| F14 small 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 108행 | pass |
-| F14 deadline 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 109행 | pass |
-| F12 SQLite projection·journal fallback job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 110행 | pass |
-| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 111행 | pass |
-| F13 Complete output tombstone 뒤 재생성 없음 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 112행 | pass |
-| F11 anchored root 교체 거부·새 catalog에서 파일/원장 무변경 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 9행 | pass |
-| F16 다른 journal/root/catalog의 Run·Reconcile 무변경 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 10행 | pass |
-| F12 실제 committed 중첩 output의 미예약 order 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 11행 | pass |
-| F15 active snapshot 8개 상한·초과 명시·다음 호출 수렴 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 12행 | pass |
-| F12 journal Ready→Complete 불법 전이 replay 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 13행 | pass |
-| F09 재개 전 source/output holds·정상 삭제사유 거부와 cleanup 후 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 14행 | pass |
+| F12 실제 remux의 다른 selection 결박 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 66행 | pass |
+| F12 실제 remux provenance의 요청 범위 위조 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 67행 | pass |
+| F12 실제 remux의 foreign unfulfilled 범위 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 68행 | pass |
+| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 69행 | pass |
+| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 73행 | pass |
+| F15 단일 service·동시 Run·외부 terminal release 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 74행 | pass |
+| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 75행 | pass |
+| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 76행 | pass |
+| F12 Complete 출처 전수 canonical roundtrip | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 77행 | pass |
+| F12 Ready 포함 Intent 잘못된 상태 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 78행 | pass |
+| F12 미지원 필드 엄격 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 79행 | pass |
+| F14 Ready JSON 4MiB 명시 상한 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 80행 | pass |
+| F12 출력 receipt inode 별칭 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 81행 | pass |
+| F03 Intent 생성 전 프로세스 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 83행 | pass |
+| F04 receipt 전 실물의 소유권 미확인 보호 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 84행 | pass |
+| F05 receipt 이후 Intent 중단 소유물 정리 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 85행 | pass |
+| F06 Ready 중단 뒤 재렌더 없이 완료 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 86행 | pass |
+| F07 첫 출력 link 중단 쌍 복구 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 87행 | pass |
+| F07 두 번째 출력 link 중단 쌍 복구 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 88행 | pass |
+| F08 전체 publish 후 commit 전 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 89행 | pass |
+| F09 원자 commit 후 cleanup 전 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 90행 | pass |
+| F10 첫 temp 삭제 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 91행 | pass |
+| F10 두 번째 temp 삭제 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 92행 | pass |
+| F10 attempt 디렉터리 삭제 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 93행 | pass |
+| F10 job 디렉터리 삭제 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 94행 | pass |
+| F10 Complete mutation 직전 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 95행 | pass |
+| F10 Failed cleanup attempt 삭제 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 96행 | pass |
+| F10 Failed cleanup job 삭제 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 97행 | pass |
+| F10 Failed mutation 직전 중단 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 98행 | pass |
+| F11 hash 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 99행 | pass |
+| F11 missing 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 100행 | pass |
+| F11 foreign 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 101행 | pass |
+| F11 symlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 102행 | pass |
+| F11 fifo 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 103행 | pass |
+| F11 hardlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 104행 | pass |
+| F11 parent 오류 거부·보호/예약 유지 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 105행 | pass |
+| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 106행 | pass |
+| F14 cancel 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 107행 | pass |
+| F14 small 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 108행 | pass |
+| F14 deadline 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 109행 | pass |
+| F12 SQLite projection·journal fallback job/output 일치 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 110행 | pass |
+| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 111행 | pass |
+| F13 Complete output tombstone 뒤 재생성 없음 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-a265f9091351b7d8.txt) 112행 | pass |
+| F11 anchored root 교체 거부·새 catalog에서 파일/원장 무변경 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 9행 | pass |
+| F16 다른 journal/root/catalog의 Run·Reconcile 무변경 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 10행 | pass |
+| F12 실제 committed 중첩 output의 미예약 order 위조 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 11행 | pass |
+| F15 active snapshot 8개 상한·초과 명시·다음 호출 수렴 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 12행 | pass |
+| F12 journal Ready→Complete 불법 전이 replay 거부 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 13행 | pass |
+| F09 재개 전 source/output holds·정상 삭제사유 거부와 cleanup 후 해제 | focused exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/public-evidence-c282db07148f6c6e.txt) 14행 | pass |
 
 최초 F01/F12/BeforeCreate 취소 예상 RED, 혼합 ABI abort134, 제품 order 필드 compile 오류, root 재조회 fixture 오류, C++17 fixture compile 오류를 보고서에 보존했으며 PASS로 소급 덮지 않았다. cleanup은 원출력에 기록된 소유 root19개를 정리하고 현재 부재를 다시 대조했다.
 
 ## S10 3C-5.3a 실행 결과 — 2026-09-13
 
-상세 source-of-truth 보존물은 [단위 보고서](release-artifacts/v4.1.0/s10-derived-jobs/report.md), [최종 개별 349행 및 cleanup20행](release-artifacts/v4.1.0/s10-derived-jobs/results.md)이다. 원출력과 각 행을 자동 대조했으며 아래는 focused 개별 결과다. Ready/실제 파일/게시/복구는 5.3b 미구현으로 남긴다.
+상세 source-of-truth 보존물은 [단위 보고서](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/report.md), [최종 개별 349행 및 cleanup20행](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/results.md)이다. 원출력과 각 행을 자동 대조했으며 아래는 focused 개별 결과다. Ready/실제 파일/게시/복구는 5.3b 미구현으로 남긴다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| J01 실제 선택→compact 내구 job 계약 왕복 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 1행 | pass |
-| J17 무관source8개 추가에도 동일선택 jobID 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 3행 | pass |
-| J18 cleanup wall시계 역행 허용·순서는상태로검사 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 4행 | pass |
-| J04 단일 Intent 원장·보호·예약 원자 가시성 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 5행 | pass |
-| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 6행 | pass |
-| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 7행 | pass |
-| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 8행 | pass |
-| J16 소유 경로·attempt·order 계획 조작 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 9행 | pass |
-| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 10행 | pass |
-| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 11행 | pass |
-| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 12행 | pass |
-| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 13행 | pass |
-| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 19행 | pass |
-| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 20행 | pass |
-| J10 checkpoint 전후 job·보호·예약 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 21행 | pass |
-| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 22행 | pass |
-| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 29행 | pass |
-| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 30행 | pass |
-| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 31행 | pass |
-| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 32행 | pass |
-| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 33행 | pass |
-| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 34행 | pass |
-| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 35행 | pass |
+| J01 실제 선택→compact 내구 job 계약 왕복 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 1행 | pass |
+| J17 무관source8개 추가에도 동일선택 jobID 유지 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 3행 | pass |
+| J18 cleanup wall시계 역행 허용·순서는상태로검사 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 4행 | pass |
+| J04 단일 Intent 원장·보호·예약 원자 가시성 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 5행 | pass |
+| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 6행 | pass |
+| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 7행 | pass |
+| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 8행 | pass |
+| J16 소유 경로·attempt·order 계획 조작 거부 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 9행 | pass |
+| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 10행 | pass |
+| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 11행 | pass |
+| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 12행 | pass |
+| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 13행 | pass |
+| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 19행 | pass |
+| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 20행 | pass |
+| J10 checkpoint 전후 job·보호·예약 유지 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 21행 | pass |
+| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 22행 | pass |
+| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 29행 | pass |
+| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 30행 | pass |
+| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 31행 | pass |
+| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 32행 | pass |
+| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 33행 | pass |
+| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 34행 | pass |
+| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | focused 명령 exit0, [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/public-evidence-71b5559d9310be45.txt) 35행 | pass |
 | catalog 영향 회귀 | 기존 catalog 234 + crypto-off3 + 정적 연결9 =246개, exit0; 전수는 위349행 표에 보존 | pass |
 | retention 영향 회귀 | 기존 56개, exit0; 전수는 위349행 표에 보존 | pass |
 | V2 retention 영향 회귀 | 실제 media22 + GStreamer-off2 =24개, exit0. 최초 B14 FAIL 및 scope 변경 compile 실패 뒤 보정 PASS; 전수/실패 이력은 보고서 | pass |
@@ -11647,82 +11647,82 @@ F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance re
 
 ## S10 3C-5.2 실행 결과 — 2026-09-13
 
-최종 R05 epoch 보완: 실제 writer 재시작의 서로 다른 두 epoch 원본3개→독립TS3개·전체요청 충족을 추가 검증했다. 최종은 [epoch-verified.log](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-a108edda77fbcd63.txt)의 focused31(취소1+media30), 아래 선택27/probe8과 합계66개다. 이전 final-evidence의30개 이력은 보존한다. 제품 코드는 검증된 latch build 이후 무변경이며 fixture만 보완했다. 추가 <set> include 누락 컴파일 오류(exit1)는 epoch-final.log에 비RED로 보존했다. 최종22개 root 부재는 cleanup-verified.log다.
+최종 R05 epoch 보완: 실제 writer 재시작의 서로 다른 두 epoch 원본3개→독립TS3개·전체요청 충족을 추가 검증했다. 최종은 [epoch-verified.log](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-a108edda77fbcd63.txt)의 focused31(취소1+media30), 아래 선택27/probe8과 합계66개다. 이전 final-evidence의30개 이력은 보존한다. 제품 코드는 검증된 latch build 이후 무변경이며 fixture만 보완했다. 추가 <set> include 누락 컴파일 오류(exit1)는 epoch-final.log에 비RED로 보존했다. 최종22개 root 부재는 cleanup-verified.log다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | S10 R05 실제 epoch 변경 원본→독립 출력 목록 | verify_recording_derived_remux.sh exit0, epoch-verified.log; 원본3/출력3·epoch2·전체충족 | pass |
 | S10 3C-5.2 문서 링크(메인 실행) | ./server.sh verify-docs-links exit0, markdown242/local links2289/images22/anchors110/indexed76/exclusions157/failures0; 메인 전달 요약, 서버/temp 없음, 제품66개와 별도 | pass |
 
-상세 범위·실패/미실행·FD 소유권·22개 root cleanup·소스 fingerprint는 [보존 보고](release-artifacts/v4.1.0/s10-derived-remux/report.md)가 담당한다. 아래 표는 epoch 추가 전 focused30(단발 취소1+media29)과 직접 선택 회귀27/기존 probe8의 개별 행이며, 위 epoch1행을 더한 최종 제품 assertion은66개다. build/diffcheck exit0. 메인 diff 검토 완료, 커밋은 메인이 수행한다.
+상세 범위·실패/미실행·FD 소유권·22개 root cleanup·소스 fingerprint는 [보존 보고](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/report.md)가 담당한다. 아래 표는 epoch 추가 전 focused30(단발 취소1+media29)과 직접 선택 회귀27/기존 probe8의 개별 행이며, 위 epoch1행을 더한 최종 제품 assertion은66개다. build/diffcheck exit0. 메인 diff 검토 완료, 커밋은 메인이 수행한다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| S10 3C-5.2 R14 단발 true→false 취소의 단조 고정 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 D22 실제 분수frame 요청 선택 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R01 실제 source-AU→TS-AU payload·decode 일치 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R11 confirmed source 누락은 생성전 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R03 분수 duration 미충족과 검증성공 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R08 양수 byte 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R08 byte 상한 초과 전 중단·partial cleanup | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R09 미지원 codec 명시 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R09 ambiguous 자동 선택 금지 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R11 중복 segment 입력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R11 reference source 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R11 reference channel 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R06 원본·출력 별칭 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R06 O_APPEND 출력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R07 원본 hash 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R13 시작 전 취소·쓰기 없음 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R13 유효 전체시간 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R10 unknown 요청 보존·partial 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R06 borrowed FD offset 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R13 출력 후 취소·partial 소유권 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R13 1ms 전체 deadline 초과는 검증성공 아님 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R07 출력 중 원본 변경 재확인 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R02 B-frame 실제 seek·nonzero 원본축 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R12 162×94 visible plane 픽셀 대응 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R05 인접 same-epoch 실제 source별 독립 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R06 output끼리 전체 inode 교차 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R06 다른 source의 원본FD를 출력으로 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R06 다른 segment의 중복 원본FD 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 R08 모든 출력 합계 byte 상한·부분 실패 목록 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
-| S10 3C-5.2 D01 callback 누적·불변 snapshot | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D02 유효0·fallback·duration/원본부재 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D04 exact union 정상 선택·파일식별 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D03 pre/post·음수요청 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D03 ns 변환 overflow 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D05 한점 외삽 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D06 namespace 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D06 generation 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D06 track 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D07 중복 PTS 모호성 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D07 복수 원본 후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D08 cap 초과범위 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D09 삭제 원본 구분 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D09 불완전 mapping을 영상공백으로 승격 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D09 epoch identity 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D11 비표현 유리수 잔차 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D12 watermark 없는 postroll 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D13 source/channel 결박 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D13 checksum 없는 원본 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D10 UTC 품질·불확실성 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D10 UTC 역행 복수후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D10 UTC unplaced 차단 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D14 정상후보가 손상후보를 숨기지 않음 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D15 queued sequence 미래제외 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D16 namespace reset 과거eviction 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D17 decoder exact duration·fallback 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 D21 namespace reset 이후 재eviction 최근작은구간 선택 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
-| S10 3C-5.2 C501 H264 실제 파일 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C502 비영점 원본 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C503 정상 segment 분할 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C504 B-frame decode preroll 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C505 비영점 B-frame 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C506 분수 frame rate 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C507 시계 역행과 미디어 시각 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
-| S10 3C-5.2 C508 PTS 초기화 epoch 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 R14 단발 true→false 취소의 단조 고정 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 D22 실제 분수frame 요청 선택 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R01 실제 source-AU→TS-AU payload·decode 일치 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 confirmed source 누락은 생성전 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R03 분수 duration 미충족과 검증성공 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R08 양수 byte 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R08 byte 상한 초과 전 중단·partial cleanup | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R09 미지원 codec 명시 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R09 ambiguous 자동 선택 금지 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 중복 segment 입력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 reference source 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R11 reference channel 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 원본·출력 별칭 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 O_APPEND 출력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R07 원본 hash 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 시작 전 취소·쓰기 없음 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 유효 전체시간 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R10 unknown 요청 보존·partial 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 borrowed FD offset 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 출력 후 취소·partial 소유권 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R13 1ms 전체 deadline 초과는 검증성공 아님 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R07 출력 중 원본 변경 재확인 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R02 B-frame 실제 seek·nonzero 원본축 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R12 162×94 visible plane 픽셀 대응 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R05 인접 same-epoch 실제 source별 독립 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 output끼리 전체 inode 교차 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 다른 source의 원본FD를 출력으로 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R06 다른 segment의 중복 원본FD 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 R08 모든 출력 합계 byte 상한·부분 실패 목록 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-06d4c8dfdfbc9ef7.txt) | pass |
+| S10 3C-5.2 D01 callback 누적·불변 snapshot | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D02 유효0·fallback·duration/원본부재 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D04 exact union 정상 선택·파일식별 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D03 pre/post·음수요청 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D03 ns 변환 overflow 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D05 한점 외삽 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D06 namespace 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D06 generation 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D06 track 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D07 중복 PTS 모호성 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D07 복수 원본 후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D08 cap 초과범위 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D09 삭제 원본 구분 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D09 불완전 mapping을 영상공백으로 승격 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D09 epoch identity 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D11 비표현 유리수 잔차 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D12 watermark 없는 postroll 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D13 source/channel 결박 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D13 checksum 없는 원본 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D10 UTC 품질·불확실성 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D10 UTC 역행 복수후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D10 UTC unplaced 차단 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D14 정상후보가 손상후보를 숨기지 않음 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D15 queued sequence 미래제외 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D16 namespace reset 과거eviction 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D17 decoder exact duration·fallback 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 D21 namespace reset 이후 재eviction 최근작은구간 선택 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-1e82db7c7ca93d20.txt) | pass |
+| S10 3C-5.2 C501 H264 실제 파일 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C502 비영점 원본 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C503 정상 segment 분할 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C504 B-frame decode preroll 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C505 비영점 B-frame 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C506 분수 frame rate 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C507 시계 역행과 미디어 시각 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
+| S10 3C-5.2 C508 PTS 초기화 epoch 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/public-evidence-f6ec754686de2cbd.txt) | pass |
 | S10 remux 최초 예상 RED | 실제 생성 미구현 not-implemented, R01 assertion 실패; remuxred.log exit1, 1PASS/1FAIL | fail |
 | S10 source 누락 예상 RED | R11 입력 없는 confirmed source의 잘못된 성공, closure-red.log exit1, 2PASS/1FAIL; 이후 검사 보완 | fail |
 | S10 reference source 예상 RED | source 불일치 거부 assertion 실패, reference-red.log exit1; 이후 보완 | fail |
@@ -11815,7 +11815,7 @@ D09 최초 fixture는 media_end=20ms에서 UTC mapping만10ms로 줄인 뒤 영�
 
 예상 RED: 선언과 미구현 stub만 있는 상태에서 D01의 실제 frame 누적 및 D04의 exact 요청 선택 assertion이 실패한다. 컴파일/환경 실패는 예상 RED가 아니다.
 실행: `bash scripts/internal/verify_recording_derived_selection.sh`. 실행 소유 root는 `mktemp`의 `media-server-derived-selection.*`이며 trap이 종류/containment/크기를 확인하고 제거한다. 비밀·서버·외부 호출 없음.
-token start/end/consumed: 자동 집계 없음(서브에이전트 tool에서 토큰 집계 미제공). elapsed는 runner의 SECONDS, source는 명령 원출력. 결과·cleanup은 [상세 기록](release-artifacts/v4.1.0/s10-derived-selection/report.md)에 보존한다.
+token start/end/consumed: 자동 집계 없음(서브에이전트 tool에서 토큰 집계 미제공). elapsed는 runner의 SECONDS, source는 명령 원출력. 결과·cleanup은 [상세 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-selection/report.md)에 보존한다.
 
 ### 3C-5.1 실행 결과
 
@@ -11830,7 +11830,7 @@ token start/end/consumed: 자동 집계 없음(서브에이전트 tool에서 토
 | build | `cmake --build build-gst-onnx -j2`, exit0, build100% | PASS |
 | cleanup | 실행 소유 root를 모두 제거하고 부재 확인 | PASS |
 
-위 묶음의 모든 개별명령/assertion/replay detail/cleanup 행과 최초 실패→정정→GREEN 이력은 [전수 결과](release-artifacts/v4.1.0/s10-derived-selection/report.md#개별-실행-결과-전수)에 저장했다. 초기 준비 경고 실패와 일부 중간 원출력 파일 미보존을 명시했고 해당 중간자료를 최종 evidence로 사용하지 않는다. 최종 실행 원출력은 전수 보존했다.
+위 묶음의 모든 개별명령/assertion/replay detail/cleanup 행과 최초 실패→정정→GREEN 이력은 [전수 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-selection/report.md#개별-실행-결과-전수)에 저장했다. 초기 준비 경고 실패와 일부 중간 원출력 파일 미보존을 명시했고 해당 중간자료를 최종 evidence로 사용하지 않는다. 최종 실행 원출력은 전수 보존했다.
 이 PASS는 내부 선택·실제 분석 전달 범위다. 파일/AU 동일성·파생 생성·내구 복구·실제bridge event→출력은 미구현이며 3C-5 전체 완료가 아니다. 30분/120분/UI/S11은 미실행이다.
 
 ## S09 잔여 변경 정리·커밋 — 2026-09-13
@@ -11873,8 +11873,8 @@ token start/end/consumed는 실행별 집계가 없어 미집계이며 elapsed/s
 LD01도44/1 예상 실패 뒤45/0 통과했다. 실패 이력과 새 통과는 별도 로그다.
 종료 수명6/0, identity23/0, UI VM7/0, proxy10/0, 준비 최초17/0 및 cleanup 기록 보완 후20/0, harness5case40check/0,
 read-model166 assertion 및 cleanup1, build exit0. 장시간/UI 전체는 이번 실행하지 않았다.
-전수 명령·개별 결과·변경 검토는 [담당 검증 기록](release-artifacts/v4.1.0/s09-closeout/tool-report.md)과
-[메인 대조·임시 정리](release-artifacts/v4.1.0/s09-closeout/main-review.md)를 따른다.
+전수 명령·개별 결과·변경 검토는 [담당 검증 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-closeout/tool-report.md)과
+[메인 대조·임시 정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-closeout/main-review.md)를 따른다.
 소유가 확인된 과거 임시 진단14파일은 최소 증거·크기·SHA를 보존한 후 삭제하고 부재 확인했다.
 역사적 화면/준비 로그41파일은 보존한다. 과거 기록의 임시 보존 예정 문구는 이 정리 결과로 종결하며 원문 이력은 지우지 않는다.
 
@@ -11911,7 +11911,7 @@ token start/end/consumed: 미집계(이 작업 단위 사용량 계측 없음); 
 실행 결과: 예상 RED reference16/3·connection18/4(exit1)는 C419~425의 기존 수락 거부에 정확히 일치했다.
 보완 후 reference19/0·connection22/0(exit0), 기존 이벤트 회귀 및 제품 build(session46438) exit0.
 실제 이벤트는 원문 요청을 보존하고 pending/clip 없음으로 유지됐다. 기존 C348 음수·역전·overflow 거부는 유지한다.
-개별 정의·결과·최초 실패·원출력·소유 임시 경로 정리는 [보완 실행 기록](release-artifacts/v4.1.0/s10-consumer-request-admission/report.md)에 보존한다.
+개별 정의·결과·최초 실패·원출력·소유 임시 경로 정리는 [보완 실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-request-admission/report.md)에 보존한다.
 기존 3C-5A 측정 증거는 writer/미디어 변경이 없어 유지한다. 이번 결과는 실제 파생 영상 생성·coverage 판정·S11 PASS가 아니다.
 
 ## S10 3C-5A 실제 파일 시간 측정 — 실행 전 정의
@@ -11925,8 +11925,8 @@ C507 `two_estimated_reverse_ranges=true`, C508 `reset_distinct=true`; exit0, ela
 소유 temp Oalgpl 4,799,554B 제거 확인. 제품 코드 변경 없음.
 B-frame의 file PTS와 stream-time 차이200ms, 분수 framerate 패킷20개의 duration 차이-1ns는 실제 관측값이다.
 시간 동일성/seek/파생 coverage/ready/hold 복구 PASS로 확대하지 않는다.
-[8개 개별 결과·12파일 요약·한계·정리](release-artifacts/v4.1.0/s10-derived-time-probe/report.md),
-[최종 패킷 전수 원출력](release-artifacts/v4.1.0/s10-derived-time-probe/public-evidence-f25316764d73bce7.txt)에 보존했다.
+[8개 개별 결과·12파일 요약·한계·정리](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-time-probe/report.md),
+[최종 패킷 전수 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-time-probe/public-evidence-f25316764d73bce7.txt)에 보존했다.
 
 3C-4 커밋 a05c15dd 이후 파생 구현을 위한 격리된 실제 파일 측정이다. 제품 코드·기존 writer 변경 없음.
 `bash scripts/internal/verify_recording_derived_time_probe.sh` 실행 승인 범위. 각 항목의 PASS는 생성/관찰 성공이지 시간 대응·파생/복구 계약의 완료가 아니다.
@@ -11959,9 +11959,9 @@ UTC 잔차 급변이면 현재 PTS에서 매핑을 닫고 새 estimated anchor�
 최종 C401~418 18/0, 참조16/결박20/correlation10/관측81와 cleanup PASS.
 기존 event 회귀는 최초 컴파일 실패 뒤 같은 명령으로 등록기35/C++158/application7/runtime23·negative2 및 기능집계27 PASS다.
 기능집계는 기존 assertion을 묶은 것이므로 개별 검사 합계에 중복 가산하지 않는다.
-제품 최종 build session44940 exit0. [범위·개별 전수표·실패·정리·SHA](release-artifacts/v4.1.0/s10-consumer-connection/report.md),
-[최종 focused](release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-ab365d6a0c8bd8dd.txt), [이벤트 재검증](release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-dae02456243ae8d9.txt),
-[제품 재빌드](release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-31a7583968d47309.txt).
+제품 최종 build session44940 exit0. [범위·개별 전수표·실패·정리·SHA](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-connection/report.md),
+[최종 focused](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-ab365d6a0c8bd8dd.txt), [이벤트 재검증](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-dae02456243ae8d9.txt),
+[제품 재빌드](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-connection/public-evidence-31a7583968d47309.txt).
 신규 내부 구간 판정은 실제 event clip/UI 우선 표시 완료가 아니다. 3C-5 파생·복구와 3D 기본 전환·S11은 미완료다.
 소유 임시 경로 정리는 각 원출력과 보고서에서 확인했으며 기존 S09 미커밋 파일은 보존했다.
 
@@ -12018,277 +12018,277 @@ token start/end/consumed는 실측 없으면 미집계, elapsed/명령/exit/전�
 계약·catalog·journal 6파일, 신규 focused/runner 2파일을 구현했다. 메인이 실제 diff에서 immutable Put·opt-in preflight·SQL projection·checkpoint 서명을 대조했다.
 최종 focused16 + source-binding20 + catalog234/crypto-off3/정적9 = **282 PASS/0 FAIL**, 모든 명령 exit0. 제품 `./server.sh build` exit0.
 전체 소비자 연결/파생 완료가 아니며 3C-4와 3C-5는 이어서 진행할 대상이다.
-[세부 oracle·실행/정리·해시](release-artifacts/v4.1.0/s10-consumer-reference/report.md), [최종 focused](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-3bbcbd374277acd3.txt), [제품 빌드](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-c5bbccb65be65392.txt).
+[세부 oracle·실행/정리·해시](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/report.md), [최종 focused](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-3bbcbd374277acd3.txt), [제품 빌드](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-c5bbccb65be65392.txt).
 최초 RED와 등록 보완 전 결과를 보존했으며 최종 기준은 등록 보완 후 session30139다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
-| Binding.log: S10-C301 결박 schema 왕복 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C302 식별·ordinal 검증 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C303 PTS 재정렬 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C304 미디어 범위·timebase | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C305 색인 상한·미색인 꼬리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C306 단일 bound mutation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C307 source·저장 identity 결박 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C308 불변·멱등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C309 소급·다운그레이드 금지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C310 정확한 원본 tuple 조회 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C311 미색인·실제 부재 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C312 복수 segment 후보 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C313 삭제·corrupt·pending 차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C314 채널·조회 오류 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C315 SQL·JSONL 재시작 동등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C316 checkpoint 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C317 손상 원장 선차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C318 예약·옵트인 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C319 기존 segment·조회 불변 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Binding.log: S10-C320 실제 finalize 수락 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
-| Catalog.log: journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: fallback catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: SQLite off mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: segment finalize journal+projection:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: fallback range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: event link FK 위반 거부 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: FK 위반 transaction/journal 전체 rollback | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 최초 durable mutation 1개 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 동일 mutation 중복 append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 손상 사이 정상 durable mutation 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 중간 corrupt line count | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 마지막 truncated line skip | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: fallback replay open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 같은 mutation idempotent replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 중복 replay row/합계 불증가 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: SQLite catalog open/rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: SQLite primary mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: SQLite on/off range query ID·순서 parity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: journal 없는 손상 media orphan 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: projection failover journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: projection failover catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 실제 SQLite INSERT 실패 trigger 설치 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: SQLite 투영 실패 뒤 journal+memory finalize 유지:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: SQLite 투영 실패 즉시 JSONL fallback 전환 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 재시작 rebuild 전 실패 trigger 제거 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 투영 실패 직후 in-memory query 정합성 유지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: projection failover 재시작 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 재시작 후 journal에서 누락 SQLite projection 복구 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 재시작 후 SQLite primary 복귀 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 재시작 journal rebuild가 실제 SQLite row 복원 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: tombstone journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: tombstone catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: tombstone 대상 segment finalize:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: tombstone 대상 deletion request:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: tombstone 완료 기록:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 손상 SQLite 격리 후 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 손상 SQLite 원본 격리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 격리 SQLite 파일 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 격리 후 journal rebuild 결과 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A arbitrary-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A empty-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A future-type writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A malformed journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-3A malformed JSON missing fields and wrong types remain corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O01 reservation journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O01 first reservation returns four IDs and sequence one | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O01 versioned reservation payload replays | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O01 new reservation records actual occurred time | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O02 identical retry preserves sequence and bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O03 reopened instance allocates next sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O03 new process resumes durable sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 different store rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 reused request with different segment rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 reused request with different channel rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 reused segment with different request rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 conflicts preserve original bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve unsupported-schema | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve unsupported-type | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-zero | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-negative | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-fraction | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve payload-overflow | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve duplicate-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve decreasing-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve duplicate-request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve duplicate-segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve store-conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve ordinary-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve ordinary-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05/O06 reject and preserve line-cap | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05 reservation entity envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05 reservation request envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O01 strict reservation parser accepts versioned literal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O06 INT64_MAX identical retry remains valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O06 sequence overflow rejected without write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O02 identical durable reservation duplicates remain idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O06 sequence gaps remain valid and allocate above maximum | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O07 four simultaneous processes finish reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O07 concurrent sequences are unique and complete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O07 next sequence follows concurrent reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O08 ordinary Append cannot reserve orders | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O08 unopened journal rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O08 null result rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O08 invalid opaque ID rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O08 failed reservation does not expose tentative result | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved inode | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved parent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O09 unsafe file binding rejected and original preserved hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O10 reservation and normal segment coexist in catalog | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 reserve then finalize permits identical retry | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O10 reservation survives catalog rebuild without changing segment query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-O04 legacy segment cannot acquire retroactive reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M06 opened catalog accepts fresh exact reservation V2 finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M07 V2 find preserves complete metadata | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M07 identical V2 recovery is idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M07 V2 is absent from V1 range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M07 V2 registered path is not orphan | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M07 SQLite exact V2 JSON and path match | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M07 JSONL restart preserves V2 exact payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected store | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected channel | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M06 wrong reservation tuple rejected sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 immutable V2 mapping mismatch rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state missing-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state conflicting-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 bad V2 startup retry preserves original state unsafe-path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 default off rejects V2 before SQLite changes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion duplicate | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion deleted | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion v1-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion v1-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion deleted-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion resurrection | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 replay namespace and deletion mutation-collision | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 finalize rejects missing media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 V2 finalize rejects directory media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 fresh candidate rejects mapping | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 fresh candidate rejects path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-M09 fresh candidate rejects tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW01 managed empty root opens with lifetime lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW02 same process second managed owner denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW03 different process owner and inherited use denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW12 managed duplicate descriptors are close-on-exec | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW05 managed reserve append replay use owned descriptor | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW06 raw managed access and legacy default path denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW01 managed Reserve rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW10 catalog connection can inspect managed lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW04 owner destruction releases lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW01 managed reopen rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW11 managed incomplete tail rejects append without changing bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW07 legacy nonempty root preserved without conversion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state init | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state incomplete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW08 partial initialization retry validates exact state unknown | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected marker | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SW09 symlink inode and malformed marker rejected root-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB01 second managed catalog is denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB02 failed catalog cannot mutate journal or holds | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB03 attached catalog blocks unowned append but permits reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB04 catalog destruction releases attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options outside | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options dotdot | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options media-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB05 managed catalog rejects unsafe options disabled | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB06 failed open releases catalog attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC01 managed repeated event fixture is valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC02 managed reservations avoid history reads | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC03 managed V2 finalize avoids full replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC04 checkpoint reduces superseded event payload bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC05 checkpoint preserves latest event and all record identities | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC06 checkpoint is idempotent and preserves V2 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC08 receipt preserves retry identity and rejects direct append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC09 managed checkpoint SQL V2 payload and path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC10 checkpoint prefix recovers before writes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC11 checkpoint mismatch preserves bytes and poisons owner | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC12 first accepted mutation controls latest event | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC16 automatic checkpoint uses accumulated growth | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC07 raw checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC21 poison rejects hold mutation dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint SQL hold observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint SQL restart observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC19 invalid managed history remains unchanged malformed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC19 invalid managed history remains unchanged unsupported | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC19 invalid managed history remains unchanged conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC20 raw catalog rejects receipt before side effects | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC13 crypto off raw remains usable | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC14 crypto off checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: S10-SC15 crypto off receipt reopen is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: source 저장 callback reconcile 연결 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: policy revision idempotency | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 5초 safety reconcile | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: composition root journal 선행 open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: composition root catalog rebuild/open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: 서버 전 supervisor 시작 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: ingress 전 event bridge 등록 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: ingress 종료 뒤 recorder finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
-| Catalog.log: composition root 시작/종료 순서 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Binding.log: S10-C301 결박 schema 왕복 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C302 식별·ordinal 검증 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C303 PTS 재정렬 보존 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C304 미디어 범위·timebase | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C305 색인 상한·미색인 꼬리 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C306 단일 bound mutation | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C307 source·저장 identity 결박 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C308 불변·멱등 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C309 소급·다운그레이드 금지 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C310 정확한 원본 tuple 조회 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C311 미색인·실제 부재 구분 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C312 복수 segment 후보 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C313 삭제·corrupt·pending 차단 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C314 채널·조회 오류 경계 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C315 SQL·JSONL 재시작 동등 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C316 checkpoint 보존 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C317 손상 원장 선차단 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C318 예약·옵트인 경계 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C319 기존 segment·조회 불변 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Binding.log: S10-C320 실제 finalize 수락 경계 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-4d9c97e368763fa0.txt), exit0 | pass |
+| Catalog.log: journal open:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: fallback catalog open:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite off mode 표시 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: segment finalize journal+projection:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: fallback range query | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: event link FK 위반 거부 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: FK 위반 transaction/journal 전체 rollback | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 최초 durable mutation 1개 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 동일 mutation 중복 append | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 손상 사이 정상 durable mutation 보존 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 중간 corrupt line count | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 마지막 truncated line skip | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: fallback replay open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 같은 mutation idempotent replay | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 중복 replay row/합계 불증가 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite catalog open/rebuild:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite primary mode 표시 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite on/off range query ID·순서 parity | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: journal 없는 손상 media orphan 구분 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: projection failover journal open:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: projection failover catalog open:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 실제 SQLite INSERT 실패 trigger 설치 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite 투영 실패 뒤 journal+memory finalize 유지:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: SQLite 투영 실패 즉시 JSONL fallback 전환 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 rebuild 전 실패 trigger 제거 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 투영 실패 직후 in-memory query 정합성 유지 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: projection failover 재시작 journal rebuild:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 후 journal에서 누락 SQLite projection 복구 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 후 SQLite primary 복귀 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 재시작 journal rebuild가 실제 SQLite row 복원 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone journal open:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone catalog open:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone 대상 segment finalize:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone 대상 deletion request:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: tombstone 완료 기록:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 손상 SQLite 격리 후 journal rebuild:  | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 손상 SQLite 원본 격리 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 격리 SQLite 파일 보존 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 격리 후 journal rebuild 결과 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema journal read open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema unsupported classification | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema catalog open denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema catalog retry denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema journal bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema SQLite bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-schema writer cleanup untouched | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema journal read open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema unsupported classification | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema catalog open denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema catalog retry denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema journal bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema SQLite bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema writer cleanup untouched | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema journal read open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema unsupported classification | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema catalog open denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema catalog retry denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema journal bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema SQLite bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A empty-schema writer cleanup untouched | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type journal read open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type unsupported classification | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type catalog open denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type catalog retry denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type journal bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type SQLite bytes preserved | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A future-type writer cleanup untouched | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A malformed journal open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-3A malformed JSON missing fields and wrong types remain corrupt | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 reservation journal open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 first reservation returns four IDs and sequence one | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 versioned reservation payload replays | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 new reservation records actual occurred time | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O02 identical retry preserves sequence and bytes | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O03 reopened instance allocates next sequence | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O03 new process resumes durable sequence | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 different store rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reused request with different segment rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reused request with different channel rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reused segment with different request rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 conflicts preserve original bytes | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve corrupt | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve unsupported-schema | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve unsupported-type | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve tail | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-zero | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-negative | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-fraction | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-overflow | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-sequence | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve decreasing-sequence | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-request | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-segment | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve store-conflict | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve ordinary-before | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve ordinary-after | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve line-cap | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 reservation entity envelope binding rejects mismatch | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 reservation request envelope binding rejects mismatch | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O01 strict reservation parser accepts versioned literal | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O06 INT64_MAX identical retry remains valid | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O06 sequence overflow rejected without write | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O02 identical durable reservation duplicates remain idempotent | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O06 sequence gaps remain valid and allocate above maximum | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O07 four simultaneous processes finish reservations | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O07 concurrent sequences are unique and complete | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O07 next sequence follows concurrent reservations | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 ordinary Append cannot reserve orders | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 unopened journal rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 null result rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 invalid opaque ID rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O08 failed reservation does not expose tentative result | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved inode | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved parent | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved hardlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O10 reservation and normal segment coexist in catalog | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 reserve then finalize permits identical retry | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O10 reservation survives catalog rebuild without changing segment query | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-O04 legacy segment cannot acquire retroactive reservation | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 opened catalog accepts fresh exact reservation V2 finalize | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 V2 find preserves complete metadata | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 identical V2 recovery is idempotent | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 V2 is absent from V1 range query | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 V2 registered path is not orphan | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 SQLite exact V2 JSON and path match | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M07 JSONL restart preserves V2 exact payload | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected store | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected request | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected segment | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected channel | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected sequence | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 immutable V2 mapping mismatch rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-payload | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state missing-order | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-order | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state conflicting-order | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state tail | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state corrupt | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state unsafe-path | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 default off rejects V2 before SQLite changes | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion duplicate | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion deleted | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion v1-before | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion v1-after | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion deleted-before | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion resurrection | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion mutation-collision | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 finalize rejects missing media | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 V2 finalize rejects directory media | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects mapping | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects path | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects tombstone | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW01 managed empty root opens with lifetime lease | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW02 same process second managed owner denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW03 different process owner and inherited use denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW12 managed duplicate descriptors are close-on-exec | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW05 managed reserve append replay use owned descriptor | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW06 raw managed access and legacy default path denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW01 managed Reserve rejects different store identity | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW10 catalog connection can inspect managed lease | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW04 owner destruction releases lease | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW01 managed reopen rejects different store identity | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW11 managed incomplete tail rejects append without changing bytes | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW07 legacy nonempty root preserved without conversion | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state lease | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state init | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state barrier | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state journal | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state incomplete | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state unknown | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected journal | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected marker | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected barrier | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected root-symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB01 second managed catalog is denied | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB02 failed catalog cannot mutate journal or holds | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB03 attached catalog blocks unowned append but permits reservation | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB04 catalog destruction releases attachment | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options outside | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options dotdot | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options media-symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options disabled | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB06 failed open releases catalog attachment | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal hardlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm hardlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal symlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal hardlink | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC01 managed repeated event fixture is valid | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC02 managed reservations avoid history reads | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC03 managed V2 finalize avoids full replay | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC04 checkpoint reduces superseded event payload bytes | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC05 checkpoint preserves latest event and all record identities | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC06 checkpoint is idempotent and preserves V2 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC08 receipt preserves retry identity and rejects direct append | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC09 managed checkpoint SQL V2 payload and path | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC10 checkpoint prefix recovers before writes | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC11 checkpoint mismatch preserves bytes and poisons owner | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC12 first accepted mutation controls latest event | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC16 automatic checkpoint uses accumulated growth | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC07 raw checkpoint is rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens write | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation write | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation file-fsync | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens rename | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation rename | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation dir-fsync | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint SQL hold observation tombstone | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint SQL restart observation tombstone | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged malformed | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged unsupported | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged conflict | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC20 raw catalog rejects receipt before side effects | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC13 crypto off raw remains usable | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC14 crypto off checkpoint is rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: S10-SC15 crypto off receipt reopen is rejected | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: source 저장 callback reconcile 연결 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: policy revision idempotency | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 5초 safety reconcile | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: composition root journal 선행 open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: composition root catalog rebuild/open | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: 서버 전 supervisor 시작 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: ingress 전 event bridge 등록 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: ingress 종료 뒤 recorder finalize | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
+| Catalog.log: composition root 시작/종료 순서 | [전체 명령·원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-reference/public-evidence-791480063362bac0.txt), exit0 | pass |
 
 focused16개와 10개 손상/충돌 세부 경우는 연결된 report의 전수표와 Final.log에 보존한다.
 스크립트 원출력 없는 전체 elapsed와 token start/end/consumed는 미집계다. 30분/120분/UI 전체/3D/S11/푸시 미실행.
@@ -12339,7 +12339,7 @@ token start/end/consumed: 실측 미제공으로 미집계. elapsed는 runner �
 이는 사용자 승인된 내부 함수 단위 + 실제 영상 통합 기준이며, GStreamer/OS 실패를 강제 주입한 결과가 아니다.
 공개 route·시간 매핑·PTS 변환·기존 ready1/2 계약은 유지했다. 전체 3C와 S10 완료는 아니다.
 
-최종 소스는 [소스 해시](release-artifacts/v4.1.0/s10-writer-source-binding/boundary-source.sha256)에 고정했다.
+최종 소스는 [소스 해시](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/boundary-source.sha256)에 고정했다.
 최종 안정화는 내부8 + writer44 + ready74 + binding20 = **146 PASS/0 FAIL**, 제품 build exit0이다.
 ready의 missing-binding과 null-binding을 별도 검사했다. 과거73개 실행은 null 자체의 직접 증거가 아니었다.
 C329의 구조상 생성 불가능한 2MiB 초과 유효 writer 객체를 테스트했다고 주장하지 않는다.
@@ -12347,14 +12347,14 @@ C329의 구조상 생성 불가능한 2MiB 초과 유효 writer 객체를 테스
 
 | 실행 | 명령 | exit | 집계·경계 | 원출력 |
 | --- | --- | --- | --- | --- |
-| boundaryRed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a944a9b2fa64b2b9.txt) |
-| boundaryRedConfirmed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-db8e5b6c9855a67b.txt) |
-| boundaryGreen | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a15ad2dd0367ebc7.txt) |
-| boundaryFinal | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-8db7609712ff1ac0.txt) |
-| boundaryWriter | `bash scripts/internal/verify_recording_managed_writer.sh` | 0 | 44 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-e2c676987d8d7f9a.txt) |
-| boundaryReady | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | 0 | 74 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-36e85d65db217356.txt) |
-| boundaryBinding | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-63d842da78994986.txt) |
-| boundaryBuild | `./server.sh build` | 0 | 제품 빌드 완료 | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-61966c44dc701445.txt) |
+| boundaryRed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a944a9b2fa64b2b9.txt) |
+| boundaryRedConfirmed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-db8e5b6c9855a67b.txt) |
+| boundaryGreen | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a15ad2dd0367ebc7.txt) |
+| boundaryFinal | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-8db7609712ff1ac0.txt) |
+| boundaryWriter | `bash scripts/internal/verify_recording_managed_writer.sh` | 0 | 44 PASS/0 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-e2c676987d8d7f9a.txt) |
+| boundaryReady | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | 0 | 74 PASS/0 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-36e85d65db217356.txt) |
+| boundaryBinding | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS/0 FAIL | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-63d842da78994986.txt) |
+| boundaryBuild | `./server.sh build` | 0 | 제품 빌드 완료 | [로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-61966c44dc701445.txt) |
 
 첫 RED의 예상 집계 착오와 정정 재실행은 아래 이력에 보존하며 검사 삭제나 기준 완화는 없다.
 
@@ -12668,21 +12668,21 @@ C329는 유효 ready3가1MiB 초과해도 쓰기/읽기되고 버전별 read 상
 
 | 실행 | 명령 | 실제 exit·요약 | evidence |
 | --- | --- | --- | --- |
-| Red | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 37/FAIL 2 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-15c82ca2f03b5a55.txt) |
-| ReadyRed | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit1; PASS 55/FAIL 4 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-64874baff4447b77.txt) |
-| WriterGreen | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 39/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a8222922a0a42506.txt) |
-| ReadyGreen | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 59/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-6932403f6aa7d90a.txt) |
-| WriterFinal | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 0/FAIL 0 (컴파일 오류, assertion 미실행) | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-ca8f63dc006093c5.txt) |
-| ReadyFinal | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 69/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-38f3c515b3dd97cd.txt) |
-| WriterFinal2 | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 44/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-89eb9a16d37ae324.txt) |
-| ReadyFinal2 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 73/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-b6ca09efaf7576c5.txt) |
-| Build | `./server.sh build` | exit0; PASS 0/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-80ccf2590a112ac4.txt) |
-| Binding | `bash scripts/internal/verify_recording_source_binding.sh` | exit0; PASS 20/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-d37f57005eea5435.txt) |
+| Red | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 37/FAIL 2 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-15c82ca2f03b5a55.txt) |
+| ReadyRed | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit1; PASS 55/FAIL 4 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-64874baff4447b77.txt) |
+| WriterGreen | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 39/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-a8222922a0a42506.txt) |
+| ReadyGreen | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 59/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-6932403f6aa7d90a.txt) |
+| WriterFinal | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 0/FAIL 0 (컴파일 오류, assertion 미실행) | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-ca8f63dc006093c5.txt) |
+| ReadyFinal | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 69/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-38f3c515b3dd97cd.txt) |
+| WriterFinal2 | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 44/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-89eb9a16d37ae324.txt) |
+| ReadyFinal2 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 73/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-b6ca09efaf7576c5.txt) |
+| Build | `./server.sh build` | exit0; PASS 0/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-80ccf2590a112ac4.txt) |
+| Binding | `bash scripts/internal/verify_recording_source_binding.sh` | exit0; PASS 20/FAIL 0 | [전문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/public-evidence-d37f57005eea5435.txt) |
 
 첫 writer RED37/2는 C321 H264/VP8 부재와 일치했다. ready RED55/4도 C330~333 부재와 일치했다.
 GREEN 후 oracle 확대에서 기존 변수ls와 신규ls의 이름 중복 컴파일 오류1건이 발생했다(WriterFinal exit1).
 신규 이름만 capped_source_store로 바꾼 WriterFinal2는44/0이었다. 환경/제품 회귀로 오인하지 않았다.
-최종 소스 [SHA256](release-artifacts/v4.1.0/s10-writer-source-binding/source.sha256)를 보존한다.
+최종 소스 [SHA256](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-source-binding/source.sha256)를 보존한다.
 macOS/기존 C++17·GStreamer·sqlite3·openssl 환경, 포트/외부입력/운영저장소 사용 없음.
 token start/end/consumed는 실측 도구값 미제공으로 미집계다. elapsed는 각 로그의 SECONDS값,
 시간을 내보내지 않은 ready/build는 별도 전체 elapsed 미집계다.
@@ -13209,13 +13209,13 @@ C313 첫 GREEN은 replay Open만 검사해 부족했으므로 상태/조회 부�
 제품 변경 없이 최종38070의20/0으로 확인했다. 기존 C319의 점 조회 회귀는 location14개에서 따로 확인한다.
 실제 영상 writer/ready 생산은 **미실행·미구현(3C-3B)**이고 파생 소비도 미완료다. 전체3C PASS가 아니다.
 
-증거: [focused 전 이력](release-artifacts/v4.1.0/s10-source-binding/public-evidence-829099072111e1ca.txt),
-[제품 build](release-artifacts/v4.1.0/s10-source-binding/public-evidence-193f0ba72bef73e6.txt),
-[catalog](release-artifacts/v4.1.0/s10-source-binding/public-evidence-855e362d7eda82a2.txt),
-[점 조회](release-artifacts/v4.1.0/s10-source-binding/public-evidence-c4357ab4efcfe2c8.txt),
-[구간 조회](release-artifacts/v4.1.0/s10-source-binding/public-evidence-5ac9366c14618a84.txt),
-[보존·재생](release-artifacts/v4.1.0/s10-source-binding/public-evidence-7d51045a2e04251c.txt),
-[변경 source SHA256](release-artifacts/v4.1.0/s10-source-binding/source.sha256).
+증거: [focused 전 이력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/public-evidence-829099072111e1ca.txt),
+[제품 build](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/public-evidence-193f0ba72bef73e6.txt),
+[catalog](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/public-evidence-855e362d7eda82a2.txt),
+[점 조회](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/public-evidence-c4357ab4efcfe2c8.txt),
+[구간 조회](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/public-evidence-5ac9366c14618a84.txt),
+[보존·재생](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/public-evidence-7d51045a2e04251c.txt),
+[변경 source SHA256](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-source-binding/source.sha256).
 원출력은 민감정보/원본영상 없이 소유 fixture 경로·판정·실패 compiler 출력을 보존한다.
 실행 환경은 macOS, 기존 C++17/sqlite3/openssl/GStreamer 설치를 사용했다. 새 의존성 설치/외부 입력/포트 사용 없음.
 
@@ -13644,7 +13644,7 @@ C209는 exact/nonintegral 후보가 같은 slice에 모두 남는지 확인했�
 
 | 명령/실행 | exit | 결과 | 증거 |
 | --- | --- | --- | --- |
-| range focused / 25658 | 2 | V1식 삭제 사유를 사용한 fixture 준비 실패; 기능 미실행 | [실패·수정 이력](release-artifacts/v4.1.0/s10-range-resolution/public-evidence-c8778ed0f20a5b34.txt) |
+| range focused / 25658 | 2 | V1식 삭제 사유를 사용한 fixture 준비 실패; 기능 미실행 | [실패·수정 이력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-range-resolution/public-evidence-c8778ed0f20a5b34.txt) |
 | range focused / 25940 | 2 | /var 심볼릭 경로의 strict opener 거부; 소유 temp canonical 경로 정정; 기능 미실행 | 위 focused |
 | range focused / 33754 | 1 | 예상 RED: C201~211/C213~216 15 FAIL, C212 PASS | 위 focused |
 | range focused / 62307 | 1 | 기존 익명 namespace 여는 줄 누락에 따른 18개 컴파일 진단; 해당 줄 복구; 기능 미실행 | 위 focused의 최소 첫/끝 발췌 |
@@ -13652,13 +13652,13 @@ C209는 exact/nonintegral 후보가 같은 slice에 모두 남는지 확인했�
 | range focused / 56782 | 0 | sweep·128 인접 검사 16/0 | 위 focused |
 | range focused / 9205 | 0 | exact/nonintegral 혼재 검사 16/0 | 위 focused |
 | range focused / 92295 | 0 | C207 정상 연속 mediaPTS fixture 포함 최종 16/0 | 위 focused |
-| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 기존 LOC01~14 전수 PASS·cleanup 확인 | [점 조회](release-artifacts/v4.1.0/s10-range-resolution/public-evidence-5c0ae7d8b32daaba.txt) |
-| `./server.sh build` | 0 | runtime archive/제품 실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-range-resolution/public-evidence-13d4e4d85688bd19.txt) |
+| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 기존 LOC01~14 전수 PASS·cleanup 확인 | [점 조회](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-range-resolution/public-evidence-5c0ae7d8b32daaba.txt) |
+| `./server.sh build` | 0 | runtime archive/제품 실행파일 rebuild | [빌드](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-range-resolution/public-evidence-13d4e4d85688bd19.txt) |
 
 range focused 명령은 모두 `bash scripts/internal/verify_recording_range_resolution.sh`다.
 62307 전체 18개 컴파일 원출력은 저장소에 보존하지 못했고 첫/끝 실제 오류·개수·원인·cleanup만 보존했다.
 이는 성공 evidence가 아니며 추정 복원하지 않는다. 나머지 focused의 실제 개별 행과 최초 실패를 위 로그에 보존한다.
-[source/build SHA-256·OS](release-artifacts/v4.1.0/s10-range-resolution/source.sha256). 최종 focused 5초(bash SECONDS), location 5초.
+[source/build SHA-256·OS](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-range-resolution/source.sha256). 최종 focused 5초(bash SECONDS), location 5초.
 빌드의 elapsed는 도구 호출부터 최종 수집까지의 관측값이며 정밀 process duration은 아니다.
 token start/end/consumed: 미집계 — 실측 집계 도구값 없음.
 
@@ -13769,12 +13769,12 @@ analysis-state는 이번 첫 단위가 Rule/Scenario/판단 로직을 변경하�
 
 | 명령 | exit | 직접 결과 | 증거 |
 | --- | --- | --- | --- |
-| `bash scripts/internal/verify_recording_frame_correlation.sh` | 1 → 0 → 1 → 0 | C101 stub 0/1 → 10/0 → C108 추가 검사 9/1 → 최종 10/0 | [전 실행 원출력](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-25662f82314d37f3.txt) |
-| `./server.sh build` | 0 | 제품 archive·실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-ee2d0790e1ef5b6a.txt) |
-| `bash scripts/internal/verify_v410_recording_observation_runtime.sh` | 0 | 기능15개+정리1개 PASS, C111/112 포함 | [실제 runtime](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-0af9fd651b15d9b3.txt) |
-| `./server.sh verify-v410-recording-observations` | 0 | 기능81개+정리1개 PASS | [기존 observation](release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-070ebe49cd75a92a.txt) |
+| `bash scripts/internal/verify_recording_frame_correlation.sh` | 1 → 0 → 1 → 0 | C101 stub 0/1 → 10/0 → C108 추가 검사 9/1 → 최종 10/0 | [전 실행 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-25662f82314d37f3.txt) |
+| `./server.sh build` | 0 | 제품 archive·실행파일 rebuild | [빌드](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-ee2d0790e1ef5b6a.txt) |
+| `bash scripts/internal/verify_v410_recording_observation_runtime.sh` | 0 | 기능15개+정리1개 PASS, C111/112 포함 | [실제 runtime](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-0af9fd651b15d9b3.txt) |
+| `./server.sh verify-v410-recording-observations` | 0 | 기능81개+정리1개 PASS | [기존 observation](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-frame-source-association/public-evidence-070ebe49cd75a92a.txt) |
 
-[source/build SHA-256·OS](release-artifacts/v4.1.0/s10-frame-source-association/source.sha256).
+[source/build SHA-256·OS](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-frame-source-association/source.sha256).
 focused elapsed는 실행당 1초(bash SECONDS). 나머지 로그 elapsed는 호출부터 수집까지의 관측 구간이며 process 정밀 duration으로 주장하지 않는다.
 token start/end/consumed: 미집계 — 담당자·메인 단위의 실측 집계가 제공되지 않음.
 
@@ -14006,15 +14006,15 @@ Superpowers의 예상 RED→구현→검증 절차를 적용하고 기존 단일
 terminal tombstone 뒤 늦은 pending 거부, 멱등 성공 시 stale error 제거도 최종 검증에 포함했다.
 timeout 증가·검사 삭제·판정 완화는 없었다. 최종 코드 고정 후 영향 회귀는 모두 첫 실행 PASS였다.
 
-원출력은 [focused](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-62d981f26ad77250.txt),
-[catalog](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-c2320d2587d4c5f1.txt),
-[retention](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-5d8e9d96d0e35bc5.txt),
-[read-model](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-0ad392721180e3c9.txt),
-[location](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-50e017e3a4a29811.txt),
-[writer](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-6eb48046729810a3.txt),
-[finalize](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-7851bce8769c2a44.txt),
-[build](release-artifacts/v4.1.0/s10-retention-playback/public-evidence-7f848457e89097bf.txt)에 보존했다.
-[SHA-256](release-artifacts/v4.1.0/s10-retention-playback/source.sha256)은 변경 코드/테스트14개·회귀 fixture6개·빌드 실행파일을 고정한다.
+원출력은 [focused](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-62d981f26ad77250.txt),
+[catalog](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-c2320d2587d4c5f1.txt),
+[retention](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-5d8e9d96d0e35bc5.txt),
+[read-model](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-0ad392721180e3c9.txt),
+[location](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-50e017e3a4a29811.txt),
+[writer](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-6eb48046729810a3.txt),
+[finalize](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-7851bce8769c2a44.txt),
+[build](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/public-evidence-7f848457e89097bf.txt)에 보존했다.
+[SHA-256](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-retention-playback/source.sha256)은 변경 코드/테스트14개·회귀 fixture6개·빌드 실행파일을 고정한다.
 원출력의 줄 끝 공백만 정규화했다. 자체 생성 fixture·정상화된 테스트 경로만 포함하고 비밀번호/외부 URL/세션 원문은 없다.
 환경: macOS26.6.2(25G83), arm64, Apple clang21.0.0, GStreamer1.28.1, SQLite3.51.0, OpenSSL3.6.2.
 기존 S09 dirty 코드·read-model fixture가 함께 있는 작업트리 기준이다. clean commit 독립 재현이나 S09 변경 승인으로 확대하지 않는다.
@@ -14738,10 +14738,10 @@ HTTP/Auth/실제 UI/전체 빌드·장시간 PASS로 확대하지 않는다.
 | 49201 | `./server.sh verify-v410-recording-catalog` | 0 | C++234 + crypto-off3 + shell9 = 246/0 |
 | diffcheck | `git diff --check` | 0 | 변경 공백 검사 |
 
-원출력: [focused](release-artifacts/v4.1.0/s10-location-resolution/public-evidence-e270a7a7116a9905.txt),
-[읽기 회귀](release-artifacts/v4.1.0/s10-location-resolution/public-evidence-8c4311e4ea47f796.txt),
-[catalog 회귀](release-artifacts/v4.1.0/s10-location-resolution/public-evidence-c6653590a478680f.txt).
-[검증 소스 SHA-256](release-artifacts/v4.1.0/s10-location-resolution/source.sha256)에 제품·테스트 8개를 고정했다.
+원출력: [focused](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-location-resolution/public-evidence-e270a7a7116a9905.txt),
+[읽기 회귀](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-location-resolution/public-evidence-8c4311e4ea47f796.txt),
+[catalog 회귀](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-location-resolution/public-evidence-c6653590a478680f.txt).
+[검증 소스 SHA-256](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-location-resolution/source.sha256)에 제품·테스트 8개를 고정했다.
 최종 `git diff --check` exit0, `./server.sh verify-docs-links` exit0(234문서/1139링크/실패0).
 원출력 catalog의 줄 끝 공백만 정규화했다. 시간: focused 네 회 각각4초(bash SECONDS),
 회귀 두 회 elapsed는 전용 시작/종료 타이머 미설치로 미집계다. token start/end/consumed 미집계(전용 집계값 없음).
@@ -15296,10 +15296,10 @@ inventory 행이 누락됐다. 해당 실행은 완료 evidence로 무효이며,
 검증 전용 `verify_local_ice_guard.mjs`와 단위 검사를 추가했다. env의 빈/외부 주소를 허용하지 않고
 실제 `/webrtc/config`가 소유 loopback 주소만 담는지 미디어 명령마다 확인한다. 제품 설정 parser,
 기본 STUN, 녹화 코드·바이너리는 변경하지 않았다. 이 가드는 이번 harness의 실행 전 경계이며
-기존 개별 verifier의 기본 정책 전체를 변경한 것은 아니다. 재현 시 [검증 harness](release-artifacts/v4.1.0/s10-writer-activation/local-media-harness.txt)의 가드를 포함해야 한다.
+기존 개별 verifier의 기본 정책 전체를 변경한 것은 아니다. 재현 시 [검증 harness](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-harness.txt)의 가드를 포함해야 한다.
 
-등록 후 단위 명령 exit0, 7/0, 30.599209ms: [원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-375efcc4f17afb26.txt).
-제품 소스/바이너리16개는 이전 [동결 fingerprint](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json)와 모두 일치했다.
+등록 후 단위 명령 exit0, 7/0, 30.599209ms: [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-375efcc4f17afb26.txt).
+제품 소스/바이너리16개는 이전 [동결 fingerprint](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json)와 모두 일치했다.
 단기 미디어 session38532 exit0: codec67/0(332.394초), ICE8/0(17.726초), metadata 실제 assertion10/0(2.823초).
 metadata 도구의 summary8/0과 실제 출력10개 차이는 이전부터 있던 출력 범위 차이로 명시하며 전수10행을 대조했다.
 token start/end/consumed=집계 API 부재로 미집계; elapsed source=Node test runner/Date.now.
@@ -15412,38 +15412,38 @@ TURN 없음, candidate host15/unknown1(종료 표기 포함), srflx/relay0이다
 | ISO10 Chrome 정리 | debug65210 listener 부재 | PASS | lsof exit1/출력없음 |
 | ISO10 root 정리 | jqRqlh root1756750 B 삭제 | PASS | rootAbsent=true |
 
-[codec 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-2b4672669c6dad75.txt),
-[ICE 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-235743ca171b768f.txt),
-[metadata 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-85804ed6ece68695.txt),
-[실행/정리 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-df0e5a05e0dfe9c8.txt).
+[codec 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-2b4672669c6dad75.txt),
+[ICE 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-235743ca171b768f.txt),
+[metadata 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-85804ed6ece68695.txt),
+[실행/정리 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-df0e5a05e0dfe9c8.txt).
 source URL/session/candidate 주소는 가렸고 원본 세션·디버그·임시 미디어는 삭제했다.
 이번 실행의 외부 영상 source3개(YouTube2/Wowza)는 기존 disabled 제외이며 PASS가 아니다.
 UI 전체/30분/120분/S11, 후속3, 커밋/푸시는 미실행이다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/tmp/media_server_webrtc-ice-1789197973-51119_candidates.ndjson` | 검증 소유 임시 산출물 | 2004 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789197973-51119_session.json` | 검증 소유 임시 산출물 | 1200 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789197973-51119_summary.json` | 검증 소유 임시 산출물 | 287 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789197973-51119_webrtc_config.json` | 검증 소유 임시 산출물 | 222 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789197973-51119_whip.log` | 검증 소유 임시 산출물 | 2364 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac.hls.log` | 검증 소유 임시 산출물 | 2488 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac_hls` | 검증 소유 임시 산출물 | 1418800 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_aac.http.log` | 검증 소유 임시 산출물 | 427 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_video_only.http.log` | 검증 소유 임시 산출물 | 471 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/metadata-summary.json` | 검증 소유 임시 산출물 | 2367 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/server.log` | 검증 소유 임시 산출물 | 66460 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1609 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 540 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2.mjs` | 검증 소유 임시 산출물 | 6727 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2-driver.log` | 검증 소유 임시 산출물 | 1848 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_candidates.ndjson` | 검증 소유 임시 산출물 | 2004 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_session.json` | 검증 소유 임시 산출물 | 1200 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_summary.json` | 검증 소유 임시 산출물 | 287 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_webrtc_config.json` | 검증 소유 임시 산출물 | 222 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_whip.log` | 검증 소유 임시 산출물 | 2364 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac.hls.log` | 검증 소유 임시 산출물 | 2488 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac_hls` | 검증 소유 임시 산출물 | 1418800 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_aac.http.log` | 검증 소유 임시 산출물 | 427 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_video_only.http.log` | 검증 소유 임시 산출물 | 471 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/metadata-summary.json` | 검증 소유 임시 산출물 | 2367 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/server.log` | 검증 소유 임시 산출물 | 66460 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1609 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 540 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2.mjs` | 검증 소유 임시 산출물 | 6727 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression-v2-driver.log` | 검증 소유 임시 산출물 | 1848 B | 삭제 | 부재 확인 | [크기/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
 
 ## S10 후속 2번 입력·writer 연결 (2026-09-12)
 
@@ -15466,15 +15466,15 @@ writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코
 
 ### 메인 빌드·미디어 영향 회귀 — 범위 이탈로 완료 보류
 
-- 전체 빌드: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, session41885, exit0, 43초. [빌드 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-7c107ec2d8a1305e.txt), [동결 소스/바이너리 SHA256](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json). 이번 빌드 로그에는 compiler warning/error가 없다.
-- 최초 미디어 준비: sandbox의 loopback listen EPERM, exit1. 제품 기동 전 실패이며 [원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-d5d288f0401c0bee.txt)을 보존한다. 생성된 빈 소유 root `media-server-s10-media-5b3JIF`(0 B)를 삭제·부재 확인하고 포트 예약을 root 생성보다 먼저 하도록 임시 harness만 보완했다.
+- 전체 빌드: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, session41885, exit0, 43초. [빌드 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-7c107ec2d8a1305e.txt), [동결 소스/바이너리 SHA256](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json). 이번 빌드 로그에는 compiler warning/error가 없다.
+- 최초 미디어 준비: sandbox의 loopback listen EPERM, exit1. 제품 기동 전 실패이며 [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-d5d288f0401c0bee.txt)을 보존한다. 생성된 빈 소유 root `media-server-s10-media-5b3JIF`(0 B)를 삭제·부재 확인하고 포트 예약을 root 생성보다 먼저 하도록 임시 harness만 보완했다.
 - 권한 검토를 거친 실행 session6438은 명령 exit0이지만 **로컬 한정 검증은 FAIL**이다. 빈 `MEDIA_SERVER_WEBRTC_STUN_SERVER`를 비활성으로 오판했다. `src/app_config.cpp::ReadEnv`는 빈 값을 미설정으로 취급하며 `include/app_config.h` 기본값과 `verify_webrtc_ice_config.sh:276`의 기본값은 Google STUN이다. 실제 ICE 로그에는 해당 서버와 srflx 후보3개가 확인됐다. 외부 통신 범위 이탈이며 사용자에게 즉시 정정·보고했다.
 - 이탈은 순차 명령 종료 후 원출력 검토에서 발견했다. 해당 미디어 묶음을 로컬 한정 PASS로 사용하지 않고 추가 실행/커밋/후속 단계는 중단했다. 제품 기본 STUN 정책은 수정하지 않았다.
 - 재개 조건: 사용자 판단 후 **검증 소유 설정에서 외부 STUN을 실제로 차단하고 기동 전/후 유효 설정을 확인하는 준비 보완**, 영향 미디어 회귀 재실행. 이미 유효한 입력14/writer37/ready55/recorder118 및 빌드를 인계 때문에 반복하지 않는다.
 - `verify-codecs`: 67/0, 제외3, 335.132초. `verify-webrtc-ice`: 8/0, 17.508초. `verify-webrtc-va-metadata`: stdout assertion10개 PASS, summary는 기존 도구의 8/0, 5.871초. 이 차이를 숨기거나 UI 전체 PASS로 바꾸지 않는다. 전체 harness 361.582초; token start/end/consumed는 집계 API 부재로 미집계, source=Node Date.now/셸 exit/원출력.
 - 운영 계정·녹화 저장소는 사용하지 않았다. auth off/loopback/검증 전용 root, 녹화·event hook 비활성. 외부 영상 source3개는 config disabled였지만 STUN 통신까지 막지는 못했다.
-- [실행·정리 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-6fac3267bcf890ff.txt), [과거 실패 harness](release-artifacts/v4.1.0/s10-writer-activation/failed-media-harness.txt)는 재현·원인 보존용이다. 그대로 재실행하면 안 된다.
-- [codec 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-6f3c3d55d1d28d54.txt), [ICE 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-32c2278698634cd4.txt), [metadata 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-9e5400e4b3241bf1.txt)은 source URL/session 식별자/candidate 주소를 가렸다. 원본 debug/session/미디어는 아래대로 삭제했다.
+- [실행·정리 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-6fac3267bcf890ff.txt), [과거 실패 harness](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/failed-media-harness.txt)는 재현·원인 보존용이다. 그대로 재실행하면 안 된다.
+- [codec 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-6f3c3d55d1d28d54.txt), [ICE 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-32c2278698634cd4.txt), [metadata 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-9e5400e4b3241bf1.txt)은 source URL/session 식별자/candidate 주소를 가렸다. 원본 debug/session/미디어는 아래대로 삭제했다.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -15582,27 +15582,27 @@ writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| `/private/tmp/media_server_webrtc-ice-1789184492-18238_candidates.ndjson` | 검증 소유 임시 산출물 | 2028 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789184492-18238_session.json` | 검증 소유 임시 산출물 | 1200 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789184492-18238_summary.json` | 검증 소유 임시 산출물 | 303 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789184492-18238_webrtc_config.json` | 검증 소유 임시 산출물 | 230 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/media_server_webrtc-ice-1789184492-18238_whip.log` | 검증 소유 임시 산출물 | 2364 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-hls_local_h264_aac.hls.log` | 검증 소유 임시 산출물 | 2488 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-hls_local_h264_aac_hls` | 검증 소유 임시 산출물 | 1418800 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-http_local_h264_aac.http.log` | 검증 소유 임시 산출물 | 427 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-http_local_h264_video_only.http.log` | 검증 소유 임시 산출물 | 471 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcma.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `/private/tmp/s10-media-server-s10-media-DYmFpM-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/metadata-summary.json` | 검증 소유 임시 산출물 | 2361 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/server.log` | 검증 소유 임시 산출물 | 63705 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1640 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 537 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
-| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression.mjs` | 검증 소유 임시 산출물 | 5671 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_candidates.ndjson` | 검증 소유 임시 산출물 | 2028 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_session.json` | 검증 소유 임시 산출물 | 1200 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_summary.json` | 검증 소유 임시 산출물 | 303 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_webrtc_config.json` | 검증 소유 임시 산출물 | 230 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_whip.log` | 검증 소유 임시 산출물 | 2364 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-hls_local_h264_aac.hls.log` | 검증 소유 임시 산출물 | 2488 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-hls_local_h264_aac_hls` | 검증 소유 임시 산출물 | 1418800 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-http_local_h264_aac.http.log` | 검증 소유 임시 산출물 | 427 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-http_local_h264_video_only.http.log` | 검증 소유 임시 산출물 | 471 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcma.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/metadata-summary.json` | 검증 소유 임시 산출물 | 2361 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/server.log` | 검증 소유 임시 산출물 | 63705 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1640 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 537 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `<home>/Workspace/mediaServer/.media_server.test/s10-media-regression.mjs` | 검증 소유 임시 산출물 | 5671 B | 삭제 | 부재 확인 | [cleanup/hash](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
 
 검토용 로그 추가 정리: `/private/tmp/media-server-s10-build-sjHx5E/build.log` 12,651 B,
 `media-regression-authorized.log` 1,531 B, `media-regression.log` 481 B는 저장소 보존본과
@@ -15619,7 +15619,7 @@ writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코
 메인 직접 구현: `CommitFinalizeReadyV2`가 정확한 영속 ticket과 요청을 대조하고 catalog 예약/소유권을 검증한 뒤 publish→commit→cleanup한다.
 기존 V1 API의 V2 무검증 publish/clear 거부는 유지한다. 전체 root scan을 하지 않는다.
 명령 `bash scripts/internal/verify_v410_recording_finalize_recovery.sh`: RED exit1(54 PASS/1 예상 FAIL), GREEN exit0(55 PASS/0 FAIL).
-원출력: [RED](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-1266f2248c462402.txt), [GREEN](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-00f25f2be8735e71.txt).
+원출력: [RED](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-1266f2248c462402.txt), [GREEN](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-00f25f2be8735e71.txt).
 기존52개와 신규3개 전수 대조다. 이 단독 검증 당시 active writer는 미실행이었으며 이후 실제 writer 결과는 아래 WR 기록으로 구분한다. token start/end/consumed=미집계(API 없음), elapsed=미집계(실행 시작·종료 시각 별도 수집 누락), source=로컬 셸 원출력.
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
@@ -15825,12 +15825,12 @@ WR09 active ready 추가 정의(실행 전): `active ready validates publishes c
 | `<owned-temp>/media-server-managed-writer.eUInna` | 93757 소유 compile/media/store fixture | 8842867 | runner 삭제, removed=true |
 | `<owned-temp>/media-server-managed-writer.PG15nu` | 2978 소유 compile/media/store fixture | 8840527 | runner 삭제, removed=true |
 
-12회(writer10/input2) 도구 원출력은 [writer/input 실행 로그](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-55bce9c38281d54f.txt)에 보존한다. 인증정보·원본 source URL 없이 fixture 판정/안전 reason/소유 경로만 존재한다. 메인이 실제 diff와 원출력을 직접 대조했다. 같은 writer 객체의 Stop→Start 재사용은 입력 highwater/failure latch를 유지하므로 지원 검증으로 주장하지 않는다. 새로운 writer 객체/저장소 재open은 검증했다. 커밋·푸시·실서버·전체 build·UI·30/120분은 이 담당자 미실행이며 메인 영향 회귀는 별도 기록한다.
+12회(writer10/input2) 도구 원출력은 [writer/input 실행 로그](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-55bce9c38281d54f.txt)에 보존한다. 인증정보·원본 source URL 없이 fixture 판정/안전 reason/소유 경로만 존재한다. 메인이 실제 diff와 원출력을 직접 대조했다. 같은 writer 객체의 Stop→Start 재사용은 입력 highwater/failure latch를 유지하므로 지원 검증으로 주장하지 않는다. 새로운 writer 객체/저장소 재open은 검증했다. 커밋·푸시·실서버·전체 build·UI·30/120분은 이 담당자 미실행이며 메인 영향 회귀는 별도 기록한다.
 
 | 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
 | --- | --- | --- | --- | --- | --- |
 | `.media_server.test/s10-managed-writer-18362/results.log` | 검토용 원출력 | 24,904 B | 저장소 보존본과 끝 공백 제외 동일성 확인 후 삭제 | 파일/부모 디렉터리 부재 | 위 영구 로그 |
-| `.media_server.test/s10-managed-writer-18362/recorder.log` | 기존 recorder 원출력 | 11,150 B | 동일 대조 후 삭제 | 파일/부모 디렉터리 부재 | [원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-bbb9f84fc03674fc.txt) |
+| `.media_server.test/s10-managed-writer-18362/recorder.log` | 기존 recorder 원출력 | 11,150 B | 동일 대조 후 삭제 | 파일/부모 디렉터리 부재 | [원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-bbb9f84fc03674fc.txt) |
 
 #### WR 기존 V1 recorder 영향 회귀
 
@@ -16011,7 +16011,7 @@ writer 마지막 경계 실행 전 추가: `WR09 failed active commit preserves 
 | GREEN session49194 | exit0, pass10/fail0 | 최초 구현 후 동일10개 전수 통과 |
 | 최종 session51876 | exit0, pass13/fail0 | 기존10개와 사전등록 하위3개 전수 통과; 새3개는 예상 RED로 주장하지 않음 |
 
-token start/end/consumed: 미집계(사용량 집계값 없음). 세 실행의 실제 총 elapsed: 미계측. 도구의 개별 호출 wait 시간은 명령 전체 실행시간이 아니므로 대체하지 않는다. source: exec/write_stdin 원출력. 메인이 실제 diff/13개 assertion과 이력을 대조하고 [입력 원출력](release-artifacts/v4.1.0/s10-writer-activation/public-evidence-4ef36bf17cee7a17.txt)에 이관했다. 비밀번호/source URL/header/body는 출력하지 않았다.
+token start/end/consumed: 미집계(사용량 집계값 없음). 세 실행의 실제 총 elapsed: 미계측. 도구의 개별 호출 wait 시간은 명령 전체 실행시간이 아니므로 대체하지 않는다. source: exec/write_stdin 원출력. 메인이 실제 diff/13개 assertion과 이력을 대조하고 [입력 원출력](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-writer-activation/public-evidence-4ef36bf17cee7a17.txt)에 이관했다. 비밀번호/source URL/header/body는 출력하지 않았다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -20168,7 +20168,7 @@ UA01~08은 안정화 내부 준비 검증이며 30분/120분 비대상, UI actio
 
 승인된 분할 커밋 `b0fc2ea7`(기본-off 요청 계측), `77edc049`(검증·승인 기록) 이후 `MEDIA_SERVER_SITE_OPERATIONS_REQUEST_DIAGNOSTIC=1 ./test_ui.sh`를 실행했다. run ID는 `v390-test-acceptance-20260911104717-14002`, 시작·종료 source는 `77edc0499159f59aad095f2816bdd2a9d8d809e7`, 양쪽 worktree clean이다. 종료 후 기존 exec session 조회는 Unknown process였으므로 재실행하지 않고 실제 완료 summary를 대조했다. 외부 observer 프로세스의 마지막 exit/count 출력은 대화 출력 유실로 미확인이다. 제품 실행 판정은 보존된 launcher·canonical·qualification 결과에 근거하며 observer 종료 코드를 추정하지 않는다.
 
-기존424 exact UI는 424 attempted / 424 pass / 0 fail / 0 not-run / 0 unsupported다. finalizer 실제 시각 검사80개, Policy v4 `policyValidationResult=PASS` 및 이424개에 대한 `uiFulltestPass=true`, 최종 무결성·서버 정리도 PASS다. evidence mode는 `qualified-native-automation`; Playwright1.62.1, Chrome152.0.7977.83이며 인앱 수동 확인으로 바꾸어 부르지 않는다. 모든 case·action·시각 검사·stage 상세는 [기존 전수 보존 문서](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)의 64886 실행 기록을 따른다. 기존61366의 EVT-058 실패와 이전 finalizer 실패는 삭제하거나 소급 PASS하지 않는다.
+기존424 exact UI는 424 attempted / 424 pass / 0 fail / 0 not-run / 0 unsupported다. finalizer 실제 시각 검사80개, Policy v4 `policyValidationResult=PASS` 및 이424개에 대한 `uiFulltestPass=true`, 최종 무결성·서버 정리도 PASS다. evidence mode는 `qualified-native-automation`; Playwright1.62.1, Chrome152.0.7977.83이며 인앱 수동 확인으로 바꾸어 부르지 않는다. 모든 case·action·시각 검사·stage 상세는 [기존 전수 보존 문서](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)의 64886 실행 기록을 따른다. 기존61366의 EVT-058 실패와 이전 finalizer 실패는 삭제하거나 소급 PASS하지 않는다.
 
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
 | --- | --- | --- | --- |
@@ -20515,7 +20515,7 @@ C=`node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs`, E=`n
 
 ## S09 실제 UI 재검증 61366 — EVT-058 응답 누락 재발
 
-`./test_ui.sh`는 source522aab3e에서 실행되어 exit1로 종료했다. canonical424개를 모두 시도했고423pass/1fail(EVT-058), notRun/unsupported/runnerAbort0이다. UI-004는 통과했다. launcher26/0, source contract60/0, preflight·build·bootstrap은 통과했다. qualification은 미실행이며 uiFulltestPass=false다. 후속30분·120분·전체432 UI 완료로 대체하지 않는다. 상세 개별 기록은 [61366 실행 전수 결과](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에 이관한다.
+`./test_ui.sh`는 source522aab3e에서 실행되어 exit1로 종료했다. canonical424개를 모두 시도했고423pass/1fail(EVT-058), notRun/unsupported/runnerAbort0이다. UI-004는 통과했다. launcher26/0, source contract60/0, preflight·build·bootstrap은 통과했다. qualification은 미실행이며 uiFulltestPass=false다. 후속30분·120분·전체432 UI 완료로 대체하지 않는다. 상세 개별 기록은 [61366 실행 전수 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에 이관한다.
 
 실패 직접 근거: request131/response130, RESPONSE_MISSING `EVT-058:object-111`/`native-request-57`, GET `/ops/api/site-operations/impact-graph`. 진단 start sequence165/time1789119672434, responses/finished/failed 배열 모두 비어 있고 capture seal=null/afterSeal=[]이다. 조작3개는 PASS였으나 요청 수명 검증은 FAIL이다. 해당case duration32080ms(09:41:11.587Z~09:41:43.667Z); 앞 EVT-057은2300ms이고 seal 존재. runner의 pending snapshot 성공 경로는 capture seal을 남기므로 이번 실패는 해당 성공 경계에 도달한 증거가 없다. 실제 대기 timeout인지, 브라우저/서버 중 어디서 요청이 멈췄는지는 아직 확정하지 않았다. primaryFailureEvidence/failureProvenance가 null이므로 이 값만으로 최초 원인을 단정하지 않는다.
 
@@ -20760,7 +20760,7 @@ token end=7843934, token consumed=98008, elapsed=579초(공유 goal 계량 구�
 
 ## S09 UI 재검증 58281 결과 — 개별 통과·최종 정리 실패
 
-명령 ./test_ui.sh; exit1; 1512877ms. 개별424개 통과, Policy v4 qualification stage PASS. 그러나 중복 PNG 정리 실패로 최종 ineligible/uiFulltestPass=false다. UI-004와 EVT-058은 이번 실행에서 통과했으며 과거 실패 이력은 보존한다. [전수 결과](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에424개 summary SHA 대조, 개별action 및80개 반응형 측정 기록을 이관했다. 30분·120분과 녹화추가8개ID31action은 이번 실행 범위가 아니다.
+명령 ./test_ui.sh; exit1; 1512877ms. 개별424개 통과, Policy v4 qualification stage PASS. 그러나 중복 PNG 정리 실패로 최종 ineligible/uiFulltestPass=false다. UI-004와 EVT-058은 이번 실행에서 통과했으며 과거 실패 이력은 보존한다. [전수 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에424개 summary SHA 대조, 개별action 및80개 반응형 측정 기록을 이관했다. 30분·120분과 녹화추가8개ID31action은 이번 실행 범위가 아니다.
 
 원인 직접 확인: SAFE-138과 visual-UI-014-390-light는 같은 operator /ops/events 390×844 light 화면을 각각 screenshot()으로 촬영했으며 PNG 각57027bytes, SHA256 80a8d6e05938b715683fccf67b84facbb1ee4d43febcbf9340d0b4749c69a57c가 동일하다. runner의 case 정리는 cases subtree에 한정되고 finalizer 분기는 일반 dedup을 지나지 않지만 acceptance cleanup은 runDir 전체 중복0을 요구한다. 촬영 생략이나 중복 허용이 아니라 finalizer 최종 참조·hash 확정 전 공통 소유 root의 중복 참조 정리 보완이 필요하다. 제품 수정·추가검증·커밋·푸시는 하지 않았다.
 
@@ -21553,7 +21553,7 @@ token start7492054/end7504066/consumed12012, source=goal 누적 차이(준비·�
 후속 실행 결과: `--case-id EVT-058` 실제 진단은 미커밋 변경으로 clean-worktree
 사전조건에서 exit1로 종료되어 컴파일·서버·브라우저는 시작되지 않았다.
 시작1789106562662/종료1789106563551,889ms. 원본 결과와 임시자료2경로 삭제는
-[실패 기록의 후속 진단 항목](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에 보존했다.
+[실패 기록의 후속 진단 항목](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에 보존했다.
 token start7322309/end7340216/차이17907은 준비·후처리를 포함하는 goal차이이며
 테스트889ms 단독 사용량이 아니다. 실제 EVT-058 원인은 여전히 미확정이다.
 현재 준비 문서 검증은 `git diff --check` exit0,
@@ -21576,7 +21576,7 @@ UI 영역의 단일 EVT-058 재현은 관측 보완 검토 뒤 실행한다. 30�
 ## S09 UI baseline 실행 67127 — 결과 보존, 진단 원본 정리 대기
 
 `./test_ui.sh`는 2026-09-11 실행에서 exit1, 1528998ms로 종료됐다.
-[424개 개별 결과와 단계 전수](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에
+[424개 개별 결과와 단계 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에
 423 pass/1 fail을 보존했다. 전체 UI 판정은 FAIL이며 Policy v4 qualification은 미실행이다.
 EVT-058은 background 요청 응답 증거 누락(`RESPONSE_MISSING`)이며 제품 원인은 미확정이다.
 별도로 테스트가 기본 `.media_server/recordings` 파일4개를 생성하여 최종 source drift도 발생했다.
@@ -21701,7 +21701,7 @@ verifier의1fail을 그대로 실패로 기록한다. 기대 조건을 제거하
 
 ## S09 UI baseline 실행14128
 
-최종 보존: [14128 사전 검사 실패 전수](release-artifacts/v4.1.0/s09-ui-preflight-14128/results.md),
+최종 보존: [14128 사전 검사 실패 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-ui-preflight-14128/results.md),
 27856bytes, SHA256 `8ce5f82a6e17d44cf5f139ca9b1cae6a45539d43efb2124d00fc80122d24295c`.
 메인이 원본16개 파일의 크기·SHA, launcher 계약86pass행의 파일/행/문자열,
 stage14개 이름을 대조하여 누락0을 확인했다. stage3pass/2fail/9not-run은
@@ -21767,7 +21767,7 @@ core projection 고정값만 현재288개 결박으로 갱신한다. 이번 변�
 
 ## S09 PD30 52899 실행 시작
 
-최종 보존·정리: [52899 개별 결과](release-artifacts/v4.1.0/s09-predev30-52899/results.md)
+최종 보존·정리: [52899 개별 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-predev30-52899/results.md)
 459153bytes, SHA256 `86226c1ebb4c3a126c80372cb2e2a22ee5b4a220ebfbef1c8a3d943900da8005`.
 메인은 원로그1458개 marker의 파일/행 식별과 outer110개 이름의 보존표 누락0을
 직접 확인했다. 하위1267pass/0fail/191skip와 child21pass/0fail/9skip는 별도
@@ -21863,7 +21863,7 @@ token start/end/consumed 미집계(도구 제공 없음), elapsed는 종료 후 
 
 메인 실제 명령 `./server.sh verify-predev --soak-minutes 120 --fail-fast`, session96360 exit0/signal null, started1789086596789/ended1789094418692, elapsed7821903ms. UTC2026-09-11T00:29:56.789Z→02:40:18.692Z(KST09:29:56.789→11:40:18.692). runner7821초, 요청soak7200초,80iterations×5case=400. **outer409pass0fail1skip0notRun, report PASS도409 안에 포함**한다. child21pass0fail9skip/555초는 별도 계층이다. 이전89034 code-comments·51874 gi실패→주석 보존예외 및 nonlogin환경 보완→이번통과 이력을 유지한다.
 
-[96360 개별 결과·측정·정리 인계 전수](release-artifacts/v4.1.0/s09-predev120-96360/results.md)는647254bytes, SHA256 `516783b3d44e7d7829c69b48d27fb9732f54de073e665772e4cbd1d5ee8fba46`이다. outer409실행 command/duration/log +skip1, child21command/direct21pass+9skip, canonical하위5058판정(4567pass0fail491skip)을 이관했다. stdout/stderr 중복본과 integrated 재출력은 중복집계하지 않았다. 최초영어marker수집5045행에 한글rules-registry13행을 추가해 원로그 전수5058행과 일치했으며 원문 가림 후 누락0·outer410label존재·rawsource/auth패턴없음을 대조했다. URL과 WebRTC 세션 식별자만 가렸고 판정은 보존했다. 첫 대량JSON 조회 절단은 증거로 사용하지 않고 한정projection을 재수집했다.
+[96360 개별 결과·측정·정리 인계 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-predev120-96360/results.md)는647254bytes, SHA256 `516783b3d44e7d7829c69b48d27fb9732f54de073e665772e4cbd1d5ee8fba46`이다. outer409실행 command/duration/log +skip1, child21command/direct21pass+9skip, canonical하위5058판정(4567pass0fail491skip)을 이관했다. stdout/stderr 중복본과 integrated 재출력은 중복집계하지 않았다. 최초영어marker수집5045행에 한글rules-registry13행을 추가해 원로그 전수5058행과 일치했으며 원문 가림 후 누락0·outer410label존재·rawsource/auth패턴없음을 대조했다. URL과 WebRTC 세션 식별자만 가렸고 판정은 보존했다. 첫 대량JSON 조회 절단은 증거로 사용하지 않고 한정projection을 재수집했다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -22570,7 +22570,7 @@ PE01 실제 predev run_step의 integrated·initial report 및 refresh에서 PATH
 
 메인 명령 `./server.sh verify-predev --soak-minutes 120 --fail-fast`, session51874 exit1/112200ms. outer4pass1fail0skip6notRun(후처리 report PASS 집계별도), child10pass1fail3skip/94초, soak0분0회. 이전 주석 gate는 이번927files/0/0으로 통과했지만 local RTSP H265/Opus launcher의 `import gi`에서 ModuleNotFoundError로 중단했다.
 
-[51874 전수 결과](release-artifacts/v4.1.0/s09-predev120-51874/results.md)에 outer 실행6행/미실행6행, child direct14행(10pass1fail3skip), 상세71행(41pass1fail29filter/disabled skip), child명령11개와 이후미실행10개를 보존했다. WebRTC session 식별자2개만 가림; raw sourceURL/debug/auth material 미보존. 결과 계층별 중복을 합산하지 않는다. source는 원 summary/각child log/integrated log, token start/end/consumed 미집계(도구 미제공).
+[51874 전수 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-predev120-51874/results.md)에 outer 실행6행/미실행6행, child direct14행(10pass1fail3skip), 상세71행(41pass1fail29filter/disabled skip), child명령11개와 이후미실행10개를 보존했다. WebRTC session 식별자2개만 가림; raw sourceURL/debug/auth material 미보존. 결과 계층별 중복을 합산하지 않는다. source는 원 summary/각child log/integrated log, token start/end/consumed 미집계(도구 미제공).
 
 메인 원인 진단: nonlogin `/bin/bash -c`의 python3는 /opt/homebrew/bin/python3이고 gi ModuleSpec 존재, login `/bin/bash -lc`는 /usr/bin/python3 및 /Library/Developer/CommandLineTools/usr/bin/python3로 giNone. predev347/863·test_all401의 bash-lc가 격리 PATH를 재정의하는 것을 직접 재현했다. 패키지 설치/삭제는 불필요하며 다음 수정 범위는 메인 확정 대기다. child는 이 진단을 재실행하지 않았다.
 
@@ -22916,7 +22916,7 @@ script inventory 원출력 전수:
 
 메인 실행 `./server.sh verify-predev --soak-minutes 120 --fail-fast`, session 89034, exit1/signal null, 26008ms(1789084830723→1789084856731). 실제 soak 0분/0 iteration: integrated code-comments에서 중단했다. runner 4 pass/1 fail/0 skip/6 notRun, 후처리 summary-report 별도 pass; child 2 pass/1 fail/0 skip. build1초/server-start pass/integrated19초 fail/ports-clean pass/report1초 pass. child는 static pass, script inventory12개 pass, code-comments926파일 중 상단표식71개+영어주석1개 fail이다. 실패 후 후속 direct child18개 및 soak/queue 단계는 미실행이며 120분 PASS가 아니다.
 
-[실제 원결과·71파일 및 영어주석 전수·미실행·cleanup 인계](release-artifacts/v4.1.0/s09-predev120-89034/results.md)에 보존했다. 원로그의 71개 경로+영어주석1개는 원문 순서 유지; inventory12개와 static 원문도 전수 보존했다. 재실행하지 않았고 제품/스크립트 수정 없음. 상단8줄 내 정책 키워드 누락이 직접 원인으로, 기존 한글 설명 유무와 구분한다. 보존 artifact6개는 모두 현재 파일 SHA256이 기존 중앙 기록에 존재함을 읽기로 확인했으며 수정 금지/메인 판단 대기다.
+[실제 원결과·71파일 및 영어주석 전수·미실행·cleanup 인계](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-predev120-89034/results.md)에 보존했다. 원로그의 71개 경로+영어주석1개는 원문 순서 유지; inventory12개와 static 원문도 전수 보존했다. 재실행하지 않았고 제품/스크립트 수정 없음. 상단8줄 내 정책 키워드 누락이 직접 원인으로, 기존 한글 설명 유무와 구분한다. 보존 artifact6개는 모두 현재 파일 SHA256이 기존 중앙 기록에 존재함을 읽기로 확인했으며 수정 금지/메인 판단 대기다.
 
 wrapper 시작 PID37841과 binary ledger PID37842는 다르다. binary aliveAfter=false, ports-clean pass, 메인 lsof4포트 부재 확인. root1731334/runner21708/child5776bytes는 메인 측정; 세 경로는 아직 삭제하지 않았다. artifact에는 결과만 보존하고 raw sourceURL/비밀번호/서버 debug 로그는 이관하지 않았다. token start/end/consumed 미집계(도구 계수 미제공), source는 기존 원로그/summary 및 메인 측정이다. 30분/UI/녹화 직접120/자원추세 판정 미실행, 커밋·푸시 없음.
 
@@ -24407,7 +24407,7 @@ PR04 추가 사전등록: 메인 리뷰에서 Python expand_paths가 argv를 다
 
 ## S09 첫 실제 --all 48365 통합 실행
 
-메인 명시승인 실행명령은 정확히 `./server.sh verify-v410-recording-foundation --all`이다. session48365 exit0, elapsed132661ms. 원로그1553줄164097bytes에서 모든[pass]1054/[fail]0 및[measure]5개를 [48365 원출력 전수표](release-artifacts/v4.1.0/s09-foundation-all-48365/results.md)에순서대로보존했다. 원행↔표1059행 escape복원 exact equality 확인. artifact96723bytes SHA25612b5c19a8544974b4d896da0fd58408283ff929ac439a1599b943eb1a688896d. runtime517+auth535+wrapper2=1054, summary의stage checks는wrapper제외계층이다. 이전독립실행runtime519/auth534와차이는이번실제동적assertion수이며원출력전수대조로누락이아님을확인했다.
+메인 명시승인 실행명령은 정확히 `./server.sh verify-v410-recording-foundation --all`이다. session48365 exit0, elapsed132661ms. 원로그1553줄164097bytes에서 모든[pass]1054/[fail]0 및[measure]5개를 [48365 원출력 전수표](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-foundation-all-48365/results.md)에순서대로보존했다. 원행↔표1059행 escape복원 exact equality 확인. artifact96723bytes SHA25612b5c19a8544974b4d896da0fd58408283ff929ac439a1599b943eb1a688896d. runtime517+auth535+wrapper2=1054, summary의stage checks는wrapper제외계층이다. 이전독립실행runtime519/auth534와차이는이번실제동적assertion수이며원출력전수대조로누락이아님을확인했다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -24452,7 +24452,7 @@ elapsed는 묶음 도구 wall0.082657초만 있으며 개별 시간·token은 �
 
 메인86820은17pass1fail/inventorySha256 drift였고 원출력5087줄절단으로당시전수확인주장없음. 앞선메모리986items/review/proof 전수동일 및 hash-only validator오류0 판단뒤 메인이 기존manifest의line5 inventorySha256만수정했다. generic재생성이나독립승인/envelope/policy변경없음. 메인 git diff --unified=0 exit0로exact 한줄확인. 별도gitshow fullJSON deepcompare는 execFileSync maxBuffer16000000이파일26405943bytes보다작아ENOBUFS exit1(SIGTERM git subprocess27331); 진단출력버퍼실패이며제품실패아님. 한줄diff확인으로해소했고사전in-memory동일근거와함께범위를결속한다.
 
-실제 메인 `./server.sh verify-project-inventory` session17599 exit0: 최상위18pass0fail/featureRows986. 원로그5087줄210250bytes 중개별[pass]5081행/[fail]0행을 [17599 원출력 전수표](release-artifacts/v4.1.0/s09-project-inventory-17599/results.md)에그대로보존했다. 원행↔표5081행순서·escape복원exact equality 확인. 내부개별5081행과최상위18check는별도계층이며실제5081제품동작수행주장아님. artifact301302bytes SHA256 df110f72c64aa716216c380a37466dcd9b1adae8d4f347f6c2d86e8836bea256. rawURL/file::/Cookie/Bearer/hash credential패턴없음확인. 독자는개발·검증증적, S09실행보존lifecycle이며중앙에서만링크한다. 원로그 /private/tmp/s09-project-inventory.BviM7E 210250bytes는 메인5081행 전수 대조 후 unlink 및 부재 확인 완료. elapsed/token start/end/consumed 미집계(메인개별시간전달없음·자동토큰집계없음).
+실제 메인 `./server.sh verify-project-inventory` session17599 exit0: 최상위18pass0fail/featureRows986. 원로그5087줄210250bytes 중개별[pass]5081행/[fail]0행을 [17599 원출력 전수표](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s09-project-inventory-17599/results.md)에그대로보존했다. 원행↔표5081행순서·escape복원exact equality 확인. 내부개별5081행과최상위18check는별도계층이며실제5081제품동작수행주장아님. artifact301302bytes SHA256 df110f72c64aa716216c380a37466dcd9b1adae8d4f347f6c2d86e8836bea256. rawURL/file::/Cookie/Bearer/hash credential패턴없음확인. 독자는개발·검증증적, S09실행보존lifecycle이며중앙에서만링크한다. 원로그 /private/tmp/s09-project-inventory.BviM7E 210250bytes는 메인5081행 전수 대조 후 unlink 및 부재 확인 완료. elapsed/token start/end/consumed 미집계(메인개별시간전달없음·자동토큰집계없음).
 
 메인 추가실행 `./server.sh verify-v410-entry-baseline && ./server.sh verify-release-metadata` exit0, entry33/0 metadata18/0. 도구wall0.034452125초는개별elapsed아님, elapsed/token미집계. source4.1.0/tagv4.1.0/latestpublishedv4.0.0/external-not-checked이며실제원격published확인PASS가아니다. 아래51개는메인이직접전달한원출력각항목이다.
 
@@ -35013,10 +35013,10 @@ native 자료는 증적 digest와 위치 context만 변경됐으며 기능 case/
 보존 증적은 실제 독립 검토자의 원본이다. source/contract/locator와 판정만 포함하며
 비밀번호·세션·원시 영상은 없다. 신규 제품 기능·UI·장시간 PASS를 대신하지 않는다.
 
-- [독립 검토 보고](release-artifacts/v4.1.0/20260909-s07-final/REPORT.md)
-- [검토 패키지](release-artifacts/v4.1.0/20260909-s07-final/review-package.json): SHA256 `d74119bbac434a10f6dfe6541acc396cfc27866eb2308d68053966f2d014ec70`
-- [독립 판정](release-artifacts/v4.1.0/20260909-s07-final/independent-decisions.json): SHA256 `591ad001d3440fefcd810a74ad2aadf4a190a1393b58db4f62d85bfae8cdd8e6`
-- [동등성 이관 자료](release-artifacts/v4.1.0/20260909-s07-final/migration-evidence.json)
+- [독립 검토 보고](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260909-s07-final/REPORT.md)
+- [검토 패키지](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260909-s07-final/review-package.json): SHA256 `d74119bbac434a10f6dfe6541acc396cfc27866eb2308d68053966f2d014ec70`
+- [독립 판정](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260909-s07-final/independent-decisions.json): SHA256 `591ad001d3440fefcd810a74ad2aadf4a190a1393b58db4f62d85bfae8cdd8e6`
+- [동등성 이관 자료](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260909-s07-final/migration-evidence.json)
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
@@ -36736,7 +36736,7 @@ S06 구현·단계 검증과 문서 마감을 완료했다. 커밋·푸시의 �
 
 ### 직접 UI evidence 범위
 
-[직접 UI 관찰 기록](release-artifacts/v4.1.0/s06-final-ui/evidence.json)을 보존했다(5025 bytes).
+[직접 UI 관찰 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s06-final-ui/evidence.json)을 보존했다(5025 bytes).
 Codex 인앱 브라우저 direct-browser, 1280×720 dark, 격리 auth-off 개발 admin 및 Client Preview다.
 10개 route와 생성 ID·사용자 scope 선택·Rules review loop의 실제 조작 결과를 JSON 개별 행으로 기록했다.
 Client 3개 화면의 visible text에서 금지 정보 목록을 확인했고 console error/warning은 관찰되지 않았다.
@@ -38234,12 +38234,12 @@ audit·approval·implementation manifest·native exact manifest를 원자적으�
 15/15, 프로젝트 인벤토리 18/0, 기능 coverage 986/986·8/0이다. 최종 묶음에서 lifecycle
 fixture 4/0, script inventory 11/0, release evidence index 8/0, 문서 링크 225개·실패 0,
 정식 S05 140/0+7/0+23/0+2/0·action 27/0와 제품 build 100%를 다시 확인했다.
-[독립 검토와 적용 증적](release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)을
+[독립 검토와 적용 증적](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)을
 보존한다. 이 정적 의미 검증과 제한 실행은 UI·30분·120분 PASS가 아니다.
 
 ### 증적·cleanup·미실행
 
-[실패 이력, sample call chain, 최종 JSON SHA와 SSIM 상세](release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
+[실패 이력, sample call chain, 최종 JSON SHA와 SSIM 상세](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
 보존한다. 종료 sample 원문 646,728byte와 SSIM probe 두 root의 일반 파일 4개
 1,526,447byte는 내용을 이관한 뒤 삭제한다. Homebrew 설치 파일과 사용자 registry는
 삭제·수정하지 않는다.
@@ -39526,13 +39526,13 @@ elapsed/source: unittest가 기록한 RED 0.020초/0.060초, 구현 후 3.200초
 각 command/factory/assertion/action/check/cleanup의 생략 없는 표는 다음 저장소 보존
 문서에 분리한다. 이 절이 색인이며 JSON 원문과 개별 표를 함께 evidence로 사용한다.
 
-- [환경 20개·실제 명령 101개·assertion 51개 전수](release-artifacts/v4.1.0/20260904-gst-env-fix/individual-results.md)
-- [S05 재개 개별 assertion/action/check 전수](release-artifacts/v4.1.0/20260904-gst-env-fix/s05-individual-results.md)
-- [환경 verifier 원문](release-artifacts/v4.1.0/20260904-gst-env-fix/unit-results.json)
-- [실제 macOS 원문 및 최초 S05 실패](release-artifacts/v4.1.0/20260904-gst-env-fix/runtime-results.json)
-- [S05 및 build 재개 원문](release-artifacts/v4.1.0/20260904-gst-env-fix/s05-build-results.json)
-- [최종 등록·문서 개별 결과](release-artifacts/v4.1.0/20260904-gst-env-fix/final-metadata-results.md)
-- [최종 등록·문서 원문 및 manifest 차이 진단](release-artifacts/v4.1.0/20260904-gst-env-fix/final-metadata-results.json)
+- [환경 20개·실제 명령 101개·assertion 51개 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/individual-results.md)
+- [S05 재개 개별 assertion/action/check 전수](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/s05-individual-results.md)
+- [환경 verifier 원문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/unit-results.json)
+- [실제 macOS 원문 및 최초 S05 실패](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/runtime-results.json)
+- [S05 및 build 재개 원문](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/s05-build-results.json)
+- [최종 등록·문서 개별 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/final-metadata-results.md)
+- [최종 등록·문서 원문 및 manifest 차이 진단](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-env-fix/final-metadata-results.json)
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -39651,7 +39651,7 @@ feature 비교는 공백 두 개 형식의 factory 행뿐 아니라 공백 한 �
 포함하고, 실제 출력의 Total count와 개별 행 수가 일치하는지 확인한다.
 
 1차 실행 당시 상태: **부분 수행 후 중단**. 아래 이력은 보존하며 최신 상태는 다음 재개 결과를 따른다.
-[개별 실행 기록](release-artifacts/v4.1.0/20260904-gst-packaging/individual-results.json)에
+[개별 실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-packaging/individual-results.json)에
 실제 종료 코드·시간·stderr·원본 SHA를 보존한다. 실행 OS는 macOS 26.6.2/arm64,
 GStreamer 1.28.1이며 다른 PC나 OS에서 실행한 것은 아니다.
 
@@ -39704,8 +39704,8 @@ PATH로 수정했다. 실제 Node 실행과 기존 `env_common.sh` 환경 수집
 제품 실행 스크립트·설치 패키지는 변경하지 않았다. 최초 Node 경로 오류 및 sandbox
 실패 이력은 위 표와 최초 JSON에 그대로 보존한다.
 
-[모든 개별 결과 표](release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.md)와
-[재개 결과 JSON](release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.json)에
+[모든 개별 결과 표](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.md)와
+[재개 결과 JSON](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.json)에
 실제 명령 57개, factory 생성 44개, WebRTC READY, 원본 SHA 및 S05의 모든 개별
 assertion/action/check를 기록한다. action/check는 같은 C++/runtime 결과의 등록 매핑이며
 서로 독립인 테스트 수처럼 합산하지 않는다.
@@ -39788,7 +39788,7 @@ token start/end/consumed는 goal 계측이 없어 미집계이며 elapsed/source
 
 ### 실제 실행 결과와 최초 실패 이력
 
-[개별 결과 JSON](release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)은
+[개별 결과 JSON](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)은
 최종 실제 C++ assertion 140개·application 7개·runtime 20개·등록기 26개·기능 27개/check 89개,
 두 source mutation 및 테스트 소스 SHA를 보존한다. 합성 consumer 입력은 제품 증거가 아니다.
 
@@ -39872,7 +39872,7 @@ C++ 9개 시나리오의 모든 assertion·application-only 7개 결과도 함�
 
 등록 보정과 독립 검토의 3개 지적 수정 후 새로 실행했다.
 개별 assertion 140개, application 7개, 기능 27개의 exact check 결과는
-[개별 결과 JSON](release-artifacts/v4.1.0/20260904-s05-resume/individual-results.json)에
+[개별 결과 JSON](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-s05-resume/individual-results.json)에
 전수 보존한다. 테스트 소스 SHA-256도 함께 기록했다.
 
 | 테스트 항목 | 실행 명령 | 결과 | 직접 확인 범위 |
@@ -39903,8 +39903,8 @@ C++ 9개 시나리오의 모든 assertion·application-only 7개 결과도 함�
 추가하고 누락 거부 회귀 추가, I02 disabled guard 회귀 검사를 추가하고 정적 판정 범위로
 한정했다. 세 지적은 독립 재검토에서 해소됐다. 다음 상태표는 실행 PASS가 아니다.
 
-독립 검토 원문은 [검토 패키지](release-artifacts/v4.1.0/20260904-s05-resume/review-package.json)와
-[행별 판정](release-artifacts/v4.1.0/20260904-s05-resume/independent-decisions.json)에
+독립 검토 원문은 [검토 패키지](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-s05-resume/review-package.json)와
+[행별 판정](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/20260904-s05-resume/independent-decisions.json)에
 원본 바이트로 보존했다. candidate는 `648b9c8acb115fde2953fecf1aa3a30dc861ebaf23ed0fa3bf4ac038fd689e47`,
 package SHA-256은 `4a08719e79b1008ba6ddef8b7de433a8ae5226518d14e5455b1473da183866ef`,
 판정 SHA-256은 `a3baa642b11e236f71d2660c7c5ab82d625fd3f0cc2718a164a9aaf2b4606582`다.

@@ -832,7 +832,7 @@ closeout/reconciliation/RC/v240/v250/Actions/CI 소비자 7개는 종료 원장�
 이는 검증 도구·문서 정합성 결과이며 실제 제품/CI/릴리즈·UI·30분/120분 실행 결과가 아니다.
 
 원출력·실패→재검증·독립 결정·보존/정리 결과는
-[단일 실행 자료](release-artifacts/v4.1.1/release-policy-documentation/result.json)에 둔다.
+[단일 실행 자료](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.1/release-policy-documentation/result.json)에 둔다.
 전체 문서·소비자 정리와 종료 기록 삭제는 아직 진행 중이며 v4.1.1 전체 완료가 아니다.
 
 ## 11. UI 구조 문서와 현행 검사 연결 — 2026-09-29
@@ -851,7 +851,7 @@ closeout/reconciliation/RC/v240/v250/Actions/CI 소비자 7개는 종료 원장�
 기능 연결 986개(검사 8개), 스크립트 목록 12개 및 링크·공백 검사를 확인했다.
 제품 소스·실제 UI·Auth·미디어·장시간 실행 결과가 아니라 문서/검증 도구의 결과다.
 변경·기존 검사 의미 대조·실패→재검증·원본 보존·정리는
-[단일 실행 자료](release-artifacts/v4.1.1/ui-component-documentation/result.json)에 둔다.
+[단일 실행 자료](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.1/ui-component-documentation/result.json)에 둔다.
 다른 UI 작업 문서·소비자, 기록 생성/수명 정리와 v4.1.1 최종 마감은 남아 있다.
 
 ## 12. UI 작업 영역 문서와 현행 소비자 — 2026-09-29
@@ -876,7 +876,7 @@ UI PASS가 아니며 실제 자동화는 도구 이름 대신 Policy v4 적격 �
 
 새 자체검사는 실제 원본을 수정하지 않는 자식 프로세스 메모리 대역을 사용한다.
 종료 기록 의존의 예상 RED, 후속 실행 결과·원출력·소스 hash·검토·정리는
-[단일 실행 자료](release-artifacts/v4.1.1/ui-workspace-documentation/result.json)에 둔다.
+[단일 실행 자료](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.1/ui-workspace-documentation/result.json)에 둔다.
 실제 제품·Auth·브라우저·장시간 검증은 이 작업에서 수행하지 않는다.
 이번 묶음 밖 기록 생산자/소비자 정리와 Git 보존 후 종료 자료 삭제는 아직 남아 있다.
 
