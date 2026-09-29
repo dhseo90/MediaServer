@@ -177,3 +177,51 @@ test('RECORD-CONSISTENCY CLI output 쓰기 실패 전파', () => {
   const r = cli('verify_v230_test_evidence_consistency.mjs', {writeError: true, args: ['--json-report', '/memory/report.json']});
   assert.equal(r.status, 1); assert.match(r.stderr, /synthetic output write failure/);
 });
+
+// 현행 후보 기준만으로 검사하고 종료 원장·옛 backlog 본문 접근은 금지한다.
+function scopeGate(mutation) {
+  const source = `
+    import fs from 'node:fs'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+    const root=${JSON.stringify(root)}, mutation=${JSON.stringify(mutation || null)};
+    const original=fs.readFileSync;
+    fs.readFileSync=function(file, options) {
+      const p=path.relative(root,String(file));
+      if(['docs/release-test-records.md','docs/release-evidence-index.md'].includes(p))throw Error('종료 원장 읽기 금지');
+      const raw=original.call(this,file,options);
+      let text=String(raw);
+      if(p==='docs/development-backlog.md')text=text.split('## 축약 보류 중인 과거 본문')[0];
+      if(mutation?.file===p) {
+        if(mutation.headings)text=text.replace(/^#{1,6} .*$/gm,'# 바꾼 제목');
+        if(mutation.remove)text=text.replaceAll(mutation.remove,mutation.replace||'');
+        if(mutation.append)text+=mutation.append;
+      }
+      return Buffer.isBuffer(raw)?Buffer.from(text):text;
+    };
+    for(const method of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])
+      fs[method]=()=>{throw Error('읽기 전용 검사');};
+    await import(pathToFileURL(root+'scripts/internal/verify_feature_scope_decision_gate.mjs'));
+  `;
+  return spawnSync(process.execPath,['--input-type=module','-e',source],{cwd:root,encoding:'utf8',timeout:15000});
+}
+for (const [name, mutation, exit] of [
+  ['종료 원장 없이 현행 계약', null, 0],
+  ['제목 변경 허용', {file:'docs/development-backlog.md',headings:true}, 0],
+  ['범위 기준 링크 누락', {file:'docs/development-backlog.md',remove:'../AGENTS.md'}, 1],
+  ['미승인 후보 실행 불가', {file:'docs/development-backlog.md',remove:'| candidate-only | 없음 |',replace:'| candidate-only | 허용 |'}, 1],
+  ['보류 실행 불가', {file:'docs/development-backlog.md',remove:'| deferred-non-scope | 없음 |',replace:'| deferred-non-scope | 허용 |'}, 1],
+  ['승인 범위 확대 거부', {file:'docs/development-backlog.md',remove:'승인된 범위만',replace:'전체 구현 허용'}, 1],
+  ['중복 권한 거부', {file:'docs/development-backlog.md',append:'\n| candidate-only | 허용 |\n'}, 1],
+  ['다른 위치의 정상 문자열로 잘못된 행을 덮지 않음', {file:'docs/development-backlog.md',remove:'| candidate-only | 없음 |',replace:'| candidate-only | 허용 |\ncandidate-only=없음'}, 1],
+  ...['owner approval','target version','contract impact','non-scope','verification'].map(field =>
+    ['검토 항목 누락 '+field,{file:'docs/development-backlog.md',remove:'| '+field+' |'},1]),
+  ['승인 주체 변경 거부',{file:'docs/development-backlog.md',remove:'사용자 명시 승인',replace:'검사 성공'},1],
+  ...['WebRTC DataChannel','Event POST','SSE/WS metadata','Auth/Role/Scope','인증·세션','RTSP/WebRTC media path'].map(field =>
+    ['보호 계약 누락 '+field,{file:'docs/development-backlog.md',remove:field},1]),
+  ['검증 안내 누락',{file:'docs/stream-verification.md',remove:'./server.sh verify-feature-scope-gate'},1],
+  ['dispatch 오류',{file:'server.sh',remove:'verify_feature_scope_decision_gate.mjs',replace:'wrong.mjs'},1],
+]) test('SCOPE-DOC '+name, () => {
+  const result=scopeGate(mutation);
+  assert.equal(result.error,undefined);assert.equal(result.signal,null);
+  assert.equal(result.status,exit,result.stdout+result.stderr);
+  assert.match(result.stdout,exit===0?/- pass: 5/:/\[fail\]/);
+});

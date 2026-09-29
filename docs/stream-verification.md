@@ -6,6 +6,13 @@
 
 ## 역할과 경계
 
+`./server.sh verify-feature-scope-gate`는 [backlog의 기능 후보 기준](development-backlog.md#기능-후보의-범위-결정)의
+미승인/승인 범위/보류 상태, 필수 검토 항목, 보호 계약과 실제 명령 연결을 확인한다.
+과거 v1.8 제목이나 종료 원장은 입력이 아니다. 문서 검사 PASS는 실제 사용자 승인이나 제품 실행 PASS가 아니다.
+관련 자체검사는 `node --test scripts/internal/release_record_documentation.test.mjs`의
+`SCOPE-DOC` 항목이다. 종료 원장 접근 차단·제목 변경은 정상, 미승인 실행·승인 범위 확대·
+중복 상태·검토 항목/보호 계약/dispatch 누락은 실패해야 한다. 실제 파일은 수정하지 않는다.
+
 문서 소비자 자체검사 `node --test scripts/internal/v310_v320_documentation_consumers.test.mjs`는
 다음 사전 정의를 사용한다. 서버·브라우저를 실행하지 않으며 제품 기능 PASS를 대신하지 않는다.
 

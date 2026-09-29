@@ -19,17 +19,45 @@
 대상은 프로젝트의 모든 문서이며 README와 AGENTS가 주요 진입점이다.
 이미 정리한 분야를 이번 단계에서 다시 감사하지 않는다.
 
-1. **backlog·로드맵 현행화:** 이 문서의 과거 본문을 읽는 직접 소비자가 남아 있어
-   backlog 전체 축약은 보류 상태다. 로드맵의 계획과 실행 이력은 분리한다.
+1. **backlog 잔여 축약:** 로드맵 현행화는 유지한다. feature-scope-gate의 옛 v1.8 문구 의존은
+   현행 후보 기준으로 대체했지만 아래에 특정한 일반 검증 소비자 때문에 과거 본문 축약은 남아 있다.
 2. **종료 기록 의존성·보존·삭제:** 실제 회귀 입력·기능 ID·독립 기대값·실패 전파는
    유지하고 과거 제목·완료 문구만 요구하는 의존성을 분리한다. 필요한 현행 계약을 보호한 뒤
    보존 commit의 바이트를 대조하고 종료 기록을 삭제하는 별도 커밋을 만든다.
    삭제된 과거 절을 가리키는 종료 기록의 링크도 이 단계에서 처리한다.
 3. **최종 정합·마감:** 현행 링크·문서 소비자·버전 설명을 맞추고 문서 정리 결과와
-   과거 제품 검증을 구분한다. 임시 전면 리뷰 보고서는 문서 정리가 끝난 뒤 삭제한다.
+   과거 제품 검증을 구분한다. 임시 리뷰의 유효한 잔여는 이 문서로 이관하며 전수 목록 확인을
+   전체 전문 검토로 간주하지 않는다. 앞의 핵심 의존성 마감 전에는 이 단계로 진입하지 않는다.
 4. **별도 승인 릴리즈:** 앞 단계 완료만으로 push·PR·병합·태그·Release를 실행하지 않는다.
 
 ## 알려진 제한과 별도 결정 후보
+
+### 기능 후보의 범위 결정
+
+후보의 발견과 구현 승인은 다르다. 다음 상태는 작업 분류이며 승인 기록이나 실행 결과가 아니다.
+실제 구현 권한은 사용자의 명시 지시에서 확인하고, 후보를 승인된 작업에 자동 추가하지 않는다.
+상세 안전 기준은 [AGENTS](../AGENTS.md#2-범위와-승인), 검사는
+`./server.sh verify-feature-scope-gate`와 [검증 안내](stream-verification.md)를 따른다.
+
+| 상태 | 구현 권한 |
+| --- | --- |
+| candidate-only | 없음 |
+| approved-next-roadmap | 승인된 범위만 |
+| deferred-non-scope | 없음 |
+
+승격 검토에서는 아래 항목을 빠뜨리지 않는다. 이 표의 존재만으로 승인을 받았다고 판단하지 않는다.
+
+| 검토 항목 | 조건 |
+| --- | --- |
+| owner approval | 사용자 명시 승인 |
+| target version | 승인 대상 버전 |
+| contract impact | 아래 보호 계약에 대한 영향 |
+| non-scope | 제외 범위 |
+| verification | 정상·오류·경계 검증 |
+
+보호 계약: WebRTC DataChannel, Event POST, SSE/WS metadata, Auth/Role/Scope와
+인증·세션, RTSP/WebRTC media path. 계약 변경은 별도 승인된 호환·복구 방안 없이
+일반 기능 후보로 승격하지 않는다. 현재 후보와 제한은 아래 표에 두고 완료 이력을 누적하지 않는다.
 
 | 항목 | 현재 경계와 후속 결정 |
 | --- | --- |
@@ -41,6 +69,7 @@
 | 검증 범위 | 외부 서비스·실기기 검증은 사용자 제외이며 PASS가 아니다. 로컬·한정 시간의 결과를 다른 장비나 무기한 운용의 보장으로 확대하지 않는다. |
 | 표시 언어 | 영문 운영 사용자 목록의 숫자 채널 권한 보조 문구에 한글이 남을 수 있다. 권한 결함과는 구분하며 수정 일정은 미정이다. |
 | 참고 자료 | 외부 저장소는 원본 용도로 유지하며 MediaServer에 종속시키지 않는다. 라이선스 미확인 자료와 특허 위험 접근은 구현 참고에서 제외한다. 세부 기준은 로드맵의 참고·조사 경계를 따른다. |
+| 의존성 스냅샷 | `DEPENDENCY_SNAPSHOT.md`의 `generatedAt: stable`·plugin 조회 timeout은 당시 수집 상태다. 현행 설치 실패나 라이선스 문제의 증거가 아니다. 최종 문서 정합에서 시점·수집 범위를 attribution과 구분하며 새로운 의존성 조사로 확대하지 않는다. |
 
 운영·계약의 상세 기준은 [문서 색인](README.md), [UI 가이드](ui-guide.md),
 [설정 참조](config-reference.md), [검증 정책](stream-verification.md),
@@ -51,11 +80,20 @@
 아래는 종료 버전의 기록이다. 현재 범위·일정·정책은 위 현행 절과 연결 문서를 따른다.
 과거 표현과 당시 PASS/FAIL을 현재 값으로 고쳐 쓰지 않는다.
 
-`verify_feature_scope_decision_gate.mjs`는 기준 본문에도 없는 v1.8 제목·승인 문구를 요구하는
-미해결 의존성이다.
-`verify_v390_truthfulness_status_vocabulary.mjs`는 v3.9 당시 상태 행을 직접 요구한다.
-이들과 같은 과거 문구 소비자를 현행 계약·회귀 입력에서 분리하기 전에는 본문 전체를
-삭제하지 않는다. 단순 링크·주석·출처 경로 참조는 실행 입력과 구분한다.
+현재 일반 실행 경로인 `verify_v390_test_acceptance_bundle.mjs::buildFeatureCommands()`와
+`runStage(feature-gates)`는 과거 문구 소비자를 여전히 호출한다. 단순 역사 링크가 아니다.
+예를 들어 `verify_v390_user_review_gate.mjs`의 `SAFE-198 canonical user review closure boundary`는
+이 backlog의 `pending-user-approval`·`approved-through-recorded-user-goals`와 중앙 원장의
+당시 `not-run-by-this-command` 설명으로 승인·실행 비승격을 판단한다. `SAFE-198`/`OPS-165`의
+현행 기능 정의와 소스 검토 결속에도 연결돼 있어, 읽기만 제거하거나 현재 등록 검사로 대체하면
+검사 의미가 달라진다. `verify_v390_feature_completion_inventory.mjs`의 `SAFE-197`/`OPS-164`,
+evidence-test-gate-prep의 `SAFE-199`/`OPS-166`/`OPS-167`도 직접 소비자다.
+
+필요한 작업은 당시 승인 상태와 현행 안전 계약을 최소 회귀 입력으로 구분하고, 해당 assertion의
+기대값·실패 전파·기능 정의·검토 결속을 함께 확인하는 것이다. 과거 실행 PASS를 fixture로 복사하지
+않으며 필수 실행 목록에서 임의 제외하지 않는다. 별도 `review3/review4 discovery ledger`는
+176개 문서·v3.9 source snapshot을 대조하는 역사 감사이므로 일반 gate와 구분해 적용 범위를 판정한다.
+중앙 원장·evidence index도 이 직접 의존성이 남은 동안 축약하지 않는다.
 여기 남은 오래된 미완료 표현 중 현재 적용 여부가 확인되지 않은 것은 보류이며,
 이번 편집으로 구현 완료나 결함 해소를 새로 판정하지 않는다.
 
