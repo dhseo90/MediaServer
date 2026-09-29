@@ -1,0 +1,63 @@
+[
+  {
+    "name": "feature-coverage",
+    "command": [
+      "./server.sh",
+      "verify-feature-inventory-coverage"
+    ],
+    "startedAt": "2026-09-29T02:38:26.028Z",
+    "endedAt": "2026-09-29T02:39:45.665Z",
+    "elapsedMs": 79637,
+    "exit": 0,
+    "signal": null,
+    "errorCode": null,
+    "stdout": "[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)\n[pass] inventory row count is stable\n[pass] inventory uses only the four approved test areas\n[pass] coverage docs and server command are wired\n[pass] exact implementation evidence manifest is valid\n[pass] all feature IDs have exact coverage targets\n[pass] negative missing-ID fixture fails\n[pass] SAFE-200 canonical coverage wording truthfulness boundary\n\n== Feature inventory coverage summary ==\n- featureRows: 986\n- covered: 986\n- missing: 0\n- pass: 8\n- fail: 0\n",
+    "stderr": ""
+  },
+  {
+    "name": "script-inventory",
+    "command": [
+      "./server.sh",
+      "verify-script-inventory"
+    ],
+    "startedAt": "2026-09-29T02:39:45.665Z",
+    "endedAt": "2026-09-29T02:40:51.900Z",
+    "elapsedMs": 66235,
+    "exit": 0,
+    "signal": null,
+    "errorCode": null,
+    "stdout": "[pass] dispatch parser recognizes explicit bash and node interpreters\n[pass] server.sh dispatch targets exist and are executable\n[pass] documented server.sh commands resolve to dispatch table\n[pass] tracked scripts are classified and referenced\n[pass] project inventory delegates script file inventory to this verifier\n[pass] project inventory maps verifier families without duplicating dispatch details\n[pass] CMake does not define a separate untracked CTest registry\n[pass] test entry scripts are reachable from test_all\n[pass] auth verifier has no hardcoded test password defaults\n[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default\n[pass] critical verifier pass output avoids grouped feature-result wording\n[pass] user-facing JS option parsers reject unknown options\n\n== Script inventory verification summary ==\n- pass: 12\n- fail: 0\n",
+    "stderr": ""
+  },
+  {
+    "name": "docs-links-final",
+    "command": [
+      "./server.sh",
+      "verify-docs-links"
+    ],
+    "startedAt": "2026-09-29T02:40:51.900Z",
+    "endedAt": "2026-09-29T02:40:52.258Z",
+    "elapsedMs": 358,
+    "exit": 0,
+    "signal": null,
+    "errorCode": null,
+    "stdout": "\n== Docs link verification summary ==\n- markdown files: 384\n- local links: 15172\n- local images: 14\n- local anchors: 327\n- indexed docs: 86\n- index coverage exclusions: 281\n- failures: 0\n",
+    "stderr": ""
+  },
+  {
+    "name": "diffcheck",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "startedAt": "2026-09-29T02:40:52.258Z",
+    "endedAt": "2026-09-29T02:40:52.418Z",
+    "elapsedMs": 160,
+    "exit": 0,
+    "signal": null,
+    "errorCode": null,
+    "stdout": "",
+    "stderr": ""
+  }
+]

@@ -9,6 +9,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateReleasePolicyDocumentation } from "./release_documentation_contract.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -48,13 +49,11 @@ const currentBranch = runGitValue(["branch", "--show-current"]) || "<detached>";
 const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
 const targetBranch = args.targetBranch || process.env.MEDIA_SERVER_RELEASE_TARGET_BRANCH || "main";
 const currentVersion = readText("VERSION").trim();
-const currentTag = `v${currentVersion}`;
 const nextBranch = args.nextBranch || process.env.MEDIA_SERVER_RELEASE_NEXT_BRANCH || defaultNextBranch(currentVersion);
 const server = readText("server.sh");
 const releasePolicy = readText("docs/release-policy.md");
 const versioningPolicy = readText("docs/versioning-policy.md");
 const publicReview = readText("docs/public-repo-final-review.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const uiGuide = readText("docs/ui-guide.md");
 const prTemplate = readText(".github/PULL_REQUEST_TEMPLATE.md");
@@ -155,46 +154,21 @@ check("release close-out commands are available", () => {
 });
 
 check("release docs keep publish gates manual", () => {
-  for (const snippet of [
-    "GitHub Releases 운영",
-    `${currentTag} Release Close-out Runbook`,
-    "Dry-run checklist",
-    "Real close-out checklist",
-    "Branch close",
-    "PR merge",
-    "Main fast-forward/sync",
-    "GitHub Release",
-    "Latest 확인",
-    "release branch",
-    "Next branch sync",
-    "Tag 전략",
-    "수동으로만 진행",
-    "public-readiness, bundle policy, Actions status check",
-    "Do not list an item as pass unless it was actually executed",
-  ]) {
-    assert(releasePolicy.includes(snippet), `release policy missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "tag는 `main`의 public readiness",
-    "source-only release 기준 tag",
-  ]) {
-    assert(versioningPolicy.includes(snippet), `versioning policy missing snippet: ${snippet}`);
-  }
+  const errors = validateReleasePolicyDocumentation({policy:releasePolicy,versioning:versioningPolicy,version:currentVersion});
+  assert(errors.length === 0, errors.join("; "));
   for (const snippet of [
     "verify-public-repo-readiness",
     "수동",
   ]) {
     assert(publicReview.includes(snippet), `public review missing snippet: ${snippet}`);
   }
-  assert(backlog.includes("실제 tag/push는 수동 승인 후에만 수행합니다"), "backlog must keep tag/push approval boundary");
   assert(streamVerification.includes("verify-release-closeout-helper"), "stream verification missing helper command");
   return { manualActions };
 });
 
 check("release visual baseline automation is wired for release workflow", () => {
-  const docs = [releasePolicy, streamVerification, uiGuide, prTemplate, backlog].join("\n");
+  const docs = [releasePolicy, streamVerification, uiGuide, prTemplate].join("\n");
   for (const snippet of [
-    "Release / Visual Baseline Readiness",
     "media-server.release-visual-baseline-automation.v1",
     "media-server-release-closeout-helper-dry-run",
     "./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>",
@@ -268,17 +242,16 @@ check("one-shot close-out gate is ordered and fail-stop", () => {
 });
 
 check("one-shot close-out docs keep destructive actions manual", () => {
-  const docs = [releasePolicy, streamVerification, backlog].join("\n");
+  const docs = [releasePolicy, streamVerification].join("\n");
   for (const snippet of [
     "media-server.release-closeout-one-shot-gate.v1",
     "--one-shot-dry-run",
-    "release branch 삭제",
-    "published metadata",
-    "fail-stop",
+    "manual-not-run",
+    "verify-release-metadata --published",
   ]) {
     assert(docs.includes(snippet), `one-shot close-out docs missing snippet: ${snippet}`);
   }
-  return { docs: ["docs/release-policy.md", "docs/stream-verification.md", "docs/development-backlog.md"] };
+  return { docs: ["docs/release-policy.md", "docs/stream-verification.md"] };
 });
 
 const report = buildReport();

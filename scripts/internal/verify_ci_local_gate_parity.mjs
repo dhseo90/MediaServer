@@ -122,7 +122,6 @@ check("server and docs expose CI/local parity verifier", () => {
     readText("docs/stream-verification.md"),
     readText("docs/public-repo-final-review.md"),
     readText("docs/release-policy.md"),
-    readText("docs/development-backlog.md"),
   ].join("\n");
   for (const snippet of [
     "verify-ci-local-gate-parity",
@@ -133,8 +132,6 @@ check("server and docs expose CI/local parity verifier", () => {
   assert(inventory.includes("verify_ci_local_gate_parity.mjs"), "script inventory missing parity verifier script");
   for (const snippet of [
     "media-server.ci-local-gate-parity.v1",
-    "CI/local gate parity",
-    "Preflight/static-gates/guardrails",
     "./server.sh verify-ci-local-gate-parity",
   ]) {
     assert(docs.includes(snippet), `docs missing snippet: ${snippet}`);

@@ -158032,38 +158032,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
-          "line": 132,
-          "anchor": "check(\"release policy and evidence index record S09 readiness without promoting not-run gates\", () => {",
+          "line": 133,
+          "anchor": "check(\"현행 릴리즈 정책과 제품 경계가 독립적으로 유지됨\", () => {",
           "symbol": "release-readiness-policy-check",
-          "contextSha256": "885a0a357ff3dc35065bee4a662dd09db2ee5d5a99ae4f29ee9acece73198710"
+          "contextSha256": "86cff01085ac576f2195786658ce435a2cf3ea3e1fe09b0a25ec5cffbd62c13e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
-          "line": 134,
-          "anchor": "const policy = readText(\"docs/release-policy.md\");",
+          "line": 139,
+          "anchor": "const errors=validateReleasePolicyDocumentation({policy:readText(\"docs/release-policy.md\"),",
           "symbol": "flow:SAFE-051",
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "contextSha256": "90dee27d1f765e2a2df870d985cb95d768bafc2ba36509cb4ba9b6fb51f84e65"
         },
         "action": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
-          "line": 141,
-          "anchor": "const releaseActionsRemainNotRun = policy.includes(\"`verify-release-metadata --published` 미실행\") &&",
+          "line": 151,
+          "anchor": "const releaseActionsRemainNotRun = errors.length===0;",
           "symbol": "flow:SAFE-051",
-          "contextSha256": "7fc5f3edddb27072a296cf8bd054f54f1d6d9c99968599007274d276e2933256"
+          "contextSha256": "bcd93c18ed646f4ec5ed71ec014fb96c015b16f668311a2dbff6f592b347dae1"
         },
         "state": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
-          "line": 144,
+          "line": 152,
           "anchor": "const releaseBoundaryObserved = WebRTCBoundaryObserved && releaseActionsRemainNotRun;",
           "symbol": "flow:SAFE-051",
-          "contextSha256": "ab4d2d46d87fa8f5df0aa26d3d3153ff561731c16e8318f0bb607556550cb673"
+          "contextSha256": "1213d58e9be5bab219163e842f90939b9e7f6ac58b308b24e1a51d1fa8d7c458"
         },
         "readback": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
-          "line": 145,
-          "anchor": "assert(releaseBoundaryObserved,",
+          "line": 153,
+          "anchor": "assert(releaseBoundaryObserved,\"WebRTC/SSE/RTSP and manual release gates must remain independently bounded\");",
           "symbol": "flow:SAFE-051",
-          "contextSha256": "d9369fc326860469e18cb160e62b9d31d2ee6b875be6867a2965015872ae43d8"
+          "contextSha256": "0f9d911b7e1b317410be20069f459a574f631b3bcfc0a1091d4f9613be6113e1"
         },
         "verifier": {
           "file": "server.sh",
@@ -158079,39 +158079,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-051 owner-dispatch",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:132",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:134"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:133",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:139"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-051 dispatch-action",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:134",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:141"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:139",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:151"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-051 action-state",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:141",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:144"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:151",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:152"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-051 state-readback",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:144",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:145"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:152",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:153"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v250-owner-release-readiness",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:145",
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:153",
           "target": "server.sh:3359"
         }
       ],
@@ -158165,53 +158165,53 @@
           "sha256": "401c7af8ba92024493f0be25dd085b295fd1c8b289380fcfe12fcabad3c427a4"
         }
       },
-      "sourceFlowDigest": "81b4499099a8890dbc884c346bda9f964de44d0d3f64e9472f5e5858a155dda5",
+      "sourceFlowDigest": "e02ccc333d0b73396656e08ebab7cb7fd737b92124ed18c0daf524a816929eab",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "release-readiness-policy-check",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-051",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-051",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-051",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "flow:SAFE-051",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -158223,7 +158223,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
+        "verifierFileSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
         "dispatch": {
           "command": "verify-v250-owner-release-readiness",
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
@@ -200318,37 +200318,37 @@
         "owner": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
           "symbol": "owner:OPS-036",
-          "anchor": "check(\"release policy and evidence index record S09 readiness without promoting not-run gates\", () => {",
-          "line": 132,
-          "contextSha256": "885a0a357ff3dc35065bee4a662dd09db2ee5d5a99ae4f29ee9acece73198710"
+          "anchor": "check(\"현행 릴리즈 정책과 제품 경계가 독립적으로 유지됨\", () => {",
+          "line": 133,
+          "contextSha256": "86cff01085ac576f2195786658ce435a2cf3ea3e1fe09b0a25ec5cffbd62c13e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
           "symbol": "dispatch:OPS-036",
-          "anchor": "const policy = readText(\"docs/release-policy.md\");",
-          "line": 134,
-          "contextSha256": "c50c6c5a55305115f689e3ab364cb63fa1f37156d16d10ee4e15bf9782eca964"
+          "anchor": "const errors=validateReleasePolicyDocumentation({policy:readText(\"docs/release-policy.md\"),",
+          "line": 139,
+          "contextSha256": "90dee27d1f765e2a2df870d985cb95d768bafc2ba36509cb4ba9b6fb51f84e65"
         },
         "action": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
           "symbol": "action:OPS-036",
-          "anchor": "const releaseActionsRemainNotRun = policy.includes(\"`verify-release-metadata --published` 미실행\") &&",
-          "line": 141,
-          "contextSha256": "7fc5f3edddb27072a296cf8bd054f54f1d6d9c99968599007274d276e2933256"
+          "anchor": "const releaseActionsRemainNotRun = errors.length===0;",
+          "line": 151,
+          "contextSha256": "bcd93c18ed646f4ec5ed71ec014fb96c015b16f668311a2dbff6f592b347dae1"
         },
         "state": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
           "symbol": "state:releaseBoundaryObserved",
           "anchor": "const releaseBoundaryObserved = WebRTCBoundaryObserved && releaseActionsRemainNotRun;",
-          "line": 144,
-          "contextSha256": "ab4d2d46d87fa8f5df0aa26d3d3153ff561731c16e8318f0bb607556550cb673"
+          "line": 152,
+          "contextSha256": "1213d58e9be5bab219163e842f90939b9e7f6ac58b308b24e1a51d1fa8d7c458"
         },
         "readback": {
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
           "symbol": "readback:OPS-036",
-          "anchor": "assert(releaseBoundaryObserved,",
-          "line": 145,
-          "contextSha256": "d9369fc326860469e18cb160e62b9d31d2ee6b875be6867a2965015872ae43d8"
+          "anchor": "assert(releaseBoundaryObserved,\"WebRTC/SSE/RTSP and manual release gates must remain independently bounded\");",
+          "line": 153,
+          "contextSha256": "0f9d911b7e1b317410be20069f459a574f631b3bcfc0a1091d4f9613be6113e1"
         },
         "verifier": {
           "file": "server.sh",
@@ -200364,39 +200364,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-036 owner-dispatch",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:132",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:134"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:133",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:139"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-036 dispatch-action",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:134",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:141"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:139",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:151"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-036 action-state",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:141",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:144"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:151",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:152"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-036 state-readback",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:144",
-          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:145"
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:152",
+          "target": "scripts/internal/verify_v250_owner_release_readiness.mjs:153"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v250-owner-release-readiness",
-          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:145",
+          "source": "scripts/internal/verify_v250_owner_release_readiness.mjs:153",
           "target": "server.sh:3359"
         }
       ],
@@ -200446,53 +200446,53 @@
           "sha256": "f131e61f6d622e50fc24f2cefccddcb29b34b5a16b7815106f6198687e3ab13b"
         }
       },
-      "sourceFlowDigest": "23801c9a8f64e7a06fe36f9347c2a86f5442f46e138083b19ae7799df84c89b9",
+      "sourceFlowDigest": "dbfb4499ad34d6e9a82e6ea907a68d2d5e52da5c31a3cab8dadcc53533b558b6",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "owner:OPS-036",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "dispatch:OPS-036",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "action:OPS-036",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "state:releaseBoundaryObserved",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
             "symbol": "readback:OPS-036",
-            "trackedBlobSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
-            "enclosingBodySha256": "f5f512db66b431d9b475e687f6198f240ad2470b16c5fc0e0ae58529fa1d7d07",
-            "enclosingBodyStartLine": 132,
-            "enclosingBodyEndLine": 171,
+            "trackedBlobSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
+            "enclosingBodySha256": "de44d503974538f6beeea4601bc28e887563b408274fcc7a46b8b5c66a46fa89",
+            "enclosingBodyStartLine": 133,
+            "enclosingBodyEndLine": 154,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -200504,7 +200504,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "152ebb06ed6d5f1fcaf6f859f9f91bb23f5a887a1b1bce4cd948df703cff25f2",
+        "verifierFileSha256": "f46f8c778acedf6ce652ba110c9a9c6bdee55778793d27de139aa865aa3df93b",
         "dispatch": {
           "command": "verify-v250-owner-release-readiness",
           "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
@@ -235275,5 +235275,5 @@
       }
     }
   ],
-  "candidateDigest": "a29969e9cef4d0f54ddd413d35dc478d7989d2c276c5ae7a73a93185da6ef543"
+  "candidateDigest": "3f7ce99b4c4a17a52ac699dfffa88f305f281c7e41ba5d907363dad3c4072d8a"
 }

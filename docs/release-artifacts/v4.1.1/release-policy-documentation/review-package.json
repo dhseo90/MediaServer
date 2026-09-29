@@ -1,0 +1,54 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "3f7ce99b4c4a17a52ac699dfffa88f305f281c7e41ba5d907363dad3c4072d8a",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "SAFE-051",
+      "OPS-036"
+    ]
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "b1ffe0a725b310a0ac7063fec0d6457d9c0cb24b",
+    "trackedWorktreeDiffSha256": "8ded75efc658c8022b1a707e259cf1685611f8fdd66e3ced2978f91cce21633c",
+    "changedFiles": [
+      "docs/release-policy.md",
+      "docs/stream-verification.md",
+      "docs/versioning-policy.md",
+      "scripts/internal/entry_baseline_report.test.mjs",
+      "scripts/internal/release_documentation_contract.mjs",
+      "scripts/internal/release_documentation_contract.test.mjs",
+      "scripts/internal/verify_actions_security.mjs",
+      "scripts/internal/verify_ci_local_gate_parity.mjs",
+      "scripts/internal/verify_post_release_reconciliation.mjs",
+      "scripts/internal/verify_rc_release_gate.mjs",
+      "scripts/internal/verify_release_closeout_helper.mjs",
+      "scripts/internal/verify_v240_release_readiness_gate.mjs",
+      "scripts/internal/verify_v250_owner_release_readiness.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ]
+  },
+  "trustRebindRows": [
+    {
+      "id": "SAFE-051",
+      "featureContractSha256": "931d500ff480e802502f596f761a926d3d1323ec47ecfe6678f7b5949dba09f9",
+      "sourceFlowDigest": "e02ccc333d0b73396656e08ebab7cb7fd737b92124ed18c0daf524a816929eab",
+      "currentTrustBindingsSha256": "9170d00863e37928a0b355063989d79944b70ed8940c324f4937d7bc47420a57"
+    },
+    {
+      "id": "OPS-036",
+      "featureContractSha256": "86b64c89acd18c0fe600ef74873e98853713fd57d760bc7371263751d94587fa",
+      "sourceFlowDigest": "dbfb4499ad34d6e9a82e6ea907a68d2d5e52da5c31a3cab8dadcc53533b558b6",
+      "currentTrustBindingsSha256": "8c4935524e5e117eda8b65b63734fe0690f68ab024ec1a34fa53f4ce18323d1e"
+    }
+  ],
+  "reviewNotes": [
+    "메인 작성 소비자7개·공통 계약·자체검사와 정의 diff 독립 검토. 담당자 작성 정책2개는 메인이 전문 검토한다.",
+    "986개 중984개 strict carry-forward, SAFE-051/OPS-036 독립 재검토. 제품 코드·공개 API·UI/장시간 실행 변경 없음.",
+    "릴리즈 문서 자체검사48개 PASS. 관련 문서241개·진입 정의12개 PASS, archive 진입 보고서8개는 import fixture 누락 보완 뒤 PASS.",
+    "최초 예상 RED·중간 실제 실패를 보존하고 과거 원장/고정 문구 대신 현행 계약·dispatch·UI 정책·미실행 판정을 유지한다."
+  ]
+}

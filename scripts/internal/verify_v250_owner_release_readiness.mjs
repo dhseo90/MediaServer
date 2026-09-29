@@ -8,6 +8,9 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {validateReleasePolicyDocumentation,validateReleaseCommandDispatch} from "./release_documentation_contract.mjs";
+import {validateVerificationDocumentation, validateUiPolicyDocumentation} from "./documentation_contract_lib.mjs";
+import {validatePolicy} from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -21,7 +24,7 @@ Usage:
 
 Checks:
   - event memory/search route owner catalog와 release-safe bundle route matcher가 분리됐는지 확인
-  - S09 feature inventory, manual UI 기준, release policy/evidence가 같은 gate를 가리키는지 확인
+  - S09 feature inventory, manual UI 기준, 현행 release policy가 같은 gate를 가리키는지 확인
   - server.sh가 S09 verifier를 노출하는지 확인
 `);
 }
@@ -94,18 +97,18 @@ check("event memory/search owner catalog is split from server routing", () => {
 });
 
 check("feature inventory maps S09 readiness IDs and coverage", () => {
-  const inventory = readText("docs/project-feature-test-inventory.md");
-  const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
-  for (const snippet of [
-    "| UI-044 | `/ops/events` Semantic Incident Memory UI 풀테스트 준비 기준 |",
-    "| OPS-036 | V250-S09 incident memory route owner 분리 게이트 |",
-    "| SAFE-051 | V250-S09 릴리즈 준비 경계 |",
-    "verify-v250-owner-release-readiness",
-    "close-out gate와 UI 풀테스트 기준 정리",
-  ]) {
-    assert(inventory.includes(snippet), `inventory missing S09 snippet: ${snippet}`);
+  const inventory=readText("docs/project-feature-test-inventory.md");
+  const implementation=JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  for(const id of ["UI-044","OPS-036","SAFE-051"]){
+    const rows=inventory.split(/\r?\n/).filter(row=>row.split("|")[1]?.trim()===id);
+    const entries=implementation.items.filter(item=>item.id===id);
+    const command=id==="UI-044"?"verify-v250-ops-events-semantic-search-ui":"verify-v250-owner-release-readiness";
+    assert(rows.length===1 && entries.length===1 && entries[0].verifierEvidence?.command===command,
+      "현행 기능 정의/명령 결속 누락·중복·불일치: "+id);
+    const errors=validateReleaseCommandDispatch(readText("server.sh"),[command]);
+    assert(errors.length===0,id+": "+errors.join("; "));
   }
-  assert(coverage.includes("verifierEvidenceRows === rows.length"),
+  assert(readText("scripts/internal/verify_feature_inventory_coverage.mjs").includes("verifierEvidenceRows === rows.length"),
     "feature coverage must validate verifier evidence for every inventory row");
 });
 
@@ -114,7 +117,6 @@ check("manual UI criteria records v2.5.0 incident memory controls without claimi
   const checklist = readText("docs/manual-ui-checklist.md");
   for (const text of [fulltest, checklist]) {
     for (const snippet of [
-      "v2.5.0 Semantic Incident Memory UI 풀테스트 기준",
       "UI-039",
       "UI-040",
       "UI-041",
@@ -122,52 +124,33 @@ check("manual UI criteria records v2.5.0 incident memory controls without claimi
       "UI-043",
       "UI-044",
       "release-safe bundle",
-      "UI 풀테스트 PASS로 쓰지 않습니다",
     ]) {
       assert(text.includes(snippet), `manual UI criteria missing S09 snippet: ${snippet}`);
     }
   }
 });
 
-check("release policy and evidence index record S09 readiness without promoting not-run gates", () => {
-  const backlog = readText("docs/development-backlog.md");
-  const policy = readText("docs/release-policy.md");
-  const evidence = readText("docs/release-evidence-index.md");
+check("현행 릴리즈 정책과 제품 경계가 독립적으로 유지됨", () => {
   const WebRTCBoundaryObserved = [
     "WebRTC DataChannel schema unchanged",
     "SSE/WS metadata schema unchanged",
     "RTSP/WebRTC media path unchanged",
-  ].every((snippet) => sourceBoundaryText().includes(snippet));
-  const releaseActionsRemainNotRun = policy.includes("`verify-release-metadata --published` 미실행") &&
-    policy.includes("UI 풀테스트 직접 조작 미실행") && policy.includes("30분 테스트 미실행") &&
-    policy.includes("120분 테스트 미실행");
+  ].every(snippet=>sourceBoundaryText().includes(snippet));
+  const errors=validateReleasePolicyDocumentation({policy:readText("docs/release-policy.md"),
+    versioning:readText("docs/versioning-policy.md"),version:readText("VERSION").trim()});
+  const agents=readText("AGENTS.md"), verification=readText("docs/stream-verification.md");
+  const policy=JSON.parse(readText("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  errors.push(...validateVerificationDocumentation({agents,verification}),...validatePolicy(policy),
+    ...validateUiPolicyDocumentation({agents,fulltest:readText("docs/manual-ui-fulltest.md"),policy}));
+  assert(errors.length===0,errors.join("; "));
+  const dispatchErrors=validateReleaseCommandDispatch(readText("server.sh"),readinessCommands);
+  assert(dispatchErrors.length===0,dispatchErrors.join("; "));
+  for(const command of readinessCommands){
+    assert(verification.includes(command),"검증 정의 명령 누락: "+command);
+  }
+  const releaseActionsRemainNotRun = errors.length===0;
   const releaseBoundaryObserved = WebRTCBoundaryObserved && releaseActionsRemainNotRun;
-  assert(releaseBoundaryObserved,
-    "WebRTC/SSE/RTSP and manual release gates must remain independently bounded");
-  assert(/\| V250-S09 \| 완료 \| Owner decomposition\/release readiness \|/.test(backlog),
-    "backlog V250-S09 historical completion row missing");
-  for (const snippet of readinessCommands) {
-    assert(evidence.includes(snippet), `release evidence missing S09 command: ${snippet}`);
-  }
-  for (const snippet of [
-    "UI 풀테스트 직접 조작 미실행",
-    "30분 테스트 미실행",
-    "120분 테스트 미실행",
-    "`verify-release-metadata --published` 미실행",
-  ]) {
-    assert(policy.includes(snippet), `release policy missing S09 readiness snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "v250-s09-owner-release-readiness-20260611",
-    "media-server.v250-owner-release-readiness.v1",
-    "v2.5.0 S09 소유권 분리 / 릴리즈 준비",
-    "UI 풀테스트 직접 조작 미실행",
-    "30분 테스트 미실행",
-    "120분 테스트 미실행",
-    "Not run for `v250-s09-owner-release-readiness-20260611`",
-  ]) {
-    assert(evidence.includes(snippet), `release evidence missing S09 readiness snippet: ${snippet}`);
-  }
+  assert(releaseBoundaryObserved,"WebRTC/SSE/RTSP and manual release gates must remain independently bounded");
 });
 
 function sourceBoundaryText() {
@@ -201,6 +184,7 @@ console.log("- schema: media-server.v250-owner-release-readiness.v1");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 
+console.log("- 범위: 현재 정의·정책 연결 검사이며 실제 릴리즈·UI·장시간 실행은 미수행입니다.");
 if (fail > 0) process.exit(1);
 
 function check(name, fn) {

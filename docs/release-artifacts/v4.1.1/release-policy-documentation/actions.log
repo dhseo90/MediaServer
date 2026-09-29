@@ -1,0 +1,9 @@
+[fail] GitHub Actions security policy
+  - annotation policy docs missing phrase: PASS evidence로 대체하지 않습니다
+  - Node 24 action policy docs missing phrase: GitHub Actions Node 24 baseline
+  - Node 24 action policy docs missing phrase: minimum Actions Runner version `2.327.1`
+
+== GitHub Actions security summary ==
+- workflow files: 3
+- annotations: not provided
+- failures: 3

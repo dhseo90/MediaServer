@@ -2,15 +2,57 @@
 // 파일 용도: RC 전용 release gate 명령, 문서, CI workflow, artifact 정책이 서로 맞는지 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import {hasDocumentLink, validateVerificationDocumentation} from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
+const ownedDirectories = new Set();
+let childExecutions=[];
+
+function runFixtureChild(executable,args,options) {
+  const result=spawnSync(executable,args,{...options,encoding:'utf8',timeout:10000,maxBuffer:4*1024*1024});
+  childExecutions.push({script:path.basename(args[0]),exit:result.status,signal:result.signal,
+    stdout:result.stdout??'',stderr:result.stderr??'',errorCode:result.error?.code??null});
+  if(result.error||result.signal||result.status!==0)throw new Error('fixture child failed: '+path.basename(args[0]));
+}
+
+function temporaryDirectory(prefix) {
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),prefix));
+  ownedDirectories.add(directory);
+  return directory;
+}
+
+function failureSnapshot(error) {
+  const clean=value=>{
+    let text=String(value??'');
+    for(const directory of ownedDirectories)text=text.replaceAll(directory,'<fixture>');
+    text=text.replaceAll(rootDir,'<repository>');
+    return {text:text.slice(0,32768),truncated:text.length>32768};
+  };
+  const files=[];
+  const walk=(directory,base)=>{
+    for(const name of fs.readdirSync(directory)){
+      const file=path.join(directory,name),stat=fs.lstatSync(file);
+      if(stat.isSymbolicLink())throw new Error('진단 대상 symlink 거부');
+      if(stat.isDirectory()){walk(file,base);continue;}
+      if(!stat.isFile())throw new Error('진단 대상 일반 파일 아님');
+      const bytes=fs.readFileSync(file);
+      const item={path:path.relative(base,file),bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};
+      // 직접 생성한 합성 입력/관측값만 남긴다. 이 정제 출력은 원본 바이트 보존 주장이 아니다.
+      item.observed=clean(bytes.toString('utf8'));
+      files.push(item);
+    }
+  };
+  for(const directory of ownedDirectories)walk(directory,directory);
+  return {kind:'rc-fixture-failure',children:childExecutions.map(item=>({...item,stdout:clean(item.stdout),stderr:clean(item.stderr)})),files};
+}
 
 const rcServerLongrunCommand = "./server.sh verify-v390-server-longrun --duration-minutes 120";
 const rcRuntimeCommand = "./server.sh verify-va-runtime-console-longrun --duration-minutes 120";
@@ -18,9 +60,6 @@ const rcRuntimeCommand = "./server.sh verify-va-runtime-console-longrun --durati
 check("stream verification guide defines the RC-only release gate", () => {
   const docs = readText("docs/stream-verification.md");
   const requiredSnippets = [
-    "### RC 전용 Release Gate",
-    "상시 실행하지 않습니다",
-    "release candidate",
     rcServerLongrunCommand,
     rcRuntimeCommand,
     "--include-sidechannel",
@@ -30,10 +69,8 @@ check("stream verification guide defines the RC-only release gate", () => {
     "./server.sh rc-release-checklist",
     "--history-dir",
     "index.md",
-    "보존 위치 정책",
-    "`/tmp` 경로는 local-only staging evidence",
     "`artifacts/rc-gate/`",
-    "`media-server-rc-gate` GitHub Actions artifact",
+    "media-server-rc-gate",
     "`rc-artifact-archive`",
     "`external-artifact-manifest.json`",
     "`SHA256SUMS`",
@@ -46,22 +83,14 @@ check("stream verification guide defines the RC-only release gate", () => {
 
 check("release policy fixes longrun report retention locations", () => {
   const releasePolicy = readText("docs/release-policy.md");
-  const evidenceIndex = readText("docs/release-evidence-index.md");
+  assert(hasDocumentLink(releasePolicy,"../AGENTS.md"),"release policy missing AGENTS.md retention/approval boundary link");
+  assert(hasDocumentLink(releasePolicy,"stream-verification.md"),"release policy missing stream-verification.md retention definition link");
+  const verification = readText("docs/stream-verification.md");
   for (const snippet of [
-    "`rc-release-checklist`",
-    "`media-server-rc-gate` GitHub",
-    "`rc-artifact-archive` 외부 archive",
-    "임시 `/tmp` 경로는 staging/local-only evidence",
-    "release-grade 보존 완료",
+    "rc-release-checklist", "media-server-rc-gate", "rc-artifact-archive",
+    "external-artifact-manifest.json", "SHA256SUMS", "NOT PRESERVED",
   ]) {
-    assert(releasePolicy.includes(snippet), `docs/release-policy.md missing retention snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "30분 soak와 120분 longrun은 서로 대체하지 않습니다.",
-    "장시간/외부 gate",
-    "실행한 테스트 행은 `PASS` 또는 `FAIL`; 제외/미실행/미확인은 별도 기록",
-  ]) {
-    assert(evidenceIndex.includes(snippet), `docs/release-evidence-index.md missing retention snippet: ${snippet}`);
+    assert(verification.includes(snippet), `docs/stream-verification.md missing retention contract: ${snippet}`);
   }
 });
 
@@ -123,7 +152,7 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
 });
 
 check("release checklist generator writes Markdown output", () => {
-  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-checklist-"));
+  const workDir = temporaryDirectory("media-server-rc-checklist-");
   const predevSummary = path.join(workDir, "predev-summary.json");
   const runtimeSummary = path.join(workDir, "runtime-summary.json");
   const predevReport = path.join(workDir, "predev-report.md");
@@ -144,7 +173,7 @@ check("release checklist generator writes Markdown output", () => {
     model: { path: "models/yolo11n.onnx", status: "ok" },
     labels: { path: "models/coco.names", status: "ok" },
   }), "utf8");
-  execFileSync(process.execPath, [
+  runFixtureChild(process.execPath, [
     path.join(rootDir, "scripts/internal/write_rc_release_checklist.mjs"),
     "--predev-summary", predevSummary,
     "--predev-report", predevReport,
@@ -187,7 +216,7 @@ check("release checklist generator writes Markdown output", () => {
 });
 
 check("release checklist generator writes HTML output", () => {
-  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-checklist-"));
+  const workDir = temporaryDirectory("media-server-rc-checklist-");
   const predevSummary = path.join(workDir, "predev-summary.json");
   const runtimeSummary = path.join(workDir, "runtime-summary.json");
   const predevReport = path.join(workDir, "predev-report.md");
@@ -208,7 +237,7 @@ check("release checklist generator writes HTML output", () => {
     model: { path: "models/yolo11n.onnx", status: "ok" },
     labels: { path: "models/coco.names", status: "ok" },
   }), "utf8");
-  execFileSync(process.execPath, [
+  runFixtureChild(process.execPath, [
     path.join(rootDir, "scripts/internal/write_rc_release_checklist.mjs"),
     "--predev-summary", predevSummary,
     "--predev-report", predevReport,
@@ -246,13 +275,13 @@ check("release checklist generator writes HTML output", () => {
 });
 
 check("external RC artifact archive writes checksums", () => {
-  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-external-"));
+  const workDir = temporaryDirectory("media-server-rc-external-");
   const sourceDir = path.join(workDir, "source");
   const destinationDir = path.join(workDir, "external");
   fs.mkdirSync(path.join(sourceDir, "history"), { recursive: true });
   fs.writeFileSync(path.join(sourceDir, "rc-release-checklist.md"), "# checklist\n", "utf8");
   fs.writeFileSync(path.join(sourceDir, "history", "index.md"), "# history\n", "utf8");
-  execFileSync(process.execPath, [
+  runFixtureChild(process.execPath, [
     path.join(rootDir, "scripts/internal/archive_rc_gate_artifact.mjs"),
     "--source-dir", sourceDir,
     "--destination-dir", destinationDir,
@@ -270,13 +299,13 @@ check("external RC artifact archive writes checksums", () => {
 });
 
 check("external RC artifact archive writes index", () => {
-  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-external-"));
+  const workDir = temporaryDirectory("media-server-rc-external-");
   const sourceDir = path.join(workDir, "source");
   const destinationDir = path.join(workDir, "external");
   fs.mkdirSync(path.join(sourceDir, "history"), { recursive: true });
   fs.writeFileSync(path.join(sourceDir, "rc-release-checklist.md"), "# checklist\n", "utf8");
   fs.writeFileSync(path.join(sourceDir, "history", "index.md"), "# history\n", "utf8");
-  execFileSync(process.execPath, [
+  runFixtureChild(process.execPath, [
     path.join(rootDir, "scripts/internal/archive_rc_gate_artifact.mjs"),
     "--source-dir", sourceDir,
     "--destination-dir", destinationDir,
@@ -289,34 +318,55 @@ check("external RC artifact archive writes index", () => {
   assert(fs.readFileSync(indexMdPath, "utf8").includes("RC External Artifact Index"), "external artifact index markdown missing title");
 });
 
-check("backlog keeps 120 minute soak as release-candidate or high-risk gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  const requiredSnippets = [
-    "`./server.sh verify-v390-server-longrun --duration-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.",
-    "historical `verify-predev --soak-minutes 120` evidence remains preserved.",
-    "./server.sh verify-va-runtime-console-longrun --duration-minutes 120",
-  ];
-  for (const snippet of requiredSnippets) {
-    assert(backlog.includes(snippet), `docs/development-backlog.md is missing RC gate snippet: ${snippet}`);
-  }
+check("현행 검증 기준이 영역과 실행 승인 기준으로 연결됨", () => {
+  const errors=validateVerificationDocumentation({agents:readText("AGENTS.md"),verification:readText("docs/stream-verification.md")});
+  assert(errors.length===0,errors.join("; "));
 });
 
 let failCount = 0;
+let passCount = 0;
+let completedCount = 0;
 for (const item of checks) {
+  completedCount += 1;
+  childExecutions=[];
+  let canCleanup=true;
   try {
     item.run();
+    passCount += 1;
     console.log(`[pass] ${item.name}`);
   } catch (error) {
     failCount += 1;
     const message = error instanceof Error ? error.message : String(error);
     console.log(`[fail] ${item.name}: ${message}`);
+    try {
+      if(ownedDirectories.size>0)console.log(JSON.stringify(failureSnapshot(error)));
+    } catch(diagnosticError){
+      canCleanup=false;
+      console.log(`[fail] fixture diagnostics incomplete: ${diagnosticError.message}; 자료 보존`);
+    }
+  } finally {
+    for(const directory of canCleanup?ownedDirectories:[]){
+      try {
+        assert(!fs.lstatSync(directory).isSymbolicLink(),"owned fixture directory replaced by symlink");
+        fs.rmSync(directory,{recursive:true,force:false});
+        assert(!fs.existsSync(directory),"owned fixture cleanup incomplete");
+        ownedDirectories.delete(directory);
+      } catch(error) {
+        failCount += 1;
+        console.log(`[fail] fixture cleanup: ${error.message}`);
+      }
+    }
   }
+  // 정리 실패가 남으면 새 fixture를 만들지 않는다. 최초 실패와 잔여 자료는 유지한다.
+  if(ownedDirectories.size>0)break;
 }
 
 console.log("");
 console.log("== RC release gate verification summary ==");
-console.log(`- pass: ${checks.length - failCount}`);
+console.log(`- pass: ${passCount}`);
 console.log(`- fail: ${failCount}`);
+console.log(`- not-run: ${checks.length-completedCount}`);
+console.log("- 범위: 합성 결과의 도구 자체검사이며 실제 120분·외부 저장소·릴리즈를 실행하지 않았습니다.");
 
 if (failCount > 0) {
   process.exit(1);

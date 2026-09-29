@@ -1,0 +1,14 @@
+[pass] workflow command parity matrix is complete
+[pass] preflight keeps shell/node syntax gates local and CI-visible
+[pass] guardrail workflow publishes source-only release evidence
+[pass] rc workflow keeps longrun gates explicit and artifact-backed
+[pass] server and docs expose CI/local parity verifier
+[pass] negative missing workflow command fixture fails
+
+== CI/local gate parity summary ==
+- schema: media-server.ci-local-gate-parity.v1
+- preflightCommands: 12
+- guardrailCommands: 5
+- rcCommands: 4
+- pass: 6
+- fail: 0

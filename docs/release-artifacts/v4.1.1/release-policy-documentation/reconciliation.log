@@ -1,0 +1,9 @@
+[pass] 현행 metadata·정책 진입점·미실행 출력 계약
+[pass] 검증 정의와 실행 결과 구분의 현행 기준
+[pass] 실제 UI와 문서 검사 구분·UI 적격 기준
+
+== Release evidence reconciliation summary ==
+- history: not provided; current policy only
+- pass: 3
+- fail: 0
+- 범위: 정책 연결·선택 기록 형식 검사이며 실제 릴리즈·UI·장시간 실행 결과가 아닙니다.

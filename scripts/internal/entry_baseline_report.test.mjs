@@ -27,7 +27,7 @@ function fixture(run){
     put('server.sh',[...cases,...commonCommands.map(command=>({command,script:command.replaceAll('-','_')+'.mjs'}))].map(c=>`\n  ${c.command})\n    require_internal ${c.script}\n    exec "\${INTERNAL_DIR}/${c.script}" "$@"\n    ;;\n`).join(''));
     put('scripts/internal/verify_script_inventory.mjs',cases.map(c=>c.script).join('\n'));
     put('src/analysis/incident_memory.cpp','IncidentProjectionContainsForbiddenMaterial force_jsonl_bm25_fallback');
-    for(const f of [...cases.map(c=>c.script),'script_arg_utils.mjs','script_dispatch_parser.mjs','entry_baseline_report.mjs','release_documentation_contract.mjs'])copy('scripts/internal/'+f);
+    for(const f of [...cases.map(c=>c.script),'script_arg_utils.mjs','script_dispatch_parser.mjs','documentation_contract_lib.mjs','entry_baseline_report.mjs','release_documentation_contract.mjs'])copy('scripts/internal/'+f);
     const cli=(c,args=[])=>spawnSync(process.execPath,[path.join(root,'scripts/internal',c.script),...args],{cwd:root,encoding:'utf8',timeout:10000});
     return run({root,put,cli});
   }finally{fs.rmSync(root,{recursive:true,force:true});assert(!fs.existsSync(root));}

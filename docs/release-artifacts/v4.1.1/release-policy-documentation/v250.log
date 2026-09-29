@@ -1,0 +1,11 @@
+[pass] event memory/search owner catalog is split from server routing
+[pass] feature inventory maps S09 readiness IDs and coverage
+[pass] manual UI criteria records v2.5.0 incident memory controls without claiming execution
+[pass] 현행 릴리즈 정책과 제품 경계가 독립적으로 유지됨
+[pass] server entrypoint exposes the S09 verifier
+
+== v2.5.0 S09 owner decomposition/release readiness summary ==
+- schema: media-server.v250-owner-release-readiness.v1
+- pass: 5
+- fail: 0
+- 범위: 현재 정의·정책 연결 검사이며 실제 릴리즈·UI·장시간 실행은 미수행입니다.

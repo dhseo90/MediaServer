@@ -1,6 +1,8 @@
 // 파일 용도: 릴리즈 문서의 기계 판정 계약. 문장·제목·과거 PASS 기록을 요구하지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
+import {hasDocumentLink} from './documentation_contract_lib.mjs';
+import {parseServerDispatches} from './script_dispatch_parser.mjs';
 
 const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const isVersion = value => typeof value === 'string' && versionPattern.test(value);
@@ -37,6 +39,46 @@ export function validateReleaseContext(context, version) {
     if(isTag(context.releaseTarget)&&compareTags(p.tag,context.releaseTarget)>0)errors.push('기록된 published tag가 target보다 큼');
     if(p.url!==`https://github.com/${context.repository}/releases/tag/${p.tag}`)errors.push('기록된 published URL 불일치');
     if(typeof p.observedAt!=='string'||!/^\d{4}-\d{2}-\d{2}T/.test(p.observedAt)||Number.isNaN(Date.parse(p.observedAt)))errors.push('공개 상태 관측 시각 없음');
+  }
+  return errors;
+}
+
+// 기계 검사는 metadata·정책 진입점·명령 계약만 담당한다.
+// 승인·수명·미실행의 자연어 의미와 실제 실행 증거는 별도 검토 대상이다.
+export function validateReleasePolicyDocumentation({policy, versioning, version}) {
+  const errors=[];
+  try {errors.push(...validateReleaseContext(readReleaseContext(policy),version));}
+  catch(error){errors.push(error.message);}
+  for(const target of ['../AGENTS.md','versioning-policy.md','stream-verification.md','manual-ui-fulltest.md']) {
+    if(!hasDocumentLink(policy,target))errors.push('release policy: 기준 링크 없음: '+target);
+  }
+  if(!hasDocumentLink(versioning,'release-policy.md'))errors.push('versioning: release-policy.md 링크 없음');
+  for(const identifier of ['verify-release-metadata','--published','verify-release-closeout-helper',
+    '--dry-run','--one-shot-dry-run','media-server.release-closeout-one-shot-gate.v1','manual-not-run']) {
+    if(!policy.includes(identifier))errors.push('release policy: 명령/출력 계약 없음: '+identifier);
+  }
+  return errors;
+}
+
+export function validateReleaseCommandDispatch(server, commands) {
+  const dispatches=parseServerDispatches(server),errors=[];
+  const targets={
+    'verify-release-metadata':'verify_release_metadata_consistency.mjs',
+    'verify-docs-links':'verify_docs_links.mjs',
+    'verify-docs-ui-assets':'verify_docs_ui_assets.mjs',
+    'verify-ci-local-gate-parity':'verify_ci_local_gate_parity.mjs',
+    'verify-release-closeout-helper':'verify_release_closeout_helper.mjs',
+    'verify-v240-release-readiness-gate':'verify_v240_release_readiness_gate.mjs',
+    'verify-v250-owner-release-readiness':'verify_v250_owner_release_readiness.mjs',
+    'verify-v250-ops-events-semantic-search-ui':'verify_v250_ops_events_semantic_search_ui.mjs',
+    'verify-feature-inventory-coverage':'verify_feature_inventory_coverage.mjs',
+    'verify-manual-ui-evidence':'verify_manual_ui_evidence.mjs',
+    'verify-release-evidence-index':'verify_release_evidence_index.mjs',
+  };
+  for(const command of commands){
+    if(command==='git diff --check')continue;
+    const name=command.split(' ')[0],matches=dispatches.filter(item=>item.command===name);
+    if(!targets[name]||matches.length!==1||matches[0].script!==targets[name])errors.push('명령 dispatch 누락/중복/대상 불일치: '+command);
   }
   return errors;
 }

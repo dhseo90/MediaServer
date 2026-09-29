@@ -126,6 +126,12 @@ acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 relea
 provider·브라우저·장시간 검증을 이 도구 자체검사 결과로 대체하지 않는다.
 
 릴리즈 문서 검증기 자체검사는 `node --test scripts/internal/release_documentation_contract.test.mjs`다.
+`REL-POL-01`~`02`는 closeout·RC·reconciliation·v240/v250 준비·Actions/CI 소비자가 종료 원장·backlog·과거 제목 없이
+현행 계약으로 실행되는지, 서명/승인 링크·실제 dispatch·RC workflow·기본 smoke의 장시간
+혼입·UI 판정 훼손을 거부하는지 확인한다. RC 출력은 격리된 합성 결과를 사용하고 정리를
+확인하며 실제 120분 실행이 아니다. RC 정리 실패 뒤 추가 fixture 검사는 미실행이며
+Actions 쓰기 권한·warning 차단과 notice 허용을 별도 반례로 확인한다.
+선택 `--history`는 기록 형식만 확인하고 현재 PASS로 승격하지 않는다.
 `REL-DOC-01`~`REL-DOC-13`은 명시 metadata, source/target/공개 관측 분리, 문구 변경 허용,
 버전·서명/배포 정책·링크 오류 거부, Git 없는 소스 실행, 파일 누락·경로 이탈, 실패 exit·보고서를 확인한다.
 과거 OPS-041 사례는 `test/fixtures/release_metadata_boundary.json`의 테스트 입력이며 실행 증거가 아니다.
@@ -374,6 +380,8 @@ UI 비대상 내부 기능은 그 이유를 정의에 적고 실제 UI 기능의
 | `./server.sh verify-v390-review3-discovery-ledger` | V390-REVIEW3-36의 `AGENTS.md` 별도 전문 감사, 나머지 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action, source/tooling explicit incomplete marker disposition, RulesJson 두 scope decision과 986-row 불변을 검증. 문서/source 정적 coverage이며 UI/30분/120분 실행 PASS가 아님 |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
+| `./server.sh verify-v240-release-readiness-gate` | 구 CLI 호환: 현행 릴리즈·UI 정책과 metadata/docs/CI parity/closeout 명령 연결. 과거 완료 원장이나 실제 릴리즈 PASS를 요구·판정하지 않음 |
+| `./server.sh verify-ci-local-gate-parity` | 현행 Preflight·static gate·guardrail과 로컬 명령의 대응 검사. 실제 원격 CI 실행 결과는 아님 |
 
 ## 현재 v4.1.0 녹화 기반 verifier
 

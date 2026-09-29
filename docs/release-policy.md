@@ -1,12 +1,16 @@
-# Release Policy
+# 릴리즈 정책
 
-이 문서는 Media Server 공개 release에 무엇을 올리고, 무엇을 올리지 않는지 정리합니다.
-버전 의미는 [versioning-policy.md](./versioning-policy.md), 현재 개발 상태는
-[development-backlog.md](./development-backlog.md)를 함께 봅니다.
+릴리즈 담당자가 배포 범위, 검증, 기록 보존, 서명과 공개 순서를 판단하는 현행 정책이다.
+권한·기록 수명의 상위 기준은 [AGENTS](../AGENTS.md), 버전 의미는
+[버전 정책](versioning-policy.md)이다. 명령별 검증 방법은
+[검증 정책과 명령](stream-verification.md#검증-정책)에 둔다.
 
-현행 릴리즈 검증기는 다음 명시적 값과 `VERSION`·CMake·공개 진입점의 버전/링크를 대조합니다.
-제목·문장·과거 완료 기록을 고정하지 않습니다. `published`는 확인 당시의 공개 상태이며,
-이 블록을 읽은 로컬 검사만으로 원격 재검증·제품 테스트·릴리즈 실행이 완료되는 것은 아닙니다.
+## 소스와 기록된 공개 상태
+
+아래 `release-metadata`는 이 문서의 유일한 기계 판정 원본이다.
+`VERSION`·CMake의 소스 버전, 공개 진입점, 릴리즈 노트·로드맵 연결을 대조한다.
+`releaseTarget`은 목표이고, `published`는 `observedAt` 당시의 공개 관측이다.
+로컬 문서 검사나 문서 정리만으로 버전·관측 시각을 올리거나 현재 원격 상태를 재확인했다고 하지 않는다.
 
 <!-- release-metadata -->
 ```json
@@ -27,52 +31,129 @@
 }
 ```
 
-공개 상태는 `gh release view v4.1.0 --repo dhseo90/MediaServer`의 실제 응답으로 확인했습니다.
-문서 아래의 cut 당시 상세 기록·중복 기준은 v4.1.1 전체 문서 정리에서 현행 설명과 분리합니다.
+현재 대상의 사용자용 설명은 [릴리즈 노트](release-notes-v4.1.0.md)에 있다.
+[녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
+[GitHub Latest 조회](https://github.com/dhseo90/MediaServer/releases/latest)는 서로 다른 자료다.
+기록된 공개 관측은 이번 실행의 제품·UI·장시간 테스트나 외부 공개 확인 결과가 아니다.
 
-## 현재 공개 상태
+## 배포 범위
 
-- 현재 소스 버전: `4.1.0`
-- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
-- 현재 release target: `v4.1.0`
-- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 현재 source roadmap은 `v4.1.0 Recording Foundation`입니다.
-- 현재 source/release target tag 기준은 `v4.1.0`입니다.
-- S11 제품 검증과 B14 공개 준비는 완료했습니다. PR·병합·서명 tag·GitHub Release는
-  실제 실행 기록에서만 완료로 판정합니다.
-- `v4.1.0` GitHub Release publish 완료는 signed tag, GitHub Release,
-  `verify-release-metadata --published` evidence로 확인합니다.
+- 기본 공개는 Apache-2.0 소스와 문서 중심의 `source-only`다. 녹화 기능 미구현이나
+  live-only라는 뜻이 아니다. 제품 지원 범위는 [설정 참조](config-reference.md)와 릴리즈 노트를 따른다.
+- 별도 승인 전 binary/app bundle, container image, offline package를 릴리즈 asset으로 올리지 않는다.
+  FFmpeg/FFprobe/libav*, x264/x265, GStreamer GPL-risk plugin, ONNX Runtime package,
+  YOLO/Re-ID/VLM model binary와 생성 sample pack도 기본 업로드 대상이 아니다.
+- 운영 auth store·credential·token·로그·snapshot·고객/현장 영상·운영 evidence bundle은
+  공개하지 않는다. 저장소에 허용된 재현 fixture와 정제 증거의 범위는
+  [공개 저장소 검토](public-repo-final-review.md), 출처는 [sample provenance](sample-fixture-provenance.md)를 따른다.
+- 별도 binary/runtime/model 후보는 [배포 정책](distribution-policy.md)의 라이선스·source offer·
+  attribution·model provenance·checksum 기준과 RC gate를 충족해야 한다.
+  [LICENSE](../LICENSE), [NOTICE](../NOTICE), [제3자 고지](../THIRD_PARTY_NOTICES.md)를 유지한다.
 
-## 기본 공개 범위
+## 승인과 실행 경계
 
-- 기본 release는 GitHub source archive와 문서 중심입니다.
-- 별도 승인 전에는 binary bundle, app bundle, container image, offline package를
-  공개 release asset으로 올리지 않습니다.
-- FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin, ONNX Runtime package,
-  YOLO/Re-ID/VLM model binary는 기본 release asset에 넣지 않습니다.
-- 운영 auth store, log, snapshot, evidence bundle, 고객/현장 영상은 release asset에
-  넣지 않습니다.
+stage/commit, push, PR 생성·갱신, main 병합, tag 생성·push, GitHub Release 생성·갱신,
+브랜치 생성·삭제, 후속 버전 개발은 각각 해당 범위의 사용자 승인을 확인한다.
+승인이 철회·대체되지 않았다면 같은 승인을 반복 요구하지 않지만, `릴리즈 준비`·goal·
+dry-run·검증 PASS에서 새로운 권한을 추정하지 않는다.
+tag 삭제·교체, force push, Release 삭제, merge revert 등 rollback도 별도 승인 대상이다.
 
-## 권한 경계
+장시간·`verify-predev`·실제 UI 풀테스트는 명시 실행 승인이 필요하다.
+ONVIF 실기기, 외부 TURN/WHEP, cloud/VLM provider, 실제 YouTube URL, 외부 알림 전송은
+필요한 endpoint·credential·승인과 실제 결과가 있을 때만 해당 범위의 성공을 보고한다.
+no-device·loopback·fixture·문서 gate를 실장비/외부 서비스 성공으로 승격하거나
+사용자가 제외한 외부 실행을 자동으로 릴리즈 필수 항목에 추가하지 않는다.
 
-아래 작업은 각각 최신 사용자 지시에서 명시 승인된 경우에만 수행합니다.
+## 출시 전 검증 판정
 
-- push
-- PR 생성 또는 PR 갱신
-- main merge
-- tag 생성 또는 tag push
-- GitHub Release 생성/갱신
-- release branch 삭제
-- 후속 브랜치 생성
+1. 현재 cut의 필수 build/Auth/media gate와 변경 기능·영향 회귀를
+   [기능별 테스트 정의](project-feature-test-inventory.md)의 ID, route/control/action,
+   독립 기대값과 연결해 검증한다. Auth/Role/Scope·viewer 비노출,
+   API/Event POST/WebRTC/SSE/WS 계약과 RTSP/WebRTC 미디어 수명 등 영향받는 불변 계약을 확인한다.
+2. 안정화, 30분, 120분, 실제 UI는 별개다. 안정화 실패 뒤 장시간/UI로 진행하지 않는다.
+   30분과 실제 UI는 버전/릴리즈 완료의 필수 증거다. 미실행·FAIL·미확인은 blocker이며,
+   이를 알고 강제 진행하라는 최신 명시 승인 없이는 릴리즈하지 않는다.
+3. 120분은 사용자 지시, 현재 필수 gate, 변경 기능의 직접 매핑, 미디어 경로·source worker·
+   shared stream·runtime/metadata fanout·cleanup/port 수명 변경 또는 누수/drift 신호로
+   필요성을 판정하고 실행 승인을 별도로 확인한다. `--run-120` 자체는 필요성의 근거가 아니다.
+4. 기존 증거는 diff·source·환경·검증 경계로 유지/부분 무효/전체 무효를 판단한다.
+   문서 변경마다 30분/UI 전체를 폐기하거나 과거 명령명만으로 추가 장시간 실행을 요구하지 않는다.
+   반대로 공통 인증·미디어·수명·판정 경계가 바뀐 증거를 근거 없이 유지하지 않는다.
+5. 최초 실패의 명령·기대/관측·exit·원출력을 보존한다. 후속 단계는 보류하고 승인 범위의
+   안전한 수정과 재검증을 연결한다. timeout 확대·검사 제거·미승인 대체로 PASS를 만들지 않는다.
+   미실행·부분·제외·미확인은 PASS와 구분하며 cleanup 미확인도 완료 blocker다.
 
-`릴리즈 준비`, `마무리`, `close-out`, verifier PASS는 위 작업의 승인으로 해석하지
-않습니다. tag 삭제, force push, GitHub Release 삭제, merge revert 같은 rollback성
-작업도 별도 명시 지시 없이는 수행하지 않습니다.
+실행 준비·Auth 임시 비밀번호 주입·격리 저장소·프로세스/포트 정리는
+[검증 정책](stream-verification.md#검증-정책)을 따른다. 운영 계정·저장소를 검증에 재사용하지 않는다.
+`./test_release.sh`는 실제 acceptance 진입점이며 승인된 전체 범위에서만 실행한다.
+내부 `verify-v390-test-acceptance-bundle`과 준비 검사는 구별한다.
+기존 `verify-predev --soak-minutes`와 `verify-v390-server-longrun --duration-minutes`의
+30분/120분 증거는 각 실행의 승인·source·측정·실패 전파 경계로 판단한다.
+`media-server.runtime-media-longrun-trigger-matrix.v1`의 정의나 runner contract PASS만으로
+실제 경과시간·iteration·자원·정리 측정을 대신하지 않는다.
 
-## Local Release 준비
+### 실제 UI와 대표 이미지
 
-문서와 release metadata만 정리하는 기본 확인은 아래 범위입니다.
+UI 판정은 [Policy v4](manual-ui-fulltest.md#policy-v4-증거-적격-기준)를 따른다.
+`direct-browser`, `qualified-native-automation`, `hybrid` 중 실제 적격 evidence를 사용하며,
+현재 source에 결속된 exact ID 전수의 조작·completion oracle·역할/scope·viewport/theme를 대조한다.
+fail/notRun/unsupported/unapproved exclusion/manual intervention은 0이어야 하고,
+반응형·시각·client redaction·video/overlay·accessibility·cleanup을 모두 충족해야 한다.
+고정된 과거 case 개수를 현행 전수로 간주하지 않는다.
+
+실파일의 bytes/SHA-256/type/path containment와 case·correlation 결속, image decode,
+trace/payload schema 및 독립 민감정보 scan이 필요하다. PNG signature·임의 JSON·문자열 경로나
+summary의 자기선언은 증거가 아니다. `verify-ui-fulltest-evidence-policy-v4`의
+`policyValidationResult`와 실제 `uiFulltestPass=true`는 별개이며 과거 evidence를 소급 승격하지 않는다.
+
+대표 이미지는 [UI 자산 안내](assets/ui/README.md)와 `config/docs_ui_assets.json`으로 관리한다.
+`verify-docs-ui-assets`·`verify-v290-public-docs-assets-refresh`는 연결·정합성 검사이지 재촬영이나
+실제 시각 검수·UI 풀테스트가 아니다. 교체 이미지는 viewport/control/timeline/overlay를 자르지 않고
+모바일·데스크톱 가독성과 비밀·viewer 비노출을 직접 확인한다.
+[시각 기준 승인 양식](ui-visual-release-baseline-approval-template.md)의 독립 검토도 생략하지 않는다.
+
+## 실행 기록의 보존과 정리
+
+개발 중 결과는 버전/run 단위 한 곳에 유지한다. 기본 위치는
+`docs/release-artifacts/<version>/<run-id>/`이며 도구의 output 계약을 따른다.
+명령·대상 source/환경·exit·개별 결과·필요한 stdout/stderr·최초 실패→재검증·cleanup을
+연결한다. 실제 측정한 token/elapsed/source만 기록하고 미집계 값을 만들지 않는다.
+inventory/fixture는 현재 테스트 정의이며 실행 결과 원장이 아니다. 구조화 전수 결과가 있으면
+같은 표를 checklist/template/roadmap에 복사하지 않고 링크와 짧은 요약만 둔다.
+
+사용자가 승인한 버전 마감/기록 정리 범위에서 다음 순서를 지킨다.
+
+1. 현행 계약, 설계 선택 이유, 알려진 제한·미해결·미래 계획, 현재 fixture/golden/baseline,
+   출처/라이선스를 먼저 보호한다. 상세 결과를 덜어도 현재 테스트 정의·기능 ID·명령은 삭제하지 않는다.
+2. 원본이 유지되는 Git commit/ref/path에 전체 바이트로 존재하는지 읽기 전용 재조회와 hash로
+   대조한다. LFS pointer·외부 링크·만료 가능한 CI artifact는 원본 전체의 Git 보존이 아니다.
+   이미 보존된 바이트는 중복 archive나 보존 커밋으로 다시 만들지 않는다.
+3. 필요한 비민감 자료만 별도 보존 커밋에 남기고 내용/hash를 확인한다. 정제본과 원본의 관계를
+   기록하되 같은 바이트라고 하지 않는다. 큰 media/trace는 필요성·크기·경로 승인을 먼저 받는다.
+4. 검증과 보존 확인 뒤, 실제 릴리즈 전에 명시된 실행 기록을 현재 트리에서 삭제하는 별도 정리
+   커밋을 만든다. 최종 릴리즈 대상에는 정리 커밋을 포함한다. 보존·삭제 커밋을 squash하여
+   원본 보존을 없애지 않는다. 작은 이력 색인에 버전·보존 commit·원래 경로만 연결한다.
+5. 로컬 Git 보존과 원격 보존/동기화를 구분한다. 삭제 전 원본이 있어야 하며, 없는 원출력이나
+   과거 시각·모델·source·PASS/FAIL을 추정 복원하지 않는다. 실패·미실행 기록의 보존은
+   제품 합격이나 릴리즈 승인과 다르다.
+6. 정리 뒤 문서·보존·소비자를 확인하고 정리 커밋 본문과 간결한 보고에 남긴다. 종료된 중앙
+   원장이나 `docs/archive`에 같은 실행 상세를 다시 쌓지 않는다. 새 제품 실패/추가 실행은
+   결과를 먼저 보존하고 정리·완료를 다시 판정한다.
+
+임시 경로는 최종 보존본이 아니다. 실행 전 소유 경로·프로세스·포트·정리 방법을 정하고,
+성공·실패·중단 모두 필요한 정제 증거를 먼저 보존한 후 소유 대상만 정리하고 부재를 확인한다.
+실행 중 자료·소유 불명 경로·symlink 외부 대상은 삭제하지 않는다. 비밀·운영/고객 데이터·
+raw source URL/debug 본문은 Git에 넣지 않는다.
+
+RC의 `rc-release-checklist`는 summary/report 생성 명령이고 `media-server-rc-gate`는
+GitHub Actions artifact 이름이다. `rc-artifact-archive` 외부 보존본은 manifest/checksum으로
+내용을 확인한다. CI/외부 archive 보존 여부와 위 Git 바이트 보존·정리 완료는 별도로 기록한다.
+실제 RC 실행 조건과 명령은 [RC 전용 gate](stream-verification.md#rc-전용-release-gate)를 따른다.
+
+## 로컬 준비와 명령의 의미
+
+아래는 실행 승인이 있는 문서·메타데이터 확인 예시다. `<report.md>`/`<report.json>`은
+이번 실행이 소유한 출력 경로로 지정하고 보존·정리 계획을 먼저 정한다.
 
 ```bash
 git diff --check
@@ -80,1194 +161,91 @@ git diff --check
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-release-metadata
 ./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
 ```
 
-이 명령은 local 문서/버전 기준과 dry-run gate를 확인합니다. tag, push, GitHub Release,
-main merge를 수행하지 않습니다.
+`verify-release-metadata`의 `media-server.release-metadata-consistency.v1` 보고서는 로컬
+문서/버전 검사와 `media-server.published-release-evidence.v1`의 외부 확인을 구분한다.
+기본 실행의 published 상태는 `external-not-checked`다.
+`verify-v400-entry-baseline`·`verify-v410-entry-baseline` 같은 호환 명령의 의미는
+[검증 명령 안내](stream-verification.md#검증-정책)를 따른다.
 
-## Public Docs / Assets Refresh
+close-out 보고서는 `media-server.release-closeout-helper-dry-run.v1`이며
+`dryRun=true`, `createdTag=false`, `pushed=false`를 유지한다. 열거된 `localCommands`는
+`planned-local`, `manualActions`는 `manual-not-run`이다. 동반 명령을 실행하거나
+PR·병합·서명·공개·브랜치 정리를 수행한 결과가 아니다.
+`--one-shot-dry-run`의 `media-server.release-closeout-one-shot-gate.v1`은 순서와
+첫 실패 뒤 중단하는 fail-stop 계획을 검사한다. `media-server.release-visual-baseline-automation.v1`
+역시 자동화 계획이며 직접 시각 검토·독립 승인 완료가 아니다.
 
-v4.1.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를 source `4.1.0`,
-release target `v4.1.0`, current roadmap `v4.1.0 Recording Foundation`, 직전 공개
-baseline `v4.0.0 Local Operations Policy and Stabilization`으로 구분하는 local gate입니다.
-대상 문서는 `README.md`, `README.en.md`,
-`docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
-`docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
+버전 접두사가 있는 준비 검증기의 현재 기능 ID·dispatch·동반 명령은
+[기능별 정의](project-feature-test-inventory.md)와 [검증 안내](stream-verification.md)에 둔다.
+여기에 과거 버전별 gate 목록과 완료 문장을 다시 복사하지 않는다.
 
-Companion local gate:
+## CI와 배포 후보
 
-전용 companion command는 `./server.sh verify-v410-entry-baseline`입니다.
-historical v4.0.0 companion는 `./server.sh verify-v400-entry-baseline`입니다.
-historical v3.9.0 companion는 `./server.sh verify-v390-entry-baseline`입니다.
+Preflight/static-gates/guardrails와 로컬 gate 대응은
+`./server.sh verify-ci-local-gate-parity`의 `media-server.ci-local-gate-parity.v1`로 확인한다.
+required Actions와 `Licensing and Artifact Guardrails`의 실제 결과를 확인하며,
+로컬 정적 검사 통과로 원격 CI 성공을 대신하지 않는다.
 
-```bash
-./server.sh verify-v410-entry-baseline
-./server.sh verify-v390-entry-baseline
-./server.sh verify-docs-ui-assets
-./server.sh verify-docs-links
-./server.sh verify-release-metadata
-git diff --check
-```
+저장소 Actions 설정 기준은 Node.js 24, `actions/checkout@v5`, `actions/upload-artifact@v6`,
+최소 Actions Runner `2.327.1` 및 `.github/dependabot.yml`이다. 이는 저장소 기준이지
+외부의 최신 버전을 조회했다는 뜻이 아니다. read-only permissions를 유지하고
+`verify-actions-security`의 허용 action/SHA pin/local action 경계를 따른다.
+실제 check-run annotation을 확보하면
+`./server.sh verify-actions-security --annotations-json <annotations.json>`으로 확인한다.
+warning/failure annotation은 차단하며 미조회 상태를 PASS로 쓰지 않는다. 예외가 필요하면
+owner가 범위·만료일을 별도 정책으로 승인해야 하고, 도구를 임의 우회해 합격시키지 않는다.
 
-대표 UI 이미지는 `config/docs_ui_assets.json`의 managed asset list로 관리합니다.
-이 gate PASS는 image recapture, 직접 브라우저 검수 PASS, UI 풀테스트 PASS,
-30분/120분 longrun PASS, published metadata, tag/push/GitHub Release 완료가 아닙니다.
-이미지 재캡처나 직접 브라우저 검수 PASS가 아닙니다. 이미지 교체가 필요하면 직접
-이미지 검수와 `verify-docs-ui-assets` 재실행 결과를 별도 release test record에
-남깁니다.
+별도 배포 후보에는 `verify-release-bundle-dry-run`, `verify-runtime-model-bundle-rc-rehearsal`,
+`verify-bundle-policy --bundle-dir <release_bundle_dir>`, `dependency-snapshot`,
+`source-offer-checklist --bundle-policy-report <bundle_policy.json>`,
+`verify-public-repo-readiness`를 적용한다. 상세 입력과 라이선스 판단은
+[배포 정책](distribution-policy.md)·[runtime/model RC](runtime-model-bundle-rc-rehearsal.md)에 둔다.
+후보 생성/fixture 리허설의 PASS는 실제 배포 선택·runtime/model 포함 승인·asset 업로드가 아니다.
 
-## Policy v4 UI evidence release gate
+## 공개 순서와 서명 태그
 
-UI 풀테스트는 안정화/30분/120분과 분리된 기존 UI 테스트 영역을 유지합니다.
-`AGENTS.md` 7.6.3에 따라 direct-browser, qualified-native-automation, hybrid evidence를
-허용하되 도구 이름이 아니라 exact case별 실제 조작과 evidence 품질로 판정합니다.
-
-Release UI PASS에는 현재 exact UI test ID 전수의 direct 또는 automation-equivalent
-PASS, fail/not-run/unsupported/unapproved exclusion/manual intervention 0, source binding,
-completion oracle, role/viewport/theme, artifact integrity/redaction, visual/replay/cleanup,
-교차 반응형·시각·role·client redaction·video/overlay·accessibility closure가 필요합니다.
-Completion/visual/cross-cutting/redaction evidence는 artifact root 안 실파일의
-bytes/SHA-256/content type/case·correlation ID에 attested되어야 합니다. PNG signature만,
-임의 JSON trace, 문자열 evidenceRef, summary의 redaction PASS/0 자기선언은 release evidence가
-아닙니다. Evaluator의 image decode, trace/payload schema, 독립 forbidden-material scan을
-통과해야 합니다.
-`./server.sh verify-ui-fulltest-evidence-policy-v4`의 policy validation PASS는 이 실행
-PASS를 대신하지 않으며 출력의 `uiFulltestPass=true`를 별도로 확인해야 합니다.
-Policy v4 전 historical evidence는 당시 결과로 보존하고 소급 승격하지 않습니다.
-
-## 릴리즈 테스트 기록
-
-테스트 항목 상세와 버전별 테스트 결과는
-[release-test-records.md](release-test-records.md)에 남깁니다.
-`release-evidence-index.md`는 색인이고, 어떤 항목을 어떻게 확인했는지와
-버전별 `pass`/`fail` 결과는 release test records가 source-of-truth입니다.
-
-릴리즈 테스트가 만든 `/tmp`, `/private/tmp`, `$TMPDIR` 산출물은 최종 evidence가
-아닙니다. summary/report/log/screenshot/evidence JSON의 필요한 값은 저장소 문서로
-이관한 뒤 cleanup 대상에 넣습니다. 보존해야 하는 증거물은 임시 경로 밖
-`docs/release-artifacts/<version>/<run-id>/` 같은 저장소 보존 위치로 이동하고,
-redaction/크기/보존 사유를 기록합니다.
-
-## v3.9.0 Longrun Runner 역할
-
-아래 역할 구분은 v3.9.0 당시 runner·evidence 이력이다. 현재 v4.1.0의 승인된
-`verify-predev --soak-minutes 30/120`와 녹화 전용120분 증거의 유효성은 AGENTS.md
-7.6.2 및 현재 S11 증거 연결표로 판단한다. 과거 runner 설명만으로 현재 PASS를
-폐기하거나 다른 장시간 실행을 자동 추가하지 않는다.
-
-v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`입니다.
-
-- `verify-predev` remains legacy/compatibility cumulative predev runner.
-- `verify-v390-server-longrun` is the release-grade first-fail runner.
-- `verify-v390-server-longrun --duration-minutes 30`은 v3.9.0 30분 release-grade evidence를
-  생성할 때 사용합니다.
-- `verify-v390-server-longrun --duration-minutes 120`은 사용자 승인 또는 high-risk 조건으로
-  120분이 필요한 경우 사용합니다.
-- historical `verify-predev --soak-minutes 30` evidence remains preserved.
-- historical `verify-predev --soak-minutes 120` evidence remains preserved.
-
-이 역할 분리는 과거 evidence를 다시 해석하지 않습니다. 이전 release의
-`verify-predev --soak-minutes 30/120` PASS 행은 historical/compatibility evidence로
-남기고, 당시 release-grade first-fail 장시간 evidence는
-`verify-v390-server-longrun` summary/report로 분리합니다.
-`media-server.runtime-media-longrun-trigger-matrix.v1`의 v3.9.0 release-grade 30분/120분
-server longrun row도 `verify-v390-server-longrun --duration-minutes 30/120`을 표준
-trigger로 가리킵니다. 기존 `verify-predev --soak-minutes 30/120` command는 runner
-내부 delegated predev summary 또는 historical compatibility evidence 문맥에서만 사용합니다.
-
-RC gate artifact 보존은 별도 정책입니다.
-
-- `rc-release-checklist`는 RC gate summary/report를 작성하는 명령입니다.
-- `media-server-rc-gate` GitHub Actions artifact는 CI 보존 evidence입니다.
-- `rc-artifact-archive` 외부 archive는 CI artifact 밖 장기 보존 경로입니다.
-- 임시 `/tmp` 경로는 staging/local-only evidence이며 release-grade 보존 완료가 아닙니다.
-- release-grade 보존 완료는 `media-server-rc-gate` artifact 또는 외부 archive manifest와
-  checksum이 확인된 뒤에만 기록합니다.
-
-## Published Release 확인
-
-GitHub Release를 실제 publish한 뒤에만 아래 명령으로 외부 공개 상태를 확인합니다.
+1. 승인 범위, branch/HEAD, VERSION/CMake, remote, 미커밋 변경, 실패/미확인과 포함될
+   누적 커밋을 확인한다. push 전 upstream/ahead/behind도 대조한다.
+2. 필요한 제품·문서·배포 정확성 보정, 승인된 검증, 기록 보존·정리를 마치고 PR과 required
+   CI를 확인한다. 단계별 승인 아래 main에 병합·동기화하고 최종 커밋을 다시 확인한다.
+3. public readiness·bundle policy·required Actions를 충족한 **최종 main 커밋**에만
+   `vMAJOR.MINOR.PATCH` 형식의 signed annotated tag를 만든다. push 전에 로컬 서명을 검증하고,
+   push 후 대상 hash와 GitHub Verified 및 tag API `verified=true`/`reason=valid`를 확인한다.
+   lightweight·unsigned annotated·GitHub UI 자동 태그는 대체 수단이 아니다.
+4. 승인된 source-only GitHub Release를 생성·공개하고 실제 Latest/URL/원격 tag를 확인한다.
+   아래 외부 확인을 실행한 결과 없이 공개 완료라 하지 않는다.
+5. published 확인 이후에만 승인된 release branch 삭제·후속 브랜치 동기화를 수행한다.
+   새 버전 개발은 별도 지시가 있어야 한다. 어느 단계든 실패하면 뒤 작업을 멈추고 이미
+   생성된 commit/URL과 정지 지점을 보고한다. 외부 상태를 임의 rollback하지 않는다.
 
 ```bash
 ./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>
 ```
 
-published metadata 확인에는 GitHub Releases list/view/latest, GitHub API
-`/releases/latest`, repository page Releases/Latest link, remote tag/branch 확인이
-포함됩니다. 네트워크, GitHub CLI, auth, remote ref 조회 실패는 published metadata
-gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 섞지 않습니다.
-
-## GitHub Releases 운영
-
-### v4.1.0 Release Close-out Runbook
-
-현재 source와 release target은 `v4.1.0`이고 직전 공개 baseline은 `v4.0.0`입니다.
-상시·이벤트 녹화 구현, S10 보강, S11 제품 검증과 B14 공개 준비를 완료했습니다.
-PR·병합·서명 tag·GitHub Release·published metadata는 실제 실행 뒤에만 완료로 기록합니다.
-이 절은 실행 순서 안내이며 완료 증거 또는 외부 변경 승인이 아닙니다. 작업 정책은
-AGENTS.md가 기준이며 PR, 병합, 서명 태그, GitHub Release는 각각 승인 후 수동으로만 진행합니다.
-
-- Dry-run checklist: `./server.sh verify-release-closeout-helper --dry-run`은 문서·명령과
-  수동 승인 경계만 확인합니다. 실제 릴리즈나 장시간·UI 검증을 대신하지 않습니다.
-- Real close-out checklist: 고정 소스의 단기 안정화 → 실제 30분 → 실제 UI·브라우저 미디어 →
-  공통 및 녹화 전용 120분 결과를 각각 확인합니다. 변경분의 증거 유효성은 AGENTS.md 7.6.2로
-  판단하며 이미 유효한 동일 검사를 인계 때문에 다시 실행하지 않습니다.
-- 최종 문서·출처·source-only 공개 범위·정리·커밋을 대조하고, 승인된 푸시 이후 PR merge와
-  Main fast-forward/sync의 실제 대상 해시를 확인합니다. public-readiness, bundle policy,
-  Actions status check는 실행 결과가 있는 항목만 완료로 기록합니다.
-- Tag 전략은 main의 승인된 릴리즈 커밋에 대한 signed annotated tag입니다. 로컬 서명 검증과
-  원격 Verified 확인 뒤 승인된 GitHub Release, Latest 확인, published metadata 검증을 진행합니다.
-  바이너리·런타임·모델 묶음을 소스 공개에 임의로 추가하지 않습니다.
-- Branch close는 기록·태그 대상의 정합 확인입니다. release branch 삭제 또는 Next branch sync를
-  자동 실행하지 않으며 각각 사용자 별도 승인이 필요합니다.
-- 이번 v4.1.0의 외부 서비스·실기기 검증은 사용자 명시 제외입니다. 미실행을 PASS로 기록하지 않고,
-  해당 환경의 동작 보장을 릴리즈 설명에 포함하지 않습니다. 로컬 필수 검증은 그대로 유지합니다.
-
-실패 이후 단계는 중단하고 최초 실패·보완·재검증을 보존합니다. 단기 검증 통과만으로 30분·UI·120분,
-CI 또는 릴리즈 완료를 선언하지 않습니다. 상세 실행 결과는 중앙 테스트 기록에서 연결합니다.
-
-### v4.0.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-아래는 v4.0.0 당시 실행 이력입니다. 현재 release target은 `v4.1.0`이며 cut 직전
-published metadata 기준은 `v4.0.0`입니다.
-compact handoff boundary `09436674`를 포함한
-동일 clean source `b96f74ab`에서 fresh 30분/UI는 PASS했습니다. 120분은 재판정 후
-`conditional-not-run`입니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release 생성/갱신
-- Latest 확인
-- published metadata 재검증
-- release branch 삭제는 사용자 별도 승인 후 진행
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed on the release candidate. tag, GitHub Release,
-published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다. fresh 30분과 UI 풀테스트 PASS가 있어도 PR/main merge/tag/
-GitHub Release는 사용자 명시 승인 없이 진행하지 않습니다.
-
-### v3.9.1 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-v3.9.1은 당시 current source patch이자 GitHub Latest Release였으며, 현재는 v4.0.0의
-previous published baseline입니다.
-실제 tag, GitHub Release, published metadata 확인 결과만 완료 evidence로 사용합니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release 생성/갱신
-- Latest 확인
-- published metadata 재검증
-- release branch 삭제는 사용자 별도 승인 후 진행
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed. tag, GitHub Release,
-published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다.
-
-### v3.9.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-v3.9.0은 현재 source-only published baseline입니다. 실제 tag, GitHub Release, published
-metadata 확인 결과만 완료 evidence로 사용합니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release 생성/갱신
-- Latest 확인
-- published metadata 재검증
-- release branch 삭제는 사용자 별도 승인 후 진행
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed. tag, GitHub Release,
-published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다.
-
-### v3.8.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release 생성/갱신
-- Latest 확인
-- published metadata 재검증
-- release branch 삭제는 사용자 별도 승인 후 진행
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed. tag, GitHub Release,
-published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다.
-
-### v3.7.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release
-- Latest 확인
-- release branch 보존/삭제는 사용자 별도 승인 후 진행
-- Next branch sync
-
-### v3.6.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release
-- Latest 확인
-- release branch 상태 확인
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed.
-
-### v3.5.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release 생성/갱신
-- Latest 확인
-- published metadata 재검증
-- release branch 삭제(별도 명시 승인 시에만)
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed. tag, GitHub Release,
-published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다. AGENTS.md 우선 규칙상 release branch 삭제는 릴리즈
-close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
-수행하지 않습니다.
-
-### v3.4.0 Release Close-out Runbook
-
-아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
-순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-
-Dry-run checklist:
-
-- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
-- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
-- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
-
-Real close-out checklist:
-
-- Branch close
-- PR merge
-- Main fast-forward/sync
-- public-readiness, bundle policy, Actions status check
-- Tag 전략에 맞춘 signed annotated tag 생성
-- GitHub Release 생성/갱신
-- Latest 확인
-- published metadata 재검증
-- release branch 삭제(별도 명시 승인 시에만)
-- Next branch sync
-
-Do not list an item as pass unless it was actually executed. tag, GitHub Release,
-published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다. AGENTS.md 우선 규칙상 release branch 삭제는 릴리즈
-close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
-수행하지 않습니다.
-
-## v4.0.0 Published Source Roadmap Scope
-
-공개된 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. 당시 v4.0.0 (1)
-baseline 정렬은 source `4.0.0`과 published `v4.0.0`를 맞췄습니다. 현재 개발 소스
-`v4.1.0`의 녹화 기능과 최종 검증 상태는 해당 로드맵·실행 기록으로 구분합니다. Binary/runtime/model bundle과 external field smoke는 공개
-asset 또는 실행 PASS로 승격하지 않습니다.
-
-## v3.9.1 Previous Published Source Roadmap Scope
-
-published `3.9.1` source tree는 v3.9.0 제품 기능을 유지한 채 release correctness,
-public repository hygiene, documentation truth, bounded evidence, test asset
-bootstrap, Policy v4 current-source version binding을 latest published patch
-baseline으로 닫았습니다. Binary/runtime/model bundle과 external field smoke는
-공개 asset 또는 실행 PASS로 승격하지 않습니다.
-
-## v3.9.0 Published Source Roadmap Scope
-
-현재 `3.9.0` source tree는 아래 roadmap을 source 기능, release validation, exact UI,
-longrun, cleanup, final-integrity evidence와 함께 latest published baseline으로 닫았습니다.
-
-- Source Baseline Alignment
-- Feature Completion Inventory
-- User Review Gate
-- Feature completion development items after user approval
-- Structure stabilization preparation
-- Test model preparation
-
-현재 local gate와 release evidence는 서로 분리해 보존합니다. `test_release.sh`의
-30분, exact UI `424/424`, Policy v4 `424/424`, 120분, cleanup, final integrity PASS가
-release validation을 구성하며 external field smoke는 미실행으로 유지합니다.
-
-## v3.8.0 Previous Published Source Roadmap Scope
-
-현재 `3.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
-정리했고, source-only latest published baseline으로 닫았습니다. UI 풀테스트, 30분,
-120분은 release evidence로 보존했고, 외부 endpoint field smoke는 실행한 경우에만
-release evidence로 기록합니다.
-
-- v3.8.0 Step 1 source baseline alignment
-- v3.8.0 Step 2 Ops Action Route Boundary
-- v3.8.0 Step 3 Action Capability Contract
-- v3.8.0 Step 4 Action Request Ledger Contract
-- v3.8.0 Step 5 Approval Decision Gate
-- v3.8.0 Step 6 Action Readiness Preflight
-- v3.8.0 Step 7 Source Recheck Action Pilot
-- v3.8.0 Step 8 Client Notice Draft Queue
-- v3.8.0 Step 9 Rule Draft Action Package
-- v3.8.0 Step 10 Ops Action Control Workspace UI
-- v3.8.0 Step 11 Client-safe Action Notice Preview
-- v3.8.0 Step 12 Outcome Observer and Reconciliation
-- v3.8.0 Step 13 Action Receipt Bundle
-- v3.8.0 Step 14 Field Connector Evidence Package
-- v3.8.0 Step 15 Default-off Action Explanation
-- v3.8.0 Step 16 Stabilization and Release Readiness
-
-`v3.8.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence로
-보존합니다. 현재 latest published release는 `v3.9.0`이며 v3.8.0은 previous
-published baseline입니다.
-
-## v3.9.0 stabilization and release readiness
-
-v3.9.0 Step 20 local readiness gate는
-`media-server.v390-stabilization-release-readiness.v1` 기준으로 v3.9.0 Feature
-Completion, Structure Stabilization, and Test Model Preparation의 Step 1~19 local
-gates, AGENTS 테스트 카테고리 판정, release policy, release evidence index, release
-test records, docs links/assets, feature/script inventory, close-out dry-run command를
-같은 범위로 묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을
-승인하거나 실행하지 않습니다. `verify-release-metadata --published` 미실행 상태는
-local readiness PASS로 완료 처리하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v390-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v390-entry-baseline
-./server.sh verify-v390-feature-completion-inventory
-./server.sh verify-v390-user-review-gate
-./server.sh verify-manual-ui-evidence
-./server.sh verify-v390-evidence-test-gate-prep
-./server.sh verify-v390-onvif-credential-provider-status
-./server.sh verify-v390-onvif-live-import-persist-decision
-./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
-./server.sh verify-v390-vlm-incident-rule-provenance
-./server.sh verify-v390-vlm-evaluation-promotion-guard
-./server.sh verify-v390-backup-recovery-handoff-validation
-./server.sh verify-v390-action-execution-deferral-decision
-./server.sh verify-v390-deferred-product-owner-signoff
-./server.sh verify-v390-conditional-field-ai-decisions
-./server.sh verify-v390-structure-stabilization-handoff
-./server.sh verify-v390-structure-stabilization-readiness
-./server.sh verify-v390-external-field-smoke-no-device-closure
-./server.sh verify-v390-analysis-registry-durable-write
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.9.0 Step 20 local readiness gate는 Policy v4-qualified UI fulltest 실행, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
-않습니다.
-
-현재 v3.9.0 final close-out 테스트 순서는 `stabilization -> current feature gate -> 30분 ->
-exact 424 Policy v4 UI -> AGENTS 7.6.2 120분 판정/조건부 실행 -> cleanup/final integrity`입니다.
-120분 필요성은 `--run-120` 존재 여부가 아니라 current base..HEAD의 media/source-worker/shared-stream/
-runtime-fanout/cleanup-port 변경, 직접 매핑, release gate, upstream drift로 계산합니다. Trigger가 있으면
-실행 승인을 받은 경우에만 `--run-120`을 추가하고, trigger 없이 flag만 주면 거부합니다. 현재 사용자의 canonical
-command는 `./test_release.sh`입니다. `./server.sh verify-v390-test-acceptance-bundle`은 launcher가 내부적으로 호출하는 구현 세부사항이며, acceptance가 throwaway server·account/role·storage-state·Playwright/browser·PID/port/artifact cleanup을 자체 소유합니다. 과거 release record의 개별 내부 명령은 historical 실행 기록으로 보존합니다.
-actual preflight는 clean worktree와 exact UI/cleanup 소유권 입력을 요구합니다.
-실제 실행 전에는 PASS evidence로 기록하지 않습니다.
-
-## v3.8.0 stabilization and release readiness
-
-v3.8.0 Step 16 local readiness gate는
-`media-server.v380-stabilization-release-readiness.v1` 기준으로 v3.8.0
-Operator-Gated Action Pilot & Outcome Loop의 Step 1~15 local gates, release policy,
-release evidence index, release test records, docs links/assets, feature/script inventory,
-close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비 상태를
-확인할 뿐 release action을 승인하거나 실행하지 않습니다.
-`verify-release-metadata --published` 미실행 상태는 local readiness PASS로 완료 처리하지
-않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v380-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v380-entry-baseline
-./server.sh verify-v380-ops-action-route-boundary
-./server.sh verify-v380-action-capability-contract
-./server.sh verify-v380-action-request-ledger-contract
-./server.sh verify-v380-approval-decision-gate
-./server.sh verify-v380-action-readiness-preflight
-./server.sh verify-v380-source-recheck-action-pilot
-./server.sh verify-v380-client-notice-draft-queue
-./server.sh verify-v380-rule-draft-action-package
-./server.sh verify-v380-ops-action-control-workspace-ui
-./server.sh verify-v380-client-safe-action-notice-preview
-./server.sh verify-v380-outcome-observer-reconciliation
-./server.sh verify-v380-action-receipt-bundle
-./server.sh verify-v380-field-connector-evidence-package
-./server.sh verify-v380-default-off-action-explanation
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.8.0 Step 16 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
-않습니다.
-
-## v3.6.0 Published Source Roadmap Scope
-
-현재 `3.6.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
-정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
-풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
-기록합니다.
-
-- v3.6.0 Step 1 source baseline alignment
-- v3.6.0 Step 2 Simulation Input Contract
-- v3.6.0 Step 3 Operations Simulation Run Contract
-- v3.6.0 Step 4 Command Plan Dry-run Simulator
-- v3.6.0 Step 5 Source/Rule Impact Diff
-- v3.6.0 Step 6 Safe Apply Readiness Gate
-
-`v3.6.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. v3.8.0 publish 이후 이 절은 historical published baseline 기록입니다.
-v3.6.0 공개 release tag 기준은 `v3.6.0`이고 현재 latest published release는 `v3.9.0`입니다.
-`v3.6.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
-`verified=true`/`reason=valid`로 확인했습니다.
-
-## v3.7.0 stabilization and release readiness
-
-v3.7.0 Step 18 local readiness gate는
-`media-server.v370-stabilization-release-readiness.v1` 기준으로 v3.7.0
-Site-Aware Operations and Safe Runbook Control Plane의 Step 1~17 local gates,
-release policy, release evidence index, release test records, docs links/assets,
-feature/script inventory, close-out dry-run command를 같은 범위로 묶습니다. 이 절은
-source tree 준비 상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
-`verify-release-metadata --published` 미실행 상태는 local readiness PASS로 완료 처리하지
-않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v370-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v370-entry-baseline
-./server.sh verify-v370-site-source-group-contract
-./server.sh verify-v370-site-aware-source-registry-projection
-./server.sh verify-v370-site-health-rollup
-./server.sh verify-v370-site-impact-graph
-./server.sh verify-v370-site-simulation-input-pack
-./server.sh verify-v370-cross-site-safe-apply-readiness
-./server.sh verify-v370-runbook-template-contract
-./server.sh verify-v370-runbook-instance-ledger
-./server.sh verify-v370-approval-ticket-workflow
-./server.sh verify-v370-site-operations-workspace-ui
-./server.sh verify-v370-client-notice-by-site-view-group
-./server.sh verify-v370-rule-va-what-if-by-site
-./server.sh verify-v370-field-evidence-attachment
-./server.sh verify-v370-limited-safe-execution-pilot
-./server.sh verify-v370-outcome-reconciliation
-./server.sh verify-v370-export-handoff-bundle
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.7.0 Step 18 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
-않습니다.
-
-## v3.6.0 stabilization and release readiness
-
-v3.6.0 local readiness gate는 `media-server.v360-stabilization-release-readiness.v1`
-기준으로 v3.6.0 Operations Simulation and Safe Apply Readiness의 Step 1~13 local gates,
-release policy, release evidence index, release test records, docs links/assets,
-feature/script inventory, close-out dry-run command를 같은 범위로 묶습니다. 이 절은
-source tree 준비 상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
-`verify-release-metadata --published` 미실행 상태는 local readiness PASS로 완료 처리하지
-않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v360-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v360-entry-baseline
-./server.sh verify-v360-simulation-input-contract
-./server.sh verify-v360-operations-simulation-run-contract
-./server.sh verify-v360-command-plan-dry-run-simulator
-./server.sh verify-v360-source-rule-impact-diff
-./server.sh verify-v360-safe-apply-readiness-gate
-./server.sh verify-v360-ops-simulation-workspace-ui
-./server.sh verify-v360-simulation-run-ledger-comparison
-./server.sh verify-v360-client-notice-preview
-./server.sh verify-v360-rule-va-what-if-replay-pack
-./server.sh verify-v360-simulation-export-bundle
-./server.sh verify-v360-field-evidence-simulation-adapter
-./server.sh verify-v360-vlm-assisted-simulation-explanation
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.6.0 Step 14 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
-않습니다.
-
-## v3.5.0 stabilization and release readiness
-
-v3.5.0 local readiness gate는 `media-server.v350-stabilization-release-readiness.v1`
-기준으로 v3.5.0 Live Operations Control Plane의 Step 1~12 local gates, release policy,
-release evidence index, release test records, docs links/assets, feature/script inventory,
-close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비 상태를
-확인할 뿐 release action을 승인하거나 실행하지 않습니다. `verify-release-metadata --published` 미실행
-상태는 local readiness PASS로 완료 처리하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v350-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v350-entry-baseline
-./server.sh verify-v350-live-operations-graph-contract
-./server.sh verify-v350-operations-command-plan-contract
-./server.sh verify-v350-incident-to-command-handoff
-./server.sh verify-v350-staged-change-plan-impact-preview
-./server.sh verify-v350-ops-command-workspace-ui
-./server.sh verify-v350-drill-run-ledger-plan-comparison
-./server.sh verify-v350-client-impact-forecast
-./server.sh verify-v350-client-safe-operations-notice
-./server.sh verify-v350-operations-export-bundle-handoff-map
-./server.sh verify-v350-field-evidence-intake
-./server.sh verify-v350-vlm-assisted-ops-explanation
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.5.0 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun, published
-metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지 않습니다.
-
-## v3.4.0 stabilization and release readiness
-
-v3.4.0 Step 11 local readiness gate는 `media-server.v340-stabilization-release-readiness.v1`
-기준으로 v3.4.0 Operations Continuity Drill Workspace의 Step 1~10 local gates, release
-policy, release evidence index, release test records, docs links/assets, feature/script
-inventory, close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비
-상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v340-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v340-entry-baseline
-./server.sh verify-v340-continuity-drill-contract
-./server.sh verify-v340-recovery-candidate-package
-./server.sh verify-v340-staging-restore-validation-harness
-./server.sh verify-v340-source-health-replay-drift-diff
-./server.sh verify-v340-ops-continuity-drill-workspace-ui
-./server.sh verify-v340-approval-gated-recovery-checklist-audit
-./server.sh verify-v340-client-safe-maintenance-digest
-./server.sh verify-v340-drill-evidence-export-cleanup-manifest
-./server.sh verify-v340-field-bridge-condition-gates
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.4.0 Step 11 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke evidence를 대체하지 않습니다.
-`verify-release-metadata --published` 미실행, release action 미실행, UI/longrun 미실행은
-release test records와 evidence index의 미실행/제외 기록으로 분리합니다.
-
-## v3.3.0 stabilization and release readiness
-
-v3.3.0 Step 11 local readiness gate는 `media-server.v330-stabilization-release-readiness.v1`
-기준으로 v3.3.0 Live Source Reliability Workspace의 Step 1~10 local gates, release policy,
-release evidence index, release test records, close-out dry-run command를 같은 범위로
-묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
-실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v330-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v330-entry-baseline
-./server.sh verify-v330-source-registry-snapshot-identity
-./server.sh verify-v330-source-onboarding-quality-summary
-./server.sh verify-v330-reliability-timeline-health-history
-./server.sh verify-v330-incident-source-correlation-layer
-./server.sh verify-v330-operator-recheck-recovery-queue
-./server.sh verify-v330-client-safe-source-status-digest
-./server.sh verify-v330-operator-runbook-reliability-handoff
-./server.sh verify-v330-source-reliability-search-metrics
-./server.sh verify-v330-ops-backup-recovery-source-handoff
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.3.0 Step 11 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke evidence를 대체하지 않습니다.
-`verify-release-metadata --published` 미실행, release action 미실행, UI/longrun 미실행은
-release test records와 evidence index의 미실행/제외 기록으로 분리합니다.
-
-## v3.2.0 stabilization and release readiness
-
-v3.2.0 Step 11 local readiness gate는 `media-server.v320-stabilization-release-readiness.v1`
-기준으로 v3.2.0 Operations Resolution Workspace의 Step 1~10 local gates, release policy,
-release evidence index, release test records, close-out dry-run command를 같은 범위로
-묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
-실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v320-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v320-entry-baseline
-./server.sh verify-v320-resolution-state-contract
-./server.sh verify-v320-unified-ops-events-workspace
-./server.sh verify-v320-evidence-quality-layer
-./server.sh verify-v320-source-reliability-context
-./server.sh verify-v320-source-reliability-runtime-sample
-./server.sh verify-v320-ai-review-quality-context
-./server.sh verify-v320-operator-resolution-flow
-./server.sh verify-v320-action-readiness-checklist
-./server.sh verify-v320-client-safe-resolution-digest
-./server.sh verify-v320-resolution-search-metrics
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-v3.2.0 Step 11 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
-published metadata, PR/main/tag/GitHub Release, field smoke evidence를 대체하지 않습니다.
-`verify-release-metadata --published` 미실행, release action 미실행, UI/longrun 미실행은
-release test records와 evidence index의 미실행/제외 기록으로 분리합니다.
-
-## v3.0.0 Previous Published Baseline Scope
-
-`v3.0.0`은 Event Evidence Search MVP source-only previous published baseline입니다.
-이 범위는 v3.1.0 신규 기능 완료 evidence가 아니며, v3.1.0에서는 historical reference로만
-참조합니다.
-
-## v3.0.0 stabilization and release readiness
-
-V300-S10 local readiness gate는 `media-server.v300-stabilization-release-readiness.v1`
-기준으로 v3.0.0 Event Evidence Search MVP의 S00~S09 local gates, release policy,
-release evidence index, release test records, close-out dry-run command를 같은 범위로
-묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
-실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v300-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v300-entry-baseline
-./server.sh verify-v300-event-evidence-contract
-./server.sh verify-v300-feature-schema-privacy
-./server.sh verify-v300-vlm-feature-queue
-./server.sh verify-v300-feature-only-retention
-./server.sh verify-v300-search-dsl-query-convert
-./server.sh verify-v300-feature-search-index
-./server.sh verify-v300-ops-events-ui
-./server.sh verify-v300-retention-pin-cleanup
-./server.sh verify-analysis-state
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-Not-run/excluded boundary:
-
-- UI 풀테스트 직접 조작 미실행은 S10 local readiness PASS로 대체하지 않습니다.
-- 30분 테스트 미실행은 S10 local readiness PASS가 아닙니다.
-- 120분 테스트 미실행은 S10 local readiness PASS가 아닙니다.
-- PR merge/main sync/tag/push/GitHub Release 실행은 S10 local readiness gate PASS로 대체하지 않습니다.
-- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
-- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
-
-## 2.x runway / 3.0 전환 경계
-
-- 2.x 라인은 `2.8.0`과 `2.9.0`까지만 유지합니다.
-- `2.8.0`은 기존 계약을 유지한 operator-supervised action readiness입니다.
-- `2.9.0`은 2.x의 마지막 source-of-truth 정렬, compatibility freeze, v2.8 기능군 회귀
-  묶음, release evidence 정리입니다.
-- `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence storage,
-  RTSP/WebRTC media path 같은 큰 변경을 별도 설계와 승인 후 다루는 major line입니다.
-
-## v3.1.0 baseline alignment
-
-S00 local baseline gate는 `media-server.v310-entry-baseline.v1` 기준으로
-source `3.1.0`, latest published `v3.1.0`, current roadmap
-`v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, feature inventory, release test records,
-stream verification을 같은 범위로 묶습니다. 이 절은 source tree의 v3.1 진입 기준을
-확인할 뿐 release action을 승인하거나 실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v310-entry-baseline
-./server.sh build
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-script-inventory
-git diff --check
-```
-
-`verify-v310-entry-baseline`은 S00 local baseline gate입니다. 이 PASS는
-위 companion local gate와 문서 경계 연결만 뜻하며, 기능 구현, publish/tag/push/UI/장시간
-테스트 PASS로 승격하지 않습니다.
-
-## v3.1.0 stabilization and release readiness
-
-V310-S09 local readiness gate는 `media-server.v310-stabilization-release-readiness.v1`
-기준으로 v3.1.0 Encoded Event Clip and Safe Sharing Expansion의 S00~S08 local gates,
-release policy, release evidence index, release test records, close-out dry-run command를
-같은 범위로 묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을
-승인하거나 실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v310-stabilization-release-readiness
-./server.sh build
-./server.sh verify-v310-entry-baseline
-./server.sh verify-v310-event-clip-contract
-./server.sh verify-analysis-state
-./server.sh verify-v310-replay-timeline-ui
-./server.sh verify-v310-client-safe-event-digest
-./server.sh verify-v310-scoped-integrator-search-api
-./server.sh verify-v310-operator-feature-correction
-./server.sh verify-v310-optional-vector-search
-./server.sh verify-v310-retention-export-hardening
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-project-inventory
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
-./server.sh verify-script-inventory
-git diff --check
-```
-
-Not-run/excluded boundary:
-
-- UI 풀테스트 직접 조작 미실행은 S09 local readiness PASS로 대체하지 않습니다.
-- 30분 테스트 미실행은 S09 local readiness PASS가 아닙니다.
-- 120분 테스트 미실행은 S09 local readiness PASS가 아닙니다.
-- PR/main/tag/GitHub Release 실행은 S09 local readiness gate PASS로 대체하지 않습니다.
-- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
-- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
-
-Not-run/excluded boundary:
-
-- UI 풀테스트 직접 조작 미실행은 local readiness PASS로 대체하지 않습니다.
-- 30분 테스트 미실행은 local readiness PASS가 아닙니다.
-- 120분 테스트 미실행은 local readiness PASS가 아닙니다.
-- PR merge/main sync/tag/push/GitHub Release 실행은 S09 gate PASS로 대체하지 않습니다.
-- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
-- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
-
-## v2.8.0 소유권 분리 / 릴리즈 준비 게이트
-
-S07 local readiness gate는 `media-server.v280-owner-release-readiness.v1`
-기준으로 v2.8.0 Operator-Supervised Action Readiness Coverage Mapping, 수동 UI
-criteria, release evidence index, release close-out dry-run command를 같은 범위로
-묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
-실행하지 않습니다.
-
-Companion local gate:
-
-```bash
-./server.sh verify-v280-owner-release-readiness
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-manual-ui-evidence
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-git diff --check
-```
-
-`verify-v280-owner-release-readiness`는 S07 local readiness gate입니다. 이 PASS는
-아래 companion local gate와 문서 경계 연결만 뜻하며, publish/tag/push/UI/장시간
-테스트 PASS로 승격하지 않습니다.
-
-Not-run/excluded boundary:
-
-- UI 풀테스트 직접 조작 미실행은 local readiness PASS로 대체하지 않습니다.
-- 30분 테스트 미실행은 local readiness PASS가 아닙니다.
-- 120분 테스트 미실행은 local readiness PASS가 아닙니다.
-- tag/push/GitHub Release 실행은 S07 gate PASS로 대체하지 않습니다.
-- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
-- PR merge/main sync/후속 브랜치 생성은 별도 명시 승인과 실행 evidence가 있을 때만 완료로 기록합니다.
-- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
-
-## Tag 전략
-
-- 현재 공개 release tag 기준은 `v3.9.0`입니다.
-- 현재 source tag 기준은 `v3.9.0`입니다.
-- `v3.9.0` release tag는 signed annotated tag로 생성하고 published metadata에서 검증합니다.
-- 다음 신규 release tag는 signed annotated tag로 생성합니다.
-- unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
-- tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
-  붙입니다.
-- signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
-  verification `verified=true`/`reason=valid`로 확인합니다.
-- tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을
-  붙이지 않습니다.
-
-## Binary/Container 후보
-
-binary bundle, app bundle, container image, offline package는 별도 release candidate로
-취급합니다.
-
-필수 확인:
-
-```bash
-./server.sh verify-release-bundle-dry-run
-./server.sh verify-runtime-model-bundle-rc-rehearsal
-./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir> --json-output /tmp/media_server_bundle_policy.json
-./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
-./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
-```
-
-runtime/model을 의도적으로 포함하면 upstream license text, attribution, source offer,
-model provenance, checksum manifest를 release note에 연결합니다.
-
-## GitHub Actions 정책
-
-- GitHub Actions Node 24 baseline은 `actions/checkout@v5`,
-  `actions/upload-artifact@v6`, Node.js 24, minimum Actions Runner version `2.327.1`,
-  `.github/dependabot.yml` 관리 기준을 함께 뜻합니다.
-- 현재 GitHub Actions 공식 action baseline은 `actions/checkout@v5`와
-  `actions/upload-artifact@v6`입니다.
-- 두 action은 Node.js 24 runtime 경로이며, self-hosted runner는 minimum Actions Runner
-  version `2.327.1` 이상이어야 합니다.
-- `verify-actions-security`는 `actions/checkout@v5`, `actions/upload-artifact@v6`,
-  SHA pin, local action만 허용합니다.
-- GitHub Actions warning/failure annotation은 release gate PASS evidence로 대체하지
-  않습니다. warning/failure annotation은 PASS evidence로 대체하지 않습니다.
-  warning/failure annotation은 차단하거나 owner가 별도 정책으로 허용 범위와 만료일을
-  승인해야 합니다.
-
-Annotation JSON을 확보한 경우:
-
-```bash
-./server.sh verify-actions-security --annotations-json <annotations.json>
-```
-
-## v4.1.0 Release Note Source
-
-현재 release target의 안정된 사용자용 release note source는
-[release-notes-v4.1.0.md](./release-notes-v4.1.0.md)입니다. 이 링크와 local 준비 완료는
-PR·병합·서명 tag·GitHub Release 또는 published metadata 완료 주장이 아닙니다.
-
-## v4.0.0 Historical Release Note Source
-
-아래 본문의 저장소 원본은
-[release-artifacts/v4.0.0/release-notes.md](./release-artifacts/v4.0.0/release-notes.md)입니다.
-아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
-장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. latest published metadata와
-이 절은 `v4.0.0`의 보존된 historical release note source입니다. 현재 release target
-tag 기준은 `v4.1.0`이며, 실제 signed tag, GitHub Release, published
-metadata 결과는 저장소 snapshot과 분리해 직접 확인합니다.
-
-```markdown
-# Media Server v4.0.0
-
-## Summary
-
-v4.0.0 is a source-only major for Local Operations Policy and Stabilization.
-It does not add a new product feature surface.
-
-## Scope
-
-- Source-only live media server
-- Current source roadmap: v4.0.0 Local Operations Policy and Stabilization
-- Latest published baseline: v4.0.0 Local Operations Policy and Stabilization
-- Previous published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
-- Binary, runtime, and model bundles: not included
-- Feature logic, public API schemas, event payloads, metadata schemas, and
-  RTSP/WebRTC media paths: unchanged vs published v3.9.1
-
-## Changes
-
-- Freeze local operations policy: action write, persistent credential store,
-  production restore, external VLM provider call, and model-backed Re-ID stay
-  unimplemented write paths in 4.0.0.
-- Keep `/ops/events` as an Ops-only diagnostic/direct route. No new event type
-  or storage format.
-- Freeze EventRecord/clip/retention as opt-in, non-VMS. Default-on storage is
-  not in 4.0.0.
-- Keep the 986/424 verification-layer ceiling and separate wrapper PASS from
-  executed PASS.
-- Add compact `test-run-summary.json` and failure-only `failure-handoff.json`/`.md`
-  artifacts to the user-facing test launchers at boundary `09436674`.
-- Recapture Korean and English representative UI screenshots on 2026-08-31
-  using the v3.8.0 uncropped composition. Docs UI published pin is v4.0.0.
-
-## Verification
-
-- Fresh 30-minute soak: executed-pass on clean source `b96f74ab`, runId
-  `v390-server-longrun-20260902105027-50646`, 2381s/1800s, 20 iterations,
-  compact 117/0/2, cleanup PASS.
-- Fresh UI fulltest: executed-pass on the same clean source, runId
-  `v390-test-acceptance-20260902113505-82611`, exact 424/424, failure census 0,
-  Policy v4 `policyValidationResult=PASS`, qualifier `uiFulltestPass=true`,
-  final integrity and cleanup PASS.
-- Docs UI assets: `./server.sh verify-docs-ui-assets` PASS after the 2026-08-31
-  recapture (`c43c47e3`). Not UI fulltest evidence.
-- Local close-out dry-run: 2026-08-31 clean HEAD `9fab5fe2` and again after
-  the published seed pin, `./server.sh verify-release-closeout-helper --dry-run`
-  and `--dry-run --one-shot-dry-run` both status pass, dryRun true,
-  localCommands 5, manualActions 10, tag not created, push not performed.
-  Not a published-metadata PASS.
-
-## Not Run / Excluded
-
-- 120-minute soak: excluded by operator instruction for this cut. AGENTS 7.6.2
-  120-minute triggers were not met. Not a PASS.
-- Real ONVIF device field smoke: not run; device/endpoint not provided
-- External TURN/WHEP credential operation: not run
-- Real cloud/VLM provider call: not run
-- VLM model/runtime bundle: not included in source-only artifacts
-
-Do not list an item as pass unless it was actually executed for the current release candidate.
-```
-
-## v3.9.1 Release Note Template
-
-아래 템플릿은 v3.9.1 source-only GitHub Release note 기준입니다. 실행하지 않은
-장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
-게시된 `v3.9.1`입니다.
-
-```markdown
-# Media Server v3.9.1
-
-## Scope
-
-- Source-only live media server release
-- Feature Completion, Structure Stabilization, and Test Model Preparation source scope
-- Latest published baseline before this release: v3.9.0
-- Binary/runtime/model bundle: not included
-
-## Verification
-
-- v3.9.0 baseline alignment: <fill after docs/release metadata gates>
-- Local docs/release metadata: <fill after `verify-release-metadata`,
-  `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
-- Build: <fill after `./server.sh build`>
-- Local close-out dry-run: <fill only if this release cut runs close-out dry-run>
-- PR / GitHub Actions status check: <fill after PR checks>
-- Licensing and Artifact Guardrails: <fill after required check>
-- UI fulltest: <fill only after approved direct UI fulltest evidence>
-- Longrun / soak: <record the 30-minute result and conditional 120-minute result separately>
-- 30-minute soak: <fill only after approved 30-minute run>
-- 120-minute predev: <fill only after approved 120-minute run>
-- 120-minute runtime console: <fill only after approved 120-minute runtime
-  console run>
-
-## Not Run / Unverified
-
-- Release tag / GitHub Release / published metadata: not run for this template;
-  mark PASS only after tag creation, GitHub Release publication, and
-  `verify-release-metadata --published` execution for the actual release cut
-- 120-minute predev/runtime console: not run unless the actual release cut
-  triggers the AGENTS.md conditional 120-minute criteria; do not treat
-  30-minute soak or UI fulltest PASS as a 120-minute PASS
-- Real ONVIF device field smoke: not run; endpoint/device not provided
-- External TURN/WHEP credential operation: not run; endpoint/credential not
-  provided
-- Real cloud/VLM provider call: not run; credential/provider approval not
-  provided
-- VLM model/runtime bundle: not included in source-only release artifact
-- YouTube real URL relay: not run; external URL field evidence not provided
-- External alert delivery: not run; external destination/credential not
-  provided
-
-Do not list an item as pass unless it was actually executed for this release cut.
-```
-
-## 관련 문서
-
-- [versioning-policy.md](versioning-policy.md)
-- [development-backlog.md](development-backlog.md)
-- [distribution-policy.md](distribution-policy.md)
-- [public-repo-final-review.md](public-repo-final-review.md)
-- [stream-verification.md](stream-verification.md)
+이 명령은 공개 후 GitHub Releases list/view/latest, API `/releases/latest`, 저장소의
+Releases/Latest 링크와 remote tag/branch를 실제 조회한다. 네트워크·도구·auth·remote 조회
+실패는 공개 확인 실패/미확인이며 제품 runtime/media 회귀와 구분한다.
+한 번 공개한 태그는 문서나 증거 수명 유지보수를 위해 옮기지 않는다. 공개 후 정리는 별도
+유지보수 커밋으로 하며 제품/배포 정확성 수정을 단순 정리로 숨기지 않는다.
+
+## 릴리즈 노트와 이전 기록
+
+릴리즈 노트는 변경·호환/이관·배포 범위·알려진 제한과 실제 검증을 간결하게 설명한다.
+source/환경·CI·Auth/미디어·UI·30분·조건부 120분·외부/실장비 결과 및 제외 사유는
+해당 실행 자료로 연결한다. 실제 실행한 결과만 PASS라 쓰며 템플릿·계획·준비 검사와 구분한다.
+과거 실패·사용자 제외·미실행을 새 버전의 PASS로 고치지 않는다.
+
+이 문서에 중복되어 있던 과거 버전별 릴리즈 절차·gate 목록, v4.0 실행 기록과
+v3.9.1 노트 템플릿, 버전 정책의 과거 2.x 전환·3.x/4.x 범위는 다음 원본에서 조회한다.
+로컬 Git 바이트를 대조한 보존 위치이며 원격 보존을 이번에 재확인했다는 뜻은 아니다.
+
+| 정리 대상·버전 범위 | 원본 보존 commit | 원래 경로 |
+| --- | --- | --- |
+| v2.8~v4.1 릴리즈 절차·결과 | `0dce856187cf665fe2da79d0f74dd36cfabf56f4` | `docs/release-policy.md` |
+| v2.5~v4.1 범위·2.x 전환 기록 | `0dce856187cf665fe2da79d0f74dd36cfabf56f4` | `docs/versioning-policy.md` |
+
+현재 미완료와 후속 방향은 [backlog](development-backlog.md) 및
+[녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)을 따른다.
