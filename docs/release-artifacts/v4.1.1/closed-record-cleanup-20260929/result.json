@@ -2,7 +2,7 @@
   "scope": "v4.1.1 2/4 종료 기록 정리의 정확한 삭제 후보와 검증 결과",
   "baseCommit": "0f85cec7ea066ff626f7b2983f924468467c9717",
   "startHead": "41fe77823fcd72fa2d352442193b5f1877915119",
-  "status": "selected-deletion-prechecks-passed; overall-stage2-partial; actual-deletion-pending",
+  "status": "selected-deletion-verified; overall-stage2-partial",
   "paths": [
     "docs/release-artifacts/v3.1.0/ui-fulltest-20260621/auth-registry/.media_server.ops_audit.jsonl",
     "docs/release-artifacts/v3.1.0/ui-fulltest-20260621/auth-registry/analysis.json",
@@ -3364,7 +3364,8 @@
       "absent": true,
       "removedFiles": 3571,
       "method": "소유 Git archive의 lstat 기반 정리; symlink 대상 미추적"
-    }
+    },
+    "limitation": "삭제 후보 파일만 unlink한 preview에 빈 디렉터리가 남아 폴더 링크 1개가 통과했다. 실제 git rm 후 발견. 기존 preview PASS는 그 조건의 결과이며 실제 삭제 후 PASS가 아님."
   },
   "checks": [
     {
@@ -3464,6 +3465,42 @@
         "존재하지 않는 보존 commit"
       ],
       "boundary": "실제 삭제 없이 대상 검증. 삭제 목록은 외부 입력을 받는 새 도구가 아님"
+    },
+    {
+      "name": "실제 삭제 후 문서 링크 최초 검사",
+      "command": "node scripts/internal/verify_docs_links.mjs",
+      "exit": 1,
+      "stdout": "[fail] 문서 로컬 링크/이미지 참조 오류\n  - docs/release-evidence-index.md: 존재하지 않는 링크: ./release-artifacts/v3.7.0/predev-30min-20260705-final/\n\n== Docs link verification summary ==\n- markdown files: 295\n- local links: 10201\n- local images: 14\n- local anchors: 346\n- indexed docs: 87\n- index coverage exclusions: 191\n- failures: 1\n",
+      "stderr": "",
+      "capture": "실제 tool 반환 stdout 보존. 미집계 실행 시각 생성 안 함."
+    },
+    {
+      "name": "실제 삭제·폴더 링크 보완 후 문서 검사",
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "start": "2026-09-29T12:20:21.712Z",
+      "end": "2026-09-29T12:20:22.004Z",
+      "exit": 0,
+      "signal": null,
+      "stdout": "\n== Docs link verification summary ==\n- markdown files: 295\n- local links: 10200\n- local images: 14\n- local anchors: 346\n- indexed docs: 87\n- index coverage exclusions: 191\n- failures: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "실제 삭제 후 공백 검사",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "HEAD"
+      ],
+      "start": "2026-09-29T12:20:22.005Z",
+      "end": "2026-09-29T12:20:22.239Z",
+      "exit": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
     }
   ],
   "deferred": [
@@ -3524,5 +3561,21 @@
     "3/4 최종 버전 정합성 및 4/4 릴리즈",
     "push·PR·병합·tag·Release"
   ],
-  "executionCleanup": "실제 서버·포트·브라우저 생성 없음. 임시 source archive와 테스트 자체 fixture 정리 확인. 제품/사용자 데이터 변경 없음."
+  "executionCleanup": "실제 서버·포트·브라우저 생성 없음. 임시 source archive와 테스트 자체 fixture 정리 확인. 제품/사용자 데이터 변경 없음.",
+  "directoryLinkFix": {
+    "file": "docs/release-evidence-index.md",
+    "target": "docs/release-artifacts/v3.7.0/predev-30min-20260705-final/",
+    "action": "보존 커밋의 tree 링크로 변경",
+    "reason": "파일 링크 목록뿐 아니라 실제 제거되는 디렉터리도 확인 필요"
+  },
+  "actualDeletion": {
+    "closedFiles": 1622,
+    "closedBytes": 111194443,
+    "readBackFiles": 1622,
+    "readBackBytes": 111194443,
+    "contentHashesMatch": true,
+    "historyReachable": true,
+    "protectedPathsUnchanged": true,
+    "initialPreservationCommit": "b0745395e8b4c1286a9cd3a186ec79a07f405dba"
+  }
 }
