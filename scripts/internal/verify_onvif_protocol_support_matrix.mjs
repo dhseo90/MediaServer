@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { hasDocumentLink, validateOnvifSupportMatrixDocumentation } from "./documentation_contract_lib.mjs";
+import { hasDocumentLink, validateOnvifSupportMatrixDocumentation, validateOnvifTlsDocumentation, validateOnvifCredentialDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -90,16 +90,13 @@ check("implementation matches documented probe transport scope", () => {
 });
 
 check("TLS policy doc keeps HTTPS scope explicit", () => {
-  assertContains(tlsDoc, "HTTP SOAP transport와 OpenSSL 기반 HTTPS SOAP fixture transport를 포함", "TLS doc must state HTTPS transport scope");
-  assertContains(tlsDoc, "`https://` endpoint는 OpenSSL 빌드에서 TCP connect", "TLS doc must state HTTPS OpenSSL transport");
-  assertContains(tlsDoc, "OpenSSL이 없는 빌드는 `https transport requires OpenSSL support`로 fail-closed", "TLS doc must keep OpenSSL fallback explicit");
+  const errors = validateOnvifTlsDocumentation(tlsDoc, "policy");
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("credential policy doc keeps auth scope explicit", () => {
-  assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
-  assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential doc must link credential store design");
-  assertContains(credentialDoc, "HTTP Digest 인증 주입", "credential doc must keep Digest auth unsupported");
-  assertContains(credentialDoc, "`credential_ready`와 `http_basic` material", "credential doc must state Basic provider scope");
+  const errors = validateOnvifCredentialDocumentation(credentialDoc, "policy");
+  assert(errors.length === 0, errors.join("; "));
 });
 
 let failures = 0;

@@ -108,6 +108,100 @@ export function validateOnvifNoDeviceDocumentation(text) {
   return errors;
 }
 
+// TLS 문서는 현행 전송/검사 식별자와 실제 출력 경계를 연결한다.
+// 제목·버전·과거 PASS·미구현 JSON 예시는 요구하지 않는다. 자연어 의미는 별도 리뷰 대상이다.
+export function validateOnvifTlsDocumentation(text, kind) {
+  const doc = String(text || ''), errors = [];
+  const contracts = {
+    policy: {
+      ids: ['SendOnvifSoapHttp', 'http://', 'https://', 'OpenSSL', 'certificate verification',
+        'hostname verification', 'MEDIA_SERVER_ONVIF_TLS_CA_FILE', 'https transport requires OpenSSL support',
+        'TLS trust store load failed', 'userinfo', 'http_basic', 'Authorization', 'raw SOAP',
+        'verify-onvif-tls-transport-policy', 'verify-onvif-https-soap-transport-design',
+        'verify-onvif-https-tls-fixture', 'verify-onvif-http-transport', '미확인'],
+      links: ['onvif-https-soap-transport-design.md', 'onvif-https-tls-fixture-harness-design.md', 'onvif-credential-reference-policy.md'],
+    },
+    transport: {
+      ids: ['SendOnvifSoapHttp', 'ParseHttpUrl', 'http://', 'https://', 'OpenSSL', 'userinfo',
+        'invalid endpoint URL', 'MEDIA_SERVER_ONVIF_TLS_CA_FILE', 'SSL_VERIFY_PEER', 'SSL_set1_host',
+        'SSL_connect', 'SSL_CTX_load_verify_locations', 'SSL_CTX_set_default_verify_paths',
+        'https transport requires OpenSSL support', 'TLS certificate verification failed', 'TLS handshake failed',
+        'http_basic', 'Authorization', 'raw SOAP', 'RunHttpsTransportFailureMatrix',
+        'verify-onvif-https-soap-transport-design', 'verify-onvif-https-tls-fixture', 'verify-onvif-http-transport'],
+      links: ['onvif-tls-transport-policy.md', 'onvif-https-tls-fixture-harness-design.md', 'onvif-auth-injection-design.md'],
+    },
+    fixture: {
+      ids: ['verify-onvif-https-tls-fixture', 'verify-onvif-http-transport', 'SendOnvifSoapHttp',
+        'Node', 'stdout', 'ephemeral CA', 'fixture CA bundle', 'hostname verification',
+        'trusted fixture success', 'untrusted CA failure', 'hostname mismatch failure',
+        'certificate expired failure', 'handshake failure', 'connection refused',
+        'certificate dump', 'private key', 'raw SOAP', 'finally'],
+      links: ['onvif-https-soap-transport-design.md', 'onvif-tls-transport-policy.md', 'onvif-field-smoke-artifact-redaction.md'],
+    },
+  };
+  const contract = contracts[kind];
+  if (!contract) return ['unknown TLS document kind: ' + kind];
+  for (const id of contract.ids) if (!doc.includes(id)) errors.push('TLS ' + kind + ' definition missing: ' + id);
+  for (const link of contract.links) if (!hasDocumentLink(doc, link)) errors.push('TLS ' + kind + ' contract link missing: ' + link);
+  if (kind === 'fixture') for (const [field, value] of [['mode', 'fixture-only'], ['trustedFixtureSuccess', 'true'],
+    ['redactionVerified', 'true'], ['realDeviceEndpointSuccess', '미확인'], ['failures', '0']]) {
+    if (!hasDocumentFieldValue(doc, field, value)) errors.push('TLS fixture summary field/value missing: ' + field);
+  }
+  return errors;
+}
+
+// credential 안내에서 현재 API/내부 provider/향후 저장소를 분리한다.
+// 실제 상태·secret 거부·권한·wire 주입은 기존 독립 source/fixture/C++ 검사를 그대로 사용한다.
+export function validateOnvifCredentialDocumentation(text, kind) {
+  const doc = String(text || ''), errors = [];
+  const contracts = {
+    policy: {
+      ids: ['credentialRefPresent', 'credential_ref_present', 'plaintext_secret_included=false',
+        'SourceRegistry', 'PublishedView', 'client/viewer', 'sourceDraft', 'publishedViewDraft', 'source:write',
+        'POST /ops/api/onvif/import-draft', 'GET /ops/api/onvif/credential-provider-status',
+        'media-server.onvif-credential-binding-gate.v1',
+        'media-server.ops.v390-onvif-credential-provider-status.v1', 'sanitizedCredentialProviderStatusSummary',
+        'NoneCredentialSecretProvider', 'InMemoryCredentialSecretProvider', 'RunOnvifProbeAdapter',
+        'verify-onvif-credential-reference-policy', 'verify-onvif-probe-draft-api'],
+      links: ['onvif-credential-store-integration-design.md', 'onvif-auth-injection-design.md'],
+      fields: [['credentialLookupPerformed', 'false'], ['productPersistentSecretStoreEnabled', 'false'],
+        ['externalSecretManagerEnabled', 'false'], ['referenceValueExposed', 'false'], ['credentialMaterialExposed', 'false']],
+    },
+    auth: {
+      ids: ['RunOnvifProbeAdapter', 'NoneOnvifCredentialProvider', 'ApplyCredentialMaterial',
+        'credential_ready', 'secret_material_present=true', 'http_basic', 'Authorization', 'credentialRefPresent',
+        'source:write', '401', '403', 'redaction.mustRedact',
+        'media-server.onvif-auth-method-design-matrix.v1', 'onvif_auth_method_design_matrix.json',
+        'verify-onvif-auth-injection-design', 'verify-onvif-auth-injection-loopback'],
+      links: ['onvif-credential-reference-policy.md', 'onvif-credential-store-integration-design.md', 'onvif-https-soap-transport-design.md'],
+      fields: [['realDeviceEndpointSuccess', '미확인'], ['plaintextSecretIncluded', 'false'],
+        ['rawSoapIncluded', 'false'], ['persistentSecretStoreImplemented', 'false']],
+    },
+    store: {
+      ids: ['CredentialSecretProvider', 'ProviderId', 'Lookup', 'CredentialSecretMaterial',
+        'NoneCredentialSecretProvider', 'InMemoryCredentialSecretProvider', 'UpsertHttpBasic', 'MarkStatus', 'Erase',
+        'CredentialLookupStatusCode', 'credential_ready', 'credential_missing', 'credential_provider_unavailable',
+        'credential_denied', 'credential_expired', 'credential_material_rejected', 'CredentialBindingStore',
+        'defer-product-persistent-store', 'onvif_credential_store_policy_decision.json', 'source:write',
+        'local-encrypted', 'external-secret-manager', 'libsodium', 'rotation', 'expiry', 'audit',
+        'verify-onvif-credential-reference-policy'],
+      links: ['onvif-credential-reference-policy.md', 'onvif-auth-injection-design.md'],
+      fields: [],
+    },
+  };
+  const contract = contracts[kind];
+  if (!contract) return ['unknown credential document kind: ' + kind];
+  for (const id of contract.ids) if (!doc.includes(id)) errors.push('credential ' + kind + ' definition missing: ' + id);
+  for (const link of contract.links) if (!hasDocumentLink(doc, link)) errors.push('credential ' + kind + ' contract link missing: ' + link);
+  for (const [field, value] of contract.fields) if (!hasDocumentFieldValue(doc, field, value)) errors.push('credential ' + kind + ' field/value missing: ' + field);
+  if (kind === 'auth') for (const [method, state] of [['http-basic-provider-material', 'implemented-provider-boundary'],
+    ['http-digest-challenge-retry', 'design-only'], ['ws-security-username-token-text', 'design-only'], ['ws-security-password-digest', 'design-only']]) {
+    const rows = doc.split('\n').map(line => line.split('|').slice(1, -1).map(cell => cell.replace(/`/g, '').trim())).filter(cells => cells[0] === method);
+    if (rows.length !== 1 || !rows[0][1]?.includes(state)) errors.push('credential method state missing/duplicate: ' + method);
+  }
+  return errors;
+}
+
 export function validateOnvifRtspsDocumentation(text) {
   const errors = [], doc = String(text || '');
   for (const id of ['GetStreamUri', 'Media2', 'Media', 'rtsp://', 'rtsps://',

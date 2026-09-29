@@ -348,6 +348,79 @@ test('DOC-ONVIF-TLS 문서 preflight 변경은 실제 TLS 실행을 대체하지
   });
 });
 
+// 예상 RED: 현재 정책 소비자가 실제 계약과 무관한 옛 영문 제목을 필수로 요구한다.
+test('DOC-ONVIF-CONTRACT 현행 TLS 정책은 제목 변경을 허용한다', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const program = `
+    import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
+    const root=${JSON.stringify(root)}, original=fs.readFileSync;
+    fs.readFileSync=function(p,options){const raw=original.call(this,p,options);if(!path.relative(root,String(p)).startsWith('docs/onvif-'))return raw;const text=String(raw).replace(/^#{1,6}.*$/gm,'# 변경된 제목');return Buffer.isBuffer(raw)?Buffer.from(text):text;};
+    for(const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[key]=()=>{throw new Error('정적 검사 파일 쓰기 금지');};
+    await import(pathToFileURL(path.join(root,'scripts/internal/verify_onvif_tls_transport_policy.mjs')).href);
+  `;
+  const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:1024*1024});
+  assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,0,r.stdout+r.stderr);
+});
+
+test('DOC-ONVIF-TLS-CONTRACT 출력·원본 안전 검사 누락 거부와 표현 변경 허용', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const cases = [
+    ['SOAP 제목 변경', 'https_soap_transport_design', {prose:true}, 0, 'actual TLS not-run'],
+    ['fixture summary 실장비 성공 위장', 'tls_transport_policy', {path:'docs/onvif-https-tls-fixture-harness-design.md',from:'미확인',to:'성공'}, 1, 'realDeviceEndpointSuccess'],
+    ['fixture 만료 인증서 반례 삭제', 'https_soap_transport_design', {path:'docs/onvif-https-tls-fixture-harness-design.md',from:'certificate expired failure'}, 1, 'certificate expired failure'],
+    ['CA 설정 계약 삭제', 'tls_transport_policy', {path:'docs/onvif-tls-transport-policy.md',from:'MEDIA_SERVER_ONVIF_TLS_CA_FILE'}, 1, 'MEDIA_SERVER_ONVIF_TLS_CA_FILE'],
+    ['제품 hostname 검사 삭제', 'tls_transport_policy', {path:'src/ingress/onvif_live_import.cpp',from:'SSL_set1_host'}, 1, 'hostname verification'],
+    ['제품 인증서 오류 검사 삭제', 'https_soap_transport_design', {path:'src/ingress/onvif_live_import.cpp',from:'TLS certificate verification failed'}, 1, 'implementation missing'],
+    ['C++ 비밀번호 누출 반례 삭제', 'tls_transport_policy', {path:'scripts/internal/onvif_http_transport_smoke.cpp',from:'transport error leaked URL password'}, 1, 'redaction assertion'],
+    ['관계 링크 삭제', 'https_soap_transport_design', {path:'docs/onvif-https-soap-transport-design.md',from:'onvif-auth-injection-design.md'}, 1, 'contract link missing'],
+  ];
+  for (const [name, verifier, mutation, expected, reason] of cases) await t.test(name, () => {
+    const before = mutation.path ? crypto.createHash('sha256').update(read(mutation.path)).digest('hex') : null;
+    const program = `
+      import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)}, mutation=${JSON.stringify(mutation)}, original=fs.readFileSync;
+      fs.readFileSync=function(p,options){const rel=path.relative(root,String(p));if(['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(rel))throw new Error('과거 원장 읽기 금지');const raw=original.call(this,p,options);let text=String(raw);if(mutation.prose&&rel.startsWith('docs/onvif-'))text=text.replace(/^#{1,6}.*$/gm,'# 변경된 제목').replaceAll('(./','(');if(rel===mutation.path)text=text.replaceAll(mutation.from,mutation.to||'');return Buffer.isBuffer(raw)?Buffer.from(text):text;};
+      for(const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[key]=()=>{throw new Error('정적 검사 파일 쓰기 금지');};
+      await import(pathToFileURL(path.join(root,'scripts/internal/verify_onvif_${verifier}.mjs')).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,expected,r.stdout+r.stderr);
+    assert((r.stdout+r.stderr).includes(reason),r.stdout+r.stderr);
+    if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),before,'변이 후 원본 불변');
+  });
+});
+
+test('DOC-ONVIF-AUTH 현행 문서·fixture·주입 안전 조건과 원본 불변', async t => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const cases = [
+    ['인증 문서 제목·상대 링크 표현 변경', 'auth_injection_design', {prose:true}, 0, 'actual auth/network/UI not-run'],
+    ['provider 정적 경계만 확인', 'credential_reference_policy', {prose:true}, 0, 'preflight-only; C++ not-run'],
+    ['실제 lookup 수행으로 문서 위장', 'credential_reference_policy', {path:'docs/onvif-credential-reference-policy.md',from:'credentialLookupPerformed=false',to:'credentialLookupPerformed=true'}, 1, 'credentialLookupPerformed'],
+    ['미구현 Digest 상태 승격', 'auth_injection_design', {path:'docs/onvif-auth-injection-design.md',from:'design-only',to:'implemented'}, 1, 'method state'],
+    ['provider 비노출 계약 누락', 'auth_injection_design', {path:'docs/onvif-credential-reference-policy.md',from:'credentialMaterialExposed'}, 1, 'credentialMaterialExposed'],
+    ['현행 저장소 결정 연결 누락', 'credential_reference_policy', {path:'docs/onvif-credential-store-integration-design.md',from:'defer-product-persistent-store'}, 1, 'defer-product-persistent-store'],
+    ['제품 ready 조건 제거', 'auth_injection_design', {path:'src/ingress/onvif_live_import.cpp',from:'CredentialLookupStatus::kReady'}, 1, 'missing auth injection term'],
+    ['미지원 인증을 코드에 주입', 'auth_injection_design', {path:'src/ingress/onvif_live_import.cpp',append:'\nPasswordDigest\n'}, 1, 'unexpectedly includes unsupported'],
+    ['auth fixture raw secret 허용 거부', 'auth_injection_design', {path:'test/fixtures/onvif_auth_method_design_matrix.json',fixtureSecret:true}, 1, 'must not include plaintext secrets'],
+    ['store fixture의 영속 지원 승격 거부', 'credential_reference_policy', {path:'test/fixtures/onvif_credential_store_policy_decision.json',storeEnabled:true}, 1, 'scope disabled: productPersistentSecretStore'],
+  ];
+  for (const [name, verifier, mutation, expected, reason] of cases) await t.test(name, () => {
+    const before = mutation.path ? crypto.createHash('sha256').update(read(mutation.path)).digest('hex') : null;
+    const program = `
+      import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
+      const root=${JSON.stringify(root)},mutation=${JSON.stringify(mutation)},original=fs.readFileSync;
+      fs.readFileSync=function(p,options){const rel=path.relative(root,String(p));if(['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'].includes(rel))throw new Error('과거 원장 읽기 금지');const raw=original.call(this,p,options);let text=String(raw);if(mutation.prose&&rel.startsWith('docs/onvif-'))text=text.replace(/^#{1,6}.*$/gm,'# 다른 제목').replaceAll('(./','(');if(rel===mutation.path){if(mutation.from)text=text.replaceAll(mutation.from,mutation.to||'');if(mutation.append)text+=mutation.append;if(mutation.fixtureSecret){const data=JSON.parse(text);data.scope.plaintextSecretIncluded=true;text=JSON.stringify(data);}if(mutation.storeEnabled){const data=JSON.parse(text);data.currentScope.productPersistentSecretStore=true;text=JSON.stringify(data);}}return Buffer.isBuffer(raw)?Buffer.from(text):text;};
+      fs.mkdtempSync=()=>{console.log('preflight-only; C++ not-run');process.exit(0);};
+      for(const key of ['writeFileSync','appendFileSync','unlinkSync','rmSync','renameSync','mkdirSync'])fs[key]=()=>{throw new Error('정적 검사 파일 쓰기 금지');};
+      await import(pathToFileURL(path.join(root,'scripts/internal/verify_onvif_${verifier}.mjs')).href);
+    `;
+    const r=spawnSync(process.execPath,['--input-type=module','--eval',program],{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:1024*1024});
+    assert.equal(r.error,undefined);assert.equal(r.signal,null);assert.equal(r.status,expected,r.stdout+r.stderr);
+    assert((r.stdout+r.stderr).includes(reason),r.stdout+r.stderr);
+    if(mutation.path)assert.equal(crypto.createHash('sha256').update(read(mutation.path)).digest('hex'),before,'변이 후 원본 불변');
+  });
+});
+
 test('DOC-ONVIF-SUITE 실행기 실패 전파·후속 중단·summary는 격리 stub으로 확인', async t => {
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const expected=JSON.parse(read('test/fixtures/onvif_no_device_suite_success_summary.json')).results.map(r=>r.command);

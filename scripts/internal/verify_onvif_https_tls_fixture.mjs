@@ -13,6 +13,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateOnvifTlsDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -40,35 +42,9 @@ const noDeviceDoc = readText("docs/onvif-no-device-verification.md");
 const noDeviceSuite = readText("scripts/internal/verify_onvif_no_device_suite.mjs");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 
-for (const term of [
-  "./server.sh verify-onvif-https-tls-fixture",
-  "fixture-only",
-  "trustedFixtureSuccess",
-  "untrusted CA failure",
-  "hostname mismatch failure",
-  "certificate expired failure",
-  "handshake failure",
-  "connection refused",
-  "realDeviceEndpointSuccess",
-  "미확인",
-]) {
-  assertContains(fixtureDoc, term, `TLS fixture harness doc missing executable term: ${term}`);
-}
-
-for (const term of [
-  "verify-onvif-https-tls-fixture",
-  "fixture-only HTTPS 성공",
-  "production `SendOnvifSoapHttp`의 HTTPS fixture",
-]) {
-  assertContains(httpsDesignDoc, term, `HTTPS SOAP design doc missing fixture term: ${term}`);
-}
-
-for (const term of [
-  "verify-onvif-https-tls-fixture",
-  "trusted fixture success",
-  "production `SendOnvifSoapHttp`",
-]) {
-  assertContains(tlsPolicyDoc, term, `TLS policy doc missing fixture term: ${term}`);
+for (const [document, kind] of [[fixtureDoc, "fixture"], [httpsDesignDoc, "transport"], [tlsPolicyDoc, "policy"]]) {
+  const errors = validateOnvifTlsDocumentation(document, kind);
+  assert(errors.length === 0, errors.join("; "));
 }
 
 for (const term of [

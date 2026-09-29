@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateOnvifTlsDocumentation, hasDocumentLink } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -41,49 +43,10 @@ const fixtureHarnessDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-https-t
 const smoke = fs.readFileSync(path.join(rootDir, "scripts/internal/onvif_http_transport_smoke.cpp"), "utf8");
 const implementation = fs.readFileSync(path.join(rootDir, "src/ingress/onvif_live_import.cpp"), "utf8");
 
-for (const term of [
-  "# ONVIF TLS Transport Policy",
-  "HTTP SOAP transport",
-  "OpenSSL 기반 HTTPS SOAP fixture transport",
-  "https://",
-  "certificate verification",
-  "hostname verification",
-  "https transport requires OpenSSL support",
-  "downgrade",
-  "custom CA",
-  "insecure TLS",
-  "credential",
-  "raw SOAP",
-  "verify-onvif-http-transport",
-  "./onvif-https-tls-fixture-harness-design.md",
-  "fixture-only TLS harness",
-  "trusted fixture success",
-  "production transport failure matrix",
-  "production `SendOnvifSoapHttp`",
-  "untrusted CA failure",
-  "hostname mismatch failure",
-  "certificate expired failure",
-  "handshake failure",
-  "connection refused",
-]) {
-  assertContains(doc, term, `TLS policy doc missing required term: ${term}`);
-  console.log(`[pass] ONVIF TLS policy doc contains ${JSON.stringify(term)}`);
-}
-
-for (const term of [
-  "# ONVIF HTTPS TLS Fixture Harness Design",
-  "v1.8.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only",
-  "trustedFixtureSuccess",
-  "ephemeral CA",
-  "fixture CA bundle",
-  "hostname verification",
-  "media-server.onvif-https-tls-fixture-summary.v1",
-  "endpoint 원문",
-  "certificate dump",
-  "private key",
-]) {
-  assertContains(fixtureHarnessDoc, term, `TLS fixture harness doc missing required term: ${term}`);
-  console.log(`[pass] ONVIF TLS fixture harness doc contains ${JSON.stringify(term)}`);
+for (const [document, kind] of [[doc, "policy"], [fixtureHarnessDoc, "fixture"]]) {
+  const errors = validateOnvifTlsDocumentation(document, kind);
+  assert(errors.length === 0, errors.join("; "));
+  console.log("[pass] ONVIF TLS current " + kind + " contract linkage");
 }
 
 for (const forbidden of [
@@ -96,7 +59,7 @@ for (const forbidden of [
   console.log(`[pass] ONVIF TLS policy doc omits forbidden bypass wording ${JSON.stringify(forbidden)}`);
 }
 
-assert(supportDoc.includes("./onvif-tls-transport-policy.md"), "ONVIF support doc must link TLS policy");
+assert(hasDocumentLink(supportDoc, "onvif-tls-transport-policy.md"), "ONVIF support doc must link TLS policy");
 console.log("[pass] ONVIF TLS support doc links TLS policy");
 assert(smoke.includes("RunHttpsTransportSmoke"), "HTTP transport smoke missing HTTPS fixture runner");
 assert(smoke.includes("RunHttpsTransportFailureMatrix"), "HTTP transport smoke missing HTTPS failure matrix runner");
@@ -130,15 +93,10 @@ console.log("");
 console.log("== ONVIF TLS transport policy summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);
 console.log("- failures: 0");
+console.log("- scope: static documentation/source contract; actual TLS not-run");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
-}
-
-function assertContains(text, needle, message) {
-  const normalizedText = text.replace(/\s+/g, " ");
-  const normalizedNeedle = needle.replace(/\s+/g, " ");
-  assert(normalizedText.includes(normalizedNeedle), message);
 }
 
 function parseArgs(argv) {

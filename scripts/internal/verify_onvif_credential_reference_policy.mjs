@@ -11,6 +11,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateOnvifCredentialDocumentation, hasDocumentLink } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -57,76 +59,10 @@ const probeFixture = JSON.parse(fs.readFileSync(path.join(rootDir, "test/fixture
 const storeDecisionPath = path.join(rootDir, "test/fixtures/onvif_credential_store_policy_decision.json");
 const storeDecision = JSON.parse(fs.readFileSync(storeDecisionPath, "utf8"));
 
-for (const term of [
-  "# ONVIF Credential Reference Policy",
-  "credential 원문",
-  "SourceRegistry",
-  "PublishedView",
-  "client/viewer API",
-  "credentialRefPresent",
-  "sourceDraft",
-  "publishedViewDraft",
-  "endpoint URL",
-  "username",
-  "password",
-  "token",
-  "source:write",
-  "secret manager",
-  "include/ingress/onvif_credential_provider.h",
-  "NoneCredentialSecretProvider",
-  "credential_ready",
-  "http_basic",
-  "credential_provider_unavailable",
-  "secret_material_present=false",
-  "RunOnvifProbeAdapter",
-  "credential_ref_present",
-  "plaintext_secret_included=false",
-  "별도 schema version",
-  "./onvif-credential-store-integration-design.md",
-  "test/fixtures/onvif_credential_store_policy_decision.json",
-  "verify-onvif-probe-draft-api",
-]) {
-  assert(doc.includes(term), `credential policy doc missing required term: ${term}`);
-  console.log(`[pass] ONVIF credential policy doc contains ${JSON.stringify(term)}`);
-}
-
-for (const term of [
-  "# ONVIF Credential Store Integration Design",
-  "제품 API/UI에",
-  "persistent secret 저장소를 열지 않지만",
-  "in-memory credential store",
-  "CredentialSecretProvider",
-  "CredentialBindingStore",
-  "include/ingress/onvif_credential_provider.h",
-  "NoneCredentialSecretProvider",
-  "InMemoryCredentialSecretProvider",
-  "CredentialLookupStatusCode",
-  "Probe runtime",
-  "Audit event",
-  "`none`",
-  "`local-encrypted`",
-  "`external-secret-manager`",
-  "`credentialRef`는 lookup key",
-  "실제 reference 값도 기본 노출하지",
-  "`source:write` scope",
-  "credential_missing",
-  "credential_provider_unavailable",
-  "credential_material_rejected",
-  "secret_material_present=false",
-  "secret_material_present=true",
-  "Probe adapter summary 연결 정책",
-  "RunOnvifProbeAdapter",
-  "credentialRefPresent",
-  "schema version 변경",
-  "provider path를 포함하지",
-  "제품 persistent secret 저장소 구현 완료 선언",
-  "v1.8.0 (2) 정책 결정",
-  "defer-product-persistent-store",
-  "이번 스텝 잔여로 보지 않는 항목",
-  "실장비 credential smoke redacted artifact",
-]) {
-  assert(storeDesign.includes(term), `credential store design missing required term: ${term}`);
-  console.log(`[pass] ONVIF credential store design contains ${JSON.stringify(term)}`);
+for (const [document, kind] of [[doc, "policy"], [storeDesign, "store"], [authDesign, "auth"]]) {
+  const errors = validateOnvifCredentialDocumentation(document, kind);
+  assert(errors.length === 0, errors.join("; "));
+  console.log("[pass] ONVIF credential current " + kind + " contract linkage");
 }
 
 assert(storeDecision.schema === "media-server.onvif-credential-store-policy-decision.v1",
@@ -276,19 +212,17 @@ for (const forbidden of [
   console.log(`[pass] ONVIF credential policy doc omits forbidden literal ${JSON.stringify(forbidden)}`);
 }
 
-assert(supportDoc.includes("./onvif-credential-reference-policy.md"), "ONVIF support doc must link credential policy");
+assert(hasDocumentLink(supportDoc, "onvif-credential-reference-policy.md"), "ONVIF support doc must link credential policy");
 console.log("[pass] ONVIF support doc links credential reference policy");
-assert(authDesign.includes("./onvif-credential-store-integration-design.md"), "auth design must link credential store design");
+assert(hasDocumentLink(authDesign, "onvif-credential-store-integration-design.md"), "auth design must link credential store design");
 console.log("[pass] ONVIF auth design links credential store design");
 assert(authDesign.includes("verify-onvif-auth-injection-loopback"), "auth design must mention auth injection loopback smoke");
 console.log("[pass] ONVIF auth design mentions auth injection loopback verifier");
-assert(authDesign.includes("InMemoryCredentialSecretProvider"), "auth design must mention in-memory fixture store provider");
-console.log("[pass] ONVIF auth design mentions in-memory fixture store provider");
 assert(storeDesign.includes("InMemoryCredentialSecretProvider"), "credential store design must mention in-memory provider");
 console.log("[pass] ONVIF credential store design mentions in-memory provider");
-assert(storeDesign.includes("fixture store"), "credential store design must limit in-memory provider to fixture store");
+assert(storeDesign.includes("fixture"), "credential store design must retain fixture scope");
 console.log("[pass] ONVIF credential store design limits in-memory provider to fixture store");
-assert(matrixDoc.includes("./onvif-credential-store-integration-design.md"), "protocol matrix must link credential store design");
+assert(hasDocumentLink(matrixDoc, "onvif-credential-store-integration-design.md"), "protocol matrix must link credential store design");
 console.log("[pass] ONVIF protocol matrix links credential store design");
 assert(matrixDoc.includes("verify-onvif-auth-injection-loopback"), "protocol matrix must mention auth loopback smoke");
 console.log("[pass] ONVIF protocol matrix mentions auth loopback verifier");
@@ -314,6 +248,7 @@ console.log("== ONVIF credential reference policy summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);
 console.log(`- policyDecision: ${path.relative(rootDir, storeDecisionPath)}`);
 console.log("- failures: 0");
+console.log("- scope: documentation/source/fixture and C++ provider unit; network/device/UI not-run");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
