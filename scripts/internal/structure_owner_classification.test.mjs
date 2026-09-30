@@ -224,3 +224,23 @@ test('OWNER-2B ticket 저장 책임과 복구 조정의 exact 소유', () => {
   for (const file of groups['domain-and-registry-owners'].slice(0, 3))
     assert(!read(file).includes('#include "recording/recording_media_inspector.h"'));
 });
+
+test('OWNER-2B timeline 순수 계산·투영과 파일 조회 조정의 exact 소유', () => {
+  const groups = {
+    'domain-and-registry-owners': ['include/recording/recording_timeline.h',
+      'include/recording/recording_timeline_calculations.h', 'src/recording/recording_timeline_projection.cpp'],
+    'application-service-interfaces': ['include/recording/recording_read_service.h',
+      'src/recording/recording_read_service.cpp'],
+  };
+  for (const classify of classifiers) for (const [owner, files] of Object.entries(groups))
+    for (const file of files) {
+      assert.equal(graph.moduleClassifiers.filter(c => c.exactFiles.includes(file)).length, 1, file);
+      assert.equal(classify(file, graph.moduleClassifiers), owner, file);
+    }
+  const projection = read('src/recording/recording_timeline_projection.cpp');
+  assert(!projection.includes('#include "recording/recording_read_service.h"'));
+  assert(!projection.includes('RecordingReadService::'));
+  const service = read('src/recording/recording_read_service.cpp');
+  assert(service.includes('RecordingReadService::FinishTimelineV2('));
+  assert(service.includes('RecordingReadService::FinishTimelineWithContext('));
+});

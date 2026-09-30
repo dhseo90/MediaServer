@@ -96,6 +96,8 @@
         "include/ingress/ops_action_execution_deferral.h",
         "include/ingress/ops_event_route_owner.h",
         "include/ingress/vlm_evaluation_promotion.h",
+        "include/recording/recording_read_service.h",
+        "src/recording/recording_read_service.cpp",
         "include/recording/recording_finalize_recovery.h",
         "src/recording/recording_finalize_recovery.cpp"
       ],
@@ -115,6 +117,9 @@
         "src/ingress/source_view_registry.cpp",
         "include/domain/strict_json.h",
         "src/domain/strict_json.cpp",
+        "include/recording/recording_timeline.h",
+        "include/recording/recording_timeline_calculations.h",
+        "src/recording/recording_timeline_projection.cpp",
         "include/recording/recording_finalize_ticket.h",
         "include/recording/recording_finalize_ticket_io.h",
         "src/recording/recording_finalize_ticket.cpp",
