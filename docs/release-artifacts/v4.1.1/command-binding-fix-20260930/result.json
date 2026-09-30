@@ -1,0 +1,83 @@
+{
+  "schema": "media-server.v411-command-binding-fix.v1",
+  "recordedAt": "2026-09-30T09:59:45.857Z",
+  "branch": "v4.1.1",
+  "base": "19d9fc8504b2f4f6f1ab96edbd55dbfb7bf69a44",
+  "status": "A-complete-stage2-incomplete",
+  "scope": "A 명령 연결 결함만 수정. 구조 graph·승인 결속·제품·UI·장시간·외부 검사 및 푸시는 미실행.",
+  "environment": {
+    "node": "v24.13.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "sources": [
+    {
+      "path": "scripts/internal/documentation_contract_lib.mjs",
+      "beforeSha256": "f545296b49a876c0db395c3507068e97a3beb2e576b30f8b4fff0b370f67ce8f",
+      "sha256": "ee3f9d29e66239dd93386e284d4781d5a7ea45ef751242a3a472a9b01d35182d"
+    },
+    {
+      "path": "scripts/internal/release_record_documentation.test.mjs",
+      "sha256": "89edc7dcb3f9df123d26eba859873622812b66dc7cd7a689e7289ec382059a51"
+    }
+  ],
+  "sourceAtRun": "before는 base 구현과 새 반례, after/impact는 sources의 작업 트리 구현·검사. 증거 보존 이후 별도 수정 커밋에서 두 소스를 보존한다.",
+  "counterexample": {
+    "featureId": "SAFE-198",
+    "gate": "verify-v390-user-review-gate",
+    "unrelatedCommand": "verify-v390-onvif-credential-provider-status",
+    "unrelatedScript": "verify_v390_onvif_credential_provider_status.mjs",
+    "preparation": "실제 server.sh dispatch 명령·스크립트 및 파일 존재를 먼저 assertion. inventory/manifest 변조는 메모리 한정.",
+    "before": "요약 유지/두 명령을 함께 쓴 요약 위조 모두 오류 []로 통과하여 사전 지정한 거부 assertion 2개 실패.",
+    "after": "동일 반례가 모두 현행 기능 정의/명령 연결 불일치: SAFE-198만 반환. 파일 부재/구문 오류/dispatch 부재에 의한 실패가 아님."
+  },
+  "companionBasis": "기존 직접 호출자의 5관계/12기능만 코드에서 고정: source registry API의 provider 및 staging readback, SAFE-200 coverage 비승격, ONVIF paired-save, VLM server-owned promotion. 문서/manifest의 자기 선언으로 추가 허용하지 않는다. 승인 원장이나 제품 실행 결과가 아니다.",
+  "checks": [
+    {
+      "phase": "before-expected-red",
+      "command": "node --test --test-name-pattern=REVIEW-CURRENT-A-REAL-PAIR scripts/internal/release_record_documentation.test.mjs",
+      "exit": 1,
+      "toolWallTimeSeconds": 0.113497541,
+      "originalOutputSha256": "11725f7c69f01cdef4a82db56155cfcababc9f8f2d4cee84a6df15b242d2922e",
+      "outputSanitization": "저장소 절대 경로만 <repo>로 대체. 정제본은 원출력과 동일 바이트가 아님.",
+      "output": "✖ REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=false (79.379208ms)\n✖ REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=true (65.008375ms)\nℹ tests 2\nℹ suites 0\nℹ pass 0\nℹ fail 2\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 205.276542\n\n✖ failing tests:\n\ntest at scripts/internal/release_record_documentation.test.mjs:86:3\n✖ REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=false (79.379208ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n  + actual - expected\n  \n  + []\n  - [\n  -   '현행 기능 정의/명령 연결 불일치: SAFE-198'\n  - ]\n  \n      at TestContext.<anonymous> (file://<repo>/scripts/internal/release_record_documentation.test.mjs:94:12)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.start (node:internal/test_runner/test:1003:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: [],\n    expected: [ '현행 기능 정의/명령 연결 불일치: SAFE-198' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n\ntest at scripts/internal/release_record_documentation.test.mjs:86:3\n✖ REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=true (65.008375ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n  + actual - expected\n  \n  + []\n  - [\n  -   '현행 기능 정의/명령 연결 불일치: SAFE-198'\n  - ]\n  \n      at TestContext.<anonymous> (file://<repo>/scripts/internal/release_record_documentation.test.mjs:94:12)\n      at Test.runInAsyncScope (node:async_hooks:214:14)\n      at Test.run (node:internal/test_runner/test:1106:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n      at Test.postRun (node:internal/test_runner/test:1235:19)\n      at Test.run (node:internal/test_runner/test:1163:12)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: [],\n    expected: [ '현행 기능 정의/명령 연결 불일치: SAFE-198' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+    },
+    {
+      "phase": "after-focused",
+      "command": "node --test --test-name-pattern=REVIEW-CURRENT scripts/internal/release_record_documentation.test.mjs",
+      "exit": 0,
+      "toolWallTimeSeconds": 1.309515291,
+      "originalOutputSha256": "52898af61c4d50b8ee174bdcd4f696a96ed589cc56f53322a054085e722be16e",
+      "outputSanitization": "저장소 절대 경로만 <repo>로 대체. 정제본은 원출력과 동일 바이트가 아님.",
+      "output": "✔ REVIEW-CURRENT 중앙 기록/Git 없는 현행 정의 연결 (38.306875ms)\n✔ REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=false (108.999834ms)\n✔ REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=true (64.890209ms)\n✔ REVIEW-CURRENT-A 실제 무관한 명령으로 기능 행만 변경하면 거부 (26.4925ms)\n✔ REVIEW-CURRENT-A 명령 생략도 무관한 실제 manifest 쌍은 거부 (63.130167ms)\n✔ REVIEW-CURRENT-A canonical 명령의 다른 스크립트 연결 거부 (62.821791ms)\n✔ REVIEW-CURRENT-A 실제 companion 계약 유지 verify-v390-backup-recovery-handoff-validation (47.623084ms)\n✔ REVIEW-CURRENT-A 실제 companion 계약 유지 verify-v390-onvif-credential-provider-status (47.130583ms)\n✔ REVIEW-CURRENT-A 실제 companion 계약 유지 verify-v390-evidence-test-gate-prep (45.856125ms)\n✔ REVIEW-CURRENT-A 실제 companion 계약 유지 verify-v390-onvif-live-import-persist-decision (50.447167ms)\n✔ REVIEW-CURRENT-A 실제 companion 계약 유지 verify-v390-vlm-evaluation-promotion-guard (49.337916ms)\n✔ REVIEW-CURRENT-A 기능 행의 다른 명령을 manifest로 덮지 않음 (25.058333ms)\n✔ REVIEW-CURRENT-A manifest와 명시 기능 행 불일치 거부 (60.931208ms)\n✔ REVIEW-CURRENT-A 복수 명령은 허용 (25.155375ms)\n✔ REVIEW-CURRENT-A 명령 생략은 정확한 canonical manifest로 연결 (26.093958ms)\n✔ REVIEW-CURRENT-A 생략과 다른 manifest 조합 거부 (63.108375ms)\n✔ REVIEW-CURRENT-A 기존 직접 호출자의 canonical·companion·생략 형식 (415.627917ms)\n✔ REVIEW-CURRENT 반례 기능 ID (25.55275ms)\n✔ REVIEW-CURRENT 반례 명령 안내 (25.530917ms)\n✔ REVIEW-CURRENT 반례 dispatch (25.993833ms)\n✔ REVIEW-CURRENT 반례 정책 링크 (25.373417ms)\n✔ REVIEW-CURRENT 반례 정의 중복 (26.940583ms)\nℹ tests 22\nℹ suites 0\nℹ pass 22\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1412.767708\n"
+    },
+    {
+      "phase": "history-and-child-impact",
+      "command": "node --test --test-name-pattern='REVIEW-(HISTORY|CLI)' scripts/internal/release_record_documentation.test.mjs",
+      "exit": 0,
+      "toolWallTimeSeconds": 0.291760542,
+      "originalOutputSha256": "f6ea48fc8198201ecf1e70e37dcf8467e20b3fd21e10a8d15db129c3b9a10fe3",
+      "outputSanitization": "저장소 절대 경로만 <repo>로 대체. 정제본은 원출력과 동일 바이트가 아님.",
+      "output": "✔ REVIEW-HISTORY 승인 전·기록된 종료는 현재 승인/실행 PASS가 아니다 (0.854833ms)\n✔ REVIEW-HISTORY 반례 schema (0.117292ms)\n✔ REVIEW-HISTORY 반례 version (0.075375ms)\n✔ REVIEW-HISTORY 반례 출처 누락 (0.055959ms)\n✔ REVIEW-HISTORY 반례 commit (0.049208ms)\n✔ REVIEW-HISTORY 반례 path (0.032541ms)\n✔ REVIEW-HISTORY 반례 blob (0.038208ms)\n✔ REVIEW-HISTORY 반례 section (0.0305ms)\n✔ REVIEW-HISTORY 반례 pending를 승인 처리 (0.041167ms)\n✔ REVIEW-HISTORY 반례 blocked를 완료 처리 (0.065541ms)\n✔ REVIEW-HISTORY 반례 closure 누락 (0.039958ms)\n✔ REVIEW-HISTORY 반례 후속 미승인을 완료 처리 (0.043334ms)\n✔ REVIEW-HISTORY 반례 개발 순서 (0.030208ms)\n✔ REVIEW-HISTORY 반례 과거 결과로 실행 PASS 승격 (0.034208ms)\n✔ REVIEW-CLI 중앙 기록 없는 실제 자식 normal (94.842208ms)\n✔ REVIEW-CLI 중앙 기록 없는 실제 자식 missing-fixture (30.4355ms)\n✔ REVIEW-CLI 중앙 기록 없는 실제 자식 wrong-provenance (98.003875ms)\n✔ REVIEW-CLI 중앙 기록 없는 실제 자식 pending-as-approved (88.737083ms)\nℹ tests 18\nℹ suites 0\nℹ pass 18\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 384.155\n"
+    }
+  ],
+  "whitespace": {
+    "command": "git diff --check -- scripts/internal/documentation_contract_lib.mjs scripts/internal/release_record_documentation.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  "results": {
+    "focused": "22/22",
+    "historyAndCli": "18/18",
+    "directCallerScope": "15개 직접 호출자의 문서 연결 입력을 실행. 해당 제품/graph 검사 15개 전체를 실행한 뜻이 아님.",
+    "childScope": "user-review 자식 정상·fixture 누락·출처 오류·pending 승인 위조 4조건 실제 실행. 실패 exit1과 정상 not-assessed 확인.",
+    "normalFormats": "canonical·명령 생략·복수 명령·실제 companion 5종류 유지"
+  },
+  "cleanup": {
+    "temporaryDirectoryCreated": false,
+    "serverOrPortStarted": false,
+    "sourceInputs": "실제 inventory/manifest 불변; Git 변경은 승인된 두 파일과 이 증거 파일뿐.",
+    "childProcesses": "spawnSync 자식 signal null 및 기대 종료코드 확인",
+    "independentApprovalApplied": false
+  }
+}
