@@ -14963,7 +14963,7 @@
     {
       "id": "OPS-182",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "1db776de3cd0e2a84a0385b11cf453ee47e237717a6411ac236d2b8dc3d5677d",
+      "featureContractSha256": "f9e530dcb190ef1b5db41127089982c952f06eab99275519fbe8c2e65a98aa19",
       "evidenceMode": "fresh-production-graph-readiness-assertion",
       "evidenceToken": "productionFiles",
       "verifier": {
@@ -14973,45 +14973,45 @@
       },
       "roles": {
         "owner": {
-          "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "collectActualGraph",
-          "anchor": "function collectActualGraph(graphFixture) {",
-          "line": 331,
-          "contextSha256": "93d2a6e3dd6347f20660d3744ab516c8244d3c9b84256eda9d2c6594401facad"
+          "file": "scripts/internal/structure_dependency_policy_lib.mjs",
+          "symbol": "collectCurrentGraph",
+          "anchor": "function collectCurrentGraph(value, architecturePolicy) {",
+          "line": 47,
+          "contextSha256": "ba9cc0733ebf73076a4d8b3d79ec38dbfbab816230378257614e516302c94556"
         },
         "dispatch": {
-          "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "collectActualGraph",
-          "anchor": "const productionFiles = graphFixture.productionRoots",
-          "line": 333,
-          "contextSha256": "671afdd84dc5b1707a99964cd3df1e56e85986d3f43b8ab4cd68024d8b226e07"
+          "file": "scripts/internal/structure_dependency_policy_lib.mjs",
+          "symbol": "collectCurrentGraph",
+          "anchor": "const productionFiles = value.productionRoots",
+          "line": 48,
+          "contextSha256": "b37efee88ae5f30c8a24154074a43792e9908612483ad8f3ca0711ecfd41e094"
         },
         "action": {
-          "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "collectActualGraph",
+          "file": "scripts/internal/structure_dependency_policy_lib.mjs",
+          "symbol": "collectCurrentGraph",
           "anchor": ".flatMap(root => walkFiles(path.join(rootDir, root)))",
-          "line": 334,
-          "contextSha256": "468d89af9f2f17f2bfaea422cfc1a988a477ba76eebb6a105ab3e2a14a17f94f"
+          "line": 49,
+          "contextSha256": "399a36b34117f1f28d592d2a3cc91c9aa5347056b69f3f1b029331413c9d27d9"
         },
         "state": {
-          "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "collectActualGraph",
+          "file": "scripts/internal/structure_dependency_policy_lib.mjs",
+          "symbol": "collectCurrentGraph",
           "anchor": "productionFiles,",
-          "line": 407,
+          "line": 101,
           "contextSha256": "fe30dce00957b2c3c6fe321b53ff0167b18ba9f41c5a8dccf0637b49e2f57a7a"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
           "symbol": "check:current-review4-completed-graph-negative-boundary",
-          "anchor": "assert(execution.currentGraph.metrics?.productionFiles === 215 && execution.currentGraph.metrics?.targetViolationDirections === 0 &&",
-          "line": 157,
-          "contextSha256": "1c4b7e7d6623b1b4b5b3929308d3c6ce0d72ecb70413aedf298ea2d7a7104709"
+          "anchor": "assert(currentGraph.expectedProductionFiles === execution.currentGraph.metrics?.productionFiles &&",
+          "line": 163,
+          "contextSha256": "79eead473ecb48da7aa7e3e41d327b832de9936ebf55eb50f24bfcd6a2e108c4"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-structure-stabilization-readiness",
           "anchor": "verify-v390-structure-stabilization-readiness)",
-          "line": 2433,
+          "line": 2690,
           "contextSha256": "b6712ea51f58d578ea889254dcf6c4ec44fb6722409f624757f2c105acca3c9f"
         }
       },
@@ -15021,43 +15021,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-182 owner-dispatch",
-          "source": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:331",
-          "target": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:333"
+          "source": "scripts/internal/structure_dependency_policy_lib.mjs:47",
+          "target": "scripts/internal/structure_dependency_policy_lib.mjs:48"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "OPS-182 dispatch-action",
-          "source": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:333",
-          "target": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:334"
+          "source": "scripts/internal/structure_dependency_policy_lib.mjs:48",
+          "target": "scripts/internal/structure_dependency_policy_lib.mjs:49"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "OPS-182 action-state",
-          "source": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:334",
-          "target": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:407"
+          "source": "scripts/internal/structure_dependency_policy_lib.mjs:49",
+          "target": "scripts/internal/structure_dependency_policy_lib.mjs:101"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-182 state-readback",
-          "source": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:407",
-          "target": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:157"
+          "source": "scripts/internal/structure_dependency_policy_lib.mjs:101",
+          "target": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:163"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-structure-stabilization-readiness",
-          "source": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:157",
-          "target": "server.sh:2433"
+          "source": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs:163",
+          "target": "server.sh:2690"
         }
       ],
-      "rationale": "OPS-182 exact reviewed source flow.",
+      "rationale": "OPS-182 candidate-only source flow: readiness invokes execution --graph-only, which calls the shared collectCurrentGraph/validateCurrentGraphBinding path before comparing current inventory with the ledger. Historical collectActualGraph is not a current producer. This locator update requires C2 independent review; it grants no approval.",
       "failureReason": ""
     },
     {
