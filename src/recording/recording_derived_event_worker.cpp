@@ -3,6 +3,7 @@
 #include "recording/recording_completion_trace.h"
 #include "analysis/decoded_interval_evidence.h"
 #include "recording/recording_derived_selection.h"
+#include "recording/recording_read_service.h"
 #include "recording/recording_derived_job_service.h"
 #include <algorithm>
 #include <limits>

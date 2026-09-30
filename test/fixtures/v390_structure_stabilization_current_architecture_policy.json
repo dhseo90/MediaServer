@@ -55,6 +55,64 @@
     "transport-and-auth-adapter -> application-service-interfaces",
     "transport-and-auth-adapter -> stable-contract-dtos"
   ],
+  "allowedFileDependencies": [
+    {
+      "source": "src/application/media_server_application.cpp",
+      "target": "include/recording/recording_catalog.h",
+      "from": "composition-root",
+      "to": "domain-and-registry-owners",
+      "reason": "2-A: 구성 지점의 저장 객체 생성·소유. 실제 수명 검증은 별도다."
+    },
+    {
+      "source": "src/application/media_server_application.cpp",
+      "target": "include/recording/recording_journal.h",
+      "from": "composition-root",
+      "to": "domain-and-registry-owners",
+      "reason": "2-A: 구성 지점의 저장 객체 생성·소유. 실제 수명 검증은 별도다."
+    },
+    {
+      "source": "include/recording/recording_runtime_composition.h",
+      "target": "include/recording/recording_catalog.h",
+      "from": "composition-root",
+      "to": "domain-and-registry-owners",
+      "reason": "2-A: 구성 지점의 저장 객체 생성·소유. 실제 수명 검증은 별도다."
+    },
+    {
+      "source": "include/recording/recording_supervisor.h",
+      "target": "include/core/recording_runtime_config_data.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "2-A: 확인된 불변 설정·시간값·진단 입력. 같은 방향의 다른 파일은 허용하지 않는다."
+    },
+    {
+      "source": "include/recording/segment_writer.h",
+      "target": "include/recording/recording_time_snapshot.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "2-A: 확인된 불변 설정·시간값·진단 입력. 같은 방향의 다른 파일은 허용하지 않는다."
+    },
+    {
+      "source": "src/recording/recording_derived_event_worker.cpp",
+      "target": "include/recording/recording_completion_trace.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "2-A: 확인된 불변 설정·시간값·진단 입력. 같은 방향의 다른 파일은 허용하지 않는다."
+    },
+    {
+      "source": "src/recording/recording_read_service.cpp",
+      "target": "include/recording/recording_latency_trace.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "2-A: 확인된 불변 설정·시간값·진단 입력. 같은 방향의 다른 파일은 허용하지 않는다."
+    },
+    {
+      "source": "src/ingress/recording_application_service.cpp",
+      "target": "include/recording/recording_latency_trace.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "2-A: 확인된 불변 설정·시간값·진단 입력. 같은 방향의 다른 파일은 허용하지 않는다."
+    }
+  ],
   "temporaryDebtExceptions": [
     {
       "direction": "application-service-interfaces -> core-utilities",

@@ -1,7 +1,7 @@
 // 파일 용도: job 소유 receipt·실제 출처·Ready/종료의 단일 엄격 내구 shape.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_native_coverage.h"
-#include "recording/recording_derived_remux.h"
+#include "recording/recording_remux_result.h"
 #include "recording_derived_job_context.h"
 #include "domain/strict_json.h"
 #include <algorithm>

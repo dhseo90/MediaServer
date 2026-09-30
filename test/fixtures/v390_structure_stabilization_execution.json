@@ -50,7 +50,7 @@
     "path": "test/fixtures/v390_structure_stabilization_current_architecture_policy.json",
     "schema": "media-server.v390-structure-stabilization-current-architecture-policy.v1",
     "policyVersion": "v1",
-    "sha256": "f65d07504ad94d17c8026f151b7d3de4576f8b8757639c53835f8424e57c5970"
+    "sha256": "c6bb66a122cddd7668fbc01db802d699326844a5a3c36d2645684fc46437518d"
   },
   "completionGraph": {
     "path": "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
@@ -71,7 +71,7 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2",
+    "sha256": "d1d617bb8ec68605140cac24973c8b340cef8c42632146f3322d2b5015ab83e2",
     "metrics": {
       "productionFiles": 215,
       "cppSources": 103,

@@ -104,6 +104,9 @@
     {
       "id": "domain-and-registry-owners",
       "exactFiles": [
+        "include/recording/recording_query_values.h",
+        "include/recording/recording_selection_values.h",
+        "include/recording/recording_remux_result.h",
         "include/ingress/analysis_rule_registry.h",
         "src/ingress/analysis_rule_registry.cpp",
         "include/ingress/source_view_registry.h",

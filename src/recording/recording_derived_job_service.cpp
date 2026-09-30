@@ -2,6 +2,7 @@
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_derived_remux.h"
+#include "recording/recording_read_service.h"
 #include "recording/recording_journal.h"
 #include <array>
 #include <atomic>

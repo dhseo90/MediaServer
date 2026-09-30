@@ -2,7 +2,8 @@
 #include "recording/recording_catalog.h"
 #include "recording/recording_latency_trace.h"
 #include "recording/recording_completion_trace.h"
-#include "recording/recording_derived_selection.h"
+#include "recording/recording_selection_values.h"
+#include "recording/recording_read_service.h"
 #include "recording/recording_native_coverage.h"
 #include <algorithm>
 #include <limits>

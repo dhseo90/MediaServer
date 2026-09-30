@@ -2954,7 +2954,6 @@ function collectCurrentGraph(value, architecturePolicy) {
       grouped.get(direction).push(`${source} -> ${resolved}`);
     }
   }
-  const allowedDirections = new Set(architecturePolicy.allowedDependencyDirections);
   const observedModuleEdges = [...grouped.entries()].sort(([lhs], [rhs]) => lhs.localeCompare(rhs))
     .map(([direction, witnesses]) => {
       const sorted = [...witnesses].sort();
@@ -2962,7 +2961,12 @@ function collectCurrentGraph(value, architecturePolicy) {
         direction,
         witnessCount: sorted.length,
         witnessSha256: sha256Text(sorted.join("\n")),
-        allowedByTarget: allowedDirections.has(direction),
+        // 방향이 같아도 미승인 파일 연결이 하나라도 섞이면 허용하지 않는다.
+        allowedByTarget: sorted.every(witness => {
+          const [source, target] = witness.split(" -> ");
+          const [from, to] = direction.split(" -> ");
+          return fileDependencyAllowed(architecturePolicy, source, target, from, to);
+        }),
       };
     });
   const moduleEdges = observedModuleEdges.map(item => {
@@ -3129,6 +3133,7 @@ function validateCompletionGraphBinding(ledgerValue, graphValue) {
 
 function validateGraphPolicy(graphValue, policyValue, actual) {
   const errors = [];
+  errors.push(...validateFileDependencyPolicy(policyValue, actual.ownership));
   for (const binding of policyValue.immutableHistoricalBindings || []) {
     if (sha256File(binding.path) !== binding.sha256) errors.push(`policy:historical-binding-drift:${binding.path}`);
   }
@@ -3148,7 +3153,11 @@ function validateGraphPolicy(graphValue, policyValue, actual) {
     }
   }
   for (const edge of graphValue.observedModuleEdges || []) {
-    if (edge.allowedByTarget !== expectedAllowed.has(edge.direction)) {
+    const observed = actual.observedModuleEdges.find(item => item.direction === edge.direction);
+    // 저장 graph의 exact 허용은 실제 include 증거와 결속해 확인한다.
+    if (!observed || observed.witnessCount !== edge.witnessCount || observed.witnessSha256 !== edge.witnessSha256) {
+      errors.push(`policy:stored-witness-drift:${edge.direction}`);
+    } else if (edge.allowedByTarget !== observed.allowedByTarget) {
       errors.push(`policy:stored-allowed-direction-drift:${edge.direction}`);
     }
   }
@@ -3187,6 +3196,30 @@ function validateGraphPolicy(graphValue, policyValue, actual) {
   }
   if (graphValue.cmake.internalTargetSeparation !== actual.cmake.internalTargetSeparation) {
     errors.push("cmake:stored-target-separation-drift");
+  }
+  return errors;
+}
+
+// 기존 방향 정책에 exact 파일 연결만 추가한다. prefix/glob/역방향 추론은 없다.
+function fileDependencyAllowed(policyValue, source, target, from, to) {
+  return (policyValue.allowedDependencyDirections || []).includes(`${from} -> ${to}`) ||
+    (policyValue.allowedFileDependencies || []).some(item => item.source === source && item.target === target &&
+      item.from === from && item.to === to);
+}
+
+function validateFileDependencyPolicy(policyValue, ownership) {
+  const errors = [], seen = new Set();
+  const owners = new Set(policyValue.ownerIds || []);
+  const byFile = new Map(ownership.map(item => [item.file, item.owner]));
+  const exactPath = value => typeof value === "string" && /^(include|src)\/[a-zA-Z0-9_./-]+\.(h|cpp)$/.test(value) &&
+    !value.split('/').some(part => part === '.' || part === '..' || part === '');
+  for (const item of policyValue.allowedFileDependencies || []) {
+    const key = `${item.source} -> ${item.target}`;
+    if (!exactPath(item.source) || !exactPath(item.target) || !owners.has(item.from) || !owners.has(item.to) ||
+        item.from === item.to || typeof item.reason !== "string" || !item.reason.trim()) errors.push(`policy:invalid-file-dependency:${key}`);
+    if (seen.has(key)) errors.push(`policy:duplicate-file-dependency:${key}`);
+    seen.add(key);
+    if (byFile.get(item.source) !== item.from || byFile.get(item.target) !== item.to) errors.push(`policy:file-owner-mismatch:${key}`);
   }
   return errors;
 }
