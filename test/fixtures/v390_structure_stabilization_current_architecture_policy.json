@@ -111,6 +111,13 @@
       "from": "application-service-interfaces",
       "to": "core-utilities",
       "reason": "2-A: 확인된 불변 설정·시간값·진단 입력. 같은 방향의 다른 파일은 허용하지 않는다."
+    },
+    {
+      "source": "src/recording/recording_read_service.cpp",
+      "target": "include/recording/recording_completion_trace.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "C1: 이동된 timeline/read-service 진단 실행 유지. 활성 조건·상한·정제·실패 격리 및 제품 결과 독립성을 변경하지 않는다."
     }
   ],
   "temporaryDebtExceptions": [

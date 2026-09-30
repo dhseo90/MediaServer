@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {classifyModule, fileDependencyAllowed, validateFileDependencyPolicy} from './structure_dependency_policy_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -22,12 +23,13 @@ const expected = new Map([
   ['include/core/recording_runtime_config_data.h', 'core-utilities'],
   ['include/core/recording_runtime_defaults.h', 'core-utilities'],
 ]);
-const classifiers = ['execution', 'readiness'].map(kind => {
-  const source = read(`scripts/internal/verify_v390_structure_stabilization_${kind}.mjs`);
-  const start = source.indexOf('function classifyModule(');
-  const end = source.indexOf('\nfunction ', start + 1);
-  assert(start >= 0 && end > start, '기존 분류 함수 추출 범위');
-  return vm.runInNewContext(`(${source.slice(start, end)})`, {assert});
+const classifiers = [classifyModule];
+test('C1 execution/readiness/strict JSON use the same exact owner and policy semantics', () => {
+  for (const name of ['structure_stabilization_execution','structure_stabilization_readiness','strict_json_service_boundary']) {
+    const source = read(`scripts/internal/verify_v390_${name}.mjs`);
+    assert(source.includes('from "./structure_dependency_policy_lib.mjs"'));
+    assert(!source.includes('function classifyModule('));
+  }
 });
 function checkExactOwners(value, classify) {
   const exact = value.flatMap(item => item.exactFiles);
@@ -38,7 +40,7 @@ function checkExactOwners(value, classify) {
     assert.equal(classify(file, value), owner, file);
   }
 }
-test('OWNER-C 기존 두 분류기의 exact 8개·중복 없는 소유', () => {
+test('OWNER-C 공통 분류기의 기존 exact 8개·중복 없는 소유', () => {
   for (const classify of classifiers) checkExactOwners(graph.moduleClassifiers, classify);
 });
 test('OWNER-C 중복 exact·앞선 광범위 prefix·미분류 검출 유지', () => {
@@ -49,10 +51,18 @@ test('OWNER-C 중복 exact·앞선 광범위 prefix·미분류 검출 유지', (
     const ambiguous = structuredClone(graph.moduleClassifiers);
     ambiguous.unshift({id: 'wrong-owner', exactFiles: [], prefixes: ['include/']});
     assert.throws(() => checkExactOwners(ambiguous, classify));
+    assert.throws(() => classify([...expected.keys()][0], duplicate), /ambiguous exact/);
+    const repeated = structuredClone(graph.moduleClassifiers);
+    repeated.find(item => item.exactFiles.includes([...expected.keys()][0])).exactFiles.push([...expected.keys()][0]);
+    assert.throws(() => classify([...expected.keys()][0], repeated), /ambiguous exact/);
+    assert.throws(() => classify('src/synthetic.cpp', [
+      {id: 'one', exactFiles: [], prefixes: ['src/']},
+      {id: 'two', exactFiles: [], prefixes: ['src/']},
+    ]), /ambiguous production/);
     assert.throws(() => classify('include/recording/unclassified-fixture.h', graph.moduleClassifiers), /unclassified/);
   }
 });
-test('OWNER-C 나머지 실제 미분류 목록 관측: 전체 graph 통과 아님', () => {
+test('OWNER-C 실제 최종 소스는 모두 단일 소유: 정책 허용 판정과 구분', () => {
   const walk = dir => fs.readdirSync(path.join(root, dir), {withFileTypes: true}).flatMap(entry => {
     const file = path.posix.join(dir, entry.name);
     return entry.isDirectory() ? walk(file) : entry.isFile() && /\.(h|cpp)$/.test(file) ? [file] : [];
@@ -62,8 +72,13 @@ test('OWNER-C 나머지 실제 미분류 목록 관측: 전체 graph 통과 아�
     try {classifiers[0](file, graph.moduleClassifiers); return false;}
     catch (error) {assert.match(error.message, /unclassified/); return true;}
   });
-  assert(remaining.length > 0, '이번 수정은 전체 분류 완료가 아님');
-  assert(remaining.every(file => /^(include|src)\/recording\//.test(file)));
+  assert.deepEqual(remaining, []);
+  const exact = graph.moduleClassifiers.flatMap(item => item.exactFiles);
+  assert.equal(new Set(exact).size, exact.length, '중복 exact 소유');
+  for (const item of graph.moduleClassifiers) for (const file of item.exactFiles) {
+    assert(files.includes(file), `없는 exact 소유: ${file}`);
+    assert.equal(classifyModule(file, graph.moduleClassifiers), item.id);
+  }
   console.log('[owner-observation] ' + JSON.stringify({productionFiles: files.length, exactAssignments: expected.size,
     remainingCount: remaining.length, remaining, fullGraphAssessed: false}));
 });
@@ -84,7 +99,7 @@ test('OWNER-D 설정 utility와 기존 packet 진입점의 직접 의존 방향'
   assert(!policy.allowedDependencyDirections.includes('analysis-services -> core-utilities'));
 });
 
-// 2-A는 아래 제한 정책/값 계약만 확인한다. 미분류 녹화 87개의 전체 graph를 실행하지 않는다.
+// 승인된 제한 정책/값 계약을 확인한다. 소유 분류와 모든 연결의 허용 판정은 별개다.
 const executionSource = read('scripts/internal/verify_v390_structure_stabilization_execution.mjs');
 const functionSource = name => {
   const start = executionSource.indexOf(`function ${name}(`);
@@ -93,15 +108,14 @@ const functionSource = name => {
   return executionSource.slice(start, end);
 };
 const hash = value => createHash('sha256').update(value).digest('hex');
-const policyFunctions = vm.runInNewContext([
-  'fileDependencyAllowed', 'validateFileDependencyPolicy', 'classifyModule', 'findCycleComponents',
-].map(functionSource).join('\n') + '\n({fileDependencyAllowed,validateFileDependencyPolicy,classifyModule,findCycleComponents})');
+const policyFunctions = {fileDependencyAllowed, validateFileDependencyPolicy, classifyModule,
+  findCycleComponents: vm.runInNewContext(`(${functionSource('findCycleComponents')})`)};
 const {fileDependencyAllowed: allowed, validateFileDependencyPolicy: validateExact} = policyFunctions;
 const ownership = [...new Map(policy.allowedFileDependencies.flatMap(item =>
   [[item.source, item.from], [item.target, item.to]])).entries()].map(([file, owner]) => ({file, owner}));
 
-test('POLICY-2A eight actual include pairs only; same-direction unrelated and reverse denied', () => {
-  assert.equal(policy.allowedFileDependencies.length, 8);
+test('POLICY-C1 nine approved include pairs only; unrelated and reverse denied', () => {
+  assert.equal(policy.allowedFileDependencies.length, 9);
   const pairs = [
     ['src/application/media_server_application.cpp', 'include/recording/recording_catalog.h'],
     ['src/application/media_server_application.cpp', 'include/recording/recording_journal.h'],
@@ -111,6 +125,7 @@ test('POLICY-2A eight actual include pairs only; same-direction unrelated and re
     ['src/recording/recording_derived_event_worker.cpp', 'include/recording/recording_completion_trace.h'],
     ['src/recording/recording_read_service.cpp', 'include/recording/recording_latency_trace.h'],
     ['src/ingress/recording_application_service.cpp', 'include/recording/recording_latency_trace.h'],
+    ['src/recording/recording_read_service.cpp', 'include/recording/recording_completion_trace.h'],
   ];
   assert.deepEqual(policy.allowedFileDependencies.map(item => [item.source, item.target]), pairs);
   assert.equal(validateExact(policy, ownership).length, 0);
@@ -166,10 +181,44 @@ test('POLICY-2A direction grouping does not hide one forbidden witness; unknown 
   const mixed = collectFixture({...normal, 'src/application.cpp': '#include "allowed.h"\n#include "forbidden.h"'});
   assert.equal(mixed.observedModuleEdges[0].witnessCount, 2);
   assert.equal(mixed.observedModuleEdges[0].allowedByTarget, false);
+  assert.deepEqual(Array.from(mixed.forbiddenFileDependencies), ['src/application.cpp -> include/forbidden.h']);
   assert.throws(() => collectFixture({...normal, 'include/unknown.h': ''}), /unclassified/);
   const cycle = collectFixture({...normal, 'include/allowed.h': '#include "../src/application.cpp"'});
   assert.equal(cycle.stronglyConnectedComponents.length, 1);
   assert(cycle.observedModuleEdges.some(edge => !edge.allowedByTarget));
+});
+
+test('C1 strict JSON and execution agree on exact allowances and mixed forbidden witnesses', () => {
+  const source = read('scripts/internal/verify_v390_strict_json_service_boundary.mjs');
+  const start = source.indexOf('function collectObservedEdges(');
+  const end = source.indexOf('\nfunction ', start + 1);
+  for (const include of ['#include "allowed.h"', '#include "allowed.h"\n#include "forbidden.h"']) {
+    const contents = {'src/application.cpp': include, 'include/allowed.h': '', 'include/forbidden.h': ''};
+    const fixtureGraph = {moduleClassifiers: [
+      {id: 'application-service-interfaces', exactFiles: ['src/application.cpp'], prefixes: []},
+      {id: 'core-utilities', exactFiles: ['include/allowed.h', 'include/forbidden.h'], prefixes: []},
+    ]};
+    const fixturePolicy = {allowedDependencyDirections: [], allowedFileDependencies: [{
+      source: 'src/application.cpp', target: 'include/allowed.h',
+      from: 'application-service-interfaces', to: 'core-utilities',
+    }]};
+    const collect = vm.runInNewContext(`(${source.slice(start, end)})`, {
+      path, classifyModule, fileDependencyAllowed, sha256Text: hash,
+      walkProduction: () => Object.keys(contents), read: file => contents[file],
+    });
+    assert.equal(JSON.stringify(collect(fixtureGraph, fixturePolicy)), JSON.stringify(collectFixture(contents).observedModuleEdges));
+  }
+});
+
+test('C1 moved completion diagnostics retain opt-in, bounds, redaction and failure isolation', () => {
+  const trace = read('include/recording/recording_completion_trace.h');
+  assert(trace.includes('if(!latency::Enabled())return;'));
+  assert(trace.includes('rows>=4095') && trace.includes('2*1024*1024-512'));
+  assert(trace.includes('Hash(reference,ref)&&Hash(job,id)'));
+  assert(trace.includes('catch(...)') && trace.includes('noexcept'));
+  const service = read('src/recording/recording_read_service.cpp');
+  assert(service.includes('completion::Emit('));
+  assert(!/if\s*\(\s*completion::Emit/.test(service));
 });
 
 test('POLICY-2A new value contracts have exact domain ownership without broad prefixes', () => {

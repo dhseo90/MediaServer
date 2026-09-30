@@ -3,6 +3,7 @@
 
 import crypto from "node:crypto";
 import fs from "node:fs";
+import { classifyModule, fileDependencyAllowed, validateFileDependencyPolicy } from "./structure_dependency_policy_lib.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -22,7 +23,7 @@ Checks:
   - transport의 domain/strict_json.h 및 StrictJson* 직접 사용 제거
   - dependency-light opaque VlmProfileJsonDocument API와 parse 상태 계약
   - domain strict JSON 구현은 VLM profile application-service implementation TU에만 한정
-  - CMake/owner/current graph 215/103/16/0/SCC0 및 transport-domain witness 제거
+  - 현행 CMake/owner/file-policy graph 정합 및 transport-domain witness 제거
   - umbrella/re-export, relabel, alias, source-text hiding, policy exception mutation 차단
 `);
 }
@@ -53,6 +54,8 @@ const transportFiles = [
 const currentTransportFiles = [
   ...transportFiles,
   "include/ingress/webrtc_http_analysis_rule_declarations.h",
+  "include/ingress/recording_request_gate.h",
+  "src/ingress/site_operations_request_diagnostic.h",
 ];
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
@@ -67,7 +70,7 @@ function count(text, pattern) { return [...text.matchAll(pattern)].length; }
 
 function inspectTransport(overrides = new Map()) {
   const errors = [];
-  for (const file of transportFiles) {
+  for (const file of currentTransportFiles) {
     const text = stripCppComments(overrides.get(file) ?? read(file));
     if (/^\s*#\s*include\s*["<](?:domain\/)?strict_json\.h[">]/m.test(text))
       errors.push(`transport:strict-json-include:${file}`);
@@ -191,13 +194,6 @@ int main() {
   }
 }
 
-function classifyModule(file, classifiers) {
-  for (const item of classifiers) {
-    if (item.exactFiles.includes(file) || item.prefixes.some(prefix => file.startsWith(prefix)))
-      return item.id;
-  }
-  throw new Error(`unclassified production file: ${file}`);
-}
 
 function walkProduction(graph) {
   const files = [];
@@ -232,11 +228,14 @@ function collectObservedEdges(graph, policy) {
       grouped.get(direction).push(`${source} -> ${resolved}`);
     }
   }
-  const allowed = new Set(policy.allowedDependencyDirections);
   return [...grouped.entries()].sort(([lhs], [rhs]) => lhs.localeCompare(rhs)).map(([direction, witnesses]) => {
     const sorted = [...witnesses].sort();
+    const [from, to] = direction.split(" -> ");
     return { direction, witnessCount: sorted.length,
-      witnessSha256: sha256Text(sorted.join("\n")), allowedByTarget: allowed.has(direction) };
+      witnessSha256: sha256Text(sorted.join("\n")), allowedByTarget: sorted.every(witness => {
+        const [source, target] = witness.split(" -> ");
+        return fileDependencyAllowed(policy, source, target, from, to);
+      }) };
   });
 }
 
@@ -244,11 +243,22 @@ function inspectOwnersAndGraph(graph, policy) {
   const errors = [];
   const transport = graph.moduleClassifiers.find(item => item.id === "transport-and-auth-adapter");
   const appService = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  if (!transport || transport.expectedFileCount !== 11 || transport.expectedCppCount !== 6 ||
+  const files = walkProduction(graph);
+  const ownership = files.map(file => ({file, owner: classifyModule(file, graph.moduleClassifiers)}));
+  errors.push(...validateFileDependencyPolicy(policy, ownership));
+  for (const item of graph.moduleClassifiers) {
+    const owned = ownership.filter(entry => entry.owner === item.id);
+    if (item.expectedFileCount !== owned.length || item.expectedCppCount !== owned.filter(entry => entry.file.endsWith('.cpp')).length)
+      errors.push(`graph:owner-count:${item.id}`);
+    for (const exact of item.exactFiles)
+      if (!files.includes(exact) || classifyModule(exact, graph.moduleClassifiers) !== item.id)
+        errors.push(`graph:exact-owner:${exact}`);
+  }
+  if (!transport || transport.expectedFileCount !== currentTransportFiles.length ||
       transport.prefixes.length !== 0 ||
       JSON.stringify([...transport.exactFiles].sort()) !== JSON.stringify([...currentTransportFiles].sort()))
-    errors.push("graph:transport-owner-exact-11");
-  if (!appService || appService.expectedFileCount !== 48 || appService.expectedCppCount !== 19 ||
+    errors.push("graph:transport-owner-exact");
+  if (!appService ||
       !appService.exactFiles.includes(headerPath) || !appService.exactFiles.includes(sourcePath) ||
       appService.prefixes.length !== 0)
     errors.push("graph:application-service-owner-current-exact");
@@ -260,9 +270,9 @@ function inspectOwnersAndGraph(graph, policy) {
   const actualEdges = collectObservedEdges(graph, policy);
   if (JSON.stringify(actualEdges) !== JSON.stringify(graph.observedModuleEdges))
     errors.push("graph:stored-edge-or-digest-drift");
-  const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  if (graph.expectedProductionFiles !== 215 || graph.expectedCppFiles !== 103 ||
-      graph.observedModuleEdges.length !== 16 || violations.length !== 0 ||
+  const violations = actualEdges.filter(item => item.allowedByTarget === false);
+  if (graph.expectedProductionFiles !== files.length || graph.expectedCppFiles !== files.filter(file => file.endsWith('.cpp')).length ||
+      violations.length !== 0 ||
       graph.stronglyConnectedComponents.length !== 0)
     errors.push(`graph:metrics:${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +
       `${graph.observedModuleEdges.length}/${violations.length}/${graph.stronglyConnectedComponents.length}`);
@@ -273,6 +283,8 @@ function inspectPolicy(policy) {
   const errors = [];
   const direction = "transport-and-auth-adapter -> domain-and-registry-owners";
   if (policy.allowedDependencyDirections.includes(direction)) errors.push("policy:hidden-in-allowlist");
+  if ((policy.allowedFileDependencies || []).some(item => `${item.from} -> ${item.to}` === direction))
+    errors.push("policy:hidden-in-file-allowlist");
   if ((policy.temporaryDebtExceptions || []).some(item => item.direction === direction))
     errors.push("policy:temporary-exception");
   return errors;

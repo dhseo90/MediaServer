@@ -2,6 +2,7 @@
 // 파일 용도: v3.9.0 (17) Development 17 구조 안정화 실행 branch, 경계, 의존성, contract, slice gate를 검증한다.
 
 import fs from "node:fs";
+import { classifyModule, fileDependencyAllowed, validateFileDependencyPolicy } from "./structure_dependency_policy_lib.mjs";
 import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
@@ -159,20 +160,20 @@ check("current REVIEW4-64 source and CMake graph match the completed execution l
   assert(execution.currentGraph.schema === currentGraph.schema &&
     execution.currentGraph.sha256 === sha256File(path.join(rootDir, execution.currentGraph.path)),
   "current graph path/schema/hash binding mismatch");
-  assert(currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
-    currentGraph.moduleClassifiers?.length === 10 && currentGraph.cmake?.targets?.length === 2,
+  assert(currentGraph.expectedProductionFiles === execution.currentGraph.metrics?.productionFiles &&
+    currentGraph.expectedCppFiles === execution.currentGraph.metrics?.cppSources &&
+    currentGraph.moduleClassifiers?.length === execution.currentGraph.metrics?.moduleOwners &&
+    currentGraph.cmake?.targets?.length === execution.currentGraph.metrics?.cmakeTargets,
   "current graph inventory mismatch");
-  assert(execution.currentGraph.metrics?.productionFiles === 215 && execution.currentGraph.metrics?.targetViolationDirections === 0 &&
-    execution.currentGraph.metrics?.cppSources === 103 &&
-    execution.currentGraph.metrics?.moduleOwners === 10 &&
-    execution.currentGraph.metrics?.cmakeTargets === 2 &&
+  // 실제 소스/파일별 정책/수치는 위 graph 자식 검사가 독립 계산한다. 과거 완료 수치와 혼합하지 않는다.
+  assert(execution.currentGraph.metrics?.targetViolationDirections === 0 &&
     execution.currentGraph.metrics?.largestSccOwners === 0 &&
-    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines <= execution.finalTargets.maxMixedOwnerFileLines &&
     execution.currentGraph.metrics?.internalTargetSeparation === true,
   "completed REVIEW4-64 " +
     "graph metrics mismatch");
   const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
-  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10346,
+  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === read("src/ingress/product_ui_page_scripts.cpp").split(/\r?\n/).length - 1,
     "current source graph product UI line count drift");
   assert(execution.completionGraph?.sha256 ===
       "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
@@ -561,13 +562,6 @@ function validateActualGraph(graph, graphFixture, readinessFixture) {
   return errors;
 }
 
-function classifyModule(file, classifiers) {
-  const match = classifiers.find(classifier =>
-    (classifier.exactFiles || []).includes(file) ||
-    (classifier.prefixes || []).some(prefix => file.startsWith(prefix)));
-  assert(match, `unclassified production file: ${file}`);
-  return match.id;
-}
 
 function sha256Text(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");

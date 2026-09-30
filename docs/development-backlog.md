@@ -24,13 +24,15 @@
    전체 전문 검토로 간주하지 않는다. 중앙 기록 소비자 전환·정리 검증이 마감된 뒤 별도 지시로 진행한다.
 2. **별도 승인 릴리즈:** 앞 단계 완료만으로 push·PR·병합·태그·Release를 실행하지 않는다.
 
-구조 handoff/readiness 검사의 graph는 녹화 관련 파일 등 93개를 분류하지 못한다.
-`recording_application_service.h`는 최초 중단 위치일 뿐이다. 기존 분류에서도
-`frame_source_association.h → media_types.h`와 `app_config.h → recording_runtime_config_data.h`가
-현재 고정된 계층 정책과 충돌한다. 후자는 runtime 설정 DTO의 분류가 맞지 않으며,
-전자는 실제 분석→공통 자료형 의존성의 허용 기준을 판단해야 한다. 이를 제품 결함이나
-단순 분류 누락으로 일괄 단정하지 않는다. 고정 파일 수·graph·검토 결속까지 포함한 현행화 범위를
-확정해야 하며, 과거 기록 복원이나 녹화 폴더 전체 예외로 우회하지 않는다.
+구조 분류와 저장 값·수명 경계의 제한 수정은 현행
+[소유 graph](../test/fixtures/v390_structure_stabilization_current_graph.json)에 반영했다.
+소유 분류 완료는 모든 의존 관계의 허용이나 독립 검토 완료를 뜻하지 않는다.
+현재 허용되지 않은 연결은 `include/recording/segment_writer.h → include/media_types.h`와
+`src/recording/recording_runtime_composition.cpp → include/recording/recording_cutover_candidate.h`다.
+각각 packet 자료형 소비와 저장소 cutover 복구 제한값 생성에 사용된다. 기존 정책에서
+정상으로 바꾸려면 별도의 정확한 허용 또는 제품 경계 수정 판단이 필요하며 포괄 예외로 처리하지 않는다.
+이 연결의 처리와 과거 graph 수치에 고정된 직접 소비자 정합을 마친 뒤 C1 검토 후보를 고정한다.
+C2 독립 검토·C3 결속과 coverage/readiness 판정은 별도 단계이며 아직 완료되지 않았다.
 
 ## 알려진 제한과 별도 결정 후보
 

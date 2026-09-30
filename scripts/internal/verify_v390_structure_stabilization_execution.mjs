@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 
 import crypto from "node:crypto";
 import fs from "node:fs";
+import { classifyModule, fileDependencyAllowed, validateFileDependencyPolicy } from "./structure_dependency_policy_lib.mjs";
 import path from "node:path";
 import process from "node:process";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -96,7 +97,8 @@ if (rawArgs.includes("--write-current-graph")) {
   const completionSha256Before = sha256File(ledger.completionGraph.path);
   assert(ledger.completionGraph.sha256 === completionSha256Before,
     "immutable Slice 32 completion graph drift before current generation");
-  const generatedGraph = structuredClone(completionGraph);
+  // 현행 exact 소유를 사용한다. 과거 completion의 분류로 되돌리지 않는다.
+  const generatedGraph = structuredClone(currentGraph);
   generatedGraph.graphKind = "actual-current-source-include-and-cmake-target-graph";
   generatedGraph.completionGraphBinding = {
     path: ledger.completionGraph.path,
@@ -195,6 +197,8 @@ check("current graph hash and metrics are exact", () => {
   assert(JSON.stringify(policy.ownerIds) === JSON.stringify(currentGraph.moduleClassifiers.map(item => item.id)),
     "versioned policy owner order does not match current graph classifiers");
   const actual = collectCurrentGraph(currentGraph, policy);
+  const bindingErrors = validateCurrentGraphBinding(ledger, currentGraph, policy);
+  assert(bindingErrors.length === 0, bindingErrors.join("; "));
   assert(actual.productionFiles.length === currentGraph.expectedProductionFiles, "current production file count drift");
   assert(actual.cppFiles.length === currentGraph.expectedCppFiles, "current cpp count drift");
   assert(actual.ownershipSha256 === currentGraph.expectedFileOwnershipSha256, "current ownership digest drift");
@@ -229,7 +233,7 @@ check("current graph hash and metrics are exact", () => {
     "completed production slice did not reduce target violation directions");
   const finalSatisfied = finalTargetsSatisfied(ledger.finalTargets, metrics);
   if (ledger.status === "completed") {
-    assert(finalSatisfied, "completed ledger does not satisfy current architecture final targets");
+    assert(finalSatisfied, `current architecture final targets unmet: ${actual.forbiddenFileDependencies.join('; ')}`);
   } else if (ledger.currentContinuation.architectureStatus === "final-targets-unmet") {
     assert(!finalSatisfied, "continuation says final targets are unmet but actual graph satisfies them");
   }
@@ -248,7 +252,8 @@ check("current graph negative mutations reject forbidden edge and cycle", () => 
   assert(JSON.stringify(stripAllowedFlags(forgedObserved)) !==
     JSON.stringify(stripAllowedFlags(currentGraph.observedModuleEdges)),
   "new forbidden include edge negative was accepted by the exact current graph");
-  assert(forgedObserved.filter(item => item.allowedByTarget === false).length === 1,
+  assert(forgedObserved.filter(item => item.allowedByTarget === false).length ===
+    actual.observedModuleEdges.filter(item => item.allowedByTarget === false).length + 1,
     "new forbidden include edge did not become a target violation");
   const cycle = findCycleComponents(
     ["negative-a", "negative-b"],
@@ -274,8 +279,8 @@ check("Slice 32 completion and current graph separation is fail-closed", () => {
   const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
   assert(currentGraph.completionGraphBinding?.path === ledger.completionGraph.path &&
     currentGraph.completionGraphBinding?.sha256 === ledger.completionGraph.sha256 &&
-    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10346 &&
-    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
+    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === lineCount("src/ingress/product_ui_page_scripts.cpp") &&
+    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === Math.max(0, ...currentGraph.mixedOwnershipDebt.map(item => item.lineCount)) &&
     ledger.currentGraph.sha256 !== ledger.completionGraph.sha256,
   "current graph is not independently bound to the current source");
 
@@ -2936,6 +2941,7 @@ function collectCurrentGraph(value, architecturePolicy) {
   const ownership = productionFiles.map(file => ({ file, owner: classifyModule(file, value.moduleClassifiers) }));
   const ownerByFile = new Map(ownership.map(item => [item.file, item.owner]));
   const grouped = new Map();
+  const forbiddenFileDependencies = [];
   for (const source of productionFiles) {
     for (const match of readText(source).matchAll(/^\s*#\s*include\s*["<]([^">]+)[">]/gm)) {
       const include = match[1];
@@ -2949,6 +2955,8 @@ function collectCurrentGraph(value, architecturePolicy) {
       const from = ownerByFile.get(source);
       const to = ownerByFile.get(resolved);
       if (from === to) continue;
+      if (!fileDependencyAllowed(architecturePolicy, source, resolved, from, to))
+        forbiddenFileDependencies.push(`${source} -> ${resolved}`);
       const direction = `${from} -> ${to}`;
       if (!grouped.has(direction)) grouped.set(direction, []);
       grouped.get(direction).push(`${source} -> ${resolved}`);
@@ -2982,6 +2990,7 @@ function collectCurrentGraph(value, architecturePolicy) {
     cppFiles: productionFiles.filter(file => file.endsWith(".cpp")),
     ownershipSha256: sha256Text(ownership.map(item => `${item.file}\t${item.owner}`).join("\n")),
     observedModuleEdges,
+    forbiddenFileDependencies: forbiddenFileDependencies.sort(),
     stronglyConnectedComponents: findCycleComponents(value.moduleClassifiers.map(item => item.id), moduleEdges),
     cmake,
   };
@@ -3201,40 +3210,12 @@ function validateGraphPolicy(graphValue, policyValue, actual) {
 }
 
 // 기존 방향 정책에 exact 파일 연결만 추가한다. prefix/glob/역방향 추론은 없다.
-function fileDependencyAllowed(policyValue, source, target, from, to) {
-  return (policyValue.allowedDependencyDirections || []).includes(`${from} -> ${to}`) ||
-    (policyValue.allowedFileDependencies || []).some(item => item.source === source && item.target === target &&
-      item.from === from && item.to === to);
-}
 
-function validateFileDependencyPolicy(policyValue, ownership) {
-  const errors = [], seen = new Set();
-  const owners = new Set(policyValue.ownerIds || []);
-  const byFile = new Map(ownership.map(item => [item.file, item.owner]));
-  const exactPath = value => typeof value === "string" && /^(include|src)\/[a-zA-Z0-9_./-]+\.(h|cpp)$/.test(value) &&
-    !value.split('/').some(part => part === '.' || part === '..' || part === '');
-  for (const item of policyValue.allowedFileDependencies || []) {
-    const key = `${item.source} -> ${item.target}`;
-    if (!exactPath(item.source) || !exactPath(item.target) || !owners.has(item.from) || !owners.has(item.to) ||
-        item.from === item.to || typeof item.reason !== "string" || !item.reason.trim()) errors.push(`policy:invalid-file-dependency:${key}`);
-    if (seen.has(key)) errors.push(`policy:duplicate-file-dependency:${key}`);
-    seen.add(key);
-    if (byFile.get(item.source) !== item.from || byFile.get(item.target) !== item.to) errors.push(`policy:file-owner-mismatch:${key}`);
-  }
-  return errors;
-}
 
 function stripAllowedFlags(edges) {
   return edges.map(({ allowedByTarget: _allowedByTarget, ...edge }) => edge);
 }
 
-function classifyModule(file, classifiers) {
-  for (const classifier of classifiers) {
-    if ((classifier.exactFiles || []).includes(file) ||
-        (classifier.prefixes || []).some(prefix => file.startsWith(prefix))) return classifier.id;
-  }
-  throw new Error(`unclassified production file: ${file}`);
-}
 
 function walkFiles(root) {
   if (!fs.existsSync(root)) return [];
