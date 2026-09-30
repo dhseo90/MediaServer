@@ -198,7 +198,7 @@ void Run(int iteration, const fs::path& root, const fs::path& repo, bool fail_af
     }
     core::RecordingRuntimeConfigData config; config.recording_enabled = true;
     config.recording_retention_interval_ms = 10000;
-    RecordingSupervisor supervisor(config, sources, sessions, retention);
+    RecordingSupervisor supervisor(config, sources, sessions, retention, app::GetAppConfig().stream_route);
     std::vector<std::pair<core::StreamKey, std::shared_ptr<core::SharedStream>>> streams;
     bool cleaned = false;
     const auto cleanup = [&] {

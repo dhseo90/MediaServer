@@ -21,7 +21,8 @@ public:
     RecordingSupervisor(const core::RecordingRuntimeConfigData& config,
                         ingress::SourceViewApplicationService& sources,
                         RecordingSessionService& sessions,
-                        RetentionCoordinator& retention);
+                        RetentionCoordinator& retention,
+                        std::string stream_route);
     ~RecordingSupervisor();
     bool Start(std::string* error);
     void Stop();
@@ -40,6 +41,8 @@ private:
     void SafetyLoop();
 
     core::RecordingRuntimeConfigData config_;
+    // 구성 시점의 불변 route를 소유한다. 호출자 문자열의 수명/변경에 의존하지 않는다.
+    const std::string stream_route_;
     ingress::SourceViewApplicationService& sources_;
     RecordingSessionService& sessions_;
     RetentionCoordinator& retention_;

@@ -244,3 +244,13 @@ test('OWNER-2B timeline 순수 계산·투영과 파일 조회 조정의 exact �
   assert(service.includes('RecordingReadService::FinishTimelineV2('));
   assert(service.includes('RecordingReadService::FinishTimelineWithContext('));
 });
+
+test('OWNER-2B supervisor는 명시 입력을 소유하고 전역 설정을 읽지 않는다', () => {
+  for (const classify of classifiers)
+    for (const file of ['include/recording/recording_supervisor.h', 'src/recording/recording_supervisor.cpp'])
+      assert.equal(classify(file, graph.moduleClassifiers), 'application-service-interfaces');
+  const implementation = read('src/recording/recording_supervisor.cpp');
+  assert(!implementation.includes('GetAppConfig'));
+  assert(!implementation.includes('#include "app_config.h"'));
+  assert(read('include/recording/recording_supervisor.h').includes('const std::string stream_route_;'));
+});

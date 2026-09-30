@@ -96,6 +96,8 @@
         "include/ingress/ops_action_execution_deferral.h",
         "include/ingress/ops_event_route_owner.h",
         "include/ingress/vlm_evaluation_promotion.h",
+        "include/recording/recording_supervisor.h",
+        "src/recording/recording_supervisor.cpp",
         "include/recording/recording_read_service.h",
         "src/recording/recording_read_service.cpp",
         "include/recording/recording_finalize_recovery.h",
