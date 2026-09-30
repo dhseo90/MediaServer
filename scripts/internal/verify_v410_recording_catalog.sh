@@ -40,7 +40,7 @@ compile_catalog() {
   "${ROOT_DIR}/src/recording/recording_order_history_snapshot.cpp" \
   "${ROOT_DIR}/src/recording/recording_generation_manifest.cpp" \
   "${ROOT_DIR}/src/recording/recording_derived_selection.cpp" \
- "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_finalize_ticket.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \

@@ -205,3 +205,22 @@ test('POLICY-2A stored allowance is bound to actual witnesses; stale and forged 
   value.allowedDependencyDirections.push(from+' -> '+to);
   assert(validate(stored,value,actual).some(error=>error.includes('temporary-debt-hidden')));
 });
+
+test('OWNER-2B ticket 저장 책임과 복구 조정의 exact 소유', () => {
+  const groups = {
+    'domain-and-registry-owners': ['include/recording/recording_finalize_ticket.h',
+      'include/recording/recording_finalize_ticket_io.h', 'src/recording/recording_finalize_ticket.cpp',
+      'src/recording/recording_catalog.cpp'],
+    'application-service-interfaces': ['include/recording/recording_finalize_recovery.h',
+      'src/recording/recording_finalize_recovery.cpp'],
+  };
+  for (const classify of classifiers) for (const [owner, files] of Object.entries(groups))
+    for (const file of files) {
+      assert(fs.statSync(path.join(root, file)).isFile(), file);
+      assert.equal(graph.moduleClassifiers.filter(c => c.exactFiles.includes(file)).length, 1, file);
+      assert.equal(classify(file, graph.moduleClassifiers), owner, file);
+    }
+  assert(!read('src/recording/recording_catalog.cpp').includes('#include "recording/recording_finalize_recovery.h"'));
+  for (const file of groups['domain-and-registry-owners'].slice(0, 3))
+    assert(!read(file).includes('#include "recording/recording_media_inspector.h"'));
+});

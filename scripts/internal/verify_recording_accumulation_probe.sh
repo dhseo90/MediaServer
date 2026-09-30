@@ -63,7 +63,7 @@ node "$probe_scripts/recording_catalog_cost_bounded.cjs" 60 "${CXX:-c++}" -std=c
  "${ownership_flags[@]}" \
  "$probe_scripts/recording_accumulation_probe.cpp" "$probe_repo/src/recording/gstreamer_segment_writer.cpp" \
  "$probe_root/recording_catalog.cpp" "$probe_root/recording_journal.cpp" "$probe_root/recording_contracts.cpp" \
- "$probe_repo/src/recording/recording_finalize_recovery.cpp" "$probe_repo/src/recording/recording_file_evidence.cpp" "$probe_repo/src/recording/recording_media_inspector.cpp" \
+ "$probe_repo/src/recording/recording_finalize_recovery.cpp" "$probe_repo/src/recording/recording_finalize_ticket.cpp" "$probe_repo/src/recording/recording_file_evidence.cpp" "$probe_repo/src/recording/recording_media_inspector.cpp" \
  "$probe_repo/src/recording/recording_derived_job.cpp" "$probe_repo/src/recording/recording_derived_job_ready.cpp" \
  "$probe_repo/src/recording/retention_coordinator.cpp" "$probe_repo/src/domain/strict_json.cpp" \
  "$probe_repo/build-gst-onnx/libmedia_server_runtime.a" "${probe_flags[@]}" -lz -o "$probe_root/probe"

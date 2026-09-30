@@ -30,7 +30,7 @@ read -r -a fe_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-ap
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 \
   "$fe_script/recording_file_evidence_smoke.cpp" "$fe_repo/src/recording/gstreamer_segment_writer.cpp" \
   "$fe_repo/src/recording/recording_catalog.cpp" "$fe_repo/src/recording/recording_journal.cpp" \
-  "$fe_repo/src/recording/recording_finalize_recovery.cpp" "$fe_repo/src/recording/recording_file_evidence.cpp" "$fe_repo/src/recording/recording_media_inspector.cpp" \
+  "$fe_repo/src/recording/recording_finalize_recovery.cpp" "$fe_repo/src/recording/recording_finalize_ticket.cpp" "$fe_repo/src/recording/recording_file_evidence.cpp" "$fe_repo/src/recording/recording_media_inspector.cpp" \
   "$fe_repo/src/recording/recording_derived_job.cpp" "$fe_repo/src/recording/recording_derived_job_ready.cpp" \
   "$fe_repo/src/recording/recording_contracts.cpp" "$fe_repo/src/recording/retention_coordinator.cpp" \
   "$fe_repo/src/domain/strict_json.cpp" "${fe_flags[@]}" -lz -o "$fe_root/check"

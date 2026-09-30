@@ -34,7 +34,7 @@ try {
     "src/recording/recording_derived_job_service.cpp", "src/recording/recording_derived_remux.cpp",
     "src/recording/recording_read_service.cpp", "src/recording/recording_timeline_projection.cpp",
     "src/recording/recording_journal.cpp", "src/recording/recording_catalog.cpp",
-    "src/recording/recording_finalize_recovery.cpp", "src/recording/recording_media_inspector.cpp",
+    "src/recording/recording_finalize_recovery.cpp", "src/recording/recording_finalize_ticket.cpp", "src/recording/recording_media_inspector.cpp",
     "src/recording/recording_file_evidence.cpp",
     "src/recording/retention_coordinator.cpp", "src/recording/recording_contracts.cpp",
     "src/domain/strict_json.cpp",

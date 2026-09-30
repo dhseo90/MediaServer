@@ -30,7 +30,7 @@ projection_sources=(
   "$projection_repo/src/recording/recording_catalog.cpp"
   "$projection_repo/src/recording/recording_catalog_snapshot_export.cpp"
   "$projection_repo/src/recording/retention_coordinator.cpp"
-  "$projection_repo/src/recording/recording_finalize_recovery.cpp"
+  "$projection_repo/src/recording/recording_finalize_recovery.cpp" "$projection_repo/src/recording/recording_finalize_ticket.cpp"
   "$projection_repo/src/recording/recording_file_evidence.cpp"
   "$projection_repo/src/recording/recording_media_inspector.cpp"
   "$projection_repo/src/domain/strict_json.cpp"
