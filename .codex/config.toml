@@ -1,7 +1,9 @@
 # MediaServer 프로젝트 전용 기본값. 다른 저장소의 전역 설정은 변경하지 않는다.
 # 적용 시점은 새 세션의 설정 로딩이며, 기존 작업의 모델 선택을 강제로 바꾸지 않는다.
-model = "gpt-6-astra"
-model_reasoning_effort = "xhigh"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
+# Standard. Fast(priority)·Ultra를 활성화하지 않는다. 현재 대화의 적용 여부와는 별개다.
+service_tier = "default"
 
 # 지침 용량 override는 두지 않는다. 상시 AGENTS는 기본 한도 안에서 관리하고,
 # 상세 검증 기준은 AGENTS에서 연결한 기존 문서를 해당 작업 때 읽는다.
