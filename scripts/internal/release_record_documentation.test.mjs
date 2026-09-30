@@ -10,6 +10,7 @@ import {verifyTestEvidenceConsistency, renderMarkdown} from './verify_v230_test_
 import {verifyReleaseTestRecords, validateReleaseRecordResult} from './verify_v290_release_test_records_enforcement.mjs';
 import {verifyReleaseEvidenceHygiene} from './verify_v290_release_evidence_hygiene.mjs';
 import {validateV390ReviewHistory, validateCurrentGateDocumentation} from './documentation_contract_lib.mjs';
+import {parseServerDispatches} from './script_dispatch_parser.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const files = ['AGENTS.md', 'docs/stream-verification.md', 'docs/release-policy.md',
@@ -47,11 +48,13 @@ for (const [name, mutate] of [
   assert.equal(report.currentApprovalStatus, 'not-assessed');
   assert.equal(report.executionPassClaimed, false);
 });
-function currentReviewGate(mutate = () => {}) {
+function currentReviewGate(mutate = () => {}, target = {
+  command: 'verify-v390-user-review-gate', script: 'verify_v390_user_review_gate.mjs', featureIds: ['SAFE-198','OPS-165'],
+}) {
   const memory = new Map(originals); mutate(memory);
   return validateCurrentGateDocumentation({read: p => {
     assert(memory.has(p), '중앙 기록/Git 읽기 금지: ' + p); return memory.get(p);
-  }, command: 'verify-v390-user-review-gate', script: 'verify_v390_user_review_gate.mjs', featureIds: ['SAFE-198','OPS-165']});
+  }, ...target});
 }
 test('REVIEW-CURRENT 중앙 기록/Git 없는 현행 정의 연결', () => assert.deepEqual(currentReviewGate(), []));
 function changeReviewRow(memory, transform) {
@@ -64,6 +67,63 @@ function changeReviewManifest(memory, command) {
   value.items.find(item => item.id === 'SAFE-198').verifierEvidence.command = command;
   memory.set(file, JSON.stringify(value));
 }
+const unrelatedCommand = 'verify-v390-onvif-credential-provider-status';
+const unrelatedScript = 'verify_v390_onvif_credential_provider_status.mjs';
+function changeToExistingUnrelatedManifest(memory) {
+  // dispatch와 파일이 모두 정상인 다른 기능의 쌍이다. 입력 누락/구문 오류 반례가 아니다.
+  const dispatches = parseServerDispatches(memory.get('server.sh')).filter(x => x.command === unrelatedCommand);
+  assert.equal(dispatches.length, 1);
+  assert.equal(dispatches[0].script, unrelatedScript);
+  assert(fs.statSync(root + 'scripts/internal/' + unrelatedScript).isFile());
+  const file = 'test/fixtures/project_feature_implementation_evidence.json';
+  const value = JSON.parse(memory.get(file));
+  const evidence = value.items.find(x => x.id === 'SAFE-198').verifierEvidence;
+  evidence.command = unrelatedCommand;
+  evidence.file = 'scripts/internal/' + unrelatedScript;
+  memory.set(file, JSON.stringify(value));
+}
+for (const forgedSummary of [false, true]) {
+  test('REVIEW-CURRENT-A-REAL-PAIR 무관한 실제 manifest 쌍 거부, 요약 위조=' + forgedSummary, () => {
+    const errors = currentReviewGate(m => {
+      changeToExistingUnrelatedManifest(m);
+      if (forgedSummary) {
+        const file = 'docs/project-feature-test-inventory.md';
+        m.set(file, m.get(file) + '\n| 합성 companion 주장 | `SAFE-198` | `verify-v390-user-review-gate`, `' + unrelatedCommand + '` | 선언만으로 허용 금지 |\n');
+      }
+    });
+    assert.deepEqual(errors, ['현행 기능 정의/명령 연결 불일치: SAFE-198']);
+  });
+}
+test('REVIEW-CURRENT-A 실제 무관한 명령으로 기능 행만 변경하면 거부', () => {
+  assert.deepEqual(currentReviewGate(m => changeReviewRow(m, row => row.replaceAll('verify-v390-user-review-gate', unrelatedCommand))),
+    ['현행 기능 정의/명령 연결 불일치: SAFE-198']);
+});
+test('REVIEW-CURRENT-A 명령 생략도 무관한 실제 manifest 쌍은 거부', () => {
+  assert.deepEqual(currentReviewGate(m => {
+    changeReviewRow(m, row => row.replaceAll('`verify-v390-user-review-gate`', '해당 회귀 검사'));
+    changeToExistingUnrelatedManifest(m);
+  }), ['현행 기능 정의/명령 연결 불일치: SAFE-198']);
+});
+test('REVIEW-CURRENT-A canonical 명령의 다른 스크립트 연결 거부', () => {
+  assert.deepEqual(currentReviewGate(m => {
+    const p = 'test/fixtures/project_feature_implementation_evidence.json', value = JSON.parse(m.get(p));
+    value.items.find(x => x.id === 'SAFE-198').verifierEvidence.file = 'scripts/internal/' + unrelatedScript;
+    m.set(p, JSON.stringify(value));
+  }), ['현행 기능 정의/명령 연결 불일치: SAFE-198']);
+});
+// 기존 정적 gate와 canonical의 실제 계약: API readback 두 관계, coverage 비승격,
+// ONVIF paired-save, VLM server-owned promotion. 합성 이름 유사성으로 만든 관계가 아니다.
+for (const [command, canonical, featureIds] of [
+  ['verify-v390-backup-recovery-handoff-validation', 'verify-ops-source-registry-api', ['SRC-067','OPS-174']],
+  ['verify-v390-onvif-credential-provider-status', 'verify-ops-source-registry-api', ['SRC-065']],
+  ['verify-v390-evidence-test-gate-prep', 'verify-feature-inventory-coverage', ['SAFE-200']],
+  ['verify-v390-onvif-live-import-persist-decision', 'verify-v390-onvif-source-view-atomicity', ['UI-109','SRC-066','SAFE-204','OPS-171']],
+  ['verify-v390-vlm-evaluation-promotion-guard', 'verify-v390-vlm-promotion-trust-boundary', ['UI-111','LAB-123','SAFE-206','OPS-173']],
+]) test('REVIEW-CURRENT-A 실제 companion 계약 유지 ' + command, () => {
+  const implementation = JSON.parse(originals.get('test/fixtures/project_feature_implementation_evidence.json'));
+  for (const id of featureIds) assert.equal(implementation.items.find(x => x.id === id).verifierEvidence.command, canonical);
+  assert.deepEqual(currentReviewGate(undefined, {command, script: command.replaceAll('-', '_') + '.mjs', featureIds}), []);
+});
 test('REVIEW-CURRENT-A 기능 행의 다른 명령을 manifest로 덮지 않음', () => {
   assert(currentReviewGate(m => changeReviewRow(m, row => row.replaceAll('verify-v390-user-review-gate', 'verify-other-gate'))).length > 0);
 });

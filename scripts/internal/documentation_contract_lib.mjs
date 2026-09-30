@@ -23,7 +23,18 @@ export function validateV390ReviewHistory(value) {
 }
 
 // 종료 원장 대신 현행 기능 정의·명령 dispatch·검증 정책을 연결한다.
-// companion 명령은 요약 매핑에서, canonical 명령은 구현 manifest에서도 확인한다.
+// 기존 직접 호출자에서 역할이 다른 다섯 관계만 고정한다. 요약/manifest 입력의
+// 자기 선언으로 이 집합을 늘리지 않는다. 전체 기능의 승인/명령 목록이 아니다.
+const currentGateCompanions = [
+  // ops-source-registry-api의 해당 route readback을 보완하는 정적 상태/경계 검사.
+  ['verify-v390-backup-recovery-handoff-validation', 'verify-ops-source-registry-api', ['SRC-067', 'OPS-174']],
+  ['verify-v390-onvif-credential-provider-status', 'verify-ops-source-registry-api', ['SRC-065']],
+  // coverage의 SAFE-200 비실행 표현 검사와 이를 읽는 evidence-test-gate-prep.
+  ['verify-v390-evidence-test-gate-prep', 'verify-feature-inventory-coverage', ['SAFE-200']],
+  // 실제 paired-save/promotion 검사와 같은 계약의 정적 UI/정의 연결 검사.
+  ['verify-v390-onvif-live-import-persist-decision', 'verify-v390-onvif-source-view-atomicity', ['UI-109', 'SRC-066', 'SAFE-204', 'OPS-171']],
+  ['verify-v390-vlm-evaluation-promotion-guard', 'verify-v390-vlm-promotion-trust-boundary', ['UI-111', 'LAB-123', 'SAFE-206', 'OPS-173']],
+];
 // 실제 제품 검사와 과거 승인 회귀는 각 호출자의 독립 assertion에 남는다.
 export function validateCurrentGateDocumentation({read, command, script, featureIds}) {
   const inventory = read('docs/project-feature-test-inventory.md');
@@ -44,13 +55,15 @@ export function validateCurrentGateDocumentation({read, command, script, feature
     const manifestBound = canonicalTargets.length === 1 &&
       canonicalTargets[0].script === evidence?.file?.split('/').at(-1);
     const declared = declaredFeatureCommands(rows[0]);
-    const companion = evidence?.command !== command && mappings.length > 0;
-    // 명령 생략은 기존 canonical/companion 연결을 사용한다. 명시 행은 gate 또는
-    // 요약 표로 연결된 canonical을 포함해야 하며 다른 명령을 manifest로 덮지 않는다.
+    const relation = currentGateCompanions.find(([gate, , ids]) => gate === command && ids.includes(id));
+    const canonicalLinked = evidence?.command === (relation?.[1] ?? command);
+    const companion = Boolean(relation) && canonicalLinked && mappings.length > 0;
+    // 명령 생략에도 기능별 canonical 연결은 필수다. 명시 행은 gate 또는 확인된
+    // companion의 canonical을 포함해야 하며 다른 명령을 manifest로 덮지 않는다.
     const rowLinked = declared.size === 0 || declared.has(command) ||
       (companion && declared.has(evidence?.command));
     if (rows.length !== 1 || !rows[0].split('|')[2]?.trim() || entries.length !== 1 ||
-        !manifestBound || !rowLinked || (evidence?.command !== command && !companion)) errors.push('현행 기능 정의/명령 연결 불일치: ' + id);
+        !manifestBound || !canonicalLinked || !rowLinked || (relation && !companion)) errors.push('현행 기능 정의/명령 연결 불일치: ' + id);
   }
   for (const target of ['../AGENTS.md', 'project-feature-test-inventory.md', 'manual-ui-fulltest.md']) {
     if (!hasDocumentLink(verification, target)) errors.push('검증 정책 연결 누락: ' + target);
