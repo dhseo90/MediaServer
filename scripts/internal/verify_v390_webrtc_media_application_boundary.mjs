@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-64 Slice 32 WebRTC media/runtime ownership의 application port 경계를 검증한다.
 import crypto from "node:crypto";
 import fs from "node:fs";
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -360,9 +361,12 @@ check("Policy and immutable Slice 32 completion graph close transport/core debt 
   const graphText = read(completionGraphPath), policyText = read(policyPath);
   assert(sha256(graphText) === "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a",
     "current graph SHA drift");
-  assert(sha256(policyText) === "f65d07504ad94d17c8026f151b7d3de4576f8b8757639c53835f8424e57c5970",
-    "current policy SHA drift");
   const graph = JSON.parse(graphText), policy = JSON.parse(policyText);
+  const current = assertCurrentSourceGraph(sourceRoot);
+  assertBoundaryOwners(current, [servicePath, adapterHeaderPath, adapterSourcePath]
+    .map(file => [file, 'application-service-interfaces']));
+  assert(!current.observedModuleEdges.some(item => item.direction === 'transport-and-auth-adapter -> core-media-interfaces'),
+    'current transport bypasses media application boundary');
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
   const app = classifier("application-service-interfaces");
@@ -397,6 +401,7 @@ function copyTree(relative, targetRoot) {
   fs.cpSync(source, target, {recursive: true});
 }
 function copyFixture(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   copyTree("include", targetRoot);
   for (const file of [...transportPaths, adapterSourcePath, compositionPath, completionGraphPath, policyPath,
     codecMatrixPath, "CMakeLists.txt", "server.sh", "scripts/internal/script_arg_utils.mjs"])

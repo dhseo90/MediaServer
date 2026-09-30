@@ -6,8 +6,11 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
+import os from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {classifyModule, fileDependencyAllowed, validateFileDependencyPolicy} from './structure_dependency_policy_lib.mjs';
+import {classifyModule, fileDependencyAllowed, validateFileDependencyPolicy,
+  assertCurrentSourceGraph, validateCurrentSourceGraph, assertBoundaryOwners,
+  copyCurrentGraphInputs} from './structure_dependency_policy_lib.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -24,6 +27,51 @@ const expected = new Map([
   ['include/core/recording_runtime_defaults.h', 'core-utilities'],
 ]);
 const classifiers = [classifyModule];
+test('current source binding rejects forged counts, witnesses, flags and owner claims', () => {
+  assert.deepEqual(validateCurrentSourceGraph(root).errors, []);
+  for (const mutate of [
+    value => { value.expectedProductionFiles += 1; },
+    value => { value.observedModuleEdges[0].witnessSha256 = '0'.repeat(64); },
+    value => { value.observedModuleEdges[0].allowedByTarget = false; },
+    value => { value.cmake.targets[0].declaredSourceCount += 1; },
+  ]) {
+    const value = structuredClone(graph);
+    mutate(value);
+    assert.throws(() => assertCurrentSourceGraph(root, value), /current:|policy:/);
+  }
+  assertBoundaryOwners(graph, [...expected]);
+  assert.throws(() => assertBoundaryOwners(graph,
+    [['include/recording/segment_writer.h', 'stable-contract-dtos']]), /boundary:owner/);
+});
+test('isolated actual sources detect unknown files, forbidden includes and CMake loss without stale reuse', () => {
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'structure-current-inputs-'));
+  try {
+    copyCurrentGraphInputs(root, temporary);
+    assertCurrentSourceGraph(temporary);
+    const source = path.join(temporary, 'include/recording/segment_writer.h');
+    const original = fs.readFileSync(source, 'utf8');
+    fs.appendFileSync(source, '\n#include "media_types.h"\n');
+    const invalid = validateCurrentSourceGraph(temporary);
+    assert(invalid.actual.forbiddenFileDependencies.includes('include/recording/segment_writer.h -> include/media_types.h'));
+    assert(invalid.errors.length > 0);
+    fs.writeFileSync(source, original);
+    assertCurrentSourceGraph(temporary);
+    const unknown = path.join(temporary, 'include/recording/unclassified-fixture.h');
+    fs.writeFileSync(unknown, '#pragma once\n');
+    assert.throws(() => assertCurrentSourceGraph(temporary), /unclassified production file/);
+    fs.unlinkSync(unknown);
+    const cmake = path.join(temporary, 'CMakeLists.txt');
+    const originalCmake = fs.readFileSync(cmake, 'utf8');
+    const changed = originalCmake.replace('src/recording/recording_catalog.cpp', '');
+    assert.notEqual(changed, originalCmake);
+    fs.writeFileSync(cmake, changed);
+    assert.throws(() => assertCurrentSourceGraph(temporary), /current:|cmake:/);
+    fs.writeFileSync(cmake, originalCmake);
+    assertCurrentSourceGraph(temporary);
+  } finally {
+    fs.rmSync(temporary, {recursive: true, force: true});
+  }
+});
 test('C1 execution/readiness/strict JSON use the same exact owner and policy semantics', () => {
   for (const name of ['structure_stabilization_execution','structure_stabilization_readiness','strict_json_service_boundary']) {
     const source = read(`scripts/internal/verify_v390_${name}.mjs`);
@@ -100,7 +148,8 @@ test('OWNER-D 설정 utility와 기존 packet 진입점의 직접 의존 방향'
 });
 
 // 승인된 제한 정책/값 계약을 확인한다. 소유 분류와 모든 연결의 허용 판정은 별개다.
-const executionSource = read('scripts/internal/verify_v390_structure_stabilization_execution.mjs');
+const executionSource = read('scripts/internal/verify_v390_structure_stabilization_execution.mjs') + '\n' +
+  read('scripts/internal/structure_dependency_policy_lib.mjs');
 const functionSource = name => {
   const start = executionSource.indexOf(`function ${name}(`);
   const end = executionSource.indexOf('\nfunction ', start + 1);
@@ -114,8 +163,8 @@ const {fileDependencyAllowed: allowed, validateFileDependencyPolicy: validateExa
 const ownership = [...new Map(policy.allowedFileDependencies.flatMap(item =>
   [[item.source, item.from], [item.target, item.to]])).entries()].map(([file, owner]) => ({file, owner}));
 
-test('POLICY-C1 nine approved include pairs only; unrelated and reverse denied', () => {
-  assert.equal(policy.allowedFileDependencies.length, 9);
+test('POLICY-C1 ten approved include pairs only; unrelated and reverse denied', () => {
+  assert.equal(policy.allowedFileDependencies.length, 10);
   const pairs = [
     ['src/application/media_server_application.cpp', 'include/recording/recording_catalog.h'],
     ['src/application/media_server_application.cpp', 'include/recording/recording_journal.h'],
@@ -126,6 +175,7 @@ test('POLICY-C1 nine approved include pairs only; unrelated and reverse denied',
     ['src/recording/recording_read_service.cpp', 'include/recording/recording_latency_trace.h'],
     ['src/ingress/recording_application_service.cpp', 'include/recording/recording_latency_trace.h'],
     ['src/recording/recording_read_service.cpp', 'include/recording/recording_completion_trace.h'],
+    ['src/recording/recording_runtime_composition.cpp', 'include/recording/recording_cutover_candidate.h'],
   ];
   assert.deepEqual(policy.allowedFileDependencies.map(item => [item.source, item.target]), pairs);
   assert.equal(validateExact(policy, ownership).length, 0);

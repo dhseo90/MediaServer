@@ -50,7 +50,7 @@
     "path": "test/fixtures/v390_structure_stabilization_current_architecture_policy.json",
     "schema": "media-server.v390-structure-stabilization-current-architecture-policy.v1",
     "policyVersion": "v1",
-    "sha256": "f8fdada32a790d71ca7fcbae0db828800b2b72b3d3073fa22fc44a6ae8315d14"
+    "sha256": "197bd654a8529de5530b73cbc59d5911f946d227358d48b12ae6c0076a0ee2f8"
   },
   "completionGraph": {
     "path": "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
@@ -71,13 +71,13 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "312b74c529ecbc29745843bf984fed0a669db41e15a9afb779d1485924d530b4",
+    "sha256": "4b67993f747b11f6d750744444859cb2726c62655e431837b60ea5ff300b7e22",
     "metrics": {
       "productionFiles": 321,
       "cppSources": 144,
       "moduleOwners": 10,
       "cmakeTargets": 2,
-      "targetViolationDirections": 2,
+      "targetViolationDirections": 0,
       "largestSccOwners": 0,
       "largestMixedOwnerFileLines": 10491,
       "internalTargetSeparation": true

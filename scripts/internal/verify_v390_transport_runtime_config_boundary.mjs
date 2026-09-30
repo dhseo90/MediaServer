@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-64 Slice 14 transport runtime config/core-utility 경계를 검증한다.
 
 import crypto from "node:crypto";
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -20,7 +21,7 @@ Checks:
   - dependency-free WebRtcHttpRuntimeConfig exact field manifest
   - transport/AppConfig/core utility direct and alias dependency removal
   - composition-root exact mapping, diagnostics/stream-key operations, constructor injection
-  - fixed transport ownership and current successor Policy v1 graph 182/89/17/3/SCC0
+  - protected transport ownership and actual current source/Policy v1 graph
   - transitive include, relabel, alias, mapping and temporary-exception mutations
 `);
 }
@@ -181,8 +182,9 @@ function inspectComposition(text) {
     "config.runtime_debug_snapshot_json = [] { return core::runtime_debug::SnapshotJson(); };",
     "return core::BuildStreamKey(",
     "const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);",
-    "session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config",
   ]) if (!text.includes(anchor)) errors.push(`composition:anchor:${anchor}`);
+  if (!/WebRtcHttpServer\s+webrtc_http_server\s*\(\s*\*webrtc_media_sessions\s*,\s*\*analysis_session_lifecycle\s*,\s*\*analysis_session_reads\s*,\s*webrtc_http_runtime_config\s*,\s*&recording_api\s*\)/.test(text))
+    errors.push('composition:runtime-config-constructor-injection');
   for (const [sourceMode, runtimeMode] of [
     ["Auto", "Auto"], ["Off", "Off"], ["Token", "Token"], ["Session", "Session"],
   ]) {
@@ -202,10 +204,8 @@ function inspectComposition(text) {
 function inspectOwners(graph) {
   const errors = [];
   const owner = graph.moduleClassifiers.find(item => item.id === "transport-and-auth-adapter");
-  if (!owner || owner.expectedFileCount !== 11 || owner.expectedCppCount !== 6 ||
-      JSON.stringify([...owner.exactFiles].sort()) !== JSON.stringify([...transportFiles].sort()) ||
-      owner.prefixes.length !== 0)
-    errors.push("graph:transport-owner-exact-11");
+  if (!owner || !transportFiles.every(file => owner.exactFiles.includes(file)) || owner.prefixes.length !== 0)
+    errors.push("graph:transport-owner-protected-files");
   for (const file of legacyTransportFiles) {
     const owners = graph.moduleClassifiers.filter(item =>
       item.exactFiles.includes(file) || item.prefixes.some(prefix => file.startsWith(prefix)));
@@ -245,11 +245,8 @@ check("current owner, graph and Policy v1 remove exactly transport to core utili
   const policy = JSON.parse(read(policyPath));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   const errors = [...inspectOwners(graph), ...inspectPolicy(policy)];
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
-    graph.observedModuleEdges.length === 17 && violations.length === 2 &&
-    graph.stronglyConnectedComponents.length === 0,
-  `graph metrics drift: ${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +
-    `${graph.observedModuleEdges.length}/${violations.length}/${graph.stronglyConnectedComponents.length}`);
+  assertCurrentSourceGraph(rootDir, graph);
+  assertBoundaryOwners(graph, transportFiles.map(file => [file, 'transport-and-auth-adapter']));
   assert(!graph.observedModuleEdges.some(item =>
     item.direction === "transport-and-auth-adapter -> core-utilities"),
   "transport to core-utilities edge remains");
@@ -270,6 +267,9 @@ check("transitive include, relabel, alias, mapping and policy mutations fail clo
   assert(inspectTransportTexts(leaseMutation).some(error => error.includes("process-lifetime-lease")),
     "process-lifetime lease mutation escaped");
   const composition = read(compositionPath);
+  const wrongInjection = composition.replace(/(\*analysis_session_reads\s*,\s*)webrtc_http_runtime_config/, '$1{}');
+  assert(wrongInjection !== composition && inspectComposition(wrongInjection).includes('composition:runtime-config-constructor-injection'),
+    'runtime config constructor injection mutation escaped');
   const authModeMutation = composition.replace(
     "return ingress::HttpAuthMode::Session;", "return ingress::HttpAuthMode::Token;");
   assert(inspectComposition(authModeMutation).includes("composition:auth-mode:Session->Session"),

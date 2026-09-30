@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 16 transport source/view registry access의 application 경계를 검증한다.
 
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -124,6 +125,7 @@ RegistryResult g_result;
 SourceViewRegistry::ClientViewAccess g_access;
 std::vector<SourceViewRegistry::SourceRecord> g_sources;
 std::vector<SourceViewRegistry::PublishedViewRecord> g_views;
+SourceViewRegistry::SourceMutationCallback g_mutation_callback;
 bool g_resolve_received_null = false;
 bool g_snapshot_ok = true;
 bool g_snapshot_sources_null = false;
@@ -170,6 +172,9 @@ bool SourceViewRegistry::Snapshot(std::vector<SourceRecord>* sources,
     if (views != nullptr) *views = g_views;
     if (error_message != nullptr) *error_message = g_snapshot_ok ? "" : "snapshot-failed";
     return g_snapshot_ok;
+}
+void SourceViewRegistry::SetSourceMutationCallback(SourceMutationCallback callback) {
+    g_mutation_callback = std::move(callback);
 }
 RegistryResult SourceViewRegistry::CreateSource(const std::string&) { return Take("CreateSource"); }
 RegistryResult SourceViewRegistry::UpsertSource(const std::string&, const std::string&) {
@@ -310,6 +315,20 @@ int main() {
     EXPECT(service.Snapshot(nullptr, nullptr, &error) && ingress::g_snapshot_sources_null &&
       ingress::g_snapshot_views_null);
 
+    int callback_count = 0;
+    App::SourceRecord callback_source;
+    service.SetSourceMutationCallback([&](const App::SourceRecord& source) {
+        ++callback_count;
+        callback_source = source;
+    });
+    const auto changed_source = DomainSource("callback-");
+    EXPECT(static_cast<bool>(ingress::g_mutation_callback));
+    ingress::g_mutation_callback(changed_source);
+    EXPECT(callback_count == 1 && Same(callback_source, changed_source));
+    service.SetSourceMutationCallback({});
+    if (ingress::g_mutation_callback) ingress::g_mutation_callback(changed_source);
+    EXPECT(callback_count == 1);
+
     const auto preserved_sources = sources;
     const auto preserved_views = views;
     ingress::g_sources = {DomainSource("failed-")};
@@ -426,33 +445,10 @@ check("CMake and current graph bind the exact Slice 16 successor", () => {
   const cmake = read("CMakeLists.txt");
   assert((cmake.match(/src\/ingress\/source_view_application_service\.cpp/g) || []).length === 1,
     "facade source must appear exactly once in CMake");
-  const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const app = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101,
-    "successor production graph count drift");
-  assert(app?.expectedFileCount === 41 && app?.expectedCppCount === 17 &&
-    [resultHeader, facadeHeader, facadeSource].every(file => app.exactFiles.includes(file)),
-    "application owner successor drift");
-  assert(graph.expectedFileOwnershipSha256 === "7d370137112dacc4773815ba67a17bafc42809d93818ec1bbb7c78a396d12e21" &&
-    graph.cmake.targets.find(item => item.id === "media_server_runtime")?.productionSourceSha256 ===
-      "a15383d88b279e93a7aeb3211e93be7b941337f8b16d2e2334685e78c46c0e65",
-  "classifier or production target binding drift");
-  const domainEdge = graph.observedModuleEdges.find(item =>
-    item.direction === "transport-and-auth-adapter -> domain-and-registry-owners");
-  assert(domainEdge === undefined, "transport-domain direction must be closed");
-  const appDomainEdge = graph.observedModuleEdges.find(item =>
-    item.direction === "application-service-interfaces -> domain-and-registry-owners");
-  const transportAppEdge = graph.observedModuleEdges.find(item =>
-    item.direction === "transport-and-auth-adapter -> application-service-interfaces");
-  assert(appDomainEdge?.witnessCount === 4 &&
-    appDomainEdge.witnessSha256 === "31d96f595f69946917a1344d69d6698147dec011ec3750ca411c5486105cab25" &&
-    transportAppEdge?.witnessCount === 20 &&
-    transportAppEdge.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e",
-  "application-domain or transport-application witness drift");
-  assert(graph.observedModuleEdges.length === 17 &&
-    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
-    graph.stronglyConnectedComponents.length === 0,
-    "edge/violation/SCC successor drift");
+  const graph = assertCurrentSourceGraph(rootDir);
+  assertBoundaryOwners(graph, [resultHeader, facadeHeader, facadeSource].map(file => [file, 'application-service-interfaces']));
+  assert(!graph.observedModuleEdges.some(edge => edge.direction === 'transport-and-auth-adapter -> domain-and-registry-owners'),
+    'transport-domain direction must remain closed');
 });
 
 for (const item of checks)

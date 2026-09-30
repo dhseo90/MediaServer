@@ -543,15 +543,15 @@
     },
     {
       "direction": "application-service-interfaces -> core-media-interfaces",
-      "witnessCount": 5,
-      "witnessSha256": "cb02edd59e182209637a2fd82863cdc0991239ae122dfb2c6e3e0e6c963ef18c",
+      "witnessCount": 6,
+      "witnessSha256": "a4c43c4fc10e063ff0bf6c93b57a1a7b943abdcdf229d105b786ff07eef4eecc",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> core-utilities",
-      "witnessCount": 7,
-      "witnessSha256": "789f56b1cadf7e3d7c52f9e55bb144ed888f9f0ff551fc6223ae64572a6f79ab",
-      "allowedByTarget": false
+      "witnessCount": 6,
+      "witnessSha256": "3ba3572cab77c72e4416d913df9f2766289ef1985315263ef7b74a76dde59e98",
+      "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
@@ -587,7 +587,7 @@
       "direction": "composition-root -> domain-and-registry-owners",
       "witnessCount": 4,
       "witnessSha256": "9d73424f0e60b9f977314450d059dc6e05f07652f72451280d7deaf4824039b5",
-      "allowedByTarget": false
+      "allowedByTarget": true
     },
     {
       "direction": "composition-root -> transport-and-auth-adapter",

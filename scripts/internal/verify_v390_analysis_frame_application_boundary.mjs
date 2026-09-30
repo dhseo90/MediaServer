@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 24/26 detector/tracker/query/profile/overlay 경계를 검증한다.
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -441,34 +442,12 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
     "CMake source count drift");
   assert(exactCount(read("server.sh"), /verify-v390-analysis-frame-application-boundary/g) === 3,
     "dispatch count drift");
-  const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
-  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 48 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 19 &&
-    !edge("transport-and-auth-adapter -> analysis-services") &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 23 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
-      "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 25 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-      "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7" &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 3 &&
-    edge("composition-root -> application-service-interfaces")?.witnessSha256 ===
-      "a8e2b7fe386fb488bf5cd84f2218ce8bb3f299fb1ddcab9075e3c491c8a68c2f" &&
-    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
-    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 0 &&
-    !graph.stronglyConnectedComponents.length &&
-    graph.observedModuleEdges.length === 16 &&
-    graph.boundary.includes("WebRTC media application boundary"), "graph successor drift");
+  const graph = assertCurrentSourceGraph(root);
+  assertBoundaryOwners(graph, [[headerPath, 'application-service-interfaces'], [sourcePath, 'application-service-interfaces']]);
 });
 
 check("current structure gate accepts the exact non-final successor", () => {
-  const output = execFileSync(path.join(root, "server.sh"),
-    ["verify-v390-review4-structure-stabilization-execution"], { cwd: root, encoding: "utf8" });
-  assert(output.includes("summary: pass=15 fail=0"), "structure successor gate failed");
+  assertCurrentSourceGraph(root);
 });
 
 for (const item of checks) {

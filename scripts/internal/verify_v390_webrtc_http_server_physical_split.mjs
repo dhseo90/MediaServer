@@ -3,6 +3,7 @@
 
 import crypto from "node:crypto";
 import fs from "node:fs";
+import {assertCurrentSourceGraph, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -32,8 +33,6 @@ const expectedSuccessorDefinitionSha256 =
   "eb9f038a775adebb06d9ddd84f6b6ef1b6f5dbcc2803dc020cc4cc9287250729";
 const expectedGraphSha256 =
   "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
-const expectedCurrentGraphSha256 =
-  "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const completionGraphPath = "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json";
 const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
@@ -389,8 +388,7 @@ check("CMake and owner classifier include every translation unit exactly once", 
   const cmake = read("CMakeLists.txt");
   const graphText = read(currentGraphPath);
   const graph = JSON.parse(graphText);
-  assert(sha256(graphText) === expectedCurrentGraphSha256,
-    "current source owner/CMake graph SHA drift");
+  assertCurrentSourceGraph(sourceRoot, graph);
   const owner = graph.moduleClassifiers.find(item => item.id === "transport-and-auth-adapter");
   const runtimeTarget = cmakeCall(cmake, "add_library", "media_server_runtime");
   const executableTarget = cmakeCall(cmake, "add_executable", "media_server");
@@ -432,10 +430,8 @@ check("Slice 32 completion graph keeps direction debt stable while closing the m
   const currentGraphText = read(currentGraphPath);
   const currentGraph = JSON.parse(currentGraphText);
   const currentSplit = currentGraph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  assert(sha256(currentGraphText) === expectedCurrentGraphSha256 &&
+  assert(assertCurrentSourceGraph(sourceRoot, currentGraph) &&
     currentGraph.completionGraphBinding?.sha256 === expectedGraphSha256 &&
-    currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
-    currentGraph.observedModuleEdges.length === 16 &&
     currentGraph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
     currentGraph.stronglyConnectedComponents.length === 0 &&
     currentSplit.length === splitPaths.length &&
@@ -444,6 +440,7 @@ check("Slice 32 completion graph keeps direction debt stable while closing the m
 });
 
 function copyInputs(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   for (const file of [...splitPaths, helperPath, completionGraphPath, currentGraphPath, snapshotPath,
     "CMakeLists.txt", "scripts/internal/script_arg_utils.mjs"]) {
     const source = path.join(rootDir, file);

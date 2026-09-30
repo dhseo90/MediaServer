@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 22 image decode/JPEG encode의 dependency-free application 경계를 검증한다.
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -51,7 +52,18 @@ check("rollback HTTP decode encode response paths remain exact",()=>{
   const encodeStart="const int quality = ParseClampedIntQuery(query, \"quality\", 85, 1, 100);";
   const currentEncode=segments(currentR,encodeStart,"return ok;");
   const previousEncode=segments(previousR,encodeStart,"return ok;");
-  assert(currentEncode.length===4&&JSON.stringify(currentEncode.map(compact))===JSON.stringify(previousEncode.map(compact)),"current encode response path drift");
+  // The released session-read/overlay APIs already return ImageCodecFrame.
+  // Normalize only these two typed handoffs, preserving all quality/error/response bytes.
+  const expectedEncode=previousEncode.slice();
+  for(const [index,expression] of [[2,"*frame"],[3,"overlay_frame"]]){
+    const oldCall=`ProjectImageCodecFrame(${expression})`;
+    assert(expectedEncode[index]?.split(oldCall).length===2,`historical typed handoff ${index}`);
+    expectedEncode[index]=expectedEncode[index].replace(oldCall,expression);
+  }
+  assert(currentR.includes("const auto frame = impl_->analysis_session_reads.LatestFrame(tap_id);") &&
+    /std::optional<ImageCodecFrame>\s+LatestFrame\(/.test(read("include/ingress/analysis_session_read_application_service.h")) &&
+    currentR.includes("ImageCodecFrame overlay_frame;"),"typed image codec handoff drift");
+  assert(currentEncode.length===4&&JSON.stringify(currentEncode.map(compact))===JSON.stringify(expectedEncode.map(compact)),"current encode response path drift");
 
   let d=previous(D).replace('#include "ingress/image_codec_application_service.h"','#include "analysis/image_frame_loader.h"').replace('#include "analysis/overlay_renderer.h"','#include "analysis/overlay_renderer.h"\n#include "analysis/snapshot_encoder.h"').replace('#include "ingress/webrtc_http_analysis_rule_declarations.h"','#include "ingress/analysis_rule_registry.h"').replace('#include "ingress/analysis_rule_application_service.h"\n','');
   d=d.replace(/\nImageCodecFrame ProjectImageCodecFrame\([\s\S]*?RestoreImageCodecFrame\(const ImageCodecFrame& frame\);\n/,"\n");
@@ -62,5 +74,5 @@ check("rollback HTTP decode encode response paths remain exact",()=>{
   let r=previousR.replaceAll("ApplyApplicationVideoAnalysisRuleToRequest","ApplyVideoAnalysisRuleToRequest").replaceAll("ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend","ApplyVideoAnalysisRuleToRequest").replaceAll("WebRtcHttpAnalysisProfileDocumentsSnapshotBackend","AnalysisProfileDocumentsSnapshot").replaceAll("WebRtcHttpAnalysisRuleDocumentsSnapshotBackend","AnalysisRuleDocumentsSnapshot").replaceAll("WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend","VideoAnalysisRuleDocumentsSnapshot").replaceAll("ImageCodecEncodedImage","analysis::EncodedImage").replace(/EncodeJpegForApplication\(\s*ProjectImageCodecFrame\(([^)]*)\),\s*([^,]*),\s*([^,]*),\s*([^)]*)\)/g,"analysis::EncodeJpeg($1, $2, $3, $4)");
   assert(compact(r)===compact(old(R)),"encode rollback");
 });
-check("CMake dispatch and graph bind exact successor",()=>{assert((read("CMakeLists.txt").match(/image_codec_application_service\.cpp/g)||[]).length===1,"CMake");assert((read("server.sh").match(/verify-v390-image-codec-application-boundary/g)||[]).length===3,"dispatch");const g=JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json")),o=g.moduleClassifiers.find(x=>x.id==="application-service-interfaces"),e=d=>g.observedModuleEdges.find(x=>x.direction===d);assert(g.expectedProductionFiles===198&&g.expectedCppFiles===97&&o?.expectedFileCount===31&&o.expectedCppCount===13&&e("transport-and-auth-adapter -> analysis-services")?.witnessCount===6&&e("application-service-interfaces -> analysis-services")?.witnessCount===15&&e("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount===16&&g.observedModuleEdges.filter(x=>!x.allowedByTarget).length===2&&!g.stronglyConnectedComponents.length,"graph")});
+check("CMake dispatch and graph bind exact successor",()=>{assert((read("CMakeLists.txt").match(/image_codec_application_service\.cpp/g)||[]).length===1,"CMake");assert((read("server.sh").match(/verify-v390-image-codec-application-boundary/g)||[]).length===3,"dispatch");const g=assertCurrentSourceGraph(root);assertBoundaryOwners(g,[[H,'application-service-interfaces'],[S,'application-service-interfaces']]);});
 for(const x of checks)console.log(`- ${x.s}: ${x.n}${x.d?` — ${x.d}`:""}`);const failed=checks.filter(x=>x.s==="FAIL").length;console.log(`- summary: pass=${checks.length-failed} fail=${failed}`);process.exit(failed?1:0);

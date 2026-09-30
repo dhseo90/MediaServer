@@ -27,11 +27,10 @@
 구조 분류와 저장 값·수명 경계의 제한 수정은 현행
 [소유 graph](../test/fixtures/v390_structure_stabilization_current_graph.json)에 반영했다.
 소유 분류 완료는 모든 의존 관계의 허용이나 독립 검토 완료를 뜻하지 않는다.
-현재 허용되지 않은 연결은 `include/recording/segment_writer.h → include/media_types.h`와
-`src/recording/recording_runtime_composition.cpp → include/recording/recording_cutover_candidate.h`다.
-각각 packet 자료형 소비와 저장소 cutover 복구 제한값 생성에 사용된다. 기존 정책에서
-정상으로 바꾸려면 별도의 정확한 허용 또는 제품 경계 수정 판단이 필요하며 포괄 예외로 처리하지 않는다.
-이 연결의 처리와 과거 graph 수치에 고정된 직접 소비자 정합을 마친 뒤 C1 검토 후보를 고정한다.
+SegmentWriter는 기존 packet 계약 진입점을 사용하며 `media_types.h`의 전이 의존은 남는다.
+runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 연결로 제한한다.
+현행 graph 소비자는 실제 소스·CMake·파일별 정책을 대조하고, 과거 completion snapshot은 보존한다.
+이 구조·직접 소비자 정합 결과를 기준으로 C1의 누적 검토 후보를 고정한다.
 C2 독립 검토·C3 결속과 coverage/readiness 판정은 별도 단계이며 아직 완료되지 않았다.
 
 ## 알려진 제한과 별도 결정 후보

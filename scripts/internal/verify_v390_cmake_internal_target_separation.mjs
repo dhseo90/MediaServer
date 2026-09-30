@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-64 composition executable과 runtime static library의 실제 CMake 분리를 검증한다.
 
 import fs from "node:fs";
+import {assertCurrentSourceGraph} from "./structure_dependency_policy_lib.mjs";
 import path from "node:path";
 import process from "node:process";
 import { execFileSync } from "node:child_process";
@@ -87,12 +88,17 @@ check("current graph and writer bind both actual CMake targets", () => {
   assert(runtime.type === "library" && runtime.internalModuleTarget === true &&
     executable.type === "executable" && executable.internalModuleTarget === false,
   "current graph target kind/internal flags drift");
-  assert(runtime.declaredSourceCount === 78 && runtime.defaultActiveSourceCount === 77 &&
-    executable.declaredSourceCount === 2 && executable.defaultActiveSourceCount === 2,
-  "current graph target source counts drift");
+  assertCurrentSourceGraph(rootDir, graph);
+  const actual = parseTargets(cmake);
+  for (const target of [runtime, executable]) {
+    const sources = actual.sources.get(target.id);
+    assert(target.declaredSourceCount === sources.length &&
+      target.defaultActiveSourceCount === sources.length - target.conditionalSources.length,
+      'current graph target source counts drift');
+  }
   for (const anchor of [
-    "graph.cmake.targets = current.cmake.targets.map",
-    "graph.cmake.internalTargetSeparation = current.cmake.internalTargetSeparation",
+    "generatedGraph.cmake.targets = current.cmake.targets.map",
+    "generatedGraph.cmake.internalTargetSeparation = current.cmake.internalTargetSeparation",
   ]) assert(structureVerifier.includes(anchor), `graph writer topology anchor missing: ${anchor}`);
 });
 

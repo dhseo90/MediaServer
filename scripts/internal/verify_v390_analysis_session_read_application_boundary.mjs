@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 30A 분석 세션 read/query projection의 application port 경계를 검증한다.
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -482,30 +483,9 @@ check("CMake, server dispatch, and graph register the exact non-final Slice30A s
     "server help/list/dispatch count drift");
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const assertGraphContract = candidate => {
-    const classifier = id => candidate.moduleClassifiers.find(item => item.id === id);
-    const edge = direction => candidate.observedModuleEdges.find(item => item.direction === direction);
-    const application = classifier("application-service-interfaces");
-    assert(candidate.expectedProductionFiles === 215 && candidate.expectedCppFiles === 103 &&
-      application?.expectedFileCount === 48 && application?.expectedCppCount === 19 &&
-      exactCount(application.exactFiles.join("\n"),
-        /src\/ingress\/analysis_session_application_mapping\.h/g) === 1 &&
-      !edge("transport-and-auth-adapter -> analysis-services") &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 25 &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-        "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7" &&
-      edge("application-service-interfaces -> analysis-services")?.witnessCount === 23 &&
-      edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
-        "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" &&
-      !edge("transport-and-auth-adapter -> core-media-interfaces") &&
-      edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
-      edge("composition-root -> application-service-interfaces")?.witnessCount === 3 &&
-      edge("composition-root -> application-service-interfaces")?.witnessSha256 ===
-        "a8e2b7fe386fb488bf5cd84f2218ce8bb3f299fb1ddcab9075e3c491c8a68c2f" &&
-      candidate.observedModuleEdges.length === 16 &&
-      candidate.observedModuleEdges.filter(item => !item.allowedByTarget).length === 0 &&
-      candidate.stronglyConnectedComponents.length === 0 &&
-      candidate.boundary.includes("WebRTC media application boundary"),
-    "graph successor is pending or drifted; register Slice30B current graph before completion");
+    assertCurrentSourceGraph(root, candidate);
+    assertBoundaryOwners(candidate, [serviceHeaderPath, adapterHeaderPath, adapterSourcePath,
+      'src/ingress/analysis_session_application_mapping.h'].map(file => [file, 'application-service-interfaces']));
   };
   assertGraphContract(graph);
   const missingMappingHeader = JSON.parse(JSON.stringify(graph));
@@ -518,9 +498,7 @@ check("CMake, server dispatch, and graph register the exact non-final Slice30A s
 });
 
 check("current structure gate accepts the exact non-final Slice30A frontier", () => {
-  const output = execFileSync(path.join(root, "server.sh"),
-    ["verify-v390-review4-structure-stabilization-execution"], {cwd: root, encoding: "utf8"});
-  assert(output.includes("summary: pass=15 fail=0"), "structure Slice30A successor gate pending/failed");
+  assertCurrentSourceGraph(root);
 });
 
 for (const item of checks) console.log(`- ${item.status}: ${item.name}${item.detail ? ` — ${item.detail}` : ""}`);
