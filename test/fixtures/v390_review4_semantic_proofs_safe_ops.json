@@ -14574,42 +14574,42 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
-          "line": 88,
+          "line": 93,
           "anchor": "function verifyTypedHandoffState() {",
           "symbol": "verifyTypedHandoffState",
           "contextSha256": "5c2b63606b79437d435b27193ca2d4fd6eea2d61e7578dd8b690193a60486120"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
-          "line": 89,
+          "line": 94,
           "anchor": "const execution = readJson(executionPath);",
           "symbol": "verifyTypedHandoffState",
           "contextSha256": "fd2356d69f516f086f3731cced0f07b7bb0c6da269648a668f3969c313fdd337"
         },
         "action": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
-          "line": 94,
+          "line": 99,
           "anchor": "const graphRun = spawnSync(path.join(rootDir, \"server.sh\"), [currentGraphCommand, \"--graph-only\"], {",
           "symbol": "verifyTypedHandoffState",
           "contextSha256": "4193cafe7aa1d342e5ce09ccbe2710e965d41f3c7602785e42431aa9ae5658dc"
         },
         "state": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
-          "line": 101,
+          "line": 106,
           "anchor": "const graphStatus = graphRun.status;",
           "symbol": "verifyTypedHandoffState",
-          "contextSha256": "6ee7752992ea7e9f92aa3bcbd608cfb867067b16fe322dcc2907547a339ed8c9"
+          "contextSha256": "1b151ab3598e63369648a8aa9c3b7ad676c383a080d97c42083594b22fe47a6a"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
-          "line": 119,
+          "line": 137,
           "anchor": "if (behaviorMutationPerformed === true) {",
           "symbol": "verifyTypedHandoffState",
           "contextSha256": "1526ce1e8d5a776742a3bf1be2aa7d8ffe32fd7fb9e4a9e6870d68993469b8a3"
         },
         "verifier": {
           "file": "server.sh",
-          "line": 2429,
+          "line": 2686,
           "anchor": "verify-v390-structure-stabilization-handoff)",
           "symbol": "server-dispatch:verify-v390-structure-stabilization-handoff",
           "contextSha256": "4a4b244d063427a46c6b4d118698ac1c9e01e757b82b9a2d3136f817267d914c"
@@ -14621,40 +14621,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-178 owner-dispatch",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:88",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:89"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:93",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:94"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "OPS-178 dispatch-action",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:89",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:94"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:94",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:99"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-178 action-state",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:94",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:101"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:99",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:106"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "OPS-178 state-readback",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:101",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:119"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:106",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:137"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-structure-stabilization-handoff",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:119",
-          "target": "server.sh:2429"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:137",
+          "target": "server.sh:2686"
         }
       ],
       "rationale": "OPS-178 exact reviewed source flow.",
@@ -36070,42 +36070,42 @@
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
           "symbol": "verifyTypedHandoffState",
           "anchor": "function verifyTypedHandoffState() {",
-          "line": 89,
+          "line": 93,
           "contextSha256": "5c2b63606b79437d435b27193ca2d4fd6eea2d61e7578dd8b690193a60486120"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
           "symbol": "verifyTypedHandoffState",
           "anchor": "const graphStatus = graphRun.status;",
-          "line": 102,
-          "contextSha256": "6ee7752992ea7e9f92aa3bcbd608cfb867067b16fe322dcc2907547a339ed8c9"
+          "line": 106,
+          "contextSha256": "1b151ab3598e63369648a8aa9c3b7ad676c383a080d97c42083594b22fe47a6a"
         },
         "action": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
           "symbol": "verifyTypedHandoffState",
           "anchor": "const behaviorPreservingSourceGraphGate = graphStatus === 0 &&",
-          "line": 103,
-          "contextSha256": "e80d8a99f4d1d2459ff7588fe1564f5b84518747d6cbd7d9d87902ed2722aa48"
+          "line": 111,
+          "contextSha256": "930bfcf549358d0c364cafb8ca5939b06842acb675a4625c0f42196dc0f60c1b"
         },
         "state": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
           "symbol": "verifyTypedHandoffState",
           "anchor": "const behaviorMutationPerformed = !behaviorPreservingSourceGraphGate;",
-          "line": 128,
+          "line": 136,
           "contextSha256": "1e1c00e0c46680687ea73ecc2e6520510605c6aba6089f9ffeb4b709c7aed065"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
           "symbol": "verifyTypedHandoffState",
           "anchor": "if (behaviorMutationPerformed === true) {",
-          "line": 129,
+          "line": 137,
           "contextSha256": "1526ce1e8d5a776742a3bf1be2aa7d8ffe32fd7fb9e4a9e6870d68993469b8a3"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-structure-stabilization-handoff",
           "anchor": "verify-v390-structure-stabilization-handoff)",
-          "line": 2491,
+          "line": 2686,
           "contextSha256": "4a4b244d063427a46c6b4d118698ac1c9e01e757b82b9a2d3136f817267d914c"
         }
       },
@@ -36115,40 +36115,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-211 owner-dispatch",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:89",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:102"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:93",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:106"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-211 dispatch-action",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:102",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:103"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:106",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:111"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-211 action-state",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:103",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:128"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:111",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:136"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-211 state-readback",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:128",
-          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:129"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:136",
+          "target": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:137"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-structure-stabilization-handoff",
-          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:129",
-          "target": "server.sh:2491"
+          "source": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs:137",
+          "target": "server.sh:2686"
         }
       ],
       "rationale": "SAFE-211 current graph verifier exit binds the behavior-preserving source graph gate and fail-closed mutation readback.",
