@@ -111,6 +111,40 @@ test('REVIEW-CURRENT-A canonical 명령의 다른 스크립트 연결 거부', (
     m.set(p, JSON.stringify(value));
   }), ['현행 기능 정의/명령 연결 불일치: SAFE-198']);
 });
+const reviewScriptName = 'verify_v390_user_review_gate.mjs';
+const reviewScriptPath = 'scripts/internal/' + reviewScriptName;
+test('C2-MANIFEST-PATH 정상 전체 상대경로 허용', () => {
+  const manifest = JSON.parse(originals.get('test/fixtures/project_feature_implementation_evidence.json'));
+  assert.equal(manifest.items.find(x => x.id === 'SAFE-198').verifierEvidence.file, reviewScriptPath);
+  assert.deepEqual(currentReviewGate(), []);
+});
+for (const [name, file, present] of [
+  ['같은 이름의 다른 디렉터리', 'scripts/unrelated/' + reviewScriptName, true],
+  ['없는 디렉터리', 'scripts/nonexistent-c2-fixture/' + reviewScriptName, false],
+  ['절대경로', root + reviewScriptPath, true],
+  ['상위 경로 표현', 'scripts/internal/../internal/' + reviewScriptName, true],
+  ['현재 경로 표현', 'scripts/internal/./' + reviewScriptName, true],
+  ['앞선 현재 경로', './' + reviewScriptPath, true],
+  ['중복 구분자', 'scripts//internal/' + reviewScriptName, true],
+]) test('C2-MANIFEST-PATH 경로만 바꾼 반례 ' + name, () => {
+  const errors = currentReviewGate(memory => {
+    const manifestPath = 'test/fixtures/project_feature_implementation_evidence.json';
+    const manifest = JSON.parse(memory.get(manifestPath));
+    const evidence = manifest.items.find(x => x.id === 'SAFE-198').verifierEvidence;
+    const before = structuredClone(evidence);
+    assert.equal(evidence.command, 'verify-v390-user-review-gate');
+    assert.equal(evidence.file, reviewScriptPath);
+    assert.equal(file.split('/').at(-1), reviewScriptName);
+    // 기존 메모리 fixture에 같은 스크립트 바이트를 둔다. 파일 부재 검사로
+    // 우연히 거부되는 반례가 아니라 command·basename을 보존한 경로 반례다.
+    if (present) memory.set(file, fs.readFileSync(root + reviewScriptPath, 'utf8'));
+    assert.equal(memory.has(file), present);
+    evidence.file = file;
+    assert.deepEqual({...evidence, file: before.file}, before);
+    memory.set(manifestPath, JSON.stringify(manifest));
+  });
+  assert.deepEqual(errors, ['현행 기능 정의/명령 연결 불일치: SAFE-198']);
+});
 // 기존 정적 gate와 canonical의 실제 계약: API readback 두 관계, coverage 비승격,
 // ONVIF paired-save, VLM server-owned promotion. 합성 이름 유사성으로 만든 관계가 아니다.
 for (const [command, canonical, featureIds] of [

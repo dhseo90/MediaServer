@@ -52,8 +52,10 @@ export function validateCurrentGateDocumentation({read, command, script, feature
     const entries = implementation.items?.filter(item => item.id === id) || [];
     const evidence = entries[0]?.verifierEvidence;
     const canonicalTargets = dispatches.filter(item => item.command === evidence?.command);
+    // dispatch parser는 scripts/internal의 require/exec 쌍만 반환한다.
+    // manifest는 그 저장소 상대경로 그대로 결속하며 basename/경로 축약은 허용하지 않는다.
     const manifestBound = canonicalTargets.length === 1 &&
-      canonicalTargets[0].script === evidence?.file?.split('/').at(-1);
+      evidence?.file === 'scripts/internal/' + canonicalTargets[0].script;
     const declared = declaredFeatureCommands(rows[0]);
     const relation = currentGateCompanions.find(([gate, , ids]) => gate === command && ids.includes(id));
     const canonicalLinked = evidence?.command === (relation?.[1] ?? command);

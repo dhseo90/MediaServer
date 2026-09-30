@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+import { assertCurrentSourceGraph } from "./structure_dependency_policy_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -103,6 +104,10 @@ function verifyTypedHandoffState() {
   if (graphRun.error) throw graphRun.error;
   assert(graphRun.signal === null, `current source graph verification terminated by signal ${graphRun.signal}`);
   const graphStatus = graphRun.status;
+  // 공통 검증은 실제 소스의 줄 수·소유·include/CMake와 graph/원장 및 기존
+  // 정책 상한을 대조한다. 과거 관측값을 현행 기대값으로 고정하지 않는다.
+  const observedGraph = assertCurrentSourceGraph(rootDir, currentGraph);
+  const largestMixedOwnerFileLines = Math.max(0, ...observedGraph.mixedOwnershipDebt.map(item => item.lineCount));
   const behaviorPreservingSourceGraphGate = graphStatus === 0 &&
     execution.schema === "media-server.v390-structure-stabilization-execution.v4" &&
     execution.issueId === "V390-REVIEW4-64" &&
@@ -122,7 +127,7 @@ function verifyTypedHandoffState() {
     execution.currentGraph.metrics?.cppSources === currentGraph.expectedCppFiles &&
     execution.currentGraph.metrics?.moduleOwners === currentGraph.moduleClassifiers?.length &&
     execution.currentGraph.metrics?.cmakeTargets === currentGraph.cmake?.targets?.length &&
-    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines === largestMixedOwnerFileLines &&
     execution.completionGraph?.sha256 ===
       "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
     execution.review4Completion?.completionGraphSha256 === execution.completionGraph.sha256 &&

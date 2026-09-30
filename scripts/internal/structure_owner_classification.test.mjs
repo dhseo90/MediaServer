@@ -27,6 +27,100 @@ const expected = new Map([
   ['include/core/recording_runtime_defaults.h', 'core-utilities'],
 ]);
 const classifiers = [classifyModule];
+
+// SAFE-211/OPS-178: 실제 제품 파일 대신 기존 graph 격리 사본을 관측한다.
+// graph child는 결과만 대역으로 주고 handoff 함수와 공통 source 검증은 그대로 사용한다.
+function withHandoffFixture(t, fn) {
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'structure-handoff-inputs-'));
+  try {
+    copyCurrentGraphInputs(root, temporary);
+    const executionPath = 'test/fixtures/v390_structure_stabilization_execution.json';
+    const readJson = file => JSON.parse(fs.readFileSync(path.join(temporary, file), 'utf8'));
+    const writeJson = (file, value) => fs.writeFileSync(path.join(temporary, file), JSON.stringify(value, null, 2) + '\n');
+    const sha256File = file => createHash('sha256').update(fs.readFileSync(path.join(temporary, file))).digest('hex');
+    const ledger = readJson(executionPath), current = readJson(ledger.currentGraph.path);
+    const largest = current.mixedOwnershipDebt.reduce((a, b) => a.lineCount > b.lineCount ? a : b);
+    const sourcePath = path.join(temporary, largest.file);
+    const originalSource = fs.readFileSync(sourcePath, 'utf8');
+    const originalLines = originalSource.split(/\r?\n/).length - 1;
+    const setSourceLines = lines => {
+      assert(lines >= originalLines, '격리 사본의 관측값은 줄 추가만 사용');
+      fs.writeFileSync(sourcePath, originalSource + '\n'.repeat(lines - originalLines));
+    };
+    const save = () => {
+      writeJson(ledger.currentGraph.path, current);
+      ledger.currentGraph.sha256 = sha256File(ledger.currentGraph.path);
+      writeJson(executionPath, ledger);
+    };
+    const setRecordedLines = lines => {
+      largest.lineCount = lines;
+      ledger.currentGraph.metrics.largestMixedOwnerFileLines = Math.max(...current.mixedOwnershipDebt.map(x => x.lineCount));
+      save();
+    };
+    const source = read('scripts/internal/verify_v390_structure_stabilization_handoff.mjs');
+    const start = source.indexOf('function verifyTypedHandoffState() {');
+    const end = source.indexOf('\ncheck(', start);
+    assert(start >= 0 && end > start, '실제 handoff 함수 경계');
+    const run = (child = {status: 0, signal: null, stderr: ''}) => {
+      let childCalls = 0;
+      const handoff = vm.runInNewContext('(' + source.slice(start, end).trim() + ')', {
+        readJson, sha256File, path, process, rootDir: temporary, executionPath,
+        currentGraphCommand: 'verify-v390-review4-structure-stabilization-execution',
+        assert: (ok, message) => { if (!ok) throw new Error(message); },
+        assertCurrentSourceGraph,
+        spawnSync: (file, args, options) => {
+          childCalls++;
+          assert.equal(file, path.join(temporary, 'server.sh'));
+          assert.deepEqual(Array.from(args), ['verify-v390-review4-structure-stabilization-execution', '--graph-only']);
+          assert.equal(options.cwd, temporary);
+          return child;
+        },
+      });
+      try { handoff(); } finally { assert.equal(childCalls, 1, 'graph-only child를 생략하지 않음'); }
+    };
+    fn({run, ledger, current, largest, save, writeJson, executionPath, setSourceLines, setRecordedLines});
+  } finally {
+    fs.rmSync(temporary, {recursive: true, force: true});
+    assert(!fs.existsSync(temporary));
+    t.diagnostic('owned structure-handoff-inputs fixture removed=true; product source unchanged');
+  }
+}
+test('C2-HANDOFF 현행 소스·graph·원장·정책 일치 허용', t => withHandoffFixture(t, ({run}) => run()));
+test('C2-HANDOFF 다른 정상 관측값과 기존 상한 경계 허용', t => withHandoffFixture(t, ({run, setSourceLines, setRecordedLines}) => {
+  assert.equal(policy.finalThresholds.maxMixedOwnerFileLines, 15000);
+  for (const lines of [12000, 15000]) {
+    setSourceLines(lines); setRecordedLines(lines); run();
+  }
+}));
+test('C2-HANDOFF 소스 관측 없이 graph·원장 숫자만 일치하면 거부', t => withHandoffFixture(t, ({run, setRecordedLines}) => {
+  setRecordedLines(10346);
+  assert.throws(() => run(), /debt:line-count-drift/);
+}));
+for (const kind of ['source', 'graph', 'ledger']) test('C2-HANDOFF 단일 입력 불일치 거부 ' + kind, t => withHandoffFixture(t, fixture => {
+  const {run, ledger, largest, save, setSourceLines} = fixture;
+  if (kind === 'source') setSourceLines(largest.lineCount + 1);
+  if (kind === 'graph') { largest.lineCount++; save(); }
+  if (kind === 'ledger') { ledger.currentGraph.metrics.largestMixedOwnerFileLines++; save(); }
+  assert.throws(() => run(), kind === 'ledger' ? /current:metrics/ : /debt:line-count-drift/);
+}));
+test('C2-HANDOFF 입력이 모두 일치해도 기존 15000 상한 초과 거부', t => withHandoffFixture(t, ({run, setSourceLines, setRecordedLines}) => {
+  setSourceLines(15001); setRecordedLines(15001);
+  assert.throws(() => run(), /current:final-targets/);
+}));
+for (const kind of ['current-hash', 'completion-hash', 'completion-status']) test('C2-HANDOFF snapshot 결속 거부 ' + kind, t => withHandoffFixture(t, ({run, ledger, writeJson, executionPath}) => {
+  if (kind === 'current-hash') ledger.currentGraph.sha256 = '0'.repeat(64);
+  if (kind === 'completion-hash') ledger.completionGraph.sha256 = '0'.repeat(64);
+  if (kind === 'completion-status') ledger.review4Completion.status = 'pending';
+  writeJson(executionPath, ledger);
+  assert.throws(() => run(), /current:hash|handoff mismatch/);
+}));
+for (const child of [
+  {status: 1, signal: null, stderr: 'fixture graph failure'},
+  {status: null, signal: 'SIGTERM', stderr: ''},
+  {status: null, signal: null, stderr: '', error: new Error('fixture spawn failure')},
+]) test('C2-HANDOFF graph child 실패 전파 ' + (child.signal || child.error?.message || child.status), t => withHandoffFixture(t, ({run}) => {
+  assert.throws(() => run(child), /handoff mismatch|terminated by signal SIGTERM|fixture spawn failure/);
+}));
 test('current source binding rejects forged counts, witnesses, flags and owner claims', () => {
   assert.deepEqual(validateCurrentSourceGraph(root).errors, []);
   for (const mutate of [
