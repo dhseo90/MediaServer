@@ -1,0 +1,568 @@
+{
+  "schema": "media-server.documentation-run-result.v1",
+  "scope": "v4.1.1 3/4 현행 문서·버전·종료 자료 정리. C1/C2/C3 재실행·제품 변경·릴리즈 실행 아님.",
+  "base": "4944ca5a6c42598adacb34adc08fceee7a762bc6",
+  "branch": "v4.1.1",
+  "source": {
+    "changes": [
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "cf4e6735f78b6ea68b8bc374ad729b13bc8d5f0679b6f495f7c79436fd1e0c10",
+        "change": "modified"
+      },
+      {
+        "path": "README.en.md",
+        "sha256": "79b1dbd23978c842fdc6a07b43f8da1eafbd877730ba5c916b5b8b337362354e",
+        "change": "modified"
+      },
+      {
+        "path": "README.md",
+        "sha256": "4294c5819473dc4778464dd2b47c3b24ec12a967832ceb8653fe1e58f15d8ea5",
+        "change": "modified"
+      },
+      {
+        "path": "VERSION",
+        "sha256": "9737915fce5e934ea348658fccb82a4c532157d2161bb032a240c2837b8f66cb",
+        "change": "modified"
+      },
+      {
+        "path": "config/docs_ui_assets.json",
+        "sha256": "73b5d9143a23390c01d7f4240da6093a27ed1d3dfdcfb1d3c6fdd50594f374a1",
+        "change": "modified"
+      },
+      {
+        "path": "docs/README.md",
+        "sha256": "2e0c072fd5d503b25bd2976e0ec4c446c86c2e89220ba35c78d2f102aea19c5e",
+        "change": "modified"
+      },
+      {
+        "path": "docs/assets/ui/README.md",
+        "sha256": "ad9114fc7e954d888f4b3433d53dc24ee2d06aff9ee5f427c07b191192764702",
+        "change": "modified"
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "sha256": "bce09792150729a1f047e64843e855462c4d62fa4f902dcae0cc33e716c41768",
+        "change": "modified"
+      },
+      {
+        "path": "docs/en/README.md",
+        "sha256": "772789ec379bed37b53660de7d38b7aa02a1d807bbecf140011abafe6d745014",
+        "change": "modified"
+      },
+      {
+        "path": "docs/history/README.md",
+        "sha256": "f454bab2c9ef5166ee1b50ef2e36ba4669247c707377eab1d73cd3dd697f9e19",
+        "change": "modified"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c2-review-fixes-20261001/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/independent-decisions.c2-recheck.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/migration-evidence.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/migration-report.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/prior-c2/independent-decisions.c2.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/prior-c2/review-package.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/review-package.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/central-record-migration-20260929/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/command-binding-fix-20260930/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/docs-links/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/limited-2a-contracts-20260930/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/limited-2b-boundaries-20260930/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/limited-review-fixes-20260929/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/manifest-write-boundary/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/structure-c1-20260930/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/structure-c1-consumers-20260930/result.json",
+        "sha256": null,
+        "change": "deleted"
+      },
+      {
+        "path": "docs/release-policy.md",
+        "sha256": "dde02a255c206cd1643502fe63d5dbb05779f4e14eb091c69c57e84ee6da0a13",
+        "change": "modified"
+      },
+      {
+        "path": "docs/v410-v49-recording-search-roadmap.md",
+        "sha256": "95bcf0e555452aa1a714f9dc5e0f4650661c7d85a27646898ae98201d8cea486",
+        "change": "modified"
+      },
+      {
+        "path": "docs/release-notes-v4.1.1.md",
+        "sha256": "82f76803f2c4ae23ac886f6ce7256be0e33634bc0a92d3f85501cda80719167b",
+        "change": "added"
+      }
+    ],
+    "workingDiffSha256": "08e624d9127b77ada4bef67649f87f92e1e33f51554630065968f72b168cf2c7",
+    "historyReferencesReadBack": [
+      {
+        "commit": "4944ca5a6c42598adacb34adc08fceee7a762bc6",
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/result.json",
+        "bytes": 27062,
+        "sha256": "55048a36784c7238379a6862cd540fd02729a36785963856c5ac7bdcded5a601"
+      },
+      {
+        "commit": "4944ca5a6c42598adacb34adc08fceee7a762bc6",
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/independent-decisions.c2-recheck.json",
+        "bytes": 596463,
+        "sha256": "d3c5517a57a2d9b2dfea1db27c33777573d83d41e4807b85af3093f7489b3a7f"
+      },
+      {
+        "commit": "4944ca5a6c42598adacb34adc08fceee7a762bc6",
+        "path": "docs/release-artifacts/v4.1.1/c2-review-fixes-20261001/result.json",
+        "bytes": 72190,
+        "sha256": "343ba7b9125f98fc5489468be3ea5b8ef0d42fe9e259a4a752d8b7718182a0bf"
+      },
+      {
+        "commit": "d252e1fb241ab37af0509f18eac965dbb73decda",
+        "path": "docs/release-artifacts/v4.1.1/closed-record-cleanup-20260929/result.json",
+        "bytes": 259559,
+        "sha256": "517bcdda1a452bf86d5ed6e0babe0f21226b1c859f30f5f9b06a5bdddf79f1c1"
+      },
+      {
+        "commit": "68566d63b13396b359a3b493a5b7e4d8a70015d6",
+        "path": "docs/release-test-records.md",
+        "bytes": 6244162,
+        "sha256": "5654520403470dad3f9b759ae98b5aba190979a1dc00b5206c4243972cef5908"
+      },
+      {
+        "commit": "68566d63b13396b359a3b493a5b7e4d8a70015d6",
+        "path": "docs/release-evidence-index.md",
+        "bytes": 406468,
+        "sha256": "4bb5b0c30b6d2f424a98333e0a40224d1fb6457f9555393ae06c1bca189baefb"
+      },
+      {
+        "commit": "68566d63b13396b359a3b493a5b7e4d8a70015d6",
+        "path": "docs/development-backlog.md",
+        "bytes": 1006944,
+        "sha256": "3c55b6c48491ed6b43891a6191907115419ec3f383697ed0e23a6b57f61f8d2b"
+      }
+    ]
+  },
+  "deletion": {
+    "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6",
+    "classification": "B: 종료 실행·검토 원본, 현재 실행 소비자 없음, 전체 바이트 동일 Git 보존 확인",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.1.1/c2-review-fixes-20261001/result.json",
+        "bytes": 72190,
+        "sha256": "343ba7b9125f98fc5489468be3ea5b8ef0d42fe9e259a4a752d8b7718182a0bf",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/independent-decisions.c2-recheck.json",
+        "bytes": 596463,
+        "sha256": "d3c5517a57a2d9b2dfea1db27c33777573d83d41e4807b85af3093f7489b3a7f",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/migration-evidence.json",
+        "bytes": 438136,
+        "sha256": "0e40829df83b4af2e19d9c658f2f06d6481eb57cde5036804f2e5578fd021a14",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/migration-report.json",
+        "bytes": 584312,
+        "sha256": "e938289ed063330288fb1a0334161fcbfcf69dec2acfc0939a5f69409bf03c07",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/prior-c2/independent-decisions.c2.json",
+        "bytes": 252703,
+        "sha256": "cec45cc8f1c862f50bca52217162aa7e90e9f791c8bcb078b222f363abdfdef7",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/prior-c2/review-package.json",
+        "bytes": 188145,
+        "sha256": "7ac8550bcb4a006b9c9ecbca7bc668c10e185f2fc93a4f97e8dbb4a906a9b7c3",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/result.json",
+        "bytes": 27062,
+        "sha256": "55048a36784c7238379a6862cd540fd02729a36785963856c5ac7bdcded5a601",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/c3-approval-20261001/review-package.json",
+        "bytes": 259964,
+        "sha256": "37ed0a54414bda1eb15b15b8b363419fab52a93d2adafb2ec80d5e4f8f8f9e47",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/central-record-migration-20260929/result.json",
+        "bytes": 170627,
+        "sha256": "b629bf6a6bdbefc1224b18eed532f7c772b5d74af76f851cd5121ee42e0b6a49",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/command-binding-fix-20260930/result.json",
+        "bytes": 10339,
+        "sha256": "9c522645dca224ddeb3f0ad24d5f3412bc3f725b983ac0230ee20f28e3a65cdf",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/docs-links/result.json",
+        "bytes": 4755,
+        "sha256": "4c8ac72125145871183e3b3b97b86fe7a41f7cd207aecbcc3d5846dc54544baa",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/limited-2a-contracts-20260930/result.json",
+        "bytes": 45850,
+        "sha256": "f5760ce080e2934ea5e69ff56a4b9d1a17c635672c95d1dc7c0a645427bf610e",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/limited-2b-boundaries-20260930/result.json",
+        "bytes": 89689,
+        "sha256": "12c87e73d29883ed0f9bb14d1c3cc5e42759b8d4c19eccf0264bb61544005a52",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/limited-review-fixes-20260929/result.json",
+        "bytes": 35607,
+        "sha256": "093f43916e1d9f72175bcf89314f75f396636fdbfe7393a620d22db5a6f71492",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/manifest-write-boundary/result.json",
+        "bytes": 275857,
+        "sha256": "3ed8f619dfbc86cd90736d1bc5522e4290415154738c94d3dedf8faffe390766",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/structure-c1-20260930/result.json",
+        "bytes": 17019,
+        "sha256": "67e528e108ba8a839ffb2894c3f3cb6bfc69530085d645a0226c09f4067c0b16",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/structure-c1-consumers-20260930/result.json",
+        "bytes": 159129,
+        "sha256": "3f322ad2fed73dcf41610ea5c94a44251067a40a414ba9ede2188553aaac8d3e",
+        "preservationCommit": "4944ca5a6c42598adacb34adc08fceee7a762bc6"
+      }
+    ],
+    "count": 17,
+    "bytes": 3227847,
+    "alreadyDeletedFromWorktree": true,
+    "prior1622FilesReaudited": false,
+    "consumerObservation": "삭제 대상의 전체·docs 기준·실행 묶음 경로를 추적된 파일에서 대조했다. 대상 기록 간 참조를 제외한 실행 소비자 없음. verify_docs_links.test.mjs의 v4.1.1/run/result.md는 자체 격리 fixture이며 삭제 대상 경로를 읽지 않음."
+  },
+  "retained": {
+    "classification": "A: 현행 계약·회귀 fixture·golden·현재 검사 입력·출처",
+    "examples": [
+      "C3 적용 원장 4개",
+      "구조 handoff 계획·completion snapshot·현행 graph·검증 정책",
+      "현행 discovery fixture에서 참조하는 v3.9.0 감사·인계 문서",
+      "v4.1.0 시간/식별·저장 계약과 현재 검사/출처 입력"
+    ],
+    "ignoredInputs": {
+      ".media_server.test/v411-c1-review.tA94vw/package-readback.json": "4bc83008b5555159116f73aba5da5f87516e6cf11c383e088b417370244a9d5b",
+      ".media_server.test/v411-c1-review.tA94vw/review-package.json": "7ac8550bcb4a006b9c9ecbca7bc668c10e185f2fc93a4f97e8dbb4a906a9b7c3",
+      ".media_server.test/v411-c1-review.tA94vw/candidate.json": "f7b3315f1c39b67416d0d56fd006014181bc0a5db53ff6fbaec280adcc67073a",
+      ".media_server.test/v411-c1-review.tA94vw/independent-decisions.c2.json": "cec45cc8f1c862f50bca52217162aa7e90e9f791c8bcb078b222f363abdfdef7",
+      ".media_server.test/v411-c1-review.tA94vw/independent-decisions.json": "c66e98661924ca2c275b11965cf8fd11028633d369831a83c4ca5c3d86107fc4",
+      ".media_server.test/v411-c1-review.tA94vw/candidate-aligned.json": "1bcaf61dacf65ccc7ef92ddb849bdda173ddfde952397d43746c31ec7d1d190d",
+      ".media_server.test/v411-c1-review.tA94vw/migration-report.json": "f7ccb57f8b68cdf802bbf03c7430ab0ac88a4d47ffc015e43de86c8cf0af6c46",
+      ".media_server.test/v411-c1-review.tA94vw/migration-evidence.json": "cd149ff206bf0ff447c8e594aed6774dc067c602a96e637089b47602768753b6",
+      ".media_server.test/v411-c2-fixes-review.88vr4njk/independent-decisions.c2-recheck.json": "d3c5517a57a2d9b2dfea1db27c33777573d83d41e4807b85af3093f7489b3a7f",
+      ".media_server.test/v411-c2-fixes-review.88vr4njk/review-package.json": "37ed0a54414bda1eb15b15b8b363419fab52a93d2adafb2ec80d5e4f8f8f9e47",
+      ".media_server.test/v411-c2-fixes-review.88vr4njk/candidate.json": "6c8fe142266c24de88574154c6265f0cabc0788266c755152bfe7aea07d2e6b4",
+      ".media_server.test/v411-c2-fixes-review.88vr4njk/candidate-aligned.json": "1f0bd80b83dd6117ae6ee6d881cf85115e4324532c1ccffc05f3f6e11b3f00fe",
+      ".media_server.test/v411-c2-fixes-review.88vr4njk/migration-report.json": "e938289ed063330288fb1a0334161fcbfcf69dec2acfc0939a5f69409bf03c07",
+      ".media_server.test/v411-c2-fixes-review.88vr4njk/migration-evidence.json": "0e40829df83b4af2e19d9c658f2f06d6481eb57cde5036804f2e5578fd021a14"
+    },
+    "ignoredInputBoundary": "후보 원본의 Git byte copy를 주장하지 않으며 기존 ignored 14개 파일을 그대로 보존함. 적용 audit의 JSON 내용 동등·compact 재구성은 원본 파일의 Git 보존과 다름.",
+    "newDependencyRefactorPerformed": false
+  },
+  "checks": [
+    {
+      "name": "docs-links",
+      "argv": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-10-01T01:38:55.283315+00:00",
+      "finishedAt": "2026-10-01T01:38:55.599563+00:00",
+      "elapsedSeconds": 0.31619216699618846,
+      "exitCode": 1,
+      "stdout": "[fail] 문서 로컬 링크/이미지 참조 오류\n  - docs/v410-v49-recording-search-roadmap.md: 존재하지 않는 anchor: development-backlog.md#현재-남은-문서-정리\n\n== Docs link verification summary ==\n- markdown files: 293\n- local links: 9206\n- local images: 14\n- local anchors: 351\n- indexed docs: 88\n- index coverage exclusions: 188\n- failures: 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "release-metadata",
+      "argv": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "startedAt": "2026-10-01T01:38:55.276714+00:00",
+      "finishedAt": "2026-10-01T01:38:55.353873+00:00",
+      "elapsedSeconds": 0.07707654099795036,
+      "exitCode": 0,
+      "stdout": "[pass] current release documents preserve version and publication boundaries\n[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8\n[pass] default mode records published metadata verification as external gate\n\n== Release metadata consistency summary ==\n- current version: 4.1.1\n- current tag: v4.1.1\n- release target tag: v4.1.1\n- cut-prior published tag: v4.1.0\n- published metadata: external-not-checked\n- pass: 3\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "docs-ui-assets",
+      "argv": [
+        "./server.sh",
+        "verify-docs-ui-assets"
+      ],
+      "startedAt": "2026-10-01T01:38:55.283993+00:00",
+      "finishedAt": "2026-10-01T01:38:55.391735+00:00",
+      "elapsedSeconds": 0.10763041701284237,
+      "exitCode": 0,
+      "stdout": "[pass] README uses only representative product UI screenshots\n[pass] English README uses English UI screenshots\n[pass] UI guide keeps product screenshots in the shared asset set\n[pass] docs UI asset policy documents capture rules\n[pass] managed UI asset manifest stays complete\n[pass] capture script owns every documented UI asset\n[pass] docs capture covers current screenshots\n[pass] representative screenshot docs do not point at stale visual baselines\n[pass] docs UI asset directory contains managed PNG files\n[pass] VA documentation images keep full video frame bounds\n\n== Docs UI asset verification summary ==\n- pass: 10\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "readiness",
+      "argv": [
+        "./server.sh",
+        "verify-v390-structure-stabilization-readiness"
+      ],
+      "startedAt": "2026-10-01T01:38:55.274782+00:00",
+      "finishedAt": "2026-10-01T01:38:55.782672+00:00",
+      "elapsedSeconds": 0.5078259169968078,
+      "exitCode": 0,
+      "stdout": "[pass] 현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)\n[pass] machine-readable readiness contract is complete\n[pass] module mayDependOn declarations exactly match allowed dependency directions\n[pass] current REVIEW4-64 source and CMake graph match the completed execution ledger\n[pass] historical REVIEW4-51 decision/readiness remain frozen and separate from current completion\n[pass] handoff plan fixes branch, module, dependency, contract, and slice readiness\n[pass] roadmap and evidence preserve historical readiness and expose current REVIEW4-64 completion\n[pass] server dispatch exposes the readiness verifier\n\n== v3.9.0 structure stabilization readiness ==\n- executionBranch: v3.9.0\n- historicalReadinessStatus: approved-scheduled-after-review4-50-63/not-executed\n- currentReview4Status: completed\n- review4AcceptanceStatus: pending\n- preservedContracts: 9\n- historicalOrderedSlices: 6 (Slice 6 not-started record preserved)\n- actualProductionFiles: 321\n- actualCppSources: 144\n- actualModuleOwners: 10\n- actualTargetCount: 2\n- targetViolationDirections: 0\n- largestSccOwners: 0\n- largestMixedOwnerFileLines: 10491\n- graphStatus: final-targets-satisfied\n- pass: 8\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "coverage",
+      "argv": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "startedAt": "2026-10-01T01:38:55.277134+00:00",
+      "finishedAt": "2026-10-01T01:40:14.861516+00:00",
+      "elapsedSeconds": 79.58419045900519,
+      "exitCode": 0,
+      "stdout": "[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)\n[pass] inventory row count is stable\n[pass] inventory uses only the four approved test areas\n[pass] coverage docs and server command are wired\n[pass] exact implementation evidence manifest is valid\n[pass] all feature IDs have exact coverage targets\n[pass] negative missing-ID fixture fails\n[pass] SAFE-200 canonical coverage wording truthfulness boundary\n\n== Feature inventory coverage summary ==\n- featureRows: 986\n- covered: 986\n- missing: 0\n- pass: 8\n- fail: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "documentation-selftests",
+      "argv": [
+        "node",
+        "--test",
+        "scripts/internal/verify_docs_links.test.mjs",
+        "scripts/internal/release_documentation_contract.test.mjs"
+      ],
+      "startedAt": "2026-10-01T01:38:55.284571+00:00",
+      "finishedAt": "2026-10-01T01:39:00.410907+00:00",
+      "elapsedSeconds": 5.126226707987371,
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "✔ REL-DOC-01 제목·완료 문장 없이 명시 metadata 읽기 (1.615542ms)\n✔ REL-DOC-02 누락·중복·잘못된 JSON은 실패 (0.501292ms)\n✔ REL-DOC-03 source/target·공개 tag·서명·배포 정책 불일치 거부 (0.442792ms)\n✔ REL-DOC-04 README 표현 변경·옛 단계명 삭제 허용 (1.352ms)\n✔ REL-DOC-05 틀린 source·target·공개 주장과 필수 링크 누락 거부 (0.290583ms)\n✔ REL-DOC-06 Git·과거 실행 기록 없는 소스에서도 현행 문서 검사 (6.36525ms)\n✔ REL-DOC-07 CMake 불일치·현행 문서 누락 실패 (4.811416ms)\n✔ REL-DOC-08 metadata 문서 경로 이탈·외부 symlink 거부 (6.551917ms)\n✔ REL-DOC-09 예제 코드의 metadata 주장은 실제 README가 아님 (0.317792ms)\n✔ REL-DOC-10 CLI 소스 archive 실행과 실패 exit·보고서 전파 (106.193292ms)\n✔ REL-DOC-11 기존 entry 명령은 같은 판정·실패를 전달 (637.103125ms)\n✔ REL-DOC-12 root 누락·unknown 옵션·격리 root의 published 모드는 거부 (70.929625ms)\n✔ REL-DOC-13 과거 사례 입력의 경계 훼손·실행 증거 위장 거부 (139.021875ms)\n✔ REL-DOC-14 v4.0 승인·완료 기록은 현재 승인/실행 결과나 문서 오류의 대체 근거가 아님 (477.664084ms)\n▶ REL-POL-01 현행 정책 소비자는 종료 기록·옛 제목 없이 실행하고 계약 누락은 거부\n  ✔ Actions 현행 문서 (23.273958ms)\n  ✔ Actions runner 기준 누락 (22.827375ms)\n  ✔ Actions 쓰기 권한 반례 (24.3935ms)\n  ✔ Actions warning 차단 (23.751041ms)\n  ✔ Actions notice 허용 (24.311125ms)\n  ✔ CI 현행 문서 (24.965125ms)\n  ✔ CI 실제 명령 누락 (24.5485ms)\n  ✔ v240 현행 문서 (117.647917ms)\n  ✔ v240 실행 대상 동시 오연결 (110.150667ms)\n  ✔ v250 UI 실행 대상 동시 오연결 (174.554292ms)\n  ✔ v250 현행 문서 (180.756334ms)\n  ✔ v240 UI 정책 변조 (109.071958ms)\n  ✔ v250 제품 연결 누락 (175.852209ms)\n  ✔ v250 현재 기능 ID 누락 (180.353583ms)\n  ✔ v250 독립 UI 명령을 readiness로 대체 금지 (263.786459ms)\n  ✔ v250 UI 정의 누락 (171.743625ms)\n  ✔ v250 UI 정의 링크 누락 (171.4865ms)\n  ✔ v250 UI action 변경은 canonical 연결에서 거부 (85.128291ms)\n  ✔ closeout 현행 문서 (26.6745ms)\n  ✔ RC 현행 문서 (141.177792ms)\n  ✔ reconciliation 현행 문서 (111.370292ms)\n  ✔ closeout 서명 계약 변조 (27.323584ms)\n  ✔ closeout 승인 기준 링크 누락 (26.756625ms)\n  ✔ closeout 실제 명령 연결 누락 (26.943458ms)\n  ✔ RC 보존 출력 식별자 누락 (135.749ms)\n  ✔ RC workflow 누락 (136.751708ms)\n  ✔ RC 기본 smoke 장시간 혼입 (142.083375ms)\n  ✔ RC 생성 결과 실패 유지 (139.93375ms)\n  ✔ RC HTML 관측 보존 (138.074833ms)\n  ✔ RC 자식 실패 출력 보존 (32.600792ms)\n  ✔ RC 정리 실패 전파 (52.206625ms)\n  ✔ reconciliation 서명 계약 변조 (108.676667ms)\n  ✔ reconciliation UI 판정 연결 누락 (109.061166ms)\n  ✔ reconciliation UI 정책 완화 (107.366875ms)\n✔ REL-POL-01 현행 정책 소비자는 종료 기록·옛 제목 없이 실행하고 계약 누락은 거부 (3373.476542ms)\n✔ REL-POL-02 선택 과거 기록의 확인/미확인/미실행 형식만 검사하며 실제 PASS로 승격하지 않음 (218.71675ms)\n✔ DOC-01 source archive에서도 목적별 색인의 두 단계 연결을 인정 (47.083542ms)\n✔ DOC-02 현행 문서의 끊어진 링크와 앵커는 실패 (69.301833ms)\n✔ DOC-03 파일명에 과거 버전이 있어도 미연결 현행 계약은 실패 (31.910917ms)\n✔ DOC-04 AGENTS에서 연결한 유지보수 문서는 공개 색인 중복 불필요 (64.197208ms)\n✔ DOC-05 참조형 링크와 HTML 앵커·이미지도 검사 (56.178167ms)\n✔ DOC-06 코드 예제의 링크·제목은 실제 문서 링크·앵커가 아님 (54.10925ms)\n✔ DOC-07 Git 저장소에서는 추적·미추적 현재 문서를 함께 검사 (92.675625ms)\n✔ DOC-08 경로 이탈과 외부 symlink를 읽지 않고 거부 (48.638125ms)\n✔ DOC-09 문서 색인 부재·잘못된 CLI는 성공 아님 (44.510917ms)\n✔ DOC-10 내부 기록도 깨진 링크는 실패하고 현행 문서 도달성을 대체하지 못함 (52.648125ms)\n✔ DOC-11 끊어진 symlink·옵션 누락·중복도 성공으로 숨기지 않음 (69.912709ms)\nℹ tests 61\nℹ suites 0\nℹ pass 61\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 5096.923417\n"
+    },
+    {
+      "name": "docs-links-recheck",
+      "argv": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "startedAt": "2026-10-01T01:41:18.043857+00:00",
+      "finishedAt": "2026-10-01T01:41:18.267318+00:00",
+      "elapsedSeconds": 0.22340320800140034,
+      "exitCode": 0,
+      "stdout": "\n== Docs link verification summary ==\n- markdown files: 293\n- local links: 9208\n- local images: 14\n- local anchors: 351\n- indexed docs: 88\n- index coverage exclusions: 188\n- failures: 0\n",
+      "stderr": ""
+    }
+  ],
+  "failureFollowup": {
+    "firstFailure": "docs-links: development-backlog.md#현재-남은-문서-정리 anchor absent",
+    "cause": "마감된 backlog 절을 별도 승인 릴리즈로 바꾼 뒤 직접 소비자인 로드맵 링크가 남음",
+    "correction": "로드맵의 해당 링크와 현행 버전/후보 상태 설명만 정렬. v4.2 이후 계획 불변.",
+    "recheck": "docs-links-recheck exit 0",
+    "originalFailurePreserved": true
+  },
+  "sourceArchive": {
+    "root": "/private/tmp/media-server-v411-stage3-72w8zph2",
+    "files": 3576,
+    "bytes": 323636521,
+    "contentAggregateSha256": "a76d3d7a5b1e20233dffe9a71b71d1151d4676afe56bf6d70d02ab2f3f2a2139",
+    "gitPresent": false,
+    "ignoredInputsPresent": false,
+    "deletedV411LogsPresent": false,
+    "runs": [
+      {
+        "argv": [
+          "node",
+          "/private/tmp/media-server-v411-stage3-72w8zph2/scripts/internal/verify_docs_links.mjs",
+          "--root",
+          "/private/tmp/media-server-v411-stage3-72w8zph2"
+        ],
+        "cwd": "/private/tmp/media-server-v411-stage3-72w8zph2",
+        "startedAt": "2026-10-01T01:42:02.139942+00:00",
+        "finishedAt": "2026-10-01T01:42:02.335486+00:00",
+        "elapsedSeconds": 0.19548500000382774,
+        "exitCode": 0,
+        "stdout": "\n== Docs link verification summary ==\n- markdown files: 293\n- local links: 9208\n- local images: 14\n- local anchors: 351\n- indexed docs: 88\n- index coverage exclusions: 188\n- failures: 0\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "node",
+          "/private/tmp/media-server-v411-stage3-72w8zph2/scripts/internal/verify_release_metadata_consistency.mjs",
+          "--root",
+          "/private/tmp/media-server-v411-stage3-72w8zph2"
+        ],
+        "cwd": "/private/tmp/media-server-v411-stage3-72w8zph2",
+        "startedAt": "2026-10-01T01:42:02.335537+00:00",
+        "finishedAt": "2026-10-01T01:42:02.368450+00:00",
+        "elapsedSeconds": 0.03291804100445006,
+        "exitCode": 0,
+        "stdout": "[pass] current release documents preserve version and publication boundaries\n[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8\n[pass] default mode records published metadata verification as external gate\n\n== Release metadata consistency summary ==\n- current version: 4.1.1\n- current tag: v4.1.1\n- release target tag: v4.1.1\n- cut-prior published tag: v4.1.0\n- published metadata: external-not-checked\n- pass: 3\n- fail: 0\n",
+        "stderr": ""
+      }
+    ],
+    "error": null,
+    "cleanupAbsent": true,
+    "scope": "supported docs/metadata --root only; Git-only asset verifier, coverage/readiness and product execution not run in archive"
+  },
+  "immutability": {
+    "protectedFiles": 3563,
+    "protectedAggregateSha256": "da4583c6babe8e4cadb00b47c4461e7234eba79310e626c90858fc90f5bd1283",
+    "approvalLedgersUnchanged": {
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json": "bdb19f55e2876ece647493e5ad66c1beeba9b6e56147aa5ee59e42d7e6ba9760",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "f87ad77508444174b97e12f9caa216bb5fc5f05a40f2bf6e5d4578b79034d5c7",
+      "test/fixtures/project_feature_implementation_evidence.json": "55bd58ca3a9c4cc530de0f3ea20200224308fc9bd9366c46e534adc7571b7f9e",
+      "test/fixtures/v390_ui_native_exact_cases.json": "81351c7ceed498fd9965a3b6d6ba2e978140e5a31d33b441c91edb70257f04af"
+    },
+    "candidateDigest": "702151e89124a785c9d0be0a1c4381b76fffbd43b1ef05d117321fb1446c4a6b",
+    "ignoredReviewInputsUnchanged": 14,
+    "deletedFilesAbsent": 17,
+    "publishedObservationUnchanged": {
+      "tag": "v4.1.0",
+      "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0",
+      "observedAt": "2026-09-28T13:42:28Z"
+    },
+    "cmakeOnlyProjectVersionChanged": true,
+    "futureRoadmapUnchanged": true,
+    "indexUnchangedBeforeAuthorizedStaging": true
+  },
+  "metadata": {
+    "sourceVersion": "4.1.1",
+    "cmakeProjectVersion": "4.1.1",
+    "releaseTarget": "v4.1.1",
+    "releaseNotes": "docs/release-notes-v4.1.1.md",
+    "priorPublishedTag": "v4.1.0",
+    "publishedObservationUnchanged": {
+      "tag": "v4.1.0",
+      "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0",
+      "observedAt": "2026-09-28T13:42:28Z"
+    },
+    "assetMetadataChanged": [
+      "baseline.sourceVersion",
+      "baseline.releaseTarget",
+      "baseline.publicReleaseStatus source component"
+    ],
+    "assetImageBytesAndCaptureReviewAndPublishedBaselineUnchanged": true
+  },
+  "cleanup": {
+    "ownedSourceArchiveRemoved": true,
+    "serverStarted": false,
+    "portsOpened": 0,
+    "ignoredReviewInputsRetained": true,
+    "documentationSelftests": "기존 격리 fixture와 finally 정리/부재 assertion 사용",
+    "newEvidenceLifecycle": "이 result.json을 한 번 보존한 다음 별도 정리 commit에서 제거. 정리 후 최종 확인은 commit 본문에 남기며 result 재생성/검사 순환 없음."
+  },
+  "notRun": [
+    "C1/C2 재검토 또는 C3 producer/승인 재생성",
+    "제품 build·실제 UI·30분·120분·외부 서비스 검사",
+    "Git 없는 사본의 Git 전용 검사: 적용 불가이며 PASS로 간주하지 않음",
+    "PR·main 병합·tag·Release·브랜치 삭제"
+  ],
+  "status": {
+    "validationPassedAfterOneScopedLinkCorrection": true,
+    "remainingCoreFailures": [],
+    "coverage": {
+      "total": 986,
+      "covered": 986,
+      "missing": 0,
+      "pass": 8,
+      "fail": 0,
+      "productExecutionEvidence": false
+    },
+    "readiness": {
+      "pass": 8,
+      "fail": 0,
+      "review4AcceptanceStatus": "pending",
+      "meaning": "소스 graph 정합이며 실제 UI·장시간 acceptance 아님"
+    },
+    "cleanupCommitCreated": false,
+    "pushPerformed": false,
+    "stage3Complete": false,
+    "remainingAtRecordTime": "증거의 Git 보존/재조회, 작은 이력 색인의 보존 위치 연결, 정리 commit과 일반 push 확인",
+    "releaseComplete": false
+  },
+  "recordedAt": "2026-10-01T01:44:23.473924+00:00"
+}
