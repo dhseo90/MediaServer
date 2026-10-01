@@ -1,0 +1,294 @@
+{
+  "schema": "media-server.v411-release-attempt.v1",
+  "recordedAt": "2026-10-01T10:46:22.118451+00:00",
+  "actor": "Codex AI implementation agent",
+  "status": "FAIL",
+  "runId": "v390-test-acceptance-20261001092828-23548",
+  "invocation": {
+    "command": [
+      "./test_release.sh"
+    ],
+    "sourceHead": "f2547831bef8c2822a2f2ceff2e075e31b4cc989",
+    "sourceTree": "5d3746f10633ff3b0e71b36ff33bcc1a57028be7",
+    "startedAt": "2026-10-01T09:28:24.153820+00:00",
+    "priorFailureCommit": "a7144f6ef9a41057fb478dc900dbe10247472cd1",
+    "defaultRecordingRootBefore": "absent",
+    "environmentOverrides": {},
+    "workingTreeBefore": "clean",
+    "exitCode": 1,
+    "endedAt": "2026-10-01T10:40:46.250316+00:00",
+    "durationSeconds": 4342.073516667006,
+    "defaultRecordingRootAfter": "absent"
+  },
+  "source": {
+    "head": "f2547831bef8c2822a2f2ceff2e075e31b4cc989",
+    "tree": "5d3746f10633ff3b0e71b36ff33bcc1a57028be7",
+    "sourceOutsideOutputClean": true
+  },
+  "commits": {
+    "code": "1f619f485586645836fef63492f736be57460c17",
+    "focusedEvidence": "a0f45b8b42ab0b41a35b309758e4cfefca7612fb",
+    "priorOutputCleanup": "f2547831bef8c2822a2f2ceff2e075e31b4cc989"
+  },
+  "previousFailureCommit": "a7144f6ef9a41057fb478dc900dbe10247472cd1",
+  "scriptInventory": {
+    "pass": 13,
+    "fail": 0,
+    "earlierLogRemovalOutputByteIdentical": true,
+    "reportedPaths": 11,
+    "additionalSameCause": 68,
+    "wholeFeatureGateCount": 36,
+    "wholeFeatureGatePassed": 36
+  },
+  "approvalBinding": {
+    "candidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+    "existing972Carry14IndependentUnchanged": true,
+    "newImpactIds": [],
+    "candidateRegenerated": false,
+    "producerApplied": false
+  },
+  "longrun30": {
+    "status": "PASS",
+    "durationEvidence": {
+      "schema": "media-server.v390-monotonic-duration-evidence.v1",
+      "clockSource": "process.hrtime.bigint-monotonic",
+      "fixtureMode": false,
+      "requestedMinutes": 30,
+      "requestedSeconds": 1800,
+      "runnerStartedMonotonicNs": "154544211452125",
+      "runnerEndedMonotonicNs": "156927704565666",
+      "runnerElapsedNs": "2383493113541",
+      "runnerElapsedMilliseconds": 2383493.113541,
+      "runnerElapsedSeconds": 2383.493113541,
+      "delegated": {
+        "schema": "media-server.predev-monotonic-duration.v1",
+        "clockSource": "bash-SECONDS-monotonic",
+        "startedSeconds": 0,
+        "endedSeconds": 2381,
+        "elapsedSeconds": 2381,
+        "requestedSoakSeconds": 1800,
+        "durationSec": 2381
+      },
+      "eligibleRealDuration": true,
+      "validationErrors": []
+    },
+    "observedIterations": 20,
+    "predevPass": 108,
+    "predevFail": 0,
+    "predevSkip": 2,
+    "cleanup": "PASS"
+  },
+  "ui": {
+    "attempted": 424,
+    "casePass": 424,
+    "caseFail": 0,
+    "caseNotRun": 0,
+    "caseUnsupported": 0,
+    "evidenceEligibility": "eligible",
+    "qualifiedCaseCount": 424,
+    "evidenceReasonCount": 0,
+    "policyEvaluationUiFulltestPass": true,
+    "policyValidationResult": "FAIL",
+    "canonicalUiFulltestPass": false,
+    "canonicalFinalEvidenceEligible": false,
+    "visualReadbackSample": [
+      "UI-001",
+      "UI-052 (canonical UI-050 screenshot)",
+      "SRC-007 (canonical SRC-006 screenshot)"
+    ],
+    "visualReadbackBoundary": "three representative captured screens only; not a new full UI audit"
+  },
+  "firstFailure": {
+    "stage": "ui-fulltest-qualification",
+    "exitCode": 1,
+    "policyErrors": [
+      "docs/manual-ui-checklist.md missing Policy v4 wording: Policy v4 qualifier",
+      "docs/manual-ui-checklist.md missing Policy v4 wording: actual-browser evidence"
+    ],
+    "sourceLocation": "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs:261",
+    "unchangedInputs": [
+      {
+        "path": "docs/manual-ui-checklist.md",
+        "sha256": "24419d37057eb11ad1bd4fde7c224bcd3d60c09b6d886b7b4d86d20d39c7e795",
+        "unchangedFrom": "a7144f6ef9a41057fb478dc900dbe10247472cd1"
+      },
+      {
+        "path": "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs",
+        "sha256": "96acf032e5d0d3383ae296053b61bde3fb6a71c07838ef1ceda18e4421478c36",
+        "unchangedFrom": "a7144f6ef9a41057fb478dc900dbe10247472cd1"
+      }
+    ],
+    "scope": "exact wording contract in current checklist consumer; outside this script inventory correction; no policy/document fix or rerun performed"
+  },
+  "finalIntegrity": {
+    "status": "FAIL",
+    "pass": 10,
+    "fail": 2,
+    "cause": "canonical final-policy-not-qualified and resulting non-PASS acceptance; source/cleanup/hash checks pass"
+  },
+  "stages": [
+    {
+      "id": "preflight",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 838
+    },
+    {
+      "id": "feature-gates",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 399647
+    },
+    {
+      "id": "server-longrun-30",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 2383580
+    },
+    {
+      "id": "ui-environment-bootstrap",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 4478
+    },
+    {
+      "id": "ui-exact-424",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1528327
+    },
+    {
+      "id": "ui-server-cleanup",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-fulltest-qualification",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMs": 6190
+    },
+    {
+      "id": "longrun-120-decision",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "server-longrun-120",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "cleanup",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-final-integrity",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "report",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "final-integrity",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMs": 7094
+    }
+  ],
+  "notRun": [
+    "longrun-120 decision",
+    "server-longrun-120",
+    "UI final integrity child",
+    "additional recording integration/timeline/default composition/current app/recording UI from original release plan",
+    "push/PR/remote CI/main merge/tag/Release"
+  ],
+  "cleanup": {
+    "recordedAt": "2026-10-01T10:44:33.279881+00:00",
+    "ownedProcessReadback": [
+      {
+        "pid": 30868,
+        "exitCode": 1,
+        "stdout": ""
+      },
+      {
+        "pid": 59957,
+        "exitCode": 1,
+        "stdout": ""
+      },
+      {
+        "pid": 60251,
+        "exitCode": 1,
+        "stdout": ""
+      }
+    ],
+    "ownedPortReadback": [
+      {
+        "port": 55459,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "port": 55461,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "port": 64771,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "port": 64772,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "temporaryRootReadback": [
+      {
+        "path": "/tmp/media_server_predev-1790847310-30845",
+        "exists": false,
+        "symlink": false
+      },
+      {
+        "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-xq2BSk",
+        "exists": false,
+        "symlink": false
+      }
+    ],
+    "mediaServerProcesses": [],
+    "defaultRecordingRootAbsent": true,
+    "sourceDiff": "",
+    "noProcessesKilled": true,
+    "noUserOrDefaultStorageRemoved": true
+  },
+  "preservation": {
+    "encoding": "lossless gzip for original JSON/log/Markdown/HTML; PNG retained byte-for-byte",
+    "mapping": "preservation-manifest.json",
+    "originalPaths": "each mapping entry identifies original logical path and its exact byte SHA-256; decompress the archive entry to read original bytes",
+    "priorSourceAndResultTimesUnchanged": true,
+    "rawDuplicatesRetainedUntilGitReadback": true,
+    "secretScanStatus": "PASS"
+  },
+  "boundary": "Script inventory correction completed. Standard acceptance stopped at unrelated Policy document wording validation. No public release action."
+}
