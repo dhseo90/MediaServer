@@ -1,0 +1,758 @@
+{
+  "schema": "media-server.release-prerequisite-comment-resume.v1",
+  "recordedAt": "2026-10-01T02:39:58.271860+00:00",
+  "actor": {
+    "kind": "AI assistant",
+    "role": "comment implementation and release operator",
+    "independentReviewer": false
+  },
+  "status": "blocked-by-direct-documentation-selftests-before-acceptance",
+  "source": {
+    "branch": "v4.1.1",
+    "testHead": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+    "testTree": "1d01723e33212363d3ed16d6baa4055747abc395",
+    "testWorktreeClean": false,
+    "testWorktreeChangedFiles": [
+      "scripts/internal/entry_baseline_report.mjs",
+      "scripts/internal/entry_baseline_report.test.mjs",
+      "scripts/internal/feature_manifest_refresh_boundary.test.mjs",
+      "scripts/internal/feature_manifest_validation.test.mjs",
+      "scripts/internal/v300_documentation_consumers.test.mjs",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "scripts/internal/v400_current_policy.mjs",
+      "scripts/internal/v400_current_policy.test.mjs",
+      "scripts/internal/verify_v190_entry_baseline_report.mjs",
+      "scripts/internal/verify_v210_entry_baseline.mjs",
+      "scripts/internal/verify_v220_entry_boundary.mjs",
+      "scripts/internal/verify_v230_entry_baseline.mjs",
+      "scripts/internal/verify_v400_evidence_ops_policy.mjs",
+      "scripts/internal/verify_v400_incident_os_policy.mjs",
+      "scripts/internal/verify_v400_local_ops_policy_freeze.mjs",
+      "scripts/internal/verify_v400_local_ops_stabilization.mjs",
+      "scripts/internal/verify_v400_release_readiness.mjs",
+      "scripts/internal/verify_v400_roadmap_contract.mjs",
+      "scripts/internal/verify_v400_user_review_gate.mjs",
+      "scripts/internal/verify_v400_verification_layer_reduction.mjs",
+      "scripts/internal/verify_v390_image_codec_application_boundary.mjs",
+      "scripts/internal/verify_v390_public_contract_interface_owner.mjs",
+      "scripts/internal/verify_v390_stable_contract_owner_realignment.mjs"
+    ],
+    "testTrackedDiffSha256": "dbe64056eeb16df422bbcf39c607e1651dd8757c843182ce4480570bb35a5ef8",
+    "commentCommit": "5c4bc1007a17df134198408a5ba00a42c239e934",
+    "commentCommitTree": "ac6e11096455802e36304c7e1dfa54258ac5ef1b",
+    "lastAcceptanceHead": "4434f463e3109dde43b8483ad605ef082d582e0a",
+    "newAcceptanceHead": null
+  },
+  "change": {
+    "files": 23,
+    "commentLines": 28,
+    "headers": 20,
+    "englishExplanationLines": 8,
+    "method": "Existing line comments changed in place; shebangs and all line counts retained. No license, marker, source string, fixture or policy changed.",
+    "validation": {
+      "parser": "Node bundled Acorn 8.15.0",
+      "sourceBase": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+      "files": 23,
+      "changedComments": 28,
+      "results": [
+        {
+          "file": "scripts/internal/entry_baseline_report.mjs",
+          "beforeSha256": "df70c7c6332b43830134161c5d7d99333527fc001d011690c39b2cf5569e5dff",
+          "afterSha256": "f85f6fc6f847a528b00c854c1cf53bea66a68de1eb99f1a7c651192359143e1f",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/entry_baseline_report.test.mjs",
+          "beforeSha256": "b3925a17f6af1f67a29de5e81df6c7b448a6e383e29f69e849f8ab18d1c09bac",
+          "afterSha256": "9dd17011b5d08c6e53eaa15c890fdce99582adaf810ae12c095b959a7c6caaef",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/feature_manifest_refresh_boundary.test.mjs",
+          "beforeSha256": "7b930cb6c65c331701e06475c61de8d302bb3a25f6b6bda5733eea6e1ea5ccd6",
+          "afterSha256": "4950cacf9ddbbd902b723fdfad17d68e72f49ceadba8a4ce2c8a8972a7b5d778",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/feature_manifest_validation.test.mjs",
+          "beforeSha256": "b2f5a5654339f0ad6d4d00e5f252d9c2360b5fa631de24ebff718e352fdd1ef5",
+          "afterSha256": "b6d529a475c8720a622fd3f2d5f765cbabb3d0dd21416da8a09c887d4060b407",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/v300_documentation_consumers.test.mjs",
+          "beforeSha256": "4f5ce7f121d1963fa87c7150fdb7c3b785414b45c56d32d5b0f5f2619f13ef78",
+          "afterSha256": "b5484df19f3947e97cd48bac4932b7d3e7239ff39aa4a21bb147e473f6a20ca5",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+          "beforeSha256": "e12bd4d2ff9dece8fa5398219e52aa660bf7dec9c12a880eecec06122e8296d9",
+          "afterSha256": "557504d40d123e4789064e331cd844c8ec1ef8f20547707a2b014b4c27e8fa5e",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/v400_current_policy.mjs",
+          "beforeSha256": "bbc042de1e365b0313628fe357c9088f0f31a27da5ce10b1097dd2dec2d14975",
+          "afterSha256": "2763ee1c8dbe25606cb115dc6a10cf09fcf7d1c8f14656a082c66c7b6b5d633b",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/v400_current_policy.test.mjs",
+          "beforeSha256": "609ab3148c0a4e5a9e3e8f83ef0d229e5b84d96f5ea509945a830357ea6c7513",
+          "afterSha256": "95baefc70c7b0451c1cc48b4bb658d2e18072a47c792e998c062f8b2f9f24ab4",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v190_entry_baseline_report.mjs",
+          "beforeSha256": "02403ce1a55056aa319a9de3a45c3a92fcc413aab4b93399e5db2126a7dcdc64",
+          "afterSha256": "bf59a62d505145b0e73ec9d5496859547776cf65b7ab7131c75c0e66bd66e9c2",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v210_entry_baseline.mjs",
+          "beforeSha256": "d600bcaecfc098fdd17135fad32c6dce4a5e2f263c41a85a5c9d3e726bc7db54",
+          "afterSha256": "4892c740c26d96242d50584a2c1268bdb1b7bf163331073736a03bf61c40ac3f",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v220_entry_boundary.mjs",
+          "beforeSha256": "d88f57b581a144bebe8e469dd6e2eb938e6452197d982d390a4c059d0518b21f",
+          "afterSha256": "29175a3afc9b263f3e520e181e17bfc8e90cd6004f0c20ca2e77a4690ff5a59b",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v230_entry_baseline.mjs",
+          "beforeSha256": "ddd0f4038643c4ccc67c73fbc40efb15bc1f69237bd912278a53cdc790affb5a",
+          "afterSha256": "a82797ba5b9401a9e6a10f9c234146e618a9eb3c7187f17f51b7869e45ebaafd",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_evidence_ops_policy.mjs",
+          "beforeSha256": "ade5ee6a731e308a9f85a73adc30e59eae16e1f311a5d8772af6cb6144f62e29",
+          "afterSha256": "6c59a886c47639f58e5782c1a40b6d19848bf651a74f999a8d937b1c4e7e801e",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_incident_os_policy.mjs",
+          "beforeSha256": "902dc44b64342834954c34b5109d6d9724f5b0168ac25c11106f0be8d4b6f38d",
+          "afterSha256": "a2fc90671832ed80d7705234188b7295b332609e65f6c0708f9c882aeceb12ad",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_local_ops_policy_freeze.mjs",
+          "beforeSha256": "b2c5e5a054c163484c494d41d8eb9358233e706fa0c01644435f5009bc65b35b",
+          "afterSha256": "dda694913f17652c05effadf4ec224e3b9934cc482b689c8079aaa70c0d1411f",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_local_ops_stabilization.mjs",
+          "beforeSha256": "ed0c31a9c08fa650fc50282fe72024ac7b27a5b74ee9c5e475a9fc96a3475299",
+          "afterSha256": "e603530afbec7c6fed4e5d721abbffef5c9067a5c2fededd325aa67312ea90eb",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_release_readiness.mjs",
+          "beforeSha256": "9c23e53714209dd20ea5a19d08691d398007d07e8f7714a13876e27727fca4e5",
+          "afterSha256": "510924a1d3db0a3d317598e9f616eef509a70e6f968f4268f08118cbe2629fc7",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_roadmap_contract.mjs",
+          "beforeSha256": "fd901122992c924e4a9d6fd5653adb1ca43efc8c2de33318a0c2df324ee6bc6e",
+          "afterSha256": "4920059f62457da7ed60057eeec322b7ad0157d112a2465b999969ee722de369",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_user_review_gate.mjs",
+          "beforeSha256": "a223ea8fba0b7fed27e9304374025aa1d464561c1f18e60ec213c8ae02c0d8e5",
+          "afterSha256": "218dd98978d56fdd41fd2fcf9299d4be0ca270de879ec33db1fa4e539172430f",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v400_verification_layer_reduction.mjs",
+          "beforeSha256": "027352c7b5d4457b1844fbc7bcfa2c679b94f092b441c50f28052e4bbe951656",
+          "afterSha256": "8e05e4f8ea02fa41470fa88c4dd2a463cb8f61203ca7010b1e95f0fef49858c8",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 1
+        },
+        {
+          "file": "scripts/internal/verify_v390_image_codec_application_boundary.mjs",
+          "beforeSha256": "532ece3f33ab1af758180f4c629989c81086b0f1db1bb758cb66a5972ec23af9",
+          "afterSha256": "7eaef91bbe14a863a206a2e91bbd608f23c42529c5d0345c2b5cceb4a68b9a31",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 2
+        },
+        {
+          "file": "scripts/internal/verify_v390_public_contract_interface_owner.mjs",
+          "beforeSha256": "e029db4bf2a17d3e7f8c429326b62611b93fcf8d06a37eaed8fbccc329cba38d",
+          "afterSha256": "cda66475b9cf69164ef5a15b6e5751681eed21f54516d5cae8605f96bd5621e3",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 3
+        },
+        {
+          "file": "scripts/internal/verify_v390_stable_contract_owner_realignment.mjs",
+          "beforeSha256": "17fa6ad2702d57eb986303a3fcef19ca986c02219c878c7fbb2db6c81964dfa3",
+          "afterSha256": "da47591d9dd30fa26439765eb2b17c65b061a3ae06f96e29ad4235bc1c1ef476",
+          "astEqual": true,
+          "tokenRawBytesEqual": true,
+          "lineCountUnchanged": true,
+          "syntaxExit": 0,
+          "changedCommentCount": 3
+        }
+      ]
+    }
+  },
+  "cheapChecks": [
+    {
+      "name": "code-comments",
+      "command": [
+        "./server.sh",
+        "verify-code-comments"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.2299783339985879,
+      "recordedAt": "2026-10-01T02:31:25.005343+00:00",
+      "stdout": "\n== Code comment policy summary ==\n- files: 1299\n- missing headers: 0\n- english-only comments: 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.012930041993968189,
+      "recordedAt": "2026-10-01T02:31:25.018362+00:00",
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "candidateAndImpact": {
+    "approvalBaseline": "current C3 files byte-identical to ad562b309033b9ef4d50b7501fe267da23cf6a92 and starting a24988c6",
+    "priorDigest": "702151e89124a785c9d0be0a1c4381b76fffbd43b1ef05d117321fb1446c4a6b",
+    "freshDigest": "702151e89124a785c9d0be0a1c4381b76fffbd43b1ef05d117321fb1446c4a6b",
+    "candidateGeneration": {
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-audit",
+        "--emit-candidate",
+        ".media_server.test/v411-comment-resume.r8_zkv41/candidate-initial.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 20.983094666997204,
+      "at": "2026-10-01T02:32:13.654826+00:00"
+    },
+    "candidatePath": ".media_server.test/v411-comment-resume.r8_zkv41/candidate-initial.json",
+    "candidateSha256": "1f0bd80b83dd6117ae6ee6d881cf85115e4324532c1ccffc05f3f6e11b3f00fe",
+    "candidateStorage": "ignored local preparation artifact; structurally identical to the existing Git-preserved canonical audit, not a new applied audit",
+    "resolved": 986,
+    "unresolved": 0,
+    "wholeCandidateStructuredEqual": true,
+    "serializationBytesEqual": false,
+    "changedSourceFlowIds": [],
+    "changedTrustBindingIds": [],
+    "changedLocatorIds": [],
+    "locatorEdits": 0,
+    "independentReviewRequiredIds": [],
+    "rawVerifierHashChangesAccountedFor": "23 source files have changed raw bytes, but none is a canonical verifier or a stored proof role among current 986 audit rows. No generic comment stripping or hash normalization was added. AST and exact token equality show their imports, dispatch references, conditions, assertions and data are unchanged.",
+    "directCommandMapping": [
+      {
+        "command": "verify-v190-entry-baseline",
+        "script": "verify_v190_entry_baseline_report.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v210-entry-baseline",
+        "script": "verify_v210_entry_baseline.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v220-entry-boundary",
+        "script": "verify_v220_entry_boundary.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v230-entry-baseline",
+        "script": "verify_v230_entry_baseline.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v390-image-codec-application-boundary",
+        "script": "verify_v390_image_codec_application_boundary.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v390-stable-contract-owner-realignment",
+        "script": "verify_v390_stable_contract_owner_realignment.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v390-public-contract-interface-owner",
+        "script": "verify_v390_public_contract_interface_owner.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-user-review-gate",
+        "script": "verify_v400_user_review_gate.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-verification-layer-reduction",
+        "script": "verify_v400_verification_layer_reduction.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-local-ops-policy-freeze",
+        "script": "verify_v400_local_ops_policy_freeze.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-incident-os-policy",
+        "script": "verify_v400_incident_os_policy.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-evidence-ops-policy",
+        "script": "verify_v400_evidence_ops_policy.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-local-ops-stabilization",
+        "script": "verify_v400_local_ops_stabilization.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-release-readiness",
+        "script": "verify_v400_release_readiness.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      },
+      {
+        "command": "verify-v400-roadmap-contract",
+        "script": "verify_v400_roadmap_contract.mjs",
+        "definitionIds": [],
+        "manifestIds": []
+      }
+    ],
+    "indirectReferences": {
+      "scripts/internal/verify_script_inventory.mjs": [
+        "entry_baseline_report.mjs",
+        "verify_v190_entry_baseline_report.mjs"
+      ],
+      "scripts/internal/verify_v390_structure_stabilization_execution.mjs": [
+        "verify-v390-image-codec-application-boundary",
+        "verify-v390-public-contract-interface-owner",
+        "verify-v390-stable-contract-owner-realignment"
+      ]
+    },
+    "indirectConsumerIds": [
+      {
+        "command": "verify-script-inventory",
+        "definitionIds": [
+          "OPS-047",
+          "OPS-163",
+          "OPS-164",
+          "OPS-166",
+          "OPS-167",
+          "OPS-170",
+          "OPS-171",
+          "OPS-172",
+          "OPS-173",
+          "OPS-174",
+          "OPS-175",
+          "OPS-176",
+          "OPS-177",
+          "OPS-178",
+          "OPS-184"
+        ],
+        "canonicalVerifierIds": []
+      },
+      {
+        "command": "verify-v390-structure-stabilization-execution",
+        "definitionIds": [],
+        "canonicalVerifierIds": []
+      }
+    ],
+    "indirectBoundary": "verify-script-inventory references entry CLI name/option handling; its 15 companion-defined IDs retain unchanged code, strings and existing trust. structure execution lists the three changed boundary commands in historical execution metadata. Such textual references were distinguished from canonical proof/hash drift.",
+    "independentReviewerUsed": false,
+    "reasonNoReviewOrApply": "Existing migration comparison requires 0 independent IDs, all 986 candidate rows including full trust bindings are structurally equal. No locator/context update or approval rebinding is needed. Producer and independent decision creation were not run. No previous decisions were copied as new approval.",
+    "migrationRun": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "--baseline",
+        ".media_server.test/v411-comment-resume.r8_zkv41/prior-audit.json",
+        "--fresh",
+        ".media_server.test/v411-comment-resume.r8_zkv41/candidate-initial.json",
+        "--report",
+        ".media_server.test/v411-comment-resume.r8_zkv41/migration-report.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.4263764579955023,
+      "at": "2026-10-01T02:34:20.572834+00:00"
+    },
+    "migrationStdout": "== V390 REVIEW4 semantic migration contract ==\n- positive/negative bindings: 9\n- trust-only migration bindings: 6\n- semantic/native transaction bindings: 2\n- producer input-path bindings: 5\n- producer entrypoint negative smoke: 1\n- producer reviewedOn contract: 1\n- producer snapshot/trust preflight: 6\n- rows: 986\n- carryForwardEligible: 986\n- independentReviewRequired: 0\n- requiredIds: none\n- report: /Users/dhseo/Workspace/mediaServer/.media_server.test/v411-comment-resume.r8_zkv41/migration-report.json\n- evidence: not-written\n- failures: 0\n",
+    "migrationStderr": "",
+    "strictEquivalentCount": 986
+  },
+  "directSelftests": {
+    "command": [
+      "node",
+      "--test",
+      "--test-concurrency=1",
+      "scripts/internal/entry_baseline_report.test.mjs",
+      "scripts/internal/feature_manifest_refresh_boundary.test.mjs",
+      "scripts/internal/feature_manifest_validation.test.mjs",
+      "scripts/internal/v300_documentation_consumers.test.mjs",
+      "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "scripts/internal/v400_current_policy.test.mjs"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 122.83695504200296,
+    "at": "2026-10-01T02:34:48.110344+00:00",
+    "runnerCounts": {
+      "tests": 886,
+      "pass": 729,
+      "fail": 157,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "countBoundary": "Node test-runner totals include its hierarchy; these are not 157 distinct product defects. The invoked fixed suite completed with failures; no rerun or later acceptance was started.",
+    "stdoutArtifact": "direct-selftests.stdout.log.gz",
+    "stderr": "",
+    "failingTestLocations": [
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:101:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:102:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:103:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:108:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:111:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:112:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:113:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:114:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:125:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:133:17",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:134:17",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:136:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:137:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:138:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:144:19",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:254:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:263:17",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:264:17",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:266:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:267:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:268:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:522:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:530:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:531:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:532:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:534:44",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:57:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:663:15",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:66:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:69:13",
+      "test at scripts/internal/v310_v320_documentation_consumers.test.mjs:91:13"
+    ]
+  },
+  "findings": [
+    {
+      "id": "COMMENT-RESUME-001",
+      "kind": "existing fixture input-processing failure",
+      "firstFailure": "DOC-TRUTH 01 종료 기록·고정 제목 없이 현행 문서",
+      "file": "scripts/internal/v310_v320_documentation_consumers.test.mjs",
+      "line": 586,
+      "consumer": "scripts/internal/verify_v391_documentation_truth.mjs:63",
+      "expected": "normal readiness-only input retains one release-metadata block and verifier exits 0",
+      "observed": "fixture replaces headings then truncates release-policy before the second heading, removing the current metadata section; verifier exits 1: release-metadata 블록은 정확히 하나여야 함",
+      "directReadOnlyObservation": {
+        "currentMetadataBlocks": 1,
+        "afterExistingFixtureTransformBlocks": 0
+      },
+      "scopeDecision": "The same executable fixture logic existed before this comment-only change. Repair requires changing input-processing code; not permitted under the comments/locator-only scope."
+    },
+    {
+      "id": "COMMENT-RESUME-002",
+      "kind": "existing manual UI definition connection mismatch",
+      "exampleFile": "scripts/internal/verify_v340_ops_continuity_drill_workspace_ui.mjs",
+      "exampleLine": 163,
+      "ids": [
+        "UI-075",
+        "SAFE-129",
+        "OPS-096"
+      ],
+      "input": "docs/manual-ui-checklist.md",
+      "expectedSnippet": "| V340 Step 6 Ops Continuity Drill Workspace UI | `UI-075`, `SAFE-129`, `OPS-096` | `/ops/sources` |",
+      "observed": "The unchanged verifier requires historical exact checklist wording absent from the current input; the normal own-test case exits 1. Related missing UI definitions/phrases are preserved in full stdout.",
+      "scopeDecision": "Needs separate assessment of current definition/consumer linking; no required condition was removed, no old document restored, and no expectation changed."
+    }
+  ],
+  "initialFailure": {
+    "preservationCommit": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-handoff.json",
+        "bytes": 7673,
+        "sha256": "7a75baf2085d034a173624a60e3e5acf0933b11815fffe6d821d5c2d7af0ad1c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-handoff.md",
+        "bytes": 4434,
+        "sha256": "d3f8836886addd812de75cf382ece6c7de4b36b5d6cdec50d4a29a4f4e672175"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+        "bytes": 10481,
+        "sha256": "a66d52b2227a10163a832161ed1ecf51f9fadac58fbc6512022fd8f8c98509be"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+        "bytes": 6187,
+        "sha256": "0a5423b01d1687d66e08c12d5113b6bb6995a48271b03c89922f02abcfda177c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/invocation.json",
+        "bytes": 348,
+        "sha256": "b4afb4d36d1b23d65e0ae1e1975f96e899e8d9069c115b6d09cc0c7437920c68"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+        "bytes": 25703,
+        "sha256": "c5e101e8feaf0ada96c6d8c57e936dd094737fa466674fd3d0914f966bd71789"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+        "bytes": 21030,
+        "sha256": "47bf1356edae60a3bff4fa906b42440000a47372aa6fc123a7126f146457c58b"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/report.md",
+        "bytes": 10752,
+        "sha256": "2dceb8e7c350a335679b97ca35362cd8b32fad9eb5663f6f5edde4816de5d905"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/build.log",
+        "bytes": 325,
+        "sha256": "a7107618d5f869b31dfe494365e9bc52210ca3f07ea5980962f2a53d615243b0"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/cleanup.log",
+        "bytes": 851,
+        "sha256": "042f5a908dde8c97cf97626c2e1fa263468a79783e67a1c745b7bf2691fa459a"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/feature-gates-01-code-comments.log",
+        "bytes": 2514,
+        "sha256": "e429c431252b6308f275e90a10ee53e0a15fb6b34a9515a28b39cd3a088812d1"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/final-integrity.log",
+        "bytes": 1424,
+        "sha256": "bceb2b3198720cb8b2c47de6e7b6d6a35049f2b94b5443a922bd3294a4eeef4f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/preflight.log",
+        "bytes": 869,
+        "sha256": "60a74102b720c8b867034e02b087a04d3913a476a4104f9aaf1a87b49ce4eebb"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/report.log",
+        "bytes": 246,
+        "sha256": "cc0c7e4d9fcd3f01a04be3a00d40810c9ad393f80c3442f4d267663abab85fa4"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001020926-77243/ui-server-cleanup.log",
+        "bytes": 315,
+        "sha256": "95693ff94c15a468e0165402d193f566bc102721d01e19ad0c1eb4b36f45850f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/summary.json",
+        "bytes": 51186,
+        "sha256": "5beb00689d69e55353cc421fb6238d15052396a48c752963c0adb398b3aa115d"
+      },
+      {
+        "path": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/test-run-summary.json",
+        "bytes": 14985,
+        "sha256": "f450c456c214c4c33115b04ebfca193be89c1e3df89856655505351012d323f2"
+      }
+    ],
+    "byteReadback": "PASS",
+    "fixedOutputRootUntouched": true,
+    "oldSummaryNotReadAsNewRun": true
+  },
+  "cleanup": {
+    "testProcessExited": true,
+    "exitCode": 1,
+    "serversStarted": false,
+    "browsersStarted": false,
+    "portsAcquired": false,
+    "fixtureRootsChecked": [
+      "/private/tmp",
+      "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T"
+    ],
+    "fixturePrefixesChecked": [
+      "media-server-entry-report-test-",
+      "media-server-manifest-write-boundary-",
+      "media-server-manifest-validation-",
+      "media-server-v400-policy-",
+      "v390-review4-semantic-migration-",
+      "v390-review4-fixture-transaction-",
+      "v390-review4-producer-input-path-",
+      "v390-review4-reviewed-on-"
+    ],
+    "remainingMatchingFixtureRoots": [],
+    "ignoredPreparationRootRetained": ".media_server.test/v411-comment-resume.r8_zkv41",
+    "fixedAcceptanceOutputRetained": "No acceptance retry occurred; original 18 files remain unchanged in the fixed root."
+  },
+  "unchangedProtectedInputs": {
+    "test/fixtures/v390_review4_feature_semantic_source_audit.json": "bdb19f55e2876ece647493e5ad66c1beeba9b6e56147aa5ee59e42d7e6ba9760",
+    "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "f87ad77508444174b97e12f9caa216bb5fc5f05a40f2bf6e5d4578b79034d5c7",
+    "test/fixtures/project_feature_implementation_evidence.json": "55bd58ca3a9c4cc530de0f3ea20200224308fc9bd9366c46e534adc7571b7f9e",
+    "test/fixtures/v390_ui_native_exact_cases.json": "81351c7ceed498fd9965a3b6d6ba2e978140e5a31d33b441c91edb70257f04af",
+    "config/code_comment_policy.json": "00acbb4747b86547afaf2f8c209a4c0d5d09d57dee3533951e23370f7f17ecff",
+    "scripts/internal/verify_code_comments.mjs": "7f00a6deb738c5d8fdc77095ceacca1d192c9c6427bdf3682b9d005230c0ac2b"
+  },
+  "notRun": [
+    "further boundary verifier commands after selftest failure",
+    "new independent decisions (none required by actual delta)",
+    "approval producer (no changed binding)",
+    "acceptance retry",
+    "fresh product build",
+    "actual UI",
+    "30-minute",
+    "120-minute",
+    "recording supplemental runtime",
+    "first acceptance output cleanup",
+    "push",
+    "PR/CI/merge",
+    "signed tag",
+    "GitHub Release/published verification"
+  ],
+  "artifacts": [
+    {
+      "path": "direct-selftests.stdout.log.gz",
+      "bytes": 22340,
+      "sha256": "5f439ed3732bb988c0f0cd7a7a2a8699bd14a7f44d3b0df17a6c3946900cae52",
+      "originalPath": ".media_server.test/v411-comment-resume.r8_zkv41/direct-selftests.stdout.log",
+      "originalBytes": 371772,
+      "originalSha256": "401c0973b1bdac1ae029a5b1c6b0ee1b7da09df8daa353737add45d32f023743",
+      "encoding": "gzip; exact original bytes verified"
+    },
+    {
+      "path": "migration-report.json.gz",
+      "bytes": 92274,
+      "sha256": "23d83cfd46297ab5cc77bf60d42fe621f308e8f17352de70f547e8f1e3bc22b4",
+      "originalPath": ".media_server.test/v411-comment-resume.r8_zkv41/migration-report.json",
+      "originalBytes": 521849,
+      "originalSha256": "70fac169414519d966431959d9485cd8c1827c3dd920b6fae8d28ea8dc796919",
+      "encoding": "gzip; exact original bytes verified"
+    }
+  ],
+  "resumeRequired": "Authorize a bounded repair of the identified fixture truncation and current manual-UI definition consumer mismatch before retrying direct checks and acceptance. Do not broaden this comments-only task or report 4/4 complete."
+}
