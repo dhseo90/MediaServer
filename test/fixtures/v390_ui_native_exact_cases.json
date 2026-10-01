@@ -5,9 +5,9 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "c87514bf554db40dce0626dcb397280a9090193779ab314660df375882fd20d4",
+    "implementationProjectionSha256": "96a3adaad48cf91c57fddac36c552d292efcb3e80f83895a45f23613489bd3c0",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "1d1c0dd394ba8bcdd4a9b0ae1f289bdde8a88b463c630cdbc649e12ce418e27e",
+    "runtimeOracleCatalogSha256": "4b75e3f1a5c894bc45f3eabe8494f4712ab04e5b6a2a328821c42e6d1396f72d",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -69963,7 +69963,7 @@
             "setupId": "UI-108:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "e87c69b2d53951ea97ee47b729bff8e63333d19a2052c24c7bb6ff7d3c43fdf8",
+            "semanticCallChainSha256": "57738bdb98f051af6b4870e32e2adb4fe5f60bb8383db9b70b71f1bcb39222ef",
             "persistedMutation": false,
             "fixtureId": "ui-108-review4-fixture",
             "beforeSnapshotRef": null
@@ -70045,7 +70045,7 @@
             "contextSha256": "d275c44f15a806046838fa1aedbf19113ec504ec03bee28daf218fc488ad5dc1"
           },
           "verifierCommand": "verify-v390-onvif-credential-provider-status",
-          "assertedSemanticDigest": "e87c69b2d53951ea97ee47b729bff8e63333d19a2052c24c7bb6ff7d3c43fdf8"
+          "assertedSemanticDigest": "57738bdb98f051af6b4870e32e2adb4fe5f60bb8383db9b70b71f1bcb39222ef"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -70057,7 +70057,7 @@
             "text": "`/ops/sources` ONVIF 도구 영역이 `media-server.ops.v390-onvif-credential-provider-status.v1` 기반 primary provider `none`, fallback `in-memory-fixture`, persistent store deferred, `referenceValueExposed=false`, `credentialMaterialExposed=false`를 표시하고 credential reference value나 secret material을 노출하지 않음",
             "sha256": "6726c993f0bbba982d16c7ac3968a7f46981787bf06a9968eb8092e88b7825f2"
           },
-          "specSha256": "3599925659cd9b781a96ff30d478424b5ff80dfe2cd0ca59672bc06c5d6f16e9",
+          "specSha256": "8ed73eeb8a129212a5d4ca2cba67a599705a4b2b46c388b9cf52f70420245c37",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -70312,7 +70312,7 @@
             "cleanupId": "UI-108:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "e87c69b2d53951ea97ee47b729bff8e63333d19a2052c24c7bb6ff7d3c43fdf8"
+            "semanticCallChainSha256": "57738bdb98f051af6b4870e32e2adb4fe5f60bb8383db9b70b71f1bcb39222ef"
           }
         ]
       },
@@ -71360,7 +71360,7 @@
             "setupId": "UI-110:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/rules",
-            "semanticCallChainSha256": "898c0bf38246f3260200d8afc5aed2d4a8984bdd4c285ab5c97cfdaf770eca6d",
+            "semanticCallChainSha256": "7c90730e34f010095b53ed9930980be3837c9272b3ab2497d286f66e2098a0d9",
             "persistedMutation": false,
             "fixtureId": "ui-110-review4-fixture",
             "beforeSnapshotRef": null
@@ -71434,7 +71434,7 @@
             "contextSha256": "c80435c03f0aaf3b9e8b3c538b6ff66a991bd462f8bd77610494354948c86c54"
           },
           "verifierCommand": "verify-v390-vlm-rule-suggestion-draft-bridge",
-          "assertedSemanticDigest": "898c0bf38246f3260200d8afc5aed2d4a8984bdd4c285ab5c97cfdaf770eca6d"
+          "assertedSemanticDigest": "7c90730e34f010095b53ed9930980be3837c9272b3ab2497d286f66e2098a0d9"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -71446,7 +71446,7 @@
             "text": "`/ops/rules` VLM Rule draft 영역이 `media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1` 기반 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시하고 자동 저장/자동 적용 완료처럼 표시하지 않음",
             "sha256": "b636741f91a691f6e0ef4fcfdb0b5545da422a9542f6fad092196eb7eebe7635"
           },
-          "specSha256": "a586229639305ea2969d0edaa9eb114eba5c4afd2258ef1a3287736be14887aa",
+          "specSha256": "d47fb8b0de2b413d9cff809f57a92dbe7716f97ca8acf176ab8a681de1826c95",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -71708,7 +71708,7 @@
             "cleanupId": "UI-110:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "898c0bf38246f3260200d8afc5aed2d4a8984bdd4c285ab5c97cfdaf770eca6d"
+            "semanticCallChainSha256": "7c90730e34f010095b53ed9930980be3837c9272b3ab2497d286f66e2098a0d9"
           }
         ]
       },
@@ -72621,7 +72621,7 @@
             "setupId": "UI-112:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "eefc4f1c6f67770969c2c59f2b690a63ce7bfd9ca6fb2c5d99913ff4e41c0725",
+            "semanticCallChainSha256": "d47d34686b7acd504e7c6669d526c63560c8e49a6ab606c8d96532bb3f3d03eb",
             "persistedMutation": false,
             "fixtureId": "ui-112-review4-fixture",
             "beforeSnapshotRef": null
@@ -72703,7 +72703,7 @@
             "contextSha256": "12ca5768ac2b76cf0e84fae1eebd0b06c8cb0294c750e0e2fa99c7cec9508d74"
           },
           "verifierCommand": "verify-v390-backup-recovery-handoff-validation",
-          "assertedSemanticDigest": "eefc4f1c6f67770969c2c59f2b690a63ce7bfd9ca6fb2c5d99913ff4e41c0725"
+          "assertedSemanticDigest": "d47d34686b7acd504e7c6669d526c63560c8e49a6ab606c8d96532bb3f3d03eb"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -72715,7 +72715,7 @@
             "text": "`/ops/sources` Backup Handoff 영역이 `media-server.ops.v390-staging-restore-validation-handoff.v1` 기반 staging restore checklist와 result artifact contract, `resultArtifactPersistedByRoute=false`, `productionRestorePerformed=false`, `automaticRecoveryPerformed=false`를 표시하고 restore/cutover 완료처럼 표시하지 않음",
             "sha256": "50f09d3c30c86fb035bd6a38eadf4ae2884f9aab32ce8a3b9539c53659b6418a"
           },
-          "specSha256": "cea2e3122b30ab53ccf6920cca149bb37704e526538935da656bdfb102b2d9b7",
+          "specSha256": "41d872ee1865503b2def4a725b229e750c6c0a9ddcf6a35c45d5cbe50d0fc03c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -72970,7 +72970,7 @@
             "cleanupId": "UI-112:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "eefc4f1c6f67770969c2c59f2b690a63ce7bfd9ca6fb2c5d99913ff4e41c0725"
+            "semanticCallChainSha256": "d47d34686b7acd504e7c6669d526c63560c8e49a6ab606c8d96532bb3f3d03eb"
           }
         ]
       },
@@ -73263,7 +73263,7 @@
             "setupId": "UI-113:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/dashboard",
-            "semanticCallChainSha256": "b689d3ffe23c9af04da2c0d37aa841e787b27e966961014df3241bad6f5d13e7",
+            "semanticCallChainSha256": "a2da14965d1779c35343ea64fab554f567b8832456fdc5a2917c950685e2c29a",
             "persistedMutation": false,
             "fixtureId": "ui-113-review4-fixture",
             "beforeSnapshotRef": null
@@ -73337,7 +73337,7 @@
             "contextSha256": "36834c29169d0ac9f37526a55bf8e611e7b0d7c015777d3aa0ee81080f6b1123"
           },
           "verifierCommand": "verify-v390-action-execution-deferral-decision",
-          "assertedSemanticDigest": "b689d3ffe23c9af04da2c0d37aa841e787b27e966961014df3241bad6f5d13e7"
+          "assertedSemanticDigest": "a2da14965d1779c35343ea64fab554f567b8832456fdc5a2917c950685e2c29a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -73349,7 +73349,7 @@
             "text": "`/ops/dashboard` Action Control Workspace 인근이 `media-server.ops.v390-action-execution-deferral-decision.v1` 기반 `defer-all-action-writes`, `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시하고 action 실행 버튼이나 완료처럼 표시하지 않음",
             "sha256": "2a8a105ab751987082fe13dbb211342d7eefdeba0c98a0f3e54e62dbae2aef1b"
           },
-          "specSha256": "3d8b9ddb4455896b325ff2f75b3a870984ce86e446ff52ec2256957e5d34b5a7",
+          "specSha256": "cdd2db5075f293b36731c09423e9185920b73d33b571a339dc7fd1d16c45d7ea",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -73611,7 +73611,7 @@
             "cleanupId": "UI-113:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "b689d3ffe23c9af04da2c0d37aa841e787b27e966961014df3241bad6f5d13e7"
+            "semanticCallChainSha256": "a2da14965d1779c35343ea64fab554f567b8832456fdc5a2917c950685e2c29a"
           }
         ]
       },
@@ -73904,7 +73904,7 @@
             "setupId": "UI-114:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/dashboard",
-            "semanticCallChainSha256": "db2199d5d0da0e92ac1a2187241d76ca00ca91e34a7a35dfd8924a16b28732a7",
+            "semanticCallChainSha256": "b35cfad33ecd335cc6bd349ddd73ffc10e5fcc245853e64fea2569f650ee1814",
             "persistedMutation": false,
             "fixtureId": "ui-114-review4-fixture",
             "beforeSnapshotRef": null
@@ -73978,7 +73978,7 @@
             "contextSha256": "9376732176c8e8a71f2d22638a8f8ec7a01f11d6729d549ed5f45c61a8eceff3"
           },
           "verifierCommand": "verify-v390-conditional-field-ai-decisions",
-          "assertedSemanticDigest": "db2199d5d0da0e92ac1a2187241d76ca00ca91e34a7a35dfd8924a16b28732a7"
+          "assertedSemanticDigest": "b35cfad33ecd335cc6bd349ddd73ffc10e5fcc245853e64fea2569f650ee1814"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -73990,7 +73990,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v390-field-evidence-bridge-decision.v1` 기반 `approval-only-minimal-field-evidence-bridge`, `fieldSmokeExecuted=false`, `endpointProbePerformed=false`, `credentialProbePerformed=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 표시하고 field 실행 버튼이나 release PASS처럼 표시하지 않음",
             "sha256": "10ffb20d9a07f176831358e80ed465ec9d35febc08797b79cbd4a4cd6a1d87f9"
           },
-          "specSha256": "8c2a744a97dd8113190cd5409c3d05581805e7f9b55b4951074c5faf9bb0dc5b",
+          "specSha256": "a036b3eb60b8a596cf2d9eb21c9af826f9365457c403e01a85a176bbd690107f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -74252,7 +74252,7 @@
             "cleanupId": "UI-114:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "db2199d5d0da0e92ac1a2187241d76ca00ca91e34a7a35dfd8924a16b28732a7"
+            "semanticCallChainSha256": "b35cfad33ecd335cc6bd349ddd73ffc10e5fcc245853e64fea2569f650ee1814"
           }
         ]
       },
@@ -74538,7 +74538,7 @@
             "setupId": "UI-115:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/dashboard",
-            "semanticCallChainSha256": "643cfd5c126b9f82da44e70a96e0ddd80b23fbc9f794d9b3da667048832afc3b",
+            "semanticCallChainSha256": "bd33312a45ffb6b04b20fc4af4a2ebec191e06840e8a0f3f897d0bbf91b8416c",
             "persistedMutation": false,
             "fixtureId": "ui-115-review4-fixture",
             "beforeSnapshotRef": null
@@ -74620,7 +74620,7 @@
             "contextSha256": "02ee0f4c7c454d3a07088a0ff149c343a7d7928bcdd1ce84f4b2a14ca7741567"
           },
           "verifierCommand": "verify-v390-conditional-field-ai-decisions",
-          "assertedSemanticDigest": "643cfd5c126b9f82da44e70a96e0ddd80b23fbc9f794d9b3da667048832afc3b"
+          "assertedSemanticDigest": "bd33312a45ffb6b04b20fc4af4a2ebec191e06840e8a0f3f897d0bbf91b8416c"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -74632,7 +74632,7 @@
             "text": "`/ops/dashboard`의 `renderV390ReidAssistDecision`이 regular file, SHA format/read/match, trim provenance, OpenSSL·ONNX availability, safe reason code, preflight/session-load 분리와 no-op fallback을 표시하고 raw model material 또는 Re-ID 실행 완료처럼 표시하지 않음",
             "sha256": "8fd96d2eb748257b2e3f501abc59e2b965a3e799c6a9c55ea89c6bb658ef3937"
           },
-          "specSha256": "0b90546028bc9f4b4e0941b2d7935c467fc4630bfefa9f51fa5d8b94207338fb",
+          "specSha256": "e506dfd6f2b0769e33e0fe402f938549ff0c4bd641c89d5dc042673706478a20",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -74887,7 +74887,7 @@
             "cleanupId": "UI-115:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "643cfd5c126b9f82da44e70a96e0ddd80b23fbc9f794d9b3da667048832afc3b"
+            "semanticCallChainSha256": "bd33312a45ffb6b04b20fc4af4a2ebec191e06840e8a0f3f897d0bbf91b8416c"
           }
         ]
       },
@@ -200365,7 +200365,7 @@
             "setupId": "RULE-111:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/rules",
-            "semanticCallChainSha256": "0816e7b1f2e817efe83e366061e86caef2a9df6c1f7c917c7a769ef230e7c12c",
+            "semanticCallChainSha256": "235709760709aa0df53dd98fd97c1922eeb10e9ffe89dd3a8f981d93e28e66fb",
             "persistedMutation": false,
             "fixtureId": "3920111",
             "beforeSnapshotRef": null
@@ -200442,7 +200442,7 @@
             "contextSha256": "1d670f9305a3c92f4153d0bc7c103f5cfc270a456ddca4f7d71a21588f02ba53"
           },
           "verifierCommand": "verify-v390-vlm-rule-suggestion-draft-bridge",
-          "assertedSemanticDigest": "0816e7b1f2e817efe83e366061e86caef2a9df6c1f7c917c7a769ef230e7c12c"
+          "assertedSemanticDigest": "235709760709aa0df53dd98fd97c1922eeb10e9ffe89dd3a8f981d93e28e66fb"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -200454,7 +200454,7 @@
             "text": "`verify-v390-vlm-rule-suggestion-draft-bridge`와 `verify-vlm-rule-suggestion-draft-workflow`가 incident review provenance와 sidecar rule suggestion 후보를 `/ops/rules` 이벤트 템플릿 draft로만 연결하고 기존 저장 버튼 전 Rule/Profile registry write, auto-apply, provider/runtime call, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음을 확인",
             "sha256": "20d3c7f35cda112aec423f262e79bd24cc678d5f4b7510774e7dd10dfe9adcd9"
           },
-          "specSha256": "874c28d72fe46e8bd6769a3f3acf09e7dcc242d12acb22914f08c118f51ab696",
+          "specSha256": "5dabad7a93c3b28e70d4d43152b63bd28d62aa13ba10e9c4eaf2b4d18f37caba",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -200958,7 +200958,7 @@
             "cleanupId": "RULE-111:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "0816e7b1f2e817efe83e366061e86caef2a9df6c1f7c917c7a769ef230e7c12c"
+            "semanticCallChainSha256": "235709760709aa0df53dd98fd97c1922eeb10e9ffe89dd3a8f981d93e28e66fb"
           }
         ]
       },
