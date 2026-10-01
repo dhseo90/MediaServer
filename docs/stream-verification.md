@@ -71,6 +71,128 @@ UI 정의·릴리즈 metadata·UI 증거 정책 누락/변조는 실패해야 �
 `./server.sh verify-script-inventory`는 검증 스크립트의 역할 분류와 `server.sh` 실행 연결을 확인한다.
 이 검사도 등록된 개별 명령의 제품·UI·장시간 실행 결과를 대신하지 않는다.
 
+### 독립 도구와 자체검사의 선택 실행
+
+스크립트 역할 분류는 현재 코드·사용 안내를 사용합니다. `docs/release-artifacts/`,
+`docs/archive/`와 `.log` 실행 기록은 등록 근거에서 제외합니다. 과거 FAIL 로그를 보존해도
+미등록 도구가 등록된 것으로 바뀌지 않으며, 로그를 정리해도 정상 연결이 유지되어야 합니다.
+분류기 자체검사는 `node --test scripts/internal/script_inventory.test.mjs`입니다.
+SI-01~07은 정상 command/import/자체검사/수동 도구, 미등록·끊어진 연결·잘못된 dispatch,
+로그의 전체 경로/basename 참조 거부와 로그 포함/제외 시 같은 판정을 확인합니다.
+실제 스크립트를 모두 실행하는 검사가 아니며 제품·UI·장시간 PASS를 대신하지 않습니다.
+
+아래 명령은 저장소 루트에서 관련 변경에 맞춰 **하나씩 선택**합니다. 파일명 glob으로 모두
+실행하거나 acceptance의 필수 목록에 추가하지 않습니다. 자체검사도 native compiler·SQLite·
+소유 loopback fixture 또는 보존 capture를 사용할 수 있으므로 해당 파일의 입력·정리 조건을
+먼저 확인합니다. 필요한 fixture나 빌드가 없으면 준비 실패이며 새 PASS를 추정하지 않습니다.
+
+| 용도 | 독립 실행 명령 |
+| --- | --- |
+| 격리 파일과 자식 프로세스로 코덱 진단의 안전한 추출·기록 경계를 검증한다. | `python3 scripts/internal/codec_probe_diagnostics_test.py` |
+| LP26-O10의 규모·독립계수·회전 oracle 경계. 실제 부하 테스트가 아니다. | `node --test scripts/internal/recording_accumulation_plan.test.mjs` |
+| catalog 비교의 선택 단기 진단 | `node scripts/internal/recording_catalog_comparison_run.mjs selftest <새-run-id>` |
+| FC01 임시 계측만 수행한다. 제품 source/저장 계약과 최적화 flags는 변경하지 않는다. | `bash scripts/internal/recording_catalog_cost_probe_run.sh <새-run-id>` |
+| 녹화 완료 추적의 활성화 조건·식별자 해시·안전한 출력 판정을 검증한다. | `node --test scripts/internal/recording_completion_trace.test.mjs` |
+| 현행 녹화 보관소 복제 진단의 증거 정합성·완전성·원본 불변을 검증한다. | `node --test scripts/internal/recording_current_archive_probe.test.mjs` |
+| LP26-O07 생성기 비민감 결과 분류 자체검사. 생성기 실제 실행/장시간 PASS가 아니다. | `node --test scripts/internal/recording_current_fixture_generation.test.mjs` |
+| 현행 녹화 HTTP 관측의 시간 계측·실패 유지·비밀 비노출을 검증한다. | `node --test scripts/internal/recording_current_http_diagnostics.test.mjs` |
+| 현행 녹화 다섯 단계 통합의 순서·실제 결과 결속·실패와 정리 판정을 검증한다. | `node --test scripts/internal/recording_current_integration.test.mjs` |
+| 지연 관측과 요청 완전성 판정의 경계를 구분한다. | `node --test scripts/internal/recording_current_latency.test.mjs` |
+| 격리 SQLite로 lifecycle hold 관측 경로를 검증한다. 실제 HTTP/UI 검사는 아니다. | `node --test scripts/internal/recording_current_lifecycle_cache.test.mjs` |
+| LP26-O09 관측 간격의 결정적 경계·실패 자원 보존 검증. | `node --test scripts/internal/recording_current_longrun_diagnostics.test.mjs` |
+| 녹화 타임라인 페이지 수집과 독립 완료 관측의 검증·오류 전파 경계를 검증한다. | `node --test scripts/internal/recording_current_observation.test.mjs` |
+| LP26-O06 격리 root 용량 진단 자체검사. 제품/장시간 PASS가 아니다. | `node --test scripts/internal/recording_current_root_storage.test.mjs` |
+| 현행 녹화 상태와 중첩 원본 요약의 정확성·미상 분리·비밀 비노출을 검증한다. | `node --test scripts/internal/recording_current_state_diagnostics.test.mjs` |
+| 녹화 실패 관측의 고정 오류 분류·출력 제한·민감 원문 비노출을 검증한다. | `node --test scripts/internal/recording_failure_capture.test.mjs` |
+| 보존 capture의 sample·시간 경계 자체검사 | `node --test scripts/internal/recording_forward_probe_verify.test.cjs` |
+| 인증 검증 도우미의 입력·쿠키·가림 경계 검사. | `node --test scripts/internal/recording_foundation_auth_helpers.test.mjs` |
+| 녹화 관측기의 집계·자식 종료·오류 경계 검사. | `node --test scripts/internal/recording_foundation_observer.test.mjs` |
+| 초기 소스 집합과 계정별 허용 범위 대조 검사. | `node --test scripts/internal/recording_foundation_source_scope.test.mjs` |
+| 통합 검증 실행 순서와 실패 전파 검사. | `node --test scripts/internal/recording_foundation_suite.test.mjs` |
+| 녹화 세대 규모 probe의 결과와 경계 조건을 단위 검증한다. | `node --test scripts/internal/recording_generation_scale.test.mjs` |
+| 녹화 원장 증분 판독의 경계와 오류 검사. | `node --test scripts/internal/recording_journal_reader.test.mjs` |
+| 녹화 지연 추적 수집의 집계 정확성과 제한·오류 판정을 검증한다. | `node --test scripts/internal/recording_latency_trace.test.mjs` |
+| 실제 대기/서버 실행 없이 관측 시작간격의 독립 시간 oracle 검사. | `node --test scripts/internal/recording_longrun_cadence.test.mjs` |
+| 프로세스별 자원 관측 요약의 입력 및 분리 계약 검사. | `node --test scripts/internal/recording_longrun_summary.test.mjs` |
+| 녹화 검사 프로세스의 정상 종료·강제 종료·포트 정리 판정을 검증한다. | `node --test scripts/internal/recording_process_cleanup.test.mjs` |
+| 녹화 계측의 컴파일러·실행 메모리 분리와 단계별 상한 판정을 검증한다. | `node --test scripts/internal/recording_process_memory_probe.test.mjs` |
+| 별도 제어 프로세스를 이용한 자원 계측 검사. | `node --test scripts/internal/recording_process_metrics.test.mjs` |
+| 녹화 선택 추적의 안전한 행 수집·입력 상한·시도 순서 판정을 검증한다. | `node --test scripts/internal/recording_selection_trace.test.mjs` |
+| 녹화 UI acceptance의 CLI, 31행 manifest, redaction, artifact containment helper를 검증한다. | `node --test scripts/internal/recording_ui_acceptance.test.mjs` |
+| 녹화 UI driver callback의 메모리 전달, 취소, 오류 전파 경계를 단위 검증한다. | `node --test scripts/internal/recording_ui_driver_boundary.test.mjs` |
+| RP01~09 고정 loopback 전달·안전 관측·종료를 실제 HTTP 경계에서 검사한다. | `node --test scripts/internal/recording_ui_range_proxy.test.mjs` |
+| 고정 명령 분기 파서의 지원 및 거부 경계 검사. | `node --test scripts/internal/script_dispatch_parser.test.mjs` |
+| 승인된 exact 소유·제한 파일 연결과 기존 직접 packet 계약 진입점을 검사한다. | `node --test scripts/internal/structure_owner_classification.test.mjs` |
+| 실제 launcher wrapper를 fake binary/tool에 연결해 S05 lifecycle orchestration을 검증한다. | `node --test scripts/internal/v410_s05_service_lifecycle.test.mjs` |
+| 검증 준비가 외부 ICE 기본값을 허용하는 회귀를 검사한다. | `node --test scripts/internal/verify_local_ice_guard.test.mjs` |
+| application evidence 실제 adapter를 runtime archive와 동일 ABI로 검사한다. | `bash scripts/internal/verify_recording_application_evidence.sh` |
+| 실제 H264 이벤트와 opt-in 파생 worker의 격리 통합을 검사한다. | `bash scripts/internal/verify_recording_bounded_wait.sh` |
+| LP15 소유 source 복제본 계측. 제품 파일/원장은 변경하지 않는다. | `bash scripts/internal/verify_recording_checkpoint_cache.sh` |
+| O29 checkpoint I/O native fixture를 소유 임시 root에서 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_checkpoint_io_contract.sh` |
+| 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다. | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` |
+| 실제 H264 이벤트와 opt-in 파생 worker의 격리 통합을 검사한다. | `bash scripts/internal/verify_recording_derived_event_integration.sh` |
+| 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다. | `bash scripts/internal/verify_recording_derived_job_service.sh` |
+| 독립 canonical validation 기준 측정. 서버/catalog/media 생성 없음. | `bash scripts/internal/verify_recording_derived_job_validation.sh` |
+| 파생 job 계약/catalog/retention의 소유 fixture만 실행·정리한다. | `bash scripts/internal/verify_recording_derived_jobs.sh` |
+| 기존 runtime archive와 실제 managed media fixture의 파생 경계를 검사한다. | `bash scripts/internal/verify_recording_derived_remux.sh` |
+| 서버/외부 호출 없이 실제 내부 선택 모듈의 단기 fixture를 실행한다. | `bash scripts/internal/verify_recording_derived_selection.sh` |
+| 내부 검증 전용: 소유 root의 source/header 복제본만 계측한다. | `bash scripts/internal/verify_recording_derived_transition_reuse.sh` |
+| FE01~08 제품 파일 증거 검증. 원출력만 보존하고 소유 임시 media/store를 정리한다. | `bash scripts/internal/verify_recording_file_evidence.sh <새-run-id>` |
+| AVC framing 전용 단기 실제 writer 검사. 공개 저장/API는 바꾸지 않는다. | `bash scripts/internal/verify_recording_file_evidence_avc.sh` |
+| collector 진단 전용 단기 검사. 소유 cache/media/temp는 EXIT에서 전부 정리한다. | `bash scripts/internal/verify_recording_file_evidence_capture.sh` |
+| 직접 링크한 decoder와 bounded correlation을 소유 임시 경로에서 검증한다. | `bash scripts/internal/verify_recording_frame_correlation.sh` |
+| 녹화 세대 request proof smoke의 빌드·실행·정리를 수행한다. | `bash scripts/internal/verify_recording_generation_request_proof.sh` |
+| 실제 RTSP builder의 디코더 경계 진단·한정 보완 검사. 전체 제품/릴리즈 PASS가 아니다. | `bash scripts/internal/verify_recording_hw_impact.sh --self-test` |
+| 공유 소유의 선택 단기 진단 | `node scripts/internal/verify_recording_immutable_ownership.mjs green <새-run-id> envelope` |
+| 포트 없는 Gst 입력 관측과 실제 cache 전달 focused 검증을 실행한다. | `bash scripts/internal/verify_recording_input_observation.sh` |
+| 포트 없는 실제 원장/catalog 시간 위치 해석 fixture를 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_location_resolution.sh` |
+| 실제 미디어와 managed V2 writer의 격리 단기 계약을 검사한다. | `bash scripts/internal/verify_recording_managed_writer.sh` |
+| HW-03: 기존 codec/ICE 검사만 소유 loopback 환경에서 재사용한다. 실제 브라우저 검사가 아니다. | `node scripts/internal/verify_recording_media_impact.mjs --self-test` |
+| 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다. | `bash scripts/internal/verify_recording_native_derived.sh` |
+| 숫자 source/channel 참조의 실제 writer·원장·조회을 검사한다. | `bash scripts/internal/verify_recording_numeric_reference.sh` |
+| PREP-C01~08 전용 격리 native 검사. 실제 서버/네트워크/모델 실행 없음. | `bash scripts/internal/verify_recording_preparation_contracts.sh` |
+| 내부 정확 구간의 결정적 산술 검사. 파일 인증/실제 앱 통합 검사가 아니다. | `bash scripts/internal/verify_recording_presentation_interval.sh` |
+| 실제 public media의 격리 권한·보호을 검사한다. | `bash scripts/internal/verify_recording_public_media.sh` |
+| 공개 timeline 투영의 격리 시간·상태을 검사한다. | `bash scripts/internal/verify_recording_public_timeline.sh` |
+| 포트 없는 실제 원장/catalog 시간 위치 해석 fixture를 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_range_resolution.sh` |
+| 실제 원장/catalog의 source binding·상태 복구 fixture를 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_source_binding.sh` |
+| S11 상태 전용 checkpoint snapshot 집중 검사를 격리 빌드·정리한다. | `bash scripts/internal/verify_recording_status_snapshot.sh` |
+| S10-2 순수 설계 모델만 컴파일·실행한다. 서버·포트·실제 미디어는 만들지 않는다. | `bash scripts/internal/verify_recording_time_policy_probe.sh` |
+| 제품 코드를 직접 링크한 파일 시각 측정 및 소유 임시 산출물 정리. | `bash scripts/internal/verify_recording_timing_probe.sh` |
+| 소유 임시 디렉터리에서 제품 내부 수락/최종화 단위검증을 실행한다. | `bash scripts/internal/verify_recording_write_boundaries.sh` |
+| 실제 격리 HTTP 서버의 두 운영 GET 진단 연결과 기본 off를 검증한다. | `node scripts/internal/verify_site_operations_request_diagnostic.mjs` |
+| 독립 운영 GET 진단 C++ smoke를 임시 경로에서 컴파일·실행·정리한다. | `bash scripts/internal/verify_site_operations_request_diagnostic.sh` |
+| finalizer PNG 중복 정리의 소유 경계·참조·삭제 안전성을 실제 임시 파일로 검증한다. | `node scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs` |
+| 녹화 고정 자료의 무결성 및 정리 경계 검사. | `node --test scripts/internal/verify_v410_recording_fixture_compatibility.test.mjs` |
+| 기존 runtime archive에 실제 decoder/manager smoke를 링크한다. 운영 env 파일은 읽지 않는다. | `bash scripts/internal/verify_v410_recording_observation_runtime.sh` |
+| UA01~08 인증 UI 준비의 옵션·비밀·실제 catalog seed를 검증한다. 실제 UI PASS가 아니다. | `node --test scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs` |
+
+native wrapper는 C++17, 해당 `pkg-config` 의존성, 필요한 경우 `build-gst-onnx`의
+현행 runtime archive를 요구하며 소유 임시 root에서 빌드·실행·정리합니다.
+`<새-run-id>`는 도구가 받는 영문 소문자·숫자·하이픈의 새 식별자로 바꿉니다.
+과거 출력 경로를 고정 사용하는 진단은 기존 출력 존재 여부를 먼저 확인하고 덮어쓰지 않습니다.
+`recording_forward_probe_verify.test.cjs`는 v4.1.0의 보존 forward-probe capture가 필요합니다.
+과거 capture 검증을 현행 UI 실행 PASS로 승격하지 않습니다.
+`verify_site_operations_request_diagnostic.mjs`는 실제 격리 HTTP 자식을 띄우므로
+소스 확인만 필요한 작업에서 자동 실행하지 않습니다. 하드웨어·미디어 도구의 `--self-test`는
+해당 모드만 선택하며 다른 실제 미디어 실행 모드나 장시간 검증을 뜻하지 않습니다.
+
+`recording_utc_observation_diagnostic.cpp`는 독립 C++ 진단 진입점이며 제품 시간 관측 header를
+직접 사용합니다. GStreamer 개발 환경에서 아래 명령으로 합성 입력만 선택할 수 있습니다.
+실제 파일 관측은 별도의 `--file <승인된-미디어>` 입력이 필요합니다.
+
+```bash
+utc_probe_root="$(mktemp -d "${TMPDIR:-/tmp}/media-server-utc-diagnostic.XXXXXX")"
+c++ -std=c++17 -Wall -Wextra -Werror -pthread -Iinclude \
+  $(pkg-config --cflags gstreamer-app-1.0) \
+  scripts/internal/recording_utc_observation_diagnostic.cpp \
+  $(pkg-config --libs gstreamer-app-1.0) -o "$utc_probe_root/check"
+"$utc_probe_root/check" --synthetic
+```
+
+종료 코드와 출력을 보존한 후 실행 종료·소유를 확인한 `$utc_probe_root/check`와 빈 임시
+디렉터리만 정리합니다. 이 안내는 새 실행 권한이나 과거 결과의 현재 PASS를 부여하지 않습니다.
+
 `V31-V38-READY-01`~`09`는 v3.1~v3.8 준비 명령 8개의 같은 경계를 확인한다.
 과거 기록 없이 통과하되 현행 SAFE/OPS 정의·독립 명령·서명 metadata·UI 판정·
 companion 안내와 실제 dispatch 누락은 거부해야 한다. 기존 CLI summary/schema와
