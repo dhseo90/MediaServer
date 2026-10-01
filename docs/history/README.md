@@ -98,7 +98,7 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 
 ## v4.1.1 릴리즈 재시도 원본
 
-다음은 이번 릴리즈 준비에서 추가된 로컬 보존 커밋이다. 공개·실제 UI·장시간 PASS를 뜻하지 않는다.
+다음은 이번 릴리즈 준비에서 추가된 Git 보존 커밋이다. 공개·실제 UI·장시간 PASS를 뜻하지 않는다.
 경로는 `docs/release-artifacts/v4.1.1/` 기준이다.
 
 | 자료 | 보존 commit | 원래 경로 |
@@ -106,7 +106,9 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 | 최초 acceptance 실패 원본 18개 | `a24988c6a0d0a44208edd9039f1f5d84bc88e4ea` | `test-acceptance-current-final/` |
 | 주석 보정 확인과 157개 자체검사 실패 원본 3개 | `1a77dd0f131829a43424c39f33bf5dcb586c1c4a` | `comment-resume-20261001/` |
 | 입력 대역·현행 문서 연결 수정, 970개 자체검사, 37개 독립 판단과 결속 원본 30개 | `ad8e58557746deea81fcebc9756c4ed718b369fe` | `fixture-resume-20261001/` |
+| 재시도 acceptance 실패·기본 녹화 저장소 생성·정리 원본 60개 | `74dd820fbebcfeafe69462e23d82873509dd0251` | `test-acceptance-current-final/` |
+| 현재 입력·자식 녹화 격리 보완, 14개 독립 판단·재검토와 결속 원본 89개 | `3f1b10336e068c587138c3747fb8135dd4a76954` | `input-isolation-resume-20261001/` |
 
-최초 실패 출력 18개는 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
+최초 실패 출력 18개와 다음 재시도 실패 출력 60개는 각각 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
 같은 경로의 새 실행 결과와 최초 실패는 commit·실행 source·run ID로 구분한다.
 나머지 보존 자료와 ignored 검토 원본은 재실행 준비에서 삭제하지 않았다.
