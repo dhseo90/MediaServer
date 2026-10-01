@@ -1,6 +1,7 @@
 // 파일 용도: 현행 녹화 다섯 단계 통합의 순서·실제 결과 결속·실패와 정리 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import './recording_current_app_scan.test.mjs';
 import {runCurrentIntegration,completedCurrentStep,currentSteps} from './recording_current_integration_suite.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,observeInteriorBoundary,fixtureFirstKeyframeBoundary} from './recording_current_app_helpers.mjs';
