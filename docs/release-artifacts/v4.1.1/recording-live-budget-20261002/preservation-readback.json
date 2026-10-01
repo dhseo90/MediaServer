@@ -1,0 +1,269 @@
+{
+  "schema": "media-server.v411-preservation-readback.v1",
+  "verifiedAt": "2026-10-01T21:59:27.996645+00:00",
+  "preservationCommit": "85c4af91ecaa39c4f7a78f08fabbc213a2cd2333",
+  "files": [
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/actual-app.summary.json",
+      "bytes": 2941,
+      "sha256": "be421770bc4307f3604b59f650d12aa72dac168c7c1a83e6c1d230fa2a7bd66a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/app-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/app-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/approval-impact.json",
+      "bytes": 1391,
+      "sha256": "a2dc4f511386f0a743292d7d5172fa056d386a5484e307fa6c376c2e63b08721"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/approval-impact.pre-connection.json",
+      "bytes": 1153,
+      "sha256": "58e8b38f64830bbf50122aee1ec710c251f7b00532fe992fc07c6f28f55f46d2"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/cleanup-observation.json",
+      "bytes": 6920,
+      "sha256": "2cb67d9c084354cafbe7872e1d2547519d43aeb457642aa387c1e74c7b48d727"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/code-comments-final.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/code-comments-final.stdout.log",
+      "bytes": 97,
+      "sha256": "ee61ae026b0d1c406744cb179a2024d3cd30bed4c66836e3aab89d8d9bb464c2"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/code-comments.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/code-comments.stdout.log",
+      "bytes": 97,
+      "sha256": "ee61ae026b0d1c406744cb179a2024d3cd30bed4c66836e3aab89d8d9bb464c2"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/current-integration.execution.json",
+      "bytes": 617,
+      "sha256": "0caf817d286d4b34fb6853b9f0afb1c560512d6f2d7195d0726029e5ad55e529"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/current-integration.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/current-integration.stdout.log",
+      "bytes": 430648,
+      "sha256": "60b549dbf90b3b3c1451bf76f578e28f26747796fbf065a3c05b92e61683c2e9"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/current-integration.summary.json",
+      "bytes": 951,
+      "sha256": "52b15ad4799e02c9889ffcebc3b8be3513d01e43b6bd5d392a55c9e06aa08c72"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/diff-check-final.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/diff-check-final.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/entry-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/entry-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/execution-source.json",
+      "bytes": 677,
+      "sha256": "396d780295d0b468435860ae819f68ecc1454cabf13c429c04f2e6dc365a59a8"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/focused-connected.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/focused-connected.stdout.log",
+      "bytes": 8325,
+      "sha256": "40c4a2f3c27113b15fda76e6b42c298cd283669d50321572d85c1e0656e94eb6"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/focused-tests.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/focused-tests.stdout.log",
+      "bytes": 8341,
+      "sha256": "5e044d06b1f317b49e68ff367200c6a923a3d87a897fcc98515a5b1d463cb291"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/preflight-final.execution.json",
+      "bytes": 1178,
+      "sha256": "5bd7d5453250a274125a1b2c6262364068694d95025caabaf6f05f93a26422db"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/preflight.execution.json",
+      "bytes": 1473,
+      "sha256": "84189b0c943b8feab0ee2ca301ce569fc8c97ebca586c6ecc6540f6721b26020"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/preparation.json",
+      "bytes": 3017,
+      "sha256": "8fb9782def5286bd6d214099d34b9ebdf927eb2776812a3b4410eb8cd7799287"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/preservation-manifest.json",
+      "bytes": 14236,
+      "sha256": "0c800908a67514aaf6472efc19fb0456191008a041cd04c1dbc19d871f5b44b3"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/process-observation.running.json",
+      "bytes": 321,
+      "sha256": "3bcbf0b54a3d203a2f4ab17d1baa8104681ae33d47494664cf3404bd9ee31962"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/receipts/latency-21cd6740-0f39-439c-b972-f61c276386a4.json",
+      "bytes": 244415,
+      "sha256": "ac8f141bff1baa72fa0a90fa8e4e3568f079dc1026da7144d40e275f2bfa89f8"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/receipts/latency-b63edac5-0048-4f06-b5a0-1cea809c92b3.json",
+      "bytes": 175818,
+      "sha256": "a822943aab005972758cbe58487d882fc004b8b9249a900995f20079b7f29bcf"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/receipts/process-94072a41-e3c6-472b-8ccc-c0811367a239.json",
+      "bytes": 403,
+      "sha256": "43d73dc954318c9b4fecc6032ba20788fcc33014d5d1ec5145064bd63bc356c0"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/receipts/process-d5d064ed-1332-4434-a846-f44e3cec0ec6.json",
+      "bytes": 403,
+      "sha256": "84c22eb7ae5d25cc2109c96726d0c3fcf20dc71911b9893a22dfd34af2a660cc"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/result.json",
+      "bytes": 10103,
+      "sha256": "07dbb421cd197425cd41667638ad4d510449704f5de6a556d1900b8a3eea06eb"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/scan-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/scan-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/scan-test-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/scan-test-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory-final.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory-final.stdout.log",
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory-staged.execution.json",
+      "bytes": 274,
+      "sha256": "aa92388bef0a7c22dd325db03066b45fa7ae0751275eb8d17bc32d069becdacb"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory-staged.stderr.log",
+      "bytes": 636,
+      "sha256": "223e2685971a8c067f60c8c99a65a02ba8af8118c9ec407db9181dd437502974"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory-staged.stdout.log",
+      "bytes": 1035,
+      "sha256": "58ab336ba99e8aa53b46e07e747d70ef6a08ee22e924ca9512c39a217720d576"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory.execution.json",
+      "bytes": 143,
+      "sha256": "fbb3cfb0d31cac9e3afdab02466bf07432c8ede51c2f91783b95dfd89b25c538"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory.stderr.log",
+      "bytes": 636,
+      "sha256": "223e2685971a8c067f60c8c99a65a02ba8af8118c9ec407db9181dd437502974"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/script-inventory.stdout.log",
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/source.patch",
+      "bytes": 21194,
+      "sha256": "4d719fa6362f8bb665f371c452d2a45908c6068c4bd7d86a56200e623957cff0"
+    }
+  ],
+  "allGitBytesMatched": true,
+  "originalBytePairsVerified": 43,
+  "removedDuplicateProducerReceipts": [
+    "docs/release-artifacts/v4.1.0/s11-preparation-mapping/latency-21cd6740-0f39-439c-b972-f61c276386a4.json",
+    "docs/release-artifacts/v4.1.0/s11-preparation-mapping/latency-b63edac5-0048-4f06-b5a0-1cea809c92b3.json",
+    "docs/release-artifacts/v4.1.0/s11-preparation-mapping/process-94072a41-e3c6-472b-8ccc-c0811367a239.json",
+    "docs/release-artifacts/v4.1.0/s11-preparation-mapping/process-d5d064ed-1332-4434-a846-f44e3cec0ec6.json"
+  ],
+  "previousReceiptFileListsUnchanged": true,
+  "cleanup": {
+    "processGroup": 7245,
+    "remainingGroupProcesses": [],
+    "scratchRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij",
+    "scratchRootAbsent": true,
+    "removedRegularFiles": 42,
+    "removedRegularBytes": 616307,
+    "symlinkTraversal": false,
+    "defaultRecordingRootAbsent": true,
+    "runtimePortsAndChildRoots": "cleanup-observation.json에서 별도 실제 재확인 PASS",
+    "preservedBundleRetained": true
+  },
+  "boundary": "기존 일반 acceptance·최초 ENOENT·과거 녹화 결과 유지. 이번 소유 중복 출력/컴파일 캐시만 Git readback 후 정리. 녹화UI/장시간/공개 절차 없음."
+}
