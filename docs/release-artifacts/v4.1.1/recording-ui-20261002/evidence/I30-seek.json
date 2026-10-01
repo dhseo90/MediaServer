@@ -1,0 +1,65 @@
+{
+  "id": "I30-seek",
+  "startedAt": "2026-10-01T22:12:59.010Z",
+  "completedAt": "2026-10-01T22:12:59.578Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "control": "#opsRecordingPlayer",
+    "action": "focused ArrowRight x20",
+    "beforeSeek": {
+      "paused": true,
+      "currentTime": 0.790934,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 28,
+      "src": "/ops/api/recordings/media/74c9a226-c6b3-48c0-9dc2-4fb36be2771b",
+      "error": null,
+      "focused": true
+    },
+    "afterSeek": {
+      "paused": true,
+      "currentTime": 2.79093,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 201,
+      "src": "/ops/api/recordings/media/74c9a226-c6b3-48c0-9dc2-4fb36be2771b",
+      "error": null,
+      "focused": true,
+      "seekingObserved": true,
+      "seekedObserved": true
+    },
+    "media": [
+      {
+        "id": "74c9a226-c6b3-48c0-9dc2-4fb36be2771b",
+        "status": 206,
+        "range": "bytes=0-",
+        "contentRange": "bytes 0-5358848/5358849",
+        "at": 1790892777680
+      },
+      {
+        "id": "74c9a226-c6b3-48c0-9dc2-4fb36be2771b",
+        "status": 206,
+        "range": "bytes=5341184-",
+        "contentRange": "bytes 5341184-5358848/5358849",
+        "at": 1790892777695
+      },
+      {
+        "id": "74c9a226-c6b3-48c0-9dc2-4fb36be2771b",
+        "status": 206,
+        "range": "bytes=1048576-",
+        "contentRange": "bytes 1048576-5358848/5358849",
+        "at": 1790892777853
+      }
+    ],
+    "seekStartedAt": 1790892779013,
+    "rangeInterpretation": "same selected file response; seek may use buffered bytes"
+  }
+}

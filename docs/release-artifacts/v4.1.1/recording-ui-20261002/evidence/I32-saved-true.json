@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "file": "s06-channel-3.mp4",
+  "recording": {
+    "enabled": true,
+    "revision": 3,
+    "continuousMaxBytes": 134217728,
+    "continuousMaxAgeMs": 86400000,
+    "eventMaxBytes": 134217728,
+    "eventMaxAgeMs": 3600000,
+    "storagePath": ""
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "I34-admin",
+  "startedAt": "2026-10-01T22:13:11.079Z",
+  "completedAt": "2026-10-01T22:13:12.545Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "state": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 0,
+      "duration": null,
+      "videoWidth": 0,
+      "videoHeight": 0,
+      "frames": 0,
+      "src": "/ops/api/recordings/media/dj-17354d05f3dadffe1b160ff243a1d55d0f0510dcc54d72216721f89474a28c9d-o0",
+      "error": null,
+      "focused": false
+    }
+  }
+}

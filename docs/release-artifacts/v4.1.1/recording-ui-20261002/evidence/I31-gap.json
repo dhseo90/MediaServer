@@ -1,0 +1,27 @@
+{
+  "id": "I31-gap",
+  "startedAt": "2026-10-01T22:13:02.229Z",
+  "completedAt": "2026-10-01T22:13:02.711Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "rows": 0,
+    "unknown": 0,
+    "state": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 0,
+      "duration": null,
+      "videoWidth": 0,
+      "videoHeight": 0,
+      "frames": 0,
+      "src": null,
+      "error": null,
+      "focused": false
+    },
+    "message": "해당 시간 범위에 시간 확인 녹화 데이터가 없습니다."
+  }
+}

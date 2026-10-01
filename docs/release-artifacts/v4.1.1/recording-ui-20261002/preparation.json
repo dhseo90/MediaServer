@@ -1,0 +1,94 @@
+{
+  "recordedAt": "2026-10-01T22:11:59.002675+00:00",
+  "sourceHead": "ce0d01e2b964cdcde27360b2f533039499ed2941",
+  "sourceTree": "388b9dc06f7f5a328e719c4677a4acfa6d307657",
+  "branch": "v4.1.1",
+  "initialStatus": "",
+  "initialIndexDiff": "",
+  "scratch": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-ui.n6yuu1k5",
+  "inputHashes": {
+    "AGENTS.md": "647c508aa5e855784a8f8c711643cb3488c682736540df4be54262a5cf1420ba",
+    "CMakeLists.txt": "cf4e6735f78b6ea68b8bc374ad729b13bc8d5f0679b6f495f7c79436fd1e0c10",
+    "build-gst-onnx/media_server": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+    "build-gst-onnx/libmedia_server_runtime.a": "d857542636a2ac9aafd4165c0f4530120fffb29f582e6fb413725289a5f92ba5",
+    "scripts/internal/run_recording_ui_acceptance.mjs": "7887711167b357bcac80e764e77e198bb6acf5c20ebaf23107f33fadc51ea57e",
+    "scripts/internal/verify_v410_recording_ui_contract.mjs": "1c76b7d6d598af6dce4da16d951ae6393627643bc2c86b758c70003863893bfb",
+    "scripts/internal/recording_ui_before_playback.mjs": "da847fda7cef92232bf39acdf403cd9d15a9c645a0da4d67926fd648f8a1962e",
+    "scripts/internal/recording_ui_after_playback.mjs": "3f481049e3562e39b3ff4bc13b354b6a0a48e2ed76ec1e91498b293dc3285aec",
+    "scripts/internal/recording_current_ui_seed.cpp": "430c0c759e75c5abc8896e407a875aff99715f82b51d1a4df198f9ce601ddba7",
+    "scripts/internal/recording_current_ui_seed.mjs": "f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639",
+    "scripts/internal/verify_recording_current_ui_seed.sh": "b946800078bb3c977891e505a60786285e7bd060a20fbded0b50f2c891639671",
+    "scripts/internal/recording_ui_range_proxy.mjs": "fbcba25a06e6c8b18f3ed981e2fae0069df2fbab2880f5f9294a0c4c13280715",
+    "scripts/internal/v390_ui_native_adapter.mjs": "1700b24486a5027b7bb3fe6306c3774dae220a3a7db051c2778a34e7cc44c7ed",
+    "video/sample_h264_video_only.mp4": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
+    "test/fixtures/ui_fulltest_evidence_policy_v4.json": "cfabd2644b2cb18757fd82e2362294bfa0f919307391c060709651ea5c78db14",
+    "test/fixtures/ui_fulltest_case_manifest_policy_v4.json": "aeab5288db9d693bb1eb31c37646b009c07615ea8269b0da4a51c7f42cb6d95f",
+    "test/fixtures/v390_ui_native_exact_cases.json": "d23b29e017c7d99369609db4a09706e8313c00cbf3a22d9c44c7135ffc0eb0ba",
+    "test/fixtures/v390_review4_feature_semantic_source_audit.json": "f14ab8d6cd186534279a180a9aaef15d72466feafb3abd6360398508f083437a",
+    "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "83c3eaf9b78099ceec932846d0fc86d85de488fc7f8df966d4670efa1fed49bf",
+    "test/fixtures/project_feature_implementation_evidence.json": "915c80eaad46ebd4dc6d295b69e8b145b358c9913aefb4c227350bc7e961ac5e",
+    "docs/manual-ui-checklist.md": "1e3b3bf429ee2c0d2fb03414dba7532d11f9324704c42f6303a9b3a281ffaa54",
+    "docs/manual-ui-result-template.md": "f88d897968577b2fa14916202d42be6ecfb945d20f5590b8a29b702c362f59bb",
+    "docs/manual-ui-fulltest.md": "cd37401e3ca82d6b7d40d8e3dc42205a0d218d0f8564d730bde52b2223b39af1",
+    "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json": "9f687b2e1372376799179f32bcd66bc92cde9ad73608f7144aea0fe48308473d",
+    "docs/release-artifacts/v4.1.1/recording-live-budget-20261002/result.json": "07dbb421cd197425cd41667638ad4d510449704f5de6a556d1900b8a3eea06eb"
+  },
+  "baselineReadback": {
+    "/ui-fulltest-qualification/evaluation.json": {
+      "entry": {
+        "originalPath": "runs/v390-test-acceptance-20261001142949-1485/ui-fulltest-qualification/evaluation.json",
+        "originalBytes": 9172,
+        "originalSha256": "488f77bf28f5e0763072557ec74ddb07294a2924df8cb354baa8a7133ae6ead7",
+        "storedPath": "runs/v390-test-acceptance-20261001142949-1485/ui-fulltest-qualification/evaluation.json.gz",
+        "storedBytes": 1777,
+        "storedSha256": "3a21ce776bfe0c6d25c37d8763acffb6b5e72c146bd9fbcc4f4146c5f54a6d54",
+        "encoding": "gzip"
+      },
+      "summary": {
+        "uiFulltestPass": true,
+        "policyValidationResult": "PASS"
+      }
+    },
+    "/ui-exact-424/policy-v4-summary.json": {
+      "entry": {
+        "originalPath": "runs/v390-test-acceptance-20261001142949-1485/ui-exact-424/policy-v4-summary.json",
+        "originalBytes": 3970460,
+        "originalSha256": "621b31483764d6ddda1b24f1232523a60a82bfea5be0cfbe3fda1386633b04ce",
+        "storedPath": "runs/v390-test-acceptance-20261001142949-1485/ui-exact-424/policy-v4-summary.json.gz",
+        "storedBytes": 285747,
+        "storedSha256": "a1c7e764b2491550385d8c13354ec9bad76f0b5f5ba24523df60004320761798",
+        "encoding": "gzip"
+      },
+      "summary": {
+        "uiFulltestPass": false,
+        "result": "CAPTURED",
+        "sourceBinding": {
+          "version": "4.1.1",
+          "gitCommit": "c888ac9baf613c773cbd8bb14bb547d3a3e4cc3a",
+          "worktreePatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "allowedArtifactRoot": "docs/release-artifacts/v4.1.1/test-acceptance-current-final",
+          "buildPath": "build-gst-onnx/media_server",
+          "buildSha256": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+          "policyPath": "test/fixtures/ui_fulltest_evidence_policy_v4.json",
+          "policySha256": "cfabd2644b2cb18757fd82e2362294bfa0f919307391c060709651ea5c78db14",
+          "caseManifestPath": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+          "caseManifestSha256": "aeab5288db9d693bb1eb31c37646b009c07615ea8269b0da4a51c7f42cb6d95f",
+          "nativeExactManifestPath": "test/fixtures/v390_ui_native_exact_cases.json",
+          "nativeExactManifestSha256": "d23b29e017c7d99369609db4a09706e8313c00cbf3a22d9c44c7135ffc0eb0ba",
+          "nativeExactManifestStableSha256": "c3f7e39584ca58d1d058fb29a8d98c65c0e8a4a9b86d06eebf905983c3871c95",
+          "runnerPath": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+          "runnerSha256": "71565dbfbac9a75a721e7d1bb4c4945e7376ac0b1ce9f7fce824eeca8591d2ae",
+          "artifactRoot": "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001142949-1485/ui-exact-424",
+          "sourceFingerprintOnly": true
+        }
+      }
+    }
+  },
+  "baselineProductUiPolicyDiff": "",
+  "defaultRecordingRootAbsent": true,
+  "relevantEnvironmentKeyNames": [],
+  "playwrightVersion": "1.62.1",
+  "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "reviewResponsibility": "main AI evidence review under checklist; no independent-source review required by recording addendum",
+  "attemptLimit": 1
+}
