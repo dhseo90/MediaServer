@@ -1,0 +1,101 @@
+[
+  {
+    "file": "scripts/internal/recording_current_lifecycle_cache.test.mjs",
+    "role": "자체검사",
+    "purpose": "SQLite lifecycle hold 관측, 현행/legacy cache",
+    "invocation": "node --test scripts/internal/recording_current_lifecycle_cache.test.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/recording_forward_probe_verify.test.cjs",
+    "role": "자체검사",
+    "purpose": "보존 forward-probe capture의 sample·시간 경계",
+    "invocation": "node --test scripts/internal/recording_forward_probe_verify.test.cjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/recording_foundation_source_scope.test.mjs",
+    "role": "자체검사",
+    "purpose": "source registry ID와 계정 scope helper",
+    "invocation": "node --test scripts/internal/recording_foundation_source_scope.test.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/recording_foundation_suite.test.mjs",
+    "role": "자체검사",
+    "purpose": "foundation suite 순서·실패 전파·자식 cleanup",
+    "invocation": "node --test scripts/internal/recording_foundation_suite.test.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/recording_generation_scale.test.mjs",
+    "role": "자체검사",
+    "purpose": "native bounded trace와 완료 집계",
+    "invocation": "node --test scripts/internal/recording_generation_scale.test.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/structure_owner_classification.test.mjs",
+    "role": "자체검사",
+    "purpose": "소유 graph·정책·handoff source 관측",
+    "invocation": "node --test scripts/internal/structure_owner_classification.test.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/v410_s05_service_lifecycle.test.mjs",
+    "role": "자체검사",
+    "purpose": "대역 binary/tool로 launcher lifecycle",
+    "invocation": "node --test scripts/internal/v410_s05_service_lifecycle.test.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/verify_recording_checkpoint_io_contract.sh",
+    "role": "독립 CLI",
+    "purpose": "checkpoint I/O native fixture 빌드·실행",
+    "invocation": "bash scripts/internal/verify_recording_checkpoint_io_contract.sh",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/verify_recording_generation_request_proof.sh",
+    "role": "독립 CLI",
+    "purpose": "generation request proof 4설정 native fixture",
+    "invocation": "bash scripts/internal/verify_recording_generation_request_proof.sh",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/verify_recording_status_snapshot.sh",
+    "role": "독립 CLI",
+    "purpose": "status checkpoint snapshot native fixture",
+    "invocation": "bash scripts/internal/verify_recording_status_snapshot.sh",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  },
+  {
+    "file": "scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs",
+    "role": "독립 자체검사 CLI",
+    "purpose": "finalizer PNG dedup 소유·참조·삭제 반례",
+    "invocation": "node scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs",
+    "existingCaller": "독립 실행; 현행 runner에 자동 편입하지 않음",
+    "cause": "현행 실행 안내가 없고 최초 보존 이전에는 타 파일 참조 없음",
+    "correction": "기존 stream-verification 안내에 실제 선택 실행 명령과 역할·전제조건 연결"
+  }
+]

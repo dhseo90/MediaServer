@@ -1,0 +1,1058 @@
+[
+  {
+    "file": "scripts/internal/codec_probe_diagnostics_test.py",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-68892b8a7bd4891d.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-d243cd621370b80d.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-fcff99d6f05b55c4.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_accumulation_plan.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-18be7bfa31e002ae.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-3ed29ba93a83b08d.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-705c808e5b065052.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-991d7ef534dee1ac.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_catalog_comparison_run.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp21-query-build-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_catalog_cost_probe_run.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-compaction-lp15-fix1.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-compaction-lp15.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp11.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp15.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp16-lifetime.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp16.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp11-stage1-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp15-cost-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp16-memory-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp16-scale-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_completion_trace.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-completion-green-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-observation-completion-green-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-02-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_archive_probe.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/archive-diagnose-basic-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/archive-diagnose-lp06-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/archive-diagnose-lp06-red2.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/archive-probe-test-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/archive-replay-test-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/archive-replay-test-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp08-cpp-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-diagnostics-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-latency-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-preparation-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_fixture_generation.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_http_diagnostics.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/failure-diagnostic-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-b6d79db384590b52.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-ca721edd606ef160.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_integration.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-bd2d746605b058ca.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/failure-diagnostic-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-cleanup-green-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-cleanup-red-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-current-integration-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-integration-counts-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-01-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-02-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-6db8c893d1ab19f8.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-d32bf6f7d400765e.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_latency.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/failure-diagnostic-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-latency-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-preparation-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-current-latency-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-01-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-02-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-33d31be701127e0f.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-8ef1c1eaac65a9fe.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_lifecycle_cache.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_longrun_diagnostics.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-526a212533bba842.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-64977b321422c723.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-c89e47e82e9d2a41.txt",
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b12-s11-final-local-gate.md",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b14-audit-migration.mjs",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b14-migrate-evidence.mjs",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/readiness.md",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/results.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_observation.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-83466c575b6b38e5.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-completion-green-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-observation-completion-green-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-observation-red-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-01-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-02-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_root_storage.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/predev-30-comment-fail-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/public-evidence-3a739c1c18a6096e.txt",
+      "docs/release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_current_state_diagnostics.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/failure-diagnostic-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-73286917257ea8ac.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-7b0a5a3ab55af5de.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_failure_capture.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/failure-capture-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-capture-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-diagnostics-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-latency-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-preparation-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-failure-capture-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_forward_probe_verify.test.cjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_foundation_auth_helpers.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_foundation_observer.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_foundation_source_scope.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_foundation_suite.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_generation_scale.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_journal_reader.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_latency_trace.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/public-evidence-18be7bfa31e002ae.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-latency-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-02-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-3b746e64b65ab03b.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-69bc71fbeb31b279.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-ac4e9de63c2dbb63.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_longrun_cadence.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_longrun_summary.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_process_cleanup.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-cleanup-regression-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_process_memory_probe.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp16-memory-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_process_metrics.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_selection_trace.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-js-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp11-stage1-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-diagnostics-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-latency-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp13-preparation-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-700eb7eb4d289952.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_ui_acceptance.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b11-final-ui.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_ui_driver_boundary.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b10-ui-prep.md",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b11-final-ui.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_ui_range_proxy.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b10-ui-prep.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/recording_utc_observation_diagnostic.cpp",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp23-utc-command-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp23-utc-run-01.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp23-utc-run-02.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/script_dispatch_parser.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/structure_owner_classification.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/v410_s05_service_lifecycle.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_local_ice_guard.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_application_evidence.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-dd92f1bfbdc9ce4a.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_bounded_wait.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-bounded-wait-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-derived-event-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-derived-selection-01.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_checkpoint_cache.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp16-lifetime-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-accepted-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-binding-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-content-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-envelope-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-intent-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-logical-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-snapshot-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-snapshot-cache-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-thin-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-cache-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-typed-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-typed-cache-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-cache-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_checkpoint_io_contract.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_checkpoint_reproduction.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-regression-checkpoint.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-envelope-identity-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-identity-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-d61344c4076d8741.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_event_integration.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-consumption-regressions-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-worker-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-worker-refresh-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-bounded-wait-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-derived-event-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-derived-selection-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/reuse-decision.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_job_service.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/A-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-consumption-regressions-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-transition-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-service-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-service-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-service-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_job_validation.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-native-consumption-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-transition-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-validation-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-validation-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-d61344c4076d8741.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_jobs.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-Regression-commands.jsonl",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-report.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-7636f70301712840.txt",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-ff1800cc8c3c6ed3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-consumption-regressions-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-transition-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-jobs-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-jobs-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-jobs-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_remux.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-consumption-regressions-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md",
+      "docs/release-artifacts/v4.1.0/s11-recording-ui-20260923/i30-mp4-revalidation.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_selection.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-native-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-selection-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-bounded-wait-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-derived-event-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-derived-selection-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_derived_transition_reuse.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-transition-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-accepted-prepared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-binding-prepared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-content-prepared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-prepared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-prepared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-prepared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-prepared-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_file_evidence.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-regression-evidence.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-capture-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_file_evidence_avc.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_file_evidence_capture.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-capture-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_frame_correlation.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_generation_request_proof.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_hw_impact.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-0413180a449183ae.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-13474fb64b8c36c3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-2307b830c45396a2.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-37619f4592787014.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-515d569141b6df6c.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-6037368c87fbc077.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-742eea285369eb31.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-76e615973945bd6c.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-7ad9eca96262c53b.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-7f5f7fce576a6f3e.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-81225535ed99f600.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-83e1e5a1b9791543.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-a238fc55c4a00076.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-a6bb9c818611f28e.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-b30678dd29031b62.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-b9d8d0d9dcd7dded.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-baeb3625dab02045.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-bbfc80a1fb1ea47d.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-c3ecc2a5147c3cbe.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-c7221b0132a37cc2.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-cd46bdc256f36d81.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-dbe55b9b0ca100ad.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-f33f63c0942e38db.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-f4f3562965002cb3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-f8048a52dbc2a199.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_immutable_ownership.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-accepted-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-crypto-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-crypto-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-logical-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-automatic-noop-typed-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id-crypto-off-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id-final.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-current-id.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-checkpoint.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-crypto-off.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-split-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-split-red-permitted.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-b02-ref-split-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-binding-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-binding-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-catalog-thin-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-catalog-thin-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-checkpoint-snapshot-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-cold-cost-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-cold-envelope-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-content-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-content-job-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-context-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-context-proof-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-envelope-compat-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-envelope-cost-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-intent-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-intent-context-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-intent-proof-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-job-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-journal-cold-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-journal-cold-crypto-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-journal-cold-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-journal-logical-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-crypto-off-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-envelope-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-owned-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-logical-cold-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-logical-cost-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-logical-crypto-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-logical-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-logical-snapshot-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp20-snapshot-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp20-snapshot-logical-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp20-snapshot-noop-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-binding-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-content-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-content-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-content-03.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-job-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-lifetime-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-noop-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-thin-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp24-thin-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-a.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-b.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-c.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-binding-d.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-journal-binding-batch.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r01-2.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-1.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-2.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-4.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-5.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-6.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r03-1.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r03-2.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r03-3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r03-4.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-shared-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-snapshot-cold-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-snapshot-cost-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-snapshot-envelope-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-snapshot-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-snapshot-typed-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-accepted-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-accepted-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-content-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-envelope-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-logical-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-metrics-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-thin-snapshot-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-transition-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-transition-job-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-transition-proof-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-binding-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-content-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-content-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-intent-comparison-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-job-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-lifetime-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-lifetime-03.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-lifetime-04.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-lifetime-crypto-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-typed-lifetime-crypto-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-accepted-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-automatic-noop-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-automatic-noop-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-baseline-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-baseline-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-baseline-03.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-binding-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-binding-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-catalog-thin-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-checkpoint-snapshot-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-content-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-context-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-envelope-cost-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-envelope-cost-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-intent-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-intent-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-job-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-journal-cold-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-journal-cold-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-journal-logical-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-location-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-transition-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-transition-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-typed-lifetime-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-green-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-location-preparation-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-red-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp20-snapshot-red-02.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_input_observation.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_location_resolution.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-Regression-commands.jsonl",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-report.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-7636f70301712840.txt",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-ff1800cc8c3c6ed3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_managed_writer.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-regression-writer.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-accepted-writer-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-writer-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-writer-diagnostic-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-bframe-comparison-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-boundary-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-boundary-build-failure-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-decoder-comparison-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-oracle-green-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-oracle-red-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-reference-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_media_impact.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-hw03-media-diagnostic.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp28-final-evidence-reuse.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_native_derived.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-native-consumption-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_numeric_reference.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_preparation_contracts.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp28-source-freeze.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-e1d5d22824b4852f.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_presentation_interval.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp09-native-output.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_public_media.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/A-report.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-4231fc8144905751.txt",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-bdb0093119fa86ab.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-media-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-public-media-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_public_timeline.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o14-timeline-focused.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-Regression-commands.jsonl",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-report.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-7636f70301712840.txt",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-ff1800cc8c3c6ed3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-timeline-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp22-public-timeline-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-timeline-01-red.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp25-timeline-02-green.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_range_resolution.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-Regression-commands.jsonl",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-report.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-7636f70301712840.txt",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-ff1800cc8c3c6ed3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_source_binding.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-Regression-commands.jsonl",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/B-report.md",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-7636f70301712840.txt",
+      "docs/release-artifacts/v4.1.0/s10-public-consumption/public-evidence-ff1800cc8c3c6ed3.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-regression-source.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-binding-source-01.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md",
+      "docs/release-artifacts/v4.1.0/s11-recording-ui-20260923/public-evidence-5a4ad55dd41bffb8.txt"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_status_snapshot.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_time_policy_probe.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_timing_probe.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/timing-probe-report.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_recording_write_boundaries.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-regression-boundaries.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-failure-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_site_operations_request_diagnostic.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_site_operations_request_diagnostic.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-handoff.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-handoff.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/failure-scope.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/first-failure.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/launcher.stdout.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/report.md",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/summary.json",
+      "docs/release-artifacts/v4.1.1/test-acceptance-current-final/test-run-summary.json"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_v410_recording_fixture_compatibility.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_v410_recording_observation_runtime.sh",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s10-mapping.md"
+    ]
+  },
+  {
+    "file": "scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs",
+    "references": [
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b10-ui-prep.md",
+      "docs/release-artifacts/v4.1.0/s11-final-20260926/b11-final-ui.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/README.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-602b63d022137548.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/public-evidence-ae9712ccb217ad2f.txt",
+      "docs/release-artifacts/v4.1.0/s11-preparation-mapping/s00-s09-mapping.md"
+    ]
+  }
+]

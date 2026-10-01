@@ -1,0 +1,108 @@
+[
+  {
+    "id": "script-inventory",
+    "command": [
+      "./server.sh",
+      "verify-script-inventory"
+    ],
+    "startedAt": "2026-10-01T09:23:12.642348+00:00",
+    "elapsedSeconds": 21.106260666972958,
+    "exitCode": 0
+  },
+  {
+    "id": "code-comments",
+    "command": [
+      "./server.sh",
+      "verify-code-comments"
+    ],
+    "startedAt": "2026-10-01T09:23:33.749274+00:00",
+    "elapsedSeconds": 0.23254962501232512,
+    "exitCode": 0
+  },
+  {
+    "id": "syntax-verifier",
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/verify_script_inventory.mjs"
+    ],
+    "startedAt": "2026-10-01T09:23:33.982039+00:00",
+    "elapsedSeconds": 0.01769649999914691,
+    "exitCode": 0
+  },
+  {
+    "id": "syntax-test",
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/script_inventory.test.mjs"
+    ],
+    "startedAt": "2026-10-01T09:23:33.999977+00:00",
+    "elapsedSeconds": 0.01787400001194328,
+    "exitCode": 0
+  },
+  {
+    "id": "inventory-selftest",
+    "command": [
+      "node",
+      "--test",
+      "scripts/internal/script_inventory.test.mjs"
+    ],
+    "startedAt": "2026-10-01T09:23:34.018114+00:00",
+    "elapsedSeconds": 0.05730112502351403,
+    "exitCode": 0
+  },
+  {
+    "id": "dispatch-selftest",
+    "command": [
+      "node",
+      "scripts/internal/script_dispatch_parser.test.mjs"
+    ],
+    "startedAt": "2026-10-01T09:23:34.075641+00:00",
+    "elapsedSeconds": 0.023442458012141287,
+    "exitCode": 0
+  },
+  {
+    "id": "docs-links",
+    "command": [
+      "./server.sh",
+      "verify-docs-links"
+    ],
+    "startedAt": "2026-10-01T09:23:34.099285+00:00",
+    "elapsedSeconds": 0.21111150001524948,
+    "exitCode": 0
+  },
+  {
+    "id": "coverage",
+    "command": [
+      "./server.sh",
+      "verify-feature-inventory-coverage"
+    ],
+    "startedAt": "2026-10-01T09:23:34.310617+00:00",
+    "elapsedSeconds": 78.51942925000913,
+    "exitCode": 0
+  },
+  {
+    "id": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "startedAt": "2026-10-01T09:24:52.830438+00:00",
+    "elapsedSeconds": 0.009143957984633744,
+    "exitCode": 0
+  },
+  {
+    "id": "remaining-feature-diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "startedAt": "2026-10-01T09:24:52.839792+00:00",
+    "elapsedSeconds": 0.010328250005841255,
+    "exitCode": 0
+  }
+]
