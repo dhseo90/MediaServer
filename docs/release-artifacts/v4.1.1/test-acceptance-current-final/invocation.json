@@ -1,0 +1,10 @@
+{
+  "command": "./test_release.sh",
+  "cwd": "/Users/dhseo/Workspace/mediaServer",
+  "head": "4434f463e3109dde43b8483ad605ef082d582e0a",
+  "tree": "e7415384edabf44c9b9afdef60610272499c5727",
+  "startedAt": "2026-10-01T02:09:22.238129+00:00",
+  "exitCode": 1,
+  "elapsedSeconds": 61.91896125000494,
+  "endedAt": "2026-10-01T02:10:24.157574+00:00"
+}
