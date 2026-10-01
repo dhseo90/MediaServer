@@ -26785,7 +26785,7 @@
           "sha256": "71265beca179f840b8dbb3dedec8dd96535d655f7308eb74fc26c652004fe785"
         }
       },
-      "sourceFlowDigest": "9f3981ab6c2ffc6513d1935479dc99662f1be412c7eef605ec658f4ed0f43f65",
+      "sourceFlowDigest": "b5bfe78b407d8c6979d0b2770363cc56093de8ae7df0c22c41f642ec491cbd21",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -26828,7 +26828,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertPair",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "ebddd0b0eeb37273a02db5069338060d325f02dc913c732dcaac0a6eac8bb6d5",
             "enclosingBodyStartLine": 371,
             "enclosingBodyEndLine": 381,
@@ -26843,7 +26843,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+        "verifierFileSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
         "dispatch": {
           "command": "verify-v390-onvif-source-view-atomicity",
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
@@ -27305,7 +27305,7 @@
           "sha256": "49e6e0ed29aeb86d1fd0f852f06a1e8bf196889c684a4f57f1addb3f8712c001"
         }
       },
-      "sourceFlowDigest": "aee8a12a7b3c4baf51de34cb5a84d7c71bfbfa539eeeae5e9585d21b81303678",
+      "sourceFlowDigest": "bfaa0c684fc3218534aa6a5df52c2beb080c7ac01f66d1c7a9d7bde9ac536c8d",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -27348,10 +27348,10 @@
           "readback": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "static-contract:expectedCatalogRevision",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
-            "enclosingBodySha256": "00af69dcf45957974cd85fb9cf6d2e132a68160c43e590a1be74dae46fb62559",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
+            "enclosingBodySha256": "698edade159897895518b969f02b6740c8b340c8df961bb39277bde86bb6cb38",
             "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 488,
+            "enclosingBodyEndLine": 496,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -27363,7 +27363,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+        "verifierFileSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
         "dispatch": {
           "command": "verify-v390-vlm-promotion-trust-boundary",
           "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
@@ -53695,7 +53695,7 @@
           "sha256": "be26abe1b69c2d83ea5ecfa29b95611d30defc0400ab3b215040f6b04b634a94"
         }
       },
-      "sourceFlowDigest": "01d8425f4b4f1b93c6e1db20abb98661616b9310b04db1434034ba9b55dde3bf",
+      "sourceFlowDigest": "22d305b8d34948b44142d515b61dd1dd5199354070ba30afce3751892e5ea6cd",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -53738,7 +53738,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertPair",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "ebddd0b0eeb37273a02db5069338060d325f02dc913c732dcaac0a6eac8bb6d5",
             "enclosingBodyStartLine": 371,
             "enclosingBodyEndLine": 381,
@@ -53753,7 +53753,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+        "verifierFileSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
         "dispatch": {
           "command": "verify-v390-onvif-source-view-atomicity",
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
@@ -145291,7 +145291,7 @@
           "sha256": "0a3200c1b3883392ae3b1efd66a2a248590bd1d39c491c0f83c8f4b9cb3a5f7e"
         }
       },
-      "sourceFlowDigest": "c3879391b77f402821d3c0745bd73d2637d31a9c0580646b8cc41d8891cf989d",
+      "sourceFlowDigest": "8493fdb759025ae98a89b44533b3ef4cec9d822b5a3253521aa5db26c8004b6a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -145334,10 +145334,10 @@
           "readback": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "LAB-123:exact-oracle",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
-            "enclosingBodySha256": "00af69dcf45957974cd85fb9cf6d2e132a68160c43e590a1be74dae46fb62559",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
+            "enclosingBodySha256": "698edade159897895518b969f02b6740c8b340c8df961bb39277bde86bb6cb38",
             "enclosingBodyStartLine": 94,
-            "enclosingBodyEndLine": 488,
+            "enclosingBodyEndLine": 496,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -145349,7 +145349,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+        "verifierFileSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
         "dispatch": {
           "command": "verify-v390-vlm-promotion-trust-boundary",
           "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
@@ -145777,7 +145777,7 @@
           "sha256": "46cff51398466f4baec16e9d0d27ba36363b3f4cdaa6d3682c818ed43f33ac5a"
         }
       },
-      "sourceFlowDigest": "bef2587874d9955df3e7e86133867ca103741d14eea18ccbfd9d2b0d885eb83b",
+      "sourceFlowDigest": "e79e9da3a2d285a34f1f143a1ea5bd096f5d38f79fd0489bc95ca9cc4525fcd9",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -145820,7 +145820,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "LAB-125:exact-oracle",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "6a06509159771cab067e91b828bd61434bfd8d18076f914162379fabd2ce2a24",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 147,
@@ -145835,7 +145835,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+        "verifierFileSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
         "dispatch": {
           "command": "verify-v390-reid-readiness-consistency",
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
@@ -196727,14 +196727,14 @@
           "sha256": "143c28f25a5615ba27cd3dd6990336ccc088cc137c37ddce348070838280c6ed"
         }
       },
-      "sourceFlowDigest": "1ddf1ca9b308213d1b3b12b1b3ac81a94f496c36b2b8718ac3d88a88cca438dd",
+      "sourceFlowDigest": "0e179fb00ad2b1ba2d63561e7b1aca9d0330a3b5c74440341525ed02bf5140a2",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertCrashRecovery",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "964a489bfd520fa7ee9ddb602e64c6e3c1fbcc523491b7bedf86c5805a27a590",
             "enclosingBodyStartLine": 328,
             "enclosingBodyEndLine": 369,
@@ -196743,7 +196743,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertCrashRecovery",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "964a489bfd520fa7ee9ddb602e64c6e3c1fbcc523491b7bedf86c5805a27a590",
             "enclosingBodyStartLine": 328,
             "enclosingBodyEndLine": 369,
@@ -196752,7 +196752,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertCrashRecovery",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "964a489bfd520fa7ee9ddb602e64c6e3c1fbcc523491b7bedf86c5805a27a590",
             "enclosingBodyStartLine": 328,
             "enclosingBodyEndLine": 369,
@@ -196761,7 +196761,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertCrashRecovery",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "964a489bfd520fa7ee9ddb602e64c6e3c1fbcc523491b7bedf86c5805a27a590",
             "enclosingBodyStartLine": 328,
             "enclosingBodyEndLine": 369,
@@ -196770,7 +196770,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertCrashRecovery",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "964a489bfd520fa7ee9ddb602e64c6e3c1fbcc523491b7bedf86c5805a27a590",
             "enclosingBodyStartLine": 328,
             "enclosingBodyEndLine": 369,
@@ -196785,7 +196785,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+        "verifierFileSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
         "dispatch": {
           "command": "verify-v390-onvif-source-view-atomicity",
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
@@ -197215,14 +197215,14 @@
           "sha256": "b14eeb684165957154e95614be1b6494e7b2c2f0e7acabe9a490987dd1ba9b08"
         }
       },
-      "sourceFlowDigest": "0a383bcf9139e5b08f2538409e378bf839900c182611b9a4af22c000344f1a57",
+      "sourceFlowDigest": "e5851a8d81ee94029055fe72aeb1273965240b4e1b85820b1a9f50e83cee13ae",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "owner:SAFE-206",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
             "enclosingBodySha256": "93306edfa8555aced18b8111e5ba83230ab948912ac0cf7c86ed8b07454a61f6",
             "enclosingBodyStartLine": 256,
             "enclosingBodyEndLine": 308,
@@ -197231,7 +197231,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "rejected",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
             "enclosingBodySha256": "ff9a5e15d24c3c4c85beadc91358252a9a0aef98201dae316a0c09f2edd77fea",
             "enclosingBodyStartLine": 264,
             "enclosingBodyEndLine": 264,
@@ -197240,7 +197240,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "clientDeclaredPassedRejected",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
             "enclosingBodySha256": "35b408b2bae874c3ae28229b1885e1279abdf2d7e2487bd4a01f728c7a357007",
             "enclosingBodyStartLine": 266,
             "enclosingBodyEndLine": 269,
@@ -197249,7 +197249,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "rejectedUpdateBoundaryObserved",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
             "enclosingBodySha256": "b64835d7bc0e96cf1845224d966a116dc5781e540dd68f15340fb00382d21bec",
             "enclosingBodyStartLine": 267,
             "enclosingBodyEndLine": 269,
@@ -197258,7 +197258,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "assert:SAFE-206",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
             "enclosingBodySha256": "93306edfa8555aced18b8111e5ba83230ab948912ac0cf7c86ed8b07454a61f6",
             "enclosingBodyStartLine": 256,
             "enclosingBodyEndLine": 308,
@@ -197273,7 +197273,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+        "verifierFileSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
         "dispatch": {
           "command": "verify-v390-vlm-promotion-trust-boundary",
           "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
@@ -198137,35 +198137,35 @@
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
           "symbol": "verifyCaseResponse",
           "anchor": "function verifyCaseResponse(item, response) {",
-          "line": 220,
+          "line": 227,
           "contextSha256": "ca86cb2656bffb7b0149b243c5935eb47309a3d1f58cd03ac87c13bbf8f388d3"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
           "symbol": "verifyCaseResponse",
           "anchor": "assert(summary.modelBackedExecutionReady === false, `${item.id}: summary claimed execution readiness`);",
-          "line": 231,
+          "line": 238,
           "contextSha256": "1c5a36aa574e2473cfe221ef06f79a1d1d4e469a50ef03167ab91146df4b1d36"
         },
         "action": {
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
           "symbol": "verifyCaseResponse",
           "anchor": "const modelBackedExecutionPerformed = response.json.boundaries?.modelBackedExecutionPerformed;",
-          "line": 232,
+          "line": 239,
           "contextSha256": "bc8b3b73ba39ced60f7c673f0f649f2fa8e11bb821607595965932d6c30a4863"
         },
         "state": {
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
           "symbol": "verifyCaseResponse",
           "anchor": "const modelBackedExecutionPrevented = modelBackedExecutionPerformed === false;",
-          "line": 233,
+          "line": 240,
           "contextSha256": "5235b4c166db769a27acf74abf828747fcf46fa44d05bae3a980539ddad7359b"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
           "symbol": "verifyCaseResponse",
           "anchor": "assert(modelBackedExecutionPrevented && modelBackedExecutionPerformed === false &&",
-          "line": 238,
+          "line": 245,
           "contextSha256": "ba783745b4d4af4c39a8a5be0550e5252071078ef25ad341842eb34086f1915e"
         },
         "verifier": {
@@ -198182,39 +198182,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-210 owner-dispatch",
-          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:220",
-          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:231"
+          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:227",
+          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:238"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-210 dispatch-action",
-          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:231",
-          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:232"
+          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:238",
+          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:239"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-210 action-state",
-          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:232",
-          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:233"
+          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:239",
+          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:240"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-210 state-readback",
-          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:233",
-          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:238"
+          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:240",
+          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:245"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-reid-readiness-consistency",
-          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:238",
+          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:245",
           "target": "server.sh:2682"
         }
       ],
@@ -198290,53 +198290,53 @@
           "sha256": "23d4af8f10bc90949f87f1bacb89637fcefd79ae765df1c6c32da1e1e374dc68"
         }
       },
-      "sourceFlowDigest": "a2e643ca379535cc7aaafd7dc4c8e8a92d95b1bf6db96548dfeeaa1fc24e0470",
+      "sourceFlowDigest": "7781a2c48abdcc2cf7c550b596a8898ac31e3360a10a77e8c621b16012d2aa28",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "verifyCaseResponse",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "8df70f1a8cf67842454220574ca72a11a1b975b06cd91c2c71cddf991b951674",
-            "enclosingBodyStartLine": 220,
-            "enclosingBodyEndLine": 257,
+            "enclosingBodyStartLine": 227,
+            "enclosingBodyEndLine": 264,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "verifyCaseResponse",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "8df70f1a8cf67842454220574ca72a11a1b975b06cd91c2c71cddf991b951674",
-            "enclosingBodyStartLine": 220,
-            "enclosingBodyEndLine": 257,
+            "enclosingBodyStartLine": 227,
+            "enclosingBodyEndLine": 264,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "verifyCaseResponse",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "8df70f1a8cf67842454220574ca72a11a1b975b06cd91c2c71cddf991b951674",
-            "enclosingBodyStartLine": 220,
-            "enclosingBodyEndLine": 257,
+            "enclosingBodyStartLine": 227,
+            "enclosingBodyEndLine": 264,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "verifyCaseResponse",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "8df70f1a8cf67842454220574ca72a11a1b975b06cd91c2c71cddf991b951674",
-            "enclosingBodyStartLine": 220,
-            "enclosingBodyEndLine": 257,
+            "enclosingBodyStartLine": 227,
+            "enclosingBodyEndLine": 264,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "verifyCaseResponse",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "8df70f1a8cf67842454220574ca72a11a1b975b06cd91c2c71cddf991b951674",
-            "enclosingBodyStartLine": 220,
-            "enclosingBodyEndLine": 257,
+            "enclosingBodyStartLine": 227,
+            "enclosingBodyEndLine": 264,
             "enclosingBodyScope": "declared-symbol"
           },
           "verifier": {
@@ -198348,7 +198348,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+        "verifierFileSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
         "dispatch": {
           "command": "verify-v390-reid-readiness-consistency",
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
@@ -199975,7 +199975,7 @@
           "sha256": "a25b8c1bc15d72f1954ee099ee35a7e6663dd5a60510cc22f52f7cf35e5af150"
         }
       },
-      "sourceFlowDigest": "86dfb1d9b53e0862fd1d3f05953e8d9387f533b9371b02b7bde1e03c0ff15c67",
+      "sourceFlowDigest": "e2eccd7414b353df11712818ed34948bc76de7f5f6222cef4c5f0e39ca523c79",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -200018,7 +200018,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_analysis_registry_durable_write.mjs",
             "symbol": "runFailureStage",
-            "trackedBlobSha256": "664482450e082e4457c3362ac38745b210dfd35b2b2bc5be47e957de29fc5a69",
+            "trackedBlobSha256": "47993e625706b36895589a9ac6827921a12c8c904c248dd6f51ab426cd3d154b",
             "enclosingBodySha256": "b5ace1d5c45c45886fd03371ee06a96d5df1841496768ea870a5efabd64993e3",
             "enclosingBodyStartLine": 137,
             "enclosingBodyEndLine": 180,
@@ -200033,7 +200033,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "664482450e082e4457c3362ac38745b210dfd35b2b2bc5be47e957de29fc5a69",
+        "verifierFileSha256": "47993e625706b36895589a9ac6827921a12c8c904c248dd6f51ab426cd3d154b",
         "dispatch": {
           "command": "verify-v390-analysis-registry-durable-write",
           "file": "scripts/internal/verify_v390_analysis_registry_durable_write.mjs",
@@ -232108,7 +232108,7 @@
           "sha256": "ca10aca78b461332e568cb2f3ed0811ebcb61e815997786026c7c4369b5c7000"
         }
       },
-      "sourceFlowDigest": "2ac551e8a1b5111ed6b9cf119419f03437d9682088f8f22234526e789e2262a6",
+      "sourceFlowDigest": "38104583391489a2d5eb2d7744a566455362a1676a9eaa98e55a9de704a5e840",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -232151,7 +232151,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
             "symbol": "assertCrashRecovery",
-            "trackedBlobSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+            "trackedBlobSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
             "enclosingBodySha256": "964a489bfd520fa7ee9ddb602e64c6e3c1fbcc523491b7bedf86c5805a27a590",
             "enclosingBodyStartLine": 328,
             "enclosingBodyEndLine": 369,
@@ -232166,7 +232166,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "47c9aeceb39e00648e6664ff8c6039e45ecf8c493ab4e2a973d9b4c69866ce56",
+        "verifierFileSha256": "d3b23f108072ebdf6b985bbc65d5392e9f05ab9574aa6f3455c9857ee1b1a19c",
         "dispatch": {
           "command": "verify-v390-onvif-source-view-atomicity",
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
@@ -232619,7 +232619,7 @@
           "sha256": "b06c2afd3e6b9603034799228b85efd216cbb91eff84ea951e9dd0721e6a562a"
         }
       },
-      "sourceFlowDigest": "fb8a2dbdc4316249dbdd0c5e0fc9f0240419e1d1a8cd3571ebbbb748a03adac7",
+      "sourceFlowDigest": "36f5c0d7a9995cf390ec986787cb8d95a0f53e08cd79b82f38bf0a06f984a3f4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -232662,7 +232662,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
             "symbol": "runCase",
-            "trackedBlobSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+            "trackedBlobSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
             "enclosingBodySha256": "93306edfa8555aced18b8111e5ba83230ab948912ac0cf7c86ed8b07454a61f6",
             "enclosingBodyStartLine": 256,
             "enclosingBodyEndLine": 308,
@@ -232677,7 +232677,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "19a88484833c10c3272a63fd639e6f187be7392ab942ce8fbb7f5b6ec6824f65",
+        "verifierFileSha256": "f802c49d4161207d3ba66b6e958be69d5d8ed7b10bca67d7ec989ea9937e357b",
         "dispatch": {
           "command": "verify-v390-vlm-promotion-trust-boundary",
           "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
@@ -233475,7 +233475,7 @@
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
           "symbol": "verifyCaseResponse",
           "anchor": "assert(gate.modelBackedPreflightReady === ready, `${item.id}: wrong preflight result`);",
-          "line": 227,
+          "line": 234,
           "contextSha256": "39f142b875a0e3926604d35abc931ab7b8d3ba4d3009d44e117b5720d91b8aba"
         },
         "verifier": {
@@ -233517,14 +233517,14 @@
           "kind": "runtime-readback",
           "witness": "OPS-177 state-readback",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:7060",
-          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:227"
+          "target": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:234"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-reid-readiness-consistency",
-          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:227",
+          "source": "scripts/internal/verify_v390_reid_readiness_consistency.mjs:234",
           "target": "server.sh:2682"
         }
       ],
@@ -233586,7 +233586,7 @@
           "sha256": "8480347129ef3eb2b62f977295a766186b8e727b215214070144a3bc8f05f363"
         }
       },
-      "sourceFlowDigest": "a9a7047d4cafc58b017fa77cc487b6d78a14a947201df8789265702a355c3c79",
+      "sourceFlowDigest": "52bffbf658beec7ae72b64bf9739bc1e082590ea6ee780a9c0920d53e1749bab",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -233629,10 +233629,10 @@
           "readback": {
             "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
             "symbol": "verifyCaseResponse",
-            "trackedBlobSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+            "trackedBlobSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
             "enclosingBodySha256": "8df70f1a8cf67842454220574ca72a11a1b975b06cd91c2c71cddf991b951674",
-            "enclosingBodyStartLine": 220,
-            "enclosingBodyEndLine": 257,
+            "enclosingBodyStartLine": 227,
+            "enclosingBodyEndLine": 264,
             "enclosingBodyScope": "declared-symbol"
           },
           "verifier": {
@@ -233644,7 +233644,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "821884575a82c91a10b3312b126841df9d8b4640cad5eb4df77e2f878438acb7",
+        "verifierFileSha256": "3cb66c9b3c3f5d06a709f6a2059db552934c9dba4ad046d3dbb66636e0c2c3ea",
         "dispatch": {
           "command": "verify-v390-reid-readiness-consistency",
           "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
@@ -233945,7 +233945,7 @@
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
           "symbol": "check:actual-mode-fixture-order",
           "anchor": "assert(summary.stages.find(item => item.id === \"server-longrun-120\")?.status === \"not-run\", \"120 stage must be not-run without trigger\");",
-          "line": 909,
+          "line": 996,
           "contextSha256": "99a58fdc0a75623fcb160ad21075ffe6aa7cd6e3177c9b93f59a00b81fe9c3ca"
         },
         "verifier": {
@@ -233987,14 +233987,14 @@
           "kind": "structural-producer-assertion",
           "witness": "OPS-179 state-readback",
           "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:495",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:909"
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:996"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-test-acceptance-bundle-contract",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:909",
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:996",
           "target": "server.sh:2606"
         }
       ],
@@ -234040,7 +234040,7 @@
           "sha256": "87351b8299314422d265153ec0ef3714914f164428cc7d403a1ea59b00cae7ae"
         }
       },
-      "sourceFlowDigest": "448f7cb9fc58d226c1cef7aa38ec5e566c172fcd5f231cbdcff6fa117f6f06f7",
+      "sourceFlowDigest": "26cc6638156268a2cab1f396018e23966c378a6c9ab8ae4f6a7f173965a83574",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -234083,10 +234083,10 @@
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
             "symbol": "check:actual-mode-fixture-order",
-            "trackedBlobSha256": "e44d3a60b2098f068b770c18bba66a361f900d90f11dbe4567bcc807af2494bb",
+            "trackedBlobSha256": "a07f6228f3db3b5a31f2f9f97a596d74c785de12a2c60a8163e3bacf7f6cb875",
             "enclosingBodySha256": "61a562f6ab95ec51d3108f2761ec100e6b6d9b9eac495ffd410354cd45958829",
-            "enclosingBodyStartLine": 845,
-            "enclosingBodyEndLine": 927,
+            "enclosingBodyStartLine": 932,
+            "enclosingBodyEndLine": 1014,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -234098,7 +234098,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e44d3a60b2098f068b770c18bba66a361f900d90f11dbe4567bcc807af2494bb",
+        "verifierFileSha256": "a07f6228f3db3b5a31f2f9f97a596d74c785de12a2c60a8163e3bacf7f6cb875",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle-contract",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
@@ -235187,7 +235187,7 @@
           "sha256": "0468d914fa4553db79d2b6043dbf42c9eaf27a5f5749994290c90e263e596e10"
         }
       },
-      "sourceFlowDigest": "7b2d5cc8dc6adbda3698655f34bf73beacfa3dfd3e5a5836eb666b798c62c8b2",
+      "sourceFlowDigest": "68f21cfa967eaf268124ffa25ee3b98d5bbc4427ab6338bdfa4ec2b7b4409dcd",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -235230,7 +235230,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_analysis_registry_durable_write.mjs",
             "symbol": "runCrashCase",
-            "trackedBlobSha256": "664482450e082e4457c3362ac38745b210dfd35b2b2bc5be47e957de29fc5a69",
+            "trackedBlobSha256": "47993e625706b36895589a9ac6827921a12c8c904c248dd6f51ab426cd3d154b",
             "enclosingBodySha256": "91ff5b6de601814684bd10545c2e6dab7e7f582a1465d75c377a446f4df01f06",
             "enclosingBodyStartLine": 218,
             "enclosingBodyEndLine": 261,
@@ -235245,7 +235245,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "664482450e082e4457c3362ac38745b210dfd35b2b2bc5be47e957de29fc5a69",
+        "verifierFileSha256": "47993e625706b36895589a9ac6827921a12c8c904c248dd6f51ab426cd3d154b",
         "dispatch": {
           "command": "verify-v390-analysis-registry-durable-write",
           "file": "scripts/internal/verify_v390_analysis_registry_durable_write.mjs",
@@ -235258,5 +235258,5 @@
       }
     }
   ],
-  "candidateDigest": "0b5420f046414ddc8c562c8e891120a6a8c6e6925ce0e5d076cbffffe557f8d3"
+  "candidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2"
 }

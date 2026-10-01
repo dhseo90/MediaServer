@@ -5,9 +5,9 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "7e165d44904ef65db847c1da805d5ccc33b05c4e7c1aafd36443884182f69df4",
+    "implementationProjectionSha256": "fdea24e632f0ee82fb4c61f859453656f499017a3bdba9470cc221433f9fd708",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "e45ece84ae3573fa178dac4d76a32365b5fe2bb4d09859c0160ba892ad77ee61",
+    "runtimeOracleCatalogSha256": "157a663ea7b2fae5b47a41cfb38fa7d6ca9c0fe8ee396d8cd90cf8bdedbaad5b",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -70642,7 +70642,7 @@
             "setupId": "UI-109:reviewed-state",
             "strategy": "persisted-mutation",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "9f3981ab6c2ffc6513d1935479dc99662f1be412c7eef605ec658f4ed0f43f65",
+            "semanticCallChainSha256": "b5bfe78b407d8c6979d0b2770363cc56093de8ae7df0c22c41f642ec491cbd21",
             "persistedMutation": true,
             "fixtureId": "4000109",
             "beforeSnapshotRef": "UI-109:before-product-state"
@@ -70722,7 +70722,7 @@
             "contextSha256": "31ef1716afad0e7e9ae18d32986dab3745a2a5bcf04121a5a23dea9a22a3ec34"
           },
           "verifierCommand": "verify-v390-onvif-source-view-atomicity",
-          "assertedSemanticDigest": "9f3981ab6c2ffc6513d1935479dc99662f1be412c7eef605ec658f4ed0f43f65"
+          "assertedSemanticDigest": "b5bfe78b407d8c6979d0b2770363cc56093de8ae7df0c22c41f642ec491cbd21"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -70734,7 +70734,7 @@
             "text": "`/ops/sources`의 `saveChannelSourceViewPair`와 persist decision status가 importDraftNotSaved=true, oneShotPersist=false, sourceWriteRequired=true, manual paired route, server rollback model을 표시하고 ONVIF form save/toggle에서 기존 source/view 연속 PUT을 사용하지 않음",
             "sha256": "9f26de4b660860b6913ebd15c28cb0a89aa11fa7a44f8092652af2b5938cc91b"
           },
-          "specSha256": "d1b527b4794e1d4d63980594cfc41ba5a82e8d43c59150861c83f5844e515b28",
+          "specSha256": "7f7e6d69dc417df46ea3fd5c5079e15ca74aa9c333eeaf4e6ac75eed93f84cc5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -71066,7 +71066,7 @@
                 "contextSha256": "31ef1716afad0e7e9ae18d32986dab3745a2a5bcf04121a5a23dea9a22a3ec34"
               },
               "verifierCommand": "verify-v390-onvif-source-view-atomicity",
-              "assertedSemanticDigest": "9f3981ab6c2ffc6513d1935479dc99662f1be412c7eef605ec658f4ed0f43f65"
+              "assertedSemanticDigest": "b5bfe78b407d8c6979d0b2770363cc56093de8ae7df0c22c41f642ec491cbd21"
             }
           }
         ]
@@ -71994,7 +71994,7 @@
             "setupId": "UI-111:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "aee8a12a7b3c4baf51de34cb5a84d7c71bfbfa539eeeae5e9585d21b81303678",
+            "semanticCallChainSha256": "bfaa0c684fc3218534aa6a5df52c2beb080c7ac01f66d1c7a9d7bde9ac536c8d",
             "persistedMutation": false,
             "fixtureId": "ui-111-review4-fixture",
             "beforeSnapshotRef": null
@@ -72068,7 +72068,7 @@
             "contextSha256": "e76f2ebbed8abdb4fdc4ccfc8e4eda62f583e575d3c58b83f5106233acf263b2"
           },
           "verifierCommand": "verify-v390-vlm-promotion-trust-boundary",
-          "assertedSemanticDigest": "aee8a12a7b3c4baf51de34cb5a84d7c71bfbfa539eeeae5e9585d21b81303678"
+          "assertedSemanticDigest": "bfaa0c684fc3218534aa6a5df52c2beb080c7ac01f66d1c7a9d7bde9ac536c8d"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -72080,7 +72080,7 @@
             "text": "`verify-v390-vlm-promotion-trust-boundary`가 `/ops/vlm` Evaluation을 read-only `server verified` 상태로 표시하고 payload는 `candidateId`, `expectedCatalogRevision`, `expectedProvenanceDigest`만 제출하며 editable passed option과 client result/status 선언이 없음을 확인",
             "sha256": "a6667d13433fa844f7cbd8d1bfe298d4651925a5971262e292fe09e1143dc89f"
           },
-          "specSha256": "efb57e6dd57207bc254a4d84fdcdb3a434d6281bcc282d4a3c4268bd4eec3496",
+          "specSha256": "2e61f6d6f42789a71d6317655f1a0b8114111991bbd5077fb12dbc368349789e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -72335,7 +72335,7 @@
             "cleanupId": "UI-111:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "aee8a12a7b3c4baf51de34cb5a84d7c71bfbfa539eeeae5e9585d21b81303678"
+            "semanticCallChainSha256": "bfaa0c684fc3218534aa6a5df52c2beb080c7ac01f66d1c7a9d7bde9ac536c8d"
           }
         ]
       },
@@ -122503,7 +122503,7 @@
             "setupId": "SRC-066:reviewed-state",
             "strategy": "persisted-mutation",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "01d8425f4b4f1b93c6e1db20abb98661616b9310b04db1434034ba9b55dde3bf",
+            "semanticCallChainSha256": "22d305b8d34948b44142d515b61dd1dd5199354070ba30afce3751892e5ea6cd",
             "persistedMutation": true,
             "fixtureId": "3900066",
             "beforeSnapshotRef": "SRC-066:before-product-state"
@@ -122583,7 +122583,7 @@
             "contextSha256": "1b7f732ec758891161fbf97c7beedd524f3d2fa779f41f6c45c2625ae4545508"
           },
           "verifierCommand": "verify-v390-onvif-source-view-atomicity",
-          "assertedSemanticDigest": "01d8425f4b4f1b93c6e1db20abb98661616b9310b04db1434034ba9b55dde3bf"
+          "assertedSemanticDigest": "22d305b8d34948b44142d515b61dd1dd5199354070ba30afce3751892e5ea6cd"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -122595,7 +122595,7 @@
             "text": "`UpsertOnvifSourceView`가 source/view를 모두 선검증하고 한 registry lock에서 durable prepared/committed marker와 byte-exact rollback snapshot을 만든 뒤 두 파일을 저장하며, restart recovery가 prepared crash는 이전 pair로 복구하고 committed crash는 새 pair를 유지한 뒤 success에서만 두 memory vector를 함께 반영함을 확인",
             "sha256": "99fb00527d7edb06b7cf822ab760ef24f58955cfb90569377cd3cf7401b0f196"
           },
-          "specSha256": "3d035b7cab1605ee50ee4cb9c34f52c42c6af94399c7f2782517d7ac9f3d37bc",
+          "specSha256": "7ec40cc436c7b9817035c9d6a6d1b2d1c6beee02cf8ca3110d93f180f9dba116",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -122927,7 +122927,7 @@
                 "contextSha256": "1b7f732ec758891161fbf97c7beedd524f3d2fa779f41f6c45c2625ae4545508"
               },
               "verifierCommand": "verify-v390-onvif-source-view-atomicity",
-              "assertedSemanticDigest": "01d8425f4b4f1b93c6e1db20abb98661616b9310b04db1434034ba9b55dde3bf"
+              "assertedSemanticDigest": "22d305b8d34948b44142d515b61dd1dd5199354070ba30afce3751892e5ea6cd"
             }
           }
         ]
