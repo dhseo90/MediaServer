@@ -1,0 +1,12 @@
+diff --git a/scripts/internal/recording_http_seed.cpp b/scripts/internal/recording_http_seed.cpp
+index d98bc829..185f43d5 100644
+--- a/scripts/internal/recording_http_seed.cpp
++++ b/scripts/internal/recording_http_seed.cpp
+@@ -2,6 +2,7 @@
+ #include "recording_media_test_fixture.h"
+ #include "recording/recording_derived_job_service.h"
+ #include "recording/recording_derived_selection.h"
++#include "recording/recording_read_service.h"
+ #include <fstream>
+ #include <iomanip>
+ #include <sstream>

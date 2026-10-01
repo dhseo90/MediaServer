@@ -1,0 +1,48 @@
+{
+  "mode": "--current-integration",
+  "fullFoundationPass": false,
+  "resourceTrendPass": false,
+  "uiFulltestPass": false,
+  "remaining": [
+    "final-scope-and-evidence-freeze",
+    "30min",
+    "120min",
+    "UI",
+    "resource-trend"
+  ],
+  "currentIntegrationExecutionPass": false,
+  "stages": [
+    {
+      "id": "http-api",
+      "checks": 35,
+      "exit": 0,
+      "cleanup": true
+    },
+    {
+      "id": "http-auth",
+      "checks": 40,
+      "exit": 0,
+      "cleanup": true
+    },
+    {
+      "id": "http-lifecycle",
+      "checks": 10,
+      "exit": 0,
+      "cleanup": true
+    },
+    {
+      "id": "default-composition",
+      "checks": 51,
+      "exit": 0,
+      "cleanup": true
+    }
+  ],
+  "failedStage": "actual-app",
+  "error": "child-execution",
+  "notRun": [],
+  "elapsedMs": 68162,
+  "tokenStart": null,
+  "tokenEnd": null,
+  "tokenConsumed": null,
+  "tokenSource": "전용집계없음"
+}

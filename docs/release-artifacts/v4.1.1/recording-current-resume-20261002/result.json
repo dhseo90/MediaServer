@@ -1,0 +1,190 @@
+{
+  "schema": "media-server.v411-release-attempt.v1",
+  "recordedAt": "2026-10-01T21:25:43.678926+00:00",
+  "actor": "Codex AI 구현·실행 담당",
+  "scope": "HTTP seed 직접 include 보완 및 기존 current-integration 단기 실행",
+  "status": "FAIL",
+  "shortBundleComplete": false,
+  "source": {
+    "baseHead": "71b423d4cfafa56fcbe2fea7812752d07d87c22a",
+    "executionTrackedPatchSha256": "0b7c5ea855c824baff684ee09b6fcb833f6a1e653de0bd35abd642c3a53f40e7",
+    "executedChangesCommittedAs": "9e12258a59785059d49bc39019d44b2ae7d5d1af",
+    "commitPatchMatchesExecution": true,
+    "boundary": "실행 시 base HEAD+한 줄의 미커밋 patch. 검증 후 동일 patch를 코드 커밋으로 고정. 기존 일반 acceptance를 새 HEAD 실행으로 바꾸지 않음."
+  },
+  "changes": {
+    "files": [
+      "scripts/internal/recording_http_seed.cpp"
+    ],
+    "minimalFix": "직접 사용하는 RecordingReadService의 선언 헤더 recording/recording_read_service.h 추가",
+    "declaration": "include/recording/recording_read_service.h:37",
+    "use": "scripts/internal/recording_http_seed.cpp:78-80",
+    "extraPreparationFixes": [],
+    "preserved": "함수·호출·입력·출력·assertion·물리 검증·fixture·C++17/warning/macros/libs 불변"
+  },
+  "checks": {
+    "seedSelfTest": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_http_seed.sh",
+        "--self-test"
+      ],
+      "exitCode": 0,
+      "compileLink": "PASS",
+      "seedGenerationAndPhysicalValidation": "PASS",
+      "checks": [
+        "실제 원본 파일",
+        "derived job complete와 ready 출력2개",
+        "ResolveMedia 물리 파일 확인"
+      ],
+      "cleanup": "PASS",
+      "httpApiOrUiPass": false,
+      "stderr": "file evidence profile/bound 경고3줄은 원출력 유지; 자체검사 종료0"
+    },
+    "syntax": "기존 HTTP seed의 C++17 -Wall -Wextra -Werror 컴파일·링크와 bash -n PASS",
+    "codeComments": "PASS",
+    "diffCheck": "PASS",
+    "currentIntegration": {
+      "command": [
+        "./server.sh",
+        "verify-v410-recording-foundation",
+        "--current-integration"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 68.204,
+      "stages": [
+        {
+          "id": "http-api",
+          "checks": 35,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "http-auth",
+          "checks": 40,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "http-lifecycle",
+          "checks": 10,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "default-composition",
+          "checks": 51,
+          "exit": 0,
+          "cleanup": true
+        }
+      ],
+      "failedStage": "actual-app",
+      "aggregateError": "child-execution",
+      "defaultComposition": {
+        "actualAssertions": 51,
+        "summaryPassCounts": [
+          24,
+          20,
+          1
+        ],
+        "definition": "main24 + source-runtime 4×5 + supervisor1 + default-budget1 + crypto-off1 + provider-locks1 + recovery3 = 51",
+        "B2S01Observed": 4,
+        "B2S02Observed": 1,
+        "expectedRecoveryChildExits": [
+          23,
+          23
+        ],
+        "parentAccepted": true,
+        "cleanup": "PASS"
+      },
+      "actualApp": {
+        "compileLink": "PASS (기존 archive-probe 생성 후 제품 기동)",
+        "processLaunches": 1,
+        "reportedPassed": 5,
+        "reportedFailed": 1,
+        "observedPassLines": [
+          "[pass] S11-CI09 product-1 healthy isolated ICE",
+          "[pass] S11-CI07 run1 actual tuple EventRecord reference",
+          "[pass] S11-CI08 product-1 exit0 ports returned",
+          "[pass] LP03-B diagnostic copy bytes/hash exact",
+          "[pass] LP03-B original unchanged after diagnostic"
+        ],
+        "actualEventPass": false,
+        "restartPass": false,
+        "observedOutputCounts": [],
+        "firstFailure": "[fail] current actual app: ENOENT: no such file or directory, lstat '/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-current.xf3cn_6i/tmp/media-server-current-integration-1qIr0A/recordings/snapshot-1.jsonl'",
+        "phase": "첫 제품 기동의 출력2개 완료 대기 중 live root 관측",
+        "notCompleted": [
+          "literal two output files 완료 assertion",
+          "첫 기동 archive proof",
+          "두 번째 기동·재시작 보존 assertion"
+        ],
+        "retryPerformed": false
+      }
+    }
+  },
+  "failureBoundary": {
+    "classification": "컴파일/링크 준비가 아닌 actual-app의 실행 중 관측 오류. 이번 승인 경계에서 중단.",
+    "readOnlySourceConnection": [
+      "verify_recording_current_app.mjs의 budget() → scan(root) → statCurrentRunEntry(root,full)",
+      "recording_current_observer.mjs:15-19는 지정 SQLite journal ENOENT만 처리하며 snapshot-1.jsonl ENOENT는 다시 throw"
+    ],
+    "lastTimelineState": "intent / outputCount0 / completion 미관측",
+    "afterShutdownEvidence": "기존 자동 복제본 진단은 failed / job-remux: work-cancelled. 종료 후 offline-copy-at-query이며 최초 실패 시점과 동등하지 않음.",
+    "unknown": "snapshot 파일 부재의 근본 원인 및 실제 녹화 완료 가능 여부 미확정; 정상적인 동시 파일 수명인지 제품 결함인지 이번 기록만으로 확정하지 않음.",
+    "noAdditionalDiagnosisOrPatch": true
+  },
+  "approvalImpact": {
+    "observedAt": "2026-10-01T21:22:32.799Z",
+    "method": "현재 적용 audit의 trust/dispatch/source-flow를 기존 helper로 읽기 전용 비교. 후보 생성 또는 986개 독립 재검토 아님.",
+    "rows": 986,
+    "changedIds": [],
+    "storedCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+    "recomputedCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+    "changedFiles": [
+      "scripts/internal/recording_http_seed.cpp"
+    ],
+    "changedFileHashes": {
+      "scripts/internal/recording_http_seed.cpp": "b224dfa2606f53c603302935944a97281d87fad3fdcd1b9e31236c383c9ea20a"
+    },
+    "trackedPatchSha256": "0b7c5ea855c824baff684ee09b6fcb833f6a1e653de0bd35abd642c3a53f40e7",
+    "locatorImpact": "직접 include 한 줄 추가. 적용 audit의 역할·locator와 source-flow 불변 여부는 실제 trust 비교 결과를 사용.",
+    "candidateGenerated": false,
+    "independentReviewerStarted": false,
+    "producerApplied": false
+  },
+  "existingEvidence": {
+    "priorShortRunCommit": "71b423d4cfafa56fcbe2fea7812752d07d87c22a",
+    "priorShortRunPath": "docs/release-artifacts/v4.1.1/recording-short-resume-20261002/result.json",
+    "priorPassesRetained": {
+      "finalizeIntegration": 140,
+      "timelineTwoBackends": 166,
+      "finalizeDefault": 74,
+      "aggregateSelfTests": 78
+    },
+    "repeated": false,
+    "generalAcceptanceSource": "c888ac9baf613c773cbd8bb14bb547d3a3e4cc3a",
+    "generalAcceptancePreservation": "1ba16587996162d842a27a38cb57b669c5040e9d",
+    "generalAcceptanceResult": "기존 실행 PASS 유지; 새 실행 아님",
+    "invarianceBasis": "src/include/CMake Git diff 없음. 기존 product binary/runtime archive/fixture/원장/일반 acceptance 실행기·이전 summary/manifest 해시 불변. 녹화 seed 헤더 추가만 수행.",
+    "originalHttpOpusFailureAndTwoNonReproductions": "기존 기록 유지, 추가 codec 진단 없음"
+  },
+  "cleanup": {
+    "childRootCleanup": "PASS",
+    "processGroupEmpty": true,
+    "allReportedPortsRecheckedClosed": true,
+    "defaultRecordingRootAbsent": true,
+    "productInputsUnchanged": true,
+    "runtimeReceiptsPreserved": 4,
+    "runScratch": "검증 child root 제거 완료. 바이트 보존 커밋 재조회 후 진단 출력 중복과 컴파일 캐시만 별도 정리 예정."
+  },
+  "notRun": [
+    "일반 acceptance",
+    "일반30분/120분",
+    "기본UI424",
+    "녹화UI8개ID/31조작",
+    "별도녹화120분",
+    "candidate/독립검토/producer",
+    "push/PR/merge/tag/Release"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "bash",
+    "scripts/internal/verify_recording_http_seed.sh",
+    "--self-test"
+  ],
+  "start": "2026-10-01T21:19:54.757039+00:00",
+  "finish": "2026-10-01T21:19:57.559603+00:00",
+  "pid": 4902,
+  "returnCode": 0,
+  "signal": null,
+  "elapsedSeconds": 2.803,
+  "environment": {
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TMPDIR": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-current.xf3cn_6i/tmp",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV": "1",
+    "MEDIA_SERVER_GST_CACHE_DIR": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-current.xf3cn_6i/gst-cache",
+    "MEDIA_SERVER_GST_PLUGIN_PROFILE": "headless",
+    "GST_REGISTRY_1_0": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-current.xf3cn_6i/gst-registry.bin"
+  },
+  "stdout": "seed-self-test.stdout.log",
+  "stderr": "seed-self-test.stderr.log"
+}

@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-10-01T21:22:32.799Z",
+  "method": "현재 적용 audit의 trust/dispatch/source-flow를 기존 helper로 읽기 전용 비교. 후보 생성 또는 986개 독립 재검토 아님.",
+  "rows": 986,
+  "changedIds": [],
+  "storedCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+  "recomputedCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+  "changedFiles": [
+    "scripts/internal/recording_http_seed.cpp"
+  ],
+  "changedFileHashes": {
+    "scripts/internal/recording_http_seed.cpp": "b224dfa2606f53c603302935944a97281d87fad3fdcd1b9e31236c383c9ea20a"
+  },
+  "trackedPatchSha256": "0b7c5ea855c824baff684ee09b6fcb833f6a1e653de0bd35abd642c3a53f40e7",
+  "locatorImpact": "직접 include 한 줄 추가. 적용 audit의 역할·locator와 source-flow 불변 여부는 실제 trust 비교 결과를 사용.",
+  "candidateGenerated": false,
+  "independentReviewerStarted": false,
+  "producerApplied": false
+}
