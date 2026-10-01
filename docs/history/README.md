@@ -108,10 +108,15 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 | 입력 대역·현행 문서 연결 수정, 970개 자체검사, 37개 독립 판단과 결속 원본 30개 | `ad8e58557746deea81fcebc9756c4ed718b369fe` | `fixture-resume-20261001/` |
 | 재시도 acceptance 실패·기본 녹화 저장소 생성·정리 원본 60개 | `74dd820fbebcfeafe69462e23d82873509dd0251` | `test-acceptance-current-final/` |
 | 현재 입력·자식 녹화 격리 보완, 14개 독립 판단·재검토와 결속 원본 89개 | `3f1b10336e068c587138c3747fb8135dd4a76954` | `input-isolation-resume-20261001/` |
-
 | script inventory 중단의 acceptance 원본 55개 | `a7144f6ef9a41057fb478dc900dbe10247472cd1` | `test-acceptance-current-final/` |
 | 종료 로그 독립 분류 수정·집중 검증 원본 19개 | `a0f45b8b42ab0b41a35b309758e4cfefca7612fb` | `script-inventory-resume-20261001/` |
+| 30분·UI 424개 실행 후 Policy 문구 검증 실패 원본 4,620개 | `864b4c9cfe8683c6b81f9e5e3628701cfc93553f` | `test-acceptance-current-final/`의 `preservation-manifest.json`과 대응 보존 파일 |
 
 최초 실패 출력 18개와 다음 재시도 실패 출력 60개·55개는 각각 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
 같은 경로의 새 실행 결과와 최초 실패는 commit·실행 source·run ID로 구분한다.
 나머지 보존 자료와 ignored 검토 원본은 재실행 준비에서 삭제하지 않았다.
+
+`864b4c9c`의 텍스트 원본은 무손실 gzip, PNG는 원래 바이트로 보존했다. 대응표의 원래 경로와
+SHA-256을 사용해 Git blob을 읽고 압축을 풀면 원본을 확인할 수 있다. 4,620개 전체를 Git에서
+재조회해 원본 336,871,064바이트와 대조한 뒤 이 실행의 미추적 중복 원출력 4,404개만 제거했다.
+이 실행은 Policy 문구 검증에서 중단됐으며 전체 acceptance·릴리즈 PASS가 아니다.

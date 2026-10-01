@@ -1,0 +1,20 @@
+{
+  "verifiedAt": "2026-10-01T10:50:46.231865+00:00",
+  "preservationCommit": "864b4c9cfe8683c6b81f9e5e3628701cfc93553f",
+  "manifestSha256": "3f7fb146cc94d80e7f90c81255c7e7b7884915036493c2f601a59b31c46b083e",
+  "verifiedOriginalFiles": 4620,
+  "verifiedOriginalBytes": 336871064,
+  "verifiedStoredBytes": 34648784,
+  "gitReadback": "all stored blobs read from committed Git objects; decompression and exact original bytes/SHA-256 compared",
+  "rawDuplicatesEligibleForRemoval": 4404,
+  "allRawDuplicatesUntracked": true,
+  "rawDuplicatesRemoved": true,
+  "removedRawDuplicates": 4404,
+  "removedAt": "2026-10-01T10:51:29.018735+00:00",
+  "retained": [
+    "all committed gzip archives",
+    "216 unchanged PNG originals",
+    "preservation manifest and release-attempt summary"
+  ],
+  "boundary": "Only this run's untracked raw duplicates were removed after exact committed-byte readback; previous failures, ignored review originals, product data and source were not removed."
+}
