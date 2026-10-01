@@ -1,0 +1,115 @@
+{
+  "mode": "current-actual-app",
+  "timelineUnplacedUnit": "file",
+  "terminalObservations": [
+    {
+      "processOrdinal": 1,
+      "referenceSha256": "4cba737dfc8c918a1952afe648c81a074f1f3e6b908353b1e59b3b92f885e494",
+      "unplacedUnit": "file",
+      "terminalObserved": true,
+      "firstObservedMs": 32619.219917,
+      "firstPageOffset": 0,
+      "firstTimelineOrdinal": 106,
+      "mixedStates": true,
+      "observedOutputCount": 2,
+      "fullOutputPass": false,
+      "invalid": false,
+      "fullPageStatus": "complete",
+      "changedCycles": 0,
+      "waitOutcome": "complete"
+    },
+    {
+      "processOrdinal": 2,
+      "referenceSha256": "e4e4145cd5a9f3e73939902ede717a1a23be0a49c7f2d8839de1ed10f52245e3",
+      "unplacedUnit": "file",
+      "terminalObserved": true,
+      "firstObservedMs": 81553.987917,
+      "firstPageOffset": 0,
+      "firstTimelineOrdinal": 12,
+      "mixedStates": true,
+      "observedOutputCount": 2,
+      "fullOutputPass": false,
+      "invalid": false,
+      "fullPageStatus": "complete",
+      "changedCycles": 0,
+      "waitOutcome": "complete"
+    }
+  ],
+  "passed": 27,
+  "failed": 0,
+  "latencyPass": false,
+  "actualEventPass": true,
+  "restartPass": true,
+  "boundaryDiagnosticPass": false,
+  "expectedOutputCount": 2,
+  "observedOutputCounts": [
+    2,
+    2
+  ],
+  "cleanup": {
+    "rootAbsent": true,
+    "failureCount": 0,
+    "processes": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 7614,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 53230,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 53231,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 7688,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 53481,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 53482,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "evidencePreservedOrNotRequired": true
+  },
+  "elapsedMs": 93932
+}

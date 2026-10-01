@@ -1,0 +1,22 @@
+{
+  "command": [
+    "./server.sh",
+    "verify-v410-recording-foundation",
+    "--current-integration"
+  ],
+  "start": "2026-10-01T21:52:11.990015+00:00",
+  "finish": "2026-10-01T21:54:31.749270+00:00",
+  "pid": 7245,
+  "processGroup": 7245,
+  "returnCode": 0,
+  "signal": null,
+  "elapsedSeconds": 139.759,
+  "environment": {
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TMPDIR": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV": "1"
+  },
+  "stdout": "current-integration.stdout.log",
+  "stderr": "current-integration.stderr.log"
+}

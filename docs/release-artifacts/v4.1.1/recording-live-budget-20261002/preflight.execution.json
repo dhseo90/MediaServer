@@ -1,0 +1,68 @@
+[
+  {
+    "name": "focused-tests",
+    "command": [
+      "node",
+      "--test",
+      "scripts/internal/recording_current_app_scan.test.mjs",
+      "scripts/internal/recording_current_integration.test.mjs"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:47:49.878780+00:00",
+    "elapsedSeconds": 1.141
+  },
+  {
+    "name": "scan-syntax",
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/recording_current_app_scan.mjs"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:47:51.019397+00:00",
+    "elapsedSeconds": 0.024
+  },
+  {
+    "name": "scan-test-syntax",
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/recording_current_app_scan.test.mjs"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:47:51.043577+00:00",
+    "elapsedSeconds": 0.02
+  },
+  {
+    "name": "app-syntax",
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/verify_recording_current_app.mjs"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:47:51.063804+00:00",
+    "elapsedSeconds": 0.019
+  },
+  {
+    "name": "code-comments",
+    "command": [
+      "./server.sh",
+      "verify-code-comments"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:47:51.082429+00:00",
+    "elapsedSeconds": 0.288
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:47:51.370922+00:00",
+    "elapsedSeconds": 0.02
+  }
+]

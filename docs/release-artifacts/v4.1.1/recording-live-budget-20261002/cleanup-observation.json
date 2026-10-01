@@ -1,0 +1,241 @@
+{
+  "observedAt": "2026-10-01T21:55:57.760284+00:00",
+  "processGroup": 7245,
+  "remainingGroupProcesses": [],
+  "reportedProcesses": [
+    {
+      "pid": 7290,
+      "exitCode": 0,
+      "signalCode": null,
+      "graceful": true
+    },
+    {
+      "pid": 7386,
+      "exitCode": 0,
+      "signalCode": null,
+      "graceful": true
+    },
+    {
+      "pid": 7470,
+      "exitCode": 0,
+      "signalCode": null,
+      "graceful": true
+    },
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 7614,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 53230,
+          "status": "pass",
+          "code": "closed",
+          "closed": true,
+          "readbackConnectErrno": 61,
+          "readbackClosed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 53231,
+          "status": "pass",
+          "code": "closed",
+          "closed": true,
+          "readbackConnectErrno": 61,
+          "readbackClosed": true
+        }
+      ]
+    },
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 7688,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 53481,
+          "status": "pass",
+          "code": "closed",
+          "closed": true,
+          "readbackConnectErrno": 61,
+          "readbackClosed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 53482,
+          "status": "pass",
+          "code": "closed",
+          "closed": true,
+          "readbackConnectErrno": 61,
+          "readbackClosed": true
+        }
+      ]
+    }
+  ],
+  "portReadback": [
+    {
+      "kind": "rtsp",
+      "port": 53100,
+      "closed": true,
+      "evidence": "ECONNREFUSED",
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "http",
+      "port": 53101,
+      "closed": true,
+      "evidence": "ECONNREFUSED",
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "rtsp",
+      "port": 53155,
+      "closed": true,
+      "evidence": "ECONNREFUSED",
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "http",
+      "port": 53156,
+      "closed": true,
+      "evidence": "ECONNREFUSED",
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "rtsp",
+      "port": 53204,
+      "closed": true,
+      "evidence": "ECONNREFUSED",
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "http",
+      "port": 53205,
+      "closed": true,
+      "evidence": "ECONNREFUSED",
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "http",
+      "port": 53230,
+      "status": "pass",
+      "code": "closed",
+      "closed": true,
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "rtsp",
+      "port": 53231,
+      "status": "pass",
+      "code": "closed",
+      "closed": true,
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "http",
+      "port": 53481,
+      "status": "pass",
+      "code": "closed",
+      "closed": true,
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    },
+    {
+      "kind": "rtsp",
+      "port": 53482,
+      "status": "pass",
+      "code": "closed",
+      "closed": true,
+      "readbackConnectErrno": 61,
+      "readbackClosed": true
+    }
+  ],
+  "roots": [
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-http-seed.LEnot3",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-v410-s06-WdQcw5",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-http-seed.KE5Mo2",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-v410-s06-ZYa72v",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-http-seed.qQoCzK",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-v410-s06-0Oidby",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-default-composition.DQdlK3",
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij/tmp/media-server-current-integration-gWs6zh",
+      "absent": true
+    }
+  ],
+  "defaultRecordingRootAbsent": true,
+  "inputHashMatches": {
+    "build-gst-onnx/media_server": true,
+    "build-gst-onnx/libmedia_server_runtime.a": true,
+    "CMakeLists.txt": true,
+    "test/fixtures/v390_review4_feature_semantic_source_audit.json": true,
+    "test/fixtures/v390_review4_feature_semantic_source_approvals.json": true,
+    "test/fixtures/project_feature_implementation_evidence.json": true,
+    "test/fixtures/v390_ui_native_exact_cases.json": true,
+    "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json": true,
+    "docs/release-artifacts/v4.1.1/test-acceptance-current-final/preservation-manifest.json": true,
+    "video/sample_h264.mp4": true,
+    "video/sample_h264_video_only.mp4": true,
+    "test_release.sh": true,
+    "scripts/internal/recording_current_integration_suite.mjs": true,
+    "video/imports/va_tracking_event_1280x720_30fps_h264.mp4": true,
+    "docs/release-artifacts/v4.1.1/recording-current-resume-20261002/result.json": true,
+    "scripts/internal/recording_current_observer.mjs": true
+  },
+  "executedFilesUnchanged": {
+    "scripts/internal/recording_current_app_scan.mjs": true,
+    "scripts/internal/recording_current_app_scan.test.mjs": true,
+    "scripts/internal/recording_current_integration.test.mjs": true,
+    "scripts/internal/verify_recording_current_app.mjs": true
+  },
+  "productDiffSinceGeneralAcceptance": "",
+  "remainingOwnedTmpEntries": [
+    "xcrun_db"
+  ],
+  "externalStorageBoundary": "상위 환경 allowlist와 기존 자식별 소유 root 유지. 외부 녹화 경로를 전달하거나 임의 외부 저장소를 열지 않음."
+}

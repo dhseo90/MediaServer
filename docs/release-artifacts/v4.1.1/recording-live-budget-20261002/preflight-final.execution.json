@@ -1,0 +1,56 @@
+[
+  {
+    "name": "focused-connected",
+    "command": [
+      "node",
+      "--test",
+      "scripts/internal/recording_current_integration.test.mjs"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:51:19.401117+00:00",
+    "elapsedSeconds": 0.954
+  },
+  {
+    "name": "entry-syntax",
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/recording_current_integration.test.mjs"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:51:20.354746+00:00",
+    "elapsedSeconds": 0.022
+  },
+  {
+    "name": "code-comments-final",
+    "command": [
+      "./server.sh",
+      "verify-code-comments"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:51:20.376346+00:00",
+    "elapsedSeconds": 0.295
+  },
+  {
+    "name": "script-inventory-final",
+    "command": [
+      "./server.sh",
+      "verify-script-inventory"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:51:20.671571+00:00",
+    "elapsedSeconds": 21.569
+  },
+  {
+    "name": "diff-check-final",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "returnCode": 0,
+    "start": "2026-10-01T21:51:42.240326+00:00",
+    "elapsedSeconds": 0.012
+  }
+]

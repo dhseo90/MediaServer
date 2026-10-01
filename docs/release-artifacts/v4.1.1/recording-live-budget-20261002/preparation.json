@@ -1,0 +1,42 @@
+{
+  "startedAt": "2026-10-01T21:44:18.917971+00:00",
+  "initialHead": "48486f527cd7ec122a8165d4dd9d8edfc2908d09",
+  "initialBranch": "v4.1.1",
+  "initialStatus": "clean",
+  "ownedRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-live.l5zqctij",
+  "defaultRecordingRootAbsent": true,
+  "inputHashes": {
+    "build-gst-onnx/media_server": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+    "build-gst-onnx/libmedia_server_runtime.a": "d857542636a2ac9aafd4165c0f4530120fffb29f582e6fb413725289a5f92ba5",
+    "CMakeLists.txt": "cf4e6735f78b6ea68b8bc374ad729b13bc8d5f0679b6f495f7c79436fd1e0c10",
+    "test/fixtures/v390_review4_feature_semantic_source_audit.json": "f14ab8d6cd186534279a180a9aaef15d72466feafb3abd6360398508f083437a",
+    "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "83c3eaf9b78099ceec932846d0fc86d85de488fc7f8df966d4670efa1fed49bf",
+    "test/fixtures/project_feature_implementation_evidence.json": "915c80eaad46ebd4dc6d295b69e8b145b358c9913aefb4c227350bc7e961ac5e",
+    "test/fixtures/v390_ui_native_exact_cases.json": "d23b29e017c7d99369609db4a09706e8313c00cbf3a22d9c44c7135ffc0eb0ba",
+    "docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json": "9f687b2e1372376799179f32bcd66bc92cde9ad73608f7144aea0fe48308473d",
+    "docs/release-artifacts/v4.1.1/test-acceptance-current-final/preservation-manifest.json": "0265276b8213a5931bba40a7b0dbfc0935e974ea287988e6f3a5357d29b4ef03",
+    "video/sample_h264.mp4": "4e7dd9a8c0a699df3e301ea07b0e251f54abe757df3de02b4cf35aa6333a3111",
+    "video/sample_h264_video_only.mp4": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
+    "test_release.sh": "17d3bea8dc94b904f336410b56c67c4e922b95442e055d8098067b42fd85e272",
+    "scripts/internal/recording_current_integration_suite.mjs": "d851954a274953b18cfc5f808361a3d624b4e85dd1af3e9ea35211fb73dd9fb5",
+    "video/imports/va_tracking_event_1280x720_30fps_h264.mp4": "02d046c3df9acd44b2dd5d2fd50db46b6b1f8c3b3b5b44c3dd710bdc50cff2fa",
+    "docs/release-artifacts/v4.1.1/recording-current-resume-20261002/result.json": "41891bb8c20672553542b387a95e6e0a282edf61171a274749c181c8b46e0bed",
+    "scripts/internal/recording_current_observer.mjs": "75709e81594d6d0f1e5bf89e7b3b055dc35e84c3cd1375939634f9d944ac9576"
+  },
+  "productSourceTreeObjects": {
+    "src": "a4523a31ca4cf5e310ce838e51d00d66c978333e",
+    "include": "e909f0615c90b1a8afbb0921aae6d08e0f1456d2",
+    "CMakeLists.txt": "9f4565f806bcd32a3249ae881014c7a2072b3c76"
+  },
+  "priorFailureCommit": "be77cbbd4d05cbe0c372ee864464992c3c067ae2",
+  "receiptDirectoriesBefore": {
+    "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923": {
+      "files": 211,
+      "fileListSha256": "b2f2b744fd6dbc8dac728e2760e8c53ed04c661ac8360adb4011b692440bedfd"
+    },
+    "docs/release-artifacts/v4.1.0/s11-preparation-mapping": {
+      "files": 1030,
+      "fileListSha256": "a158de925ceeda1853589a2259f82964bf1b158713cdcac5636da30be5c176c6"
+    }
+  }
+}

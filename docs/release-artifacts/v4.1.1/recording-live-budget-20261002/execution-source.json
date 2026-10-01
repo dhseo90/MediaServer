@@ -1,0 +1,10 @@
+{
+  "head": "48486f527cd7ec122a8165d4dd9d8edfc2908d09",
+  "stagedPatchSha256": "4d719fa6362f8bb665f371c452d2a45908c6068c4bd7d86a56200e623957cff0",
+  "fileHashes": {
+    "scripts/internal/recording_current_app_scan.mjs": "d3d28ba4592d538a4f6228211ba39999e866722c46978eefe2326b1a60f21571",
+    "scripts/internal/recording_current_app_scan.test.mjs": "7d9ff5a7e12b6b8b34a74f02361375e018ce84bd117bfd17cb350994ae989068",
+    "scripts/internal/recording_current_integration.test.mjs": "7c9316505afe97638f83c28fe7b75ab30f14ba3f8021c83cd74471185e18b83a",
+    "scripts/internal/verify_recording_current_app.mjs": "1b097fc66c8cc4930b4e4acf83d52df0b992fd43365ad797b44e7a989cdc8b9d"
+  }
+}
