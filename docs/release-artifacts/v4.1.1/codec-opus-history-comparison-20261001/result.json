@@ -1,0 +1,1235 @@
+{
+  "schema": "media-server.v411-codec-opus-history-comparison.v1",
+  "recordedAt": "2026-10-01T14:01:53.810359+00:00",
+  "actor": "Codex AI diagnostic agent",
+  "classification": "not-reproduced-with-six-preceding-sources",
+  "releaseBlockerCleared": false,
+  "attemptAccounting": {
+    "priorHttpOnlyFocusedAttempts": 1,
+    "additionalSequenceAttempts": 1,
+    "additionalRetries": 0,
+    "lifetimeFocusedObservations": 2,
+    "boundary": "기존 1회 이력을 유지하고 사용자 승인 대조 1회만 추가. 정식 acceptance 또는 릴리즈 검증이 아님."
+  },
+  "source": {
+    "diagnosticHead": "473d92a5f6261b7e9214db7c404995f8aa5feba1",
+    "diagnosticTree": "9df465261667e4c7927bf7f40cf1d2180829797d",
+    "branch": "v4.1.1",
+    "initialWorktreeAndIndex": "clean",
+    "remoteTrackingHeadAtStart": "473d92a5f6261b7e9214db7c404995f8aa5feba1",
+    "originalFailureProductHead": "0478d1274d3e12cfbe87a138ebdaab9a57ece61a",
+    "originalFailurePreservationCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+    "priorDiagnosticPath": "docs/release-artifacts/v4.1.1/codec-opus-diagnosis-20261001/result.json",
+    "priorDiagnosticSha256": "fe78f92512605c4be400dcc18271d37e2a73d722c356b7dcb8fa5b46b4c89b7a",
+    "relatedCodeConfigFixtureDiffFromOriginalFailure": "empty for scripts/config/src/include/video",
+    "implementationChanges": [],
+    "approvalInputChanges": []
+  },
+  "preparation": {
+    "sameServerEnvironmentAsPrior": true,
+    "isolatedRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z",
+    "sourceLabelChanges": [
+      {
+        "originalName": "http_local_h264_aac",
+        "diagnosticName": "http_local_h264_aac_diag_kcqz5w8z",
+        "logPath": "/private/tmp/http_local_h264_aac_diag_kcqz5w8z.http.log",
+        "launcherType": "local_http",
+        "port": 8765
+      },
+      {
+        "originalName": "rtsp_local_h265_opus",
+        "diagnosticName": "rtsp_local_h265_opus_diag_kcqz5w8z",
+        "logPath": "/private/tmp/rtsp_local_h265_opus_diag_kcqz5w8z.launcher.log",
+        "launcherType": "local_rtsp",
+        "port": 8654
+      },
+      {
+        "originalName": "rtsp_local_h264_pcmu",
+        "diagnosticName": "rtsp_local_h264_pcmu_diag_kcqz5w8z",
+        "logPath": "/private/tmp/rtsp_local_h264_pcmu_diag_kcqz5w8z.launcher.log",
+        "launcherType": "local_rtsp",
+        "port": 8655
+      },
+      {
+        "originalName": "rtsp_local_h264_pcma",
+        "diagnosticName": "rtsp_local_h264_pcma_diag_kcqz5w8z",
+        "logPath": "/private/tmp/rtsp_local_h264_pcma_diag_kcqz5w8z.launcher.log",
+        "launcherType": "local_rtsp",
+        "port": 8656
+      },
+      {
+        "originalName": "webrtc_local_publish_h264_opus",
+        "diagnosticName": "webrtc_local_publish_h264_opus_diag_kcqz5w8z",
+        "logPath": "/private/tmp/webrtc_local_publish_h264_opus_diag_kcqz5w8z.publisher.log",
+        "launcherType": "whip_publish",
+        "port": null
+      }
+    ],
+    "temporaryConfigOnlySourceLabelsChanged": true,
+    "temporaryConfigSha256": "5fe6c9468191dc020e7fc3cd17669938b98550f0f16e8538afae41b4bfb65ab9",
+    "labelReason": "기존 /tmp 제공자 로그를 덮어쓰지 않도록 launcher source의 표시 이름만 고유하게 지정. URL/port/source_id/payload/profile/route/timeout/기대값은 그대로.",
+    "providerOwnership": "초기에 8654/8655/8656/8765 비점유 확인 및 각 제공자 직전 재확인. 이미 열린 listener를 사용하지 않음. 종료 log PID, process group 및 포트 해제 확인.",
+    "diagnosticDirectory": "새 canonical absolute path, 현재 사용자 소유, mode0700, helper의 검증 그대로 적용",
+    "predevSettings": "loopback/auth off/eventPost enabled queue256/skip-local-env/skip-build를 원래 predev start_server()와 대조",
+    "versionQueryObservation": {
+      "command": "gst-inspect-1.0 --version",
+      "pid": 94174,
+      "observation": "macOS LSModifyNotification / hiservices-xpcservice warning; version not returned",
+      "termination": "owned PID SIGTERM; exec exit143; codec sequence not started at this point",
+      "alternativeReadOnlyVersionSource": "pkg-config package metadata (no plugin scan)"
+    }
+  },
+  "inputs": {
+    "currentHashes": {
+      "build-gst-onnx/media_server": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+      "video/sample_h264.mp4": "4e7dd9a8c0a699df3e301ea07b0e251f54abe757df3de02b4cf35aa6333a3111",
+      "video/sample_h265.mp4": "b9efe631139bd96e331b67fa14f26a591a6a1785cfe15ffc8c442ae4b5908d03",
+      "config/codec_test_sources.json": "dffa840c99e44acd49bffda8065c7030bab7df5a06a47d3e4b220c1fe5c7d462",
+      "scripts/internal/verify_codec_matrix.sh": "e82b91a1fafb85b29300e6d34103deeee090d4fa789325899eea89ac86d72b8f",
+      "scripts/internal/codec_probe_diagnostics.py": "251f6576e09d284b67c5968dcf1c6223185f45179640d0663fc99a7a60bfc6be",
+      "scripts/internal/env_common.sh": "4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8",
+      "scripts/internal/run_server_foreground.sh": "f708418c4c51fe7dde6c8e6f87a5b1911cc73f670f4b694673e0a781b23361b0",
+      "scripts/internal/serve_test_rtsp_source.py": "5d13a8e101e6005ca70f4f89f759ab02c8a8dee090bcaab0aea9e03df1caf36b",
+      "scripts/internal/whip_publish_test.py": "7e2df7998044d8a08997c9df505325868b8884636288d0862e0166f6d96f421e",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "83c3eaf9b78099ceec932846d0fc86d85de488fc7f8df966d4670efa1fed49bf",
+      "/opt/homebrew/bin/ffprobe": {
+        "realPath": "/opt/homebrew/Cellar/ffmpeg/8.0.1_4/bin/ffprobe",
+        "sha256": "68447e67105534f3f43b95c94983ed56fbdd7125e5724cc56499ad538c2b86a7",
+        "mtime": 1773666469.8851342
+      },
+      "/opt/homebrew/lib/libgstreamer-1.0.dylib": {
+        "realPath": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.0.dylib",
+        "sha256": "2162c5f3773213e3596de0a36c242de5348805936763f2b36e6bd6d75e468420",
+        "mtime": 1773667058.9299593
+      },
+      "/opt/homebrew/lib/libgstrtspserver-1.0.dylib": {
+        "realPath": "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.0.dylib",
+        "sha256": "eaf743dc30d7c6fbbee424409eb1f35b9b855526c6ce4bc38e3bd3afde66720c",
+        "mtime": 1773667059.0416121
+      }
+    },
+    "priorHttpInputsCompared": [
+      "binarySha256",
+      "fixtureSha256",
+      "profileSha256",
+      "ffprobeSha256"
+    ],
+    "priorHttpHashComparison": "all equal",
+    "h265FixtureMatchesOriginalFailureCommit": true,
+    "currentGstreamerVersionFromPkgConfig": "1.28.1",
+    "currentGstRtspServerVersionFromPkgConfig": "1.28.1",
+    "pluginProfile": "기존 env_common.sh 기본 headless; 시스템 plugin 설정 업데이트 없음",
+    "currentOwnedCacheManifestSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+    "pluginHistoricalLimit": "이전 진단은 plugin 개별 hash를 저장하지 않아 그 당시와 전체 plugin 바이트 동일성은 독립 입증하지 못함. helper와 설정은 동일하며 이번 설치/업데이트/정책 변경 없음. 새 소유 cache만 생성."
+  },
+  "comparisonConditions": {
+    "intentionalChange": "HTTP source 전에 동일 서버의 6개 codec source 처리 이력을 추가",
+    "maintained": [
+      "동일 binary/H264 fixture/profile/ffprobe hash",
+      "predev 관련 환경과 테스트 소유 state/auth/source/view/analysis/event/recording 경로 방식",
+      "각 source의 내부 route/기대값/WebRTC signaling/cleanup/timeout",
+      "HTTP의 default → h264 → opus 및 trace helper"
+    ],
+    "observationDifferences": [
+      "새 PID/HTTP·RTSP 포트/시각/소유 임시 경로",
+      "collector가 서버 출력의 수신 시각을 sidecar에 기록; 제품 로그 설정은 유지했으나 pipe/collector와 trace의 timing 영향은 배제하지 않음",
+      "실제 과거 스케줄링과 세션 종료 상태까지 동일하다고 주장하지 않음"
+    ],
+    "serverRestarts": 0,
+    "extraInterSourceWaits": 0,
+    "forcedIdleOrBulkSessionDeletion": false,
+    "tracePropagation": "앞선 6개 child 환경에 diagnostics 변수가 없고 마지막 HTTP child에만 존재. diagnostics case=3, routes1..3만 기록됨."
+  },
+  "sequence": {
+    "order": [
+      "file_local_h264_aac",
+      "file_local_h265_aac",
+      "rtsp_local_h265_opus",
+      "rtsp_local_h264_pcmu",
+      "rtsp_local_h264_pcma",
+      "webrtc_local_publish_h264_opus",
+      "http_local_h264_aac"
+    ],
+    "serverPid": 94303,
+    "started": {
+      "utc": "2026-10-01T13:51:47.806977+00:00",
+      "monotonicNs": 169942824956041
+    },
+    "ended": {
+      "utc": "2026-10-01T13:57:59.869041+00:00",
+      "monotonicNs": 170314885513750
+    },
+    "elapsedSeconds": 372.060557709,
+    "sameServerForAllSources": true,
+    "sources": [
+      {
+        "index": 1,
+        "source": "file_local_h264_aac",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 10,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 32.223274,
+        "diagnosticsEnabled": false,
+        "assertionLines": [
+          "[pass] file_local_h264_aac: RTSP /default -> h264/aac",
+          "[pass] file_local_h264_aac: RTSP /h264 -> h264/aac",
+          "[pass] file_local_h264_aac: RTSP /h265 -> hevc/aac",
+          "[pass] file_local_h264_aac: RTSP /opus -> h264/opus",
+          "[pass] file_local_h264_aac: RTSP /h265/opus -> hevc/opus",
+          "[pass] file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw",
+          "[pass] file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+          "[pass] file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw",
+          "[pass] file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw",
+          "[pass] file_local_h264_aac: WebRTC signaling session created (<ephemeral-session-id>)"
+        ],
+        "providerPids": [],
+        "serverAliveAfter": true
+      },
+      {
+        "index": 2,
+        "source": "file_local_h265_aac",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 10,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 41.455494458,
+        "diagnosticsEnabled": false,
+        "assertionLines": [
+          "[pass] file_local_h265_aac: RTSP /default -> h264/aac",
+          "[pass] file_local_h265_aac: RTSP /h264 -> h264/aac",
+          "[pass] file_local_h265_aac: RTSP /h265 -> hevc/aac",
+          "[pass] file_local_h265_aac: RTSP /opus -> h264/opus",
+          "[pass] file_local_h265_aac: RTSP /h265/opus -> hevc/opus",
+          "[pass] file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw",
+          "[pass] file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+          "[pass] file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw",
+          "[pass] file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw",
+          "[pass] file_local_h265_aac: WebRTC signaling session created (<ephemeral-session-id>)"
+        ],
+        "providerPids": [],
+        "serverAliveAfter": true
+      },
+      {
+        "index": 3,
+        "source": "rtsp_local_h265_opus",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 10,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 88.424033958,
+        "diagnosticsEnabled": false,
+        "assertionLines": [
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /default -> h264/aac",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /h264 -> h264/aac",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /h265 -> hevc/aac",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /opus -> h264/opus",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /h265/opus -> hevc/opus",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /pcmu -> h264/pcm_mulaw",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /pcma -> h264/pcm_alaw",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: RTSP /h265/pcma -> hevc/pcm_alaw",
+          "[pass] rtsp_local_h265_opus_diag_kcqz5w8z: WebRTC signaling session created (<ephemeral-session-id>)"
+        ],
+        "providerPids": [
+          95605
+        ],
+        "serverAliveAfter": true
+      },
+      {
+        "index": 4,
+        "source": "rtsp_local_h264_pcmu",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 10,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 85.04408425,
+        "diagnosticsEnabled": false,
+        "assertionLines": [
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /default -> h264/aac",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /h264 -> h264/aac",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /h265 -> hevc/aac",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /opus -> h264/opus",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /h265/opus -> hevc/opus",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /pcmu -> h264/pcm_mulaw",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /pcma -> h264/pcm_alaw",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: RTSP /h265/pcma -> hevc/pcm_alaw",
+          "[pass] rtsp_local_h264_pcmu_diag_kcqz5w8z: WebRTC signaling session created (<ephemeral-session-id>)"
+        ],
+        "providerPids": [
+          96154
+        ],
+        "serverAliveAfter": true
+      },
+      {
+        "index": 5,
+        "source": "rtsp_local_h264_pcma",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 10,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 85.169990958,
+        "diagnosticsEnabled": false,
+        "assertionLines": [
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /default -> h264/aac",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /h264 -> h264/aac",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /h265 -> hevc/aac",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /opus -> h264/opus",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /h265/opus -> hevc/opus",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /pcmu -> h264/pcm_mulaw",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /pcma -> h264/pcm_alaw",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: RTSP /h265/pcma -> hevc/pcm_alaw",
+          "[pass] rtsp_local_h264_pcma_diag_kcqz5w8z: WebRTC signaling session created (<ephemeral-session-id>)"
+        ],
+        "providerPids": [
+          96716
+        ],
+        "serverAliveAfter": true
+      },
+      {
+        "index": 6,
+        "source": "webrtc_local_publish_h264_opus",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 5,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 19.07470025,
+        "diagnosticsEnabled": false,
+        "assertionLines": [
+          "[pass] webrtc_local_publish_h264_opus_diag_kcqz5w8z: WebRTC signaling session created (<ephemeral-session-id>)",
+          "[pass] webrtc_local_publish_h264_opus_diag_kcqz5w8z: RTSP /default -> h264/aac",
+          "[pass] webrtc_local_publish_h264_opus_diag_kcqz5w8z: RTSP /h264 -> h264/aac",
+          "[pass] webrtc_local_publish_h264_opus_diag_kcqz5w8z: RTSP /h265 -> hevc/aac",
+          "[pass] webrtc_local_publish_h264_opus_diag_kcqz5w8z: RTSP /opus -> h264/opus"
+        ],
+        "providerPids": [
+          97279
+        ],
+        "serverAliveAfter": true
+      },
+      {
+        "index": 7,
+        "source": "http_local_h264_aac",
+        "serverPid": 94303,
+        "exitCode": 0,
+        "pass": 4,
+        "fail": 0,
+        "skip": 11,
+        "elapsedSeconds": 17.73068,
+        "diagnosticsEnabled": true,
+        "assertionLines": [
+          "[pass] http_local_h264_aac_diag_kcqz5w8z: RTSP /default -> h264/aac",
+          "[pass] http_local_h264_aac_diag_kcqz5w8z: RTSP /h264 -> h264/aac",
+          "[pass] http_local_h264_aac_diag_kcqz5w8z: RTSP /opus -> h264/opus",
+          "[pass] http_local_h264_aac_diag_kcqz5w8z: WebRTC signaling session created (<ephemeral-session-id>)"
+        ],
+        "providerPids": [
+          97510
+        ],
+        "serverAliveAfter": true
+      }
+    ],
+    "totalAssertionsPassed": 59,
+    "totalAssertionsFailed": 0,
+    "firstFailure": null,
+    "notRunSources": [],
+    "scopeLimit": "각 verify-codecs 실행의 11 SKIP은 source filter/기존 disabled 항목이다. 전체 codec matrix나 UI/장시간 PASS가 아님."
+  },
+  "httpObservation": {
+    "ffprobeArgvTemplate": [
+      "ffprobe",
+      "-v",
+      "trace",
+      "-rtsp_transport",
+      "tcp",
+      "-rw_timeout",
+      "10000000",
+      "-show_entries",
+      "stream=index,codec_name,codec_type",
+      "-of",
+      "compact=p=0:nk=1",
+      "rtsp://127.0.0.1:53163/dhseo{routeSuffix}?url=http%3A%2F%2F127.0.0.1%3A8765%2Fsample_h264.mp4&source=http"
+    ],
+    "routeSuffixMapping": {
+      "1": "",
+      "2": "/h264",
+      "3": "/opus"
+    },
+    "ioTimeoutUs": 10000000,
+    "outerTimeoutSeconds": 20,
+    "timeoutDerivation": "기존 codec_probe_diagnostics.py:probe()의 ceil(ioTimeout/1e6)+10, clamp[10,120] 그대로",
+    "probes": [
+      {
+        "routeNumber": 1,
+        "route": "/default",
+        "caseNumber": 3,
+        "expected": "h264/aac",
+        "start": {
+          "case": 3,
+          "kind": "probe",
+          "monotonic_ns": 170299113796250,
+          "phase": "start",
+          "route": 1,
+          "schema": 1
+        },
+        "finish": {
+          "case": 3,
+          "discovered_stream_lines": {
+            "audio": 0,
+            "video": 0
+          },
+          "elapsed_ns": 1842067375,
+          "kind": "probe",
+          "monotonic_ns": 170300956055458,
+          "original_exit": 0,
+          "outcome": "completed",
+          "output_bytes": 117143,
+          "partial_line": false,
+          "phase": "finish",
+          "process_returncode": 0,
+          "product_prepare_stage": "unknown",
+          "request_response_correlation": "unknown",
+          "requests": {
+            "DESCRIBE": 1,
+            "OPTIONS": 1,
+            "PLAY": 1,
+            "SETUP": 2,
+            "TEARDOWN": 1
+          },
+          "response_classes": {
+            "1xx": 0,
+            "2xx": 5,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0,
+            "other": 0
+          },
+          "response_observation": "observed",
+          "route": 1,
+          "schema": 1,
+          "sdp_media_lines": {
+            "audio": 1,
+            "video": 1
+          },
+          "stdout_stream_lines": {
+            "audio": 1,
+            "video": 1
+          },
+          "unknown_lines": 2630
+        },
+        "elapsedSeconds": 1.842067375,
+        "approximateStartUtcFromRunnerClock": "2026-10-01T13:57:44.095817+00:00",
+        "approximateFinishUtcFromRunnerClock": "2026-10-01T13:57:45.938076+00:00"
+      },
+      {
+        "routeNumber": 2,
+        "route": "/h264",
+        "caseNumber": 3,
+        "expected": "h264/aac",
+        "start": {
+          "case": 3,
+          "kind": "probe",
+          "monotonic_ns": 170301034891416,
+          "phase": "start",
+          "route": 2,
+          "schema": 1
+        },
+        "finish": {
+          "case": 3,
+          "discovered_stream_lines": {
+            "audio": 0,
+            "video": 0
+          },
+          "elapsed_ns": 2553817208,
+          "kind": "probe",
+          "monotonic_ns": 170303588920500,
+          "original_exit": 0,
+          "outcome": "completed",
+          "output_bytes": 147399,
+          "partial_line": false,
+          "phase": "finish",
+          "process_returncode": 0,
+          "product_prepare_stage": "unknown",
+          "request_response_correlation": "unknown",
+          "requests": {
+            "DESCRIBE": 1,
+            "OPTIONS": 1,
+            "PLAY": 1,
+            "SETUP": 2,
+            "TEARDOWN": 1
+          },
+          "response_classes": {
+            "1xx": 0,
+            "2xx": 5,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0,
+            "other": 0
+          },
+          "response_observation": "observed",
+          "route": 2,
+          "schema": 1,
+          "sdp_media_lines": {
+            "audio": 1,
+            "video": 1
+          },
+          "stdout_stream_lines": {
+            "audio": 1,
+            "video": 1
+          },
+          "unknown_lines": 3451
+        },
+        "elapsedSeconds": 2.553817208,
+        "approximateStartUtcFromRunnerClock": "2026-10-01T13:57:46.016912+00:00",
+        "approximateFinishUtcFromRunnerClock": "2026-10-01T13:57:48.570941+00:00"
+      },
+      {
+        "routeNumber": 3,
+        "route": "/opus",
+        "caseNumber": 3,
+        "expected": "h264/opus",
+        "start": {
+          "case": 3,
+          "kind": "probe",
+          "monotonic_ns": 170303661740791,
+          "phase": "start",
+          "route": 3,
+          "schema": 1
+        },
+        "finish": {
+          "case": 3,
+          "discovered_stream_lines": {
+            "audio": 0,
+            "video": 0
+          },
+          "elapsed_ns": 1867262958,
+          "kind": "probe",
+          "monotonic_ns": 170305529225916,
+          "original_exit": 0,
+          "outcome": "completed",
+          "output_bytes": 104002,
+          "partial_line": false,
+          "phase": "finish",
+          "process_returncode": 0,
+          "product_prepare_stage": "unknown",
+          "request_response_correlation": "unknown",
+          "requests": {
+            "DESCRIBE": 1,
+            "OPTIONS": 1,
+            "PLAY": 1,
+            "SETUP": 2,
+            "TEARDOWN": 1
+          },
+          "response_classes": {
+            "1xx": 0,
+            "2xx": 5,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0,
+            "other": 0
+          },
+          "response_observation": "observed",
+          "route": 3,
+          "schema": 1,
+          "sdp_media_lines": {
+            "audio": 1,
+            "video": 1
+          },
+          "stdout_stream_lines": {
+            "audio": 1,
+            "video": 1
+          },
+          "unknown_lines": 2568
+        },
+        "elapsedSeconds": 1.867262958,
+        "approximateStartUtcFromRunnerClock": "2026-10-01T13:57:48.643762+00:00",
+        "approximateFinishUtcFromRunnerClock": "2026-10-01T13:57:50.511247+00:00"
+      }
+    ],
+    "serverEvents": [
+      {
+        "serverLogLine": 466,
+        "receivedAt": "2026-10-01T13:57:44.977141+00:00",
+        "monotonicNs": 170299993667208,
+        "message": "[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=825"
+      },
+      {
+        "serverLogLine": 467,
+        "receivedAt": "2026-10-01T13:57:44.977792+00:00",
+        "monotonicNs": 170299994299708,
+        "message": "[gst] configure media codec=h264 audio=aac source=http uri=<owned-loopback-fixture>"
+      },
+      {
+        "serverLogLine": 468,
+        "receivedAt": "2026-10-01T13:57:45.940272+00:00",
+        "monotonicNs": 170300956783041,
+        "message": "[gst] media unprepared; close session gst-session-50"
+      },
+      {
+        "serverLogLine": 471,
+        "receivedAt": "2026-10-01T13:57:46.890254+00:00",
+        "monotonicNs": 170301906856541,
+        "message": "[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=814"
+      },
+      {
+        "serverLogLine": 472,
+        "receivedAt": "2026-10-01T13:57:46.890984+00:00",
+        "monotonicNs": 170301907487000,
+        "message": "[gst] configure media codec=h264 audio=aac source=http uri=<owned-loopback-fixture>"
+      },
+      {
+        "serverLogLine": 473,
+        "receivedAt": "2026-10-01T13:57:48.571959+00:00",
+        "monotonicNs": 170303588457125,
+        "message": "[gst] media unprepared; close session gst-session-51"
+      },
+      {
+        "serverLogLine": 476,
+        "receivedAt": "2026-10-01T13:57:49.530156+00:00",
+        "monotonicNs": 170304546679916,
+        "message": "[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=816"
+      },
+      {
+        "serverLogLine": 477,
+        "receivedAt": "2026-10-01T13:57:49.530667+00:00",
+        "monotonicNs": 170304547158458,
+        "message": "[gst] configure media codec=h264 audio=opus source=http uri=<owned-loopback-fixture>"
+      },
+      {
+        "serverLogLine": 478,
+        "receivedAt": "2026-10-01T13:57:50.513538+00:00",
+        "monotonicNs": 170305530026583,
+        "message": "[gst] media unprepared; close session gst-session-52"
+      },
+      {
+        "serverLogLine": 481,
+        "receivedAt": "2026-10-01T13:57:51.356255+00:00",
+        "monotonicNs": 170306372768583,
+        "message": "[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=819"
+      }
+    ],
+    "providerEvents": "루트 GET 200 1회 + sample_h264.mp4 GET 200 4회. 원문 비민감 provider log 참조; 응답 body 완주나 route별 정확한 대응은 미확인.",
+    "provider": {
+      "source": "http_local_h264_aac",
+      "type": "local_http",
+      "port": 8765,
+      "originalLog": "/private/tmp/http_local_h264_aac_diag_kcqz5w8z.http.log",
+      "storedLog": "provider-http_local_h264_aac.log",
+      "pids": [
+        97510
+      ]
+    },
+    "unknown": [
+      "RTSP CSeq별 요청/응답 대응",
+      "RTP packet 수신/손실",
+      "제품 내부 단계의 전체 진행 시간",
+      "과거 timeout의 정확한 정지 위치"
+    ],
+    "streamBoundary": "helper discovered_stream_lines=0이어도 stdout_stream_lines는 audio=1/video=1이며 verifier가 기대 codec을 확인. signaling 생성만으로 Opus 전달 완료를 판정하지 않음."
+  },
+  "warnings": {
+    "serverPid": 94303,
+    "countsByStage": {
+      "file_local_h264_aac": 11,
+      "file_local_h265_aac": 11,
+      "rtsp_local_h265_opus": 11,
+      "rtsp_local_h264_pcmu": 11,
+      "rtsp_local_h264_pcma": 8,
+      "webrtc_local_publish_h264_opus": 11,
+      "http_local_h264_aac": 11
+    },
+    "httpWarningLogLines": [
+      483,
+      485,
+      487,
+      489,
+      491,
+      493,
+      495,
+      497,
+      499,
+      501,
+      503
+    ],
+    "httpWarningsFirstReceivedAt": "2026-10-01T13:57:51.560731+00:00",
+    "httpWarningsAfterOpusFinishSeconds": 1.047978417,
+    "httpWarningTypes": {
+      "GLibBadFileDescriptor": 10,
+      "libniceMissingComponent": 1
+    },
+    "interpretation": "이번 HTTP 경고는 opus 성공 종료 후 마지막 WebRTC 경로 구간에서 동일 서버 PID로 관측. 다른 선행 source에서도 경고와 성공이 함께 관측됨. 최초 timeout의 원인 또는 무해함을 단정하지 않음.",
+    "timingLimit": "sidecar는 프로세스 출력 수신 시각이며 제품 이벤트 발생 시각과 동일하다고 보장하지 않음.",
+    "sidecarOffsetBoundary": "server-line-times의 line은 정제 server log에서도 유지. offset/bytes는 원래 raw server log 기준이므로 정제본 byte 위치로 해석하지 않음."
+  },
+  "conclusion": {
+    "confirmed": "선행 6개 처리 이력을 추가한 같은 서버의 이번 1회에서도 HTTP /opus timeout 미재현. 7개 source 정상 종료.",
+    "narrowedScope": "이 source 순서만으로 매번 발생하는 결정적 실패는 이번 관측에서 나타나지 않음. 순서/세션/timing 영향을 완전히 배제하지 않음.",
+    "rootCause": "unresolved",
+    "minimalFixProposal": null,
+    "reasonNoFix": "준비·orchestration·제품 미디어 경로의 재현 가능한 결함을 특정하지 못했으므로 파일/함수 수정안을 근거 없이 만들지 않음.",
+    "originalFailureDisposition": "기존 FAIL과 릴리즈 차단 유지",
+    "nextAction": "이번 관측과 보존으로 종료. 세 번째 진단·새 반복 완료 조건·전체 acceptance·공개 절차를 자동 추가하지 않음."
+  },
+  "providers": [
+    {
+      "source": "http_local_h264_aac",
+      "type": "local_http",
+      "port": 8765,
+      "originalLog": "/private/tmp/http_local_h264_aac_diag_kcqz5w8z.http.log",
+      "storedLog": "provider-http_local_h264_aac.log",
+      "pids": [
+        97510
+      ]
+    },
+    {
+      "source": "rtsp_local_h265_opus",
+      "type": "local_rtsp",
+      "port": 8654,
+      "originalLog": "/private/tmp/rtsp_local_h265_opus_diag_kcqz5w8z.launcher.log",
+      "storedLog": "provider-rtsp_local_h265_opus.log",
+      "pids": [
+        95605
+      ]
+    },
+    {
+      "source": "rtsp_local_h264_pcmu",
+      "type": "local_rtsp",
+      "port": 8655,
+      "originalLog": "/private/tmp/rtsp_local_h264_pcmu_diag_kcqz5w8z.launcher.log",
+      "storedLog": "provider-rtsp_local_h264_pcmu.log",
+      "pids": [
+        96154
+      ]
+    },
+    {
+      "source": "rtsp_local_h264_pcma",
+      "type": "local_rtsp",
+      "port": 8656,
+      "originalLog": "/private/tmp/rtsp_local_h264_pcma_diag_kcqz5w8z.launcher.log",
+      "storedLog": "provider-rtsp_local_h264_pcma.log",
+      "pids": [
+        96716
+      ]
+    },
+    {
+      "source": "webrtc_local_publish_h264_opus",
+      "type": "whip_publish",
+      "port": null,
+      "originalLog": "/private/tmp/webrtc_local_publish_h264_opus_diag_kcqz5w8z.publisher.log",
+      "storedLog": "provider-webrtc_local_publish_h264_opus.log",
+      "pids": [
+        97279
+      ]
+    }
+  ],
+  "preservedFiles": [
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/run.json",
+      "sourceBytes": 12619,
+      "sourceSha256": "7dbbdb21dd0a166c1c8eca71b525451d3ea7e975544368e2c85f8be1b8f1d7bd",
+      "storedPath": "sequence-run.json",
+      "storedBytes": 12619,
+      "storedSha256": "7dbbdb21dd0a166c1c8eca71b525451d3ea7e975544368e2c85f8be1b8f1d7bd",
+      "encoding": "identity",
+      "decodedBytes": 12619,
+      "decodedSha256": "7dbbdb21dd0a166c1c8eca71b525451d3ea7e975544368e2c85f8be1b8f1d7bd",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/server.log",
+      "sourceBytes": 52726,
+      "sourceSha256": "2d59ec2ca0609f2dd831f07f2c28dff984510e5d41c23a308e6f937d5db6859f",
+      "storedPath": "server.sanitized.log.gz",
+      "storedBytes": 2149,
+      "storedSha256": "9ddff4c866001faa190dc8240d4b29b9474acaaff2670d8ad9692ec8a7636ee9",
+      "encoding": "gzip",
+      "decodedBytes": 48453,
+      "decodedSha256": "f9eda730e6d8b6132767bd93db917fff839aa599bffe3bcb1874ec47783125e9",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/server-line-times.jsonl",
+      "sourceBytes": 59606,
+      "sourceSha256": "44b813b4116cd63a0dd2cec0e0c4325b55797d53b613899c1d6befd748ccc210",
+      "storedPath": "server-line-times.jsonl.gz",
+      "storedBytes": 9082,
+      "storedSha256": "a167b38afc1ca8b7b690b57df8f0cf44307a9f5ea1e3b99858b2b5389f5c1b5c",
+      "encoding": "gzip",
+      "decodedBytes": 59606,
+      "decodedSha256": "44b813b4116cd63a0dd2cec0e0c4325b55797d53b613899c1d6befd748ccc210",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/diagnostics/codec-diagnostics.jsonl",
+      "sourceBytes": 2960,
+      "sourceSha256": "027c5fe6c1339cbc7d62419b2353f3c2c08331af5feb9b7e9f26fdc9dd8a17d2",
+      "storedPath": "codec-diagnostics.jsonl",
+      "storedBytes": 2960,
+      "storedSha256": "027c5fe6c1339cbc7d62419b2353f3c2c08331af5feb9b7e9f26fdc9dd8a17d2",
+      "encoding": "identity",
+      "decodedBytes": 2960,
+      "decodedSha256": "027c5fe6c1339cbc7d62419b2353f3c2c08331af5feb9b7e9f26fdc9dd8a17d2",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/01-file_local_h264_aac.stdout.log",
+      "sourceBytes": 2025,
+      "sourceSha256": "2e32d3d3d3a01e53c8fc8466bb34801bf1dd023f9102addc23a049353350d2bb",
+      "storedPath": "01-file_local_h264_aac.stdout.sanitized.log",
+      "storedBytes": 1971,
+      "storedSha256": "1c6fc52e68d8d70afcce4860d9d8e57442723b8f4b3a74bb7c305262215a0e9d",
+      "encoding": "identity",
+      "decodedBytes": 1971,
+      "decodedSha256": "1c6fc52e68d8d70afcce4860d9d8e57442723b8f4b3a74bb7c305262215a0e9d",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/01-file_local_h264_aac.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "01-file_local_h264_aac.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/02-file_local_h265_aac.stdout.log",
+      "sourceBytes": 2020,
+      "sourceSha256": "b42dff74e97138cc574d59b482ec6e474a810b23b7829fa2cae28c9f5b52ea4b",
+      "storedPath": "02-file_local_h265_aac.stdout.sanitized.log",
+      "storedBytes": 1966,
+      "storedSha256": "d7956ddc943ffe6d62ed5bad9c2e19345ac47e281c46dba931519c13016a4d09",
+      "encoding": "identity",
+      "decodedBytes": 1966,
+      "decodedSha256": "d7956ddc943ffe6d62ed5bad9c2e19345ac47e281c46dba931519c13016a4d09",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/02-file_local_h265_aac.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "02-file_local_h265_aac.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/03-rtsp_local_h265_opus.stdout.log",
+      "sourceBytes": 2426,
+      "sourceSha256": "4aabb52168cbc2413abf91c2d21eceeac058f39bc41f0fa3964f487b4fc7544d",
+      "storedPath": "03-rtsp_local_h265_opus.stdout.sanitized.log",
+      "storedBytes": 2372,
+      "storedSha256": "f163613426860685d24cbcfff658e281c0f1ffcbb35103a46fc94411dc4c8d80",
+      "encoding": "identity",
+      "decodedBytes": 2372,
+      "decodedSha256": "f163613426860685d24cbcfff658e281c0f1ffcbb35103a46fc94411dc4c8d80",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/03-rtsp_local_h265_opus.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "03-rtsp_local_h265_opus.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/04-rtsp_local_h264_pcmu.stdout.log",
+      "sourceBytes": 2426,
+      "sourceSha256": "68657b7a4c07c22baad0942233bb0b470e8d720322f20c8d0434a06f3c482b3d",
+      "storedPath": "04-rtsp_local_h264_pcmu.stdout.sanitized.log",
+      "storedBytes": 2372,
+      "storedSha256": "14cc0f50e272bf670520ce93974a25753ce196f3ce7dea4dd82acc839a4d4bae",
+      "encoding": "identity",
+      "decodedBytes": 2372,
+      "decodedSha256": "14cc0f50e272bf670520ce93974a25753ce196f3ce7dea4dd82acc839a4d4bae",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/04-rtsp_local_h264_pcmu.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "04-rtsp_local_h264_pcmu.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/05-rtsp_local_h264_pcma.stdout.log",
+      "sourceBytes": 2426,
+      "sourceSha256": "ba3a388da12b662b9a20ec5b7ecddfde41d72e00328b96fa2e05468cdbbf39a3",
+      "storedPath": "05-rtsp_local_h264_pcma.stdout.sanitized.log",
+      "storedBytes": 2372,
+      "storedSha256": "ea094a6072cf7a3076c8a4e860981c088e7d95cd29549c69e56bfa5d4a99e7ef",
+      "encoding": "identity",
+      "decodedBytes": 2372,
+      "decodedSha256": "ea094a6072cf7a3076c8a4e860981c088e7d95cd29549c69e56bfa5d4a99e7ef",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/05-rtsp_local_h264_pcma.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "05-rtsp_local_h264_pcma.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/06-webrtc_local_publish_h264_opus.stdout.log",
+      "sourceBytes": 2275,
+      "sourceSha256": "2426bfc6f315c9c6ea8170198afff5932cb84d1a7c3035cbe50e47902d72115e",
+      "storedPath": "06-webrtc_local_publish_h264_opus.stdout.sanitized.log",
+      "storedBytes": 2221,
+      "storedSha256": "eb1a037a936fb54b6011511e3400e45b5533629d309b9b4e0bb9827096f07428",
+      "encoding": "identity",
+      "decodedBytes": 2221,
+      "decodedSha256": "eb1a037a936fb54b6011511e3400e45b5533629d309b9b4e0bb9827096f07428",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/06-webrtc_local_publish_h264_opus.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "06-webrtc_local_publish_h264_opus.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/07-http_local_h264_aac.stdout.log",
+      "sourceBytes": 1923,
+      "sourceSha256": "41573e297a5fc41f97d1b58fd4de1805f0a56633b96af3c1105ae9960067ab75",
+      "storedPath": "07-http_local_h264_aac.stdout.sanitized.log",
+      "storedBytes": 1869,
+      "storedSha256": "8348fadd1d2916f6c85da22e182f0f26b795d4c11b43565456e42287ca3048e7",
+      "encoding": "identity",
+      "decodedBytes": 1869,
+      "decodedSha256": "8348fadd1d2916f6c85da22e182f0f26b795d4c11b43565456e42287ca3048e7",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z/logs/07-http_local_h264_aac.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "07-http_local_h264_aac.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "identity",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    },
+    {
+      "sourcePath": "/private/tmp/http_local_h264_aac_diag_kcqz5w8z.http.log",
+      "sourceBytes": 425,
+      "sourceSha256": "a2c6c2b584c9a076a558ec2c300fea9081af770d18368307e44acbc544d09fe8",
+      "storedPath": "provider-http_local_h264_aac.log",
+      "storedBytes": 425,
+      "storedSha256": "a2c6c2b584c9a076a558ec2c300fea9081af770d18368307e44acbc544d09fe8",
+      "encoding": "identity",
+      "decodedBytes": 425,
+      "decodedSha256": "a2c6c2b584c9a076a558ec2c300fea9081af770d18368307e44acbc544d09fe8",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/private/tmp/rtsp_local_h265_opus_diag_kcqz5w8z.launcher.log",
+      "sourceBytes": 73,
+      "sourceSha256": "fec14bba89e1aab4fce59f42ffe53a66252b056a203058946149179ae6c89be3",
+      "storedPath": "provider-rtsp_local_h265_opus.log",
+      "storedBytes": 73,
+      "storedSha256": "fec14bba89e1aab4fce59f42ffe53a66252b056a203058946149179ae6c89be3",
+      "encoding": "identity",
+      "decodedBytes": 73,
+      "decodedSha256": "fec14bba89e1aab4fce59f42ffe53a66252b056a203058946149179ae6c89be3",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/private/tmp/rtsp_local_h264_pcmu_diag_kcqz5w8z.launcher.log",
+      "sourceBytes": 73,
+      "sourceSha256": "42f7ead1e35e7ed60c8b1cc8a2bc0c317d5fbb471175e5480acd9ec449a5abeb",
+      "storedPath": "provider-rtsp_local_h264_pcmu.log",
+      "storedBytes": 73,
+      "storedSha256": "42f7ead1e35e7ed60c8b1cc8a2bc0c317d5fbb471175e5480acd9ec449a5abeb",
+      "encoding": "identity",
+      "decodedBytes": 73,
+      "decodedSha256": "42f7ead1e35e7ed60c8b1cc8a2bc0c317d5fbb471175e5480acd9ec449a5abeb",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/private/tmp/rtsp_local_h264_pcma_diag_kcqz5w8z.launcher.log",
+      "sourceBytes": 73,
+      "sourceSha256": "f0d5fb07f40201db75f91ff9682a1599e8a51540fb6999e42c7e60ea7bb8e878",
+      "storedPath": "provider-rtsp_local_h264_pcma.log",
+      "storedBytes": 73,
+      "storedSha256": "f0d5fb07f40201db75f91ff9682a1599e8a51540fb6999e42c7e60ea7bb8e878",
+      "encoding": "identity",
+      "decodedBytes": 73,
+      "decodedSha256": "f0d5fb07f40201db75f91ff9682a1599e8a51540fb6999e42c7e60ea7bb8e878",
+      "representation": "original-bytes",
+      "transform": null
+    },
+    {
+      "sourcePath": "/private/tmp/webrtc_local_publish_h264_opus_diag_kcqz5w8z.publisher.log",
+      "sourceBytes": 174,
+      "sourceSha256": "9e812393d56a7eccccc24e8f911c1e18b69b628eeef2369aba985bdc83cd5039",
+      "storedPath": "provider-webrtc_local_publish_h264_opus.log",
+      "storedBytes": 119,
+      "storedSha256": "56707e32fb1363331b5ffaf163a2ff898735a51d9c47a2ef4c3ba5ede6ef379c",
+      "encoding": "identity",
+      "decodedBytes": 119,
+      "decodedSha256": "56707e32fb1363331b5ffaf163a2ff898735a51d9c47a2ef4c3ba5ede6ef379c",
+      "representation": "sanitized-not-original-bytes",
+      "transform": "ephemeral session/source ids and codec_data omitted; runtime URI fields replaced by owned fixture label; lines retained"
+    }
+  ],
+  "cleanup": {
+    "processAndPortEvidence": "sequence-run.json",
+    "serverExitCode": 0,
+    "serverLogCollectorStopped": true,
+    "allRecordedProcessGroupsEmpty": true,
+    "allSixPortsReleased": true,
+    "protectedBefore": {
+      "/Users/dhseo/Workspace/mediaServer/.media_server": {},
+      "/Users/dhseo/Workspace/mediaServer/scripts/.media_server.env": {
+        "absent": true
+      },
+      "/Users/dhseo/Workspace/mediaServer/.media_server.pid": {
+        "absent": true
+      },
+      "/Users/dhseo/Workspace/mediaServer/.media_server.port": {
+        "absent": true
+      },
+      "/Users/dhseo/Workspace/mediaServer/.media_server.address": {
+        "absent": true
+      },
+      "/private/tmp/http_local_h264_aac.http.log": {
+        "bytes": 425,
+        "sha256": "36ea7fdd174f1beb769da70c6916b6c4a860d96ca6acc3d0188324da1b880918"
+      },
+      "/private/tmp/rtsp_local_h265_opus.launcher.log": {
+        "bytes": 73,
+        "sha256": "fec14bba89e1aab4fce59f42ffe53a66252b056a203058946149179ae6c89be3"
+      },
+      "/private/tmp/rtsp_local_h264_pcmu.launcher.log": {
+        "bytes": 73,
+        "sha256": "42f7ead1e35e7ed60c8b1cc8a2bc0c317d5fbb471175e5480acd9ec449a5abeb"
+      },
+      "/private/tmp/rtsp_local_h264_pcma.launcher.log": {
+        "bytes": 73,
+        "sha256": "f0d5fb07f40201db75f91ff9682a1599e8a51540fb6999e42c7e60ea7bb8e878"
+      },
+      "/private/tmp/webrtc_local_publish_h264_opus.publisher.log": {
+        "bytes": 175,
+        "sha256": "f432bc69d6c592e19503c0ea6f42922a04d518df5bfdbe2ee5b3d3650af181d4"
+      }
+    },
+    "temporaryRemoval": {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-history.kcqz5w8z",
+      "absent": true,
+      "regularFiles": 31,
+      "directories": 14,
+      "ownedSymlinksUnlinkedWithoutFollowing": 277,
+      "providerLogs": [
+        {
+          "path": "/private/tmp/http_local_h264_aac_diag_kcqz5w8z.http.log",
+          "absent": true
+        },
+        {
+          "path": "/private/tmp/rtsp_local_h265_opus_diag_kcqz5w8z.launcher.log",
+          "absent": true
+        },
+        {
+          "path": "/private/tmp/rtsp_local_h264_pcmu_diag_kcqz5w8z.launcher.log",
+          "absent": true
+        },
+        {
+          "path": "/private/tmp/rtsp_local_h264_pcma_diag_kcqz5w8z.launcher.log",
+          "absent": true
+        },
+        {
+          "path": "/private/tmp/webrtc_local_publish_h264_opus_diag_kcqz5w8z.publisher.log",
+          "absent": true
+        }
+      ],
+      "externalSymlinkTargetsFollowed": false,
+      "boundary": "보존 hash 대조 후 이번 소유 임시 설정/캐시/저장소와 고유 provider log만 정리. 기존 ignored 자료 및 원래 /tmp provider log 불변."
+    },
+    "recordedAt": "2026-10-01T14:03:11.829588+00:00",
+    "pids": [
+      {
+        "pid": 94174,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 94303,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 94343,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 94817,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 95289,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 95605,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 95824,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 96154,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 96350,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 96716,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 96891,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 97279,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 97357,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 97510,
+        "absent": true,
+        "psExit": 1
+      }
+    ],
+    "ports": [
+      {
+        "port": 53162,
+        "released": true,
+        "lsofExit": 1
+      },
+      {
+        "port": 53163,
+        "released": true,
+        "lsofExit": 1
+      },
+      {
+        "port": 8654,
+        "released": true,
+        "lsofExit": 1
+      },
+      {
+        "port": 8655,
+        "released": true,
+        "lsofExit": 1
+      },
+      {
+        "port": 8656,
+        "released": true,
+        "lsofExit": 1
+      },
+      {
+        "port": 8765,
+        "released": true,
+        "lsofExit": 1
+      }
+    ],
+    "protectedUnchanged": {
+      "/Users/dhseo/Workspace/mediaServer/.media_server": true,
+      "/Users/dhseo/Workspace/mediaServer/scripts/.media_server.env": true,
+      "/Users/dhseo/Workspace/mediaServer/.media_server.pid": true,
+      "/Users/dhseo/Workspace/mediaServer/.media_server.port": true,
+      "/Users/dhseo/Workspace/mediaServer/.media_server.address": true,
+      "/private/tmp/http_local_h264_aac.http.log": true,
+      "/private/tmp/rtsp_local_h265_opus.launcher.log": true,
+      "/private/tmp/rtsp_local_h264_pcmu.launcher.log": true,
+      "/private/tmp/rtsp_local_h264_pcma.launcher.log": true,
+      "/private/tmp/webrtc_local_publish_h264_opus.publisher.log": true
+    },
+    "defaultRecordingsAbsent": true,
+    "inputHashesUnchanged": true,
+    "indexUnchangedBeforeEvidenceStage": true
+  },
+  "notExecuted": [
+    "제품/검사기/추적 config/정책/승인 입력 수정",
+    "후보/독립 검토/producer",
+    "전체 test_all/verify-predev/acceptance",
+    "UI/30분/120분",
+    "추가 codec 반복",
+    "push/PR/merge/tag/Release"
+  ]
+}
