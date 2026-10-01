@@ -1,0 +1,25 @@
+[pass] passed-active-server-canonical
+[pass] passed-pending-server-canonical
+[pass] review-pending-server-canonical
+[pass] no-candidate-server-not-run
+[pass] client-declared-passed-rejected
+[pass] unknown-candidate-rejected
+[pass] stale-revision-rejected
+[pass] stale-provenance-rejected
+[pass] option-binding-rejected
+[pass] model-binding-rejected
+[pass] prompt-binding-rejected
+[pass] failed-candidate-draft-rejected
+[pass] review-active-rejected
+[pass] rejected-update-preserves-original
+[pass] tampered-reload-profile-quarantined
+
+== v3.9.0 VLM promotion trust boundary ==
+- schema: media-server.v390-vlm-promotion-trust-boundary-fixtures.v2
+- catalog revision: v390-add1-03-2026-07-10
+- HTTP cases: 14
+- structural save rejection cases: 7
+- reload quarantine cases: 13
+- client declared passed accepted: false
+- server canonical provenance stored: true
+- failures: 0

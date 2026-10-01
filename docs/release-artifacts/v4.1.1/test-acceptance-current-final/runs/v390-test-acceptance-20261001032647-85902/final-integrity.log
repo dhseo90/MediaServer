@@ -1,0 +1,22 @@
+[fail] canonical parent, child census, Policy source, and cleanup form one run: canonical parent summary has a symlink ancestor: /Users/dhseo/Workspace/mediaServer
+[fail] acceptance summary and actual eligibility: acceptance result is not PASS: FAIL
+[fail] canonical summary report and child evidence manifest are direct and hash-bound: required child evidence missing: server-longrun-30-summary
+[fail] source provenance and command ledger are complete: actual final evidence ended with source-tree changes outside artifact root
+[pass] canonical command set is exact and hash-bound
+[pass] acceptance and child summary paths are contained by the current artifact root
+[fail] Policy v4 evaluation is bound to its actual source summary: Policy v4 source summary path must be repository-relative
+[pass] first failure record matches summary state
+[pass] recovered retry preserves its earliest first failure
+[pass] canonical artifacts contain no duplicate screenshots or video placeholders
+[fail] top-level cleanup is measured: acceptance UI temporary root binding mismatch
+[fail] actual child evidence uses measured cleanup: 30-minute summary path missing
+
+== v3.9.0 final evidence integrity summary ==
+- summary: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.1.1/test-acceptance-current-final/summary.json
+- executionMode: actual
+- finalEvidenceEligible: false
+- uiFulltestPass: false
+- qualifiedCaseCount: 0
+- sourceCommitSha: 7caa36efbfba6ab243d70ae8be22184554ad0d5d
+- pass: 5
+- fail: 7
