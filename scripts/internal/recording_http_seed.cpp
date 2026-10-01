@@ -2,6 +2,7 @@
 #include "recording_media_test_fixture.h"
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_derived_selection.h"
+#include "recording/recording_read_service.h"
 #include <fstream>
 #include <iomanip>
 #include <sstream>
