@@ -84,6 +84,26 @@ test('DOC-LONGRUN 문서 표현과 실제 실행 분리', async t => {
     await t.test('07 검증 안내 경로 누락', () => rejected(run({longrunLink: 'missing'}), 'README'));
   } finally { assert.deepEqual(snapshot(), before); }
 });
+test('DOC-METADATA 대역은 현행 블록을 보존하고 손상 입력은 그대로 거부', async t => {
+  const before = snapshot();
+  const run = mutation => invoke('v391_documentation_truth', {readinessOnly: true, publicDocs: true, truthOnly: true, ...mutation});
+  try {
+    const normal = run({});
+    assert.equal(normal.status, 0, normal.stdout + normal.stderr);
+    for (const [mode, reason] of [
+      ['missing', 'release-metadata 블록은 정확히 하나'], ['duplicate', 'release-metadata 블록은 정확히 하나'],
+      ['no-json', 'release-metadata JSON 블록 없음'], ['invalid-json', 'JSON'],
+      ['missing-field', 'source-only'], ['target', 'source와 releaseTarget'],
+      ['prior', 'priorPublishedTag'], ['published', 'published tag가 target보다 큼'],
+      ['published-url', 'published URL 불일치'],
+    ]) await t.test(mode, () => rejected(run({releaseContextMode: mode}), reason));
+    await t.test('원래 역할 오류가 metadata 준비 오류에 가려지지 않음', () => {
+      const r = run({truthRole: 'admin'});
+      rejected(r, 'admin');
+      assert(r.stdout.includes('[pass] 현행 source와 기록된 공개 metadata 일치'), r.stdout);
+    });
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
 test('PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계', async t => {
   const before = snapshot();
   const run = mutation => invoke('v290_public_docs_assets_refresh', {readinessOnly: true, publicDocs: true, renameLabels: true, ...mutation});
@@ -111,7 +131,7 @@ test('PUBLIC-DOC 공개 문서의 현행 연결과 이미지 경계', async t =>
     await t.test('09 직접 검수 요구 완화', () => rejected(run({publicAsset: 'review'}), 'manualReviewRequired'));
     await t.test('10 UI 정책 완화', () => rejected(run({uiPolicy: true}), 'suite zero count'));
     await t.test('11 현행 검수 기준 연결 누락', () => rejected(run({currentDocIdentifier: 'reviewRequired'}), 'reviewRequired'));
-    await t.test('12 허용되는 대표 화면 선택 축소', () => assert.equal(run({publicAsset: 'subset'}).status, 0));
+    await t.test('12 허용되는 대표 화면 선택 축소', () => { const r = run({publicAsset: 'subset'}); assert.equal(r.status, 0, r.stdout + r.stderr); });
   } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
 });
 test('V30-V39-READY 현행 준비 안내와 독립 실행 연결', async t => {
@@ -536,6 +556,35 @@ test('V26-V28-READY 종료 기록과 현행 준비 검사 분리', async t => {
   } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
 });
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
+test('DOC-UI-LINK 제목과 문서 배치 대신 같은 기능 행의 계약 연결', async t => {
+  const before = snapshot();
+  const targets = [
+    ['v260_owner_release_readiness', 'UI-045', true],
+    ['v270_owner_release_readiness', 'UI-050', true],
+    ['v280_owner_release_readiness', 'UI-055', true],
+    ['v310_client_safe_event_digest', 'CLIENT-025'],
+    ['v310_operator_feature_correction', 'UI-061'],
+    ['v320_client_safe_resolution_digest', 'UI-068'],
+    ['v330_client_safe_source_status_digest', 'UI-072'],
+    ['v340_ops_continuity_drill_workspace_ui', 'UI-075'],
+    ['v340_approval_gated_recovery_checklist_audit', 'UI-076'],
+    ['v340_client_safe_maintenance_digest', 'UI-077'],
+    ['v340_drill_evidence_export_cleanup_manifest', 'UI-078'],
+    ['v340_field_bridge_condition_gates', 'UI-079'],
+  ];
+  try {
+    for (const [name, id, readinessOnly = false] of targets) {
+      const run = mutation => invoke(name, {readinessOnly, ...mutation});
+      await t.test(name + ' 제목 변경 허용', () => {
+        const r = run({manualRow: {id, mode: 'title'}}); assert.equal(r.status, 0, r.stdout + r.stderr);
+      });
+      for (const mode of ['id', 'route', 'command', 'duplicate', ...readinessOnly ? [] : ['action']])
+        await t.test(name + ' ' + mode + ' 연결 오류 거부', () => rejected(run({manualRow: {id, mode}}), 'manual UI'));
+      if (readinessOnly) await t.test(name + ' 정책에서 체크리스트 연결 누락 거부',
+        () => rejected(run({currentDocIdentifier: 'manual-ui-checklist.md'}), 'manual UI 기준 연결 누락'));
+    }
+  } finally { assert.deepEqual(snapshot(), before, '제품·fixture 원본 불변'); }
+});
 function snapshot() {
   return Object.fromEntries(['src', 'include', 'test/fixtures'].flatMap(dir => fs.readdirSync(root + dir, {recursive: true})
     .map(name => dir + '/' + name).filter(name => fs.statSync(root + name).isFile()))
@@ -581,12 +630,45 @@ function invoke(name, mutation = {}) {
       if (mutation.schema && (relative.startsWith('src/') || relative.startsWith('include/'))) value = value.replaceAll(mutation.schema, 'missing-contract-schema');
       if (mutation.removeId && relative === 'docs/project-feature-test-inventory.md') value = value.split('\n').filter(line => !line.startsWith('| ' + mutation.removeId + ' |')).join('\n');
       if (mutation.manual && relative === 'docs/manual-ui-checklist.md') value = '';
+      if (mutation.manualRow && relative === 'docs/manual-ui-checklist.md') {
+        const {id, mode} = mutation.manualRow, tick = String.fromCharCode(96);
+        const rows = value.split('\n');
+        const index = rows.findIndex(line => line.split('|')[2]?.includes(tick + id + tick));
+        if (index < 0) throw new Error('manual UI 반례 준비 대상 없음: ' + id);
+        const cells = rows[index].split('|');
+        if (mode === 'title') cells[1] = ' 표현을 바꾼 제목 ';
+        if (mode === 'id') cells[2] = ' ' + tick + 'REMOVED-000' + tick + ' ';
+        if (mode === 'route') cells[3] = ' ' + tick + '/unrelated' + tick + ' ';
+        if (mode === 'action') cells[4] = ' unrelated action ';
+        if (mode === 'command') cells[5] = ' ' + tick + 'verify-code-comments' + tick + ' ';
+        if (mode === 'duplicate') rows.push(rows[index]);
+        rows[index] = cells.join('|');
+        value = rows.join('\n');
+      }
       if (mutation.renameLabels && relative === 'docs/manual-ui-checklist.md') value = value.replace(/\| V[0-9]+[^|\n]*\|/g, '| 표현을 바꾼 기능 제목 |');
       if (mutation.renameLabels && relative === 'docs/project-feature-test-inventory.md') value = value.replace(/^(\| [A-Z]+-[0-9]+ \|)[^|\n]*\|/gm, '$1 표현을 바꾼 정의 제목 |');
-      if (mutation.readinessOnly && relative === 'docs/release-policy.md') value = value.slice(0, value.indexOf('# 변경 가능한 제목', 1));
       if (mutation.readinessOnly && relative === 'docs/manual-ui-fulltest.md') value = value.replaceAll('raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다', '');
       if (mutation.readinessOnly && relative === 'docs/manual-ui-checklist.md') value = value.replaceAll('실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음', '');
       if (mutation.releaseMetadata && relative === 'docs/release-policy.md') value = value.replaceAll('"tagType": "signed-annotated"', '"tagType": "unsigned"');
+      if (mutation.releaseContextMode && relative === 'docs/release-policy.md') {
+        const marker = '<!-- release-metadata -->', fence = String.fromCharCode(96).repeat(3);
+        const start = value.indexOf(marker), open = value.indexOf(fence + 'json\n', start);
+        const end = value.indexOf('\n' + fence, open);
+        if (start < 0 || open < 0 || end < 0) throw new Error('release metadata 반례 준비 실패');
+        const block = value.slice(start, end + 4), mode = mutation.releaseContextMode;
+        if (mode === 'missing') value = value.replace(block, '');
+        else if (mode === 'duplicate') value += '\n' + block + '\n';
+        else if (mode === 'no-json') value = value.replace(fence + 'json', fence + 'text');
+        else {
+          const context = JSON.parse(value.slice(open + 8, end));
+          if (mode === 'missing-field') delete context.distribution;
+          if (mode === 'target') context.releaseTarget = 'v999.0.0';
+          if (mode === 'prior') context.priorPublishedTag = context.releaseTarget;
+          if (mode === 'published') context.published.tag = 'v999.0.0';
+          if (mode === 'published-url') context.published.url = 'https://github.com/unrelated/repository/releases/latest';
+          value = value.slice(0, open + 8) + (mode === 'invalid-json' ? '{invalid JSON}' : JSON.stringify(context, null, 2)) + value.slice(end);
+        }
+      }
       if (mutation.uiPolicy && relative === 'test/fixtures/ui_fulltest_evidence_policy_v4.json') {
         const parsed = JSON.parse(value); parsed.suiteClosure.requiredZeroCounts = []; value = JSON.stringify(parsed);
       }
@@ -655,6 +737,7 @@ function rejected(result, reason) {
   assert.equal(result.status, 1, result.stderr + result.stdout);
   const output = result.stdout + result.stderr;
   assert(/\[fail\]/i.test(output) && output.includes(reason), output);
+  if (!reason.startsWith('release-metadata')) assert(!output.includes('release-metadata 블록은 정확히 하나'), '의도한 반례가 입력 준비 오류에 가려짐: ' + output);
 }
 test('V31-V38-DOC 기능 문서 소비자', async t => {
   const before = snapshot();

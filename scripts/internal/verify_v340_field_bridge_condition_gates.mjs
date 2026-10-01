@@ -207,13 +207,15 @@ check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
 
 
 check("실제 UI 체크리스트 정의 연결", () => {
-  for (const snippet of [
-    "| V340 Step 10 Field Bridge Condition Gates | `UI-079`, `SRC-043`, `MEDIA-022`, `LAB-091`, `SAFE-133`, `OPS-100` | `/ops/sources` |",
-    "Field Bridge Condition Gates",
-    schema,
-  ]) {
-    assertIncludes(files.manualUi, snippet, "manual UI v3.4 Step 10");
-  }
+  const ids = ["UI-079", "SRC-043", "MEDIA-022", "LAB-091", "SAFE-133", "OPS-100"];
+  const rows = files.manualUi.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/ops/sources"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["Field Bridge Condition Gates", schema]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v340-field-bridge-condition-gates`", "manual UI 실행 명령");
 });
 
 check("server entrypoint and inventory verifiers include v3.4 Step 10 command", () => {

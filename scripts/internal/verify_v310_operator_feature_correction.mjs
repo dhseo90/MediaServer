@@ -240,14 +240,16 @@ check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
 
 
 check("manual UI 현재 조작 정의 연결", () => {
-  for (const snippet of [
-    "V310-S06 Operator Feature Correction",
-    "`UI-061`, `EVT-061`, `SAFE-098`, `OPS-065`",
-    "correctedFeatureLabel/featureAliases/reanalysisRequested",
-    "`verify-v310-operator-feature-correction`, `verify-ops-client-ui`",
-  ]) {
-    assertIncludes(files.manualChecklist, snippet, "manual UI checklist V310-S06");
-  }
+  const ids = ["UI-061", "EVT-061", "SAFE-098", "OPS-065"];
+  const rows = files.manualChecklist.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/ops/events"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["correctedFeatureLabel/featureAliases/reanalysisRequested"]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v310-operator-feature-correction`", "manual UI 실행 명령");
+  assertIncludes(row[5], "`verify-ops-client-ui`", "manual UI companion 명령");
 });
 
 check("server entrypoint and inventory verifiers include V310-S06 command", () => {

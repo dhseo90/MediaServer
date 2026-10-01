@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { validateFeatureDocumentation, validateVerificationDocumentation, validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
+import { hasDocumentLink, validateFeatureDocumentation, validateVerificationDocumentation, validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
 import { readReleaseContext, validateReleaseContext } from "./release_documentation_contract.mjs";
 import { validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { parseServerDispatches } from "./script_dispatch_parser.mjs";
@@ -78,11 +78,23 @@ check("현행 기능 정의와 독립 검사 연결", () => {
 });
 
 check("manual UI 현행 대상 정의 유지", () => {
-  for (const file of ["docs/manual-ui-fulltest.md", "docs/manual-ui-checklist.md"]) {
-    const text = readText(file);
-    for (const identifier of ["UI-045","UI-046","UI-047","UI-048","UI-049","/ops/events","/ops/sources","/ops/dashboard","/ops/rules"]) {
-      assert(text.includes(identifier), "manual UI 대상 정의 누락: " + identifier);
-    }
+  const fulltest = readText("docs/manual-ui-fulltest.md");
+  for (const target of ["manual-ui-checklist.md", "project-feature-test-inventory.md"])
+    assert(hasDocumentLink(fulltest, target), "manual UI 기준 연결 누락: " + target);
+  const checklist = readText("docs/manual-ui-checklist.md");
+  const routes = {
+    "UI-045": ["/ops/events"],
+    "UI-046": ["/ops/events", "/ops/rules"],
+    "UI-047": ["/ops/sources"],
+    "UI-048": ["/ops/dashboard"],
+    "UI-049": ["/ops/rules"],
+  };
+  for (const [id, command] of featureCommands.filter(([id]) => id.startsWith("UI-") || id.startsWith("CLIENT-"))) {
+    const rows = checklist.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+      .filter(cells => cells[2]?.includes("`" + id + "`"));
+    assert(rows.length === 1, "manual UI 대상 정의 누락·중복: " + id);
+    assert(rows[0][5]?.includes("`" + command + "`"), "manual UI 실행 명령 불일치: " + id);
+    for (const route of routes[id]) assert(rows[0][3]?.includes("`" + route + "`"), "manual UI route 불일치: " + id);
   }
 });
 

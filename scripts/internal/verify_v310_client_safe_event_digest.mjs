@@ -170,13 +170,15 @@ check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
 
 
 check("manual UI 현재 조작 정의 연결", () => {
-  for (const snippet of [
-    "| V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `/client/live`, `/client/dashboard`, `/client/events` |",
-    "Client-safe Event Digest card",
-    "media-server.client.event-digest.v1",
-  ]) {
-    assertIncludes(files.manualUi, snippet, "manual UI V310-S04");
-  }
+  const ids = ["CLIENT-025", "SAFE-096"];
+  const rows = files.manualUi.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/client/live", "/client/dashboard", "/client/events"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["Client-safe Event Digest card", "media-server.client.event-digest.v1"]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v310-client-safe-event-digest`", "manual UI 실행 명령");
 });
 
 check("server entrypoint and inventory verifiers include V310-S04 command", () => {
