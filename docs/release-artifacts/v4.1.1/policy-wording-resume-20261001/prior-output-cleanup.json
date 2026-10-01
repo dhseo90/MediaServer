@@ -1,0 +1,14 @@
+{
+  "verifiedAt": "2026-10-01T11:10:47.056536+00:00",
+  "storedByteSourceCommit": "8df9909e3bc60cee1cde45d47ed7a40e114aafc2",
+  "executionPreservationCommit": "864b4c9cfe8683c6b81f9e5e3628701cfc93553f",
+  "oldRunId": "v390-test-acceptance-20261001092828-23548",
+  "exactRemovedRoot": "docs/release-artifacts/v4.1.1/test-acceptance-current-final",
+  "exactRemovedFiles": 4623,
+  "verifiedStoredBytes": 37101261,
+  "manifestSha256": "3f7fb146cc94d80e7f90c81255c7e7b7884915036493c2f601a59b31c46b083e",
+  "comparison": "Every file selected for removal matches its committed blob and recorded stored SHA-256. Gzip archive bytes are distinct from original decompressed bytes; original-byte verification remains the prior preservation-readback result, not repeated here.",
+  "untrackedOrUnknownFiles": 0,
+  "removed": true,
+  "rootAbsent": true
+}
