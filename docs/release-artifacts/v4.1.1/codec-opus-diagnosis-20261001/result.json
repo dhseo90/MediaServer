@@ -1,0 +1,538 @@
+{
+  "schema": "media-server.v411-codec-opus-diagnosis.v1",
+  "recordedAt": "2026-10-01T13:15:29.944114+00:00",
+  "actor": "Codex AI diagnostic agent",
+  "classification": "limited-non-reproduction-original-cause-unresolved",
+  "releaseBlockerCleared": false,
+  "scope": "HTTP H264/AAC source 1개, 원래 route 순서의 집중 재현 1회. 구현/검사/정책/승인 변경과 전체 acceptance/장시간/UI/공개 절차는 수행하지 않음.",
+  "source": {
+    "originalFailureHead": "0478d1274d3e12cfbe87a138ebdaab9a57ece61a",
+    "diagnosticHead": "2087044eed0674335d8fb6929d55adc0eb3958d9",
+    "diagnosticTree": "50ed1f73d8a0f4160ea159bffe9d77aa7ba3c422",
+    "branch": "v4.1.1",
+    "initialStatus": "",
+    "remoteTrackingHead": "8df9909e3bc60cee1cde45d47ed7a40e114aafc2",
+    "aheadAtStart": 4,
+    "priorEvidenceCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+    "priorReadbackCommit": "2087044eed0674335d8fb6929d55adc0eb3958d9",
+    "sourceCodeConfigDiffFromFailure": "empty (scripts/config/src/include)",
+    "currentApprovalCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+    "approvalHandling": "변경 없음; 재계산/후보/독립 검토/producer 실행 안 함"
+  },
+  "input": {
+    "profilePath": "config/codec_test_sources.json",
+    "profileSha256": "dffa840c99e44acd49bffda8065c7030bab7df5a06a47d3e4b220c1fe5c7d462",
+    "profile": {
+      "name": "http_local_h264_aac",
+      "source_kind": "http",
+      "source": "http://127.0.0.1:8765/sample_h264.mp4",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local HTTP MP4 source used to verify the URI source path before YouTube/HLS resolver work.",
+      "verify_profile": {
+        "label": "local-http",
+        "ffprobe_timeout_us": 10000000,
+        "webrtc_http_timeout_s": 20,
+        "rtsp_route_keys": [
+          "default",
+          "h264",
+          "opus"
+        ]
+      },
+      "launcher": {
+        "type": "local_http",
+        "port": 8765,
+        "root": "video"
+      }
+    },
+    "fixturePath": "video/sample_h264.mp4",
+    "fixtureBytes": 303183,
+    "fixtureSha256": "4e7dd9a8c0a699df3e301ea07b0e251f54abe757df3de02b4cf35aa6333a3111",
+    "matchesFailureCommitBlob": true,
+    "fixtureObservationLimit": "실패 시점의 개별 HTTP 응답 body hash는 남아 있지 않음. 현재 파일과 고정 source commit의 실제 바이트 일치 확인.",
+    "binaryPath": "build-gst-onnx/media_server",
+    "binaryBytes": 28847024,
+    "binarySha256": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+    "binaryBinding": "동일 acceptance의 uiBuildBinding과 현재 바이너리 해시 일치. 두 predev는 같은 경로를 skip-build로 사용; 단계별 exec 직전 독립 binary hash는 기록되어 있지 않음.",
+    "ffprobePath": "/opt/homebrew/bin/ffprobe",
+    "ffprobeSha256": "68447e67105534f3f43b95c94983ed56fbdd7125e5724cc56499ad538c2b86a7",
+    "ffprobeVersion": "8.0.1 (current installed; original run did not separately record version)"
+  },
+  "originalFailure": {
+    "case": "integrated-smoke case 15 / http_local_h264_aac",
+    "command": "MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='http_local_h264_aac' ./server.sh verify-codecs",
+    "ffprobeArgv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-rtsp_transport",
+      "tcp",
+      "-rw_timeout",
+      "10000000",
+      "-show_entries",
+      "stream=index,codec_name,codec_type",
+      "-of",
+      "compact=p=0:nk=1",
+      "rtsp://127.0.0.1:51414/dhseo/opus?url=http%3A%2F%2F127.0.0.1%3A8765%2Fsample_h264.mp4&source=http"
+    ],
+    "routeOrder": [
+      {
+        "route": "/default",
+        "expected": "h264/aac",
+        "result": "PASS"
+      },
+      {
+        "route": "/h264",
+        "expected": "h264/aac",
+        "result": "PASS"
+      },
+      {
+        "route": "/opus",
+        "expected": "h264/opus",
+        "result": "FAIL"
+      }
+    ],
+    "ioTimeoutUs": 10000000,
+    "outerProcessTimeoutSeconds": 20,
+    "observedError": "ffprobe command timed out after 20s",
+    "timeoutInterpretation": "verify_codec_matrix.sh:probe_rtsp_url()의 subprocess.TimeoutExpired 분기. 내부 I/O 오류로 단정할 수 없음.",
+    "wrapperExitByImplementation": 124,
+    "matrixExitCode": 1,
+    "integratedSmokeExitCode": 1,
+    "ffprobePid": null,
+    "ffprobeExitCodeAndSignal": "원출력 미기록; wrapper는 subprocess timeout에서 자식을 정리하지만 실제 signal readback은 없음",
+    "partialStdoutStderr": "최종 timeout 문구 외 ffprobe 부분 출력이 보존된 로그에 없음",
+    "server": {
+      "wrapperPid": 81391,
+      "binaryPid": 81393,
+      "httpPort": 51413,
+      "rtspPort": 51414,
+      "authMode": "off"
+    },
+    "provider": {
+      "pid": 85277,
+      "port": 8765,
+      "command": "PYTHONUNBUFFERED=1 python3 -u -m http.server 8765 --bind 127.0.0.1 --directory /Users/dhseo/Workspace/mediaServer/video",
+      "originalLog": "/tmp/http_local_h264_aac.http.log"
+    },
+    "lifecycle": "새 predev 서버 준비/health → 앞선 6개 codec source → HTTP provider 시작/루트 readiness → default/h264/opus → WebRTC signaling create/delete → provider stop/wait → integrated fail-fast → MediaServer stop/ports-clean",
+    "serverLogAvailability": "원래 /tmp/media_server_predev-1790857474-81372/server.log는 정리됨; preservation manifest에 해당 server.log 없음. 과거 URI 준비/미디어 내부 상태를 복원하지 않음.",
+    "residualProviderEvidence": "남아 있는 동일 경로 425바이트 log의 수정 시각과 GET 시각(21:31:10/12/15/35 KST)이 실패 구간과 일치. GET MP4 4회 모두 200이나 body 전송 완료/route별 대응은 미확인. 이전 manifest/PID binding이 없으므로 잔존 보조 자료로 구분.",
+    "residualProviderMtime": "2026-10-01T12:31:35.519459+00:00",
+    "webRtcBoundary": "signaling 세션 생성 PASS는 Opus 미디어 전달 증거가 아님.",
+    "stageBoundary": "OnMediaConfigure는 일반 오류 메시지 표기이며 실제 함수 정지 위치를 증명하지 않음."
+  },
+  "prior30Comparison": {
+    "source": "같은 acceptance/runId의 30분 선행 integrated-smoke; soak 반복에서 해당 codec 검사를 반복한 것은 아님",
+    "rawPath": ".media_server.test/20261001-201906/15-codec-http_local_h264_aac.log",
+    "rawSha256": "9aee3972371a21dae09821e03a75a62adb78829f74ccab0e36b3ceb4a69bc7b0",
+    "rawProvenance": "현재 ignored 원자료. 보존된 30분 log의 case15 진행, 포트, 실행 시간 및 integrated PASS와 대조; 이전 manifest에 포함되었다고 주장하지 않음.",
+    "server": {
+      "wrapperPid": 12306,
+      "binaryPid": 12308,
+      "httpPort": 52246,
+      "rtspPort": 52247
+    },
+    "providerPid": 16397,
+    "result": "default/h264/opus 및 signaling 4 PASS, fail 0",
+    "shared": [
+      "source URI/fixture와 local-http profile",
+      "default → h264 → opus 순서 및 codec 기대값",
+      "TCP, rw_timeout 10s, outer timeout 20s, WebRTC timeout 20s",
+      "auth off, eventPost queue256, local env 생략, 동일 binary 경로의 skip-build",
+      "같은 선행 file H264/AAC → file H265/AAC → RTSP H265/Opus → RTSP H264/PCMU → RTSP H264/PCMA → WHIP 순서"
+    ],
+    "different": [
+      "서버/PID/포트/작업 디렉터리/실행 시각",
+      "30분 검사는 자체 서버 시작; 120분 검사는 UI 및 qualification 이후 또 다른 새 서버 시작",
+      "각 실행은 source/route 사이 같은 서버를 재사용하지만 실행 간 서버는 공유하지 않음",
+      "스케줄링/이전 세션 종료 완료 상태, 각 route RTP 수신/바이너리 exec 시점별 hash는 직접 관측 기록 없음"
+    ],
+    "interpretation": "같은 명령의 과거 성공은 확인되지만 실패 원인 또는 제품 문제 부재를 증명하지 않음."
+  },
+  "hypothesesBeforeRun": [
+    {
+      "id": "HTTP_INPUT",
+      "supports": "Actual MP4 GET error/disconnect before usable SDP/streams",
+      "refutesPartially": "MP4 GET 200 and all codec outputs; 200 alone does not prove body completion"
+    },
+    {
+      "id": "RTSP_NEGOTIATION",
+      "supports": "Probe timeout with missing/incomplete RTSP responses or SDP",
+      "limit": "Trace aggregates do not correlate requests to responses"
+    },
+    {
+      "id": "MEDIA_OR_PROBE",
+      "supports": "RTSP/SDP present but stream discovery/output incomplete at timeout",
+      "limit": "RTP arrival and internal prepare stages are not captured by helper"
+    },
+    {
+      "id": "ORDER_OR_REUSE",
+      "supports": "Original route sequence fails but justified opus-only comparison succeeds",
+      "limit": "Fresh focused server lacks preceding six other source histories"
+    },
+    {
+      "id": "UNRESOLVED",
+      "supports": "Non-reproduction or insufficient trace"
+    }
+  ],
+  "focusedReproduction": {
+    "attempts": 1,
+    "additionalComparisonAttempts": 0,
+    "additionalComparisonReason": "미재현이므로 동일 명령이나 opus-only 대조를 추가하지 않음.",
+    "invocation": "focused-run.json",
+    "configurationChange": "임시 config에서 source 표시 이름만 고유 접미사로 바꿔 고정 /tmp provider log 충돌을 방지. source URL/파일/profile/routes/기대값/timeout/다른 source 설정 바이트 의미는 유지.",
+    "temporaryConfigSha256": "8518a12fe8b76869921cb28956055b07b72bcb2ae6b8627817998f0b1b7167bc",
+    "result": "selected-source 4 PASS / 0 FAIL / 11 SKIP; 전체 codec matrix PASS 아님",
+    "probeResults": [
+      {
+        "route": "default",
+        "elapsedSeconds": 1.889567125,
+        "exitCode": 0,
+        "processReturncode": 0,
+        "outcome": "completed",
+        "rtspRequests": {
+          "DESCRIBE": 1,
+          "OPTIONS": 1,
+          "PLAY": 1,
+          "SETUP": 2,
+          "TEARDOWN": 1
+        },
+        "responseClasses": {
+          "1xx": 0,
+          "2xx": 5,
+          "3xx": 0,
+          "4xx": 0,
+          "5xx": 0,
+          "other": 0
+        },
+        "sdpMediaLines": {
+          "audio": 1,
+          "video": 1
+        },
+        "stdoutStreamLines": {
+          "audio": 1,
+          "video": 1
+        }
+      },
+      {
+        "route": "h264",
+        "elapsedSeconds": 10.099595708,
+        "exitCode": 0,
+        "processReturncode": 0,
+        "outcome": "completed",
+        "rtspRequests": {
+          "DESCRIBE": 1,
+          "OPTIONS": 1,
+          "PLAY": 1,
+          "SETUP": 2,
+          "TEARDOWN": 1
+        },
+        "responseClasses": {
+          "1xx": 0,
+          "2xx": 5,
+          "3xx": 0,
+          "4xx": 0,
+          "5xx": 0,
+          "other": 0
+        },
+        "sdpMediaLines": {
+          "audio": 1,
+          "video": 1
+        },
+        "stdoutStreamLines": {
+          "audio": 1,
+          "video": 1
+        }
+      },
+      {
+        "route": "opus",
+        "elapsedSeconds": 1.921135,
+        "exitCode": 0,
+        "processReturncode": 0,
+        "outcome": "completed",
+        "rtspRequests": {
+          "DESCRIBE": 1,
+          "OPTIONS": 1,
+          "PLAY": 1,
+          "SETUP": 2,
+          "TEARDOWN": 1
+        },
+        "responseClasses": {
+          "1xx": 0,
+          "2xx": 5,
+          "3xx": 0,
+          "4xx": 0,
+          "5xx": 0,
+          "other": 0
+        },
+        "sdpMediaLines": {
+          "audio": 1,
+          "video": 1
+        },
+        "stdoutStreamLines": {
+          "audio": 1,
+          "video": 1
+        }
+      }
+    ],
+    "serverObservation": "각 RTSP route에 tracks=2 URI source ready(833/818/821ms), h264/aac, h264/aac, h264/opus configure 및 세 session unprepared가 관측됨.",
+    "providerObservation": "루트 readiness 200과 실제 MP4 GET 4회 200. body 전체 전달 완료를 이 로그만으로 단정하지 않음.",
+    "limitations": [
+      "trace 모드가 timing에 영향을 줄 수 있음",
+      "request/response 집계는 정확한 CSeq 대응 아님",
+      "stdout audio/video codec 반환은 확인했으나 helper의 discovered_stream_lines=0을 미디어 부재로 해석하지 않음",
+      "RTP packet 도착/손실 및 내부 prepare 단계는 미측정",
+      "앞선 6개 다른 source 이력은 재현 범위에서 제외"
+    ],
+    "additionalWarnings": "마지막 HTTP/WebRTC 경로 후 GLib poll Bad file descriptor 7줄과 libnice component warning 1줄 관측. 검사 반환 전 시각이며 서버 종료는 exit0. 최초 RTSP timeout과의 인과관계는 미확정; 새 수정/재현 범위로 확대하지 않음.",
+    "temporaryConfigComparison": "직접 JSON 대조에서 source.name 접미사를 원복한 객체가 추적 config 전체와 동일함을 확인; tracked config 수정 없음."
+  },
+  "conclusion": {
+    "confirmed": "최초 실패는 바깥 20초 deadline. 현재 동일 fixture/binary로 해당 source의 순서 유지 집중 재현에서는 timeout 미재현.",
+    "unresolved": [
+      "최초 실패의 HTTP body/RTSP 단계/RTP 전달 또는 probe 분석 대기",
+      "선행 다른 source/세션 재사용 및 스케줄링 영향"
+    ],
+    "minimalFixProposal": null,
+    "whyNoPatch": "준비/오케스트레이션/제품 경로 중 재현 가능한 결함을 특정하지 못해 제품 또는 검사기 수정안을 근거 없이 제시하지 않음. timeout 증가 제안 없음.",
+    "nextSingleObservation": "별도 승인된 원래 서버 이력의 다음 실패 시점에 기존 codec diagnostics helper가 남기는 route 3(/opus) finish record 하나를 확보: 응답·SDP·stdout 관측과 outcome/process_returncode를 함께 판독. 이번에는 추가 실행하지 않음.",
+    "releaseDisposition": "최초 acceptance FAIL 및 릴리즈 차단 유지. 이번 진단의 성공 결과로 과거 FAIL/UI/장시간 증거를 수정하지 않음."
+  },
+  "priorArchiveReadback": [
+    {
+      "originalPath": "summary.json",
+      "originalBytes": 1699745,
+      "originalSha256": "54aaf85c66e9d9740d5587dedd83c16812a504f0b25f314c06ad89d4b8a5dda4",
+      "storedPath": "summary.json.gz",
+      "storedBytes": 65873,
+      "storedSha256": "bc720f34f582ab27c35b6d10267f838f310625ea86dc70dc4f04eab54600b24b",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    },
+    {
+      "originalPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-30.log",
+      "originalBytes": 33671,
+      "originalSha256": "899e93b5fedd8eafd63365ed82781773253091bcbbbc58be48bbcd00bbb81ef4",
+      "storedPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-30.log.gz",
+      "storedBytes": 2950,
+      "storedSha256": "b6e55dbb9150d9dc4ea9afe54b7b65a6c52263489d358671ba7dd368a9ac273c",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    },
+    {
+      "originalPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-30/predev-summary.json",
+      "originalBytes": 118324,
+      "originalSha256": "d4f33869ac15ca450fafcb58c7ea63ed32a5138bc49153049f9b74e1a059ae8d",
+      "storedPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-30/predev-summary.json.gz",
+      "storedBytes": 3403,
+      "storedSha256": "e7849791e5710709fe2fc6b13ddda34dba21ca2e8b5bf374d6dd1cdc08db8d15",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    },
+    {
+      "originalPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120.log",
+      "originalBytes": 8454,
+      "originalSha256": "90e26aea4360f6358df4c703006d8213350cbed6dc42db34fbec838b819d130e",
+      "storedPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120.log.gz",
+      "storedBytes": 1660,
+      "storedSha256": "dcd502594abd75f97997b1fc283372bbca1a7d6a1017d65c345c37f4c53a0d7e",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    },
+    {
+      "originalPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120/predev-summary.json",
+      "originalBytes": 10183,
+      "originalSha256": "b7659b310550d2c297c647d432518f35a57c2efe33e2090ecac3524697a340f2",
+      "storedPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120/predev-summary.json.gz",
+      "storedBytes": 1985,
+      "storedSha256": "d2a1ebf3054db53c4a2303648e3fd29b85f55bdbc04d187c92ee2b2e894adc76",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    },
+    {
+      "originalPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120/failure-artifacts/15-codec-http_local_h264_aac.log",
+      "originalBytes": 2048,
+      "originalSha256": "2505d5fb1f461703af452b524702b6158774e8cff66e6a9d9407080691c42b37",
+      "storedPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120/failure-artifacts/15-codec-http_local_h264_aac.log.gz",
+      "storedBytes": 749,
+      "storedSha256": "2f316b646ce6232985f146071a86b42ded1f92b2ec40a52a8827c0d4517ba843",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    },
+    {
+      "originalPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120/failure-artifacts/integrated-smoke-logFile-integrated_smoke.log",
+      "originalBytes": 6090,
+      "originalSha256": "b09277d587e3a9f05401001eb72e05e0a80d63f5688a21c65df6d4d04dc5953d",
+      "storedPath": "runs/v390-test-acceptance-20261001111221-4624/server-longrun-120/failure-artifacts/integrated-smoke-logFile-integrated_smoke.log.gz",
+      "storedBytes": 2277,
+      "storedSha256": "0c72361867e2c724e3163a0c24ccf98b22b998f163559dee764840411984d59a",
+      "encoding": "gzip",
+      "preservedCommit": "f46f941002ff7d4df8055b47e58723cf1dc521b1",
+      "committedBytesVerified": true
+    }
+  ],
+  "preservedFiles": [
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-opus-diagnostic.dp0kse2k/run.json",
+      "sourceBytes": 4190,
+      "sourceSha256": "e1b9b52aa527c9bf6666a8ffcd563810864c298fa916cda26b2c7d1bae626df1",
+      "storedPath": "focused-run.json",
+      "storedBytes": 4190,
+      "storedSha256": "e1b9b52aa527c9bf6666a8ffcd563810864c298fa916cda26b2c7d1bae626df1",
+      "representation": "identity"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-opus-diagnostic.dp0kse2k/diagnostics/codec-diagnostics.jsonl",
+      "sourceBytes": 2961,
+      "sourceSha256": "23b782270bddb54e4197110423e756d7ecef2db497656877b26690a791d14131",
+      "storedPath": "codec-diagnostics.jsonl",
+      "storedBytes": 2961,
+      "storedSha256": "23b782270bddb54e4197110423e756d7ecef2db497656877b26690a791d14131",
+      "representation": "identity"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-opus-diagnostic.dp0kse2k/codec.stdout.log",
+      "sourceBytes": 1867,
+      "sourceSha256": "7d536bea15baede9a3d05ec5995819d1099bfe07326038f4d4020ce8343d0d7f",
+      "storedPath": "codec.stdout.sanitized.log",
+      "storedBytes": 1813,
+      "storedSha256": "2f365d0a239d8b19b983ed083227d5670920ce9505e73cd35c04ea05074ac260",
+      "representation": "sanitized-not-byte-identical"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-opus-diagnostic.dp0kse2k/codec.stderr.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedPath": "codec.stderr.log",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "identity"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-opus-diagnostic.dp0kse2k/server.log",
+      "sourceBytes": 6590,
+      "sourceSha256": "9679cc67b19019bf9b5c54f37f51649d124d6c5f6652d7fd3d8111316928ca8f",
+      "storedPath": "server.sanitized.log",
+      "storedBytes": 6151,
+      "storedSha256": "d7a56d0499f4d796933fba1c53de09b5e34731cfbfa0cb175ab347ea8ca07999",
+      "representation": "sanitized-not-byte-identical"
+    },
+    {
+      "sourcePath": "/private/tmp/http_local_h264_aac_diag_dp0kse2k.http.log",
+      "sourceBytes": 425,
+      "sourceSha256": "c46a5536ad15f3a18e6b7eae5607064dd831c5d28e97aa2e36069e25cde07024",
+      "storedPath": "provider.log",
+      "storedBytes": 425,
+      "storedSha256": "c46a5536ad15f3a18e6b7eae5607064dd831c5d28e97aa2e36069e25cde07024",
+      "representation": "identity"
+    },
+    {
+      "sourcePath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/20261001-201906/15-codec-http_local_h264_aac.log",
+      "sourceBytes": 1899,
+      "sourceSha256": "9aee3972371a21dae09821e03a75a62adb78829f74ccab0e36b3ceb4a69bc7b0",
+      "storedPath": "prior-30-codec.sanitized.log",
+      "storedBytes": 1845,
+      "storedSha256": "728f1b7ef6a6e528c6936b9284252a93e72522f1af34e023340b1876bcf9d134",
+      "representation": "sanitized-not-byte-identical"
+    },
+    {
+      "sourcePath": "/private/tmp/http_local_h264_aac.http.log",
+      "sourceBytes": 425,
+      "sourceSha256": "36ea7fdd174f1beb769da70c6916b6c4a860d96ca6acc3d0188324da1b880918",
+      "storedPath": "prior-120-provider-residual.log",
+      "storedBytes": 425,
+      "storedSha256": "36ea7fdd174f1beb769da70c6916b6c4a860d96ca6acc3d0188324da1b880918",
+      "representation": "identity"
+    }
+  ],
+  "cleanup": {
+    "processAndPortReadback": "focused-run.json",
+    "temporaryRemoval": {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-codec-opus-diagnostic.dp0kse2k",
+      "absent": true,
+      "regularFiles": 19,
+      "directories": 13,
+      "ownedSymlinksUnlinkedWithoutFollowing": 277,
+      "providerLogRemoved": true,
+      "rawHandling": "necessary non-sensitive logs preserved; sanitized logs explicitly distinguished from original byte hashes; owned cache/state/media headers not published",
+      "priorIgnoredSourcesUntouched": true
+    },
+    "defaultRecordingRootBefore": "absent",
+    "defaultRecordingRootAfter": "absent",
+    "protectedBefore": {
+      "/Users/dhseo/Workspace/mediaServer/.media_server": {},
+      "/Users/dhseo/Workspace/mediaServer/scripts/.media_server.env": {
+        "absent": true
+      },
+      "/Users/dhseo/Workspace/mediaServer/.media_server.pid": {
+        "absent": true
+      },
+      "/Users/dhseo/Workspace/mediaServer/.media_server.port": {
+        "absent": true
+      },
+      "/Users/dhseo/Workspace/mediaServer/.media_server.address": {
+        "absent": true
+      },
+      "/private/tmp/http_local_h264_aac.http.log": {
+        "bytes": 425,
+        "sha256": "36ea7fdd174f1beb769da70c6916b6c4a860d96ca6acc3d0188324da1b880918"
+      }
+    },
+    "protectedUnchanged": true,
+    "recordedAt": "2026-10-01T13:16:37.420524+00:00",
+    "pids": [
+      {
+        "pid": 91424,
+        "psExit": 1,
+        "absent": true
+      },
+      {
+        "pid": 91479,
+        "psExit": 1,
+        "absent": true
+      },
+      {
+        "pid": 91634,
+        "psExit": 1,
+        "absent": true
+      }
+    ],
+    "ports": [
+      {
+        "port": 52540,
+        "lsofExit": 1,
+        "released": true
+      },
+      {
+        "port": 52541,
+        "lsofExit": 1,
+        "released": true
+      },
+      {
+        "port": 8765,
+        "lsofExit": 1,
+        "released": true
+      }
+    ],
+    "defaultRecordingsAbsent": true,
+    "indexUnchangedBeforeEvidenceStage": true,
+    "retainedDefaultDirectoryStructure": ".media_server/recordings absent 전후 확인; 기존 .media_server 파일 snapshot 불변"
+  },
+  "notExecuted": [
+    "두 번째 집중 대조",
+    "전체 acceptance",
+    "UI",
+    "30분",
+    "120분",
+    "제품/검사기/정책/승인 수정",
+    "후보 생성/독립 검토/producer",
+    "push/PR/merge/tag/Release"
+  ]
+}

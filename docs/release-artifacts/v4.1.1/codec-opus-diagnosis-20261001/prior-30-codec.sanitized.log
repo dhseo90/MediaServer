@@ -1,0 +1,25 @@
+명령: MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='http_local_h264_aac' ./server.sh verify-codecs
+
+[info] server rtsp=127.0.0.1:52247 route=dhseo client=127.0.0.1
+[info] server http=127.0.0.1:52246 client=127.0.0.1
+[skip] file_local_h264_aac: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] file_local_h265_aac: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[info] HTTP launcher ready: http://127.0.0.1:8765/
+[info] source http_local_h264_aac: Local HTTP MP4 source used to verify the URI source path before YouTube/HLS resolver work.
+[info] source http_local_h264_aac: verify profile=local-http rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=10000000 webrtc_http_timeout_s=20
+[pass] http_local_h264_aac: RTSP /default -> h264/aac
+[pass] http_local_h264_aac: RTSP /h264 -> h264/aac
+[pass] http_local_h264_aac: RTSP /opus -> h264/opus
+[pass] http_local_h264_aac: WebRTC signaling session created (<ephemeral-session-id>)
+[info] launcher stopped: pid=16397 log=/tmp/http_local_h264_aac.http.log
+[skip] http_local_h264_video_only: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] hls_local_h264_aac: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] youtube_upload_h264_aac: disabled in config
+[skip] youtube_live_h264_aac: disabled in config
+[skip] rtsp_local_h265_opus: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] rtsp_local_h264_pcmu: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] rtsp_local_h264_pcma: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] webrtc_local_publish_h264_opus: filtered by MEDIA_SERVER_VERIFY_SOURCE_FILTER=http_local_h264_aac
+[skip] rtsp_external_wowza_h264_aac: disabled in config
+
+[summary] pass=4 fail=0 skip=11

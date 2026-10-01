@@ -1,0 +1,63 @@
+[env] skipped local override: /Users/dhseo/Workspace/mediaServer/scripts/.media_server.env
+run mode: foreground
+listen: rtsp://127.0.0.1:52541/dhseo
+ops: http://127.0.0.1:52540/ops/home
+client: http://127.0.0.1:52540/client/live
+file root: /Users/dhseo/Workspace/mediaServer/video
+default file: /Users/dhseo/Workspace/mediaServer/video/sample_h264.mp4
+file test url: <owned-loopback-file-route>
+stop: Ctrl-C
+media-server skeleton (C++)
+default route: /dhseo
+recording startup recovery complete: deleted=0 recovered=0 inspected=0 corrupt=0
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+gstreamer rtsp server started: yes
+webrtc http server started: yes
+listen: rtsp://127.0.0.1:52541/dhseo
+ops console: http://127.0.0.1:52540/ops/home
+client live: http://127.0.0.1:52540/client/live
+recording catalog: generation-sqlite (enabled=no)
+file test url: <owned-loopback-file-route>
+running... (SIGINT/SIGTERM to stop)
+[uri-source] sample ready kind=audio codec=aac caps=audio/mpeg, channels=(int)2, rate=(int)48000, mpegversion=(int)4, base-profile=(string)lc, channel-mask=(bitmask)0x0000000000000003, stream-format=(string)raw, level=(string)2, profile=(string)lc, codec_data=(buffer)<omitted>, framed=(boolean)true
+[uri-source] sample ready kind=video codec=h264 caps=video/x-h264, codec_data=(buffer)<omitted>, stream-format=(string)avc, alignment=(string)au, level=(string)3.1, profile=(string)high, width=(int)1280, height=(int)720, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)30/1, interlace-mode=(string)progressive, colorimetry=(string)bt709, chroma-site=(string)mpeg2, coded-picture-structure=(string)frame, chroma-format=(string)4:2:0, bit-depth-luma=(uint)8, bit-depth-chroma=(uint)8, parsed=(boolean)true, lcevc=(boolean)false
+[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=833
+[gst] configure media codec=h264 audio=aac source=http uri=<owned-loopback-fixture>
+[gst] media unprepared; close session gst-session-1
+[uri-source] sample ready kind=audio codec=aac caps=audio/mpeg, channels=(int)2, rate=(int)48000, mpegversion=(int)4, base-profile=(string)lc, channel-mask=(bitmask)0x0000000000000003, stream-format=(string)raw, level=(string)2, profile=(string)lc, codec_data=(buffer)<omitted>, framed=(boolean)true
+[uri-source] sample ready kind=video codec=h264 caps=video/x-h264, codec_data=(buffer)<omitted>, stream-format=(string)avc, alignment=(string)au, level=(string)3.1, profile=(string)high, width=(int)1280, height=(int)720, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)30/1, interlace-mode=(string)progressive, colorimetry=(string)bt709, chroma-site=(string)mpeg2, coded-picture-structure=(string)frame, chroma-format=(string)4:2:0, bit-depth-luma=(uint)8, bit-depth-chroma=(uint)8, parsed=(boolean)true, lcevc=(boolean)false
+[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=818
+[gst] configure media codec=h264 audio=aac source=http uri=<owned-loopback-fixture>
+[gst] media unprepared; close session gst-session-2
+[uri-source] sample ready kind=audio codec=aac caps=audio/mpeg, channels=(int)2, rate=(int)48000, mpegversion=(int)4, base-profile=(string)lc, channel-mask=(bitmask)0x0000000000000003, stream-format=(string)raw, level=(string)2, profile=(string)lc, codec_data=(buffer)<omitted>, framed=(boolean)true
+[uri-source] sample ready kind=video codec=h264 caps=video/x-h264, codec_data=(buffer)<omitted>, stream-format=(string)avc, alignment=(string)au, level=(string)3.1, profile=(string)high, width=(int)1280, height=(int)720, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)30/1, interlace-mode=(string)progressive, colorimetry=(string)bt709, chroma-site=(string)mpeg2, coded-picture-structure=(string)frame, chroma-format=(string)4:2:0, bit-depth-luma=(uint)8, bit-depth-chroma=(uint)8, parsed=(boolean)true, lcevc=(boolean)false
+[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=821
+[gst] configure media codec=h264 audio=opus source=http uri=<owned-loopback-fixture>
+[gst] media unprepared; close session gst-session-3
+[uri-source] sample ready kind=audio codec=aac caps=audio/mpeg, channels=(int)2, rate=(int)48000, mpegversion=(int)4, base-profile=(string)lc, channel-mask=(bitmask)0x0000000000000003, stream-format=(string)raw, level=(string)2, profile=(string)lc, codec_data=(buffer)<omitted>, framed=(boolean)true
+[uri-source] sample ready kind=video codec=h264 caps=video/x-h264, codec_data=(buffer)<omitted>, stream-format=(string)avc, alignment=(string)au, level=(string)3.1, profile=(string)high, width=(int)1280, height=(int)720, pixel-aspect-ratio=(fraction)1/1, framerate=(fraction)30/1, interlace-mode=(string)progressive, colorimetry=(string)bt709, chroma-site=(string)mpeg2, coded-picture-structure=(string)frame, chroma-format=(string)4:2:0, bit-depth-luma=(uint)8, bit-depth-chroma=(uint)8, parsed=(boolean)true, lcevc=(boolean)false
+[uri-source] source ready kind=http source=<owned-loopback-fixture> tracks=2 elapsed_ms=827
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): GLib-WARNING **: 22:11:42.907: poll(2) failed due to: Bad file descriptor.
+
+(<unknown>:91424): libnice-WARNING **: 22:11:42.907: Could not find component 1 in stream 1
