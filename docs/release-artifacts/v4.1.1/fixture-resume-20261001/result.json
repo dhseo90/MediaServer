@@ -1,0 +1,385 @@
+{
+  "schema": "media-server.release-prerequisite-fixture-resume.v1",
+  "preparedAt": "2026-10-01T03:10:52.804554+00:00",
+  "source": {
+    "baseline": "1a77dd0f131829a43424c39f33bf5dcb586c1c4a",
+    "implementationHead": "399b7a008f12aed94e71fe43389b819004c35b2f",
+    "implementationTree": "5613a6aaba57300e83dc8af70ba5cb4c7f8a62d8",
+    "testsExecutedAgainst": "1a77dd0f plus exact 13-file diff committed as 399b7a00"
+  },
+  "scope": "4/4 제한 테스트 대역·현행 문서 소비 수정. 제품/runtime·UI 적격 정책 불변. 이전23파일 주석 수정과 당시 영향0 결과 유지.",
+  "failureClassification": {
+    "metadataFixtureOnly": 82,
+    "metadataAndUiDocumentPlacement": 60,
+    "historicalUiRowTitle": 9,
+    "parentFailurePropagation": 6,
+    "total": 157,
+    "unexplained": 0
+  },
+  "validation": {
+    "representativeBefore": "same input fixture extracted without edits; actual old failures preserved",
+    "focused": {
+      "pass": 84,
+      "fail": 0
+    },
+    "finalOriginalBundle": {
+      "oldTests": 886,
+      "newTests": 970,
+      "pass": 970,
+      "fail": 0,
+      "skipped": 0,
+      "removed": 0,
+      "newCases": 84,
+      "allOriginal157Reconciled": true
+    },
+    "cheapChecks": "comment policy, 13 Node syntax checks, diff whitespace, local release metadata, documentation links all exit 0"
+  },
+  "impact": {
+    "rawDelta": 38,
+    "strictCarryForward": 949,
+    "independentRequired": 37,
+    "candidateDigest": "0b5420f046414ddc8c562c8e891120a6a8c6e6925ce0e5d076cbffffe557f8d3",
+    "mechanicalLocator": "existing candidate normalizer; authored proofs not edited"
+  },
+  "previousFailures": {
+    "acceptanceCommit": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+    "acceptanceFiles": 18,
+    "selftestCommit": "1a77dd0f131829a43424c39f33bf5dcb586c1c4a",
+    "selftestFiles": 3,
+    "readbackByteEqual": true
+  },
+  "artifacts": [
+    {
+      "path": "representative-before.json.gz",
+      "originalSha256": "f491f48173d4788653861f5354317b23c34a680f0b9f84daaf636680f85f7643",
+      "originalBytes": 4380,
+      "storedSha256": "487123dc445597c13ead7d9c7d2ed3d3faf16b0a82da63eb98bb9b29d12f4cd1",
+      "storedBytes": 1693
+    },
+    {
+      "path": "focused-run.json.gz",
+      "originalSha256": "54a8cc8e7f90be351cf5eb6e87949dfbbb2b53a75b2602b6f96e72f973466c8c",
+      "originalBytes": 275,
+      "storedSha256": "60981396a790329dea6672e5e987a571a9dc0358acde877adea502c6917cd705",
+      "storedBytes": 231
+    },
+    {
+      "path": "focused.stdout.log.gz",
+      "originalSha256": "523d476a907a9f4280b7b982ed8f991b77a1c5f2a83a80677c9c90e6037ece41",
+      "originalBytes": 6860,
+      "storedSha256": "47f4c6cd356790f69cccc7a9411610a076d810d3e8f83b6fced087e20ca4fc4b",
+      "storedBytes": 1493
+    },
+    {
+      "path": "focused.stderr.log.gz",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "storedBytes": 20
+    },
+    {
+      "path": "final-selftests-run.json.gz",
+      "originalSha256": "ed56c499cbe628e1740c500159309893154ef637b03c222f97361e0681886b09",
+      "originalBytes": 549,
+      "storedSha256": "d6ebb99dedf42c59115c0f159ffaade721875851b63b1a14b9e783beed8cdb5d",
+      "storedBytes": 279
+    },
+    {
+      "path": "final-selftests.stdout.log.gz",
+      "originalSha256": "f1eb72c0aa6c1855127aa846be81744fa1e6a76756a7a46aeebaed717be67eeb",
+      "originalBytes": 77083,
+      "storedSha256": "9c822adb2ba6e0f3c7540ca7f6d61d531ad994c7fc3351ab738bff9d66746207",
+      "storedBytes": 14009
+    },
+    {
+      "path": "final-selftests.stderr.log.gz",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "storedBytes": 20
+    },
+    {
+      "path": "original-failure-reconciliation.json.gz",
+      "originalSha256": "0916d4fbe8964b973149570d29a3d06bfb841700e2cab21767e4ba1c6dd1c2b9",
+      "originalBytes": 58909,
+      "storedSha256": "eeb51b4c7c7bc67c894fe8ac7f2f76997196b257ea2ba9367183966a34943b03",
+      "storedBytes": 2240
+    },
+    {
+      "path": "case-count-reconciliation.json.gz",
+      "originalSha256": "7af836372ef692eeac46030546a8157c6aae4ddde4db4dc8e351ae4b3a84cf9d",
+      "originalBytes": 15399,
+      "storedSha256": "d017aadebb46e91e484f7d4b863bdbf2fd48eededd2d746ae1079950fd014ebd",
+      "storedBytes": 1003
+    },
+    {
+      "path": "short-checks.json.gz",
+      "originalSha256": "d6b3c7543d5a4ece0fce2764d50ed80b11572b6e693595a76bb3ccdbe04059ff",
+      "originalBytes": 5403,
+      "storedSha256": "9e8dab6fc88e03f63910bf2f11eeda09884849b3bf3d257df74be6d25740b3c2",
+      "storedBytes": 1169
+    },
+    {
+      "path": "candidate-run.json.gz",
+      "originalSha256": "41b2dcae91287df5b353930f004c4df2d58664fbe5a31c64561a641c369c6c33",
+      "originalBytes": 300,
+      "storedSha256": "067a7bea943045c164b895da2ed7c9d4cabb85488738f5c693323bbde07fecaa",
+      "storedBytes": 234
+    },
+    {
+      "path": "candidate.stdout.log.gz",
+      "originalSha256": "12dee1f1b43a60a793d7814990fd37af72508d66fbdbaa79fb926d19feb972c8",
+      "originalBytes": 228,
+      "storedSha256": "3c30eac96405f78b33e2fd56ddca44e2199bdc4659487596904c0d386ae52f3f",
+      "storedBytes": 194
+    },
+    {
+      "path": "candidate.stderr.log.gz",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "storedBytes": 20
+    },
+    {
+      "path": "candidate-delta.json.gz",
+      "originalSha256": "3d252641bbc65ef92713233dad29bda1db2fc3ca44f312687683b0ca116b04f5",
+      "originalBytes": 16848,
+      "storedSha256": "3ab6d574af06b07a681d1ad5a6433dc47c5451632412722558c79e9c12390b34",
+      "storedBytes": 913
+    },
+    {
+      "path": "migration-run.json.gz",
+      "originalSha256": "fffb2952eafe471b852de19e91dfe1657a3ee7f34c216b98dd24b3f50ae1a7e7",
+      "originalBytes": 589,
+      "storedSha256": "5144244d1403b440d2440da2e2355cac2831fb98e6cbeb616fcc31101ad02b19",
+      "storedBytes": 294
+    },
+    {
+      "path": "migration.stdout.log.gz",
+      "originalSha256": "066b040b7b602157c70cb78fd1dd8f7c93359b80f7443c316b6cfdf277c5b46a",
+      "originalBytes": 951,
+      "storedSha256": "445f77a787a2b3f9375aaaa2f7ef9fbb52a12c386d834fd57098a5a0b67492c4",
+      "storedBytes": 470
+    },
+    {
+      "path": "migration.stderr.log.gz",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "storedBytes": 20
+    },
+    {
+      "path": "migration-report.json.gz",
+      "originalSha256": "302ec8095458a7436353c8c56325d6aa71a6c9aca821f0a81c60efa3aec8e9d8",
+      "originalBytes": 520518,
+      "storedSha256": "974e2ee61362cfa2e58354635daaf74076d51c75d34801d89eefad4e1d4848f0",
+      "storedBytes": 92618
+    },
+    {
+      "path": "migration-evidence.json.gz",
+      "originalSha256": "c27907cb1efcefc36be40d7d9e0ad411bfb0cbed64c662313e2502fa956ecd52",
+      "originalBytes": 374444,
+      "storedSha256": "d1885a4f137ef677f879ac807a094a05de2b16dbb7bd002cb09189dd84a2edbe",
+      "storedBytes": 89804
+    },
+    {
+      "path": "impact-summary.json.gz",
+      "originalSha256": "14cd01f6ebb26c0f64c6d6be7cf319447e6591bd0d01fe680b999ac9fc1bda53",
+      "originalBytes": 4762,
+      "storedSha256": "3aa0c5f3ccc0c82408c0dfe553a358beaf30cebc15c570af2b1a18df6bb0efbc",
+      "storedBytes": 1455
+    },
+    {
+      "path": "prior-failure-readback.json.gz",
+      "originalSha256": "22dbe20c224f16ab7329679029d1a4a3d59db1b89b38bd7e0ccef87d6903657d",
+      "originalBytes": 6353,
+      "storedSha256": "ff8ad520fc558d1ca2e8fa478b0ff7d2ae734148cb2e4027f69599d1934b254a",
+      "storedBytes": 1420
+    },
+    {
+      "path": "remote-readonly-preflight.json.gz",
+      "originalSha256": "0dd66daa17c2f5c5a58efc4d059064836165b42d0f2373b8574f3322e2ab5e07",
+      "originalBytes": 1351,
+      "storedSha256": "5df272016fa79d6adc88114a995c7d45f98ac8f2cde076e07b3077631c73574d",
+      "storedBytes": 519
+    },
+    {
+      "path": "candidate.json.gz",
+      "originalSha256": "070578cfe580b7f8f940f63aa0acad9b4e20d4ed14133a8c676cd6c93ff641f4",
+      "originalBytes": 7708991,
+      "storedSha256": "165d4863e5fe99558894f2253878cb6efd7b1ce1413e5b2e70c11faa5a0414f0",
+      "storedBytes": 952534
+    },
+    {
+      "path": "review-package.json.gz",
+      "originalSha256": "7a63daaf3aab272166ced7dbd7f562d53abeea7fa9f656698ae31ce5b42b5f9e",
+      "originalBytes": 23036,
+      "storedSha256": "2ca22b6ba84735eed4dc6f6393dfbeff3281c5ce7c535541bf2cbcd4db479b55",
+      "storedBytes": 8393
+    },
+    {
+      "path": "independent-decisions.fixture-resume.json.gz",
+      "originalSha256": "b128d82fe747924ac827e8dcc8f51c1a4eae8e197a3d0f1b0c26be05e2958ab5",
+      "originalBytes": 436862,
+      "storedSha256": "257b8b47df57c4705b23e4b2cd7403d1d30366e748cfdee524ae2346749847aa",
+      "storedBytes": 70298
+    },
+    {
+      "path": "independent-decisions.fixture-resume.format-aligned.json.gz",
+      "originalSha256": "e74e5403e54bd5c19879822052b88c2363b54bb2fc7c6232a61d16fa8083f364",
+      "originalBytes": 437635,
+      "storedSha256": "f3659f03c5ed4822784c62e218a2e2302fc3bd358816f9d9d6b9cb9c08d2b95a",
+      "storedBytes": 70729
+    },
+    {
+      "path": "producer-run.json.gz",
+      "originalSha256": "6d8cd847a238158da6df584db244835a7b9ffed828f188703671ef06d48d5482",
+      "originalBytes": 755,
+      "storedSha256": "1e21fd7c9225313b9476be947c3b5fde77722a69bd3b31353315ac3c01df73a4",
+      "storedBytes": 316
+    },
+    {
+      "path": "producer.stdout.log.gz",
+      "originalSha256": "9f977941a5c4d81283e110f562f7ff5a381d95039106060a4bcc7a8fac6e76d2",
+      "originalBytes": 562,
+      "storedSha256": "23e23e33898a33702b0a548aa3eaf04e0b4d23dd22986840a3b8da423bbc42b8",
+      "storedBytes": 335
+    },
+    {
+      "path": "producer.stderr.log.gz",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "storedBytes": 20
+    }
+  ],
+  "executionBoundary": "이번 자체검사는 제품 build·실제 UI·30분·120분 실행 PASS가 아니다. Acceptance는 필요한 독립 판단·기존 producer 결속 후 수행.",
+  "independentReview": {
+    "approved": 37,
+    "rejected": 0,
+    "held": 0,
+    "reviewer": "Codex AI independent scoped reviewer /root/c2_independent_recheck",
+    "originalSha256": "b128d82fe747924ac827e8dcc8f51c1a4eae8e197a3d0f1b0c26be05e2958ab5",
+    "producerInputSha256": "e74e5403e54bd5c19879822052b88c2363b54bb2fc7c6232a61d16fa8083f364",
+    "formatCorrection": "producer reviewer 문자열 계약에 맞춰 원본은 보존하고 상세 객체를 reviewerDetails로 이동. 판단·검토 시각·결속 불변. 적용 전 발견; 실패한 적용이나 신규 검토 아님.",
+    "boundary": "AI source review, not human approval or runtime/UI/longrun PASS"
+  },
+  "producer": {
+    "run": {
+      "command": [
+        "./server.sh",
+        "produce-v390-review4-migration-aware-approvals",
+        "--write-ledger",
+        "--prior-audit",
+        ".media_server.test/v411-fixture-resume.efu6ey1p/prior-audit.json",
+        "--prior-approvals",
+        ".media_server.test/v411-fixture-resume.efu6ey1p/prior-approvals.json",
+        "--migration-evidence",
+        ".media_server.test/v411-fixture-resume.efu6ey1p/migration-evidence.json",
+        "--decisions",
+        ".media_server.test/v411-fixture-resume.efu6ey1p/independent-decisions.fixture-resume.format-aligned.json",
+        "--review-package",
+        ".media_server.test/v411-fixture-resume.efu6ey1p/review-package.json"
+      ],
+      "startedAt": "2026-10-01T03:22:24.861309+00:00",
+      "elapsedSeconds": 77.04517304099863,
+      "exitCode": 0
+    },
+    "atomicReadback": "existing producer validated audit/approval/manifest/native envelopes and exact readback",
+    "independentRows": 37,
+    "strictCarryRows": 949,
+    "outputs": [
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "sha256": "f0eaba9cdae577da939111abc59e12b84c894c40a2f46d9a90df283c842dfab7"
+      },
+      {
+        "path": "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "sha256": "8c7a6ae8b5ab4ac81807e7fa20ad17be562ea707154f8e38bdf960499e71fc4f"
+      },
+      {
+        "path": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "sha256": "229c5187647d32d36ad3fbb3f79af357dfb276caef0a9a664b32e47cbfba446b"
+      },
+      {
+        "path": "test/fixtures/v390_ui_native_exact_cases.json",
+        "sha256": "07704e011360f419f78d7c382fb31db84f0b60fdc53cce9e6a8f1f4cf4b6e2bf"
+      }
+    ],
+    "nativeDiff": {
+      "paths": [
+        "/sourceBindings/implementationProjectionSha256",
+        "/sourceBindings/runtimeOracleCatalogSha256",
+        "/cases/59/workflow/setup/1/semanticCallChainSha256",
+        "/cases/59/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/59/workflow/exactRuntimeOracle/specSha256",
+        "/cases/59/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/66/workflow/setup/1/semanticCallChainSha256",
+        "/cases/66/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/66/workflow/exactRuntimeOracle/specSha256",
+        "/cases/66/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/70/workflow/setup/1/semanticCallChainSha256",
+        "/cases/70/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/70/workflow/exactRuntimeOracle/specSha256",
+        "/cases/70/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/73/workflow/setup/1/semanticCallChainSha256",
+        "/cases/73/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/73/workflow/exactRuntimeOracle/specSha256",
+        "/cases/73/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/74/workflow/setup/1/semanticCallChainSha256",
+        "/cases/74/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/74/workflow/exactRuntimeOracle/specSha256",
+        "/cases/74/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/75/workflow/setup/1/semanticCallChainSha256",
+        "/cases/75/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/75/workflow/exactRuntimeOracle/specSha256",
+        "/cases/75/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/76/workflow/setup/1/semanticCallChainSha256",
+        "/cases/76/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/76/workflow/exactRuntimeOracle/specSha256",
+        "/cases/76/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/77/workflow/setup/1/semanticCallChainSha256",
+        "/cases/77/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/77/workflow/exactRuntimeOracle/specSha256",
+        "/cases/77/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/326/workflow/setup/1/semanticCallChainSha256",
+        "/cases/326/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/326/workflow/cleanup/0/readback/assertedSemanticDigest",
+        "/cases/358/workflow/setup/1/semanticCallChainSha256",
+        "/cases/358/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/358/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/359/workflow/setup/1/semanticCallChainSha256",
+        "/cases/359/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/359/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/360/workflow/setup/1/semanticCallChainSha256",
+        "/cases/360/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/360/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/361/workflow/setup/1/semanticCallChainSha256",
+        "/cases/361/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/361/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/411/workflow/setup/1/semanticCallChainSha256",
+        "/cases/411/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/411/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/415/workflow/setup/1/semanticCallChainSha256",
+        "/cases/415/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/415/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/418/workflow/setup/1/semanticCallChainSha256",
+        "/cases/418/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/418/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/419/workflow/setup/1/semanticCallChainSha256",
+        "/cases/419/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/419/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/420/workflow/setup/1/semanticCallChainSha256",
+        "/cases/420/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/420/workflow/cleanup/0/semanticCallChainSha256",
+        "/cases/421/workflow/setup/1/semanticCallChainSha256",
+        "/cases/421/workflow/independentReadback/assertedSemanticDigest",
+        "/cases/421/workflow/cleanup/0/semanticCallChainSha256"
+      ],
+      "runtimeCaseCountAndContractUnchanged": true,
+      "changes": "generated source binding hashes only; no UI policy or action changes"
+    }
+  },
+  "status": "limited-fixes-selftests-independent-review-and-binding-complete; release acceptance not yet rerun",
+  "recordedAt": "2026-10-01T03:24:33.899505+00:00"
+}

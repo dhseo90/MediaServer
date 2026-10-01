@@ -5,9 +5,9 @@
     "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "96a3adaad48cf91c57fddac36c552d292efcb3e80f83895a45f23613489bd3c0",
+    "implementationProjectionSha256": "7e165d44904ef65db847c1da805d5ccc33b05c4e7c1aafd36443884182f69df4",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "4b75e3f1a5c894bc45f3eabe8494f4712ab04e5b6a2a328821c42e6d1396f72d",
+    "runtimeOracleCatalogSha256": "e45ece84ae3573fa178dac4d76a32365b5fe2bb4d09859c0160ba892ad77ee61",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -39368,7 +39368,7 @@
             "setupId": "UI-061:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "8bcce2dc38e30f003dfb743d169c8c0a8e7dac00478f0dc3ad8705a0c34a95d7",
+            "semanticCallChainSha256": "5fbb4ddd190e4789ed39460106f15d65755aac50b3259b8bbdd45d80235fd683",
             "persistedMutation": false,
             "fixtureId": "ui-061-review4-fixture",
             "beforeSnapshotRef": null
@@ -39450,7 +39450,7 @@
             "contextSha256": "764735f8af258b32b46c6079afaa72ad0248bcde527f81fba65ca2db36c1e6a5"
           },
           "verifierCommand": "verify-v310-operator-feature-correction",
-          "assertedSemanticDigest": "8bcce2dc38e30f003dfb743d169c8c0a8e7dac00478f0dc3ad8705a0c34a95d7"
+          "assertedSemanticDigest": "5fbb4ddd190e4789ed39460106f15d65755aac50b3259b8bbdd45d80235fd683"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -39462,7 +39462,7 @@
             "text": "`/ops/events`가 correctedFeatureLabel, featureAliases, reanalysisRequested/reanalysisReason control과 summary card를 Ops-only로 표시하고 기존 review 저장 버튼으로 event review state에만 반영하며 client/viewer에는 노출하지 않음",
             "sha256": "fd53e5eee0532914ac0c943f9cdd96c1f92c454471395ba42de45df073b84291"
           },
-          "specSha256": "fab350362a00c5ce5df2f2e6b99a73b77b69eb59b4fcebfae11b1b54352418ac",
+          "specSha256": "5e107aaa85f65cd77357a67a8aecef9e4b62375ab1e0cf108797d966fab84ecf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39717,7 +39717,7 @@
             "cleanupId": "UI-061:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "8bcce2dc38e30f003dfb743d169c8c0a8e7dac00478f0dc3ad8705a0c34a95d7"
+            "semanticCallChainSha256": "5fbb4ddd190e4789ed39460106f15d65755aac50b3259b8bbdd45d80235fd683"
           }
         ]
       },
@@ -43962,7 +43962,7 @@
             "setupId": "UI-068:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/live",
-            "semanticCallChainSha256": "a7ef9932faaa3014f1e087c3ea48b0db69af7838f316b7166946ab0262cb1a1c",
+            "semanticCallChainSha256": "df81b714080fa5a780ff21d049dbb6096cef9a46f0fda0a239723681a16bdddb",
             "persistedMutation": false,
             "fixtureId": "ui-068-review4-fixture",
             "beforeSnapshotRef": null
@@ -44036,7 +44036,7 @@
             "contextSha256": "48da896fe341bf3403ef7166b5a9979f6eeff769890c4568bfe954f07b30dec9"
           },
           "verifierCommand": "verify-v320-client-safe-resolution-digest",
-          "assertedSemanticDigest": "a7ef9932faaa3014f1e087c3ea48b0db69af7838f316b7166946ab0262cb1a1c"
+          "assertedSemanticDigest": "df81b714080fa5a780ff21d049dbb6096cef9a46f0fda0a239723681a16bdddb"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -44048,7 +44048,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.resolution-digest.v1` 기반 resolutionStatus/resolutionLabel/summaryText/severity/timelineHint/time만 표시하고 source URL/raw JSON/debug/provider/operator note/action control을 노출하지 않음",
             "sha256": "0f69e3b67fb774714c41c2475ed8cc0d042c48e535e6e33900d3d52a199df886"
           },
-          "specSha256": "058b3872a1030339657e5a7093cab4ef07c4bd8f09b7102ae9285e3d23211ca6",
+          "specSha256": "c27ab6865d38368ef95852e88e66008ed98026c18f29c6446ce84fddb1574403",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -44324,7 +44324,7 @@
             "cleanupId": "UI-068:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "a7ef9932faaa3014f1e087c3ea48b0db69af7838f316b7166946ab0262cb1a1c"
+            "semanticCallChainSha256": "df81b714080fa5a780ff21d049dbb6096cef9a46f0fda0a239723681a16bdddb"
           }
         ]
       },
@@ -46649,7 +46649,7 @@
             "setupId": "UI-072:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/live",
-            "semanticCallChainSha256": "040c2d3dd83f6caae68a82276444c059583217e9b3eecfa0357681b39bb202ff",
+            "semanticCallChainSha256": "62d0ca03ee1680b30b1389d2969a1ee010570c6a01beda42bf2d519bf296c176",
             "persistedMutation": false,
             "fixtureId": "ui-072-review4-fixture",
             "beforeSnapshotRef": null
@@ -46723,7 +46723,7 @@
             "contextSha256": "a9ae4a844582e2aa4a30c921212bdf817f1150fa40d305c0b051ff518a617b54"
           },
           "verifierCommand": "verify-v330-client-safe-source-status-digest",
-          "assertedSemanticDigest": "040c2d3dd83f6caae68a82276444c059583217e9b3eecfa0357681b39bb202ff"
+          "assertedSemanticDigest": "62d0ca03ee1680b30b1389d2969a1ee010570c6a01beda42bf2d519bf296c176"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -46735,7 +46735,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.source-status-digest.v1` 기반 sourceStatus/connectionStatus/videoFrameStatus/metadataStatus/summaryText/severity/timelineHint만 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material/action control을 노출하지 않음",
             "sha256": "c553c736030b3ee8a0d8f7624e215fadb610c531a27b31eeed955e5d58ec7633"
           },
-          "specSha256": "6ec7cba7634bfd6c513826a51b6a8da91dcc3c36095b3812f6edcc9afd87fe76",
+          "specSha256": "7a48438f0a851b9f3df6fe2ddac8ff58f5e61a3161de192ee389bb5e0b6e74ba",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -47011,7 +47011,7 @@
             "cleanupId": "UI-072:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "040c2d3dd83f6caae68a82276444c059583217e9b3eecfa0357681b39bb202ff"
+            "semanticCallChainSha256": "62d0ca03ee1680b30b1389d2969a1ee010570c6a01beda42bf2d519bf296c176"
           }
         ]
       },
@@ -48625,7 +48625,7 @@
             "setupId": "UI-075:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "1a7d699bd6951517d033da19b2f4d2bf808b2e46a4f73f8cc863cd872fe38738",
+            "semanticCallChainSha256": "66c70ee7bc40f527beace2881523e7ec87e2c2d2a80a927cc7f972cda63f229e",
             "persistedMutation": false,
             "fixtureId": "ui-075-review4-fixture",
             "beforeSnapshotRef": null
@@ -48699,7 +48699,7 @@
             "contextSha256": "9bd787016ea7677c7692c35eb3ca4b643c9fb9af901b93f3920d092890b1e926"
           },
           "verifierCommand": "verify-v340-ops-continuity-drill-workspace-ui",
-          "assertedSemanticDigest": "1a7d699bd6951517d033da19b2f4d2bf808b2e46a4f73f8cc863cd872fe38738"
+          "assertedSemanticDigest": "66c70ee7bc40f527beace2881523e7ec87e2c2d2a80a927cc7f972cda63f229e"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -48711,7 +48711,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-continuity-drill-workspace-ui.v1` 기반 drill package, validation status, blocked/ready 상태, source health drift를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 자동 recovery/source registry write를 노출하지 않음",
             "sha256": "c453ccd17b81301812ec28e29d4f8fa7ff768dd1e07cee21f8cbf4d088c2e982"
           },
-          "specSha256": "d69f70b0c9ed21f13a96a885112d9741ce8d60961a71e2c4fe3a4d60740268c3",
+          "specSha256": "a20a66cbb374808c639914808b9fd9ddfbe5e756011bb620a95039fa9633b4b6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -48985,7 +48985,7 @@
             "cleanupId": "UI-075:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "1a7d699bd6951517d033da19b2f4d2bf808b2e46a4f73f8cc863cd872fe38738"
+            "semanticCallChainSha256": "66c70ee7bc40f527beace2881523e7ec87e2c2d2a80a927cc7f972cda63f229e"
           }
         ]
       },
@@ -49271,7 +49271,7 @@
             "setupId": "UI-076:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "ca630fd3d41ad4259c8e422cf370e0b2c2e242020098fdc5059ebbe90e218488",
+            "semanticCallChainSha256": "735b24d2f83017d75683df760a7966bb32c6eaaed3bc136b32b920ab1bd20850",
             "persistedMutation": false,
             "fixtureId": "ui-076-review4-fixture",
             "beforeSnapshotRef": null
@@ -49353,7 +49353,7 @@
             "contextSha256": "5348c538cc2a5fec61a8771a4816953fe789c317fe18218252a4cae6da5a9c2d"
           },
           "verifierCommand": "verify-v340-approval-gated-recovery-checklist-audit",
-          "assertedSemanticDigest": "ca630fd3d41ad4259c8e422cf370e0b2c2e242020098fdc5059ebbe90e218488"
+          "assertedSemanticDigest": "735b24d2f83017d75683df760a7966bb32c6eaaed3bc136b32b920ab1bd20850"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -49365,7 +49365,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-approval-gated-recovery-checklist.v1` 기반 operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit link를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 자동 recovery/source registry write를 노출하지 않음",
             "sha256": "e1b85ef488193d7aa4c5ff9eb0f2bece52cfbfc3564a53c54acdea584db10942"
           },
-          "specSha256": "02c1ffb132c17e086ca7c1f7e677c8e448222cca46af3f63766652c6ee215e6f",
+          "specSha256": "0d3530ab882a014bebf23a9acc36473f1c66fdef258f630821d352b4aae748a4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -49620,7 +49620,7 @@
             "cleanupId": "UI-076:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "ca630fd3d41ad4259c8e422cf370e0b2c2e242020098fdc5059ebbe90e218488"
+            "semanticCallChainSha256": "735b24d2f83017d75683df760a7966bb32c6eaaed3bc136b32b920ab1bd20850"
           }
         ]
       },
@@ -49913,7 +49913,7 @@
             "setupId": "UI-077:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/live",
-            "semanticCallChainSha256": "4abfd1c9b0d6b62574cf2924a16a07a27eceac9cbb0d6640b7a01a0f0d44f9e8",
+            "semanticCallChainSha256": "8fa46465088acd1b09d175d63050c17b50e91215657883ffd195aa5047863882",
             "persistedMutation": false,
             "fixtureId": "ui-077-review4-fixture",
             "beforeSnapshotRef": null
@@ -49987,7 +49987,7 @@
             "contextSha256": "199544f452fb8f53d4bace6fe68fd47f0a60c3af5e69911a2ae275cd316385bf"
           },
           "verifierCommand": "verify-v340-client-safe-maintenance-digest",
-          "assertedSemanticDigest": "4abfd1c9b0d6b62574cf2924a16a07a27eceac9cbb0d6640b7a01a0f0d44f9e8"
+          "assertedSemanticDigest": "8fa46465088acd1b09d175d63050c17b50e91215657883ffd195aa5047863882"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -49999,7 +49999,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v340-maintenance-digest.v1` 기반 maintenance/recovering/unavailable viewer-safe digest를 표시하고 source URL/raw locator/raw JSON/debug/credential material/operator note/Ops audit/dry-run/recovery action을 노출하지 않음",
             "sha256": "6ab55afa9fa31070390fa615a7f4bbf5f4cc2e1a41ee9595fc362a13924544f5"
           },
-          "specSha256": "e31472b03bf69733e163bc0d24c81855206ee092c2f654fde213b33d1de11fbd",
+          "specSha256": "f5648a93228558cedce67fde0268c245de8c092eafe8a1187eca9090ea71656b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -50261,7 +50261,7 @@
             "cleanupId": "UI-077:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "4abfd1c9b0d6b62574cf2924a16a07a27eceac9cbb0d6640b7a01a0f0d44f9e8"
+            "semanticCallChainSha256": "8fa46465088acd1b09d175d63050c17b50e91215657883ffd195aa5047863882"
           }
         ]
       },
@@ -50547,7 +50547,7 @@
             "setupId": "UI-078:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "6baa881abb2c74e424bdb2d47da2b1373e7db9bfa94bed94601c2a2a883f86d1",
+            "semanticCallChainSha256": "d922786d813fee487eb1c375eeef30686718c48f5e2b59e8f73651802283eb9d",
             "persistedMutation": false,
             "fixtureId": "ui-078-review4-fixture",
             "beforeSnapshotRef": null
@@ -50629,7 +50629,7 @@
             "contextSha256": "0b13611705c1ce7a09e26638f0716e4671d2b152e4a093a76d7c50e92a97d702"
           },
           "verifierCommand": "verify-v340-drill-evidence-export-cleanup-manifest",
-          "assertedSemanticDigest": "6baa881abb2c74e424bdb2d47da2b1373e7db9bfa94bed94601c2a2a883f86d1"
+          "assertedSemanticDigest": "d922786d813fee487eb1c375eeef30686718c48f5e2b59e8f73651802283eb9d"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -50641,7 +50641,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1` 기반 redacted drill artifact manifest, minimum retained evidence, /tmp cleanup manifest, sensitive material scan boundary를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material/raw audit body를 노출하지 않음",
             "sha256": "e2adcd81a81a2e16b2617aaa176072e99962d64c7a46a010ad032438c47b15ae"
           },
-          "specSha256": "70115ed4076245aa53bbebc258a81b7f0cbbc3343e06b7a35716d1d3498242aa",
+          "specSha256": "56b72c43b64b614410b372380277212fec57937327ad2158ce12bfb41dd3da13",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -50896,7 +50896,7 @@
             "cleanupId": "UI-078:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "6baa881abb2c74e424bdb2d47da2b1373e7db9bfa94bed94601c2a2a883f86d1"
+            "semanticCallChainSha256": "d922786d813fee487eb1c375eeef30686718c48f5e2b59e8f73651802283eb9d"
           }
         ]
       },
@@ -51182,7 +51182,7 @@
             "setupId": "UI-079:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "81e4f24d482170063faf52cfbc97f6505d849b34d467f9b65b5a029d1b3e3bbe",
+            "semanticCallChainSha256": "3c6f6068be6b97bd17f13484e9c4e4eb49605fc244ae4cc705e77a40ba2070ea",
             "persistedMutation": false,
             "fixtureId": "ui-079-review4-fixture",
             "beforeSnapshotRef": null
@@ -51264,7 +51264,7 @@
             "contextSha256": "71a6508850fa3094b41e0d97aee1334f54ded80bb4e43f47a939b60b4a46375e"
           },
           "verifierCommand": "verify-v340-field-bridge-condition-gates",
-          "assertedSemanticDigest": "81e4f24d482170063faf52cfbc97f6505d849b34d467f9b65b5a029d1b3e3bbe"
+          "assertedSemanticDigest": "3c6f6068be6b97bd17f13484e9c4e4eb49605fc244ae4cc705e77a40ba2070ea"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -51276,7 +51276,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-field-bridge-condition-gates.v1` 기반 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider 조건 gate와 source-only PASS boundary를 read-only로 표시하고 endpoint URL/raw locator/raw JSON/debug/credential/provider material을 노출하지 않음",
             "sha256": "5247db644bf9a98c9e02e26601c7365a260f337d43cbfdf6c1ca0738d8c32eaf"
           },
-          "specSha256": "9da6c0ca928b8ba05c6b878243a3ea68c532bad709225eb1c38a4b3ca8d5b5b3",
+          "specSha256": "cc6f4694dc415a954099fe3be08bec86c32c5c587d24af58d821a330f1e6e72f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -51531,7 +51531,7 @@
             "cleanupId": "UI-079:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "81e4f24d482170063faf52cfbc97f6505d849b34d467f9b65b5a029d1b3e3bbe"
+            "semanticCallChainSha256": "3c6f6068be6b97bd17f13484e9c4e4eb49605fc244ae4cc705e77a40ba2070ea"
           }
         ]
       },
@@ -225944,7 +225944,7 @@
             "setupId": "EVT-061:reviewed-state",
             "strategy": "persisted-mutation",
             "route": "/ops/events",
-            "semanticCallChainSha256": "afe7f5042642d61f37efd68b87528d6487a4c5df4526e3bda23897ba6d578aa8",
+            "semanticCallChainSha256": "e79c1fcda72f60426b23bd8e7acedc05498b3297286734ad2ba81b8c9e8f6c90",
             "persistedMutation": true,
             "fixtureId": "evt-061-review4-fixture",
             "beforeSnapshotRef": "EVT-061:before-product-state"
@@ -226031,7 +226031,7 @@
             "contextSha256": "c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab"
           },
           "verifierCommand": "verify-v310-operator-feature-correction",
-          "assertedSemanticDigest": "afe7f5042642d61f37efd68b87528d6487a4c5df4526e3bda23897ba6d578aa8"
+          "assertedSemanticDigest": "e79c1fcda72f60426b23bd8e7acedc05498b3297286734ad2ba81b8c9e8f6c90"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-event-oracle.v1",
@@ -226363,7 +226363,7 @@
                 "contextSha256": "c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab"
               },
               "verifierCommand": "verify-v310-operator-feature-correction",
-              "assertedSemanticDigest": "afe7f5042642d61f37efd68b87528d6487a4c5df4526e3bda23897ba6d578aa8"
+              "assertedSemanticDigest": "e79c1fcda72f60426b23bd8e7acedc05498b3297286734ad2ba81b8c9e8f6c90"
             }
           }
         ]
@@ -246957,7 +246957,7 @@
             "setupId": "CLIENT-025:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/events",
-            "semanticCallChainSha256": "af316fd5d4717a1fae173018a263de52ce67c74212db5634facea12770f77597",
+            "semanticCallChainSha256": "79127adc904ce420bc38cd319de15eed668cef4d8e46aff43d279c46a1f8f1f0",
             "persistedMutation": false,
             "fixtureId": "client-025-review4-fixture",
             "beforeSnapshotRef": null
@@ -247031,7 +247031,7 @@
             "contextSha256": "9562d94d3a80fc848a052d0cb66d36b90056cec1fba581075306c1e5466c4a3c"
           },
           "verifierCommand": "verify-v310-client-safe-event-digest",
-          "assertedSemanticDigest": "af316fd5d4717a1fae173018a263de52ce67c74212db5634facea12770f77597"
+          "assertedSemanticDigest": "79127adc904ce420bc38cd319de15eed668cef4d8e46aff43d279c46a1f8f1f0"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -247302,7 +247302,7 @@
             "cleanupId": "CLIENT-025:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "af316fd5d4717a1fae173018a263de52ce67c74212db5634facea12770f77597"
+            "semanticCallChainSha256": "79127adc904ce420bc38cd319de15eed668cef4d8e46aff43d279c46a1f8f1f0"
           }
         ]
       },
@@ -247595,7 +247595,7 @@
             "setupId": "CLIENT-027:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/live",
-            "semanticCallChainSha256": "bc4867df51404cb975b2bb37a34bf62532cd3eaeaedb05c8532480bb493b700d",
+            "semanticCallChainSha256": "cc39408c1ae1f3b48098a24b8817d24a112b5d80c11287a08a7e9c4b2755724a",
             "persistedMutation": false,
             "fixtureId": "client-027-review4-fixture",
             "beforeSnapshotRef": null
@@ -247669,7 +247669,7 @@
             "contextSha256": "72dff99d0511d76ede668bc255489991536ac4df94591ae60e5e26c5d8f23354"
           },
           "verifierCommand": "verify-v320-client-safe-resolution-digest",
-          "assertedSemanticDigest": "bc4867df51404cb975b2bb37a34bf62532cd3eaeaedb05c8532480bb493b700d"
+          "assertedSemanticDigest": "cc39408c1ae1f3b48098a24b8817d24a112b5d80c11287a08a7e9c4b2755724a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -247940,7 +247940,7 @@
             "cleanupId": "CLIENT-027:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "bc4867df51404cb975b2bb37a34bf62532cd3eaeaedb05c8532480bb493b700d"
+            "semanticCallChainSha256": "cc39408c1ae1f3b48098a24b8817d24a112b5d80c11287a08a7e9c4b2755724a"
           }
         ]
       },
@@ -248233,7 +248233,7 @@
             "setupId": "CLIENT-028:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/live",
-            "semanticCallChainSha256": "c81f7af727322d7ab22a251e19919ec2b18361c0a16538a71add2665fa765ff2",
+            "semanticCallChainSha256": "ee187a27e653bc5eb6773e8d74f4bd51e2f4704e2e27360e68ef2a39d2241977",
             "persistedMutation": false,
             "fixtureId": "client-028-review4-fixture",
             "beforeSnapshotRef": null
@@ -248307,7 +248307,7 @@
             "contextSha256": "61ddea840728bba38b6bbdb0f9bcd30e063cef0a75be2aeb3e60a1d79780e5d4"
           },
           "verifierCommand": "verify-v330-client-safe-source-status-digest",
-          "assertedSemanticDigest": "c81f7af727322d7ab22a251e19919ec2b18361c0a16538a71add2665fa765ff2"
+          "assertedSemanticDigest": "ee187a27e653bc5eb6773e8d74f4bd51e2f4704e2e27360e68ef2a39d2241977"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -248578,7 +248578,7 @@
             "cleanupId": "CLIENT-028:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "c81f7af727322d7ab22a251e19919ec2b18361c0a16538a71add2665fa765ff2"
+            "semanticCallChainSha256": "ee187a27e653bc5eb6773e8d74f4bd51e2f4704e2e27360e68ef2a39d2241977"
           }
         ]
       },
@@ -248873,7 +248873,7 @@
             "setupId": "CLIENT-029:reviewed-state",
             "strategy": "read-only-state",
             "route": "/client/events",
-            "semanticCallChainSha256": "d6fa5c36971f894553670a1369e32c896e0eca329e77b9a453d1cb37e57d92b3",
+            "semanticCallChainSha256": "83b4dbe3d2d761840adf9faf145de0505d6fea6cf2b34a06fd33efb3c121f307",
             "persistedMutation": false,
             "fixtureId": "client-029-review4-fixture",
             "beforeSnapshotRef": null
@@ -248947,7 +248947,7 @@
             "contextSha256": "5e53fe6798f04969c0c2b7ee24821a635cd54abcae5a7f304837521178e993db"
           },
           "verifierCommand": "verify-v340-client-safe-maintenance-digest",
-          "assertedSemanticDigest": "d6fa5c36971f894553670a1369e32c896e0eca329e77b9a453d1cb37e57d92b3"
+          "assertedSemanticDigest": "83b4dbe3d2d761840adf9faf145de0505d6fea6cf2b34a06fd33efb3c121f307"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -249224,7 +249224,7 @@
             "cleanupId": "CLIENT-029:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "d6fa5c36971f894553670a1369e32c896e0eca329e77b9a453d1cb37e57d92b3"
+            "semanticCallChainSha256": "83b4dbe3d2d761840adf9faf145de0505d6fea6cf2b34a06fd33efb3c121f307"
           }
         ]
       },
@@ -280626,7 +280626,7 @@
             "setupId": "SAFE-110:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/client/events",
-            "semanticCallChainSha256": "9a18b5f4db05362becfd6d73d1f0c9fb99cb1fbfec4ea84c94c61d397a6dc2e9",
+            "semanticCallChainSha256": "30693f80d5efa55ad06b4b847c47455a48b94c4db00f9cdbba61477ff1706ae0",
             "persistedMutation": false,
             "fixtureId": "safe-110-review4-fixture",
             "beforeSnapshotRef": null
@@ -280708,7 +280708,7 @@
             "contextSha256": "3bfbaaa8cb2fb53104e3a43530c2e50deea83b74ad9ba94d45858b35fb10d1a5"
           },
           "verifierCommand": "verify-v320-client-safe-resolution-digest",
-          "assertedSemanticDigest": "9a18b5f4db05362becfd6d73d1f0c9fb99cb1fbfec4ea84c94c61d397a6dc2e9"
+          "assertedSemanticDigest": "30693f80d5efa55ad06b4b847c47455a48b94c4db00f9cdbba61477ff1706ae0"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -280978,7 +280978,7 @@
             "cleanupId": "SAFE-110:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "9a18b5f4db05362becfd6d73d1f0c9fb99cb1fbfec4ea84c94c61d397a6dc2e9"
+            "semanticCallChainSha256": "30693f80d5efa55ad06b4b847c47455a48b94c4db00f9cdbba61477ff1706ae0"
           }
         ]
       },
@@ -283162,7 +283162,7 @@
             "setupId": "SAFE-119:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/client/events",
-            "semanticCallChainSha256": "affd5529b39fb6de4d584a9aee6ff5054a01e2b39e985b5b2cb4f52a45367a71",
+            "semanticCallChainSha256": "e63e4bb43583bacfbbf14960ad31102fbbb886cad49daed2258e99c881c481b8",
             "persistedMutation": false,
             "fixtureId": "safe-119-review4-fixture",
             "beforeSnapshotRef": null
@@ -283244,7 +283244,7 @@
             "contextSha256": "b0d6403f3f8da017f24660d8ae1d998ee300002d6e268b5f02b39ae54a7c42f9"
           },
           "verifierCommand": "verify-v330-client-safe-source-status-digest",
-          "assertedSemanticDigest": "affd5529b39fb6de4d584a9aee6ff5054a01e2b39e985b5b2cb4f52a45367a71"
+          "assertedSemanticDigest": "e63e4bb43583bacfbbf14960ad31102fbbb886cad49daed2258e99c881c481b8"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -283514,7 +283514,7 @@
             "cleanupId": "SAFE-119:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "affd5529b39fb6de4d584a9aee6ff5054a01e2b39e985b5b2cb4f52a45367a71"
+            "semanticCallChainSha256": "e63e4bb43583bacfbbf14960ad31102fbbb886cad49daed2258e99c881c481b8"
           }
         ]
       },
@@ -285064,7 +285064,7 @@
             "setupId": "SAFE-129:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/sources",
-            "semanticCallChainSha256": "fd1ed64f9f71eb13296d7c733615a04e60c6bcd8da2741e813aa36a97a9df512",
+            "semanticCallChainSha256": "ecbb324980dfff5dbe57d27e0df15c391e53a1a31fc356cacb89168248ec8a3f",
             "persistedMutation": false,
             "fixtureId": "safe-129-review4-fixture",
             "beforeSnapshotRef": null
@@ -285146,7 +285146,7 @@
             "contextSha256": "db7b529974910b8138778903a1df259170045e4931fc65f9971799cdf03e6fab"
           },
           "verifierCommand": "verify-v340-ops-continuity-drill-workspace-ui",
-          "assertedSemanticDigest": "fd1ed64f9f71eb13296d7c733615a04e60c6bcd8da2741e813aa36a97a9df512"
+          "assertedSemanticDigest": "ecbb324980dfff5dbe57d27e0df15c391e53a1a31fc356cacb89168248ec8a3f"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -285410,7 +285410,7 @@
             "cleanupId": "SAFE-129:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "fd1ed64f9f71eb13296d7c733615a04e60c6bcd8da2741e813aa36a97a9df512"
+            "semanticCallChainSha256": "ecbb324980dfff5dbe57d27e0df15c391e53a1a31fc356cacb89168248ec8a3f"
           }
         ]
       },
@@ -285696,7 +285696,7 @@
             "setupId": "SAFE-130:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops",
-            "semanticCallChainSha256": "6f2f8fccff6fdc0f55b9a129ce70ff6d8e275d8b92552f83dfbf6b152183c3c1",
+            "semanticCallChainSha256": "b6ff2752acb54167e43c45744f8b918efaec69105a88c2240aae048a7127acd5",
             "persistedMutation": false,
             "fixtureId": "safe-130-review4-fixture",
             "beforeSnapshotRef": null
@@ -285778,7 +285778,7 @@
             "contextSha256": "d23f5b89227cf7d6fd48e2bd5bd02da3f9ddcd703ffb6879b481407fb7ccebe2"
           },
           "verifierCommand": "verify-v340-approval-gated-recovery-checklist-audit",
-          "assertedSemanticDigest": "6f2f8fccff6fdc0f55b9a129ce70ff6d8e275d8b92552f83dfbf6b152183c3c1"
+          "assertedSemanticDigest": "b6ff2752acb54167e43c45744f8b918efaec69105a88c2240aae048a7127acd5"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -286042,7 +286042,7 @@
             "cleanupId": "SAFE-130:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "6f2f8fccff6fdc0f55b9a129ce70ff6d8e275d8b92552f83dfbf6b152183c3c1"
+            "semanticCallChainSha256": "b6ff2752acb54167e43c45744f8b918efaec69105a88c2240aae048a7127acd5"
           }
         ]
       },
@@ -286328,7 +286328,7 @@
             "setupId": "SAFE-131:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops",
-            "semanticCallChainSha256": "0dd34929f5423671a881e842b6841bc819bbabca3bd7f382b049cd8832910ea5",
+            "semanticCallChainSha256": "1d02b7bf5bb819f07d30971c5dd60384cc0d7ed37b9e0fd379a9c488dabe388d",
             "persistedMutation": false,
             "fixtureId": "safe-131-review4-fixture",
             "beforeSnapshotRef": null
@@ -286410,7 +286410,7 @@
             "contextSha256": "b6dcf30d9d37f0da2ec750c5d86b04c2a727d2fae387cfedbd26c48f71add2a4"
           },
           "verifierCommand": "verify-v340-client-safe-maintenance-digest",
-          "assertedSemanticDigest": "0dd34929f5423671a881e842b6841bc819bbabca3bd7f382b049cd8832910ea5"
+          "assertedSemanticDigest": "1d02b7bf5bb819f07d30971c5dd60384cc0d7ed37b9e0fd379a9c488dabe388d"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -286674,7 +286674,7 @@
             "cleanupId": "SAFE-131:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "0dd34929f5423671a881e842b6841bc819bbabca3bd7f382b049cd8832910ea5"
+            "semanticCallChainSha256": "1d02b7bf5bb819f07d30971c5dd60384cc0d7ed37b9e0fd379a9c488dabe388d"
           }
         ]
       },
@@ -286960,7 +286960,7 @@
             "setupId": "SAFE-132:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops",
-            "semanticCallChainSha256": "e2a171b7a3328ff3937bf3bd9ed63c9672a33266ddf0e84cb760bd8669cd9c77",
+            "semanticCallChainSha256": "3fab2d69cea269f026f82a8f7d95358ae616b90b202aa07ab6ceb1b990fbd771",
             "persistedMutation": false,
             "fixtureId": "safe-132-review4-fixture",
             "beforeSnapshotRef": null
@@ -287042,7 +287042,7 @@
             "contextSha256": "9eb93e399f98673c69ca17e49d197db6eb415368ce353e653a790e6e34c8b2f2"
           },
           "verifierCommand": "verify-v340-drill-evidence-export-cleanup-manifest",
-          "assertedSemanticDigest": "e2a171b7a3328ff3937bf3bd9ed63c9672a33266ddf0e84cb760bd8669cd9c77"
+          "assertedSemanticDigest": "3fab2d69cea269f026f82a8f7d95358ae616b90b202aa07ab6ceb1b990fbd771"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
@@ -287306,7 +287306,7 @@
             "cleanupId": "SAFE-132:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "e2a171b7a3328ff3937bf3bd9ed63c9672a33266ddf0e84cb760bd8669cd9c77"
+            "semanticCallChainSha256": "3fab2d69cea269f026f82a8f7d95358ae616b90b202aa07ab6ceb1b990fbd771"
           }
         ]
       },
