@@ -111,6 +111,8 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 | script inventory 중단의 acceptance 원본 55개 | `a7144f6ef9a41057fb478dc900dbe10247472cd1` | `test-acceptance-current-final/` |
 | 종료 로그 독립 분류 수정·집중 검증 원본 19개 | `a0f45b8b42ab0b41a35b309758e4cfefca7612fb` | `script-inventory-resume-20261001/` |
 | 30분·UI 424개 실행 후 Policy 문구 검증 실패 원본 4,620개 | `864b4c9cfe8683c6b81f9e5e3628701cfc93553f` | `test-acceptance-current-final/`의 `preservation-manifest.json`과 대응 보존 파일 |
+| 체크리스트 문구 보완의 기본 검사·결속 불변·이전 출력 정리 확인 11개 | `0478d1274d3e12cfbe87a138ebdaab9a57ece61a` | `policy-wording-resume-20261001/` |
+| 30분·UI 424개·Policy 통과 후 120분 선행 codec probe timeout 원본 4,640개 | `f46f941002ff7d4df8055b47e58723cf1dc521b1` | `test-acceptance-current-final/`의 `preservation-manifest.json`과 대응 보존 파일 |
 
 최초 실패 출력 18개와 다음 재시도 실패 출력 60개·55개는 각각 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
 같은 경로의 새 실행 결과와 최초 실패는 commit·실행 source·run ID로 구분한다.
@@ -123,3 +125,8 @@ SHA-256을 사용해 Git blob을 읽고 압축을 풀면 원본을 확인할 수
 다음 문구 보완 후 재실행 준비에서는 위 압축본·PNG와 요약·대조 기록 4,623개를
 `8df9909e3bc60cee1cde45d47ed7a40e114aafc2`의 바이트와 확인해 고정 출력 경로에서 제거했다.
 최초 실행 원본과 판정은 위 보존 커밋에서 조회하며, 새 실행 결과와 합치지 않는다.
+
+`f46f9410`도 gzip 보존 바이트와 압축 해제 원본 SHA-256을 구분한다. 전체 원본
+337,075,169바이트를 Git에서 대조한 뒤 미추적 중복 4,423개만 정리했다. 커밋된 실행 자료는
+유지하며, 이는 릴리즈 성공 후 수행하는 최종 트리의 종료 자료 삭제가 아니다. 120분 반복과
+별도 녹화 8개 ID·31개 조작, 공개 절차는 이 실패 뒤 실행하지 않았다.
