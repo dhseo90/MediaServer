@@ -40,7 +40,7 @@ FIXTURE_FIRST_FAIL=0
 FIXTURE_CUMULATIVE_FAIL=0
 FIRST_FAILED_CASE=""
 
-mkdir -p "${WORK_DIR}"
+mkdir "${WORK_DIR}"
 
 # 사용 가능한 옵션과 안정화 검증 기준을 출력한다.
 usage() {
@@ -467,11 +467,23 @@ start_server() {
       "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./scripts/internal/run_server_foreground.sh"
     return 1
   fi
+  # 같은 실행의 재기동은 녹화 상태를 유지하며 상속 경로와 symlink를 사용하지 않는다.
+  local recording_root="${WORK_DIR}/recordings"
+  if [[ ! -d "${WORK_DIR}" || -L "${WORK_DIR}" || -L "${recording_root}" ]] ||
+      ! mkdir -p "${recording_root}"; then
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    mark_first_failure "server-start-queue-${queue_size}"
+    append_step "server-start-queue-${queue_size}" "fail" "recording storage isolation" "${SERVER_LOG}" 0 \
+      "test-owned recording root required: ${recording_root}"
+    log_info "테스트 소유 녹화 저장소 준비 실패: ${recording_root}"
+    return 1
+  fi
   log_info "server 시작: rtsp=${RTSP_PORT} http=${HTTP_PORT} eventPostQueue=${queue_size} authMode=${AUTH_MODE}"
   (
     cd "${ROOT_DIR}"
     MEDIA_SERVER_BUILD_DIR="${BUILD_DIR}" \
     MEDIA_SERVER_SKIP_BUILD=1 \
+    MEDIA_SERVER_RECORDING_STORAGE_ROOT="${recording_root}" \
     MEDIA_SERVER_LISTEN_PORT="${RTSP_PORT}" \
     MEDIA_SERVER_HTTP_LISTEN_PORT="${HTTP_PORT}" \
     MEDIA_SERVER_LISTEN_ADDRESS="${RTSP_LISTEN_ADDRESS}" \

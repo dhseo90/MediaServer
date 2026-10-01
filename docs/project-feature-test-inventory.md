@@ -2173,7 +2173,8 @@ ST13 검증기 경계: seed/read-model shell 조기실패(CXX 실패 포함)는 
 | V410-S07-10 | 실제 event ID와 production observer wiring·recording off 독립 | S07 focused, S05 | 비대상 | 비대상 | 비대상: 기존 serializer 불변 |
 
 
-이 문서는 현재 release 목표 `v4.1.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v4.1.1` 기준의 기능별 테스트 분류 기준표입니다.
+현재 소스 목표는 이미 공개된 버전이나 실제 실행 증거와 별개이며, 공개 상태는 릴리즈 metadata를 따릅니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 

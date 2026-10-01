@@ -56,7 +56,94 @@ assertKnownOptions(rawArgs, ["h", "help", "recording-root-only"]);
 // 기존 설정과 실제 파일 cleanup을 대조한다. 서버/브라우저 실행 증거는 아니다.
 if (rawArgs.includes("--recording-root-only")) {
   await verifyRecordingRootIsolation();
+  verifyFeatureServerRecordingRoots();
   process.exit(process.exitCode || 0);
+}
+
+function verifyFeatureServerRecordingRoots() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-feature-recording-env-"));
+  const protectedRoot = path.join(root, "protected");
+  fs.mkdirSync(protectedRoot);
+  fs.writeFileSync(path.join(protectedRoot, "sentinel"), "unchanged");
+  let passed = 0;
+  let failed = 0;
+  const check = (label, fn) => {
+    try { fn(); passed++; console.log(`[pass] ${label}`); }
+    catch (error) { failed++; console.log(`[fail] ${label}: ${error.message}`); }
+  };
+  try {
+    for (const name of ["onvif_source_view_atomicity", "analysis_registry_durable_write",
+      "vlm_promotion_trust_boundary", "reid_readiness_consistency"]) {
+      const source = fs.readFileSync(path.join(scriptDir, `verify_v390_${name}.mjs`), "utf8");
+      const body = sourceBlock(source, "function startServer(", "function rememberLog(");
+      const workDir = fs.mkdtempSync(path.join(root, `${name}-`));
+      const expected = path.join(workDir, "recordings");
+      const inherited = { MEDIA_SERVER_RECORDING_STORAGE_ROOT: protectedRoot };
+      let captured;
+      const invoke = (text = body) => {
+        captured = null;
+        const context = vm.createContext({ fs, path, rootDir, workDir, assert,
+          sourcePath: path.join(workDir, "sources.json"), viewPath: path.join(workDir, "views.json"),
+          registryPath: path.join(workDir, "analysis.json"), process: { env: inherited }, rememberLog() {},
+          spawn: (command, args, options) => {
+            captured = { command, args, ...options };
+            return { stdout: { on() {} }, stderr: { on() {} } };
+          } });
+        vm.runInContext(text, context);
+        if (name === "reid_readiness_consistency") context.startServer(inherited);
+        else context.startServer({ http: 19080, rtsp: 19554 }, "fixture-registry", "fixture-crash");
+      };
+      const assertEnv = () => assert(captured?.env.MEDIA_SERVER_RECORDING_STORAGE_ROOT === expected,
+        "exact owned recording root missing from child env");
+      check(`${name}: owned absolute root overrides parent and persists across restart`, () => {
+        invoke(); assertEnv();
+        assert(path.isAbsolute(expected) && fs.realpathSync(expected) === path.join(fs.realpathSync(workDir), "recordings"), "root escaped fixture");
+        assert(captured.command === "./server.sh" && captured.args.join() === "foreground" &&
+          captured.cwd === rootDir, "server dispatch changed");
+        fs.writeFileSync(path.join(expected, "restart-state"), "same-state");
+        invoke(); assertEnv();
+        assert(fs.readFileSync(path.join(expected, "restart-state"), "utf8") === "same-state", "restart discarded state");
+      });
+      for (const [label, replacement] of [["missing", ""], ["empty", 'MEDIA_SERVER_RECORDING_STORAGE_ROOT: "",'],
+        ["escape", 'MEDIA_SERVER_RECORDING_STORAGE_ROOT: path.join(workDir, "..", "protected"),']]) {
+        check(`${name}: detects ${label} child env regression`, () => {
+          const mutated = body.replace("MEDIA_SERVER_RECORDING_STORAGE_ROOT: recordingRoot,", replacement)
+            .replace("MEDIA_SERVER_RECORDING_STORAGE_ROOT: recordingRoot }", `${replacement} }`);
+          assert(mutated !== body, "mutation did not reach env");
+          invoke(mutated);
+          let rejected = false;
+          try { assertEnv(); } catch { rejected = true; }
+          assert(rejected, "invalid env escaped assertion");
+        });
+      }
+      check(`${name}: symlink to protected storage is rejected before spawn`, () => {
+        fs.unlinkSync(path.join(expected, "restart-state")); fs.rmdirSync(expected);
+        fs.symlinkSync(protectedRoot, expected, "dir");
+        let rejected = false;
+        try { invoke(); } catch (error) { rejected = error.message.includes("recording root"); }
+        assert(rejected && !captured, "external symlink reached spawn");
+        fs.unlinkSync(expected);
+      });
+      check(`${name}: dangling symlink is rejected before spawn`, () => {
+        const missing = path.join(protectedRoot, "missing");
+        fs.symlinkSync(missing, expected, "dir");
+        let rejected = false;
+        try { invoke(); } catch { rejected = true; }
+        assert(rejected && !captured && !fs.existsSync(missing), "dangling symlink reached external storage");
+        fs.unlinkSync(expected);
+      });
+    }
+    check("feature server recording roots remain separate and protected storage unchanged", () => {
+      assert(fs.readFileSync(path.join(protectedRoot, "sentinel"), "utf8") === "unchanged" &&
+        fs.readdirSync(protectedRoot).join() === "sentinel", "protected storage changed");
+      assert(fs.readdirSync(root).length === 5, "test roots are not distinct");
+    });
+  } finally {
+    fs.rmSync(root, { recursive: true });
+    console.log(`[cleanup] feature recording env fixture absent=${!fs.existsSync(root)}`);
+  }
+  console.log(`[summary] feature recording env pass=${passed} fail=${failed}`);
+  if (failed || passed !== 25) process.exitCode = 1;
 }
 
 async function verifyRecordingRootIsolation() {
