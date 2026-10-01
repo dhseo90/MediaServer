@@ -5,6 +5,11 @@
 읽고 실제 commit/diff/build를 기록한다. 과거 완료 기록은 실행 전제나 이번 PASS가 아니다.
 내부 기능의 단기 검사는 inventory의 UI 필요 여부를 따르며 실제 UI PASS로 부풀리지 않는다.
 
+실제 브라우저 증거(actual-browser evidence)는 승인된 브라우저 조작과 completion oracle의
+관측을 포함해야 한다. Policy v4 qualifier(`verify-ui-fulltest-evidence-policy-v4`)는 이 증거의
+적격성을 판정한다. 사례별 PASS와 최종 자격 판정은 구분하며, 기본 424개 판정은 별도 녹화
+8개 ID·31개 조작의 완료를 대신하지 않는다.
+
 ## 준비
 
 - [UI 안내](ui-guide.md), [설정](config-reference.md), [제품 지원 범위](../README.md)에서
