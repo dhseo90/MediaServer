@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-10-01T09:27:38.942303+00:00",
+  "command": "./server.sh verify-script-inventory",
+  "exitCode": 0,
+  "passCount": 13,
+  "failCount": 0,
+  "outputByteEqualWithPriorLogsPresent": true,
+  "priorOutputFilesRemoved": 55,
+  "preservedAt": "a7144f6ef9a41057fb478dc900dbe10247472cd1",
+  "protectedIgnoredReviewInputs": "unchanged",
+  "defaultRecordingRootAbsent": true,
+  "originalOutputSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+}

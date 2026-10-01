@@ -109,6 +109,9 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 | 재시도 acceptance 실패·기본 녹화 저장소 생성·정리 원본 60개 | `74dd820fbebcfeafe69462e23d82873509dd0251` | `test-acceptance-current-final/` |
 | 현재 입력·자식 녹화 격리 보완, 14개 독립 판단·재검토와 결속 원본 89개 | `3f1b10336e068c587138c3747fb8135dd4a76954` | `input-isolation-resume-20261001/` |
 
-최초 실패 출력 18개와 다음 재시도 실패 출력 60개는 각각 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
+| script inventory 중단의 acceptance 원본 55개 | `a7144f6ef9a41057fb478dc900dbe10247472cd1` | `test-acceptance-current-final/` |
+| 종료 로그 독립 분류 수정·집중 검증 원본 19개 | `a0f45b8b42ab0b41a35b309758e4cfefca7612fb` | `script-inventory-resume-20261001/` |
+
+최초 실패 출력 18개와 다음 재시도 실패 출력 60개·55개는 각각 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
 같은 경로의 새 실행 결과와 최초 실패는 commit·실행 source·run ID로 구분한다.
 나머지 보존 자료와 ignored 검토 원본은 재실행 준비에서 삭제하지 않았다.
