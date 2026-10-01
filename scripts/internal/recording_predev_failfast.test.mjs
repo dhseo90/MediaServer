@@ -196,7 +196,18 @@ function verifyRecordingStorageEnv() {
   fs.mkdirSync(path.join(dir, 'scripts/internal'), { recursive: true });
   fs.mkdirSync(work); fs.mkdirSync(protectedRoot);
   fs.writeFileSync(path.join(protectedRoot, 'sentinel'), 'unchanged');
-  fs.writeFileSync(path.join(dir, 'scripts/internal/run_server_foreground.sh'), `#!/bin/bash
+  fs.copyFileSync(path.join(repo, 'scripts/internal/run_server_foreground.sh'),
+    path.join(dir, 'scripts/internal/run_server_foreground.sh'));
+  fs.mkdirSync(path.join(dir, 'include'));
+  fs.copyFileSync(path.join(repo, 'include/stdafx.h'), path.join(dir, 'include/stdafx.h'));
+  fs.writeFileSync(path.join(dir, 'scripts/internal/env_common.sh'), `
+media_server_apply_homebrew_gst_env() { :; }
+media_server_read_const_charp() { :; }
+media_server_resolve_project_path() { printf '%s' "$2"; }
+`);
+  fs.writeFileSync(path.join(dir, 'scripts/.media_server.env'),
+    'MEDIA_SERVER_RECORDING_STORAGE_ROOT="$ROOT_DIR/protected"\nprintf "loaded\\n" >>"$ROOT_DIR/local-env-used"\n');
+  fs.writeFileSync(path.join(dir, 'capture-server'), `#!/bin/bash
 printf '%s\\n' "$MEDIA_SERVER_RECORDING_STORAGE_ROOT" >>"$ROOT_DIR/captured-roots"
 `, { mode: 0o700 });
   const run = () => spawnSync('bash', ['-c', `
@@ -214,11 +225,14 @@ ${body}
 start_server 256
 start_server 2
 `, 'fixture', dir], { encoding: 'utf8', timeout: 5000,
-    env: { PATH: process.env.PATH, MEDIA_SERVER_RECORDING_STORAGE_ROOT: protectedRoot } });
+    env: { PATH: process.env.PATH, MEDIA_SERVER_RECORDING_STORAGE_ROOT: protectedRoot,
+      MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV: '0', MEDIA_SERVER_SKIP_ENV_CHECK: '1',
+      MEDIA_SERVER_BIN_PATH: path.join(dir, 'capture-server') } });
   const normal = run();
   const recordingRoot = path.join(work, 'recordings');
   check('predev actual start_server overrides parent recording root for both starts', normal.status === 0 &&
     fs.readFileSync(path.join(dir, 'captured-roots'), 'utf8') === `${recordingRoot}\n${recordingRoot}\n`);
+  check('predev actual foreground refuses inherited local-env override', !fs.existsSync(path.join(dir, 'local-env-used')));
   fs.writeFileSync(path.join(recordingRoot, 'restart-state'), 'same-state');
   check('predev repeated start preserves owned recording state', run().status === 0 &&
     fs.readFileSync(path.join(recordingRoot, 'restart-state'), 'utf8') === 'same-state');
