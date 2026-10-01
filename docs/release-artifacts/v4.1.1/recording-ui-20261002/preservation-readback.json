@@ -1,0 +1,552 @@
+{
+  "schema": "media-server.v411-preservation-readback.v1",
+  "verifiedAt": "2026-10-01T22:24:14.882468+00:00",
+  "preservationCommit": "efc76b11126afb811fa4be0543ab5e8b0a548068",
+  "files": [
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/cleanup-observation.json",
+      "bytes": 1862,
+      "sha256": "bda8717a4ef6bb0356605e442d2e6ec2ae60d34c5dc14be947b7dde594826ed7"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence-checks.json",
+      "bytes": 22471,
+      "sha256": "c6ffb78025e4f19f4a12d96c1336a6e746479e5769f5214ff94943de531fa8e5"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-empty.json",
+      "bytes": 420,
+      "sha256": "8180bc21f3115e01126138aac3c82fe43a5408ba36a970e5426fc09aeb7f0bb9"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-empty.png",
+      "bytes": 159604,
+      "sha256": "26cb6f0ee0551e7e8c9ace7b99fd1c6e07fc42fcae155b37669145d39154c203"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-filter.json",
+      "bytes": 572,
+      "sha256": "f752466d14881e22daf2bd98351e4f0cd020de301e8bae08009c873e178c3cf0"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-filter.png",
+      "bytes": 158650,
+      "sha256": "b8d1a85ab1d3232e7ddcaef2f361879f80dcef55d94af334f492743852230285"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-inverted.json",
+      "bytes": 378,
+      "sha256": "809e094d1f6ec2d2dda8f753f4b9608cdbe046b689a7a10381d880690bf5e484"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-inverted.png",
+      "bytes": 158650,
+      "sha256": "b8d1a85ab1d3232e7ddcaef2f361879f80dcef55d94af334f492743852230285"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-page.json",
+      "bytes": 331,
+      "sha256": "d2bf564f78fb56f84b7cd46a5a892daaa788497f8b71f15ac6fb276df67bcc03"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I27-page.png",
+      "bytes": 80013,
+      "sha256": "b4a042a8f3fb657b940590455093aababcc5c70f08ed74621858d72b341acf7c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I28-event.json",
+      "bytes": 540,
+      "sha256": "faf9c42c547fa7f31997b923fbec9a449504cf8ae6452e4e3e88a7251c106ec6"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I28-event.png",
+      "bytes": 184767,
+      "sha256": "55c0a1afeb01ba297bb06ebd1e6313446a282adcbb60ecaf8125fe48770ba791"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I29-original.json",
+      "bytes": 486,
+      "sha256": "9c532218d363bf6abaf6fec2c7f46d32c8ee65e78d6eec5a27b3fa0e06162fd5"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I29-original.png",
+      "bytes": 227238,
+      "sha256": "04097fb700fc0de9c5e19d7bf27da8da3d60d6f3f3ec325aab6ed82db42d1b4f"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-pause.json",
+      "bytes": 971,
+      "sha256": "e41b2bbf8c79dcb18c29733831a5c4c82c325fa89554fc107667262c7b1e4830"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-pause.png",
+      "bytes": 596128,
+      "sha256": "e24b01ec9bfe07c6ac04e026379a9820113e3afbc0fa1b155261937a7488742b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-play.json",
+      "bytes": 1577,
+      "sha256": "fe8c3e667e69778d8eb54718d78cb17efd74668a4fefef32cc0164c31d33784a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-play.png",
+      "bytes": 596038,
+      "sha256": "69d98641188f8e29ceb24682dde598afe89cc16ce7fb6151f792f3bff7ecd44b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-seek-observation.json",
+      "bytes": 1367,
+      "sha256": "0658e8be92b4d3dbbe90c6e890c65b73df428659286d1084bd677f0520112742"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-seek.json",
+      "bytes": 1773,
+      "sha256": "7cef44761a6d9606d9b4c3979016eea6f1fef322d39e6019ba4340a9e1a7a005"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I30-seek.png",
+      "bytes": 595389,
+      "sha256": "b316ad749e6e6bd3c8c3f6fba788ebc3061903f14dc2b78c0470616da54ee33b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-corrupt.json",
+      "bytes": 779,
+      "sha256": "f0d5287ec896f92d8c28d5bfe98a71743e9cfdcc3426cd50720e9214e1418a4d"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-corrupt.png",
+      "bytes": 234646,
+      "sha256": "0a3df8f565b50049af58c54bf6cb28914db8543b5be7e55f4ddd3f36bc1b0965"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-deleted.json",
+      "bytes": 779,
+      "sha256": "437262b93e084711f257a49d4ea00f76b05279cc3677d5ef4156469d0e60617e"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-deleted.png",
+      "bytes": 226590,
+      "sha256": "c1f6fa8a7499755f644a07b1c6ce5c8a14bc19685cf6ddcc82506569ffbc6aef"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-error.json",
+      "bytes": 596,
+      "sha256": "aad0f53daa76d1d6bedf8c6c9030ed9f8ab870fa9f22b332e5e3f6ab700d6efb"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-error.png",
+      "bytes": 184842,
+      "sha256": "b6dce233e80c6b521ead9282dd4ab95e778ac735923aabcc44d637a66da21085"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-gap.json",
+      "bytes": 589,
+      "sha256": "233055665fdd0f71daf01a1453076682ae4b752e351d9a7dc6cf8523c35e0ab0"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-gap.png",
+      "bytes": 185653,
+      "sha256": "8998e857172dccd26b43b58af587ee8c838520e6ddd10911f77722620065fd08"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-partial.json",
+      "bytes": 829,
+      "sha256": "c8a9045e6c293eeaf923dcb8250909754798bb0524c6fd10e6aa2af6b91d8ec5"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-partial.png",
+      "bytes": 234943,
+      "sha256": "b53d9c966149cd99ae87b04b2483be690c9b4fb4c87ae5a3714cff4fbe845785"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-pending.json",
+      "bytes": 667,
+      "sha256": "3cc571ec7ac89fa23c157ed3a585d140f3fe91c060a40d0db9fc7849f005d791"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I31-pending.png",
+      "bytes": 185860,
+      "sha256": "a2a8b33d66938700273c42a431e63aa4e97cb94f70ead719bb328f88f6839f2c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-active.json",
+      "bytes": 1822,
+      "sha256": "3b8f2b477c7e7dab7337dba50ea77fa072ec7117025562a1e61be42e31ed355a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-active.png",
+      "bytes": 151960,
+      "sha256": "85a19654301b965b6749aa4d0fca34d64caed84dea0d9788854337d53592e6c5"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-blocked.json",
+      "bytes": 914,
+      "sha256": "aebeaa6a9a0918acef1c1eab0962b709033b61bb10179f40e44facb2af876ff3"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-blocked.png",
+      "bytes": 151953,
+      "sha256": "4d6b913571c713e079575b67fe513e8561791f536db121b302c06bf45b8d4932"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-live-oracle.json",
+      "bytes": 1199,
+      "sha256": "fa2cb203e9ad60b00950c22bfe61e48c7346b2b6d09a5551e76ac9a798ec8cff"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-quota.json",
+      "bytes": 1943,
+      "sha256": "0f7542584acf54b039e4517b47b1af406ab05e0ed1921e9f161933c633b4e662"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-quota.png",
+      "bytes": 159340,
+      "sha256": "8494ccc739c39ed884ced9709e87657cd379f6029fe92289042d6d9b3980c4c7"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-saved-false.json",
+      "bytes": 273,
+      "sha256": "67be1294129a9e112b87aad8e0e99185a21115f350aafd0d3ac6fa568f4da176"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-saved-true.json",
+      "bytes": 272,
+      "sha256": "a2a379e2f60eba1ddf3f667a85fa18ede43c0572cf6b8adb9d3114e91da6aeb0"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-state-false.json",
+      "bytes": 231,
+      "sha256": "2147c440cba4a9c431bd5febd2137d1ac2112a653930b7c207236a4b1ec8ce02"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I32-state-true.json",
+      "bytes": 229,
+      "sha256": "0f1f96349275adc0704eb906cb36018b961507000bd66a865a7d8831fa3ac00a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I33-navigation.json",
+      "bytes": 869,
+      "sha256": "03ec3e8b322a4bbcf107b496da51f088de2a021a39599c8fd4d0737a8375c54b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I33-navigation.png",
+      "bytes": 151953,
+      "sha256": "4d6b913571c713e079575b67fe513e8561791f536db121b302c06bf45b8d4932"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-dark-filters.png",
+      "bytes": 234060,
+      "sha256": "f23500a2762e64b3de265d7974746cc53f385fbabc07cb1c4d0a891d46006a7c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-dark-geometry.json",
+      "bytes": 2388,
+      "sha256": "581b897ad73bdbf2fb7f25591ca353ac51448b7819ed8335a648ba1d2edeed6b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-dark.json",
+      "bytes": 3269,
+      "sha256": "d145a6ce7033f46a71e6c6f9c329fc5103c0558eac6209464e15e793850cbcf8"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-dark.png",
+      "bytes": 492327,
+      "sha256": "fb2278a5ce30c382cf0745d4a1175fb0b5c9ee08d45043c530715be424e0e49b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-light-filters.png",
+      "bytes": 234914,
+      "sha256": "32cc3c889f5a1025fed074e4cbb6a8e4b5ef59df09afe6c75234572b2803c8e6"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-light-geometry.json",
+      "bytes": 2371,
+      "sha256": "088c9e5d60e3ec1265cef4f6b859c6c2c3c98e7ac1780fbf2d39d847e63d5c50"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-light.json",
+      "bytes": 3254,
+      "sha256": "f51e32da11cf772fe21222dacf6e1d6029b0c0f375057f6404187c6a5e2edddb"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-1180-light.png",
+      "bytes": 497196,
+      "sha256": "ad10b9c69b78a4657b9b13f8697ab2df1ed3b0d1756c1e9dee333b1414cf982f"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-dark-filters.png",
+      "bytes": 77195,
+      "sha256": "2e95d3becc30809ae19e36cd271a5b40df8a852366b5fb6d8eafe38493ba686b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-dark-geometry.json",
+      "bytes": 2336,
+      "sha256": "148a59a628c6d3c584f99c7e0a8a143d573f5bee0aad2a85413272bcc1fb75f9"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-dark.json",
+      "bytes": 3215,
+      "sha256": "f3da8a73526f7cacf1c2b78733c8550cf44493c2873642dbfc7d1134ecfac1b3"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-dark.png",
+      "bytes": 98507,
+      "sha256": "361dee8b56a731d79a94f8e2931c12880dcc6f873608d76aa0421601ce79c92f"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-light-filters.png",
+      "bytes": 77064,
+      "sha256": "c57af6918f965ac2397a8c6373c9ce66319c96c53b88933c1c9b0db5346e4491"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-light-geometry.json",
+      "bytes": 2319,
+      "sha256": "922c5421d56fe0f2fbcdf5b3c3b54ea90d9842baa250f3de80e17d6b2bc2ba12"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-light.json",
+      "bytes": 3200,
+      "sha256": "7d4cf2e657a64af7576808d126274d7f90f712b84de17d7371ebe2f0c2cb9f70"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-320-light.png",
+      "bytes": 98583,
+      "sha256": "0b6a4ddf2ad8bdd73b7009b73608874c679906d6ee7badff62ebefc162561cc7"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-dark-filters.png",
+      "bytes": 87747,
+      "sha256": "50cf5f0e2d1eb6e96554156d4f436cb5a43d2d2bc60b0d09b1b49d7ea86783fe"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-dark-geometry.json",
+      "bytes": 2335,
+      "sha256": "840ca5d84e8a5a011c41abb3cd2fb810a7d324dbbf6ac1d0c643a95a1ad71747"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-dark.json",
+      "bytes": 3214,
+      "sha256": "f17e551d4183eca66e11012b8e31b9c842ce242b68326005e1fd0248ae32141b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-dark.png",
+      "bytes": 123519,
+      "sha256": "48b1034f375413753317b5f179c618d7e6d5fd37baa1de2f5a080989a8244b7d"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-light-filters.png",
+      "bytes": 88425,
+      "sha256": "b3c9162be9de9eab9ce6cd2f7386152ede3167eb72ca11cd010a1cac8556f2d0"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-light-geometry.json",
+      "bytes": 2318,
+      "sha256": "9a2e909100cbaf36c30e73ee1d77e18c764c0b40a8733132a813c6bab6d3a764"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-light.json",
+      "bytes": 3199,
+      "sha256": "4357550739fa13ce789a2a232620a7b8e390a009f1b763ab66b4e191052e9df2"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-390-light.png",
+      "bytes": 123508,
+      "sha256": "1b56a42a80b0b0c1cb36c2d4c0afd50c5a19e2dc5baaef555b719007a4ca1e25"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-dark-filters.png",
+      "bytes": 120499,
+      "sha256": "be2826f6c4923a6a87653f52bfff8550794cabc389144ccffec9b725f101d46d"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-dark-geometry.json",
+      "bytes": 2336,
+      "sha256": "37b53641608de8b8b0a27eee348731414420aefe6ee2386cf80efa8ea36e8e1a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-dark.json",
+      "bytes": 3215,
+      "sha256": "975c7d4a99213be4101e53b2f884491f53ac44a2597fa480bb392df3370850fa"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-dark.png",
+      "bytes": 280157,
+      "sha256": "992381352d4c2f98ca32ad1cf6015ee4efcd6fa898ab4a1a1935917ec1aaf7d5"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-light-filters.png",
+      "bytes": 121278,
+      "sha256": "2aed457e34f1912c847fba3b1882dd7f0fcc3e12e9052d41b8e9e0fc3cc6e4bd"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-light-geometry.json",
+      "bytes": 2319,
+      "sha256": "b4dfb3229d338eec4f6e8f332c01e67bf0a5c85d82cdfa70a3ae613546116a4f"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-light.json",
+      "bytes": 3200,
+      "sha256": "eb50344a4b547623134e283a671c0cccc0367106451afd5c4622f2967172ffd1"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-760-light.png",
+      "bytes": 282343,
+      "sha256": "223464d4f585876985bde1fd10d8da014be352ac6a18f7e8a77dff9095bfb87c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-admin.json",
+      "bytes": 795,
+      "sha256": "7f53b838388b86f2d981af877858bf81f9c98675b5655881c2318f28ccad6907"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-admin.png",
+      "bytes": 223445,
+      "sha256": "ae46971c40ef77930d42e08d3ea71408bfdc64d6632a2fd6921895716ed86553"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-operator.json",
+      "bytes": 1402,
+      "sha256": "182897b0230573f63c311383910149e11e8c40388158681028c8624cbffa6ffe"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-operator.png",
+      "bytes": 150561,
+      "sha256": "92387ab616ea5d68ade437264a1ecf97d5b076ff67d09685132f4b0ce610840c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-redaction.json",
+      "bytes": 332,
+      "sha256": "c789b475dc85a9077d8afe0fcd2a35a8f250c776ee34d6f6caef8cf135401df1"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-redaction.png",
+      "bytes": 159028,
+      "sha256": "3b26109bba04325c814b86404e188af9fc75004cccf4e2f326c8fb86cc4e882a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-unauth-empty-login.png",
+      "bytes": 14812,
+      "sha256": "fea3ebd0794a0e0dab3617aa124e721c6e50341a95a58cbfb18787168570dec6"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-viewer-redaction.png",
+      "bytes": 35491,
+      "sha256": "0d1216ec99c7c6465e2485b9bfe9ea72bdb9ba1a75f5680422f123ab922bb8cb"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-viewer-unauth.json",
+      "bytes": 457,
+      "sha256": "f50b0b5ddb22b6f558d9d901f1f56d495709bf6bfca4d82b4b4b7c95ac421a0d"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/I34-viewer-unauth.png",
+      "bytes": 150561,
+      "sha256": "92387ab616ea5d68ade437264a1ecf97d5b076ff67d09685132f4b0ce610840c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/browser-console.json",
+      "bytes": 2355,
+      "sha256": "08e60dbcc5fe0668770cf713bdfdb0ecfb5447987fa396e5eea25901f0122dc7"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/console-assessment.json",
+      "bytes": 8734,
+      "sha256": "2d89c45af6ed530098143086fd8f3e96bfae698c74f08a845a2d4dee5d1f6378"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/final.png",
+      "bytes": 492154,
+      "sha256": "aaf5a36cf419532aa26ae4e83ae8a53178cdf208df1a029c4115a7e60b518467"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/media.json",
+      "bytes": 9506,
+      "sha256": "a448ced214291d674f5867e4541ab19e8927e6e5e7878f549d8614014f083a5b"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/network.json",
+      "bytes": 89566,
+      "sha256": "0555afa7ab7a9fb8828f37c2f1bf770a0d7f9a817f1457f996ddbcd8ee340eea"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/provenance.json",
+      "bytes": 1505,
+      "sha256": "21bf132a543c5741385f3f11b7b190057207084a01f0ed5998deb5178a23b648"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/results.json",
+      "bytes": 30095,
+      "sha256": "e74f1df96045afb7cf0c5980f9db3305e18121e0dc213a09dc2013ecca6a3d36"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/seed-oracle.json",
+      "bytes": 215990,
+      "sha256": "ca5ca421946f67e54d5a701ae90a710a7d6e5ebba264f901db3ab22a94e87add"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/server-log.txt",
+      "bytes": 726,
+      "sha256": "3a393bebe8b4e23d2499bc2d1e9189f9329a3b683b34ef31a4e16074468003f8"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/evidence/trace.json",
+      "bytes": 23853,
+      "sha256": "6da714a9b6a20574ec6e126210b0dcd1627cf5e3c6406f3c37a55b157481e2ca"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/invocation.json",
+      "bytes": 719,
+      "sha256": "eef95b96e7185684baa49168d3705a323aa21cf631d036c8b658137a811afd9a"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/launcher.stderr.log",
+      "bytes": 370,
+      "sha256": "567c1fe1e6b6a56db5738c146c6264a827eb86a3b55fc06a7886975fd352a91c"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/launcher.stdout.log",
+      "bytes": 2895,
+      "sha256": "974fc981b7415163799e8c09f5bb2154084950a72e64713f2e7fdfce841926c4"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/png-decode.json",
+      "bytes": 9560,
+      "sha256": "8129e3ed87b6ed414e92f9afa88a8e6a840b0e8699dcb468ea20bd4f5def0cf5"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/preparation.json",
+      "bytes": 6659,
+      "sha256": "ae5c00e38d13c82d481079e6a8ecca4ba157bace2fcd3f3330d4715616de0cb1"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/preservation-manifest.json",
+      "bytes": 38534,
+      "sha256": "0653b7c64a4674e912afdd88331f13c17dda81103e20cebc16fd48dfcc4770e9"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.1/recording-ui-20261002/review.md",
+      "bytes": 17928,
+      "sha256": "73be164620d0e33f56405f014a966256037b6dec83671e6d4ecaf0552eec5052"
+    }
+  ],
+  "originalArtifactsReadbackAndCompared": 103,
+  "ownedTemporaryOutputsRemoved": [
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-recording-ui-acceptance-XQcnKOGA",
+      "files": 96,
+      "bytes": 9337801,
+      "absent": true
+    },
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-ui.n6yuu1k5",
+      "files": 7,
+      "bytes": 44536,
+      "absent": true
+    }
+  ],
+  "trackedEvidenceRetained": true,
+  "defaultRecordingRootAbsent": true,
+  "inputHashesUnchanged": true,
+  "productCodeVerifierPolicyFixtureProofApprovalsChanged": false,
+  "pushPerformed": false
+}
