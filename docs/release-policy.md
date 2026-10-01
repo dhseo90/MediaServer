@@ -17,9 +17,9 @@
 {
   "schema": "media-server.release-context.v1",
   "repository": "dhseo90/MediaServer",
-  "releaseTarget": "v4.1.0",
-  "priorPublishedTag": "v4.0.0",
-  "releaseNotes": "docs/release-notes-v4.1.0.md",
+  "releaseTarget": "v4.1.1",
+  "priorPublishedTag": "v4.1.0",
+  "releaseNotes": "docs/release-notes-v4.1.1.md",
   "roadmap": "docs/v410-v49-recording-search-roadmap.md",
   "distribution": "source-only",
   "tagType": "signed-annotated",
@@ -31,7 +31,8 @@
 }
 ```
 
-현재 대상의 사용자용 설명은 [릴리즈 노트](release-notes-v4.1.0.md)에 있다.
+현재 대상은 v4.1.1 릴리즈 후보이며 사용자용 설명은 [릴리즈 노트](release-notes-v4.1.1.md)에 있다.
+`priorPublishedTag`는 위 기존 v4.1.0 관측을 기준으로 하며 공개 상태를 새로 조회한 값이 아니다.
 [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
 [GitHub Latest 조회](https://github.com/dhseo90/MediaServer/releases/latest)는 서로 다른 자료다.
 기록된 공개 관측은 이번 실행의 제품·UI·장시간 테스트나 외부 공개 확인 결과가 아니다.
