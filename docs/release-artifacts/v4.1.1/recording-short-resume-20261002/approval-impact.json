@@ -1,0 +1,24 @@
+{
+  "observedAt": "2026-10-01T20:40:37.466Z",
+  "method": "현재 적용 audit 행을 기존 buildReview4TrustBindings/parseVerifiedReview4Dispatch로 읽기 전용 재계산. candidate 생성·전수 독립 검토 아님.",
+  "rows": 986,
+  "changedIds": [],
+  "storedCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+  "recomputedCandidateDigest": "e32f557042a78e0478efaaeea05b617cdfff9b3af6eaf29872f86c0272cbf2f2",
+  "changedFiles": [
+    "scripts/internal/recording_current_integration.test.mjs",
+    "scripts/internal/recording_current_integration_suite.mjs",
+    "scripts/internal/verify_v410_recording_finalize_recovery.sh",
+    "scripts/internal/verify_v410_recording_timeline.sh"
+  ],
+  "changedFileHashes": {
+    "scripts/internal/recording_current_integration.test.mjs": "b96b6553c571e2ee4b206d9094bdd1fa52c34f4435895739851d3c09bca0a7f0",
+    "scripts/internal/recording_current_integration_suite.mjs": "d851954a274953b18cfc5f808361a3d624b4e85dd1af3e9ea35211fb73dd9fb5",
+    "scripts/internal/verify_v410_recording_finalize_recovery.sh": "5b7e63635dcc1766f78cedcc7ee06ddd18d276dcf920ac1c71588809a94ab493",
+    "scripts/internal/verify_v410_recording_timeline.sh": "316ac27f570becdd78e87da35f2f965de9b28d86feedf48effa5d2accdd59333"
+  },
+  "trackedWorktreeDiffSha256": "6cb612a250e239d79a863d88664fd308e7fc2eecf8e07492dccf0d2d402827dd",
+  "candidateGenerated": false,
+  "independentReviewerStarted": false,
+  "producerApplied": false
+}

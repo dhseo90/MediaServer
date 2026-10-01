@@ -1,0 +1,86 @@
+[
+  {
+    "command": [
+      "bash",
+      "-n",
+      "scripts/internal/verify_v410_recording_finalize_recovery.sh",
+      "scripts/internal/verify_v410_recording_timeline.sh"
+    ],
+    "startedAt": "2026-10-01T20:39:33.260844+00:00",
+    "durationSeconds": 0.0026110000035259873,
+    "exitCode": 0,
+    "stdout": "preflight-1.stdout.log",
+    "stderr": "preflight-1.stderr.log",
+    "boundary": "bash -n은 첫 스크립트만 검사하므로 timeline은 별도 검사로 확인."
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/recording_current_integration_suite.mjs"
+    ],
+    "startedAt": "2026-10-01T20:39:33.263518+00:00",
+    "durationSeconds": 0.017699292016914114,
+    "exitCode": 0,
+    "stdout": "preflight-2.stdout.log",
+    "stderr": "preflight-2.stderr.log"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/internal/recording_current_integration.test.mjs"
+    ],
+    "startedAt": "2026-10-01T20:39:33.281241+00:00",
+    "durationSeconds": 0.0172980000206735,
+    "exitCode": 0,
+    "stdout": "preflight-3.stdout.log",
+    "stderr": "preflight-3.stderr.log"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "scripts/internal/recording_current_integration.test.mjs"
+    ],
+    "startedAt": "2026-10-01T20:39:33.298563+00:00",
+    "durationSeconds": 0.0698143329937011,
+    "exitCode": 0,
+    "stdout": "preflight-4.stdout.log",
+    "stderr": "preflight-4.stderr.log"
+  },
+  {
+    "command": [
+      "./server.sh",
+      "verify-code-comments"
+    ],
+    "startedAt": "2026-10-01T20:39:33.368401+00:00",
+    "durationSeconds": 0.4127572920115199,
+    "exitCode": 0,
+    "stdout": "preflight-5.stdout.log",
+    "stderr": "preflight-5.stderr.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "startedAt": "2026-10-01T20:39:33.781191+00:00",
+    "durationSeconds": 0.019983167003374547,
+    "exitCode": 0,
+    "stdout": "preflight-6.stdout.log",
+    "stderr": "preflight-6.stderr.log"
+  },
+  {
+    "command": [
+      "bash",
+      "-n",
+      "scripts/internal/verify_v410_recording_timeline.sh"
+    ],
+    "checkedAt": "2026-10-01T20:40:37.615145+00:00",
+    "exitCode": 0,
+    "stdout": "timeline-syntax.stdout.log",
+    "stderr": "timeline-syntax.stderr.log"
+  }
+]
