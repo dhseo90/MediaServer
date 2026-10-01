@@ -1,0 +1,173 @@
+{
+  "verifiedAt": "2026-10-01T20:49:37.192532+00:00",
+  "preservationCommit": "e437daa0dd127114995cd78d276500273da55f08",
+  "files": [
+    {
+      "path": "approval-impact.json",
+      "bytes": 1481,
+      "sha256": "d71a70a68d4f1599729425146440f9622346e2946330e433529cc2b54f47fb56"
+    },
+    {
+      "path": "cleanup-observation.json",
+      "bytes": 1266,
+      "sha256": "81580523aeaf141f89fdc2f749fe860b737922c97c53fbc281110f7776189799"
+    },
+    {
+      "path": "current-integration.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-integration.stdout.log",
+      "bytes": 2543,
+      "sha256": "bd53c38d14769a9bc29f095e237a7314fb722d98a3d32d47b842a59e96627069"
+    },
+    {
+      "path": "execution.json",
+      "bytes": 3377,
+      "sha256": "d8b156a315e1b9160b8efa8ca87a02137613863e8b0c88a0376c13024d1434a8"
+    },
+    {
+      "path": "finalize-integration.stderr.log",
+      "bytes": 78,
+      "sha256": "7ce0d73eae907698107cf1fdf36bccb21deb14020bfe8f1070fefb8036500e40"
+    },
+    {
+      "path": "finalize-integration.stdout.log",
+      "bytes": 6755,
+      "sha256": "37a132fa9454276d3caa01dcdee0e060a9fb29c2062c99aeabbc7369a5af2422"
+    },
+    {
+      "path": "finalize-smoke.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "finalize-smoke.stdout.log",
+      "bytes": 4509,
+      "sha256": "6f807e530d2b0dbb8de8ccf78639109440495d02ef80587c9f817d9f81fc1435"
+    },
+    {
+      "path": "preflight-1.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-1.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-2.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-2.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-3.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-3.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-4.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-4.stdout.log",
+      "bytes": 6565,
+      "sha256": "668bd5593344e714eef7555b8ba258722ff4550f1a3bec75adc7897b8b7d8ab0"
+    },
+    {
+      "path": "preflight-5.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-5.stdout.log",
+      "bytes": 97,
+      "sha256": "daf39893a84be48691397e4c6b1de5a37e8ba0a008dad56a9bfded5fd061a0c8"
+    },
+    {
+      "path": "preflight-6.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight-6.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preflight.json",
+      "bytes": 2284,
+      "sha256": "ab03cb3c1ad8621535d1a038d0e1f9cce5ab9e543b716164c4a8b81c1f91dc7e"
+    },
+    {
+      "path": "preparation.json",
+      "bytes": 2243,
+      "sha256": "7382dd32a0f1d46a0c7b0711202e4a882c9181df8e0837558e4922df0524eefc"
+    },
+    {
+      "path": "result.json",
+      "bytes": 18792,
+      "sha256": "045e8c7768bb77029657e3828bb7071f615cbc57f6ce645f090d4078e1216471"
+    },
+    {
+      "path": "source.patch",
+      "bytes": 15207,
+      "sha256": "6cb612a250e239d79a863d88664fd308e7fc2eecf8e07492dccf0d2d402827dd"
+    },
+    {
+      "path": "timeline-read-model.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "timeline-read-model.stdout.log",
+      "bytes": 6864,
+      "sha256": "a41de75a1dac29cc341ae71313206e21f34e7fed1b70651ab44c504f7e191092"
+    },
+    {
+      "path": "timeline-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "timeline-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "originalBytesVerified": 72061,
+  "verifiedFiles": 29,
+  "gitReadback": "29개 보존 파일 전체의 실제 Git blob과 현재 바이트/SHA-256 일치. preparation은 원본 목록 전체 대신 요약임을 별도로 표시.",
+  "removedOwnedTemporaryRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v411-recording-short.uy5yd6jt",
+  "removedOwnedRegularFiles": 30,
+  "removedOwnedPluginSymlinks": 277,
+  "externalPluginTargetsUnchangedByStat": true,
+  "auxiliaryCacheNotExecutionEvidence": [
+    {
+      "path": "gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "bytes": 41588,
+      "sha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43"
+    },
+    {
+      "path": "registry.bin",
+      "bytes": 1539033,
+      "sha256": "68251e52b92bf3ba6799441384d466fca93eb92c213ed67aad35796d71ae5c87"
+    }
+  ],
+  "defaultRecordingRootAbsent": true,
+  "committedEvidenceRetained": true,
+  "boundary": "이번 실행 소유 임시 원출력 중복·캐시만 제거. 기존 리뷰 입력·일반 acceptance 원본·기본 저장소·외부 symlink 대상은 삭제하지 않음. 녹화 보완 실패가 남아 최종 릴리즈 종료 자료 삭제는 수행하지 않음."
+}
