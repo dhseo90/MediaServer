@@ -52,8 +52,8 @@ check("rollback HTTP decode encode response paths remain exact",()=>{
   const encodeStart="const int quality = ParseClampedIntQuery(query, \"quality\", 85, 1, 100);";
   const currentEncode=segments(currentR,encodeStart,"return ok;");
   const previousEncode=segments(previousR,encodeStart,"return ok;");
-  // The released session-read/overlay APIs already return ImageCodecFrame.
-  // Normalize only these two typed handoffs, preserving all quality/error/response bytes.
+  // 공개된 session-read/overlay API는 이미 ImageCodecFrame을 반환한다.
+  // 이 두 타입 전달만 정규화하고 quality/error/response 바이트는 모두 보존한다.
   const expectedEncode=previousEncode.slice();
   for(const [index,expression] of [[2,"*frame"],[3,"overlay_frame"]]){
     const oldCall=`ProjectImageCodecFrame(${expression})`;

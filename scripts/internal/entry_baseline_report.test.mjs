@@ -1,4 +1,4 @@
-// 초기 진입 보고서의 비실행·현행 연결·출력 경계 자체검사. 실제 제품 검사가 아니다.
+// 파일 용도: 초기 진입 보고서의 비실행·현행 연결·출력 경계 자체검사. 실제 제품 검사가 아니다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

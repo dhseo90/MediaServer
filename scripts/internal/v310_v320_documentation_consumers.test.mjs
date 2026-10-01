@@ -1,4 +1,4 @@
-// 문서 소비자 자체검사. 실제 제품 실행 대신 격리 자식 프로세스의 읽기 값만 변경한다.
+// 파일 용도: 문서 소비자 자체검사. 실제 제품 실행 대신 격리 자식 프로세스의 읽기 값만 변경한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

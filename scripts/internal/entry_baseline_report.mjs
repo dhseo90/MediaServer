@@ -1,4 +1,4 @@
-// 초기 버전 CLI의 보고서 형식을 유지하되 현재 문서 검사와 과거 기준을 분리한다.
+// 파일 용도: 초기 버전 CLI의 보고서 형식을 유지하되 현재 문서 검사와 과거 기준을 분리한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';

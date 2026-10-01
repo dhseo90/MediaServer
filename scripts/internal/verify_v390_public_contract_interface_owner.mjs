@@ -111,14 +111,14 @@ const opsImplementationFiles = [
   "src/ingress/ops_event_route_owner.cpp", "src/ingress/vlm_evaluation_promotion.cpp",
 ];
 check("public contract bytes stay unchanged", () => {
-  // This header's purpose comment was added before released v4.1.0 source
-  // 16f3df711bf02035da22aa1fc2a8720d8162871d. The historical hash above is retained.
+  // 이 헤더의 용도 주석은 공개된 v4.1.0 소스보다 먼저 추가되었다.
+  // 공개 기준은 16f3df711bf02035da22aa1fc2a8720d8162871d이며 위의 과거 해시는 유지한다.
   const currentStrictJson = "32ef5e1ab75432cf3c0cf9782fe942907242a75a1c0dec1a0496ae1e220ce9aa";
   for (const [file, expected] of immutableContracts) {
     assert(sha256(file) === (file === "include/domain/strict_json.h" ? currentStrictJson : expected),
       `contract bytes drift: ${file}`);
   }
-  // 72c74f4f replaced the blank line with this purpose comment; parser bytes are unchanged.
+  // 72c74f4f는 빈 줄을 용도 주석으로 바꿨으며 parser 바이트는 그대로다.
   const strictSource = read("src/domain/strict_json.cpp")
     .replace('#include "domain/strict_json.h"', '#include "core/strict_json.h"')
     .replace('// 파일 용도: 중복 키와 타입 경계를 엄격히 검사하는 JSON parser를 구현한다.\n', '\n');

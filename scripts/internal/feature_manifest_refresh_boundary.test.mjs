@@ -1,4 +1,4 @@
-// 검증 도구 CLI의 쓰기 경계 자체검사. 제품 기능이나 독립 승인을 대신하지 않는다.
+// 파일 용도: 검증 도구 CLI의 쓰기 경계 자체검사. 제품 기능이나 독립 승인을 대신하지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

@@ -1,4 +1,4 @@
-// 현행 안전 계약의 정적 검사. 종료 버전의 실행 결과·완료 표는 읽지 않는다.
+// 파일 용도: 현행 안전 계약의 정적 검사. 종료 버전의 실행 결과·완료 표는 읽지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';

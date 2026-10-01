@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 초기 진입 명령의 현행 문서 연결·보고서 경계 검사. 과거 실행 원장은 읽지 않는다.
+// 파일 용도: 초기 진입 명령의 현행 문서 연결·보고서 경계 검사. 과거 실행 원장은 읽지 않는다.
 import {createEntryReportRunner} from "./entry_baseline_report.mjs";
 import {assertKnownOptions} from "./script_arg_utils.mjs";
 const rawArgs=process.argv.slice(2);

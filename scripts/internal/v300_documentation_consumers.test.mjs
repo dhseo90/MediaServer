@@ -1,4 +1,4 @@
-// 문서 소비자 자체검사: 읽기 결과만 격리 자식 프로세스 메모리에서 바꾸고 실제 파일은 보존한다.
+// 파일 용도: 문서 소비자 자체검사: 읽기 결과만 격리 자식 프로세스 메모리에서 바꾸고 실제 파일은 보존한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

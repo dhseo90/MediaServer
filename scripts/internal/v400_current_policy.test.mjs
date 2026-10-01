@@ -1,4 +1,4 @@
-// 현행 정책 검증 도구 자체검사. 격리 입력은 제품 실행 증거가 아니다.
+// 파일 용도: 현행 정책 검증 도구 자체검사. 격리 입력은 제품 실행 증거가 아니다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 종료된 v4.0 승인·완료 기록을 현재 gate로 재사용하지 않는 임시 호환 진입점.
+// 파일 용도: 종료된 v4.0 승인·완료 기록을 현재 gate로 재사용하지 않는 임시 호환 진입점.
 import {assertKnownOptions} from './script_arg_utils.mjs';
 import {parseEntryRoot} from './entry_baseline_documentation.mjs';
 const args=process.argv.slice(2);

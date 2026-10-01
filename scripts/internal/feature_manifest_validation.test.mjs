@@ -1,4 +1,4 @@
-// manifest 검증의 집합/개별 항목 분리 자체검사. 실제 986개 소스 검증을 대체하지 않는다.
+// 파일 용도: manifest 검증의 집합/개별 항목 분리 자체검사. 실제 986개 소스 검증을 대체하지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';

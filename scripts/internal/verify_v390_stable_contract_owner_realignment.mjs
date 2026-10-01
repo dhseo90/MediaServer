@@ -65,9 +65,9 @@ const immutableContracts = new Map([
   ["include/ingress/product_ui_principal_view.h", "11dc3085469c3f7a42eced329a1df40d3ee450fd76f585e5bca34c2f8f792902"],
 ]);
 
-// Current successors are fixed bytes from released v4.1.0 source
-// 16f3df711bf02035da22aa1fc2a8720d8162871d, not generated from this working tree.
-// Keep the original Slice 8 expectations above as historical data.
+// 현행 후속 기준은 공개된 v4.1.0 소스의 고정 바이트다.
+// 기준 커밋은 16f3df711bf02035da22aa1fc2a8720d8162871d이며 이 작업 트리에서 생성하지 않는다.
+// 위의 원래 Slice 8 기대값은 과거 자료로 유지한다.
 const releasedSuccessors = new Map([
   ["include/analysis/analysis_types.h", "ff41f7a7142a93c800f8e2eaecf18f028bcfde5a6cd003dc8bcfd5db9693c1c1"],
   ["include/media_types.h", "4c7ed4b29cd3385f109d55ed3bea47e1792f38198d11896840b3b0c8b8f9c54a"],
