@@ -1,0 +1,494 @@
+{
+  "schema": "media-server.release-attempt.v1",
+  "recordedAt": "2026-10-01T05:03:57.653943+00:00",
+  "attempt": "v4.1.1-retry-after-current-input-and-child-recording-isolation",
+  "actor": {
+    "kind": "AI assistant",
+    "role": "release operator",
+    "independentReviewer": false
+  },
+  "invocation": {
+    "command": [
+      "./test_release.sh"
+    ],
+    "cwd": "/Users/dhseo/Workspace/mediaServer",
+    "head": "c41e18913127da24f267d039ea27b57b037e1816",
+    "tree": "7ced9f78f94608ffce2fa8243b85fe846ec08ea0",
+    "startedAt": "2026-10-01T04:53:16.892902+00:00",
+    "priorFailureCommit": "74dd820fbebcfeafe69462e23d82873509dd0251",
+    "initialFailureCommit": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+    "bindingPreservationCommit": "3f1b10336e068c587138c3747fb8135dd4a76954",
+    "defaultRecordingRootBefore": "absent",
+    "launcherPid": 7351,
+    "endedAt": "2026-10-01T05:00:40.511153+00:00",
+    "elapsedSeconds": 443.6153780419845,
+    "exitCode": 1,
+    "defaultRecordingRootAfter": "absent"
+  },
+  "runId": "v390-test-acceptance-20261001045321-8453",
+  "result": "FAIL",
+  "source": {
+    "executionHead": "c41e18913127da24f267d039ea27b57b037e1816",
+    "executionTree": "7ced9f78f94608ffce2fa8243b85fe846ec08ea0",
+    "fixCommits": [
+      "f69d8cf0c4786e7702ea1d084483853d6e6fa035",
+      "f3df45770112a369e17250422cb34ea23f2ccbbb"
+    ],
+    "bindingAndPreservationCommit": "3f1b10336e068c587138c3747fb8135dd4a76954",
+    "priorOutputCleanupCommit": "c41e18913127da24f267d039ea27b57b037e1816"
+  },
+  "previousFailures": {
+    "initialAcceptance": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+    "selftests157": "1a77dd0f131829a43424c39f33bf5dcb586c1c4a",
+    "inventoryAndDefaultStorage": "74dd820fbebcfeafe69462e23d82873509dd0251",
+    "previousFactsChanged": false
+  },
+  "firstFailure": {
+    "stage": "feature-gates",
+    "command": "./server.sh verify-script-inventory",
+    "exitCode": 1,
+    "assertion": "tracked scripts are classified and referenced",
+    "source": "scripts/internal/verify_script_inventory.mjs:76-118",
+    "unclassifiedOrUnreferencedScripts": [
+      "scripts/internal/recording_current_lifecycle_cache.test.mjs",
+      "scripts/internal/recording_forward_probe_verify.test.cjs",
+      "scripts/internal/recording_foundation_source_scope.test.mjs",
+      "scripts/internal/recording_foundation_suite.test.mjs",
+      "scripts/internal/recording_generation_scale.test.mjs",
+      "scripts/internal/structure_owner_classification.test.mjs",
+      "scripts/internal/v410_s05_service_lifecycle.test.mjs",
+      "scripts/internal/verify_recording_checkpoint_io_contract.sh",
+      "scripts/internal/verify_recording_generation_request_proof.sh",
+      "scripts/internal/verify_recording_status_snapshot.sh",
+      "scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs"
+    ],
+    "rawLog": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log",
+    "boundary": "11 scripts and classification verifier unchanged since74dd820f; outside this current input/recording isolation bundle. No classification policy, test deletion or reference text added to make PASS."
+  },
+  "featureGateCounts": {
+    "PASS": 34,
+    "FAIL": 1,
+    "not-run": 1
+  },
+  "stages": [
+    {
+      "id": "preflight",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 836
+    },
+    {
+      "id": "feature-gates",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMs": 437921
+    },
+    {
+      "id": "server-longrun-30",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-environment-bootstrap",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-exact-424",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-server-cleanup",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-fulltest-qualification",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "longrun-120-decision",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "server-longrun-120",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "cleanup",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "ui-final-integrity",
+      "status": "not-run",
+      "exitCode": null,
+      "durationMs": 0
+    },
+    {
+      "id": "report",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 0
+    },
+    {
+      "id": "final-integrity",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMs": 150
+    }
+  ],
+  "fixedProblems": {
+    "inventory": "18pass0fail in actual acceptance",
+    "coverage": "986covered;8pass0fail in actual acceptance",
+    "defaultRecordingRoot": "absent before and after actual acceptance",
+    "sourceOutsideArtifactRootClean": true
+  },
+  "finalIntegrity": {
+    "status": "FAIL",
+    "pass": 6,
+    "fail": 6,
+    "scope": "UI/30-minute/Policy source/cleanup summaries absent because feature gate failed. Empty canonical parent summary resolves cwd then fails containment; this diagnostic does not establish actual cwd symlink. Source outside output root is clean."
+  },
+  "notRun": [
+    "last feature git-diff-check",
+    "server-longrun-30",
+    "actual UI424",
+    "UIqualification",
+    "120-minute trigger decision",
+    "server-longrun-120",
+    "supplementary recording/UI",
+    "push/PR/CI/main merge/signed tag/Release"
+  ],
+  "cleanup": {
+    "recordedAt": "2026-10-01T05:02:11.262621+00:00",
+    "relatedServerProcesses": [],
+    "matchingVerifierWorkDirs": [],
+    "reservedLongrunPorts": [
+      {
+        "port": 8081,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "port": 8555,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "defaultRecordingRootAbsent": true,
+    "trackedDiff": "",
+    "uiAndLongrun": "not acquired/not run",
+    "noProcessesKilled": true,
+    "ownedSigningProbeFilesRemoved": [
+      "allowed-signers",
+      "signing-readiness-probe",
+      "signing-readiness-probe.sig"
+    ],
+    "ignoredReviewOriginalsRetained": true
+  },
+  "boundary": "Limited corrections and binding complete; acceptance failed at an unrelated required script classification check. 4/4 and public release remain incomplete. No further fixes or verification runs started.",
+  "preservation": {
+    "formatNormalization": [
+      {
+        "path": "failure-handoff.md",
+        "originalPath": "failure-handoff.md.original.gz",
+        "originalSha256": "dfdbc6a382697f41412db7332769d532b0c6a56532c0a77b9ae96af3208a7ced",
+        "currentSha256": "f75ab2b74d3297656b5b305bb184ff12c36bb0c0a524cc05a7edf8f7018db531",
+        "change": "only extra EOF newline normalization; original bytes preserved"
+      }
+    ],
+    "files": [
+      {
+        "path": "cleanup-observation.json",
+        "bytes": 469,
+        "sha256": "7315a8323d3adf23529441a06f5009bfa0513b9363575733a8346cb74bdbf38a"
+      },
+      {
+        "path": "failure-handoff.json",
+        "bytes": 3131,
+        "sha256": "578ab4be5a4d78c2d02f69215706427345f70bfb08e0bdaea4fabc3609b8074b"
+      },
+      {
+        "path": "failure-handoff.md",
+        "bytes": 2034,
+        "sha256": "f75ab2b74d3297656b5b305bb184ff12c36bb0c0a524cc05a7edf8f7018db531"
+      },
+      {
+        "path": "failure-handoff.md.original.gz",
+        "bytes": 884,
+        "sha256": "30f9f77071300419002633fd9ea3798db8a8e11bd4713b786f19510f6d30abbd"
+      },
+      {
+        "path": "failure-scope.json",
+        "bytes": 3069,
+        "sha256": "a575a91d4af2cf21b59b5778071e9b9f518e49c8f2c2f88f8a554a10afdab271"
+      },
+      {
+        "path": "first-failure.json",
+        "bytes": 7567,
+        "sha256": "94e0203eecc64f0aee3f694919b0d75e6b090ab2a091351bb789de1f89d83f8e"
+      },
+      {
+        "path": "first-failure.md",
+        "bytes": 3984,
+        "sha256": "989d7afa6502dc7dcf49d8b41d68e021050469f02c27fafecfebc810f0ff8d7d"
+      },
+      {
+        "path": "invocation.json",
+        "bytes": 677,
+        "sha256": "1942e66d608411469fa1b49ee857247265e00a1084fc03bea2881a361e62505b"
+      },
+      {
+        "path": "launcher.stderr.log",
+        "bytes": 99,
+        "sha256": "5900e22ed4d976f5633be42b23730c5083c896622e8615bc0854e5d61c6a49d4"
+      },
+      {
+        "path": "launcher.stdout.log",
+        "bytes": 267132,
+        "sha256": "b4d53fee56be27633fb03a4e27e7c6b84dc881d0f6e0d76882e3915a772f886c"
+      },
+      {
+        "path": "report.md",
+        "bytes": 16580,
+        "sha256": "30c057e032951072ced680429899065af7daa2b5472b7e8ad028d6374abddd12"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/build.log",
+        "bytes": 325,
+        "sha256": "dd05f797a6aa34e0b6ad6309276e487fb1bac46ad902cfab146223025be7c8d9"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/cleanup.log",
+        "bytes": 851,
+        "sha256": "042f5a908dde8c97cf97626c2e1fa263468a79783e67a1c745b7bf2691fa459a"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-01-code-comments.log",
+        "bytes": 97,
+        "sha256": "b4eddc011347cb7040426f359e1eb1af26b8f3cdf8e648c6ec893e042ae864ef"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-02-v390-ui-native-exact-cases-contract.log",
+        "bytes": 5370,
+        "sha256": "3c9afb69bc53a0724046490ae435e491a99f4a40a73553d7a3fcba2eaaf2fa58"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-03-v390-stabilization-release-readiness.log",
+        "bytes": 716,
+        "sha256": "5b4ffa6513e9aea8dc3dd7c0be0b2971df7f021d3d3351e3c40656cfb3e35228"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-04-v390-entry-baseline.log",
+        "bytes": 558,
+        "sha256": "67ba919261ebde1bfb8d330ed434189c3b34566ec5987912f45587228a109b14"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-05-v390-feature-completion-inventory.log",
+        "bytes": 1516,
+        "sha256": "770e7a28001a7b6979039df65a416eb7585cc042146937fd230e14ca84ae1357"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-06-v390-user-review-gate.log",
+        "bytes": 1364,
+        "sha256": "0720ed6e433e0c146bb780cb03c616bfeab30ca86a80bb4c493c827642ef0b84"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-07-manual-ui-evidence.log",
+        "bytes": 521,
+        "sha256": "eadc291c9da7cc7622c9f4ff102471e2161957fdda43bb578f5dab4d8a3dbcae"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-08-v390-evidence-test-gate-prep.log",
+        "bytes": 1210,
+        "sha256": "769004ee7fe69149187c5a6311873d340f05eb9d702fd798571cf268089f4acc"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-09-v390-onvif-credential-provider-status.log",
+        "bytes": 1265,
+        "sha256": "3cd74af8986822850256e53cf24577a65bc64e4b110be4eb54c8e4bb7c0e3bea"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-10-v390-onvif-live-import-persist-decision.log",
+        "bytes": 999,
+        "sha256": "c4965654cc913c85471d4bb44071eefab792253eba5a1968c3f1d7dbc55c8c4a"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-11-v390-vlm-rule-suggestion-draft-bridge.log",
+        "bytes": 963,
+        "sha256": "0f95d95945c3a2668703b710dfbe6ec81f4bc5c7fe12f1234d2f61e049d5b4b4"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-12-v390-vlm-incident-rule-provenance.log",
+        "bytes": 3798,
+        "sha256": "5b8d73bb82cb73fad23ba6f4a43be0dfdd02139cca457e3267dac530640ab5e5"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-13-v390-vlm-evaluation-promotion-guard.log",
+        "bytes": 1079,
+        "sha256": "51f5e9f928740008ff6be21351348f3afa1031c63e8293613cb2d4dad3eabc96"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-14-v390-vlm-promotion-trust-boundary.log",
+        "bytes": 872,
+        "sha256": "484aa221bbcde5f13ccabeaa994eb82d1f399814a671bdc593b0aecdba365f55"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-15-v390-backup-recovery-handoff-validation.log",
+        "bytes": 1094,
+        "sha256": "8ae4b02ff794715d8846eaaf721180a669c534db913e65e705c80db5eab5b080"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-16-v390-action-execution-deferral-decision.log",
+        "bytes": 1209,
+        "sha256": "19d2b73fa7ec153d02b492f273cd908b2a246dda995a6fb66669d7daee241e78"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-17-v390-deferred-product-owner-signoff.log",
+        "bytes": 944,
+        "sha256": "c3150d7979d4364ddacd3e8d57efb358b33cf3eff95df4a43e8786df79b71f59"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-18-v390-conditional-field-ai-decisions.log",
+        "bytes": 1426,
+        "sha256": "0fc6b06cf7e144cae2061de42f72aa2ce32ea73ebb170acc386506095d634b0b"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-19-v390-reid-readiness-consistency.log",
+        "bytes": 924,
+        "sha256": "779973553f92694e8662282d1b3b751d44d824d619ad90e7dfa092dff9dd7d78"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-20-v390-onvif-source-view-atomicity.log",
+        "bytes": 1053,
+        "sha256": "2e694166a560e6044e81aca55fe393c4925408d5b5073a705360a2297f87e7f0"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-21-v390-structure-stabilization-handoff.log",
+        "bytes": 1187,
+        "sha256": "efea0c250931cb6f2e22d09de4afe63b63e2963af6363a5aea7a54308d42b055"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-22-v390-structure-stabilization-readiness.log",
+        "bytes": 1201,
+        "sha256": "e167328c56d436b6a3e8f5eb29006a5778afa74e12ccd1fe0ff80ad689e823ed"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-23-v390-external-field-smoke-no-device-closure.log",
+        "bytes": 540,
+        "sha256": "a36b1d5234b904794622d37c49fa27138806375002e1893e9fec5000a9ae9f0f"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-24-v390-truthfulness-status-vocabulary.log",
+        "bytes": 856,
+        "sha256": "d09a7acf1dc397dbce1e33a44bdc7cc0057fb21a0871e6b19db29fc11dee84c0"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-25-v390-analysis-registry-durable-write.log",
+        "bytes": 10344,
+        "sha256": "51a6517db20ab1a4bad0da037f47af3532d79cfeab8c6776c30a7be8ee179864"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-26-v390-ui-policy-v4-producer-contract.log",
+        "bytes": 1592,
+        "sha256": "c5860660570f53bf2b1e45a50e10f441ba88e0ea774597995f3667bd8f9a0aa7"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-27-v390-ui-visual-evidence-contract.log",
+        "bytes": 1545,
+        "sha256": "2fc6f88c229a2f674f6fd1c409a3746ecaf620e1d248f1415d95da1b45e151e6"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-28-release-metadata.log",
+        "bytes": 454,
+        "sha256": "9e898e49a79a07c7affb85425c2c113d27827a469d15c63d80235fefea13de6b"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-29-docs-links.log",
+        "bytes": 186,
+        "sha256": "4a6985738cfacd36efee7061a52d06db0a5efbb14292bb45000d25ca43c818f8"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-30-docs-ui-assets.log",
+        "bytes": 636,
+        "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-31-feature-implementation-evidence.log",
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-32-project-inventory.log",
+        "bytes": 210255,
+        "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-33-feature-inventory-coverage.log",
+        "bytes": 532,
+        "sha256": "fa968412b5d12919a0ddfe45a6ec26be6931a13369b0cc0ae8e3504ab8b85a94"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-34-release-evidence-index.log",
+        "bytes": 254,
+        "sha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log",
+        "bytes": 1552,
+        "sha256": "b8f16a72f0c994ed60ac4e2e804991a0c3651423d59760cf795ea9f5fb32157f"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/final-integrity.log",
+        "bytes": 1424,
+        "sha256": "c15890009a2933655181c787a8bf9e8831028be4af8951cc416ffbf0e47e7881"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/preflight.log",
+        "bytes": 868,
+        "sha256": "6ed7b0fd27d302dcece7f554b72b610876f331b48bbea5758236799e76248218"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/report.log",
+        "bytes": 246,
+        "sha256": "cc0c7e4d9fcd3f01a04be3a00d40810c9ad393f80c3442f4d267663abab85fa4"
+      },
+      {
+        "path": "runs/v390-test-acceptance-20261001045321-8453/ui-server-cleanup.log",
+        "bytes": 315,
+        "sha256": "95693ff94c15a468e0165402d193f566bc102721d01e19ad0c1eb4b36f45850f"
+      },
+      {
+        "path": "summary.json",
+        "bytes": 96888,
+        "sha256": "0bd0a77a1ed5a550000dc59dbccdd2c1cb31215ae2ec001f54caba6f80976337"
+      },
+      {
+        "path": "test-run-summary.json",
+        "bytes": 22387,
+        "sha256": "b02479ec9569e87e692e0c389765ee7ca46eb00cc6ee6c3118a31c335211c85a"
+      }
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "classification": "existing unrelated script classification/reference failure newly reached at gate35; no fixes or re-execution attempted",
+  "featureGateCounts": {
+    "PASS": 34,
+    "FAIL": 1,
+    "not-run": 1
+  },
+  "files": [
+    {
+      "path": "scripts/internal/verify_script_inventory.mjs",
+      "sha256": "065ce58fa08d35ee36a0895e8e103a75655c285165a45ee99d518c1436337d29",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/recording_current_lifecycle_cache.test.mjs",
+      "sha256": "e280f763a16da93c4c3932f3dea8122114b217a796ea158822c6e3883a41e509",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/recording_forward_probe_verify.test.cjs",
+      "sha256": "702541c7b4f0cdb101671f75ef8a3a61d095502e39ba3aec9c012f1049ec291e",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/recording_foundation_source_scope.test.mjs",
+      "sha256": "bd051c7315819107007e29645df647bf37ee03566ab3dff48e5337bd7ec2479f",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/recording_foundation_suite.test.mjs",
+      "sha256": "54d26c32e037917846e3f19a247e0b2b34dad206d33bb9097691759cea949dcb",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/recording_generation_scale.test.mjs",
+      "sha256": "1c2918f5abad4fa839f4ac58c887722fe8934ef06cf6a19830ac041a3fb8add4",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/structure_owner_classification.test.mjs",
+      "sha256": "4f0bde32bdd73b503211d882ccc84dc1e74975585d3009949285d2683c601bf6",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/v410_s05_service_lifecycle.test.mjs",
+      "sha256": "76aa590ad031a956cbbf0e6686f4ab08df2023046af17175df3ac75a2fffe735",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/verify_recording_checkpoint_io_contract.sh",
+      "sha256": "b21eaeda75cad121b086e6a0a68b0b7ac3ffb4e0f1148b777340b33c72beba45",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/verify_recording_generation_request_proof.sh",
+      "sha256": "0eb877b2eab1620555fd0669c21eeed5674e18c3abc890725ec92a30e5b510e3",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/verify_recording_status_snapshot.sh",
+      "sha256": "a01f141be2b0985cc53361687112f96aa4bbd219221f711404cf8f401c3aad06",
+      "unchangedSinceRemoteBaseline": true
+    },
+    {
+      "path": "scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs",
+      "sha256": "211fc397572443925e0015ead8b32741733a63cea0d148b13bb333c26c86411e",
+      "unchangedSinceRemoteBaseline": true
+    }
+  ],
+  "sourceWorktreeClean": true,
+  "actualCwdSymlink": false,
+  "cascadingIntegrity": "six failures follow feature-stage stop and absent UI/longrun summaries. Empty UI path resolves cwd and fails containment; not proof of cwd symlink. No integrity logic changes."
+}

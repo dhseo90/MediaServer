@@ -1,0 +1,92 @@
+{
+  "schema": "media-server.user-test-failure-handoff.v1",
+  "generatedAt": "2026-10-01T05:00:40.508Z",
+  "suite": "release",
+  "userCommand": "./test_release.sh",
+  "result": "fail",
+  "source": {
+    "commitSha": "c41e18913127da24f267d039ea27b57b037e1816",
+    "branch": "v4.1.1",
+    "worktreeClean": true
+  },
+  "counts": {
+    "total": 50,
+    "pass": 39,
+    "fail": 3,
+    "notRun": 8
+  },
+  "firstFailure": {
+    "stage": "feature-gates",
+    "testcaseId": "script-inventory",
+    "command": "./server.sh verify-script-inventory",
+    "exitCode": 1,
+    "errorSummary": "scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs | [pass] project inventory delegates script file inventory to this verifier | [pass] project inventory maps verifier families without duplicating dispatch details | [pass] CMake does not define a separate untracked CTest registry | [pass] test entry scripts are reachable from test_all | [pass] auth verifier has no hardcoded test password defaults | [pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default | [pass] critical verifier pass output avoids grouped feature-result wording | [pass] user-facing JS option parsers reject unknown options | == Script inventory verification summary == | - pass: 11 | - fail: 1",
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.1.1/test-acceptance-current-final/runs/v390-test-acceptance-20261001045321-8453/feature-gates-35-script-inventory.log",
+    "reproductionCommand": "./test_release.sh"
+  },
+  "laterNotRun": [
+    {
+      "scope": "check",
+      "id": "feature-gates/git-diff-check",
+      "reason": ""
+    },
+    {
+      "scope": "stage",
+      "id": "server-longrun-30",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-environment-bootstrap",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-exact-424",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-fulltest-qualification",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "longrun-120-decision",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "server-longrun-120",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-final-integrity",
+      "reason": "not selected by release suite"
+    }
+  ],
+  "cleanup": {
+    "status": "pass",
+    "checks": [
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      }
+    ]
+  },
+  "sourceSummaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.1.1/test-acceptance-current-final/summary.json",
+  "compactSummaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.1.1/test-acceptance-current-final/test-run-summary.json"
+}

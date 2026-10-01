@@ -1,0 +1,23 @@
+[pass] 대표 route plan은 canonical/native 10개 화면과 80개 조합에 결속된다
+[pass] light info chip token keeps WCAG small-text contrast above 4.5
+[pass] light danger and disabled action tokens keep small-text contrast above 4.5
+[pass] primary hover, preview placeholder, and dark info tokens remain contrast-qualified
+[pass] mobile live event feed does not clip fixture-owned digest cards
+[pass] malformed explicit regex는 browser 실행 전 digest-bound context로 거부된다
+[pass] 10 route×4 viewport×2 theme matrix만 exact PASS한다
+[pass] case/route/role/target와 실제 적용 theme drift는 거부된다
+[pass] 빈 단색 PNG, clipping, 저대비, focus 누락은 계산된 FAIL이다
+[pass] CSS Color 4 srgb 측정값은 contrast 계산과 browser background ownership에서 보존된다
+[pass] viewport보다 큰 visible workspace는 교차를 요구하고 작은 control clipping은 거부한다
+[pass] client/live는 동일 tile의 VA session·live frame·contain·control 증거를 모든 8개 조합에서 요구한다
+[pass] client/live visual probe owns session and answer requests with an explicit bounded action scope
+[pass] client/live visual measurement closes the post-action ownership phase
+[pass] legacy 8-probe width/theme-only matrix는 80-probe current matrix를 대체하지 못한다
+
+== v3.9.0 representative visual matrix contract ==
+- pass: 15
+- fail: 0
+- representativeScreens: 10
+- responsiveThemeVariants: 80
+- clientLiveVideoVariants: 8
+- actualBrowserUiFulltest: not-run-by-this-contract

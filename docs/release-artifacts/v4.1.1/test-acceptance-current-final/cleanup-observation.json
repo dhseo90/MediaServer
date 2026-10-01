@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-10-01T05:02:11.262621+00:00",
+  "relatedServerProcesses": [],
+  "matchingVerifierWorkDirs": [],
+  "reservedLongrunPorts": [
+    {
+      "port": 8081,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "port": 8555,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "defaultRecordingRootAbsent": true,
+  "trackedDiff": "",
+  "uiAndLongrun": "not acquired/not run",
+  "noProcessesKilled": true
+}

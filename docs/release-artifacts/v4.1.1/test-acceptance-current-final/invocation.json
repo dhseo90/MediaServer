@@ -1,0 +1,18 @@
+{
+  "command": [
+    "./test_release.sh"
+  ],
+  "cwd": "/Users/dhseo/Workspace/mediaServer",
+  "head": "c41e18913127da24f267d039ea27b57b037e1816",
+  "tree": "7ced9f78f94608ffce2fa8243b85fe846ec08ea0",
+  "startedAt": "2026-10-01T04:53:16.892902+00:00",
+  "priorFailureCommit": "74dd820fbebcfeafe69462e23d82873509dd0251",
+  "initialFailureCommit": "a24988c6a0d0a44208edd9039f1f5d84bc88e4ea",
+  "bindingPreservationCommit": "3f1b10336e068c587138c3747fb8135dd4a76954",
+  "defaultRecordingRootBefore": "absent",
+  "launcherPid": 7351,
+  "endedAt": "2026-10-01T05:00:40.511153+00:00",
+  "elapsedSeconds": 443.6153780419845,
+  "exitCode": 1,
+  "defaultRecordingRootAfter": "absent"
+}
