@@ -1,0 +1,183 @@
+{
+  "samples": 64,
+  "identities": [
+    [
+      30793,
+      "macos:1790938433:596757"
+    ]
+  ],
+  "firstSample": {
+    "kind": "sample",
+    "at": "2026-10-02T10:53:55.662Z",
+    "elapsedMs": 3716.56825,
+    "phase": "initial",
+    "pid": 30793,
+    "startIdentity": "macos:1790938433:596757",
+    "rssBytes": 38617088,
+    "threadCount": 10,
+    "fdCount": 14,
+    "sampledAt": 1790938435654,
+    "valid": true,
+    "error": null,
+    "journal": null,
+    "channels": [
+      {
+        "id": "1",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "2",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "3",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "4",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "5",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      }
+    ]
+  },
+  "lastSample": {
+    "kind": "sample",
+    "at": "2026-10-02T10:58:58.427Z",
+    "elapsedMs": 306480.749375,
+    "phase": "recording",
+    "pid": 30793,
+    "startIdentity": "macos:1790938433:596757",
+    "rssBytes": 472186880,
+    "threadCount": 25,
+    "fdCount": 30,
+    "sampledAt": 1790938738203,
+    "valid": true,
+    "error": null,
+    "journal": {
+      "mutationCount": 1162,
+      "typeCounts": {
+        "segment_finalized": 0,
+        "event_link_created": 0,
+        "observation_put": 0,
+        "observation_v2_put": 0,
+        "deletion_requested": 0,
+        "deletion_completed": 0,
+        "corruption_detected": 0,
+        "recording_order_reserved": 294,
+        "segment_v2_finalized": 0,
+        "segment_v2_bound_finalized": 292,
+        "consumer_reference_put": 0,
+        "derived_reference_accepted": 0,
+        "referenced_observation_put": 0,
+        "derived_job_intent": 0,
+        "derived_job_files": 0,
+        "derived_job_ready": 0,
+        "derived_job_committed": 0,
+        "derived_job_complete": 0,
+        "derived_job_failed": 0,
+        "segment_v2_state": 288,
+        "segment_v2_deleted": 288
+      },
+      "rotations": 3,
+      "partialBytes": 0,
+      "progress": {
+        "elapsedMs": 300570.014584,
+        "channels": {
+          "9101": {
+            "finalized": 146,
+            "deleted": 144,
+            "lastAt": 306281.518125,
+            "order": "292",
+            "store": "3be0966f011ea2f0749decc4085612335121f11794a164a9e0c10fe0c03a8068",
+            "knownMappings": 100,
+            "unknownMappings": 5514
+          },
+          "9201": {
+            "finalized": 146,
+            "deleted": 144,
+            "lastAt": 306281.518125,
+            "order": "291",
+            "store": "3be0966f011ea2f0749decc4085612335121f11794a164a9e0c10fe0c03a8068",
+            "knownMappings": 97,
+            "unknownMappings": 6052
+          }
+        },
+        "records": 292,
+        "logicalBytes": 174944
+      }
+    },
+    "channels": [
+      {
+        "id": "1",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "2",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "3",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "4",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "5",
+        "enabled": false,
+        "active": false,
+        "storageBlocked": false
+      },
+      {
+        "id": "9101",
+        "enabled": true,
+        "active": true,
+        "storageBlocked": false
+      },
+      {
+        "id": "9201",
+        "enabled": true,
+        "active": true,
+        "storageBlocked": false
+      }
+    ]
+  },
+  "samplingRangeMs": [
+    3716.56825,
+    306480.749375
+  ],
+  "maxSampleGapMs": 5068.248083999999,
+  "rssMaxBytes": 472186880,
+  "threadRange": [
+    10,
+    29
+  ],
+  "fdRange": [
+    14,
+    30
+  ],
+  "newOffObservationCompleted": false,
+  "failure": "malloc_history output capture ENOBUFS; product assertions did not fail; source-off and later profiles notRun"
+}

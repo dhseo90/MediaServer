@@ -1,0 +1,47 @@
+{
+  "createdAt": "2026-10-02T10:50:51.852089+00:00",
+  "head": "0749ba019e50aeb4aa18f651577cea5f2481d6d8",
+  "root": "<owned-root>",
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 164819513,
+    "uid": 501
+  },
+  "scratch": "<owned-scratch>",
+  "productMaximumRuns": 1,
+  "recordingSeconds": 720,
+  "offSeconds": 180,
+  "hardDeadlineSeconds": 1200,
+  "stackMode": "MallocStackLogging=lite product-only through temporary BIN_PATH launcher",
+  "stackDirectory": "<owned-root>/stack-logs",
+  "priorDiagnosisProductRuns": 1,
+  "defaultRootExists": false,
+  "inheritedRecordingRootPresent": false,
+  "whyNewObservationNeeded": "remaining live non-object ownership distinguishes required history retention from unnecessary retention; footprint already resolves high-RSS-only objection",
+  "reusedFunctions": [
+    "environment",
+    "request",
+    "launch",
+    "stop",
+    "source",
+    "settings",
+    "drain",
+    "fileHash"
+  ],
+  "environmentDifference": "BIN_PATH points to owned exec wrapper which only adds live allocation stack logging to original binary",
+  "toolModeEvidence": "MacOSX27.0.sdk/usr/share/man/man3/malloc.3:240-262; malloc_history -allBySize groups current live allocations, not cumulative malloc calls; no showContent/full history",
+  "profileSha256": "12d9fc81b7384c901d8bf8926316913c5f35216a6280cfdc8af428994c576c80",
+  "modeSupport": {
+    "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX27.0.sdk/usr/share/man/man3/malloc.3",
+    "sha256": "99ee81836a30f4b67a922758c97182bde05ac94f437a2ab9c466839e3efbf48b",
+    "relevantLines": [
+      240,
+      262
+    ]
+  },
+  "verifiedApplied": "actual product malloc_history has resolved RecordingCatalog/Journal frames; initial heap lists MallocStackLoggingLiteZone; parent/helper environment explicitly removes three MallocStackLogging variables",
+  "scopeLimitation": "lite changes allocator layout/timing; absolute RSS compared only within this run; no non-instrumented performance comparison",
+  "preparationSha256": "3a260109f26cde6b3d0f4cffcf4ce64efea255ca029c1208cb97e20b92defb16",
+  "productLauncherSha256": "fb2e682f13d13e52a0f7fab4a0c4d36bbd566570526bfdf43abdf9a9eff48c8b",
+  "analysisScriptSha256": "9e8a9096392c68fb2fa7995273c6b59c67ccd50f5ef7b62e633660585c081e93"
+}

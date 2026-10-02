@@ -1,0 +1,153 @@
+{
+  "recordedAt": "2026-10-02T11:05:59.293855+00:00",
+  "files": [
+    {
+      "source": "initial-heap.private.txt",
+      "file": "profiles/initial-heap.txt.gz",
+      "originalBytes": 41847,
+      "originalSha256": "ea975cbe97f5b056ea54b85667c11f9968b7ff7ac02c17cdc9b59b9e62e331a4",
+      "decodedBytes": 41819,
+      "decodedSha256": "6104a92c3f921b075f63f8c0ee34405652d9c10a17b6c19063a6be46f5d5711a",
+      "fileBytes": 7015,
+      "fileSha256": "18996842846383a35c84f7084f07d76c8061f9203de349fa095f2dc4e105a078",
+      "representation": "sanitized + gzip",
+      "originalBytesPreserved": false
+    },
+    {
+      "source": "initial-vmmap.private.txt",
+      "file": "profiles/initial-vmmap.txt.gz",
+      "originalBytes": 6194,
+      "originalSha256": "5fbdda8e12c6bab86e2a5480f5fdfddac3fbf8a29a0a7b34daf6e12c35de9f23",
+      "decodedBytes": 6184,
+      "decodedSha256": "a8e1849815304449bde3371ccc5dcca580f1deeee7d4d8d93c4c95ab1a0ea32d",
+      "fileBytes": 1546,
+      "fileSha256": "87d785ced7779d6c2a390905a9b63809dfc6d09d0ed42395bb36a4efd6ee69e7",
+      "representation": "sanitized + gzip",
+      "originalBytesPreserved": false
+    },
+    {
+      "source": "followup-summary.json",
+      "file": "runner-summary.json",
+      "originalBytes": 5487,
+      "originalSha256": "17045b34e695e1ffd9819a37a9d6b1c84d6775cda6577f6dc04760bf58012517",
+      "decodedBytes": 5487,
+      "decodedSha256": "17045b34e695e1ffd9819a37a9d6b1c84d6775cda6577f6dc04760bf58012517",
+      "fileBytes": 5487,
+      "fileSha256": "17045b34e695e1ffd9819a37a9d6b1c84d6775cda6577f6dc04760bf58012517",
+      "representation": "exact bytes",
+      "originalBytesPreserved": true
+    },
+    {
+      "source": "scratch/invocation-start.json",
+      "file": "invocation-start.json",
+      "originalBytes": 188,
+      "originalSha256": "256766192caf1e435f4031fe2a1e1d733970cbe644967db5a5d51f91dade878f",
+      "decodedBytes": 188,
+      "decodedSha256": "256766192caf1e435f4031fe2a1e1d733970cbe644967db5a5d51f91dade878f",
+      "fileBytes": 188,
+      "fileSha256": "256766192caf1e435f4031fe2a1e1d733970cbe644967db5a5d51f91dade878f",
+      "representation": "exact bytes",
+      "originalBytesPreserved": true
+    },
+    {
+      "source": "scratch/invocation-result.json",
+      "file": "invocation-result.json",
+      "originalBytes": 163,
+      "originalSha256": "0c81ffdc93b7a76154f614be1273c36f00cae35557472e00deb4793e9251c9f9",
+      "decodedBytes": 163,
+      "decodedSha256": "0c81ffdc93b7a76154f614be1273c36f00cae35557472e00deb4793e9251c9f9",
+      "fileBytes": 163,
+      "fileSha256": "0c81ffdc93b7a76154f614be1273c36f00cae35557472e00deb4793e9251c9f9",
+      "representation": "exact bytes",
+      "originalBytesPreserved": true
+    },
+    {
+      "source": "scratch/profile.stdout.private.jsonl",
+      "file": "launcher.stdout.sanitized.jsonl.gz",
+      "originalBytes": 149135,
+      "originalSha256": "8f6af1296b2c21264f989f2275fe5dcc2e452045b1b209a187a9beb1154a42dd",
+      "decodedBytes": 149135,
+      "decodedSha256": "8f6af1296b2c21264f989f2275fe5dcc2e452045b1b209a187a9beb1154a42dd",
+      "fileBytes": 10000,
+      "fileSha256": "9fc74edc67269f32183a86c9cb1a57e0780046e799bd48e0e42da2d2a7d17352",
+      "representation": "sanitized + gzip",
+      "originalBytesPreserved": false
+    },
+    {
+      "source": "scratch/profile.stderr.private.log",
+      "file": "launcher.stderr.log",
+      "originalBytes": 55,
+      "originalSha256": "3c81141bb3550d15a252d2ee2fc015da2181aab7cc8367e0d17f7907cfd611ce",
+      "decodedBytes": 55,
+      "decodedSha256": "3c81141bb3550d15a252d2ee2fc015da2181aab7cc8367e0d17f7907cfd611ce",
+      "fileBytes": 55,
+      "fileSha256": "3c81141bb3550d15a252d2ee2fc015da2181aab7cc8367e0d17f7907cfd611ce",
+      "representation": "sanitized",
+      "originalBytesPreserved": false
+    },
+    {
+      "source": "scratch/preparation.stdout.private.log",
+      "file": "preparation.stdout.sanitized.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fileBytes": 20,
+      "fileSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "representation": "sanitized + gzip",
+      "originalBytesPreserved": false
+    },
+    {
+      "source": "scratch/preparation.stderr.private.log",
+      "file": "preparation.stderr.sanitized.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fileBytes": 20,
+      "fileSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "representation": "sanitized + gzip",
+      "originalBytesPreserved": false
+    },
+    {
+      "source": "server-1.private.log",
+      "file": "server.sanitized.log.gz",
+      "originalBytes": 12186,
+      "originalSha256": "1875fec088752b21c287066582b5696a22d65a2280c85468e0bb83e801eb402d",
+      "decodedBytes": 11881,
+      "decodedSha256": "80f5f570372953159cfc7835104003a0a7f4f0485f68f760ffe2d423c770ab19",
+      "fileBytes": 2619,
+      "fileSha256": "c42e0c7f9a3778d41b896fcba8249e36d73098ef43b5f8fe412312294278796c",
+      "representation": "sanitized + gzip",
+      "originalBytesPreserved": false
+    }
+  ],
+  "fullStackOutputsHashOnlyWithSelectedGroups": [
+    {
+      "source": "initial-malloc_history.private.txt",
+      "originalBytes": 8886844,
+      "originalSha256": "2c93a9442c0ec84aa407c97505e7403e6b85ad9a28fe9673afa6c54fde7aac8f",
+      "fullOriginalBytesPreserved": false,
+      "fullOutputCaptureCompleted": true,
+      "partialCaptureCause": null,
+      "selectedSanitizedGroupsFile": "profiles/initial-selected-stacks.txt.gz",
+      "selectedDecodedBytes": 259247,
+      "selectedDecodedSha256": "b17e731dbd38bf27669afcb5f4154a2c87eb05557eb2dd28d371a74f44cd53a5",
+      "compressedFileSha256": "89ff061f4049c17b138db06d670bcf1719a4aa96b7b657abdd6278a6c0d45835"
+    },
+    {
+      "source": "recording-5min-malloc_history.private.txt",
+      "originalBytes": 16842752,
+      "originalSha256": "a32fa1eb74279dcd67bc23cf575c724384f3cf81af06e59fa3b702f37af3283e",
+      "fullOriginalBytesPreserved": false,
+      "fullOutputCaptureCompleted": false,
+      "partialCaptureCause": "spawnSync maxBuffer 16777216 bytes; captured 16842752 bytes, ENOBUFS; last incomplete group discarded; no footer",
+      "selectedSanitizedGroupsFile": "profiles/recording-5min-selected-stacks.txt.gz",
+      "selectedDecodedBytes": 641619,
+      "selectedDecodedSha256": "545ed918d453189e7b09500d930ad49fe4d87db2f5e1c618323fbc98ef2107b0",
+      "compressedFileSha256": "779b1cbcc6539a11a7ff4a593604cba9c2eea349233c5b49a46fe562fa8d28e6"
+    }
+  ],
+  "sanitization": "source URLs, owned/repository paths and hexadecimal addresses removed; output counts/bytes/function symbols retained; no showContent or memory graph",
+  "noFullOriginalMemoryContentPublished": true
+}

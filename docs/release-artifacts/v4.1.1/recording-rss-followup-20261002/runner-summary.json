@@ -1,0 +1,219 @@
+{
+  "mode": "rss-live-allocation-followup",
+  "executionHead": "0749ba019e50aeb4aa18f651577cea5f2481d6d8",
+  "failed": "profile-tool-failed-malloc_history",
+  "productRunCount": 1,
+  "sampleCount": 64,
+  "profileCount": 1,
+  "observationStart": 3481.169,
+  "offAt": null,
+  "observedDurationMs": 304671.919208,
+  "elapsedMs": 311493.590625,
+  "rootPeak": 340138902,
+  "profiles": [
+    {
+      "label": "initial",
+      "at": "2026-10-02T10:53:55.662Z",
+      "before": {
+        "phase": "initial",
+        "pid": 30793,
+        "startIdentity": "macos:1790938433:596757",
+        "rssBytes": 38617088,
+        "threadCount": 10,
+        "fdCount": 14,
+        "sampledAt": 1790938435654,
+        "valid": true,
+        "error": null,
+        "journal": null,
+        "channels": [
+          {
+            "id": "1",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "2",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "3",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "4",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "5",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          }
+        ]
+      },
+      "after": {
+        "phase": "initial",
+        "pid": 30793,
+        "startIdentity": "macos:1790938433:596757",
+        "rssBytes": 38780928,
+        "threadCount": 10,
+        "fdCount": 14,
+        "sampledAt": 1790938437740,
+        "valid": true,
+        "error": null,
+        "journal": null,
+        "channels": [
+          {
+            "id": "1",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "2",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "3",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "4",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          },
+          {
+            "id": "5",
+            "enabled": false,
+            "active": false,
+            "storageBlocked": false
+          }
+        ]
+      },
+      "runtime": {
+        "sessionManager": {
+          "activeSessions": 0,
+          "resourceActiveSessions": 0,
+          "resourceActiveStreams": 0,
+          "registryActiveStreams": 0,
+          "activeAnalysisTaps": 0
+        },
+        "sourceLifecycle": {
+          "idle": true,
+          "activeSessions": 0,
+          "resourceActiveSessions": 0,
+          "resourceActiveStreams": 0,
+          "registryActiveStreams": 0,
+          "activeAnalysisTaps": 0,
+          "httpEgressSessions": 0,
+          "whipPublishSessions": 0,
+          "activePublishSources": 0,
+          "activeMetadataClients": 0
+        }
+      },
+      "tools": [
+        {
+          "tool": "malloc_history",
+          "args": [
+            "<product-pid>",
+            "-allBySize",
+            "-fullStacks"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 979.3292079999997,
+          "file": "initial-malloc_history.private.txt",
+          "bytes": 8886844,
+          "sha256": "2c93a9442c0ec84aa407c97505e7403e6b85ad9a28fe9673afa6c54fde7aac8f"
+        },
+        {
+          "tool": "heap",
+          "args": [
+            "--noContent",
+            "-s",
+            "-z",
+            "<product-pid>"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 615.8827919999994,
+          "file": "initial-heap.private.txt",
+          "bytes": 41847,
+          "sha256": "ea975cbe97f5b056ea54b85667c11f9968b7ff7ac02c17cdc9b59b9e62e331a4"
+        },
+        {
+          "tool": "vmmap",
+          "args": [
+            "-summary",
+            "<product-pid>"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 467.68195899999955,
+          "file": "initial-vmmap.private.txt",
+          "bytes": 6194,
+          "sha256": "5fbdda8e12c6bab86e2a5480f5fdfddac3fbf8a29a0a7b34daf6e12c35de9f23"
+        }
+      ]
+    }
+  ],
+  "processCleanup": [
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 30793,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 65368,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 65369,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    }
+  ],
+  "observerCleanup": {
+    "code": 0,
+    "signal": null
+  },
+  "udpClosed": true,
+  "ports": [
+    65368,
+    65369
+  ],
+  "stackLoggingFiles": [],
+  "resourceTrendPass": false,
+  "reviewRequired": true,
+  "uiFulltestPass": false
+}

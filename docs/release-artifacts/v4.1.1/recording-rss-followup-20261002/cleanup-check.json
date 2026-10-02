@@ -1,0 +1,69 @@
+{
+  "observedAt": "2026-10-02T11:08:11.543086+00:00",
+  "productPidAbsent": 30793,
+  "launcherAndProfilerGroupAbsent": 30777,
+  "ports": [
+    {
+      "name": "http",
+      "port": 65368,
+      "loopbackBindable": true
+    },
+    {
+      "name": "rtsp",
+      "port": 65369,
+      "loopbackBindable": true
+    },
+    {
+      "name": "stun",
+      "port": 56291,
+      "loopbackBindable": true
+    }
+  ],
+  "runnerProcessCleanup": [
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 30793,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 65368,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 65369,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    }
+  ],
+  "observerExit": {
+    "code": 0,
+    "signal": null
+  },
+  "udpClosed": true,
+  "ownedRootIdentityMatches": true,
+  "stackLoggingMode": "lite in-memory",
+  "ownedStackLoggingDirectoryEmpty": true,
+  "otherSystemProfilingDirectoriesTouched": false,
+  "defaultRecordingRootAbsent": true,
+  "inheritedExternalRecordingRootPresent": false,
+  "inputsUnchanged": 20,
+  "binarySha256": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+  "archiveSha256": "d857542636a2ac9aafd4165c0f4530120fffb29f582e6fb413725289a5f92ba5",
+  "temporaryRootDisposition": "preserved pending Git readback",
+  "scratchDisposition": "preserved pending Git readback"
+}
