@@ -4176,3 +4176,7 @@ V420-A01/A02 HTTP 연결은 기존 격리 `--http-auth` fixture에서 admin/oper
 viewer·ops/source scope 누락·미인증·혼합 채널 거부, cross-user cursor, 정확한 전체 페이지 건수,
 비노출·no-store, hit membership와 실제 protected media Range 응답을 독립 확인한다.
 기존 인증·녹화 HTTP 회귀도 같은 서버 실행에서 유지한다. 릴리즈 UI/장시간 검사가 아니다.
+
+V420-C02/P03의 ResolveHit는 후속 페이지의 정상 hit, 다른 사용자/scope, 모델에는 있지만 질의에
+포함되지 않은 hit, 299초/300초 만료 및 실패 출력 불변을 검사한다. V420-A01은 기존 정책이 허용하는
+event/metadata scope를 가진 integrator의 실제 로그인 후 search/seek 두 경로 거부도 직접 확인한다.

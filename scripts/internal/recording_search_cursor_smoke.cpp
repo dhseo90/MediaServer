@@ -22,6 +22,18 @@ int main(){
 #else
     Check(pool.Begin(model,q,"alice","scope-1",&first,&error,now)&&Ids(first)==std::vector<std::string>{"d","a"}&&
         first.known_count==4&&first.unplaced_count==1&&!first.next_cursor.empty(),"first page stable ties and full counts");
+    std::shared_ptr<const RecordingSearchModel> resolved;std::size_t position=999;
+    Check(pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-1",&resolved,&position,&error,now)&&resolved->documents()[position].id=="b","member on later page resolves");
+    const auto saved=resolved;const auto saved_position=position;
+    Check(!pool.ResolveHit(first.snapshot_id,"b",q,"bob","scope-1",&resolved,&position,&error,now)&&resolved==saved&&position==saved_position,"hit other principal rejects atomically");
+    Check(!pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-2",&resolved,&position,&error,now),"hit changed scope rejected");
+    auto restricted=q;restricted.channels={"one"};RecordingSearchPage restricted_page;
+    Check(pool.Begin(model,restricted,"alice","scope-1",&restricted_page,&error,now)&&
+        !pool.ResolveHit(restricted_page.snapshot_id,"c",restricted,"alice","scope-1",&resolved,&position,&error,now)&&error=="search-hit-unavailable","model member outside query cannot seek");
+    Check(pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-1",&resolved,&position,&error,now+std::chrono::seconds(299))&&
+        !pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-1",&resolved,&position,&error,now+std::chrono::seconds(300)),"hit exact expiry boundary");
+    // Independent pool keeps subsequent cursor tests at their original clock.
+    Check(pool.Begin(model,q,"alice","scope-1",&first,&error,now),"cursor fixture renewed after hit expiry");
     const auto cursor=first.next_cursor;
     auto normalized=q;normalized.channels={"one","two","one"};
     Check(pool.Resume(cursor,normalized,"alice","scope-1",&page,&error,now)&&Ids(page)==std::vector<std::string>{"b","c"},"normalized equivalent query resumes");

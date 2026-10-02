@@ -14,7 +14,8 @@
   6 동일 원본 이벤트 우선과 실제 파일/파생 출력 후보 연결을 구현·단기 검증했다.
   7 원본·파생 파일 presentation seek와 실제 frame 대조를 구현·검증했다.
   8 검색·seek service와 HTTP 연결을 구현했다. application 13개 및 실제 HTTP 67개 검사가 통과했다.
-  남은 8단계 권한/수명 경계 보강, 9 UI, 10 최종 회귀·문서·push는 미완료다. 제품 완료·push 미수행.
+  8 권한/hit 수명과 source/generation 회귀를 추가 확인했다. 다음은 9 UI 연결이다.
+  9 UI, 10 최종 회귀·문서·push는 미완료다. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -1457,3 +1458,290 @@ exit: 0. loopback 권한으로 동일 검사 재실행.
   snapshot hit 선택의 만료/권한 변경 경계 추가 확인과 source/generation 영향 검증을 다음에 마친 뒤 UI로 진행한다.
 - 모든 실행 소유 임시 저장소·binary 제거, 서버 정상 종료와 loopback 두 포트 폐쇄 확인.
   릴리즈 장시간/predev/UI 풀테스트 미실행. 최종 push 미수행.
+
+### 8 권한·hit 수명과 source 영향 회귀
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_cursor_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/cursor
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/cursor /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/cursor-fixture
+[pass] fixture
+[pass] first page stable ties and full counts
+[pass] member on later page resolves
+[pass] hit other principal rejects atomically
+[pass] hit changed scope rejected
+[pass] model member outside query cannot seek
+[pass] hit exact expiry boundary
+[pass] cursor fixture renewed after hit expiry
+[pass] normalized equivalent query resumes
+[pass] cursor replay idempotent
+[pass] unknown last final page no cursor
+[pass] other principal rejected atomically
+[pass] scope change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] tampered MAC rejected
+[pass] schema mismatch rejected
+[pass] restart rejects prior server cursor
+[pass] changed source fixture
+[pass] new observation and removal do not mutate old membership
+[pass] before expiry accepted
+[pass] exact expiry rejected
+[pass] snapshot count evicts oldest
+[pass] aggregate byte budget evicts oldest
+[pass] oversized fixture exceeds unchanged pool budget
+[pass] failed admission preserves existing snapshot
+[pass] byte limit failure output unchanged
+[pass] empty successful page
+[pass] expiry arithmetic overflow rejected
+[search-cursor] pass=31 fail=0
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_source_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/source
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/source /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/source-fixture
+[pass] journal-open
+[pass] closed-source-rejected
+[pass] catalog-open
+[pass] empty-source-success
+[pass] invalid-channel-output-unchanged
+[pass] finalize
+[pass] unknown-observation-put
+[pass] unknown-is-not-inferred
+[pass] stored-locator-put
+[pass] observation-delta-only
+[pass] stored-locator-utc-and-pts
+[pass] unchanged-model-reused
+[pass] search-does-not-write-journal
+[pass] capture-before-observation
+[pass] observation-keeps-resolution-valid
+[pass] new-model-held-snapshot-independent
+[pass] capacity-failure-output-unchanged
+[pass] scope-change-rebuild
+[pass] history-gap-rebuild
+[pass] structural-change-invalidates-captured-batch
+[pass] corruption-new-state-old-snapshot-preserved
+[pass] journal-reopen-rebuild
+[pass] sqlite-reopen-rebuild
+[pass] rebuild-does-not-write-journal
+[pass] v2-journal-fixture
+[pass] v2-unknown-fixture
+[pass] v2-source-open
+[pass] v2-mappings-separate-clock-overlap-preserved
+[pass] v2-unknown-retains-media-axis
+[pass] v2-deletion-pending-refresh
+[pass] v2-tombstone-removes-all-mappings-held-model-unchanged
+[pass] v2-read-journal-unchanged
+[pass] v2-source-open
+[pass] v2-reopen-tombstone-no-resurrection
+[pass] v2-read-journal-unchanged
+[search-source] pass=35 fail=0 error=
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_generation_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/generation
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/generation /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-boundaries-bi3tvna5/generation-fixture
+[pass] generation-search-refresh
+[pass] generation-original-sample-exact-utc
+[pass] generation-missing-original-stays-unplaced
+[pass] generation-search-journal-unchanged
+[pass] generation-search-refresh
+[pass] generation-original-sample-exact-utc
+[pass] generation-missing-original-stays-unplaced
+[pass] generation-search-journal-unchanged
+[pass] generation-reopen-rebuild-preserves-held-model
+[pass] generation-search-refresh
+[pass] generation-original-sample-exact-utc
+[pass] generation-missing-original-stays-unplaced
+[pass] generation-search-journal-unchanged
+[pass] generation-reopen-rebuild-preserves-held-model
+[search-generation] pass=14 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True
+```
+
+### 8 integrator 최초 fixture 실패
+
+command: `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth`
+exit 1. integrator 계정에 ops/source scope를 지정한 fixture 생성이 거부됐다.
+`ScopeAllowedForRole`은 integrator에게 event/metadata만 허용한다. 기존 인증 계약을 유지하고
+정상 허용 scope 계정으로 실제 검색 거부를 확인하도록 fixture를 수정한다.
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.ptAM71 bytes=9883832 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[auth-subcheck] PASS I17 인증 fixture plaintext 저장 없음
+[auth-subcheck] PASS V420-A01 search role/scope principal 0
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 1
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 2
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 3
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 4
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 anonymous denied
+[auth-subcheck] PASS V420-A01 mixed channel request denied
+[auth-subcheck] PASS V420-C01 first page and cursor
+[auth-subcheck] PASS V420-C02 cross-user cursor denied
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 exact total membership
+[auth-subcheck] PASS V420-P03 authenticated hit playback URL
+[auth-subcheck] PASS V420-P03 selected media uses existing protected range route
+[auth-subcheck] PASS V420-P03 snapshot nonmember denied
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-v11zxv","rootBeforeBytes":2667982,"rootBeforeEntries":321,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":63157,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":60375,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":60376,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":255,"verifierElapsedMs":3819}
+[V410-S06 verifier] FAIL: V420-A01 integrator fixture created
+```
+
+### 8 경계 검사 최종 판정
+
+- cursor/hit 31/31, source 35/35, generation 14/14. 실제 runtime ABI compile/실행 exit 0.
+- integrator fixture의 잘못된 scope를 현행 허용 scope로 고쳤고 실제 HTTP 71/71, exit 0.
+- 다음은 9 UI이다. 실제 UI/최종 개발 통합 검증/push 미완료.
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.2325U4 bytes=9883832 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[auth-subcheck] PASS I17 인증 fixture plaintext 저장 없음
+[auth-subcheck] PASS V420-A01 search role/scope principal 0
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 1
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 2
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 3
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 4
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 anonymous denied
+[auth-subcheck] PASS V420-A01 mixed channel request denied
+[auth-subcheck] PASS V420-C01 first page and cursor
+[auth-subcheck] PASS V420-C02 cross-user cursor denied
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 exact total membership
+[auth-subcheck] PASS V420-P03 authenticated hit playback URL
+[auth-subcheck] PASS V420-P03 selected media uses existing protected range route
+[auth-subcheck] PASS V420-P03 snapshot nonmember denied
+[auth-subcheck] PASS V420-A01 integrator fixture created
+[auth-subcheck] PASS V420-A01 integrator fixture login
+[auth-subcheck] PASS V420-A01 integrator search access denied
+[auth-subcheck] PASS V420-A01 integrator search access denied
+[auth-subcheck] PASS V420-F10 empty cursor rejected
+[S06 HTTP AUTH] checks=71 fail=0 actualUiActions=NOT_RUN
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-gqTaF8","rootBeforeBytes":2668742,"rootBeforeEntries":321,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":63312,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":60463,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":60464,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":135,"verifierElapsedMs":3808}
+```

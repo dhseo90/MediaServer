@@ -29,5 +29,14 @@ export async function verifyRecordingSearchHttp({cookies,call,seed,check}) {
   check(bytes.status===206&&(await bytes.arrayBuffer()).byteLength===32,'V420-P03 selected media uses existing protected range route');
   seek.set('hitId','absent-hit');const absent=await get(seek,cookies[1],seekRoute);
   check(absent.status===410,'V420-P03 snapshot nonmember denied');await absent.arrayBuffer();
+  const password = 'Fixture-Aa1!' + (await import('node:crypto')).randomBytes(16).toString('hex');
+  const created=await call('/ops/api/users',{method:'POST',headers:{Cookie:cookies[0],'Content-Type':'application/json'},
+    body:JSON.stringify({username:'v420-integrator',displayName:'search fixture',role:'integrator',scopes:['event:read:1','metadata:read:1'],password,enabled:true,mustChangePassword:false})});
+  check(created.ok,'V420-A01 integrator fixture created');await created.arrayBuffer();
+  const login=await call('/login',{method:'POST',body:new URLSearchParams({username:'v420-integrator',password})});
+  check(login.status===302,'V420-A01 integrator fixture login');
+  const cookie=login.headers.getSetCookie().map(value=>value.split(';',1)[0]).join('; ');await login.arrayBuffer();
+  for(const prefix of [route,seekRoute]){const denied=await get(prefix===route?params:seek,cookie,prefix);
+    check(denied.status===403,'V420-A01 integrator search access denied');await denied.arrayBuffer();}
   next.set('cursor','');const invalid=await get(next);check(invalid.status===400,'V420-F10 empty cursor rejected');await invalid.arrayBuffer();
 }
