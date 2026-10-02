@@ -36,6 +36,9 @@ struct SearchDocument {
     std::optional<std::int64_t> end_ns;
     std::string time_provenance;
     std::optional<std::int64_t> uncertainty_ns;
+    // 원본 segment 시간축. 파일 내 재생 offset은 별도 검증/변환한다.
+    std::optional<std::int64_t> media_pts;
+    std::int32_t time_base_num{1}, time_base_den{1000000000};
     std::vector<std::string> event_ids;
     std::vector<std::string> zone_ids;
     std::vector<std::string> rule_ids;
@@ -47,6 +50,8 @@ struct SearchModelLimits {
     std::size_t max_documents{100000};
     std::size_t max_bytes{64 * 1024 * 1024};
 };
+// snapshot adapter가 복사 전에 같은 논리 admission을 적용한다. 미디어 건강도 검사는 아니다.
+bool AccountSearchDocument(const SearchDocument&, std::size_t* bytes, std::size_t limit);
 
 // 성공한 source snapshot 사이의 변화분. 이력 유실/새 source instance는 Build로 재구축한다.
 struct SearchModelDelta {

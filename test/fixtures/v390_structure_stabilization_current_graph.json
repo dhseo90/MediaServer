@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 323,
-  "expectedCppFiles": 145,
+  "expectedProductionFiles": 327,
+  "expectedCppFiles": 147,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -130,11 +130,13 @@
         "src/recording/recording_file_evidence.cpp",
         "src/recording/recording_media_inspector.cpp",
         "src/recording/recording_session_service.cpp",
-        "src/recording/recording_startup_recovery.cpp"
+        "src/recording/recording_startup_recovery.cpp",
+        "include/recording/recording_search_reader.h",
+        "src/recording/recording_search_reader.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 84,
-      "expectedCppCount": 36
+      "expectedFileCount": 86,
+      "expectedCppCount": 37
     },
     {
       "id": "domain-and-registry-owners",
@@ -201,11 +203,13 @@
         "src/recording/recording_order_history_snapshot.cpp",
         "src/recording/retention_coordinator.cpp",
         "include/recording/recording_search_model.h",
-        "src/recording/recording_search_model.cpp"
+        "src/recording/recording_search_model.cpp",
+        "include/recording/recording_search_source.h",
+        "src/recording/recording_search_source.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 63,
-      "expectedCppCount": 26
+      "expectedFileCount": 65,
+      "expectedCppCount": 27
     },
     {
       "id": "product-ui-workspaces",
@@ -320,7 +324,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "d9c60d52f3f80504c67b43627e5f8bdb658f0a5866ccc8373477219723f7de61",
+  "expectedFileOwnershipSha256": "a9e2378094ab0128317968c9c440b68042d4f03fefff2d2702b042484073ba0a",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -405,6 +409,8 @@
           "src/ingress/product_ui_auth_pages.cpp",
           "src/recording/recording_contracts.cpp",
           "src/recording/recording_search_model.cpp",
+          "src/recording/recording_search_source.cpp",
+          "src/recording/recording_search_reader.cpp",
           "src/recording/event_clip_deriver.cpp",
           "src/recording/event_recording_bridge.cpp",
           "src/recording/gstreamer_segment_writer.cpp",
@@ -472,9 +478,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "6202f8503ae4c5ece3f89fd09d2483fed45019dac4f1de2147a85f41c8ee98c7",
-        "declaredSourceCount": 143,
-        "defaultActiveSourceCount": 142,
+        "productionSourceSha256": "911349c703070aa2ee7fc2930c99dd88305a35bb8d9c39631657836ef75e0b81",
+        "declaredSourceCount": 145,
+        "defaultActiveSourceCount": 144,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -558,8 +564,8 @@
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 35,
-      "witnessSha256": "4d15d55870b6cd879932031abc8e41530a4c90ca1d072ed5f10d96b8e54d7a29",
+      "witnessCount": 36,
+      "witnessSha256": "be91875127f146abbd4d2e9cbafe0bd5f773443e2375bdfb7cdf43c367e67d9c",
       "allowedByTarget": true
     },
     {

@@ -207,3 +207,109 @@ cleanup: owned temporary compiler output removed=True; no server/port
   revision 변화분 수집·재구축, 실제 저장소 삭제/손상·재개방과의 연결 검증이 남아 있다.
 - 변경 소유 파일: 기존 검색 모델 header/source·native smoke·이 개발 기록.
   의존 방향·CMake source 목록·공개 API·원본 저장 계약 변경 없음.
+
+### 3 카탈로그 어댑터 focused 첫 실행
+
+source: e13868bb + stage3 worktree. 실제 runtime archive와 동일 CMake defines/include를 사용했다.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_source_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-source-3uxrw9lg/source
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-source-3uxrw9lg/source /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-source-3uxrw9lg/fixture
+[pass] journal-open
+[pass] closed-source-rejected
+[pass] catalog-open
+[pass] empty-source-success
+[pass] invalid-channel-output-unchanged
+[pass] finalize
+[pass] unknown-observation-put
+[pass] unknown-is-not-inferred
+[pass] stored-locator-put
+[pass] observation-delta-only
+[pass] stored-locator-utc-and-pts
+[pass] unchanged-model-reused
+[pass] search-does-not-write-journal
+[pass] capture-before-observation
+[pass] observation-keeps-resolution-valid
+[pass] new-model-held-snapshot-independent
+[pass] capacity-failure-output-unchanged
+[pass] scope-change-rebuild
+[pass] history-gap-rebuild
+[pass] structural-change-invalidates-captured-batch
+[pass] corruption-new-state-old-snapshot-preserved
+[pass] journal-reopen-rebuild
+[pass] sqlite-reopen-rebuild
+[pass] rebuild-does-not-write-journal
+[search-source] pass=24 fail=0 error=
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_model.cpp scripts/internal/recording_search_model_smoke.cpp -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-source-3uxrw9lg/model
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-source-3uxrw9lg/model
+[pass] M01 build
+[pass] M01 known-desc/channel/id then unknown
+[pass] M01 channel index and absent channel
+[pass] M01 source immutable / normalized projection
+[pass] M01 identity and unknown are preserved
+[pass] M01 rebuild independent of input order
+[pass] M02 duplicate cannot replace published model
+[pass] M02 empty interval rejected atomically
+[pass] M02 half-known interval rejected
+[pass] M02 unlinked event fact rejected
+[pass] M02 conflicting event facts rejected
+[pass] M01 numeric track reuse does not merge sessions
+[pass] M03 row limit overflow atomic
+[pass] M03 row limit equality
+[pass] M03 byte accounting baseline
+[pass] M03 exact byte budget admitted
+[pass] M03 one byte short rejected atomically
+[pass] M02 invalid source rejected
+[pass] M02 successful empty distinct from failed build
+[pass] M01 retained immutable model survives replacements
+[pass] L01 delta adds/updates/deletes and reorders exact expected ids
+[pass] L02 removal changes new snapshot without mutating held pages
+[pass] L01 stale predecessor requires rebuild
+[pass] L02 restarted source cannot apply old lineage
+[pass] L02 upsert/delete same id rejected atomically
+[pass] L01 empty delta advances only revision
+[pass] M03 scale explicit endpoints
+[scale] rows=1 accountedBytes=2297 elapsedUs=8
+[pass] M03 scale explicit endpoints
+[scale] rows=1000 accountedBytes=2148149 elapsedUs=428
+[pass] M03 scale explicit endpoints
+[scale] rows=10000 accountedBytes=21480149 elapsedUs=3909
+[pass] M03 default 100001 rows rejected before projection
+[pass] M03 100000 valid rows still obey earlier 64MiB limit
+[search-model] pass=31 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+- 첫 runtime 빌드는 exit 0이었으나 structured binding을 lambda에서 캡처하는 C++20 extension 경고 2개가 있었다. 일반 지역 참조로 변경한 뒤 `cmake --build build-gst-onnx --target media_server_runtime -j2` 재실행 exit 0, 경고 없이 성공했다.
+- 카탈로그 통합 24/24, 모델 31/31 PASS. 원장 바이트 불변·소유 임시 파일 제거 확인. 서버/포트를 만들지 않았다.
+- `node scripts/internal/verify_v390_structure_stabilization_execution.mjs --graph-only`: 4/4 PASS, exit 0.
+- `node scripts/internal/verify_v390_cmake_internal_target_separation.mjs`: 5/5 PASS, exit 0.
+- `node scripts/internal/verify_docs_links.mjs`: 295 Markdown, 9,222 링크, failures 0, exit 0.
+- `git diff --check`: exit 0. 현행 소유 그래프와 execution의 currentGraph 연결만 갱신했다. 과거 완료 snapshot과 의존 정책은 유지했다.
+- 3단계 전체는 미완료: generation 원본 참조, V2 mapping, 삭제/tombstone 통합 검사가 남아 있다. 실제 재생·API·UI·장시간 검사는 이번 실행 대상이 아니다.
+
+현재 focused source SHA-256:
+
+```text
+include/recording/recording_catalog.h 6bfcb3c170dbd2e8f579cb6b0e16a3b66b6477ebb5f8fee158c5cc7df59611a9
+src/recording/recording_catalog.cpp 03929f7c300a72e6380af54586888cef26cbf0ddbad7a8457dd31726fe9e5794
+include/recording/recording_search_model.h 4e83f927c644a840de6718bf35f8b27a55c4dc1a7733cd62457cd714924ee47c
+src/recording/recording_search_model.cpp a9f4f6451db7a025230536645c38a74d23e096a00d770e330cb1fb5ccdd051b3
+include/recording/recording_search_source.h ea4bd724c5682b87a1e7fb020e7e9afe7eecbd885b06154ac7a04a6c4c5e603d
+src/recording/recording_search_source.cpp 3b220854618f944cab4d5a26e29e72cfdaa4f24ca13b356ec6c6cf2d589d640c
+include/recording/recording_search_reader.h 17bb5fd18f00872d8dcecb3366f4c2ef4f914c2f2926261a7e0a9c5cff983002
+src/recording/recording_search_reader.cpp 764700b6c1a19deed48c363a8f3371fea67821118b2f23dec62c86ec7d438039
+scripts/internal/recording_search_source_smoke.cpp dbdf92a4224f6552c46214886a6c452a253f6daa0d06a3043539cd67ba8b2233
+```

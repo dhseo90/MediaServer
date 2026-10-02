@@ -24,7 +24,7 @@ bool Valid(const SearchDocument& d) {
         (d.kind != SearchDocumentKind::Recording && d.kind != SearchDocumentKind::Observation)) return false;
     if (d.start_ns.has_value() != d.end_ns.has_value() ||
         (d.start_ns && (*d.start_ns < 0 || *d.start_ns >= *d.end_ns)) ||
-        (d.uncertainty_ns && *d.uncertainty_ns < 0)) return false;
+        (d.uncertainty_ns && *d.uncertainty_ns < 0) || d.time_base_num <= 0 || d.time_base_den <= 0) return false;
     if (d.kind == SearchDocumentKind::Recording && d.segment_id.empty()) return false;
     if (d.kind == SearchDocumentKind::Observation && d.observation_id.empty()) return false;
     for (const auto* field : {&d.segment_id, &d.observation_id, &d.reference_id, &d.analysis_namespace,
@@ -80,6 +80,10 @@ bool Earlier(const SearchDocument& a, const SearchDocument& b) {
     return std::tie(a.channel_id, a.id) < std::tie(b.channel_id, b.id);
 }
 } // namespace
+
+bool AccountSearchDocument(const SearchDocument& d, std::size_t* bytes, std::size_t limit) {
+    return bytes && Valid(d) && Account(d, bytes, limit);
+}
 
 bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
     const std::string& source_instance, std::uint64_t revision,

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <atomic>
 #include <condition_variable>
+#include <deque>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -21,6 +22,7 @@
 #include "recording/retention_coordinator.h"
 #include "recording/recording_timeline.h"
 #include "recording/recording_query_values.h"
+#include "recording/recording_search_source.h"
 
 struct sqlite3;
 
@@ -135,6 +137,10 @@ public:
         std::uint64_t cut_ordinal, RecordingCatalogSnapshot* output, std::string* error) const;
     bool SnapshotLocationsV2(const std::string& channel_id,
                              RecordingLocationCatalogSnapshot* result, std::string* error) const;
+    bool CaptureSearchSource(const std::vector<std::string>& channels,
+        const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
+        SearchModelLimits limits = {}) const;
+    bool ValidateSearchSource(const SearchSourceBatch&, std::string* error) const;
     bool ValidateManagedWriterBinding(const RecordingJournal& journal,
                                      const std::filesystem::path& root,
                                      const std::string& store_id, std::string* error) const;
@@ -498,6 +504,7 @@ private:
                                            std::string* error) const;
     void CloseSqliteLocked();
     void ResolveObservationV2Locked(AnalysisObservationV2* observation) const;
+    void NoteSearchMutationLocked(const RecordingMutationV1&) noexcept;
 
     RecordingJournal& journal_;
     Options options_;
@@ -510,6 +517,10 @@ private:
     // 적용 실패/예외도 포함한다. 포화 후에는 잠금 밖 조회를 다시 허용하지 않는다.
     std::uint64_t source_snapshot_revision_{0};
     bool source_snapshot_revision_valid_{true};
+    // 검색 변경 목록은 원장이 아니다. 유실/초과는 전체 snapshot 재구축으로 처리한다.
+    struct SearchChange { std::uint64_t revision; RecordingMutationType type; std::string id; };
+    std::deque<SearchChange> search_changes_;
+    std::uint64_t search_instance_{0}, search_rebuild_revision_{0}, search_resolution_revision_{0};
     mutable bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;

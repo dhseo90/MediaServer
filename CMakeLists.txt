@@ -94,6 +94,8 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_auth_pages.cpp
     src/recording/recording_contracts.cpp
     src/recording/recording_search_model.cpp
+    src/recording/recording_search_source.cpp
+    src/recording/recording_search_reader.cpp
     src/recording/event_clip_deriver.cpp
     src/recording/event_recording_bridge.cpp
     src/recording/gstreamer_segment_writer.cpp

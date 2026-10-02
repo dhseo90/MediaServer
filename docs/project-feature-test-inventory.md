@@ -4137,3 +4137,7 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 | D3C-16 | 잘못된 응답 수량 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
 | D3C-17 | 공개 정보 제한 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
 | I31-R01/R02 기존 7개 | metadata·조회 실패·빈 목록·불가 선택·늦은 metadata·무선택 error·선택 error | 동일 Node 회귀 | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+
+### V420-L01/L02 카탈로그 어댑터 focused 기대값
+
+`recording_search_source_smoke.cpp`: 닫힌 카탈로그·빈 채널 거부 시 출력 보존, 빈 정상 결과, 저장 locator의 UTC/PTS, locator 없는 관측의 unknown 유지, 동일 revision 포인터 재사용, 관측만 추가한 delta, 1,024개 변화 이력 초과 시 재구축, 채널 집합 변경 시 이전 채널 제거를 검사한다. 손상 변경은 진행 중 batch를 무효화하고 새 모델 상태에 반영하되 보관 모델은 유지한다. 추가 관측은 기존 batch의 원본 시간 해석을 무효화하지 않는다. 재개방은 새 source identity로 재구축하고 SQLite 사용/미사용 모두 같은 원장 결과를 낸다. 검색 전후 원장 바이트 일치를 확인한다. 이 검사는 실제 파일 재생이나 generation backend 전체 검증을 대체하지 않는다.
