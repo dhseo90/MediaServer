@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 321,
-  "expectedCppFiles": 144,
+  "expectedProductionFiles": 323,
+  "expectedCppFiles": 145,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -199,11 +199,13 @@
         "src/recording/recording_identity_shard.cpp",
         "src/recording/recording_journal.cpp",
         "src/recording/recording_order_history_snapshot.cpp",
-        "src/recording/retention_coordinator.cpp"
+        "src/recording/retention_coordinator.cpp",
+        "include/recording/recording_search_model.h",
+        "src/recording/recording_search_model.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 61,
-      "expectedCppCount": 25
+      "expectedFileCount": 63,
+      "expectedCppCount": 26
     },
     {
       "id": "product-ui-workspaces",
@@ -318,7 +320,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "7ce1656ee8bb96609040ec07cbfa3874bb18dbb78fbd8853e1c02f9d4669b7d0",
+  "expectedFileOwnershipSha256": "d9c60d52f3f80504c67b43627e5f8bdb658f0a5866ccc8373477219723f7de61",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -402,6 +404,7 @@
           "src/ingress/product_ui_action_execution_deferral.cpp",
           "src/ingress/product_ui_auth_pages.cpp",
           "src/recording/recording_contracts.cpp",
+          "src/recording/recording_search_model.cpp",
           "src/recording/event_clip_deriver.cpp",
           "src/recording/event_recording_bridge.cpp",
           "src/recording/gstreamer_segment_writer.cpp",
@@ -469,9 +472,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "3b6fee4983535a59b5bfbea5cd5947719beb1575161bb3d1e88326165610a95f",
-        "declaredSourceCount": 142,
-        "defaultActiveSourceCount": 141,
+        "productionSourceSha256": "6202f8503ae4c5ece3f89fd09d2483fed45019dac4f1de2147a85f41c8ee98c7",
+        "declaredSourceCount": 143,
+        "defaultActiveSourceCount": 142,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
