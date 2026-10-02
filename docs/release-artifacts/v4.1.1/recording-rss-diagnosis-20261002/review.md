@@ -65,7 +65,7 @@ v4.1.0 [B10](../../v4.1.0/s11-final-20260926/b10-longrun.md)은 같은 두 채�
 
 ## 보존·cleanup·기존 증거 유지
 
-제품 exit0/signal없음/강제 종료 없음, native 관측기 exit0, launcher 그룹·제품·준비 PID 부재, HTTP64197/RTSP64198/UDP63025 해제 및 loopback 재bind 가능을 확인했다([cleanup-check.json](cleanup-check.json)). 기본 `.media_server/recordings`는 전후 부재, 상속 외부 recording root 없음, 기존 환경 allowlist가 소유 root를 사용했다. 소유 root 최대327.209MiB로 기존448MiB 한도 이내다. root와 임시 중복은 필요한 증거의 Git 바이트 재조회 후 정확한 소유 대상만 정리하고 후속 기록에 부재를 남긴다.
+제품 exit0/signal없음/강제 종료 없음, native 관측기 exit0, launcher 그룹·제품·준비 PID 부재, HTTP64197/RTSP64198/UDP63025 해제 및 loopback 재bind 가능을 확인했다([cleanup-check.json](cleanup-check.json)). 기본 `.media_server/recordings`는 전후 부재, 상속 외부 recording root 없음, 기존 환경 allowlist가 소유 root를 사용했다. 소유 root 최대327.209MiB로 기존448MiB 한도 이내다. 보존 커밋 `3fb33ef09a59a78e0a036c3f10b0677ad4d1ed6f`의28개 파일과 압축 해제 표현을 Git에서 재조회했다. 원문24개 해시와 소유 identity·종료·포트 해제를 확인한 뒤, 이번 root 및 ignored 임시 준비 경로2개만 정리하고 부재를 확인했다([최종 대조·cleanup](readback-cleanup.json)). `result.json`의 pending은 보존 시점 상태이고 최종 정리는 이 후속 기록으로 연결된다.
 
 [보존 manifest](preservation-manifest.json)는 원문 hash/크기와 정제·압축 표현 hash를 구분한다. 주소·소유 경로·URL은 정제했으며 정제본을 원문 바이트라고 하지 않는다. 도구 출력의 행 끝 공백·표 정렬은 수정하지 않고 gzip 표현에 그대로 보존했다. 생성 media·DB·private memory 문자열·원본 private 로그·임시 실행 바이너리는 Git에 넣지 않았다. heap은 `--noContent`로 호출했고 memory graph/dump는 생성하지 않았다. 원문을 보존하지 않은 파일은 hash만 남았다는 한계를 유지한다.
 
