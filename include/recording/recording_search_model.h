@@ -61,6 +61,20 @@ struct SearchModelDelta {
     std::vector<std::string> removed_ids;
 };
 
+// HTTP 파싱 뒤의 값 계약. 시간은 UTC 밀리초이며 메타데이터 목록은 exact OR다.
+struct RecordingSearchQuery {
+    std::vector<std::string> channels, objects, tracks, events, zones, rules, behaviours;
+    std::int64_t start_time_ms{0}, end_time_ms{0};
+    bool include_unplaced{false};
+    std::size_t limit{50};
+};
+bool NormalizeSearchQuery(const RecordingSearchQuery&, RecordingSearchQuery*, std::string* error);
+struct RecordingSearchMatches {
+    // 불변 모델 documents()의 위치다. 정렬 순서를 유지하고 관측을 합치지 않는다.
+    std::vector<std::size_t> positions;
+    std::size_t known_count{0}, unplaced_count{0};
+};
+
 // 원본 snapshot의 일관성과 event 연결 검증은 adapter 책임이다. 이 모델은 파일 재생 증명이 아니다.
 class RecordingSearchModel {
 public:
@@ -72,6 +86,8 @@ public:
     static bool ApplyDelta(const RecordingSearchModel& base, const SearchModelDelta& delta,
                            std::shared_ptr<const RecordingSearchModel>* output,
                            std::string* error, SearchModelLimits limits = {});
+
+    bool Query(const RecordingSearchQuery&, RecordingSearchMatches*, std::string* error) const;
 
     const std::vector<SearchDocument>& documents() const { return documents_; }
     const std::vector<std::size_t>& Channel(const std::string& channel_id) const;

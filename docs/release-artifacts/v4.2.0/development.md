@@ -9,7 +9,8 @@
 - 정의: [V420 기능 ID](../../project-feature-test-inventory.md#v420-구조화-검색).
 - 현재: 1 계약·조사·사전 정의 완료(`a8098ff3`), 2 불변 read model·채널/ID 인덱스와 단기 검증 완료.
   3 카탈로그 adapter·증분 갱신·V2 mapping/삭제·generation 참조/재개방 연결을 단기 검증했다.
-  다음은 4 필터와 이벤트 행동 근거 연결이다. 4~10 미완료. 제품 완료·push 미수행.
+  4 필터 모델은 구현·단기 검증했고 실제 이벤트 저장소의 행동 근거 연결이 남았다.
+  4~10 미완료. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -551,3 +552,103 @@ scripts/internal/recording_catalog_generation_projection_smoke.cpp 17362fbda3e98
 ```
 
 - 최종 `git diff --check`: exit 0. `node scripts/internal/verify_docs_links.mjs`: 295 Markdown/9,222 links, failures 0, exit 0. 이번 변경은 검사 source와 기록뿐이므로 production build/소유 graph 재실행은 하지 않았다.
+
+### 4 필터 모델 focused 검사
+
+source: 524a383d + query/filter worktree.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_model.cpp scripts/internal/recording_search_filter_smoke.cpp -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-filter-34bno5a1/filter
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-filter-34bno5a1/filter
+[pass] fixture-build
+[pass] F01 camera-time returns intervals without analysis
+[pass] F01 channel OR global stable order duplicate normalized
+[pass] F02 F03 half-open UTC sampled person only
+[pass] F03 object OR
+[pass] F03 exact case no synonym
+[pass] F04 F06 same-track observations never combine tags
+[pass] F04 namespaces remain distinct hits
+[pass] F06 F07 field AND list OR
+[pass] F05 stored event reference exact
+[pass] F08 event behaviour confirmed fact
+[pass] F09 named scenario fact
+[pass] F09 rule ID is not scenario name
+[pass] F10 event behaviour require same event
+[pass] F10 shared matching event
+[pass] F08 missing event facts never inferred
+[pass] F02 unknown separate after known
+[pass] F02 separate counts
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[search-filter] pass=27 fail=0
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_model.cpp scripts/internal/recording_search_model_smoke.cpp -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-filter-34bno5a1/model
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-filter-34bno5a1/model
+[pass] M01 build
+[pass] M01 known-desc/channel/id then unknown
+[pass] M01 channel index and absent channel
+[pass] M01 source immutable / normalized projection
+[pass] M01 identity and unknown are preserved
+[pass] M01 rebuild independent of input order
+[pass] M02 duplicate cannot replace published model
+[pass] M02 empty interval rejected atomically
+[pass] M02 half-known interval rejected
+[pass] M02 unlinked event fact rejected
+[pass] M02 conflicting event facts rejected
+[pass] M01 numeric track reuse does not merge sessions
+[pass] M03 row limit overflow atomic
+[pass] M03 row limit equality
+[pass] M03 byte accounting baseline
+[pass] M03 exact byte budget admitted
+[pass] M03 one byte short rejected atomically
+[pass] M02 invalid source rejected
+[pass] M02 successful empty distinct from failed build
+[pass] M01 retained immutable model survives replacements
+[pass] L01 delta adds/updates/deletes and reorders exact expected ids
+[pass] L02 removal changes new snapshot without mutating held pages
+[pass] L01 stale predecessor requires rebuild
+[pass] L02 restarted source cannot apply old lineage
+[pass] L02 upsert/delete same id rejected atomically
+[pass] L01 empty delta advances only revision
+[pass] M03 scale explicit endpoints
+[scale] rows=1 accountedBytes=2297 elapsedUs=9
+[pass] M03 scale explicit endpoints
+[scale] rows=1000 accountedBytes=2148149 elapsedUs=499
+[pass] M03 scale explicit endpoints
+[scale] rows=10000 accountedBytes=21480149 elapsedUs=2990
+[pass] M03 default 100001 rows rejected before projection
+[pass] M03 100000 valid rows still obey earlier 64MiB limit
+[search-model] pass=31 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+- 필터 모델 27 PASS/0 FAIL, 기존 모델 31 PASS/0 FAIL. `cmake --build build-gst-onnx --target media_server_runtime -j2`: exit 0, 실제 runtime library build 성공.
+- `git diff --check`: exit 0. `node scripts/internal/verify_docs_links.mjs`: failures 0, exit 0.
+- 필터 모델은 channel/time/object/track/event/zone/rule/behaviour 조건을 구현했다. 실제 이벤트 저장소에서 channel/track/epoch 연결을 확인하여 event_facts를 주입하는 어댑터는 미완료다. 따라서 4단계 전체 PASS가 아니다.
+- 원본 파일 I/O, API, UI, 장시간 검사는 실행하지 않았다. 임시 compiler/binary 경로 제거 확인.
+
+필터 검사 source SHA-256:
+
+```text
+include/recording/recording_search_model.h 9fabc91f99bc65ae89588f9148994d4706cd8224483c61ac4b74af1d107b6aeb
+src/recording/recording_search_model.cpp 41d26ff74cb5054a91e97e72b496873cec5ec98bf62edeae5d2113a308beda15
+scripts/internal/recording_search_filter_smoke.cpp 9459ea555762e7ac6a8e397b3783ad93eb78701dbd0d5ff37d83ee2cdea6ab52
+```

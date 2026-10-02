@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <new>
+#include <limits>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_set>
@@ -80,6 +81,72 @@ bool Earlier(const SearchDocument& a, const SearchDocument& b) {
     return std::tie(a.channel_id, a.id) < std::tie(b.channel_id, b.id);
 }
 } // namespace
+
+bool NormalizeSearchQuery(const RecordingSearchQuery& input, RecordingSearchQuery* output, std::string* error) {
+    if (!output || input.channels.empty() || input.start_time_ms < 0 ||
+        input.end_time_ms <= input.start_time_ms ||
+        input.end_time_ms > std::numeric_limits<std::int64_t>::max() / 1000000 ||
+        input.end_time_ms - input.start_time_ms > 31LL * 86400000 || !input.limit || input.limit > 200)
+        return Fail(error, "search-invalid-query");
+    for (const auto* list : {&input.channels, &input.objects, &input.tracks, &input.events,
+            &input.zones, &input.rules, &input.behaviours}) {
+        if (list->size() > 32) return Fail(error, "search-invalid-query");
+        for (const auto& value : *list) if (!Text(value, true)) return Fail(error, "search-invalid-query");
+    }
+    for (const auto& value : input.behaviours) {
+        const bool event = value.compare(0, 6, "event:") == 0 && value.size() > 6;
+        const bool scenario = value.compare(0, 9, "scenario:") == 0 && value.size() > 9;
+        if (!event && !scenario) return Fail(error, "search-invalid-behaviour");
+    }
+    try {
+        auto normalized = input;
+        for (auto* list : {&normalized.channels, &normalized.objects, &normalized.tracks, &normalized.events,
+                &normalized.zones, &normalized.rules, &normalized.behaviours}) {
+            std::sort(list->begin(), list->end());list->erase(std::unique(list->begin(), list->end()), list->end());
+        }
+        *output = std::move(normalized);if(error)error->clear();return true;
+    } catch (const std::bad_alloc&) {return Fail(error, "search-capacity-exceeded");}
+      catch (const std::length_error&) {return Fail(error, "search-capacity-exceeded");}
+}
+
+bool RecordingSearchModel::Query(const RecordingSearchQuery& input, RecordingSearchMatches* output,
+    std::string* error) const {
+    if (!output) return Fail(error, "search-invalid-output");
+    RecordingSearchQuery q;if(!NormalizeSearchQuery(input,&q,error))return false;
+    const bool metadata = !q.objects.empty() || !q.tracks.empty() || !q.events.empty() ||
+        !q.zones.empty() || !q.rules.empty() || !q.behaviours.empty();
+    const auto scalar = [](const auto& values, const std::string& value) {
+        return values.empty() || std::binary_search(values.begin(), values.end(), value);
+    };
+    const auto overlap = [&](const auto& query, const auto& values) {
+        return query.empty() || std::any_of(values.begin(),values.end(),[&](const auto& value){return scalar(query,value);});
+    };
+    try {
+        RecordingSearchMatches result;
+        const auto start=q.start_time_ms*1000000,end=q.end_time_ms*1000000;
+        for (const auto& channel:q.channels) for (const auto position:Channel(channel)) {
+            const auto& d=documents_[position];
+            if ((d.kind==SearchDocumentKind::Observation)!=metadata)continue;
+            if (d.start_ns ? (*d.start_ns>=end || *d.end_ns<=start) : !q.include_unplaced)continue;
+            if (!scalar(q.objects,d.object)||!scalar(q.tracks,d.track_id)||!overlap(q.zones,d.zone_ids)||
+                !overlap(q.rules,d.rule_ids)||!overlap(q.events,d.event_ids))continue;
+            if (!q.behaviours.empty()) {
+                const bool matched=std::any_of(d.event_facts.begin(),d.event_facts.end(),[&](const auto& fact){
+                    // event+behaviour는 동일한 연결 이벤트에서 동시에 성립해야 한다.
+                    return scalar(q.events,fact.event_id) &&
+                        ((!fact.event_type.empty()&&scalar(q.behaviours,"event:"+fact.event_type)) ||
+                         (!fact.scenario_name.empty()&&scalar(q.behaviours,"scenario:"+fact.scenario_name)));
+                });
+                if(!matched)continue;
+            }
+            result.positions.push_back(position);
+            if(d.start_ns)++result.known_count;else ++result.unplaced_count;
+        }
+        std::sort(result.positions.begin(),result.positions.end());
+        *output=std::move(result);if(error)error->clear();return true;
+    } catch (const std::bad_alloc&) {return Fail(error, "search-capacity-exceeded");}
+      catch (const std::length_error&) {return Fail(error, "search-capacity-exceeded");}
+}
 
 bool AccountSearchDocument(const SearchDocument& d, std::size_t* bytes, std::size_t limit) {
     return bytes && Valid(d) && Account(d, bytes, limit);

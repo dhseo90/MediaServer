@@ -4145,3 +4145,5 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 V420-L02의 V2 경로는 겹치는 UTC mapping별 hit/PTS/uncertainty 보존, unknown UTC에서 미디어 축 유지, deletion-pending 반영, tombstone 후 모든 mapping 제거, SQLite 재개방에서 삭제 hit 부활 없음과 원장 바이트 불변을 독립 검사한다.
 
 V420-L01/L02 generation 연결은 실제 generation 원장/카탈로그에 참조 관측을 기록하고 원본 sample의 PTS→UTC 점 구간(100,000,000ns, 길이 1ns), 없는 generation의 unknown, active 원장 바이트 불변, SQLite 사용/미사용 재개방 identity 변경과 기존 모델 보존을 검사한다. 기존 projection 값 fixture를 재사용하되 그 suite와 private probe는 실행하지 않는다.
+
+V420-F01~10 모델 필터 focused는 동일 관측 AND/목록 OR, 채널 중복 정규화와 전역 정렬, 반개구간의 직전/시작/끝 표본, 분석 없는 녹화, namespace가 다른 같은 track ID, exact case, 연결 이벤트의 event+behaviour 동시 조건, scenario 이름과 rule ID 구분, unknown 별도 건수, 잘못된 시간/한도/빈 값/행동 namespace의 원자 거부를 검사한다. 실제 이벤트 저장소의 연결 검증은 별도 어댑터 검사에서 수행한다.
