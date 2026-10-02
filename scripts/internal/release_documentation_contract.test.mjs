@@ -26,6 +26,34 @@ function runPolicyConsumer(file, mutation, temporaryRoot, args = []) {
       childProcess.spawnSync=()=>({status:17,signal:null,stdout:'partial fixture output',stderr:'fixture-child-failed'});
       syncBuiltinESMExports();
     }
+    if(mutation?.published){
+      const input=mutation.published, repo='dhseo90/MediaServer', url='https://github.com/'+repo;
+      const sha='a'.repeat(40), tag='v4.1.1';
+      const release={tagName:tag,url:url+'/releases/tag/'+tag,isLatest:true,isDraft:false,isPrerelease:false,publishedAt:'2026-10-02T14:41:10Z',targetCommitish:'main'};
+      const ok=value=>({status:0,signal:null,stdout:typeof value==='string'?value:JSON.stringify(value),stderr:''});
+      childProcess.spawnSync=(command,args)=>{
+        if(command==='git'){
+          if(args[0]==='config')return ok('git@github.com:'+repo+'.git');
+          if(args[0]==='rev-parse')return ok(args.includes('--abbrev-ref')?'fixture-branch':sha);
+          if(args[0]==='ls-remote')return ok(sha+'\\trefs/'+(args[1]==='--tags'?'tags/'+tag:'heads/fixture-branch'));
+        }
+        if(command==='gh'){
+          if(args[0]==='api')return ok({tag_name:tag,html_url:release.url,draft:false,prerelease:false});
+          if(args[1]==='list')return ok([release]);
+          if(args[1]==='view')return ok(release);
+        }
+        if(command==='curl'&&args.at(-1)===url)return ok(input.html);
+        if(command==='curl'&&args.at(-1)===url+'/_sidebar'){
+          console.log('[fixture-sidebar-request]');
+          return input.childResult||ok(input.sidebar);
+        }
+        throw new Error('허용하지 않은 published fixture 외부 호출: '+command+' '+args.join(' '));
+      };
+      delete process.env.MEDIA_SERVER_GITHUB_REPOSITORY;
+      delete process.env.GITHUB_REPOSITORY;
+      delete process.env.MEDIA_SERVER_RELEASE_BRANCH;
+      syncBuiltinESMExports();
+    }
     const read=fs.readFileSync;
     fs.readFileSync=function(file, options) {
       const relative=path.relative(root,String(file));
@@ -175,6 +203,46 @@ test('REL-DOC-14 v4.0 승인·완료 기록은 현재 승인/실행 결과나 �
     for(const file of ['docs/release-test-records.md','docs/release-evidence-index.md','docs/development-backlog.md'])fs.unlinkSync(path.join(root,file));
   }
 }));
+
+test('REL-DOC-15 published 검사는 정적 HTML과 동적 Releases를 대조하고 잘못된 연결을 거부',async t=>{
+  const repo='dhseo90/MediaServer', tagPath='/'+repo+'/releases/tag/v4.1.1';
+  const about={ownerLogin:'dhseo90',repoName:'MediaServer',sections:{releases:{releaseCount:33,tagCount:35}}};
+  const dynamicHtml=value=>'<h2>Releases</h2><div class="SkeletonText"></div><script type="application/json" data-target="react-app.embeddedData">'+JSON.stringify({payload:{sidebarAbout:value}})+'</script>';
+  const sidebar={releases:{releasesPath:'/'+repo+'/releases',latestRelease:{path:tagPath,name:'MediaServer v4.1.1',publishedAt:'2026-10-02T14:41:10Z'}}};
+  const html=dynamicHtml(about);
+  const cases=[
+    ['정적 HTML', {html:'<h2>Releases</h2><a href="'+tagPath+'">v4.1.1 <span>Latest</span></a>'},true,0],
+    ['정적 절대 링크', {html:'<h2>Releases</h2><a href="https://github.com'+tagPath+'">Latest</a>'},true,0],
+    ['비슷한 정적 태그 이름', {html:'<a href="'+tagPath+'0">Latest</a>',sidebar},false,0],
+    ['정적 태그 링크에 Latest 없음', {html:'<a href="'+tagPath+'">v4.1.1</a>',sidebar},false,0],
+    ['실제 동적 sidebar 계약', {html,sidebar},true,1],
+    ['다른 최신 버전', {html,sidebar:{releases:{...sidebar.releases,latestRelease:{path:tagPath.replace('4.1.1','4.1.0')}}}},false,1],
+    ['외부 경로', {html,sidebar:{releases:{...sidebar.releases,latestRelease:{path:'https://example.invalid'+tagPath}}}},false,1],
+    ['다른 저장소 경로', {html,sidebar:{releases:{...sidebar.releases,releasesPath:'/other/repo/releases'}}},false,1],
+    ['latestRelease 누락', {html,sidebar:{releases:{releasesPath:'/'+repo+'/releases'}}},false,1],
+    ['Releases 데이터 누락', {html,sidebar:{}},false,1],
+    ['잘못된 JSON', {html,sidebar:'{broken'},false,1],
+    ['다른 저장소의 초기 페이지', {html:dynamicHtml({...about,ownerLogin:'other'}),sidebar},false,0],
+    ['Releases 숨김', {html:dynamicHtml({...about,sections:{releases:false}}),sidebar},false,0],
+    ['동적 context 중복', {html:html+html,sidebar},false,0],
+    ['동적 context JSON 손상', {html:html.replace('{"payload"','{broken"payload"'),sidebar},false,0],
+    ['일반 README 링크만 있음', {html:'<a href="/'+repo+'/releases/latest">Latest</a>',sidebar},false,0],
+    ['통신 오류', {html,childResult:{status:22,stdout:'',stderr:'HTTP 404'}},false,1],
+    ['자식 signal', {html,childResult:{status:null,signal:'SIGTERM',stdout:'',stderr:''}},false,1],
+    ['spawn 오류', {html,childResult:{status:null,error:{message:'spawn curl ENOENT'},stdout:'',stderr:''}},false,1],
+  ];
+  for(const [name,input,pass,requests] of cases)await t.test(name,()=>fixture(({root})=>{
+    const report=path.join(root,'published.json');
+    const result=runPolicyConsumer('verify_release_metadata_consistency.mjs',{published:input},root,['--published','--release-branch','fixture-branch','--json-report',report]);
+    assert.equal(result.status,pass?0:1,result.stderr+result.stdout);
+    const data=JSON.parse(fs.readFileSync(report,'utf8'));
+    const landing=data.checks.find(item=>item.name==='GitHub repository page exposes Releases Latest link');
+    assert.equal(landing.status,pass?'pass':'fail');
+    assert.equal(data.checks.filter(item=>item.status==='pass').length,pass?8:7);
+    assert.equal((result.stdout.match(/\[fixture-sidebar-request\]/g)||[]).length,requests);
+    if(pass&&requests)assert.equal(data.github.repositoryLandingPage.source,'repository-html+github-sidebar-json');
+  }));
+});
 
 test('REL-POL-01 현행 정책 소비자는 종료 기록·옛 제목 없이 실행하고 계약 누락은 거부',async t=>{
   const cases=[
