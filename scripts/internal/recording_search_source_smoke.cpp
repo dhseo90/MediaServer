@@ -27,9 +27,65 @@ static RecordingSegmentV1 Segment(const std::string& id) {
     s.lifecycle=RecordingLifecycle::Finalized; s.created_at_ms=1000; s.finalized_at_ms=2000;
     return s;
 }
+static RecordingSegmentV2 SegmentV2(const std::string& id) {
+    RecordingSegmentV2 s;s.segment_id=id;s.channel_id="v2";s.source_id="source";s.store_id="store";
+    s.order_request_id="order-"+id;s.media_epoch_id="epoch";s.media_start_pts=0;s.media_end_pts=20;
+    s.container="mp4";s.video_codecs={"h264"};s.audio_omitted_reason="source-no-audio";s.size_bytes=12;
+    s.checksum_sha256=std::string(64,'a');s.created_at_ms=1;s.finalized_at_ms=2;
+    s.mappings={{"media-server.recording-utc-mapping.v1","first",0,10,"server-observation",100,110,7,"observed"},
+        {"media-server.recording-utc-mapping.v1","second",10,20,"estimated",105,115,9,"clock-step"}};
+    return s;
+}
+static bool AddV2(RecordingJournal& journal,RecordingSegmentV2 s,std::string* error) {
+    RecordingOrderReservationV1 order;
+    if(!journal.ReserveRecordingOrder(s.store_id,s.order_request_id,s.segment_id,s.channel_id,&order,error))return false;
+    s.order_sequence=order.sequence;
+    RecordingMutationV1 m;m.mutation_id="final-"+s.segment_id;m.entity_id=s.segment_id;m.occurred_at_ms=3;
+    m.mutation_type=RecordingMutationType::SegmentV2Finalized;
+    m.payload_json="{\"segment\":"+SerializeRecordingSegmentV2(s)+",\"mediaRelpath\":\""+s.segment_id+".mp4\"}";
+    return journal.Append(m,error);
+}
+static void V2(const std::filesystem::path& root) {
+    std::filesystem::create_directories(root/"media");std::string error;
+    RecordingJournal journal(root/"journal.jsonl");
+    Check(journal.Open(&error)&&AddV2(journal,SegmentV2("multi"),&error),"v2-journal-fixture");
+    auto unknown=SegmentV2("unknown");unknown.mappings.resize(1);unknown.mappings[0].end_pts=20;
+    unknown.mappings[0].provenance="unknown";unknown.mappings[0].utc_start_ns.reset();
+    unknown.mappings[0].utc_end_ns.reset();unknown.mappings[0].uncertainty_ns.reset();unknown.mappings[0].reason="clock-unavailable";
+    Check(AddV2(journal,unknown,&error),"v2-unknown-fixture");
+    for(bool sqlite:{false,true}) {
+        RecordingCatalog::Options options(root/"index.sqlite3",root/"media",sqlite);options.enable_v2_storage=true;
+        RecordingCatalog catalog(journal,options);RecordingReadService reader(catalog);RecordingSearchReader search(catalog,reader);
+        std::shared_ptr<const RecordingSearchModel> model;
+        Check(catalog.Open(&error)&&search.Refresh({"v2"},{},&model,&error),"v2-source-open");
+        if(!model){std::cerr<<error<<'\n';return;}
+        if(!sqlite) {
+            const auto* first=model->Find("s2:5:multi5:first");const auto* second=model->Find("s2:5:multi6:second");
+            const auto* u=model->Find("s2:7:unknown5:first");
+            Check(model->documents().size()==3&&first&&second&&first->start_ns==100&&first->end_ns==110&&
+                second->start_ns==105&&second->end_ns==115&&second->media_pts==10&&second->uncertainty_ns==9,
+                "v2-mappings-separate-clock-overlap-preserved");
+            Check(u&&!u->start_ns&&!u->end_ns&&u->time_provenance=="unknown"&&u->media_pts==0,"v2-unknown-retains-media-axis");
+            const auto held=model;
+            Check(catalog.RequestDeletion("multi","continuous-capacity",&error)&&
+                search.Refresh({"v2"},model,&model,&error)&&model->Find("s2:5:multi5:first")->unavailable_reason=="deletion-pending",
+                "v2-deletion-pending-refresh");
+            RecordingTombstoneV2 tomb;tomb.tombstone_id="gone";tomb.segment=*catalog.FindSegmentV2ById("multi");
+            tomb.deletion_reason="continuous-capacity";tomb.deleted_at_ms=9;
+            const bool deleted=catalog.CompleteDeletionV2(tomb,&error);
+            if(!deleted)std::cerr<<"v2 deletion failure: "<<error<<'\n';
+            Check(deleted&&search.Refresh({"v2"},model,&model,&error)&&
+                model->documents().size()==1&&!model->Find("s2:5:multi5:first")&&held->documents().size()==3,
+                "v2-tombstone-removes-all-mappings-held-model-unchanged");
+        } else Check(model->documents().size()==1&&!model->Find("s2:5:multi5:first"),"v2-reopen-tombstone-no-resurrection");
+        const auto before=Bytes(journal.path());
+        Check(search.Refresh({"v2"},model,&model,&error)&&Bytes(journal.path())==before,"v2-read-journal-unchanged");
+    }
+}
 int main(int argc,char**argv) {
     if(argc!=2)return 2;
-    const std::filesystem::path root(argv[1]);
+    // macOS 임시 디렉터리 별칭(/var)을 실제 경로로 정규화한다. 원본 삭제의 no-follow 검사는 유지한다.
+    const auto root=std::filesystem::weakly_canonical(argv[1]);
     std::filesystem::create_directories(root/"media");
     const auto file=root/"media"/"one.mp4";
     {std::ofstream out(file,std::ios::binary);const char b[12]={0,0,0,12,'f','t','y','p','i','s','o','m'};out.write(b,12);}
@@ -90,5 +146,6 @@ int main(int argc,char**argv) {
             model->Find("s1:11:segment-one")->unavailable_reason=="corrupt",sqlite?"sqlite-reopen-rebuild":"journal-reopen-rebuild");
     }
     Check(Bytes(root/"journal.jsonl")==before,"rebuild-does-not-write-journal");
+    V2(root/"v2");
     std::cout<<"[search-source] pass="<<passes<<" fail="<<failures<<" error="<<error<<'\n';return failures?1:0;
 }

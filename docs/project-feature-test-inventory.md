@@ -4141,3 +4141,7 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 ### V420-L01/L02 카탈로그 어댑터 focused 기대값
 
 `recording_search_source_smoke.cpp`: 닫힌 카탈로그·빈 채널 거부 시 출력 보존, 빈 정상 결과, 저장 locator의 UTC/PTS, locator 없는 관측의 unknown 유지, 동일 revision 포인터 재사용, 관측만 추가한 delta, 1,024개 변화 이력 초과 시 재구축, 채널 집합 변경 시 이전 채널 제거를 검사한다. 손상 변경은 진행 중 batch를 무효화하고 새 모델 상태에 반영하되 보관 모델은 유지한다. 추가 관측은 기존 batch의 원본 시간 해석을 무효화하지 않는다. 재개방은 새 source identity로 재구축하고 SQLite 사용/미사용 모두 같은 원장 결과를 낸다. 검색 전후 원장 바이트 일치를 확인한다. 이 검사는 실제 파일 재생이나 generation backend 전체 검증을 대체하지 않는다.
+
+V420-L02의 V2 경로는 겹치는 UTC mapping별 hit/PTS/uncertainty 보존, unknown UTC에서 미디어 축 유지, deletion-pending 반영, tombstone 후 모든 mapping 제거, SQLite 재개방에서 삭제 hit 부활 없음과 원장 바이트 불변을 독립 검사한다.
+
+V420-L01/L02 generation 연결은 실제 generation 원장/카탈로그에 참조 관측을 기록하고 원본 sample의 PTS→UTC 점 구간(100,000,000ns, 길이 1ns), 없는 generation의 unknown, active 원장 바이트 불변, SQLite 사용/미사용 재개방 identity 변경과 기존 모델 보존을 검사한다. 기존 projection 값 fixture를 재사용하되 그 suite와 private probe는 실행하지 않는다.
