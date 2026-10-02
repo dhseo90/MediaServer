@@ -10,7 +10,8 @@
 - 현재: 1 계약·조사·사전 정의 완료(`a8098ff3`), 2 불변 read model·채널/ID 인덱스와 단기 검증 완료.
   3 카탈로그 adapter·증분 갱신·V2 mapping/삭제·generation 참조/재개방 연결을 단기 검증했다.
   4 필터 모델과 실제 이벤트 행동 근거 연결을 구현·단기 검증했다.
-  다음은 5 불변 결과 snapshot/cursor다. 5~10 미완료. 제품 완료·push 미수행.
+  5 불변 결과 snapshot/cursor를 구현·단기 검증했다.
+  다음은 6 동일 원본 이벤트 우선이다. 6~10 미완료. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -730,4 +731,111 @@ src/ingress/event_storage_application_service.cpp 56c8b1e099f95c0f1db228b3cb6604
 include/recording/recording_search_reader.h 6aeeebae2525c520d39264294c442e279ffa7f80a94a261074ab9ef9cd2b74e6
 src/recording/recording_search_reader.cpp ca66f4dd0ef5c83e6ebe07e47bd9ceb08489a92e500b4d87b3197caad46772b1
 scripts/internal/recording_search_events_smoke.cpp bbbaa33eefe2abb40ad2046e8e66be268aeb83e368b5eb894b41327e74a486f3
+```
+
+### 5 snapshot/cursor focused 첫 검사
+
+source: 47fd2113 + snapshot pool worktree.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude -DMEDIA_SERVER_USE_OPENSSL=1 src/recording/recording_search_model.cpp src/recording/recording_search_snapshots.cpp scripts/internal/recording_search_cursor_smoke.cpp -I/opt/homebrew/Cellar/openssl@3/3.6.2/include -L/opt/homebrew/Cellar/openssl@3/3.6.2/lib -lssl -lcrypto -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-4e8kl0ca/cursor1
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-4e8kl0ca/cursor1
+[pass] fixture
+[pass] first page stable ties and full counts
+[pass] normalized equivalent query resumes
+[pass] cursor replay idempotent
+[pass] unknown last final page no cursor
+[pass] other principal rejected atomically
+[pass] scope change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] tampered MAC rejected
+[pass] schema mismatch rejected
+[pass] restart rejects prior server cursor
+[pass] changed source fixture
+[pass] new observation and removal do not mutate old membership
+[pass] before expiry accepted
+[pass] exact expiry rejected
+[pass] snapshot count evicts oldest
+[pass] byte limit failure output unchanged
+[pass] empty successful page
+[pass] expiry arithmetic overflow rejected
+[search-cursor] pass=22 fail=0
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude -DMEDIA_SERVER_USE_OPENSSL=0 src/recording/recording_search_model.cpp src/recording/recording_search_snapshots.cpp scripts/internal/recording_search_cursor_smoke.cpp -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-4e8kl0ca/cursor0
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-4e8kl0ca/cursor0
+[pass] fixture
+[pass] missing crypto fails closed
+[search-cursor] pass=2 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+합산 byte 축출과 admission 실패 시 기존 snapshot 보존 사례 추가 재검증:
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude -DMEDIA_SERVER_USE_OPENSSL=1 src/recording/recording_search_model.cpp src/recording/recording_search_snapshots.cpp scripts/internal/recording_search_cursor_smoke.cpp -I/opt/homebrew/Cellar/openssl@3/3.6.2/include -L/opt/homebrew/Cellar/openssl@3/3.6.2/lib -lssl -lcrypto -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-budget-uur8xy0b/cursor
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-budget-uur8xy0b/cursor
+[pass] fixture
+[pass] first page stable ties and full counts
+[pass] normalized equivalent query resumes
+[pass] cursor replay idempotent
+[pass] unknown last final page no cursor
+[pass] other principal rejected atomically
+[pass] scope change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] tampered MAC rejected
+[pass] schema mismatch rejected
+[pass] restart rejects prior server cursor
+[pass] changed source fixture
+[pass] new observation and removal do not mutate old membership
+[pass] before expiry accepted
+[pass] exact expiry rejected
+[pass] snapshot count evicts oldest
+[pass] aggregate byte budget evicts oldest
+[pass] failed admission preserves existing snapshot
+[pass] byte limit failure output unchanged
+[pass] empty successful page
+[pass] expiry arithmetic overflow rejected
+[search-cursor] pass=24 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+### 5 snapshot/cursor 판정
+
+- 최종 OpenSSL enabled focused 24 PASS/0 FAIL. OpenSSL disabled 분기는 첫 검사에서 2 PASS/0 FAIL로 서명 없는 cursor 발급 대신 명시 거부함을 확인했다. 신규 암호 라이브러리 설치 없음.
+- SHA-256 정규화 질의 checksum과 principal/scope를 서버 snapshot에 보관하고, HMAC 인증 cursor는 schema·난수 snapshot ID·다음 위치에 결박한다. 서버 비밀키·보관 목록을 재시작 때 유지하지 않는다. checksum 자체를 권한 증명으로 쓰지 않는다.
+- 5분 만료, 최대 8개/논리 합계 128MiB pool, FIFO 축출과 admission 원자 실패를 검사했다. 불변 모델 위치를 보관하므로 새 source의 삽입/삭제가 기존 페이지 멤버십과 건수를 바꾸지 않는다.
+- 현재 사용자 권한과 원본 재생/삭제 상태를 매 요청에서 재검사하는 HTTP 구성은 8단계에 남는다. 현재 cursor 검사는 권한 시스템 전체 PASS가 아니다.
+- `cmake --build build-gst-onnx --target media_server_runtime -j2`: exit 0, configure/generate/runtime build 성공.
+- graph-only 4/4, CMake target separation 5/5, docs links failures 0, `git diff --check` exit 0. 현행 소유 graph와 execution currentGraph 연결만 갱신했다. 역사 완료 자료/정책은 유지했다.
+- 각 native 실행의 임시 루트 제거 확인. 서버/포트/외부 호출 없음. 릴리즈용 검사 미실행.
+
+최종 source SHA-256:
+
+```text
+include/recording/recording_search_snapshots.h d43d55334c609957e578142f0fbc4e15cdf8c677bc77d5254ef74692125ce2e7
+src/recording/recording_search_snapshots.cpp b204640101448cf7b614fa579880df955c3a9e5fbbd4b394058c519e20b8913e
+scripts/internal/recording_search_cursor_smoke.cpp 65b688cb5c4497337dcf6eb8fb06b00d602e60b7f9bac6edfb8d519ea8cc78f3
 ```

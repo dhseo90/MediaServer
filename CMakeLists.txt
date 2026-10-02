@@ -93,6 +93,7 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_action_execution_deferral.cpp
     src/ingress/product_ui_auth_pages.cpp
     src/recording/recording_contracts.cpp
+    src/recording/recording_search_snapshots.cpp
     src/recording/recording_search_model.cpp
     src/recording/recording_search_source.cpp
     src/recording/recording_search_reader.cpp

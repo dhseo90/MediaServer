@@ -4149,3 +4149,5 @@ V420-L01/L02 generation 연결은 실제 generation 원장/카탈로그에 참�
 V420-F01~10 모델 필터 focused는 동일 관측 AND/목록 OR, 채널 중복 정규화와 전역 정렬, 반개구간의 직전/시작/끝 표본, 분석 없는 녹화, namespace가 다른 같은 track ID, exact case, 연결 이벤트의 event+behaviour 동시 조건, scenario 이름과 rule ID 구분, unknown 별도 건수, 잘못된 시간/한도/빈 값/행동 namespace의 원자 거부를 검사한다. 실제 이벤트 저장소의 연결 검증은 별도 어댑터 검사에서 수행한다.
 
 V420-F08~10 이벤트 저장소 통합: 실제 EventRecord 조회에서 최소 사실만 추출하고 기존 JSON 응답 유지, 연결 ID/channel/track/epoch 일치, scenario 필터 반영, catalog revision이 같아도 새 검색의 이벤트 갱신, 동일 중복 합치기·충돌 거부, 손상/부분 줄/10,000행 초과·행 한도 전 8MiB 초과의 원자 실패, 빈 원장의 근거 제거를 검사한다. 검색의 typed 읽기는 8MiB와 10,000행 중 먼저 도달하는 한도에서 incomplete다.
+
+V420-C01~03 focused: 시간 동률/channel/ID/unknown 순서, 전체 known/unknown 건수 유지, 정규화 동치 질의, cursor 재요청의 동일 페이지, 다른 사용자/scope/limit/시간/필터/unknown 조건 거부, MAC 변조/schema/재시작 거부, 새 관측·제거 후 기존 멤버십 보존, 299초 허용/300초 만료, snapshot 수·합산 byte 축출/byte admission 원자 실패와 기존 snapshot 보존, 빈 결과, 만료 시간 산술 overflow 거부를 검사한다. OpenSSL 미지원은 서명 없는 cursor를 만들지 않고 명시 실패한다. 현재 권한·삭제/재생 건강도 재검사는 8단계 요청 경계가 담당한다.
