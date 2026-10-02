@@ -70,6 +70,25 @@ runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 �
 | 참고 자료 | 외부 저장소는 원본 용도로 유지하며 MediaServer에 종속시키지 않는다. 라이선스 미확인 자료와 특허 위험 접근은 구현 참고에서 제외한다. 세부 기준은 로드맵의 참고·조사 경계를 따른다. |
 | 의존성 스냅샷 | `DEPENDENCY_SNAPSHOT.md`의 `generatedAt: stable`·plugin 조회 timeout은 당시 수집 상태다. 현행 설치 실패나 라이선스 문제의 증거가 아니다. 최종 문서 정합에서 시점·수집 범위를 attribution과 구분하며 새로운 의존성 조사로 확대하지 않는다. |
 
+### 녹화 누적 이력의 메모리 운영 한계
+
+미해결 항목이다. 현재 generation 경로의 Catalog/Journal은 mutation identity·order를 중복·충돌·예약 재사용 방지에,
+retired receipt·source 요약을 미디어 삭제 후의 참조·삭제·조회 판단에 사용한다.
+이 이력은 미디어 삭제·녹화 off·checkpoint로 함께 지워지지 않으므로 파일 quota/age는 이력 RAM 상한이 아니다.
+
+기존 일반 acceptance·UI432·녹화 단기 통합·녹화120분의 기능·저장·재기동·cleanup PASS는
+각 실행의 소스·환경 범위에서 유지한다([검증과 보존 위치](release-notes-v4.1.1.md#검증과-공개-상태)).
+정상 off 후 footprint·heap 감소와 빈 allocator 영역 관측으로 높은 RSS 전부를 미해제 객체량으로 보는
+해석은 해소했지만, 지원 이력 규모·RAM 예산·장기 관리 범위와 off 후 live 할당의 세부 귀속은 일부 미확정이다.
+추가 스택 진단은 16MiB 출력 수집 한도로 중단됐다. 제품 OOM·녹화 assertion 실패가 아니며,
+부분 스택은 하한이다. 미수집 부분과 해당 진단의 off 관측을 추정하지 않는다.
+근거는 보존 커밋 `bf81919f0ac3bc1b9726ce22f01f2aa1d4933149`의
+[RSS 보완 판단](release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md)과 연결된 원자료에 둔다.
+
+추가 진단 실행은 종료한다. 후속 작업을 시작하려면 지원할 누적 이력 규모·운영 RAM 예산·장기 관리 범위를
+먼저 결정해야 한다. 이번 정리는 추가 실행·개발·새 메모리 정책의 승인이 아니며,
+2채널·120분 관측을 지원 상한으로 바꾸거나 관측 메모리 값을 새 합격선으로 삼지 않는다.
+
 운영·계약의 상세 기준은 [문서 색인](README.md), [UI 가이드](ui-guide.md),
 [설정 참조](config-reference.md), [검증 정책](stream-verification.md),
 [버전 정책](versioning-policy.md)을 따른다. 미래 검색의 상세 요구는 여기 복제하지 않는다.

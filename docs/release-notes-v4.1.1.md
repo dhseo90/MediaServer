@@ -34,10 +34,22 @@ RTSP/WebRTC, Event POST·SSE/WS metadata, Auth/Role/Scope, Rule/Profile 저장 �
 기능 coverage와 구조 readiness는 기능·근거 연결과 소스 정합 검사이며,
 986개 기능의 실제 실행이나 UI·장시간 성공을 의미하지 않습니다.
 
-이 후보의 실제 UI·30분 검증과 필요한 120분 검증은 후속 릴리즈 단계에서 누적 제품 변경과
-기존 증거의 유효성을 대조해 판정하고 별도 승인 아래 실행합니다. v4.1.0의 과거 성공을
-그대로 이번 버전의 PASS로 옮기지 않습니다. PR·required CI·main 병합·서명 태그·GitHub Release와
-공개 후 확인도 남아 있습니다. 공개 절차는 [릴리즈 정책](release-policy.md)을 따릅니다.
+다음은 각 실행의 소스·환경에 대한 기존 결과이며 현재 HEAD에서 다시 실행한 결과가 아닙니다.
+
+- 일반 acceptance: `c888ac9baf613c773cbd8bb14bb547d3a3e4cc3a`에서 빌드·36개 기능 검사·30분·
+  기본 UI424 적격 판정·서버120분·최종 무결성 PASS입니다.
+  [보존 기록의 standardAcceptance](release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json)에
+  연결하며, 같은 기록의 후속 녹화 링크 FAIL은 그대로 유지합니다.
+- UI432 범위: 위 baseline424와 별도 녹화8개 ID·31개 action PASS, 캡처42개 검토를 결합한
+  [녹화 UI 판단](release-artifacts/v4.1.1/recording-ui-20261002/review.md)입니다. 서로 다른 실행입니다.
+- 녹화 단기: [finalize 통합·기본 smoke와 timeline](release-artifacts/v4.1.1/recording-short-resume-20261002/result.json)의
+  PASS와 이후 [current-integration 완료](release-artifacts/v4.1.1/recording-live-budget-20261002/result.json)를 유지합니다.
+- 별도 녹화120분: [기능·저장·재기동·cleanup PASS](release-artifacts/v4.1.1/recording-longrun-20261002/review.md)를
+  유지하며 자원 안정성의 무조건적 승인과 구분합니다.
+
+자원 안정성의 무조건적 승인은 보류 중이며 v4.1.1 공개는 아직 수행하지 않았습니다.
+PR·required CI·main 병합·서명 태그·GitHub Release와 공개 후 확인도 남아 있습니다.
+공개 절차는 [릴리즈 정책](release-policy.md)을 따릅니다.
 
 ## 알려진 제한
 
@@ -45,5 +57,8 @@ RTSP/WebRTC, Event POST·SSE/WS metadata, Auth/Role/Scope, Rule/Profile 저장 �
 녹화 시간 선택에 따른 자동 탐색·다음 파일 자동 재생을 보장하지 않으며,
 영문 사용자 목록의 숫자 채널 권한 보조 문구에 한글이 남을 수 있습니다.
 외부 서비스·실기기 ONVIF·TURN/WHEP·cloud VLM 성공을 이 후보의 검사로 주장하지 않습니다.
+영상 보관 범위와 별개로, 누적 녹화 이력의 지원 규모·정량 RAM 예산·장기 관리 범위는 미확정이며
+off 후 live 할당의 세부 귀속도 일부 미확인입니다. 상세 경계와 보완 판단은
+[녹화 누적 이력의 메모리 운영 한계](development-backlog.md#녹화-누적-이력의-메모리-운영-한계)에 둡니다.
 후속 제품 개발과 상세 제한은 [backlog](development-backlog.md) 및
 [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)에 있으며 별도 승인 대상입니다.
