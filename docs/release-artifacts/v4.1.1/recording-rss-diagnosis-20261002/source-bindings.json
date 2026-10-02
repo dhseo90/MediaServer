@@ -1,0 +1,96 @@
+{
+  "sourceHead": "6297af4b9fb0a7d5394a9af2cb34e5aff02c7ac0",
+  "files": {
+    "include/recording/recording_catalog.h": {
+      "sha256": "fcf7e20f55b078b5b4d4179f38282980e662e2c5f50ff63328797a267b3e90a6",
+      "bytes": 35881
+    },
+    "include/recording/recording_catalog_snapshot.h": {
+      "sha256": "93276ffe7bb8e3533ef24b1fa3da02de9631907751faade70ab67bfbc4e93632",
+      "bytes": 5181
+    },
+    "include/recording/recording_identity_shard.h": {
+      "sha256": "b1a7c430c89bbc6535897848e8385ab84e08bb3077f4e4a432f2482b876d3366",
+      "bytes": 6083
+    },
+    "include/recording/recording_journal.h": {
+      "sha256": "3b34068982b4b6f372e2433e87eab291ac4ad76524cc3088b6b9ed912ae5980f",
+      "bytes": 16450
+    },
+    "src/recording/recording_runtime_composition.cpp": {
+      "sha256": "196589a9fcbcf1e9d20ea11c2f4d09f1412ff6c4f43361084d5d006527ca2540",
+      "bytes": 4750
+    },
+    "src/recording/recording_catalog.cpp": {
+      "sha256": "5c8de25a11dd6b526fd551c90990d53dcac46b77040197f070d413ca64f6ec5c",
+      "bytes": 284012
+    },
+    "src/recording/recording_catalog_snapshot.cpp": {
+      "sha256": "f3685cafe9c440185035955a406e303328eadc27112cb244e7e7404ea7933bd1",
+      "bytes": 31066
+    },
+    "src/recording/recording_catalog_snapshot_export.cpp": {
+      "sha256": "f86e7ea3cbe3a58c611cb042e351d2e2137d9e81d2c8b4c8bbcd8477f8be65a9",
+      "bytes": 11448
+    },
+    "src/recording/recording_journal.cpp": {
+      "sha256": "b7b1d689d9ee184e69fe0203d4da81d7109202542e51991581993ee93addc7a8",
+      "bytes": 190325
+    },
+    "src/recording/recording_generation_transaction.cpp": {
+      "sha256": "fbed2090cf6779e06688073c547ae624e2f7c6bd3b3406276702ae300755e946",
+      "bytes": 30697
+    },
+    "src/recording/recording_supervisor.cpp": {
+      "sha256": "61ef56c5abf96d9dad6d17fd0f59896d23438c8e46d0f28188a425110900e8b8",
+      "bytes": 6269
+    },
+    "src/recording/recording_session_service.cpp": {
+      "sha256": "5a1b208fa1a034381955ddf7db0223aa5e826e18bfe210c3b370b925b3c41c56",
+      "bytes": 9393
+    },
+    "src/recording/gstreamer_segment_writer.cpp": {
+      "sha256": "72438a6d8120b3febe3d7357744733db519e22b10c22389a95216164c31814fc",
+      "bytes": 32156
+    },
+    "src/core/session_manager.cpp": {
+      "sha256": "d21a3a77441cd0eaf9053599b83ae756f229692cc1e2ab68cc8ac07e5a314ed9",
+      "bytes": 17437
+    },
+    "src/core/stream_registry.cpp": {
+      "sha256": "7397265f59b60a12189bbc24fef5f3465205b86737499e3a68a0983765b57fbd",
+      "bytes": 3468
+    },
+    "src/core/shared_stream.cpp": {
+      "sha256": "93863481700a20a5492e6e960677243289f33a21317e8239803a7c01abfec0a1",
+      "bytes": 11461
+    },
+    "src/core/source_factory.cpp": {
+      "sha256": "95bedfb3d8f4f91fae03cc2cf9705f6b45d8430408ff49597dd28b7bd18bf38f",
+      "bytes": 92626
+    },
+    "src/ingress/webrtc_http_server_runtime.cpp": {
+      "sha256": "15d3aaca9d4a786bfa8f872daa177700f9fa9734dbbbf8cadf7b233804624f50",
+      "bytes": 335956
+    },
+    "src/ingress/webrtc_http_server.cpp": {
+      "sha256": "898129213076b73ff4f0a2c80a888bd6c38cab85b525133443ff931855ffe531",
+      "bytes": 341616
+    }
+  },
+  "historicalComparisons": [
+    {
+      "path": "docs/release-artifacts/v4.1.0/s11-final-20260926/b10-longrun.md",
+      "workload": "same two-channel 128MiB retention command family",
+      "binary": "6c2149d468bb7f86cb29f1d683eec6cb21c7f2b383e0c4619fe4f35db2a6aabc",
+      "equivalent": false,
+      "reason": "different binary/OS, observer timeout at 18m48s; deleted segment full-detail projection predates current retired receipts; no control comparison or improvement percentage inferred"
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-results.md",
+      "equivalent": false,
+      "reason": "synthetic 16/1020/2048/2049 rows, old live/shadow/prefix path, no surviving video; not same generation runtime workload"
+    }
+  ],
+  "noFurtherSourceAudit": true
+}

@@ -1,0 +1,32 @@
+{
+  "manifest": {
+    "schema": "media-server.recording-generation.v1",
+    "storeId": "store-cc6dc9b1043aeabe8fa389b0ad4b212b",
+    "generation": 11,
+    "cutOrdinal": 3356,
+    "snapshot": {
+      "name": "snapshot-11.jsonl",
+      "size": 1618272,
+      "sha256": "812a1a0fd940db5b452bf4301703e41de0ecd8f3a49de971f8587e9ba8f53a53"
+    },
+    "active": {
+      "name": "active-11.jsonl",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "evidence": []
+  },
+  "snapshotSha256": "812a1a0fd940db5b452bf4301703e41de0ecd8f3a49de971f8587e9ba8f53a53",
+  "snapshotBytes": 1618272,
+  "snapshotRowKinds": {
+    "media-server.recording-catalog-snapshot.v1": 1,
+    "accepted-state": 2514,
+    "media-path": 6,
+    "retired-v2": 836,
+    "segment-v2": 6,
+    "source-binding": 842
+  },
+  "serverLogBytes": 12171,
+  "serverLogSha256": "8132ad770ac32c310050924c212692dfbb51714ff26ab43a36c1419ca6f87252",
+  "onlyPersistedRowsNotLiveHeapCounts": true
+}

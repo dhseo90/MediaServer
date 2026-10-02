@@ -1,0 +1,78 @@
+{
+  "observedAt": "2026-10-02T10:10:37.922396+00:00",
+  "processes": [
+    {
+      "pid": 27909,
+      "absent": true
+    },
+    {
+      "pid": 27884,
+      "absent": true
+    },
+    {
+      "pid": 27698,
+      "absent": true
+    }
+  ],
+  "launcherGroupAbsent": true,
+  "ports": [
+    {
+      "kind": "http",
+      "port": 64197,
+      "loopbackBindable": true
+    },
+    {
+      "kind": "rtsp",
+      "port": 64198,
+      "loopbackBindable": true
+    },
+    {
+      "kind": "stun",
+      "port": 63025,
+      "loopbackBindable": true
+    }
+  ],
+  "runnerCleanup": [
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 27909,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 64197,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 64198,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    }
+  ],
+  "nativeObserverCleanup": {
+    "code": 0,
+    "signal": null
+  },
+  "udpClosed": true,
+  "ownedRootIdentityMatches": true,
+  "ownedRootPreservedPendingEvidence": true,
+  "defaultRecordingRootAbsent": true,
+  "inheritedExternalRootPresent": false,
+  "productSha256": "ec93cbc5418bd1fe0c83eb4a90bf3fb837d9acd0f76356c6771b042e37d60c25",
+  "runtimeArchiveSha256": "d857542636a2ac9aafd4165c0f4530120fffb29f582e6fb413725289a5f92ba5",
+  "trackedStatus": ""
+}
