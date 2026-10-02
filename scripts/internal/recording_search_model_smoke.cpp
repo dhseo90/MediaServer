@@ -83,6 +83,28 @@ int main() {
         Check(RecordingSearchModel::Build({}, "new-session", 0, &model, &error) &&
             model->documents().empty() && error.empty(), "M02 successful empty distinct from failed build");
         Check(Ids(*old) == expected, "M01 retained immutable model survives replacements");
+        SearchModelDelta delta;
+        delta.source_instance = "store-session"; delta.previous_revision = 17; delta.revision = 18;
+        delta.removed_ids = {"b"};
+        delta.upserts = {Row("new", "b", 300), Row("older", "c", 250)};
+        Check(RecordingSearchModel::ApplyDelta(*old, delta, &model, &error) &&
+            Ids(*model) == std::vector<std::string>({"new", "older", "a", "other-channel", "unknown"}),
+            "L01 delta adds/updates/deletes and reorders exact expected ids");
+        Check(model->revision() == 18 && !model->Find("b") &&
+            model->Channel("c") == std::vector<std::size_t>({1}) && Ids(*old) == expected,
+            "L02 removal changes new snapshot without mutating held pages");
+        const auto updated = model;
+        Check(!RecordingSearchModel::ApplyDelta(*updated, delta, &model, &error) &&
+            error == "search-delta-rebuild-required" && model == updated, "L01 stale predecessor requires rebuild");
+        delta.previous_revision = 18; delta.revision = 19; delta.source_instance = "restarted-store";
+        Check(!RecordingSearchModel::ApplyDelta(*updated, delta, &model, &error) &&
+            model == updated, "L02 restarted source cannot apply old lineage");
+        delta.source_instance = "store-session"; delta.removed_ids = {"new"};
+        Check(!RecordingSearchModel::ApplyDelta(*updated, delta, &model, &error) &&
+            error == "search-invalid-delta" && model == updated, "L02 upsert/delete same id rejected atomically");
+        delta.removed_ids.clear(); delta.upserts.clear();
+        Check(RecordingSearchModel::ApplyDelta(*updated, delta, &model, &error) &&
+            Ids(*model) == Ids(*updated) && model->revision() == 19, "L01 empty delta advances only revision");
         for (const auto count : {1, 1000, 10000}) {
             std::vector<SearchDocument> many;
             many.reserve(count);

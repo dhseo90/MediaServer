@@ -5,6 +5,7 @@
 #include <new>
 #include <stdexcept>
 #include <tuple>
+#include <unordered_set>
 
 namespace recording {
 namespace {
@@ -131,6 +132,45 @@ const std::vector<std::size_t>& RecordingSearchModel::Channel(const std::string&
     static const std::vector<std::size_t> empty;
     const auto found = channels_.find(channel_id);
     return found == channels_.end() ? empty : found->second;
+}
+
+bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const SearchModelDelta& delta,
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) {
+    if (!output || delta.source_instance != base.source_instance_ ||
+        delta.previous_revision != base.revision_ || delta.revision <= delta.previous_revision)
+        return Fail(error, "search-delta-rebuild-required");
+    if (delta.upserts.size() > limits.max_documents || delta.removed_ids.size() > limits.max_documents)
+        return Fail(error, "search-capacity-exceeded");
+    try {
+        std::unordered_set<std::string> changed;
+        std::size_t change_bytes = 0;
+        for (const auto& id : delta.removed_ids) {
+            if (!Text(id, true) || !changed.insert(id).second) return Fail(error, "search-invalid-delta");
+            if (!Add(128 + id.size() * 2, &change_bytes, limits.max_bytes))
+                return Fail(error, "search-capacity-exceeded");
+        }
+        for (const auto& d : delta.upserts) {
+            if (!Valid(d) || !changed.insert(d.id).second) return Fail(error, "search-invalid-delta");
+            if (!Account(d, &change_bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
+        }
+        std::size_t count = delta.upserts.size();
+        for (const auto& d : base.documents_) if (!changed.count(d.id)) ++count;
+        if (count > limits.max_documents) return Fail(error, "search-capacity-exceeded");
+        // 원본/새 사본과 delta workspace를 합산해, 삭제/갱신 중에도 같은 admission을 지킨다.
+        std::size_t bytes = change_bytes;
+        if (!Add(base.accounted_bytes_, &bytes, limits.max_bytes))
+            return Fail(error, "search-capacity-exceeded");
+        std::vector<SearchDocument> merged;
+        merged.reserve(count);
+        for (const auto& d : base.documents_) if (!changed.count(d.id)) merged.push_back(d);
+        merged.insert(merged.end(), delta.upserts.begin(), delta.upserts.end());
+        return Build(merged, delta.source_instance, delta.revision, output, error,
+                     {limits.max_documents, limits.max_bytes - change_bytes});
+    } catch (const std::bad_alloc&) {
+        return Fail(error, "search-capacity-exceeded");
+    } catch (const std::length_error&) {
+        return Fail(error, "search-capacity-exceeded");
+    }
 }
 
 const SearchDocument* RecordingSearchModel::Find(const std::string& id) const {

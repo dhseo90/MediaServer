@@ -48,6 +48,14 @@ struct SearchModelLimits {
     std::size_t max_bytes{64 * 1024 * 1024};
 };
 
+// 성공한 source snapshot 사이의 변화분. 이력 유실/새 source instance는 Build로 재구축한다.
+struct SearchModelDelta {
+    std::string source_instance;
+    std::uint64_t previous_revision{0}, revision{0};
+    std::vector<SearchDocument> upserts;
+    std::vector<std::string> removed_ids;
+};
+
 // 원본 snapshot의 일관성과 event 연결 검증은 adapter 책임이다. 이 모델은 파일 재생 증명이 아니다.
 class RecordingSearchModel {
 public:
@@ -55,6 +63,10 @@ public:
                       const std::string& source_instance, std::uint64_t revision,
                       std::shared_ptr<const RecordingSearchModel>* output,
                       std::string* error, SearchModelLimits limits = {});
+    // base와 caller output은 실패 시 불변이다. 보관 중인 검색 페이지의 base도 변경하지 않는다.
+    static bool ApplyDelta(const RecordingSearchModel& base, const SearchModelDelta& delta,
+                           std::shared_ptr<const RecordingSearchModel>* output,
+                           std::string* error, SearchModelLimits limits = {});
 
     const std::vector<SearchDocument>& documents() const { return documents_; }
     const std::vector<std::size_t>& Channel(const std::string& channel_id) const;
