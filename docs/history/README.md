@@ -189,3 +189,14 @@ git show 0cfc7cc0d932ad69ed7db094ebf40739fe83244e:docs/release-artifacts/v4.1.1/
 git show c4995e0ee2c912c3bf15923f369cc282b0a5fcfb:docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md
 git show 9139f023d7d1b3937aa1ae90d941874171aee10a:docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/readback-cleanup.json
 ```
+
+## v4.1.1 공개 확인기 후속 보완
+
+GitHub 동적 Releases sidebar의 공개 링크 판정 보완, OPS-041 독립 AI 판단과 985개 동등 승계,
+자체검사 70개·공개 확인 8개·결속 후 coverage의 원본은
+`827619eae8c258d83cd6a6d4884aecab05d0cacc`의 `docs/release-artifacts/v4.1.1/published-sidebar-20261003/`에 있다.
+최초 공개 확인 FAIL은 [PR #73의 당시 기록](https://github.com/dhseo90/MediaServer/pull/73#issuecomment-5954893008)에 유지한다.
+원본 16개(238,988바이트)는 Git 재조회·해시 대조 뒤 최신 트리에서 정리했다.
+일부 원출력·migration·diff는 무손실 gzip이며, 외부 HTML/JS는 선택 관측과 hash만 남았다.
+후보 원본은 같은 보존 커밋의 적용 audit을 compact JSON과 줄바꿈으로 직렬화한 바이트와 같다.
+제품·기존 실행 결과·메모리 운영 제한·공개 태그는 변경하지 않았다. 후속 PR·CI·공개 확인은 PR에 기록한다.
