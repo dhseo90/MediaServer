@@ -1,9 +1,0 @@
-{
-  "observedAt": "2026-10-01T21:21:46.046009+00:00",
-  "processGroup": 5063,
-  "rows": [
-    "5063  5062  5063       00:49 node",
-    "5390  5063  5063       00:04 /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
-    "5421  5390  5063       00:03 /Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
-  ]
-}

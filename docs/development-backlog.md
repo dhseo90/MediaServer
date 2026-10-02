@@ -82,8 +82,8 @@ retired receipt·source 요약을 미디어 삭제 후의 참조·삭제·조회
 해석은 해소했지만, 지원 이력 규모·RAM 예산·장기 관리 범위와 off 후 live 할당의 세부 귀속은 일부 미확정이다.
 추가 스택 진단은 16MiB 출력 수집 한도로 중단됐다. 제품 OOM·녹화 assertion 실패가 아니며,
 부분 스택은 하한이다. 미수집 부분과 해당 진단의 off 관측을 추정하지 않는다.
-근거는 보존 커밋 `bf81919f0ac3bc1b9726ce22f01f2aa1d4933149`의
-[RSS 보완 판단](release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md)과 연결된 원자료에 둔다.
+근거는 원본 보존 `bf81919f0ac3bc1b9726ce22f01f2aa1d4933149`와 대조·정리 `c4995e0ee2c912c3bf15923f369cc282b0a5fcfb`의
+[RSS 보완 판단](https://github.com/dhseo90/MediaServer/blob/c4995e0ee2c912c3bf15923f369cc282b0a5fcfb/docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md)과 연결된 원자료에 둔다.
 
 추가 진단 실행은 종료한다. 후속 작업을 시작하려면 지원할 누적 이력 규모·운영 RAM 예산·장기 관리 범위를
 먼저 결정해야 한다. 이번 정리는 추가 실행·개발·새 메모리 정책의 승인이 아니며,

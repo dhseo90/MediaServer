@@ -1,9 +1,0 @@
-{
-  "command": [
-    "./server.sh",
-    "verify-script-inventory"
-  ],
-  "returnCode": 1,
-  "observedAt": "2026-10-01T21:50:32.898375+00:00",
-  "reason": "첫 inventory 실행 시 신규 helper/test는 untracked였으므로 stage 뒤 정확한 추적 집합으로 확인"
-}

@@ -7,7 +7,7 @@
 ## 보존 위치
 
 아래 보존 커밋은 원격 `v4.1.1`의 확인된 기준
-`4944ca5a6c42598adacb34adc08fceee7a762bc6`에서 모두 도달할 수 있습니다.
+`9139f023d7d1b3937aa1ae90d941874171aee10a`에서 모두 도달할 수 있습니다.
 이전에 로컬 전용으로 안내했던 기록도 이 이력에 포함됩니다. 원출력에 있는
 “당시 push 미수행” 등의 provenance는 수정하지 않습니다.
 
@@ -98,7 +98,8 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 
 ## v4.1.1 릴리즈 재시도 원본
 
-다음은 이번 릴리즈 준비에서 추가된 Git 보존 커밋이다. 공개·실제 UI·장시간 PASS를 뜻하지 않는다.
+다음은 릴리즈 재시도와 후속 녹화·진단의 Git 보존 위치다. 각 기록의 PASS·FAIL·부분 실행을
+구분하며 표에 있다는 사실만으로 실행 성공이나 공개를 뜻하지 않는다.
 경로는 `docs/release-artifacts/v4.1.1/` 기준이다.
 
 | 자료 | 보존 commit | 원래 경로 |
@@ -109,14 +110,24 @@ git show 68566d63b13396b359a3b493a5b7e4d8a70015d6:docs/development-backlog.md
 | 재시도 acceptance 실패·기본 녹화 저장소 생성·정리 원본 60개 | `74dd820fbebcfeafe69462e23d82873509dd0251` | `test-acceptance-current-final/` |
 | 현재 입력·자식 녹화 격리 보완, 14개 독립 판단·재검토와 결속 원본 89개 | `3f1b10336e068c587138c3747fb8135dd4a76954` | `input-isolation-resume-20261001/` |
 | script inventory 중단의 acceptance 원본 55개 | `a7144f6ef9a41057fb478dc900dbe10247472cd1` | `test-acceptance-current-final/` |
-| 종료 로그 독립 분류 수정·집중 검증 원본 19개 | `a0f45b8b42ab0b41a35b309758e4cfefca7612fb` | `script-inventory-resume-20261001/` |
+| 종료 로그 독립 분류 수정·집중 검증·출력 정리 후 확인 21개 | `f2547831bef8c2822a2f2ceff2e075e31b4cc989` (최초 보존 `a0f45b8b42ab0b41a35b309758e4cfefca7612fb`) | `script-inventory-resume-20261001/` |
 | 30분·UI 424개 실행 후 Policy 문구 검증 실패 원본 4,620개 | `864b4c9cfe8683c6b81f9e5e3628701cfc93553f` | `test-acceptance-current-final/`의 `preservation-manifest.json`과 대응 보존 파일 |
 | 체크리스트 문구 보완의 기본 검사·결속 불변·이전 출력 정리 확인 11개 | `0478d1274d3e12cfbe87a138ebdaab9a57ece61a` | `policy-wording-resume-20261001/` |
 | 30분·UI 424개·Policy 통과 후 120분 선행 codec probe timeout 원본 4,640개 | `f46f941002ff7d4df8055b47e58723cf1dc521b1` | `test-acceptance-current-final/`의 `preservation-manifest.json`과 대응 보존 파일 |
+| HTTP 단독 미재현 진단 9개 | `473d92a5f6261b7e9214db7c404995f8aa5feba1` | `codec-opus-diagnosis-20261001/` |
+| 같은 서버 선행 6개 source 이력 포함 미재현 대조 24개 | `c56f471b85a32ea5e9572e291004147470fa195b` | `codec-opus-history-comparison-20261001/` |
+| 일반 acceptance PASS·녹화 최초 링크 FAIL 및 대조·정리 4,703개 | `0cfc7cc0d932ad69ed7db094ebf40739fe83244e` (최초 보존 `1ba16587996162d842a27a38cb57b669c5040e9d`) | `test-acceptance-current-final/` |
+| finalize/timeline PASS·HTTP seed 컴파일 FAIL 및 대조·정리 30개 | `71b423d4cfafa56fcbe2fea7812752d07d87c22a` (최초 보존 `e437daa0dd127114995cd78d276500273da55f08`) | `recording-short-resume-20261002/` |
+| HTTP seed·API/Auth/lifecycle/composition PASS·actual-app ENOENT 및 대조·정리 27개 | `48486f527cd7ec122a8165d4dd9d8edfc2908d09` (최초 보존 `be77cbbd4d05cbe0c372ee864464992c3c067ae2`) | `recording-current-resume-20261002/` |
+| live budget 보완·current-integration PASS 및 대조·정리 49개 | `ce0d01e2b964cdcde27360b2f533039499ed2941` (최초 보존 `85c4af91ecaa39c4f7a78f08fabbc213a2cd2333`) | `recording-live-budget-20261002/` |
+| 녹화 UI 8개 ID·31개 action PASS·42개 캡처 검토 및 대조·정리 106개 | `860aa46b4d616291e0fad5cadb17ea127ebf2dc8` (최초 보존 `efc76b11126afb811fa4be0543ab5e8b0a548068`) | `recording-ui-20261002/` |
+| 녹화120분 기능·저장·재기동·cleanup PASS·자원 승인 보류 및 대조·정리 20개 | `6297af4b9fb0a7d5394a9af2cb34e5aff02c7ac0` (최초 보존 `b6d35b4ea5f0b6dcc0357d556c84b001d522e22c`) | `recording-longrun-20261002/` |
+| RSS 보유·회수 진단 및 대조·정리 29개 | `0749ba019e50aeb4aa18f651577cea5f2481d6d8` (최초 보존 `3fb33ef09a59a78e0a036c3f10b0677ad4d1ed6f`) | `recording-rss-diagnosis-20261002/` |
+| footprint 보완·live 할당 부분 수집 및 대조·정리 22개 | `c4995e0ee2c912c3bf15923f369cc282b0a5fcfb` (최초 보존 `bf81919f0ac3bc1b9726ce22f01f2aa1d4933149`) | `recording-rss-followup-20261002/` |
 
 최초 실패 출력 18개와 다음 재시도 실패 출력 60개·55개는 각각 위 Git 원본의 바이트·hash를 대조한 뒤 고정 출력 경로에서 제거했다.
 같은 경로의 새 실행 결과와 최초 실패는 commit·실행 source·run ID로 구분한다.
-나머지 보존 자료와 ignored 검토 원본은 재실행 준비에서 삭제하지 않았다.
+나머지 보존 자료와 ignored 검토 원본은 당시 재실행 준비에서 삭제하지 않았다.
 
 `864b4c9c`의 텍스트 원본은 무손실 gzip, PNG는 원래 바이트로 보존했다. 대응표의 원래 경로와
 SHA-256을 사용해 Git blob을 읽고 압축을 풀면 원본을 확인할 수 있다. 4,620개 전체를 Git에서
@@ -128,14 +139,14 @@ SHA-256을 사용해 Git blob을 읽고 압축을 풀면 원본을 확인할 수
 
 `f46f9410`도 gzip 보존 바이트와 압축 해제 원본 SHA-256을 구분한다. 전체 원본
 337,075,169바이트를 Git에서 대조한 뒤 미추적 중복 4,423개만 정리했다. 커밋된 실행 자료는
-유지하며, 이는 릴리즈 성공 후 수행하는 최종 트리의 종료 자료 삭제가 아니다. 120분 반복과
+당시 유지했으며 최종 트리의 종료 자료 삭제와 구분한다. 120분 반복과
 별도 녹화 8개 ID·31개 조작, 공개 절차는 이 실패 뒤 실행하지 않았다.
 
 표준 acceptance의 제한 재시도 준비에서 위 고정 출력 4,643개를 정리했다.
 `2087044eed0674335d8fb6929d55adc0eb3958d9`의 완료된 원본 대조 기록과 현재 저장 Git 객체가
 동일함을 확인했으며, 변경되거나 보존 범위에서 빠진 파일은 없었다. 최초 timeout 원본은
 `f46f9410`, 완료된 대조 기록은 `2087044e`에서 조회한다. HTTP 단독 미재현 진단
-`473d92a5`와 선행 source 이력 대조 `c56f471b`는 별도 경로에 유지한다.
+`473d92a5`와 선행 source 이력 대조 `c56f471b`는 위 표의 별도 보존 경로에서 조회한다.
 이번 출력 정리는 최초 FAIL의 취소나 원인 해결을 뜻하지 않는다.
 
 표준 조건의 제한 재시도 대상은 `c888ac9baf613c773cbd8bb14bb547d3a3e4cc3a`이며,
@@ -145,4 +156,36 @@ SHA-256을 사용해 Git blob을 읽고 압축을 풀면 원본을 확인할 수
 후속 녹화 finalize 통합 검사는 기존 snapshot 구현의 링크 누락으로 실패했다.
 녹화 UI 8개 ID·31개 조작과 나머지 녹화 보완 검사는 실행하지 않았으며 공개 절차도 수행하지 않았다.
 새 보존 표현 4,700개(정제본과 원본 관계는 별도 provenance)의 339,244,521바이트를 Git에서 대조하고
-미추적 중복 4,480개와 이번 실행 소유 임시 자료만 정리했다. 커밋된 증거는 실패 후속 판단을 위해 유지한다.
+미추적 중복 4,480개와 해당 실행 소유 임시 자료만 정리했다. 당시 커밋된 증거는 실패 후속 판단을 위해 유지했다.
+
+### 종료 자료의 최신 트리 정리
+
+추가 메모리 진단 종료 후 위 범위에 남아 있던 15개 run의 5,173개 파일,
+저장 표현 기준 51,434,878바이트를 별도 정리 커밋에서 삭제했다. 정확한 파일 목록은 그 커밋의
+삭제 diff이며, 전체 집합은 원격 기준 `9139f023d7d1b3937aa1ae90d941874171aee10a`와
+위 run별 보존 커밋의 같은 경로에서 조회할 수 있다. 기존 manifest/readback을 재사용하고
+현재 바이트의 Git blob ID·크기·객체 존재와 보존 커밋의 도달 가능성을 확인했다.
+동일 원본을 재복사·재압축하거나 수천 개 gzip을 다시 해제하지 않았다.
+
+보존 표현은 원본 JSON/PNG·원출력, 무손실 gzip, 정제본·선택 발췌, hash만 남은 자료로 구분한다.
+각 manifest 또는 result의 provenance가 그 경계다. 특히 RSS 진단 gzip은 정제 텍스트의 무손실
+표현이며 private 원문과 같은 바이트가 아니다. 추가 스택 진단은 16MiB 출력 수집 한도로
+부분 중단됐고 완전한 원문 대신 hash와 선택된 완결 스택의 정제 발췌만 보존했다.
+미수집 꼬리와 해당 run의 off 관측은 존재하지 않으며 제품 OOM·녹화 assertion 실패로 바꾸지 않는다.
+
+삭제 대상에 현행 fixture·계약·빌드 입력은 없었다. 최종 무결성 검사의 실행별 산출물 입력과
+일반 검사에 필요한 현행 입력을 구분했으며, 릴리즈 launcher는 새 출력 디렉터리를 직접 생성한다.
+녹화 wrapper가 요구하는 v4.1.0 receipt 디렉터리와 기존 내용, 현재 승인 원장·기능 정의·정책·fixture·
+baseline, `.media_server.test`의 ignored 검토 입력과 사용자·기본 저장소는 유지한다.
+이번 범위에서 보존 또는 역할 미확인으로 남긴 파일은 없다.
+
+일반 acceptance·UI432·녹화 단기·녹화120분의 기존 결과와 과거 FAIL은 그대로다.
+현재 판단은 [릴리즈 노트](../release-notes-v4.1.1.md#검증과-공개-상태)와
+[미해결 메모리 운영 한계](../development-backlog.md#녹화-누적-이력의-메모리-운영-한계)에 둔다.
+이번 정리는 자원 안정성 승인·운영 위험 수용·릴리즈 공개가 아니다.
+
+```sh
+git show 0cfc7cc0d932ad69ed7db094ebf40739fe83244e:docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json
+git show c4995e0ee2c912c3bf15923f369cc282b0a5fcfb:docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md
+git show 9139f023d7d1b3937aa1ae90d941874171aee10a:docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/readback-cleanup.json
+```

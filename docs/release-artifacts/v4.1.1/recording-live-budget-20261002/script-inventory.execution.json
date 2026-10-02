@@ -1,8 +1,0 @@
-{
-  "command": [
-    "./server.sh",
-    "verify-script-inventory"
-  ],
-  "returnCode": 0,
-  "observedAt": "2026-10-01T21:49:38.679646+00:00"
-}

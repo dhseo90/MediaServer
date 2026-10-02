@@ -38,13 +38,13 @@ RTSP/WebRTC, Event POST·SSE/WS metadata, Auth/Role/Scope, Rule/Profile 저장 �
 
 - 일반 acceptance: `c888ac9baf613c773cbd8bb14bb547d3a3e4cc3a`에서 빌드·36개 기능 검사·30분·
   기본 UI424 적격 판정·서버120분·최종 무결성 PASS입니다.
-  [보존 기록의 standardAcceptance](release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json)에
+  [보존 기록의 standardAcceptance](https://github.com/dhseo90/MediaServer/blob/0cfc7cc0d932ad69ed7db094ebf40739fe83244e/docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json)에
   연결하며, 같은 기록의 후속 녹화 링크 FAIL은 그대로 유지합니다.
 - UI432 범위: 위 baseline424와 별도 녹화8개 ID·31개 action PASS, 캡처42개 검토를 결합한
-  [녹화 UI 판단](release-artifacts/v4.1.1/recording-ui-20261002/review.md)입니다. 서로 다른 실행입니다.
-- 녹화 단기: [finalize 통합·기본 smoke와 timeline](release-artifacts/v4.1.1/recording-short-resume-20261002/result.json)의
-  PASS와 이후 [current-integration 완료](release-artifacts/v4.1.1/recording-live-budget-20261002/result.json)를 유지합니다.
-- 별도 녹화120분: [기능·저장·재기동·cleanup PASS](release-artifacts/v4.1.1/recording-longrun-20261002/review.md)를
+  [녹화 UI 판단](https://github.com/dhseo90/MediaServer/blob/860aa46b4d616291e0fad5cadb17ea127ebf2dc8/docs/release-artifacts/v4.1.1/recording-ui-20261002/review.md)입니다. 서로 다른 실행입니다.
+- 녹화 단기: [finalize 통합·기본 smoke와 timeline](https://github.com/dhseo90/MediaServer/blob/71b423d4cfafa56fcbe2fea7812752d07d87c22a/docs/release-artifacts/v4.1.1/recording-short-resume-20261002/result.json)의
+  PASS와 이후 [current-integration 완료](https://github.com/dhseo90/MediaServer/blob/ce0d01e2b964cdcde27360b2f533039499ed2941/docs/release-artifacts/v4.1.1/recording-live-budget-20261002/result.json)를 유지합니다.
+- 별도 녹화120분: [기능·저장·재기동·cleanup PASS](https://github.com/dhseo90/MediaServer/blob/6297af4b9fb0a7d5394a9af2cb34e5aff02c7ac0/docs/release-artifacts/v4.1.1/recording-longrun-20261002/review.md)를
   유지하며 자원 안정성의 무조건적 승인과 구분합니다.
 
 자원 안정성의 무조건적 승인은 보류 중이며 v4.1.1 공개는 아직 수행하지 않았습니다.
