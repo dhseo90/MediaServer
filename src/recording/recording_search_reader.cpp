@@ -3,6 +3,7 @@
 #include <limits>
 #include <map>
 #include <tuple>
+#include "recording/recording_file_evidence.h"
 #include "ingress/event_storage_application_service.h"
 
 namespace recording {
@@ -127,5 +128,41 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
         *output=std::move(candidates);if(error)error->clear();return true;
     }catch(const std::bad_alloc&){if(error)*error="search-playback-candidate-capacity";return false;}
      catch(const std::length_error&){if(error)*error="search-playback-candidate-capacity";return false;}
+}
+bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::string& segment,
+    std::int64_t pts,std::int32_t num,std::int32_t den,SearchSeekTarget* output,std::string* error) const {
+    const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
+    if(!output||pts<0||num<=0||den<=0)return unavailable("seek-unavailable-invalid-time");
+    const __int128 scaled=static_cast<__int128>(pts)*num*1000000000;
+    if(scaled%den||scaled/den>std::numeric_limits<std::int64_t>::max())return unavailable("seek-unavailable-unrepresentable-time");
+    const auto ns=static_cast<std::int64_t>(scaled/den);
+    const auto binding=catalog_.FindSourceBinding(segment);
+    if(!binding||binding->channel_id!=channel||binding->segment_id!=segment||!binding->file_evidence)
+        return unavailable("seek-unavailable-file-evidence");
+    auto media=reader_.ResolveMedia(channel,segment);
+    if(!media)return unavailable("seek-unavailable-media");
+    std::string evidence_error;
+    if(!VerifyRecordingFileEvidenceFd(media->fd(),*binding,&evidence_error))return unavailable("seek-unavailable-file-evidence");
+    const auto& evidence=*binding->file_evidence;
+    const RecordingFileSampleEvidenceV1* selected=nullptr;
+    for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
+    }
+    if(!selected)for(const auto& sample:evidence.samples){
+        // 검증된 native tick 구간과 source ns를 정수 교차곱으로 비교한다.
+        const __int128 position=(static_cast<__int128>(ns)-evidence.writer_origin_ns)*evidence.timescale;
+        const __int128 start=static_cast<__int128>(sample.native_pts)*1000000000;
+        const __int128 end=(static_cast<__int128>(sample.native_pts)+sample.native_duration)*1000000000;
+        if(start<=position&&position<end){
+            if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
+        }
+    }
+    if(!selected||selected->native_pts<evidence.edit_media_time)return unavailable("seek-unavailable-outside-file");
+    // 실제 검증된 MP4 native tick과 edit를 사용한다. UTC나 요청 구간의 시작을 빼지 않는다.
+    SearchSeekTarget result;
+    result.seconds=static_cast<double>(selected->native_pts-evidence.edit_media_time)/evidence.timescale;
+    result.frame_duration_seconds=static_cast<double>(selected->native_duration)/evidence.timescale;
+    result.sample_ordinal=selected->ordinal;result.basis="verified-native-file-presentation";
+    *output=std::move(result);if(error)error->clear();return true;
 }
 } // namespace recording

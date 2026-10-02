@@ -4155,3 +4155,7 @@ V420-C01~03 focused: 시간 동률/channel/ID/unknown 순서, 전체 known/unkno
 V420-E01/E02 우선 선택 값 검사: 같은 source/store/epoch/segment/timebase 구간만 대체, partial 양쪽 잔여 원본 보존, 이벤트 중첩의 안정 ID 선택, 입력 순서/중복 불변, 원본 identity 불명·다른 원본·건강도/출처 미검증의 fallback, 관측 점의 시작/끝 반개구간, 전체 포함 clipping, invalid/candidate 4,096개 초과 원자 거부. 이 값 검사는 실제 파일 건강도/파생 job의 출처 읽기 검증을 대신하지 않는다.
 
 V420-E01/E02 실제 미디어 연결: 기존 GStreamer 30-frame fixture의 원본과 파생 job을 생성하여 intent 제외, job 완료 전후 source revision 무효화, 현재 재생 가능한 출력과 검증된 원본 media-ns coverage, 부분 이벤트 밖 원본 tail 유지, 출력 파일 부재 제외/복구 후 재검사, 기존 timeline 1,000행 page 상한 불변을 확인한다. 격리 임시 저장소·동기 job 한 번만 사용하며 서버/포트 없이 종료 후 전체 소유 fixture를 제거한다.
+
+V420-P01/P03 원본 seek focused: 30fps 12-frame/7초 source PTS 원점의 실제 MP4를 기록하고 현재 file evidence를 검증하여 6번째 frame의 파일 위치를 산출한다. 전체 독립 디코딩의 6번째 frame hash와 실제 accurate seek 뒤 frame hash를 비교하고 시각 오차가 한 frame duration 이내인지 확인한다. 표본 PTS 다음 1ns의 native 구간 소속도 확인한다. 다른 채널/표현 불가 시간/범위 밖/파일 부재는 원자 거부한다. 파생 출력 seek와 브라우저 UI는 별도 검사다.
+
+V420-P03의 기본 10fps mux fixture는 현재 file-evidence profile 미지원 시 explicit seek-unavailable을 검사한다. 원인 진단은 생성된 MP4의 movie/track timescale을 직접 읽어 30fps 지원 fixture와 대조하며 원본이나 검증 정책을 수정하지 않는다.
