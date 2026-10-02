@@ -2,6 +2,11 @@
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_native_coverage.h"
+#include "recording/recording_remux_result.h"
+#include "../../src/recording/recording_derived_job_context.h"
+#include <filesystem>
+#include <set>
+#include <type_traits>
 #include <openssl/sha.h>
 #include <chrono>
 #include <iomanip>
@@ -12,6 +17,10 @@
 #include <vector>
 
 namespace {
+template<class T,class=void> struct CanAnalyzeIntent : std::false_type {};
+template<class T> struct CanAnalyzeIntent<T,std::void_t<decltype(recording::detail::DerivedJobIntentContext::Analyze(std::declval<T>()))>> : std::true_type {};
+static_assert(CanAnalyzeIntent<const recording::DerivedJobIntentV1&>::value);
+static_assert(!CanAnalyzeIntent<recording::DerivedJobIntentV1&&>::value);
 void Need(bool ok) { if (!ok) throw std::runtime_error("fixture-setup"); }
 std::string Hash(const std::string& value) {
     unsigned char digest[SHA256_DIGEST_LENGTH];
@@ -96,6 +105,62 @@ int main(int argc,char** argv) {
         check(SerializeDerivedJobIntent(bad).empty(),"P0-PERF01 selection table mapping conflict rejected");
         bad=job;bad.job_id="forged-job";
         check(SerializeDerivedJobIntent(bad).empty(),"P0-PERF01 job identity forgery rejected");
+        // 2-A: 호출 지역 intent를 빌리고 selection/canonical 값은 context가 직접 소유한다.
+        static_assert(!std::is_copy_constructible_v<detail::DerivedJobIntentContext>);
+        const auto context=detail::DerivedJobIntentContext::Analyze(job);
+        auto changed_selection=selection;changed_selection.slices[0].start_ns++;
+        bool selection_rejected=false;
+        try{context.CheckSelection(changed_selection);}catch(const std::exception&){selection_rejected=true;}
+        check(context.Canonical()==intent&&context.Selection().slices[0].start_ns==3000000000LL&&selection_rejected,
+            "2A context owns selection values and rejects different selection");
+        DerivedJobIntentV1 destination;
+        const auto parsed_context=detail::DerivedJobIntentContext::Parse(intent,destination);
+        parsed_context.CheckSelection(selection);
+        check(parsed_context.Canonical()==intent&&SerializeDerivedJobIntent(destination)==intent,
+            "2A parsed context consumed within destination lifetime");
+        DerivedJobFileV1 receipt;receipt.device=1;receipt.inode=100;receipt.initial_sha256=Hash("");
+        std::set<std::string> dirs{""};
+        for(const auto& name:{job.outputs[0].temporary_relpath,job.outputs[0].final_relpath}) {
+            auto parent=std::filesystem::path(name).parent_path();
+            while(!parent.empty()){dirs.insert(parent.generic_string());parent=parent.parent_path();}
+        }
+        std::uint64_t inode=200;for(const auto& dir:dirs)receipt.directories.push_back({dir,1,inode++});
+        record.files.push_back(receipt);
+        DerivedRemuxResult remux;remux.selection=selection;remux.verified_output=true;remux.request_fully_satisfied=true;
+        DerivedRemuxOutput output;output.segment_id="segment";output.store_id="store";output.source_id="source";output.media_epoch_id="epoch";
+        output.verified_output=output.request_fully_satisfied=output.output_modified=output.caller_cleanup_required=true;
+        output.size_bytes=12;output.checksum_sha256=Hash("media");output.codec_sha256=Hash("codec");
+        output.actual_original_start_ns=output.requested_media_start_ns=3000000000LL;
+        output.actual_original_end_ns=output.requested_media_end_ns=4800000000LL;
+        for(int i=0;i<45;++i){DerivedRemuxAu au;au.ordinal=76+i;au.original_pts_ns=3000000000LL+i*40000000LL;
+            au.file_pts_ns=au.file_stream_time_ns=au.original_pts_ns;au.output_pts_ns=i*40000000LL;
+            au.file_duration_ns=au.output_duration_ns=40000000;
+            au.source_vcl_sha256=au.output_vcl_sha256=Hash("au"+std::to_string(i));output.access_units.push_back(au);
+            output.source_decoded_sha256.push_back(Hash("pixels"+std::to_string(i)));}
+        output.output_decoded_sha256=output.source_decoded_sha256;remux.outputs.push_back(output);
+        DerivedJobRecordV1 ready,ready_roundtrip;
+        const bool ready_built=BuildDerivedJobReady(record,remux,{2},20,&ready,&error);
+        const auto ready_json=SerializeDerivedJobRecord(ready);
+        check(ready_built&&!ready_json.empty()&&ParseDerivedJobRecord(ready_json,&ready_roundtrip,&error)&&
+            SerializeDerivedJobRecord(ready_roundtrip)==ready_json,"2A Ready result value strict roundtrip");
+        auto rejected=[&](const DerivedRemuxResult& value,const char* expected){DerivedJobRecordV1 out;
+            return !BuildDerivedJobReady(record,value,{2},20,&out,&error)&&error==expected;};
+        auto forged=remux;forged.selection=changed_selection;
+        check(rejected(forged,"job-ready-selection-conflict"),"2A verified flag cannot override selection mismatch");
+        forged=remux;forged.outputs[0].segment_id="other";
+        check(rejected(forged,"job-provenance-source"),"2A verified flag cannot override source mismatch");
+        forged=remux;forged.unfulfilled.push_back({"segment","original-pts-ns","file-duration-uncovered",3000000000LL,3040000000LL});
+        forged.request_fully_satisfied=false;
+        check(rejected(forged,"job-unfulfilled-selection-binding"),"2A fabricated missing interval rejected");
+        forged=remux;forged.outputs[0].access_units.erase(forged.outputs[0].access_units.begin()+1);
+        forged.outputs[0].source_decoded_sha256.erase(forged.outputs[0].source_decoded_sha256.begin()+1);
+        forged.outputs[0].output_decoded_sha256=forged.outputs[0].source_decoded_sha256;
+        check(rejected(forged,"job-output-coverage-claim"),"2A omitted AU cannot claim complete output");
+        forged.outputs[0].request_fully_satisfied=false;forged.request_fully_satisfied=false;
+        check(rejected(forged,"job-unfulfilled-selection-binding"),"2A missing interval cannot omit gap evidence");
+        forged.unfulfilled.push_back({"segment","original-pts-ns","file-duration-uncovered",3040000000LL,3080000000LL});
+        check(BuildDerivedJobReady(record,forged,{2},20,&ready,&error)&&!ready.ready->request_fully_satisfied,
+            "2A proven missing interval stays partial");
         // 독립 literal 30fps: 정수 envelope와 native 정확 경계를 일부러 다르게 둔다.
         auto ns=source;ns.segment.media_end_pts=100000000;ns.segment.mappings.clear();
         ns.segment.mappings.push_back({"media-server.recording-utc-mapping.v1","native-map",0,100000000,"server-observation",100000000,200000000,1,"observed"});

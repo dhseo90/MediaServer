@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { parseServerDispatches as parseFixedServerDispatches } from "./script_dispatch_parser.mjs";
+import { validateVerificationDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -77,6 +78,10 @@ check("tracked scripts are classified and referenced", () => {
   const dispatchTargets = new Set(dispatches.map(item => path.join("scripts/internal", item.script)));
   const trackedScripts = gitLsFiles(["scripts"]).filter(fileExists);
   const trackedTextFiles = gitLsFiles([])
+    // 종료 실행 기록은 등록 근거가 아니다. 보존·정리 여부로 분류가 바뀌면 안 된다.
+    .filter(file => !file.startsWith("docs/release-artifacts/"))
+    .filter(file => !file.startsWith("docs/archive/"))
+    .filter(file => !/\.log(?:\.gz)?$/i.test(file))
     .filter(file => !/\.(png|jpe?g|mp4|onnx|pyc)$/i.test(file))
     .filter(file => !file.startsWith("build"))
     .filter(file => !file.startsWith("docs/assets/"));
@@ -115,6 +120,16 @@ check("tracked scripts are classified and referenced", () => {
     }
   }
   assert(unclassified.length === 0, `unclassified or unreferenced script(s):\n${unclassified.join("\n")}`);
+});
+
+check("current standalone script instructions target tracked files", () => {
+  const tracked = new Set(gitLsFiles(["scripts"]).filter(fileExists));
+  for (const guide of ["docs/stream-verification.md", "docs/development-guide.md"]) {
+    const text = readText(path.join(rootDir, guide));
+    for (const match of text.matchAll(/\b(?:node(?: --test)?|bash|python3) (scripts\/internal\/[A-Za-z0-9_.-]+\.(?:mjs|cjs|js|sh|py))\b/g)) {
+      assert(tracked.has(match[1]), `${guide}: missing standalone script target ${match[1]}`);
+    }
+  }
 });
 
 check("project inventory delegates script file inventory to this verifier", () => {
@@ -175,16 +190,8 @@ check("auth verifier has no hardcoded test password defaults", () => {
   ]) {
     assert(!/qweasd0-|wrong-qweasd/i.test(text), `${label}: hardcoded auth verifier password remains`);
   }
-  for (const envName of [
-    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
-    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
-  ]) {
-    assert(streamVerification.includes(envName), `stream verification docs missing ${envName}`);
-    assert(agents.includes(envName), `AGENTS.md missing ${envName}`);
-  }
+  const documentationErrors = validateVerificationDocumentation({agents, verification: streamVerification});
+  assert(documentationErrors.length === 0, documentationErrors.join('; '));
   assert(authWorkflow.includes('recording_auth_preparation.sh') && authWorkflow.includes('auth_generate_passwords'), 'auth workflow missing isolated credential bootstrap');
   const preparation=readText(path.join(rootDir,'scripts/internal/recording_auth_preparation.mjs'));
   assert(preparation.includes("randomBytes(24)") && preparation.includes("['-q','--config','-']"), 'auth preparation missing CSPRNG/stdin transport boundary');

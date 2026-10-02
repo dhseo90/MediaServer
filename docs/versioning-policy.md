@@ -1,356 +1,76 @@
-# Versioning Policy
+# 버전 정책
 
-이 문서는 Media Server의 소스 버전, 공개 GitHub Release, release tag 기준을 분리해
-정의합니다.
+소스 버전, 공개 목표, 기록된 GitHub Release와 미래 계획을 구분하는 기준이다.
+실제 검증·승인·기록 보존·태그·공개 절차는 [릴리즈 정책](release-policy.md)에 둔다.
 
-## 현재 기준
+## 버전과 공개 상태
 
-- 현재 소스 버전: `4.1.0`
-- 현재 source roadmap: `v4.1.0 Recording Foundation`
-- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
-- 현재 release target: `v4.1.0`
-- 직전 공개 roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- 이전 공개 roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- source-only release 기준 tag를 판단할 때 release target tag `v4.1.0`과 직전 공개 baseline `v4.0.0`을 구분합니다. target은 실제 생성·서명·푸시·GitHub Release 완료를 뜻하지 않습니다.
-- `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
-- `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
+| 구분 | 기준 | 뜻하지 않는 것 |
+| --- | --- | --- |
+| 소스 버전 | [VERSION](../VERSION), [CMakeLists.txt](../CMakeLists.txt)의 `project(... VERSION ...)` | 같은 버전의 원격 tag/Release가 이미 존재한다는 보장 |
+| 공개 목표 | 릴리즈 정책의 `release-metadata` 블록 안 `releaseTarget` | tag 생성·서명·push·GitHub Release 완료 |
+| 기록된 공개 관측 | 같은 블록의 `published.tag`, `published.url`, `published.observedAt` | 현재 GitHub Latest를 방금 조회한 결과 |
+| 이전 공개 기준 | `priorPublishedTag` | 현재 소스의 기능·검증 결과 |
+| 계획 | [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md), [backlog](development-backlog.md) | 구현·선택·실행 완료 |
 
-현재 소스 트리의 `4.1.0` roadmap은 v4.1.0 Recording Foundation이며 상시·이벤트 녹화,
-보존·조회/재생·검색 준비 metadata와 S10 보강을 구현한 소스입니다. S11 제품 검증과
-B14 공개 준비는 완료했으며 외부 릴리즈 상태는 실제 실행 기록에서 별도로 판정합니다.
-초기의 `source-only/live-only` 설명은 S00 당시 이력이다. 현재 source-only는 공개 패키지에
-runtime/model binary를 포함하지 않는다는 뜻이며 녹화 기능
-미구현이나 live-only를 뜻하지 않습니다. v4.0.0은 이 cut의 직전 공개 baseline입니다.
-v4.1.0 publish 완료는 signed tag, source-only GitHub Release,
-`verify-release-metadata --published` evidence로 확인합니다. v3.9.1 earlier published
-baseline, v3.9.0/v3.8.0 historical published baseline과 후속 기능별 완료 evidence는
-계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며 binary/runtime/model
-bundle을 공개 asset으로 포함하지 않습니다.
+기계 판정 값은 [릴리즈 정책의 단일 metadata 블록](release-policy.md#소스와-기록된-공개-상태)에 둔다.
+`VERSION`과 CMake 값은 같아야 하며 `releaseTarget`은 소스 버전 앞에 `v`를 붙인 값이다.
+기록된 공개 관측과 목표가 같아도 로컬 문서 검사가 현재 원격 확인을 수행한 것은 아니다.
+문서 정리, 브랜치 이름, 로드맵 제목만으로 버전이나 `observedAt`을 변경하지 않는다.
 
-## 2.x runway / 3.0 전환 정책
+현재 소스의 녹화는 상시·이벤트 녹화, 보존, 조회/재생과 검색 준비 metadata를 포함한다.
+정확한 범위·제약은 [녹화 설정과 API](config-reference.md#recording-env),
+[사용자 흐름](ui-guide.md), 해당 [릴리즈 노트](release-notes-v4.1.0.md)를 따른다.
+`source-only`는 배포 형태이며 녹화 미구현이나 live-only라는 뜻이 아니다.
 
-- 2.x 라인은 `2.8.0`과 `2.9.0`까지만 유지합니다.
-- `2.8.0`은 기존 route/API/config/schema, Event POST/WebRTC/SSE/WS metadata,
-  RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload 계약을 유지한
-  operator-supervised action readiness release입니다.
-- `2.9.0`은 2.x의 마지막 source-of-truth 정렬, contract freeze, v2.8 기능군 회귀
-  묶음, compatibility gate, release evidence 정리를 수행하는 release입니다.
-- `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence 저장 형식,
-  RTSP/WebRTC media path 같은 대규모 변경을 별도 설계와 명시 승인 후 다루는 major
-  line입니다.
-- `3.1.0`은 v3.0 Event Evidence Search MVP 위에서 event-centered encoded clip,
-  safe sharing, scoped integration, operator correction, optional vector search를
-  단계별 local evidence로 확장하는 minor line입니다.
-- `3.2.0`은 v3.1 Encoded Event Clip and Safe Sharing Expansion 위에서 `/ops/events`
-  중심의 resolution state, evidence quality, source context, AI review quality,
-  operator closure flow를 하나의 운영 작업공간으로 묶는 minor line입니다.
-- `3.3.0`은 v3.2 Operations Resolution Workspace 위에서 live source registry,
-  onboarding quality, source health history, incident-to-source context를 운영자가
-  같은 흐름에서 재확인하는 minor line입니다.
-- `3.4.0`은 v3.3 Live Source Reliability Workspace 위에서 source reliability/handoff
-  입력을 production write 없이 continuity drill, recovery candidate package, staging
-  restore validation으로 리허설하는 minor line입니다.
-- `3.5.0`은 v3.4 Operations Continuity Drill Workspace 위에서 EventRecord,
-  SourceRegistry, PublishedView, source health, continuity drill, client impact를
-  하나의 Ops-only graph와 command plan/staged preview로 묶는 minor line입니다.
-- `3.6.0`은 v3.5 Live Operations Control Plane 위에서 EventRecord, SourceRegistry,
-  PublishedView, command plan, staged plan을 read-only simulation input으로 묶고,
-  dry-run, source/rule impact diff, safe apply readiness를 자동 적용 없이 계산하는
-  minor line입니다.
-- `3.7.0`은 v3.6 Operations Simulation and Safe Apply Readiness 위에서 site/source
-  group, site impact graph, safe runbook template, approval ticket, limited safe execution
-  pilot을 순서대로 준비하는 minor line입니다.
-- `3.8.0`은 v3.7 Site-Aware Operations and Safe Runbook Control Plane 위에서
-  operator-gated action request, approval decision, readiness preflight, limited execution
-  candidate, outcome reconciliation을 순서대로 준비하는 minor line입니다.
-- `3.9.0`은 v3.8 Operator-Gated Action Pilot & Outcome Loop까지 노출/약속/부분
-  구현된 기능을 전수 확인하고, REVIEW4-50~63 기능·저장·UI·테스트 실행기 개발 뒤
-  REVIEW4-64 동작 보존 구조 안정화와 REVIEW4-65 독립 acceptance까지 같은 브랜치에서
-  순서대로 닫는 minor line입니다.
-- 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
-  runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
+## 버전 번호의 의미
 
-## 4.0.0 cut-prior published source-only release 범위
+`MAJOR.MINOR.PATCH`를 사용한다. 변경의 호환성과 사용자 이관 필요성을 먼저 판단하며,
+번호를 정했다는 이유로 제품 계약 변경이나 후속 개발을 승인한 것으로 보지 않는다.
 
-- Local Operations Policy freeze
-- Incident OS policy surfaces
-- Evidence operations policy
-- Verification-layer reduction
-- Local operations stabilization
-- 30-minute soak executed-pass and UI fulltest exact 424/424 executed-pass
-- 120-minute soak operator-excluded for this cut
-- Real-device field smoke excluded
+| 구분 | 적용 기준 |
+| --- | --- |
+| `PATCH` | 문서·테스트·버그 수정·UI 문구·guardrail 보강 등 공개 API/설정 호환성을 깨지 않는 변경 |
+| `MINOR` | 기존 호환성을 유지하는 source type·rule·UI·운영 기능 추가 |
+| `MAJOR` | route/API/config/schema, registry/storage, Auth/Scope, evidence 저장 형식 등 사용자 migration이 필요한 변경 |
 
-위 항목은 신규 제품 기능 없이 로컬 운영 정책을 고정한 cut 직전 published major
-baseline입니다. 외부 field smoke는 실제 endpoint, credential, 실기기, provider
-조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
+호환성을 바꿀 때는 영향을 받는 기존 소비자·설정·저장 자료와 복구/이관 방안을 설계하고
+명시 승인을 먼저 받는다. 과거 major의 정책 정리나 승인된 예외를 현재 변경의 자동 승인으로 쓰지 않는다.
+Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC 경로·worker 수명, 녹화 형식·순서·보호,
+Rule/Profile payload와 Auth/Role/Scope 등 [제품 불변 계약](../AGENTS.md#3-제품-불변-계약)은
+버전 번호와 별개로 유지한다.
 
-## 3.9.1 previous published source-only release 범위
+## 기능·배포·계획의 경계
 
-- v3.9.0 post-tag correctness 보정
-- public repository hygiene
-- documentation truth
-- bounded release evidence
-- test asset bootstrap
-- Policy v4 current-source version binding
+- 기본 공개는 Apache-2.0 소스·문서다. binary/app/container/offline 및 runtime/model 포함
+  배포는 [배포 정책](distribution-policy.md)의 별도 승인·RC·라이선스/출처 검토 대상이다.
+  고객/현장 영상·운영 evidence·auth store·로그를 배포물에 넣지 않는다.
+- 현재 제한된 녹화·재생 지원을 완성된 VMS/NVR, 무제한 장기 보관, ONVIF Profile G
+  recording/replay 또는 미구현 자연어 영상 검색으로 확대 설명하지 않는다.
+  후속 검색·저장 기능은 로드맵의 구현/잔여 상태를 구분한다.
+- VLM default-on, 실제 provider 성공, 모델/runtime binary 배포나 embedding provider의
+  기본 의존성 채택은 버전 상승에 따라 자동 적용되지 않는다.
+  [VLM opt-in 계약](vlm-runtime-opt-in-contract.md)과 [개인정보 경계](vlm-privacy-transfer-guard.md)를 따른다.
+- Re-ID/tracker default-on이나 OC-SORT/BoT-SORT/DeepSORT runtime 승격은 버전명으로
+  정하지 않는다. [분석 설정](config-reference.md)과 [분석 계약](video-analysis.md)의 실제
+  선택·fallback·제외·라이선스/출처·운영 제한을 확인한다.
+- ONVIF 실장비·외부 TURN/WHEP·cloud provider 성공은 별도 조건과 실제 실행 증거가 필요하다.
+  fixture/준비 검사나 릴리즈 tag만으로 실장비·외부 성공을 보장하지 않는다.
 
-위 항목은 v3.9.0 제품 기능을 유지한 latest published patch baseline입니다.
-30분/120분 장시간 테스트, exact UI `424/424`, Policy v4 `424/424`, cleanup과 final
-integrity evidence를 보존했습니다. 외부 field smoke는 실제 endpoint, credential,
-실기기, provider 조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
+## 버전 변경과 공개
 
-## v4.1.0 현재 source 개발 범위
+1. 승인된 변경 범위와 호환성에 맞춰 번호를 결정한다. `VERSION`, CMake, 릴리즈 metadata와
+   공개 진입점·노트의 연결을 함께 갱신한다. 실제 공개 관측 값은 관측 근거 없이 갱신하지 않는다.
+2. `./server.sh verify-release-metadata`로 로컬 일관성을 확인한다. 이 명령은 제품 검증·
+   실제 UI·30분/120분·CI·공개 실행을 대신하지 않는다. 검사와 기록 정리는 릴리즈 정책을 따른다.
+3. `vMAJOR.MINOR.PATCH` tag는 검증·보존/정리를 마친 최종 main 커밋에 signed annotated
+   형식으로 만든다. 개별 생성/push 승인을 확인하고 로컬 서명·원격 대상 hash·GitHub Verified 및
+   API `verified=true`/`reason=valid`를 확인한다. unsigned/lightweight/UI 자동 태그는 사용하지 않는다.
+4. 승인된 GitHub Release 공개 후 `verify-release-metadata --published`로 실제 상태를 확인한다.
+   목표 번호만으로 공개 완료라 하지 않으며 tag/Release/branch 삭제·rollback은 별도 승인 대상이다.
 
-- `v4.1.0`은 Recording Foundation minor다.
-- 현재 소스 트리의 `VERSION`과 release target은 `4.1.0`이고 직전 공개 baseline은 `v4.0.0`이다.
-- S01~S08 구현, S10 보강, S11 제품 검증과 B14 공개 준비를 완료했다. PR·병합·서명 tag,
-  GitHub Release와 published metadata는 실제 실행 기록에서만 완료로 판정한다.
-- 구조화/벡터/자연어 검색과 실기기 ONVIF 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출은
-  v4.1.0 기본 범위가 아니다.
-- 상세 스텝과 테스트 스크립트 반영 불변 조건은 [development-backlog.md](./development-backlog.md)의
-  `v4.1.0 Recording Foundation` 절이 source-of-truth다.
-
-## v3.9.0 previous published source-only release 범위
-
-- v3.9.0 source baseline alignment
-- Feature Completion Inventory
-- User Review Gate
-- Feature completion development items after user approval
-- Structure stabilization preparation
-- Test model preparation
-
-위 항목은 release validation evidence와 함께 닫은 latest published baseline입니다.
-30분/120분 장시간 테스트, exact UI `424/424`, Policy v4 `424/424`, cleanup과 final
-integrity evidence를 보존했습니다. 외부 field smoke는 실제 endpoint, credential,
-실기기, provider 조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
-
-`v3.9.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
-`docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
-release/version policy가 source `3.9.0`, current roadmap
-`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`,
-latest published `v3.9.0`와 정렬하는지 확인하는 local gate입니다. 최신 published
-baseline은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation입니다. 대표 UI 이미지는
-`config/docs_ui_assets.json`의 managed asset list로 관리하며, image recapture, 직접
-브라우저 검수 PASS, UI 풀테스트, published metadata, tag/push/GitHub Release는 source
-baseline 정렬 PASS로 대체하지 않습니다.
-
-## v3.8.0 previous published source-only release 범위
-
-- v3.8.0 source roadmap baseline 정렬
-- Ops Action Route Boundary
-- Action Capability Contract
-- Action Request Ledger Contract
-- Approval Decision Gate
-- Action Readiness Preflight
-- Source Recheck Action Pilot
-- Client Notice Draft Queue
-- Rule Draft Action Package
-- Ops Action Control Workspace UI
-- Client-safe Action Notice Preview
-- Outcome Observer and Reconciliation
-- Action Receipt Bundle
-- Field Connector Evidence Package
-- Default-off Action Explanation
-- Stabilization and Release Readiness
-
-위 항목은 release validation evidence와 함께 닫은 previous published baseline입니다.
-30분/120분 장시간 테스트와 UI 풀테스트는 v3.8.0 release evidence로 보존했고,
-외부 field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어 실행하지
-않은 영역으로 계속 분리합니다.
-
-## v3.7.0 previous published source-only release 범위
-
-- v3.7.0 source roadmap baseline 정렬
-- Site / Source Group Contract
-- Site-Aware Source Registry Projection
-- Site Health Rollup
-- Site Impact Graph
-- Site Simulation Input Pack
-- Cross-Site Safe Apply Readiness
-- Runbook Template Contract
-- Runbook Instance Ledger
-- Approval Ticket Workflow
-- Site Operations Workspace UI
-- Client Notice by Site/View Group
-- Rule/VA What-if by Site
-- Field Evidence Attachment
-- Limited Safe Execution Pilot
-- Outcome Reconciliation
-- Export / Handoff Bundle
-- Stabilization and Release Readiness
-
-위 항목은 직전 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
-않은 영역으로 계속 분리합니다.
-
-## v3.6.0 historical published source-only release 범위
-
-- v3.6.0 source roadmap baseline 정렬
-- Simulation Input Contract
-- Operations Simulation Run Contract
-- Command Plan Dry-run Simulator
-- Source/Rule Impact Diff
-- Safe Apply Readiness Gate
-- Ops Simulation Workspace UI
-- Simulation Run Ledger and Comparison
-- Client Notice Preview
-- Rule/VA What-if Replay Pack
-- Simulation Export Bundle
-- Field Evidence Simulation Adapter
-- VLM-assisted Simulation Explanation
-- Stabilization and Release Readiness
-
-위 항목은 historical published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
-않은 영역으로 계속 분리합니다.
-
-## v3.5.0 historical published source-only release 범위
-
-- v3.5.0 source roadmap baseline 정렬
-- Live Operations Graph Contract
-- Operations Command Plan Contract
-- Incident-to-Command Handoff
-- Staged Change Plan and Impact Preview
-- Ops Command Workspace UI
-- Drill Run Ledger and Plan Comparison
-- Client Impact Forecast
-- Client-safe Operations Notice
-- Operations Export Bundle and Handoff Map
-- Field Evidence Intake
-- VLM-assisted Ops Explanation
-- Stabilization and Release Readiness
-
-위 항목은 historical published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
-않은 영역으로 계속 분리합니다.
-
-## v3.3.0 historical published source-only release 범위
-
-- v3.3.0 source roadmap baseline 정렬
-- Source Registry Snapshot and Identity
-- Source Onboarding Quality Summary
-- Reliability Timeline and Health History
-- Incident-to-Source Correlation Layer
-- Operator Recheck and Recovery Queue
-- Client-safe Source Status Digest
-- Operator Runbook and Reliability Handoff
-- Source Reliability Search and Metrics
-- Ops Backup and Recovery Source Handoff
-- Stabilization and Release Readiness
-
-위 항목은 직전 published baseline입니다. 후속 릴리즈 신규 기능 완료 근거가 아니며,
-후속 버전에서는 historical reference로만 참조합니다.
-
-## v3.2.0 previous published source-only release 범위
-
-- v3.2.0 source-of-truth 정렬
-- Resolution State Contract
-- Unified Ops Events Workspace
-- Evidence Quality Layer
-- Source Reliability Context
-- AI Review Quality Context
-- Operator Resolution Flow
-- Action Readiness Checklist
-- Client-safe Resolution Digest
-- Resolution Search & Metrics
-- Stabilization and Release Readiness
-
-위 항목은 직전 published baseline입니다. v3.3.0 신규 기능 완료 근거가 아니며,
-v3.3에서는 historical reference로만 참조합니다.
-
-## v3.1.0 historical published source-only release 범위
-
-- v3.1.0 source-of-truth 정렬
-- Encoded Event Clip Contract
-- Event Clip Encoder Pipeline
-- Replay Timeline UI
-- Client-safe Event Digest
-- Scoped Integrator Search API
-- Operator Feature Correction
-- Optional Vector Search
-- Retention/Export Hardening
-- Stabilization and Release Readiness
-
-위 항목은 historical published baseline입니다. v3.0.0 baseline은 historical 공개 기준으로 보존합니다.
-
-## v3.0.0 historical published source-only release 범위
-
-- v3.0.0 source-of-truth 정렬
-- Event Evidence Contract
-- Frame Bundle Extraction
-- Feature Schema and Privacy Policy
-- VLM Feature Queue
-- Feature-only Retention
-- Search DSL and Query Convert
-- Feature/Search Index
-- Ops Events UI
-- Retention/Pin/Cleanup
-- Stabilization and Release Readiness
-
-위 항목은 historical published baseline이며, v3.1.0 신규 기능 완료 근거가 아닙니다.
-
-## v2.7.0 historical published source-only release 범위
-
-- v2.7.0 source-of-truth/bootstrap 정렬
-- Incident Triage Board
-- Incident Decision Scorecard
-- Operational Action Pack
-- Rule What-if Preview
-- Operator outcome memory
-- v2.7.0 owner release readiness
-
-위 항목은 historical published baseline이며, v2.8.0 신규 기능 완료 근거가 아닙니다.
-
-## v2.6.0 historical published source-only release 포함 범위
-
-- v2.6.0 source-of-truth/bootstrap 정렬
-- VLM summary candidate의 Ops-only incident memory productization
-- Rule suggestion 후보의 manual review/draft workflow 연결
-- ONVIF credential binding/store gate 설계와 redaction guard
-- Runtime dashboard baseline/sparkline 고도화 후보
-- ScenarioEngine cross-zone re-entry 후보
-
-위 항목은 historical baseline이며, v2.8.0 신규 기능 완료 근거가 아닙니다.
-
-## v2.5.0 historical published source-only release 포함 범위
-
-- Apache-2.0 source code, 문서, 설정 예시, 검증 스크립트
-- RTSP/WebRTC relay, Ops/Client UI, Auth/Role/Scope, Rule/Profile/Scenario
-- EventRecord/evidence 보조 기능
-- Semantic Incident Memory: Event/incident text projection, local incident memory index,
-  `/ops/events` search UI, incident timeline graph, explainable incident brief,
-  similar incident lookup, client-safe digest, redacted evidence bundle
-- GitHub Actions warning annotation gate, feature inventory coverage gate, docs/release
-  metadata gate
-
-## 기본 제외 범위
-
-- FFmpeg/GStreamer/ONNX Runtime/YOLO/VLM model/runtime binary bundle
-- VLM default-on, production runtime/provider 성공 보장, real cloud provider call 성공 보장
-- container image, offline package, app bundle, 고객/현장 영상, 운영 evidence, auth store, log
-- 장기 녹화, VMS/NVR, playback archive/search, ONVIF Profile G recording/replay
-- ONVIF 실장비 성공 보장, external TURN/WHEP credential operation 성공 보장
-- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
-- LLM/VLM embedding provider를 기본 의존성으로 두는 semantic search
-- 실기기/외부 endpoint 성공을 release PASS로 쓰는 것
-
-## Semantic Versioning 기준
-
-- `PATCH`: 문서, 테스트, bug fix, UI 문구, guardrail 보강처럼 공개 API/설정 호환성을 깨지 않는 변경
-- `MINOR`: 호환성을 유지하는 source type, rule, UI, 운영 기능 추가
-- `MAJOR`: route/API/config/schema, registry, auth/scope, evidence 저장 형식처럼 사용자 migration이 필요한 변경
-
-## Tag와 GitHub Release 기준
-
-- 현재 release target tag 기준: `v4.1.0`
-- cut 직전 공개 tag 기준: `v4.0.0`
-- `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
-  `verified=true`/`reason=valid` 확인 대상입니다.
-- `v3.9.1` previous published tag는 GitHub Release publish evidence가 있을 때만
-  직전 공개 완료로 기록합니다.
-- historical: `v3.3.0` close-out 당시 annotated tag와 6월 GitHub Actions disabled
-  예외는 당시 기록이며 현재 기준이 아닙니다.
-- 다음 신규 release tag는 signed annotated tag로 생성합니다.
-- unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
-- tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
-- signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
-  verification `verified=true`/`reason=valid`로 확인합니다.
-- source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
-- binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.
+이미 공개한 tag를 문서·증거 정리 때문에 옮기지 않는다. 후속 유지보수는 별도 커밋으로 하고
+필요한 다음 버전은 별도 승인 아래 정한다. 과거 관측·PASS/FAIL·모델·source provenance는 변경하지 않는다.
+원본이 보존된 과거 2.x 전환 정책과 3.x/4.x 버전별 상세 범위는
+[릴리즈 정책의 작은 이력 색인](release-policy.md#릴리즈-노트와-이전-기록)에서 조회한다.
+종료된 단계별 완료 목록을 현행 버전 계약이나 새로운 실행 결과로 복사하지 않는다.

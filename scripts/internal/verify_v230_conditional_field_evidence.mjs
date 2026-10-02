@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.3.0 조건부 ONVIF/external TURN/WHEP field evidence gate를 검증한다.
+// 파일 용도: 현행 조건부 ONVIF/external TURN/WHEP 로컬 검사와 실제 실행 경계를 확인한다.
 
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
+import { validateFeatureDocumentation, hasDocumentLink } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -30,7 +31,7 @@ Options:
 Checks:
   - existing ONVIF field smoke gate stays no-device/procedure-only by default
   - existing external TURN/WHEP gate stays no-network/not-run by default
-  - v2.3.0 docs/backlog/release evidence/inventory separate approved field reports from release PASS
+  - current docs/inventory/dispatch separate local reports from real field and release PASS
   - no real ONVIF endpoint, TURN credential, WHEP endpoint, schema, or media path success is claimed
 `);
 }
@@ -66,106 +67,72 @@ check("ONVIF field smoke gate remains procedure-only without real device success
 check("external TURN/WHEP field gate remains no-network and not-run by default", () => {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v230-field-evidence-"));
   const jsonReport = path.join(workDir, "external-turn-whep.json");
-  const output = runNodeScript("verify_external_turn_whep_field_gate.mjs", ["--json-report", jsonReport]);
-  const report = JSON.parse(readFile(jsonReport));
-  assert(report.schema === "media-server.external-turn-whep-field-gate-report.v1" && report.externalNetworkAttempted === false && report.whepPlaybackStatus === "not-run", "MEDIA-021 externalWhepContacted report boundary mismatch");
-  assert(output.includes("External TURN/WHEP field gate summary"), "external gate output missing summary");
-  assert(report.externalNetworkAttempted === false, "external gate must not contact network by default");
-  assert(report.fieldSmokeStatus === "not-run", "default external field status must be not-run");
-  assert(report.turnRelayStatus === "not-run", "default TURN relay status must be not-run");
-  assert(report.whepPlaybackStatus === "not-run", "default WHEP playback status must be not-run");
-  assert(report.defaultReleasePassClaimAllowed === false, "external field report must not claim release PASS");
-  payload.runtimeEvidence.externalTurnWhepGate = {
-    status: "pass",
-    command: "./server.sh verify-external-turn-whep-field-gate",
-    jsonReport,
-    externalNetworkAttempted: false,
-    fieldSmokeStatus: report.fieldSmokeStatus,
-    defaultReleasePassClaimAllowed: report.defaultReleasePassClaimAllowed,
+  const evidence = payload.runtimeEvidence.externalTurnWhepGate = {
+    status: "fail", command: "./server.sh verify-external-turn-whep-field-gate",
+    jsonReport: null, report: null, execution: null, cleanup: {status: "pending"},
   };
+  let failure = null;
+  try {
+    let output = "", childError = null;
+    try {
+      evidence.execution = runNodeScript("verify_external_turn_whep_field_gate.mjs", ["--json-report", jsonReport], {capture: true});
+      output = evidence.execution.stdout;
+    } catch (error) {
+      childError = error;
+      evidence.execution = {exit: error.status ?? null, signal: error.signal ?? null,
+        stdout: String(error.stdout || ""), stderr: String(error.stderr || "")};
+    }
+    // 자식 실패 보고서도 먼저 보존한다. 임시 경로를 지운 뒤 존재하는 증거인 것처럼 링크하지 않는다.
+    if (fs.existsSync(jsonReport)) evidence.report = JSON.parse(readFile(jsonReport));
+    assert(!childError, "external field child command failed");
+    const report = evidence.report;
+    assert(report, "external field child report missing");
+    assert(report.schema === "media-server.external-turn-whep-field-gate-report.v1" && report.externalNetworkAttempted === false && report.whepPlaybackStatus === "not-run", "MEDIA-021 externalWhepContacted report boundary mismatch");
+    assert(output.includes("External TURN/WHEP field gate summary"), "external gate output missing summary");
+    assert(report.gateStatus === "pass", "external gate report failed despite child exit 0");
+    assert(report.externalNetworkAttempted === false, "external gate must not contact network by default");
+    assert(report.fieldSmokeStatus === "not-run", "default external field status must be not-run");
+    assert(report.turnRelayStatus === "not-run", "default TURN relay status must be not-run");
+    assert(report.whepPlaybackStatus === "not-run", "default WHEP playback status must be not-run");
+    assert(report.defaultReleasePassClaimAllowed === false, "external field report must not claim release PASS");
+    Object.assign(evidence, {status: "pass", externalNetworkAttempted: false,
+      fieldSmokeStatus: report.fieldSmokeStatus, defaultReleasePassClaimAllowed: report.defaultReleasePassClaimAllowed});
+  } catch (error) {
+    failure = error;
+    evidence.failureReason = error.message;
+  } finally {
+    try {
+      if (fs.existsSync(jsonReport)) fs.unlinkSync(jsonReport);
+      fs.rmdirSync(workDir);
+      evidence.cleanup = {status: "complete"};
+    } catch (error) {
+      const allowedCodes = ["EACCES", "EPERM", "ENOENT", "ENOTEMPTY", "EBUSY", "EIO", "ENOTDIR", "EISDIR"];
+      evidence.cleanup = {status: "fail", reason: "owned temporary report cleanup failed",
+        remainingPath: workDir, errorCode: allowedCodes.includes(error.code) ? error.code : "unknown"};
+      failure ||= new Error(evidence.cleanup.reason);
+    }
+  }
+  if (failure) { evidence.status = "fail"; throw failure; }
 });
 
-check("ONVIF and external field docs expose the v2.3.0 conditional evidence boundary", () => {
+check("current conditional documents, exact features, and dispatch are connected", () => {
   const onvif = readText("docs/onvif-field-smoke-gate.md");
   const external = readText("docs/external-turn-whep-field-gate.md");
   for (const [label, text] of [["onvif", onvif], ["external", external]]) {
-    for (const snippet of [
-      "## v2.3.0 Conditional field evidence",
-      "media-server.v230-conditional-field-evidence.v1",
-      "approved environment only",
-      "redacted field report",
-      "not-run is not PASS",
-      "default release PASS",
-      "verify-v230-conditional-field-evidence",
-    ]) {
-      assert(text.includes(snippet), `${label} doc missing v2.3.0 conditional snippet: ${snippet}`);
+    for (const identifier of ["media-server.v230-conditional-field-evidence.v1", "verify-v230-conditional-field-evidence"]) {
+      assert(text.includes(identifier), label + " conditional definition missing: " + identifier);
     }
   }
-});
-
-check("roadmap records V230-S04 completion boundary and exclusions", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 4 \| V230-S04 \| P1 \| 완료 \| 조건부 ONVIF\/external TURN\/WHEP evidence \|/.test(backlog),
-    "backlog V230-S04 row must be 완료 after conditional field evidence gate closure");
-  for (const snippet of [
-    "### V230-S04 조건부 ONVIF/external TURN/WHEP evidence 종료 기준",
-    "직접 답: S04 완료는 실장비 ONVIF 성공이나 external TURN/WHEP credential 성공이 아니라",
-    "verify-v230-conditional-field-evidence",
-    "verify-onvif-field-smoke-gate",
-    "verify-external-turn-whep-field-gate",
-    "approved environment only",
-    "redacted field report",
-    "not-run is not PASS",
-    "real ONVIF device",
-    "external WHEP/WHIP/TURN endpoint",
-    "30분 테스트",
-    "120분 테스트",
-    "UI 풀테스트",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S04 conditional snippet: ${snippet}`);
-  }
-});
-
-check("release evidence index records S04 without promoting field success", () => {
-  const index = readText("docs/release-evidence-index.md");
-  for (const snippet of [
-    "v230-s04-conditional-field-evidence-20260605",
-    "media-server.v230-conditional-field-evidence.v1",
-    "verify-v230-conditional-field-evidence",
-    "verify-onvif-field-smoke-gate",
-    "verify-external-turn-whep-field-gate",
-    "Not run for `v230-s04-conditional-field-evidence-20260605`",
-    "real ONVIF device",
-    "external TURN/WHEP credential operation",
-    "not-run is not PASS",
-  ]) {
-    assert(index.includes(snippet), `release evidence index missing S04 snippet: ${snippet}`);
-  }
-});
-
-check("feature inventory maps conditional field evidence to existing rows", () => {
-  const inventory = readText("docs/project-feature-test-inventory.md");
-  for (const snippet of [
-    "v2.3.0 S04 조건부 ONVIF/external TURN/WHEP evidence",
-    "SRC-014",
-    "MEDIA-021",
-    "SAFE-039",
-    "verify-v230-conditional-field-evidence",
-    "approved environment only",
-    "redacted field report",
-    "not-run is not PASS",
-    "실장비 ONVIF 성공과 external TURN/WHEP credential 성공을 기본 release PASS로 쓰지 않음",
-  ]) {
-    assert(inventory.includes(snippet), `project feature inventory missing S04 snippet: ${snippet}`);
-  }
-});
-
-check("server entrypoint exposes the S04 conditional field verifier", () => {
-  const server = readText("server.sh");
-  assert(server.includes("verify-v230-conditional-field-evidence"),
-    "server.sh missing verify-v230-conditional-field-evidence");
-  assert(server.includes("verify_v230_conditional_field_evidence.mjs"),
-    "server.sh missing v2.3.0 S04 verifier script dispatch");
+  assert(hasDocumentLink(onvif, "external-turn-whep-field-gate.md"), "ONVIF conditional external link missing");
+  assert(hasDocumentLink(external, "onvif-field-smoke-gate.md"), "external conditional ONVIF link missing");
+  const errors = validateFeatureDocumentation({
+    document: external, identifiers: ["SRC-014", "MEDIA-021", "SAFE-039"],
+    command: "verify-v230-conditional-field-evidence", script: "verify_v230_conditional_field_evidence.mjs",
+    featureIds: ["SRC-014", "MEDIA-021", "SAFE-039"],
+    inventory: readText("docs/project-feature-test-inventory.md"), verification: readText("docs/stream-verification.md"),
+    server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 let pass = 0;
@@ -192,6 +159,7 @@ console.log(`- branch: ${payload.branch}`);
 console.log(`- head: ${payload.head}`);
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
+console.log("- actual device/network/playback/UI not-run");
 
 if (reportPath) writeText(reportPath, renderMarkdown(payload));
 if (jsonReportPath) writeText(jsonReportPath, `${JSON.stringify(payload, null, 2)}\n`);
@@ -221,7 +189,7 @@ function buildPayload() {
 
 function renderMarkdown(report) {
   const lines = [
-    "# v2.3.0 Conditional Field Evidence Report",
+    "# 조건부 현장 검증의 로컬 계약 검사 결과",
     "",
     `- schema: ${report.schema}`,
     `- generatedAt: ${report.generatedAt}`,
@@ -230,17 +198,17 @@ function renderMarkdown(report) {
     `- branch: ${report.branch}`,
     `- head: ${report.head}`,
     "",
-    "## Completion Boundary",
+    "## 판정 경계",
     "",
     `- primary: ${report.completionBoundary.primary}`,
     ...report.completionBoundary.excluded.map(item => `- excluded: ${item}`),
     "",
-    "## Runtime Evidence",
+    "## 하위 로컬 검사",
     "",
     `- onvifGate: ${report.runtimeEvidence.onvifGate?.status || "not-run"}`,
     `- externalTurnWhepGate: ${report.runtimeEvidence.externalTurnWhepGate?.status || "not-run"}`,
     "",
-    "## Checks",
+    "## 검사 결과",
     "",
     "| Check | Status |",
     "| --- | --- |",
@@ -258,7 +226,18 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function runNodeScript(file, scriptArgs = []) {
+function runNodeScript(file, scriptArgs = [], {capture = false} = {}) {
+  if (capture) {
+    const result = spawnSync(process.execPath, [path.join(scriptDir, file), ...scriptArgs], {
+      cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+    });
+    const execution = {exit: result.status, signal: result.signal,
+      stdout: result.stdout || "", stderr: result.stderr || ""};
+    if (result.error || result.status !== 0) throw Object.assign(new Error("local field child command failed"), {
+      status: result.status, signal: result.signal, stdout: execution.stdout, stderr: execution.stderr,
+    });
+    return execution;
+  }
   return execFileSync(process.execPath, [path.join(scriptDir, file), ...scriptArgs], {
     cwd: rootDir,
     encoding: "utf8",

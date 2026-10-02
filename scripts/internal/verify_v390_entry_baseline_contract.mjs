@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9 historical entry baseline의 상태 parser와 current-source 비회귀 contract를 검증한다.
+// 파일 용도: 과거 표의 parser 회귀와 source 버전 비교 계약을 검사한다. 과거 PASS를 재판정하지 않는다.
 
-import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -11,9 +10,9 @@ import {
   validateV390EntryBaselineSteps,
 } from "./v390_entry_baseline_state_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {parseEntryRoot,semverAtLeast} from "./entry_baseline_documentation.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
 
 if (hasHelpFlag(rawArgs)) {
@@ -22,18 +21,19 @@ if (hasHelpFlag(rawArgs)) {
 Usage:
   ./server.sh verify-v390-entry-baseline-contract
 
-Checks current backlog positive and historical wording, missing Step, duplicate Step negatives,
-and the current-source/historical-baseline version boundary.`);
+출처 있는 parser 입력의 정상·누락·중복·상태/내용 오류와 버전 비교를 확인한다.
+현행 backlog나 과거 로그는 필요하지 않으며 실제 개발/실행 완료 증거가 아니다.
+--root <소스 경로>로 Git 없는 소스에서도 실행할 수 있다.`);
 }
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["h", "help", "root"]);
+const rootDir=parseEntryRoot(rawArgs,path.resolve(scriptDir,"../.."));
 
-const backlog = fs.readFileSync(path.join(rootDir, "docs/development-backlog.md"), "utf8");
-const verifierSource = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_v390_entry_baseline.mjs"), "utf8");
 const expectation = loadV390EntryBaselineExpectation(rootDir);
+const backlog = expectation.markdown;
 
 const cases = [
   {
-    name: "current-backlog-positive",
+    name: "fixture-positive",
     markdown: backlog,
     expectedOk: true,
     expectedError: "",
@@ -49,6 +49,12 @@ const cases = [
     markdown: removeStep(backlog, 2),
     expectedOk: false,
     expectedError: "missing step 2",
+  },
+  {
+    name: "required-detail-negative",
+    markdown: replaceStep3(backlog, "완료/initial snapshot historical/current closed", "필수 근거 없음"),
+    expectedOk: false,
+    expectedError: "historical/current boundary missing",
   },
   {
     name: "duplicate-step-negative",
@@ -70,22 +76,8 @@ for (const testCase of cases) {
   else fail += 1;
 }
 
-const sourceBoundaryRequired = [
-  'const baselineVersion = "3.9.0";',
-  'const baselineRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";',
-  'const currentRoadmap = requiredMatch(files.versioning, /- 현재 source roadmap:',
-  "semverAtLeast(version, baselineVersion)",
-  "project(media_server VERSION ${version} LANGUAGES CXX)",
-  "current roadmap must match source ${version}",
-  "historicalBaseline: v${baselineVersion} ${baselineRoadmap}",
-];
-const sourceBoundaryForbidden = [
-  'const currentVersion = "3.9.0";',
-  "version === currentVersion",
-  "VERSION must be ${currentVersion}",
-];
-const sourceBoundaryOk = sourceBoundaryRequired.every(snippet => verifierSource.includes(snippet)) &&
-  sourceBoundaryForbidden.every(snippet => !verifierSource.includes(snippet));
+const sourceBoundaryOk = semverAtLeast('4.1.1','3.9.0') && semverAtLeast('3.9.0','3.9.0') &&
+  !semverAtLeast('3.8.9','3.9.0') && !semverAtLeast('bad','3.9.0') && !semverAtLeast('03.9.0','3.9.0');
 console.log(`[${sourceBoundaryOk ? "pass" : "fail"}] current-source-historical-baseline-boundary`);
 if (sourceBoundaryOk) pass += 1;
 else fail += 1;

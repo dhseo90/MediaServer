@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 11 Client-safe Action Notice Preview 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /client/api/views/{id}/events and dashboard payloads expose a viewer-safe action notice preview
   - client live/dashboard/events render only maintenance/degraded/recovering/available status and timeline fields
   - internal blocker, approval, readiness, source locator, credential, raw diagnostic, and Ops-only action material stay out of client scripts
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -158,30 +159,22 @@ check("client action notice styling is stable and fits existing client cards", (
   }
 });
 
-check("docs, inventory, and dispatch map v3.8 Step 11 without overclaiming UI fulltest or longrun", () => {
-  for (const snippet of [
-    "| 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 완료 |",
-    "## v3.8.0 Step 11 개발 기록",
-    "ClientActionNoticePreviewJson",
-    "renderClientActionNoticePreview",
-    "client-action-notice-preview",
-    `\`./server.sh ${command}\``,
-    "Outcome Observer and Reconciliation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 11");
-  }
-  assertIncludes(
-    files.streamVerification,
-    `| v3.8.0 (11) | \`./server.sh ${command}\` | Client-safe Action Notice Preview.`,
-    "stream verification v3.8 Step 11",
-  );
-  assertIncludes(files.featureInventory, "v3.8.0 (11) Client-safe Action Notice Preview", "feature inventory v3.8 Step 11");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-103","CLIENT-040","SAFE-190","OPS-157"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.client.v380-action-notice-preview.v1"],
+    command, script: "verify_v380_client_safe_action_notice_preview.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationEvidence,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+});
+
+check("현행 실행·등록 연결 1", () => {
   for (const id of featureIds) {
-    assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`);
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.releaseRecords, "V380 Client-safe Action Notice Preview", "release records v3.8 Step 11");
-  assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 11");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_client_safe_action_notice_preview.mjs", "server.sh dispatch");
   for (const id of featureIds) {
@@ -224,13 +217,11 @@ function loadFiles() {
     server: readWebRtcHttpServerBundle(readText),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     css: readText("src/ingress/product_ui_css.cpp"),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     implementationEvidence: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     serverSh: readText("server.sh"),
   };
 }

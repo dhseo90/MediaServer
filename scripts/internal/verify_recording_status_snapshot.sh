@@ -20,7 +20,7 @@ read -r -a crypto_flags <<<"$(pkg-config --cflags --libs openssl)"
  -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 \
  "$script_dir/recording_status_snapshot_smoke.cpp" "$repo/src/recording/recording_journal.cpp" "$run/recording_catalog.cpp" \
  "$repo/src/recording/recording_read_service.cpp" "$repo/src/ingress/recording_application_service.cpp" \
- "$repo/src/recording/recording_finalize_recovery.cpp" "$repo/src/recording/recording_file_evidence.cpp" \
+ "$repo/src/recording/recording_finalize_recovery.cpp" "$repo/src/recording/recording_finalize_ticket.cpp" "$repo/src/recording/recording_file_evidence.cpp" \
  "$repo/src/recording/recording_media_inspector.cpp" "$repo/src/recording/retention_coordinator.cpp" \
  "$repo/src/recording/recording_derived_job.cpp" "$repo/src/recording/recording_derived_job_ready.cpp" \
  "$repo/src/recording/recording_contracts.cpp" "$repo/src/recording/recording_timeline_projection.cpp" "$repo/src/domain/strict_json.cpp" \

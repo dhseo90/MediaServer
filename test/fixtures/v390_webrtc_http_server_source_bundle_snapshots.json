@@ -98,25 +98,25 @@
   "current": {
     "sourceBaselineCommit": "72c74f4f71bcb3e212082139077aaf8ed3d478fd",
     "generatedFrom": "working-tree-six-file-source",
-    "bundleSha256": "6932dc6530fda0db18f3299b2ac064945ad970a259174d61f7a66c0bed106fbb",
+    "bundleSha256": "09514a23ca3c80876cb3462392d774b24daecb39bab8932f812a4da08a920af6",
     "logicalOffsets": [
-      751943,
-      757016,
-      453271,
-      453652
+      752837,
+      757910,
+      454165,
+      454546
     ],
     "metrics": {
       "fileCount": 6,
-      "totalBytes": 2267630,
-      "totalLines": 47174,
+      "totalBytes": 2276602,
+      "totalLines": 47286,
       "largestFileLines": 10150,
       "files": [
         {
           "id": "transport-main",
           "file": "src/ingress/webrtc_http_server.cpp",
-          "sha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-          "bytes": 340936,
-          "lines": 7777
+          "sha256": "898129213076b73ff4f0a2c80a888bd6c38cab85b525133443ff931855ffe531",
+          "bytes": 341616,
+          "lines": 7785
         },
         {
           "id": "ops-foundation",
@@ -135,33 +135,33 @@
         {
           "id": "ops-incidents",
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-          "sha256": "95ba30bc99f81f920d289b7006ac92eeeb8f03dfd563fa4c6118fa475b1f2c6b",
-          "bytes": 384602,
-          "lines": 8076
+          "sha256": "c2fb3315035211f2a2149bba0fad1e5e904f2b51e45159b2f11432efe1fb0dac",
+          "bytes": 385067,
+          "lines": 8083
         },
         {
           "id": "transport-runtime",
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
-          "sha256": "de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a",
-          "bytes": 328385,
-          "lines": 5193
+          "sha256": "15d3aaca9d4a786bfa8f872daa177700f9fa9734dbbbf8cadf7b233804624f50",
+          "bytes": 335956,
+          "lines": 5286
         },
         {
           "id": "private-detail",
           "file": "src/ingress/webrtc_http_server_detail.h",
-          "sha256": "9b2a4a3f3a4fbfa617cd47bc8219e6aace632d576284cabd47e1ebcb27cd7dab",
-          "bytes": 353562,
-          "lines": 8016
+          "sha256": "b34c878b5bf331eb764fe8aeaef7ce1d27ff4eef4a484d284ee90d3431393002",
+          "bytes": 353818,
+          "lines": 8020
         }
       ]
     },
     "graphBinding": {
       "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
-      "sha256": "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2"
+      "sha256": "4b67993f747b11f6d750744444859cb2726c62655e431837b60ea5ff300b7e22"
     },
     "physicalSplitBinding": {
       "definitionCount": 1198,
-      "definitionSha256": "787a64b4c4cda607028451265c8622ca01565356c28c92e60a11a1f58642e999"
+      "definitionSha256": "5669077153062389615d455942a952a355cc2af2376799450171a9b1673607a6"
     }
   },
   "commentOnlyTransition": {

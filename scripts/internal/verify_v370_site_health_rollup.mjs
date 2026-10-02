@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 4 Site Health Rollup 구현, 문서, inventory 연결을 검증한다.
 
@@ -33,6 +34,7 @@ const command = "verify-v370-site-health-rollup";
 const schema = "media-server.ops.v370-site-health-rollup.v1";
 const route = "/ops/api/site-operations/health-rollup";
 const files = loadFiles();
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("Ops server builds the v3.7 site health rollup model", () => {
@@ -118,8 +120,25 @@ check("Ops API exposes the health rollup route as guarded no-store JSON", () => 
   assertIncludes(block, "no-store", "site health rollup route");
 });
 
-check("docs, inventory, and dispatch map v3.7 Step 4", () => {
-  assertStepDocs("4", "Site Health Rollup", "SRC-056", "SAFE-165", "OPS-132");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["SRC-056","SAFE-165","OPS-132"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/health-rollup"],
+    command, script: "verify_v370_site_health_rollup.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-056","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = documentationImplementation.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
+  }
+
+});
+
+check("현행 실행·등록 연결 1", () => {
   for (const id of ["SRC-056", "SAFE-165", "OPS-132"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -152,30 +171,14 @@ check("SAFE-165 canonical bounded no-execution boundary", () => {
 
 finish("== v3.7.0 site health rollup summary ==", { schema, step: "v3.7.0 (4)", route });
 
-function assertStepDocs(step, title, ...ids) {
-  for (const snippet of [
-    `| ${step} | v3.7.0 (${step}) ${title} | P0 | 완료 |`,
-    `## v3.7.0 Step ${step} 개발 기록`,
-    route,
-    `\`./server.sh ${command}\``,
-  ]) assertIncludes(files.backlog, snippet, `backlog v3.7 Step ${step}`);
-  assertIncludes(files.streamVerification, `| v3.7.0 (${step}) | \`./server.sh ${command}\` | ${title}.`, `stream verification v3.7 Step ${step}`);
-  assertIncludes(files.featureInventory, `v3.7.0 (${step}) ${title}`, `feature inventory v3.7 Step ${step}`);
-  for (const id of ids) assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`);
-  assertIncludes(files.releaseRecords, "V370 Site Health Rollup", "release records v3.7 Step 4");
-  assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.7 Step 4");
-}
-
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
-    backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
     serverSh: readText("server.sh"),
   };
 }

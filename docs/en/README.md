@@ -1,66 +1,57 @@
 # English Documentation
 
-This is the English entry point for Media Server. The detailed documentation is
-maintained in Korean under `docs/`; this page keeps the English path short and
-points to the current public sources.
+Start with the [English product overview](../../README.en.md) or the
+[Korean README](../../README.md). Detailed guides are maintained in Korean;
+the [full topic index](../README.md) provides the complete navigation path.
+Published versions are available on [GitHub Releases](https://github.com/dhseo90/MediaServer/releases/latest).
 
-## Current Status
+## Installers: Set Up and Run
 
-- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
-- Current release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
-- Prior published baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- Earlier published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- Current source version: `4.1.0`
-- Current source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 status: S01-S08 implementation, S10 hardening, S11 product validation, and B14 public readiness are complete. External release actions remain separately evidence-based.
-- Default public distribution: source-only
-- Representative screenshots were recaptured on 2026-08-31 for source `4.0.0` /
-  then-published `v3.9.1`, using the v3.8.0 uncropped composition. They are managed
-  by `config/docs_ui_assets.json` and `./server.sh verify-docs-ui-assets`. They
-  are not UI fulltest or GitHub Release evidence. Policy and English PNG review
-  notes live in [../assets/ui/README.md](../assets/ui/README.md).
-
-## Start Here
-
-| Need | Document |
+| Task | Guide |
 | --- | --- |
-| Product overview | [../../README.en.md](../../README.en.md) |
-| Korean product overview | [../../README.md](../../README.md) |
-| Full documentation index | [../README.md](../README.md) |
-| Setup, build, and run | [../development-guide.md](../development-guide.md) |
-| Configuration | [../config-reference.md](../config-reference.md) |
-| Ops and Client UI | [../ui-guide.md](../ui-guide.md) |
-| RTSP/WebRTC/VA architecture | [../media-server-architecture.md](../media-server-architecture.md) |
-| Video analytics and scenarios | [../video-analysis.md](../video-analysis.md) |
-| Verification commands | [../stream-verification.md](../stream-verification.md) |
-| Release/version policy | [../release-policy.md](../release-policy.md), [../versioning-policy.md](../versioning-policy.md) |
-| Current roadmap summary | [../development-backlog.md](../development-backlog.md) |
-| v4.1.0 release-note source | [../release-notes-v4.1.0.md](../release-notes-v4.1.0.md) |
+| Install dependencies, build, and run on macOS/Linux | [Development guide](../development-guide.md) |
+| Configure ports, authentication, inputs, and storage | [Configuration reference](../config-reference.md) |
+| Check source distribution and dependency terms | [Distribution policy](../distribution-policy.md), [Third-party notices](../../THIRD_PARTY_NOTICES.md) |
 
-## Product Boundary
+The default public distribution contains source code and documentation.
+Runtime and model binaries are not included.
 
-- The main product boundary is live source onboarding, live source health, and
-  live VA event quality.
-- The current source tree tracks the `v4.1.0 Recording Foundation`
-  roadmap. v4.0.0 is the prior published baseline and v3.9.1 is the earlier baseline.
-- Binary, runtime, and model bundles are excluded from the default public release.
-- Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
-  recording/replay, Re-ID default-on, tracker default-on, and VLM default-on
-  remain out of scope.
-- Real cloud provider calls, external TURN/WHEP credential operations, and real
-  ONVIF device success are not default release PASS evidence.
+## Operators: Configure and Use the Product
 
-## Verification Entry Points
+| Task | Guide |
+| --- | --- |
+| Set up an administrator, assign access, and use Ops/Client | [UI guide](../ui-guide.md) |
+| Enable continuous and event recording, browse the timeline, and play recordings | [Recording configuration](../config-reference.md#recording-env), [Recording UI](../ui-guide.md#녹화-조회와-재생-v410-s06) |
+| Configure analytics rules and scenarios | [Video analytics](../video-analysis.md) |
+| Diagnose live inputs and recover operational settings | [Source health runbook](../live-source-health.md#operator-runbook-and-reliability-handoff), [Backup and recovery](../ops-backup-recovery.md) |
 
-Use these commands for documentation-oriented checks:
+Recording uses bounded retention and role/channel access controls. Natural-language
+video search is part of the [future roadmap](../v410-v49-recording-search-roadmap.md).
+The current product does not promise a complete VMS/NVR or indefinite video storage.
 
-```bash
-git diff --check
-./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-release-metadata
-```
+## Developers: Understand and Integrate
 
-`./server.sh verify-release-metadata --published` is only for a real GitHub
-Release publish check. It should not be used to claim UI fulltest, 30-minute,
-or 120-minute coverage unless those test areas were actually executed.
+| Task | Guide |
+| --- | --- |
+| Understand RTSP/WebRTC/VA request flows | [Server architecture](../media-server-architecture.md) |
+| Consume Event POST, WebRTC, SSE, and WS metadata | [Metadata contracts](../live-event-metadata-contracts.md), [Integrator samples](../integrator-contract-artifact.md) |
+| Check ONVIF support and validation boundaries | [ONVIF support](../onvif-live-source-support.md), [Protocol matrix](../onvif-protocol-support-matrix.md) |
+| Explore optional VLM and tracking research | [VLM opt-in contract](../vlm-runtime-opt-in-contract.md), [Research and integration index](../README.md#개발자-구조와-연동) |
+
+VLM and Re-ID research features remain off by default. ONVIF Profile G
+recording/replay is outside the supported ONVIF scope. Cloud provider calls,
+external TURN/WHEP, and real ONVIF devices require their own field checks.
+
+## Maintainers: Verify and Publish
+
+| Task | Guide |
+| --- | --- |
+| Choose checks and find current feature test definitions | [Verification policy and commands](../stream-verification.md) |
+| Review actual UI test requirements and documentation images | [UI fulltest criteria](../manual-ui-fulltest.md), [Image policy](../assets/ui/README.md) |
+| Prepare a release and distinguish source from published versions | [Release policy](../release-policy.md), [Versioning policy](../versioning-policy.md) |
+| Review unresolved work and future development | [Backlog](../development-backlog.md), [Recording and search roadmap](../v410-v49-recording-search-roadmap.md) |
+| Read version changes | [v4.1.1 release candidate notes](../release-notes-v4.1.1.md), [v4.1.0 release notes](../release-notes-v4.1.0.md), [Earlier release notes](../README.md#유지보수자-검증과-배포) |
+
+Documentation checks and representative screenshots do not establish product,
+UI fulltest, 30-minute, or 120-minute test results. The verification guides define
+each area separately; release publication is checked through the release policy.

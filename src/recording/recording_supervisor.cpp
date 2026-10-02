@@ -4,7 +4,7 @@
 
 #include <chrono>
 
-#include "app_config.h"
+#include <utility>
 
 namespace recording {
 namespace {
@@ -20,8 +20,9 @@ std::int64_t NowMs() {
 RecordingSupervisor::RecordingSupervisor(const core::RecordingRuntimeConfigData& config,
                                          ingress::SourceViewApplicationService& sources,
                                          RecordingSessionService& sessions,
-                                         RetentionCoordinator& retention)
-    : config_(config), sources_(sources), sessions_(sessions), retention_(retention) {}
+                                         RetentionCoordinator& retention,
+                                         std::string stream_route)
+    : config_(config), stream_route_(std::move(stream_route)), sources_(sources), sessions_(sessions), retention_(retention) {}
 
 RecordingSupervisor::~RecordingSupervisor() { Stop(); }
 
@@ -120,7 +121,7 @@ media::IngressRequest RecordingSupervisor::BuildRequest(
     const ingress::SourceViewApplicationService::SourceRecord& source) const {
     media::IngressRequest request;
     request.protocol = "recording";
-    request.path = "/" + app::GetAppConfig().stream_route;
+    request.path = "/" + stream_route_;
     request.client_id = "recording:" + source.source_id;
     if (source.kind == "file") {
         request.query["file"] = source.file;

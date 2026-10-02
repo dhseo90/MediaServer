@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -33,6 +35,11 @@ const targetScript = "verify_v390_external_field_smoke_no_device_closure.mjs";
 const fixturePath = "test/fixtures/v390_external_field_smoke_no_device_closure.json";
 const expectedTargets = ["external-turn-whep", "onvif-real-device", "external-vlm-provider"];
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: read, command, script: targetScript, featureIds: ["SAFE-216","OPS-183"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("closure fixture records exact no-device not-run state", () => {
   const raw = read(fixturePath);
@@ -94,16 +101,10 @@ check("feature inventory records Development 18 no-device closure", () => {
 });
 
 check("roadmap and release evidence close the step as not-run, not PASS", () => {
-  const backlog = read("docs/development-backlog.md");
   const projectInventory = read("docs/project-feature-test-inventory.md");
-  const records = read("docs/release-test-records.md");
-  const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["real external field smoke gate", "조건부 미실행", "외부 환경 검증", "조건부 미실행/커밋 `6575e3b9`"]],
     ["project inventory", projectInventory, ["SAFE-216", "OPS-183", command]],
-    ["records", records, ["V390 External Field Smoke No-Device Closure", "Development 18 no-device closure final", "Development 18 external field smoke not-run"]],
-    ["evidence", evidence, ["Development 18 external field smoke no-device closure", "SAFE-216", "OPS-183"]],
     ["stream", stream, ["Development 18", command, "conditional-not-run", "condition-record-not-field-pass"]],
   ]) {
     for (const snippet of snippets) assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);

@@ -11,19 +11,21 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 215,
-  "expectedCppFiles": 103,
+  "expectedProductionFiles": 321,
+  "expectedCppFiles": 144,
   "moduleClassifiers": [
     {
       "id": "composition-root",
       "exactFiles": [
         "include/application/media_server_application.h",
         "src/application/media_server_application.cpp",
-        "src/main.cpp"
+        "src/main.cpp",
+        "include/recording/recording_runtime_composition.h",
+        "src/recording/recording_runtime_composition.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 3,
-      "expectedCppCount": 2
+      "expectedFileCount": 5,
+      "expectedCppCount": 3
     },
     {
       "id": "stable-contract-dtos",
@@ -54,6 +56,9 @@
         "src/ingress/event_feature_search_application_service.cpp",
         "include/ingress/event_storage_application_service.h",
         "src/ingress/event_storage_application_service.cpp",
+        "include/ingress/recording_application_service.h",
+        "src/ingress/recording_application_service.cpp",
+        "src/ingress/recording_evidence_application_mapping.h",
         "include/ingress/event_rule_application_service.h",
         "src/ingress/event_rule_application_service.cpp",
         "include/ingress/analysis_session_read_application_service.h",
@@ -92,25 +97,113 @@
         "include/ingress/onvif_credential_provider.h",
         "include/ingress/ops_action_execution_deferral.h",
         "include/ingress/ops_event_route_owner.h",
-        "include/ingress/vlm_evaluation_promotion.h"
+        "include/ingress/vlm_evaluation_promotion.h",
+        "include/recording/recording_supervisor.h",
+        "src/recording/recording_supervisor.cpp",
+        "include/recording/recording_read_service.h",
+        "src/recording/recording_read_service.cpp",
+        "include/recording/recording_finalize_recovery.h",
+        "src/recording/recording_finalize_recovery.cpp",
+        "include/recording/analysis_observation_projector.h",
+        "include/recording/event_clip_deriver.h",
+        "include/recording/event_recording_bridge.h",
+        "include/recording/gstreamer_segment_writer.h",
+        "include/recording/recording_derived_event_worker.h",
+        "include/recording/recording_derived_job_service.h",
+        "include/recording/recording_derived_remux.h",
+        "include/recording/recording_derived_selection.h",
+        "include/recording/recording_evidence_observer.h",
+        "include/recording/recording_file_evidence.h",
+        "include/recording/recording_media_inspector.h",
+        "include/recording/recording_session_service.h",
+        "include/recording/recording_startup_recovery.h",
+        "include/recording/segment_writer.h",
+        "src/recording/analysis_observation_projector.cpp",
+        "src/recording/event_clip_deriver.cpp",
+        "src/recording/event_recording_bridge.cpp",
+        "src/recording/gstreamer_segment_writer.cpp",
+        "src/recording/recording_derived_event_worker.cpp",
+        "src/recording/recording_derived_job_service.cpp",
+        "src/recording/recording_derived_remux.cpp",
+        "src/recording/recording_derived_selection.cpp",
+        "src/recording/recording_evidence_observer.cpp",
+        "src/recording/recording_file_evidence.cpp",
+        "src/recording/recording_media_inspector.cpp",
+        "src/recording/recording_session_service.cpp",
+        "src/recording/recording_startup_recovery.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 48,
-      "expectedCppCount": 19
+      "expectedFileCount": 84,
+      "expectedCppCount": 36
     },
     {
       "id": "domain-and-registry-owners",
       "exactFiles": [
+        "include/recording/recording_query_values.h",
+        "include/recording/recording_selection_values.h",
+        "include/recording/recording_remux_result.h",
         "include/ingress/analysis_rule_registry.h",
         "src/ingress/analysis_rule_registry.cpp",
         "include/ingress/source_view_registry.h",
         "src/ingress/source_view_registry.cpp",
         "include/domain/strict_json.h",
-        "src/domain/strict_json.cpp"
+        "src/domain/strict_json.cpp",
+        "include/recording/recording_timeline.h",
+        "include/recording/recording_timeline_calculations.h",
+        "src/recording/recording_timeline_projection.cpp",
+        "include/recording/recording_finalize_ticket.h",
+        "include/recording/recording_finalize_ticket_io.h",
+        "src/recording/recording_finalize_ticket.cpp",
+        "src/recording/recording_catalog.cpp",
+        "include/recording/recording_catalog.h",
+        "include/recording/recording_catalog_generation_projection.h",
+        "include/recording/recording_catalog_snapshot.h",
+        "include/recording/recording_contracts.h",
+        "include/recording/recording_cutover_candidate.h",
+        "include/recording/recording_cutover_input.h",
+        "include/recording/recording_cutover_stage_writer.h",
+        "include/recording/recording_derived_job.h",
+        "include/recording/recording_derived_provenance.h",
+        "include/recording/recording_generation_active.h",
+        "include/recording/recording_generation_cold_mutation.h",
+        "include/recording/recording_generation_files.h",
+        "include/recording/recording_generation_manifest.h",
+        "include/recording/recording_generation_receipt.h",
+        "include/recording/recording_generation_recovery_session.h",
+        "include/recording/recording_generation_transaction.h",
+        "include/recording/recording_identity_shard.h",
+        "include/recording/recording_journal.h",
+        "include/recording/recording_native_coverage.h",
+        "include/recording/recording_order_history_snapshot.h",
+        "include/recording/recording_store_port.h",
+        "include/recording/recording_write_boundaries.h",
+        "include/recording/recording_writer_time_state.h",
+        "include/recording/retention_coordinator.h",
+        "src/recording/recording_catalog_cutover_candidate.cpp",
+        "src/recording/recording_catalog_generation_projection.cpp",
+        "src/recording/recording_catalog_snapshot.cpp",
+        "src/recording/recording_catalog_snapshot_export.cpp",
+        "src/recording/recording_checkpoint_validation.h",
+        "src/recording/recording_contracts.cpp",
+        "src/recording/recording_cutover_input.cpp",
+        "src/recording/recording_cutover_stage_writer.cpp",
+        "src/recording/recording_derived_job.cpp",
+        "src/recording/recording_derived_job_context.h",
+        "src/recording/recording_derived_job_ready.cpp",
+        "src/recording/recording_generation_active.cpp",
+        "src/recording/recording_generation_cold_mutation.cpp",
+        "src/recording/recording_generation_files.cpp",
+        "src/recording/recording_generation_manifest.cpp",
+        "src/recording/recording_generation_receipt.cpp",
+        "src/recording/recording_generation_transaction.cpp",
+        "src/recording/recording_identity_shard.cpp",
+        "src/recording/recording_journal.cpp",
+        "src/recording/recording_order_history_snapshot.cpp",
+        "src/recording/retention_coordinator.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 6,
-      "expectedCppCount": 3
+      "expectedFileCount": 61,
+      "expectedCppCount": 25
     },
     {
       "id": "product-ui-workspaces",
@@ -138,6 +231,8 @@
       "id": "transport-and-auth-adapter",
       "exactFiles": [
         "include/ingress/http_auth.h",
+        "include/ingress/recording_request_gate.h",
+        "src/ingress/site_operations_request_diagnostic.h",
         "include/ingress/webrtc_http_runtime_config.h",
         "src/ingress/http_auth.cpp",
         "include/ingress/webrtc_http_server.h",
@@ -150,7 +245,7 @@
         "include/ingress/webrtc_http_analysis_rule_declarations.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 11,
+      "expectedFileCount": 13,
       "expectedCppCount": 6
     },
     {
@@ -162,7 +257,7 @@
         "include/ingress/analysis_overlay_probe.h",
         "src/ingress/analysis_overlay_probe.cpp"
       ],
-      "expectedFileCount": 73,
+      "expectedFileCount": 75,
       "expectedCppCount": 37
     },
     {
@@ -174,6 +269,8 @@
         "include/media_types.h",
         "include/core/analysis_runtime_config_data.h",
         "include/core/analysis_runtime_defaults.h",
+        "include/core/recording_runtime_config_data.h",
+        "include/core/recording_runtime_defaults.h",
         "include/core/command_runner.h",
         "src/core/command_runner.cpp",
         "include/core/resource_guard.h",
@@ -182,16 +279,21 @@
         "include/core/source_request_parser.h",
         "src/core/source_request_parser.cpp",
         "include/core/stream_key.h",
-        "src/core/stream_key.cpp"
+        "src/core/stream_key.cpp",
+        "include/recording/recording_completion_trace.h",
+        "include/recording/recording_latency_trace.h",
+        "include/recording/recording_presentation_interval.h",
+        "include/recording/recording_time_snapshot.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 15,
+      "expectedFileCount": 21,
       "expectedCppCount": 5
     },
     {
       "id": "core-media-interfaces",
       "exactFiles": [
         "include/ingress/rtsp_request_context.h",
+        "include/media/gstreamer_sample_observation.h",
         "src/ingress/rtsp_request_context.cpp"
       ],
       "prefixes": [
@@ -212,11 +314,11 @@
         "include/ingress/webrtc_source_session.h",
         "src/ingress/webrtc_source_session.cpp"
       ],
-      "expectedFileCount": 34,
-      "expectedCppCount": 15
+      "expectedFileCount": 37,
+      "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "f9f4725ef087a680719f56d2b8f42ae73e6d00bfae45d86ca0aae6f3bedf896e",
+  "expectedFileOwnershipSha256": "7ce1656ee8bb96609040ec07cbfa3874bb18dbb78fbd8853e1c02f9d4669b7d0",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -262,6 +364,7 @@
           "src/app_config.cpp",
           "src/core/analysis_runtime_port.cpp",
           "src/core/command_runner.cpp",
+          "src/core/gst_decode_compatibility.cpp",
           "src/core/shared_stream.cpp",
           "src/core/source_factory.cpp",
           "src/core/stream_registry.cpp",
@@ -298,6 +401,46 @@
           "src/ingress/product_ui_assets.cpp",
           "src/ingress/product_ui_action_execution_deferral.cpp",
           "src/ingress/product_ui_auth_pages.cpp",
+          "src/recording/recording_contracts.cpp",
+          "src/recording/event_clip_deriver.cpp",
+          "src/recording/event_recording_bridge.cpp",
+          "src/recording/gstreamer_segment_writer.cpp",
+          "src/recording/recording_file_evidence.cpp",
+          "src/recording/recording_journal.cpp",
+          "src/recording/recording_generation_manifest.cpp",
+          "src/recording/recording_generation_active.cpp",
+          "src/recording/recording_generation_cold_mutation.cpp",
+          "src/recording/recording_generation_files.cpp",
+          "src/recording/recording_cutover_input.cpp",
+          "src/recording/recording_generation_receipt.cpp",
+          "src/recording/recording_generation_transaction.cpp",
+          "src/recording/recording_cutover_stage_writer.cpp",
+          "src/recording/recording_catalog_cutover_candidate.cpp",
+          "src/recording/recording_order_history_snapshot.cpp",
+          "src/recording/recording_identity_shard.cpp",
+          "src/recording/recording_catalog_snapshot.cpp",
+          "src/recording/recording_catalog_generation_projection.cpp",
+          "src/recording/recording_media_inspector.cpp",
+          "src/recording/recording_finalize_recovery.cpp",
+          "src/recording/recording_finalize_ticket.cpp",
+          "src/recording/recording_startup_recovery.cpp",
+          "src/recording/recording_catalog.cpp",
+          "src/recording/recording_catalog_snapshot_export.cpp",
+          "src/recording/analysis_observation_projector.cpp",
+          "src/recording/recording_read_service.cpp",
+          "src/recording/recording_timeline_projection.cpp",
+          "src/recording/recording_derived_selection.cpp",
+          "src/recording/recording_derived_job.cpp",
+          "src/recording/recording_derived_job_ready.cpp",
+          "src/recording/recording_derived_job_service.cpp",
+          "src/recording/recording_derived_event_worker.cpp",
+          "src/recording/recording_evidence_observer.cpp",
+          "src/recording/recording_runtime_composition.cpp",
+          "src/recording/recording_derived_remux.cpp",
+          "src/ingress/recording_application_service.cpp",
+          "src/recording/retention_coordinator.cpp",
+          "src/recording/recording_session_service.cpp",
+          "src/recording/recording_supervisor.cpp",
           "src/ingress/product_ui_components.cpp",
           "src/ingress/product_ui_client_css.cpp",
           "src/ingress/product_ui_client_scripts.cpp",
@@ -326,9 +469,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "f80b850eb3258964222d860fc2111c6e3fb014a19f76450c59f89f05fdaf8e85",
-        "declaredSourceCount": 101,
-        "defaultActiveSourceCount": 100,
+        "productionSourceSha256": "3b6fee4983535a59b5bfbea5cd5947719beb1575161bb3d1e88326165610a95f",
+        "declaredSourceCount": 142,
+        "defaultActiveSourceCount": 141,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -345,7 +488,8 @@
           "application-service-interfaces",
           "transport-and-auth-adapter",
           "ops-route-groups",
-          "product-ui-workspaces"
+          "product-ui-workspaces",
+          "composition-root"
         ]
       },
       {
@@ -381,8 +525,8 @@
   "observedModuleEdges": [
     {
       "direction": "analysis-services -> core-media-interfaces",
-      "witnessCount": 23,
-      "witnessSha256": "61563dfffef3ab126f4d84c793ca20b2f02d5bed5d19d5fb29de3b9d85dff317",
+      "witnessCount": 24,
+      "witnessSha256": "f785e3c3a81ccfaf9ffd3a98fa7c16ddc4c68ef4346c55c408b4c91be3516f90",
       "allowedByTarget": true
     },
     {
@@ -393,20 +537,26 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 23,
-      "witnessSha256": "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee",
+      "witnessCount": 30,
+      "witnessSha256": "e03f3f9c8510430e8cfc4bb73b5203a336181ef24f7ae2db12320984a503ddb8",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> core-media-interfaces",
-      "witnessCount": 4,
-      "witnessSha256": "9b012c5785ae13606c5cf056c7835123a767e53df641dbcd556b04a38258ae93",
+      "witnessCount": 6,
+      "witnessSha256": "a4c43c4fc10e063ff0bf6c93b57a1a7b943abdcdf229d105b786ff07eef4eecc",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "application-service-interfaces -> core-utilities",
+      "witnessCount": 6,
+      "witnessSha256": "3ba3572cab77c72e4416d913df9f2766289ef1985315263ef7b74a76dde59e98",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 4,
-      "witnessSha256": "31d96f595f69946917a1344d69d6698147dec011ec3750ca411c5486105cab25",
+      "witnessCount": 35,
+      "witnessSha256": "4d15d55870b6cd879932031abc8e41530a4c90ca1d072ed5f10d96b8e54d7a29",
       "allowedByTarget": true
     },
     {
@@ -417,8 +567,8 @@
     },
     {
       "direction": "composition-root -> application-service-interfaces",
-      "witnessCount": 3,
-      "witnessSha256": "a8e2b7fe386fb488bf5cd84f2218ce8bb3f299fb1ddcab9075e3c491c8a68c2f",
+      "witnessCount": 17,
+      "witnessSha256": "a8a76d3d08b1d6a2af7b16aad9eccb835a31e9774bb890e69b3f4cf35bf29ae5",
       "allowedByTarget": true
     },
     {
@@ -434,6 +584,12 @@
       "allowedByTarget": true
     },
     {
+      "direction": "composition-root -> domain-and-registry-owners",
+      "witnessCount": 4,
+      "witnessSha256": "9d73424f0e60b9f977314450d059dc6e05f07652f72451280d7deaf4824039b5",
+      "allowedByTarget": true
+    },
+    {
       "direction": "composition-root -> transport-and-auth-adapter",
       "witnessCount": 2,
       "witnessSha256": "d32d40c8293e57337d7e665c16ab04f2691902b85c936613bad3964a960b8919",
@@ -441,14 +597,14 @@
     },
     {
       "direction": "core-media-interfaces -> core-utilities",
-      "witnessCount": 42,
-      "witnessSha256": "8067295cc4267bd8403e01716efa68690d64733da23f119f70b4b76b714b52ff",
+      "witnessCount": 43,
+      "witnessSha256": "8d5e53a2135afdbd84f58441e7dc0a4f068d026075026cb5312bbf11622e4960",
       "allowedByTarget": true
     },
     {
       "direction": "domain-and-registry-owners -> core-utilities",
-      "witnessCount": 2,
-      "witnessSha256": "23a7876fc27567d7a54fb7d3ac0d4bf372c6c08accc7f0465c091aa0e7ac3915",
+      "witnessCount": 9,
+      "witnessSha256": "8a0d3d4b48c85a4db8464e3b53d58fccf0e8039a021e497403fecca99204d530",
       "allowedByTarget": true
     },
     {
@@ -465,8 +621,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 25,
-      "witnessSha256": "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7",
+      "witnessCount": 27,
+      "witnessSha256": "9b3ce7c6ee7328d7e008874007b02eb211826f7c6652b28008870421a17fb860",
       "allowedByTarget": true
     },
     {
@@ -485,7 +641,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 7777,
+      "lineCount": 7785,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -521,7 +677,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      "lineCount": 8076,
+      "lineCount": 8083,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -533,7 +689,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5193,
+      "lineCount": 5286,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -545,7 +701,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_detail.h",
-      "lineCount": 8016,
+      "lineCount": 8020,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -557,7 +713,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10346,
+      "lineCount": 10491,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

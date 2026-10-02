@@ -1,70 +1,61 @@
-# VLM Queue/Backpressure Stability
+# VLM 큐·backpressure 검증
 
-이 문서는 `v2.1.0 V210-S04 VLM queue/backpressure stability`의 세부 기준 문서입니다.
-S04는 VLM worker 상태가 RTSP/WebRTC media path, EventRecord, metadata fanout,
-Event POST dispatch를 막지 않는지 fixture와 기존 stability verifier로 확인합니다.
+개발자가 VLM 작업의 실패를 media/EventRecord/metadata fanout/Event POST dispatch와
+분리하는 계약을 확인하는 안내다. 기본 명령은 `verify-vlm-queue-backpressure-stability`다.
+**이 명령 전체는 정적 fixture 검사만이 아니다.** 내부에서 `verify-analysis-state`를 호출해
+C++ 제품 큐의 timeout/drop 및 configured-zones 경계를 실제 smoke로 확인한다.
 
-## 직접 답
+## 계약과 사례
 
-S04의 1차 gate는 `verify-vlm-queue-backpressure-stability`입니다. 이 명령은
-`media-server.vlm-queue-backpressure-fixtures.v1` fixture로 default-off,
-missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch 상태를
-VLM-only failure로 판정하고, media/event/metadata 경로로 backpressure가 전파되지
-않는지 확인합니다.
+[fixture](../test/fixtures/vlm_queue_backpressure/cases.json)의 schema는
+`media-server.vlm-queue-backpressure-fixtures.v1`이다.
+[검증기](../scripts/internal/verify_vlm_queue_backpressure_stability.mjs)의 `evaluateCase`는
+입력에서 outcome을 계산하고 기대값·차단 경로·side effect를 비교한다.
+
+| case | 기대 outcome |
+| --- | --- |
+| `default-off-no-worker` | `default-off-no-queue-start` |
+| `missing-model-nonblocking` | `blocked-missing-model-nonblocking` |
+| `queue-timeout-drop-vlm-only` | `timeout-no-media-path-failure` |
+| `invalid-output-rejected-no-sidecar` | `rejected-invalid-output-nonblocking` |
+| `metadata-fanout-independent` | `metadata-fanout-independent` |
+| `event-post-dispatch-independent` | `event-post-dispatch-independent` |
+
+fixture의 `runtimeVlmCallPerformed=false`, `sidecarStored=false`,
+`viewerClientExposureAdded=false`와 credential/schema/media 변경 금지를 유지한다.
+`mediaPathBlocked/eventRecordBlocked/metadataFanoutBlocked/eventPostDispatchBlocked`도 false다.
+
+[vlm_feature_queue.cpp](../src/analysis/vlm_feature_queue.cpp)의 `MakeOutcome`와 큐 처리 경계를
+[analysis_state_smoke.cpp](../scripts/internal/analysis_state_smoke.cpp)가 관측한다.
+검증기는 `[review4-safe-032-036]`의 `queueAction=drop-vlm-task`·
+`failureReason=queue-timeout` 및 비차단 값을 읽는다. `[safe-056-cross-zone]`의
+configured-zones/re-entry·schema/media/viewer 불변 조건도 별도로 읽는다.
+기능 연결은 LAB-058·SAFE-032·SAFE-036·SAFE-056이다.
+
+## 실행과 출력
+
+C++ smoke의 빌드 도구·의존성과 임시 산출물 실행 범위를 먼저 확인한다.
 
 ```bash
+: "${vlm_run_root:?이번 실행의 소유 절대 경로를 지정하세요}"
 ./server.sh verify-vlm-queue-backpressure-stability \
-  --report /tmp/media_server_vlm_queue_backpressure.md \
-  --json-report /tmp/media_server_vlm_queue_backpressure.json
+  --report "$vlm_run_root/queue.md" \
+  --json-report "$vlm_run_root/queue.json"
 ```
 
-이 fixture는 실제 VLM runtime/provider 호출은 수행하지 않습니다. 모델 download,
-provider credential 저장, sidecar write, Event POST/WebRTC/SSE/WS payload/schema 변경,
-RTSP/WebRTC media path 변경도 수행하지 않습니다.
+report schema는 `media-server.vlm-queue-backpressure-stability-report.v1`이다.
+`status/checks/cases/summary`를 함께 읽으며 개별 case의 `outcome/queueAction/failureReason`,
+`nonblocking/blockedPaths/sideEffects`를 구분한다. check 결과가 report로 생성되는 경우
+검사 실패는 전체 `status=fail`과 exit 1이다. 입력·report assertion 등에서 먼저 예외가 나면
+JSON 파일이 생성되지 않을 수 있으므로 원출력과 exit도 함께 확인한다.
+합성 fixture의 비차단 판정과 실제 C++ smoke 관측을 같은 종류의 증거로 취급하지 않는다.
 
-## 안정화 명령
+fixture의 `requiredCommands`는 영향 회귀 정의이며 이 검증기가 아래 묶음을 모두 실행하는
+것은 아니다: `build`, `verify-va-events`, `verify-event-post`,
+`verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`,
+본 검증기, `git diff --check`. 각 명령은 승인된 범위에서 별도로 실행·기록한다.
 
-S04 완료 evidence는 아래 short stability 묶음입니다.
-
-```bash
-./server.sh build
-./server.sh verify-vlm-queue-backpressure-stability
-./server.sh verify-va-events
-./server.sh verify-event-post
-./server.sh verify-webrtc-va-metadata
-./server.sh verify-va-metadata-sidechannel
-./server.sh verify-ws-metadata
-git diff --check
-```
-
-각 verifier는 자기 범위만 PASS입니다. `verify-vlm-queue-backpressure-stability`는
-VLM queue fixture와 side-effect boundary를 확인하고, `verify-va-events`와
-`verify-event-post`는 기존 EventRecord/Event POST 경로를, metadata verifier는
-WebRTC/SSE/WS metadata schema와 fanout smoke를 확인합니다.
-
-## 30분/120분/UI 경계
-
-- 30분 soak는 runtime path나 queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
-  이번 fixture/static verifier만으로 30분 안정화 PASS를 만들지 않습니다.
-- 120분 longrun은 active RSS high-water, retry queue drift, media/fanout high-risk signal,
-  또는 release candidate gate에서 사용자 승인 후 실행합니다.
-- 이 문서와 verifier는 브라우저 UI 직접 확인 evidence가 아닙니다. `/ops/vlm` runtime
-  status UI는 V210-S05에서 별도 직접 확인합니다.
-
-## Fixture 판정
-
-| Case | 기대 outcome | 확인 경계 |
-| --- | --- | --- |
-| `default-off-no-worker` | `default-off-no-queue-start` | default-off가 VLM queue를 자동 시작하지 않음 |
-| `missing-model-nonblocking` | `blocked-missing-model-nonblocking` | missing model이 media path FAIL로 번지지 않음 |
-| `queue-timeout-drop-vlm-only` | `timeout-no-media-path-failure` | timeout은 VLM task drop으로 닫힘 |
-| `invalid-output-rejected-no-sidecar` | `rejected-invalid-output-nonblocking` | invalid output이 sidecar/Event POST에 저장되지 않음 |
-| `metadata-fanout-independent` | `metadata-fanout-independent` | WebRTC/SSE/WS metadata fanout 독립 유지 |
-| `event-post-dispatch-independent` | `event-post-dispatch-independent` | EventRecord/Event POST dispatch 독립 유지 |
-
-## 완료/비완료 구분
-
-완료로 볼 수 있는 것은 S04 fixture, verifier, docs/inventory/server wiring, 그리고
-실행한 short stability 명령의 PASS입니다. local runtime 품질, cloud provider field
-smoke, 30분/120분 장시간 안정성, `/ops/vlm` UI 직접 조작은 이 문서의 완료 evidence가
-아닙니다.
+실제 VLM/provider 호출·모델 다운로드·운영 sidecar 쓰기·미디어 부하 측정은 이 검사의
+결과가 아니다. 안정화/30분/120분의 필요성과 승인·미실행 표기는
+[검증 정책](stream-verification.md#검증-정책), 실제 화면 판정은
+[UI 풀테스트](manual-ui-fulltest.md)를 따른다. 정적·짧은 smoke를 장시간/UI 성공으로 대체하지 않는다.

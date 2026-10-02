@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -21,7 +23,7 @@ Usage:
 Checks:
   - docs/event-evidence-contract.md defines EvidenceManifest, FrameRef, retention lifecycle, privacy, and non-VMS boundaries
   - test fixture contains required eventFrame, optional representativeImage, bboxCrop, frameBundle, retention, privacy, and non-VMS guards
-  - V300-S01 roadmap, stream verification, feature inventory, release records, docs index, and server entrypoint are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to contract/fixture/verifier evidence and does not imply frame extraction, encoded clip, UI, longrun, or release publication
 `);
 }
@@ -34,13 +36,10 @@ const fixturePath = "test/fixtures/event_evidence_contract/evidence_manifest_sam
 
 const files = {
   contract: readText("docs/event-evidence-contract.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   eventStorageSource: readText("src/analysis/event_storage.cpp"),
   server: readText("server.sh"),
 };
@@ -60,26 +59,14 @@ check("frame bundle writer source owns the extraction sidecar contract", () => {
   assert(evt060FrameBundleBlock.includes("FrameBundlePhase(index, event_frame_index)"), "EVT-060 WebRTC SSE RTSP boundary");
 });
 
-check("contract document defines V300-S01 evidence boundary", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S01 Event Evidence Contract`",
-    "EvidenceManifest",
-    "FrameRef",
-    "Retention Lifecycle",
-    "Privacy And Non-VMS Boundary",
-    "eventFrame`은 필수",
-    "`representativeImage`는 optional",
-    "`bboxCrop`은 optional",
-    "`frameBundle`은 optional",
-    "24/7 상시녹화",
-    "VMS/NVR archive API",
-    "encoded MP4/WebM event clip",
-    "raw LLM/VLM prompt",
-    "raw provider response",
-    "UI 풀테스트, 30분/120분 longrun, published",
-  ]) {
-    assert(files.contract.includes(snippet), `contract document missing snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.contract, identifiers: ["EvidenceManifest","FrameRef","media-server.event-evidence-contract.v1","eventFrame","representativeImage","bboxCrop","frameBundle","retention","privacy","nonVmsBoundary"],
+    command, script: "verify_v300_event_evidence_contract.mjs", featureIds: ["OPS-052","SAFE-082"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("FrameRef document and fixture expose required source/time identity", () => {
@@ -160,46 +147,6 @@ check("retention, privacy, and non-VMS fixture guards are explicit", () => {
   }
 });
 
-check("docs index, roadmap, and stream verification expose V300-S01 contract gate", () => {
-  assert(files.docsIndex.includes("[event-evidence-contract.md](event-evidence-contract.md)"), "docs index missing event evidence contract");
-  for (const snippet of [
-    "| 1 | V300-S01 | P0 | 완료 | Event Evidence Contract |",
-    "EvidenceManifest, FrameRef, retention lifecycle, non-VMS boundary 정의",
-    "docs/event-evidence-contract.md",
-    fixturePath,
-    "`./server.sh verify-v300-event-evidence-contract`",
-    "encoded clip, playback, VMS API 완료 evidence가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S01 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S01 | `./server.sh verify-v300-event-evidence-contract` |",
-    "EvidenceManifest, FrameRef, retention lifecycle, privacy/non-VMS boundary",
-    "frame extraction, encoded clip, playback, VMS API, UI 풀테스트",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing snippet: ${snippet}`);
-  }
-});
-
-check("feature inventory and release records map V300-S01 to OPS-052 and SAFE-082", () => {
-  for (const snippet of [
-    "V300-S01 Event Evidence Contract | `OPS-052`, `SAFE-082` | `verify-v300-event-evidence-contract`",
-    "OPS-052 | V300-S01 Event Evidence Contract 게이트",
-    "SAFE-082 | V300-S01 evidence contract boundary",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 Event Evidence Contract",
-    "`./server.sh verify-v300-event-evidence-contract`",
-    "v300 S01 RED contract gate",
-    "v300 S01 event evidence contract final",
-    "v300 S01 frame extraction",
-    "v300 S01 encoded clip/playback",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S01 command", () => {
   assert(files.server.includes("verify-v300-event-evidence-contract"), "server.sh missing V300-S01 command");

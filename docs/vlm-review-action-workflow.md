@@ -1,31 +1,41 @@
-# VLM Review Action Workflow
+# VLM 설명에 대한 운영자 검토 기록
 
-`V210-S07`은 `/ops/events`의 VLM review detail에서 운영자가 설명, 오탐 힌트,
-운영자 질문을 `accept`, `dismiss`, `review-needed` action으로 기록하는 workflow입니다.
+운영자는 `/ops/events`의 VLM 검토 카드에서 설명·오탐 힌트·질문을 읽고 판단을 기록한다.
+이는 모델 재평가나 Rule/Profile 적용 명령이 아니라 Ops 검토 metadata다.
+기본 동선과 화면 범위는 [Ops 이벤트 검토](vlm-ops-event-review-ui.md)를 따른다.
 
-직접 답: 1차 action은 `accept`입니다. fallback action은 `review-needed`이고,
-기본값은 `not-reviewed`입니다. action target은 `summary`, `eventExplanation`,
-`falsePositiveHints`, `operatorReviewQuestions` 중 하나입니다.
+## 값과 저장 범위
 
-## Scope
+| 필드 | 허용 값 |
+| --- | --- |
+| `action` | `not-reviewed`(기본), `accept`, `dismiss`, `review-needed` |
+| `target` | `summary`, `eventExplanation`(기본), `falsePositiveHints`, `operatorReviewQuestions` |
+| `note` | 운영자의 정제된 검토 메모 |
 
-- `vlmAction`은 기존 `/ops/api/events/reviews/{eventId}` review state 안에
-  `media-server.ops.vlm-review-action-state.v1` 객체로 저장합니다.
-- 저장 범위는 Ops event review JSONL과 audit before/after state입니다.
-- `/ops/events`의 VLM review 카드에는 action, target, action note control이 있습니다.
-- action note는 기존 review note redaction을 재사용합니다.
+[fixture](../test/fixtures/vlm_review_action_workflow/cases.json)는
+`media-server.vlm-review-action-workflow-fixtures.v1`이다.
+fixture의 primary는 `accept`, fallback은 `review-needed`지만 운영자가 설명을
+무조건 수락해야 한다는 권고가 아니다. 실제 판단에 따라 dismiss 또는 추가 검토를 선택한다.
 
-## Excluded
+`POST/PUT /ops/api/events/reviews/{eventId}`의 `vlmAction`은
+`media-server.ops.vlm-review-action-state.v1`로 기존 Ops review JSONL에 저장된다.
+조회·갱신 모두 현재 Ops operator/admin·`ops:read` guard를 따른다.
+이 경로는 Rules 저장이 아니며 추가 `rule:write`를 요구한다고 가정하지 않는다.
+audit에는 기존 review의 before/after가 남는다.
 
-- EventRecord top-level payload 변경
-- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
-- RTSP/WebRTC media path 변경
-- VLMObservation sidecar write
-- 자동 Rule/Profile 저장 또는 적용
-- client/viewer 노출
-- 실제 VLM runtime/provider 호출
+[webrtc_http_server_ops_foundation.cpp](../src/ingress/webrtc_http_server_ops_foundation.cpp)의
+`UpsertOpsEventReviewState`가 action/target을 정규화하고
+`NormalizeOpsEventReviewNote`로 제어 문자·길이와 민감 패턴을 처리한다.
+화면 메모 maxlength는 300, 서버 정규화 상한은 500바이트다.
+정규화는 임의 비밀을 완벽히 탐지하는 기능이 아니므로 credential/token/source URL/raw JSON/debug
+본문을 메모에 넣지 않는다. 새 모델·제3자 결과를 추가하는 흐름이 아니며 출처는 운영자 입력이다.
 
-## Verification
+## 사용·검증
+
+`data-testid="ops-vlm-review-action-controls"`에서 action·target·메모를 고른 뒤
+기존 review 저장 버튼을 누르고 저장된 review state를 다시 확인한다.
+`eventReviewVlmHtml` 및 저장 payload는
+[product_ui_page_scripts.cpp](../src/ingress/product_ui_page_scripts.cpp)에 있다.
 
 ```bash
 ./server.sh verify-vlm-review-action-workflow
@@ -33,9 +43,12 @@
 ./server.sh verify-vlm-ops-event-review-ui
 ./server.sh verify-event-post
 ./server.sh verify-ws-metadata
-git diff --check
 ```
 
-30분/120분 longrun은 runtime queue/cache/media path 변경이 있을 때만 사용자 승인 후
-실행합니다. UI PASS는 인앱 브라우저에서 `/ops/events`를 직접 열고 action 저장 결과가
-Ops review state에 반영되는지 확인한 evidence가 있을 때만 기록합니다.
+LAB-060의 첫 명령은 fixture·API/저장/UI source 연결을 정적으로 검사한다.
+실제 API roundtrip·브라우저 저장은 각 별도 검사/직접 관측으로 확인해야 한다.
+[검증 정책](stream-verification.md#검증-정책)과 [UI 풀테스트](manual-ui-fulltest.md)를 적용한다.
+
+저장은 Ops review/audit 범위이며 observation sidecar나 EventRecord 최상위를 바꾸지 않는다.
+자동 Rule/Profile 저장·적용, VLM/provider 호출, Event POST/WebRTC DataChannel/SSE/WS schema·
+RTSP/WebRTC 경로 변경, viewer/client 노출은 추가하지 않는다.

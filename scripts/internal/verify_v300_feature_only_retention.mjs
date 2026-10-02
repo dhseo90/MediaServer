@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -23,7 +25,7 @@ Checks:
   - V300-S05 fixture covers feature revision store, raw prompt/response rejection, and reanalysis revision policy
   - analysis/vlm_feature_retention stores only structured FeatureSet revisions without raw prompt/response/provider material
   - analysis-state smoke includes S05 retention behavior
-  - docs/backlog/stream verification/release records/feature inventory/server dispatch are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to V300-S05 feature-only retention evidence and does not imply Search DSL, cleanup lifecycle, UI, longrun, or release publication
 `);
 }
@@ -38,15 +40,12 @@ const files = {
   smoke: readText("scripts/internal/analysis_state_smoke.cpp"),
   smokeBuild: readText("scripts/internal/verify_analysis_state_smoke.sh"),
   policy: readText("docs/v300-feature-only-retention.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
   cmake: readText("CMakeLists.txt"),
 };
@@ -140,57 +139,16 @@ check("analysis-state smoke verifies S05 behavior and build links module", () =>
   assert(files.cmake.includes("src/analysis/vlm_feature_retention.cpp"), "CMake missing vlm_feature_retention.cpp");
 });
 
-check("docs and roadmap expose V300-S05 feature-only retention scope without overclaim", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S05 Feature-only Retention`",
-    "feature revision store",
-    "raw prompt/response non-retention",
-    "reanalysis policy",
-    "raw provider response",
-    "provider replay",
-    "Search DSL",
-    "Retention/Pin/Cleanup",
-  ]) {
-    assert(files.policy.includes(snippet), `policy doc missing snippet: ${snippet}`);
-  }
-  assert(files.docsIndex.includes("[v300-feature-only-retention.md](v300-feature-only-retention.md)"), "docs index missing S05 doc");
-  for (const snippet of [
-    "| 5 | V300-S05 | P0 | 완료 | Feature-only Retention |",
-    "raw prompt/response non-retention, feature revision, reanalysis policy",
-    "docs/v300-feature-only-retention.md",
-    "`./server.sh verify-v300-feature-only-retention`",
-    "raw response 보관이나 provider replay evidence가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S05 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S05 | `./server.sh verify-v300-feature-only-retention` |",
-    "Feature-only durable retention, raw prompt/response rejection, FeatureSet revision store, reanalysis revision policy",
-    "Search DSL, Retention/Pin/Cleanup, `/ops/events` UI",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing V300-S05 snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.policy, identifiers: ["VlmFeatureRetentionStore","media-server.vlm-feature-retention-record.v1","feature-only-structured-non-identifying","reject-raw-provider-material","store-reanalysis-revision","previousRevisionPreserved=true","rawPromptStored","rawProviderResponseStored"],
+    command, script: "verify_v300_feature_only_retention.mjs", featureIds: ["LAB-085","SAFE-087","OPS-055"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V300-S05 to LAB-085, SAFE-087, and OPS-055", () => {
-  for (const snippet of [
-    "V300-S05 Feature-only Retention | `LAB-085`, `SAFE-087`, `OPS-055` | `verify-v300-feature-only-retention`, `verify-analysis-state`",
-    "LAB-085 | V300-S05 feature-only retention fixture",
-    "SAFE-087 | V300-S05 raw prompt/response non-retention boundary",
-    "OPS-055 | V300-S05 feature-only retention 게이트",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 Feature-only Retention",
-    "`./server.sh verify-v300-feature-only-retention`",
-    "v300 S05 RED feature-only retention gate",
-    "v300 S05 feature-only retention final",
-    "v300 S05 search/UI/cleanup/longrun/published",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S05 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S05 command");

@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +27,7 @@ Checks:
   - /tmp cleanup and sensitive material scan boundaries are recorded without executing cleanup
   - /ops/sources renders the manifest read-only without source URL, raw locator, raw JSON, debug, or credential material
   - SourceRegistry, PublishedView, EventRecord/Event POST, media, metadata schemas, Rule/Profile payload, search/metrics, automatic recovery, and file cleanup are not mutated
-  - backlog, stream verification, release records, feature inventory, manual UI checklist, ops/client smoke, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -41,13 +42,12 @@ const files = {
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -173,63 +173,29 @@ check("drill manifest styling and ops/client smoke track Step 9 markers", () => 
   }
 });
 
-check("roadmap records v3.4 Step 9 without overclaiming field bridge or cleanup execution", () => {
-  for (const snippet of [
-    "| 9 | v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | P1 | 완료 |",
-    "## v3.4.0 Step 9 개발 기록",
-    "OpsV340DrillEvidenceExportCleanupManifestJson",
-    "renderDrillEvidenceExportCleanupManifest",
-    `\`./server.sh ${command}\``,
-    "Field Bridge Condition Gates 완료 evidence가 아닙니다",
-    "cleanupExecutionPerformed=false",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 9");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-078","SAFE-132","OPS-099"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/drill-evidence-export-cleanup-manifest"],
+    command, script: "verify_v340_drill_evidence_export_cleanup_manifest.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 9 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (9) | \`./server.sh ${command}\` | Drill Evidence Export and Cleanup Manifest.`,
-    route,
-    "redacted drill artifact manifest",
-    "minimum retained evidence",
-    "/tmp cleanup",
-    "sensitive material scan",
-    "cleanupExecutionPerformed=false",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 9");
-  }
-});
 
-check("feature inventory, manual UI, and release records map v3.4 Step 9", () => {
-  for (const snippet of [
-    `v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | \`UI-078\`, \`SAFE-132\`, \`OPS-099\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-078 | V340 Step 9 Drill Evidence Export and Cleanup Manifest UI",
-    "SAFE-132 | V340 Step 9 drill evidence export cleanup boundary",
-    "OPS-099 | V340 Step 9 Drill Evidence Export and Cleanup Manifest 게이트",
-    "`UI-001`~`UI-115`",
-    "`SAFE-001`~`SAFE-216`",
-    "`OPS-035`~`OPS-184`",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 9");
-  }
-  for (const snippet of [
-    "| V340 Step 9 Drill Evidence Export and Cleanup Manifest | `UI-078`, `SAFE-132`, `OPS-099` | `/ops/sources` |",
-    "Drill Evidence Export and Cleanup Manifest",
-    schema,
-  ]) {
-    assertIncludes(files.manualUi, snippet, "manual UI v3.4 Step 9");
-  }
-  for (const snippet of [
-    "V340 Drill Evidence Export and Cleanup Manifest",
-    `\`./server.sh ${command}\``,
-    "v340 Step 9 RED drill evidence export cleanup manifest gate",
-    "v340 Step 9 drill evidence export cleanup manifest final",
-    "v340 Step 9 UI 풀테스트",
-    "v340 Step 9 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 9");
-  }
+check("실제 UI 체크리스트 정의 연결", () => {
+  const ids = ["UI-078", "SAFE-132", "OPS-099"];
+  const rows = files.manualUi.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/ops/sources"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["Drill Evidence Export and Cleanup Manifest", schema]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v340-drill-evidence-export-cleanup-manifest`", "manual UI 실행 명령");
 });
 
 check("server entrypoint and inventory verifiers include v3.4 Step 9 command", () => {

@@ -20,6 +20,7 @@
 #include "recording/recording_store_port.h"
 #include "recording/retention_coordinator.h"
 #include "recording/recording_timeline.h"
+#include "recording/recording_query_values.h"
 
 struct sqlite3;
 
@@ -90,13 +91,6 @@ struct RecordingDerivedReferenceResult {
     std::vector<RecordingDerivedReferenceJob> jobs;
 };
 
-struct RecordingOriginalCandidate {
-    RecordingSegmentV2 segment;
-    std::string source_generation, track_id;
-    std::uint64_t generation_order{0}, last_accepted_ordinal{0};
-    std::optional<RecordingSourceSampleV1> sample;
-    std::string reason;
-};
 struct RecordingOriginalResult {
     std::vector<RecordingOriginalCandidate> exact, unknown;
 };

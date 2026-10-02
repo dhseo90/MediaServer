@@ -1,93 +1,56 @@
-# ONVIF HTTPS SOAP Transport Design
+# ONVIF HTTPS SOAP 구현 계약
 
-이 문서는 ONVIF `https://` Device service SOAP transport 구현 기준과 이번
-no-device 검증 결과를 고정합니다. v1.8.0에서 도입된 구현은 v1.8.0 기준에도
-OpenSSL을 사용할 수 있는 빌드에서 HTTPS SOAP fixture transport를 지원합니다. 실장비 HTTPS endpoint 성공은
-별도 field smoke 전까지 미확인으로 남깁니다.
+독자: SOAP transport를 수정·검토하는 개발자.
+현행 구현은 `src/ingress/onvif_live_import.cpp`이며 이 문서는 실행 결과가 아닌 기술 계약입니다.
+운영 설정은 [TLS 정책](./onvif-tls-transport-policy.md),
+인증값 선택은 [credential 정책](./onvif-credential-reference-policy.md)을 따릅니다.
 
-관련 기준:
+## 입력과 처리 흐름
 
-- [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
-- [ONVIF HTTPS TLS Fixture Harness Design](./onvif-https-tls-fixture-harness-design.md)
-- [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
-- [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
-- [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
+`SendOnvifSoapHttp`는 `http://`와 `https://` endpoint를 처리합니다.
 
-## 현재 상태
+1. `ParseHttpUrl`로 scheme·host·port·path를 분리합니다. authority에 userinfo가 있으면
+   `invalid endpoint URL`로 거부합니다. 경로/query의 모든 token을 검사하는 parser는 아닙니다.
+2. HTTP/HTTPS 이외 scheme 및 양수가 아닌 `timeout_ms`는 전송 전에 거부합니다.
+3. HTTP는 socket 경로, HTTPS는 `MEDIA_SERVER_USE_OPENSSL` 빌드의 `SendOnvifSoapHttps`를 사용합니다.
+   OpenSSL 미포함 빌드는 `https transport requires OpenSSL support`로 종료합니다.
+4. HTTPS는 TCP 연결 후 `SSL_CTX_set_verify(..., SSL_VERIFY_PEER, ...)`로 certificate verification을 설정합니다.
+   `MEDIA_SERVER_ONVIF_TLS_CA_FILE`이 있으면 `SSL_CTX_load_verify_locations`, 없으면
+   `SSL_CTX_set_default_verify_paths`를 사용합니다. 지정 CA 로드 실패는 자동 fallback하지 않습니다.
+5. `SSL_set1_host`로 hostname verification을 설정하고 `SSL_connect` 후 검증 결과를 확인합니다.
+   성공한 연결로만 `BuildSoapHttpRequest`의 SOAP POST를 전송하고 응답을 파싱합니다.
 
-- `http://` ONVIF Device service endpoint는 기존 socket 기반 SOAP POST를
-  유지합니다.
-- `https://` ONVIF Device service endpoint는 OpenSSL 빌드에서 TLS handshake,
-  certificate verification, hostname verification 후 SOAP POST를 수행합니다.
-- OpenSSL이 없는 빌드는 `https transport requires OpenSSL support`로
-  fail-closed하며 endpoint, host, credential, raw SOAP를 출력하지 않습니다.
-- `MEDIA_SERVER_ONVIF_TLS_CA_FILE`을 지정하면 fixture CA bundle을 사용하고,
-  지정하지 않으면 OS/OpenSSL 기본 trust store를 사용합니다.
-- endpoint URL username/password/token은 `invalid endpoint URL`로 거부합니다.
-- `https://`를 `http://`로 자동 downgrade하지 않습니다.
-- `verify-onvif-https-tls-fixture`는 loopback fixture-only HTTPS 성공과 TLS failure
-  redaction을 검증합니다.
-- `verify-onvif-http-transport`는 production `SendOnvifSoapHttp`의 HTTPS fixture
-  성공과 untrusted CA failure, hostname mismatch failure, handshake failure,
-  connection refused, URL userinfo redaction을 검증합니다.
-- 실장비 HTTPS endpoint 성공은 별도 field smoke 전까지 미확인으로 남깁니다.
+HTTP로 자동 downgrade하거나 인증서/호스트 검증을 끄는 경로는 없습니다.
+CA 선택과 공개 오류 정보의 기준은 위 TLS 정책이 단일 기준입니다.
 
-## 구현 결과
+## 실패와 비밀 경계
 
-이번 단계의 결과:
+신뢰 경로 로드 실패는 `TLS trust store load failed`, 인증서 검증 실패는
+`TLS certificate verification failed`, 그 외 handshake 실패는 `TLS handshake failed`처럼
+고정 오류로 반환합니다. Node fixture와 C++ 오류 문구가 같다고 가정하지 않습니다.
+endpoint, host, certificate dump, raw SOAP, 인증값을 오류·로그·artifact에 붙이지 않습니다.
 
-- `SendOnvifSoapHttp`는 `http://`와 `https://` scheme을 모두 허용합니다.
-- OpenSSL 빌드에서 `https://localhost:<port>/onvif/device_service` fixture server에
-  trusted CA bundle로 연결하고 SOAP 응답을 파싱합니다.
-- TLS certificate verification과 hostname verification은 기본 활성화합니다.
-- URL userinfo가 포함된 `HTTPS://user:pass@...` endpoint는 sanitized wording으로
-  실패하며, username/password/host/SOAP action을 error에 노출하지 않습니다.
-- production HTTPS transport failure matrix는 untrusted CA, hostname mismatch,
-  handshake failure, connection refused를 sanitized wording으로 고정합니다.
-- `https://`를 `http://`로 자동 downgrade하지 않습니다.
-- OpenSSL이 없는 빌드는 HTTPS를 명확히 미지원으로 닫고 HTTP transport는 유지합니다.
+기본 None provider는 비밀을 주지 않지만, 명시적인 준비 완료 provider의 `http_basic` material을
+`ApplyCredentialMaterial`이 Authorization 헤더로 넣는 경로는 이미 있습니다.
+따라서 인증 헤더 전송 자체 금지가 아니라 **허용된 전송과 공개/저장 비노출을 분리**해야 합니다.
+허용 조건·미구현 인증 방식은 [인증 주입 계약](./onvif-auth-injection-design.md)을 봅니다.
 
-## 유지 조건
+## 검사와 반례
 
-HTTPS SOAP transport는 아래 조건을 계속 만족해야 합니다.
+| 명령 | 대상과 정의 |
+| --- | --- |
+| `verify-onvif-https-soap-transport-design` | 문서·C++ TLS 함수·아래 smoke의 정적 연결 |
+| `verify-onvif-tls-transport-policy` | 신뢰 설정·비노출·검증 경계의 정적 연결 |
+| `verify-onvif-http-transport` | C++ trusted HTTPS 성공, untrusted CA, hostname mismatch, handshake failure, connection refused, URL userinfo·비밀번호 오류 비노출 |
+| `verify-onvif-https-tls-fixture` | C++와 별도인 Node TLS client/server 검사. expired certificate도 포함 |
 
-1. TLS trust store 선택 기준을 문서화합니다.
-2. hostname verification은 기본 활성화하며 opt-out을 제공하지 않습니다.
-3. certificate verification failure는 sanitized summary로만 노출합니다.
-4. HTTP downgrade fallback을 자동 수행하지 않습니다.
-5. endpoint URL username/password/token은 계속 금지합니다.
-6. credential reference 정책과 결합하더라도 secret 원문은 header, log, artifact에
-   남기지 않습니다.
-7. timeout, connection refused, handshake failure, certificate failure를
-   redaction matrix에 유지합니다.
-8. field smoke artifact에는 endpoint, host, certificate dump, raw SOAP를 넣지
-   않습니다.
-9. fixture-only 성공과 실장비 성공을 보고에서 분리합니다.
-10. no-device TLS fixture harness는
-    [ONVIF HTTPS TLS Fixture Harness Design](./onvif-https-tls-fixture-harness-design.md)의
-    ephemeral CA, hostname verification, trusted fixture success, untrusted CA
-    failure, hostname mismatch failure, certificate expired failure, handshake
-    failure case를 계속 만족해야 합니다.
+실행 시 `./server.sh <명령>`을 사용합니다. C++ 정의는
+`scripts/internal/onvif_http_transport_smoke.cpp`의 `RunHttpsTransportSmoke`와
+`RunHttpsTransportFailureMatrix`에 있습니다.
+Node 정의는 [TLS fixture 안내](./onvif-https-tls-fixture-harness-design.md)로 분리합니다.
+이 표는 과거 또는 현재 실행의 PASS 기록이 아닙니다.
 
-## 비범위
-
-- insecure TLS opt-in
-- hostname verification 비활성화
-- self-signed certificate 무조건 허용
-- `https://`를 `http://`로 자동 downgrade
-- TLS certificate dump 저장
-- credential 원문 주입 또는 URL credential
-
-## 검증
-
-현재 단계에서 실행할 검증:
-
-```bash
-./server.sh build
-./server.sh verify-onvif-https-soap-transport-design
-./server.sh verify-onvif-https-tls-fixture
-./server.sh verify-onvif-tls-transport-policy
-./server.sh verify-onvif-protocol-support-matrix
-./server.sh verify-onvif-http-transport
-git diff --check
-```
+Node의 만료 인증서 반례가 C++의 동일 반례 실행을 증명하지 않으며, 어느 fixture도
+실장비 HTTPS 성공이나 영상 재생을 증명하지 않습니다.
+지원 범위는 [프로토콜 표](./onvif-protocol-support-matrix.md),
+외부 결과 정제는 [field 자료 기준](./onvif-field-smoke-artifact-redaction.md)을 따릅니다.

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 17 Export / Handoff Bundle 연결, 문서, 경계를 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/site-operations/export-handoff-bundle combines site, runbook, evidence, approval, and outcome refs into a redacted release-safe handoff bundle
   - bundle remains read-only and does not write files, export artifacts, persist handoff state, send notices, or mutate media/schema/runtime state
   - /ops dashboard renders bundle, handoff, redaction, and release safety signals without client/viewer injection
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -42,17 +43,16 @@ const featureIds = ["UI-101", "LAB-110", "SAFE-178", "OPS-145"];
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -228,7 +228,7 @@ check("Ops API exposes Export / Handoff Bundle route as guarded no-store JSON", 
 });
 
 check("/ops dashboard declares and renders Export / Handoff Bundle workspace", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "ops-site-export-handoff-bundle-workspace",
     "data-testid=\"ops-site-export-handoff-bundle-workspace\"",
@@ -313,43 +313,16 @@ check("client/viewer scripts do not receive v3.7 Export / Handoff Bundle materia
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.7 Step 17", () => {
-  for (const snippet of [
-    "| 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 완료 |",
-    "## v3.7.0 Step 17 개발 기록",
-    route,
-    "OpsV370ExportHandoffBundleJson",
-    `\`./server.sh ${command}\``,
-    "Stabilization and Release Readiness 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.7 Step 17");
-  }
-  for (const snippet of [
-    `| v3.7.0 (17) | \`./server.sh ${command}\` | Export / Handoff Bundle.`,
-    "site/runbook/evidence/approval/outcome",
-    "redacted release-safe handoff bundle",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.7 Step 17");
-  }
-  for (const snippet of [
-    `v3.7.0 (17) Export / Handoff Bundle | \`UI-101\`, \`LAB-110\`, \`SAFE-178\`, \`OPS-145\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-101 | V370 Step 17 Export / Handoff Bundle UI",
-    "LAB-110 | V370 Step 17 Export / Handoff Bundle harness",
-    "SAFE-178 | V370 Step 17 Export / Handoff Bundle boundary",
-    "OPS-145 | V370 Step 17 Export / Handoff Bundle 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.7 Step 17");
-  }
-  for (const snippet of [
-    "V370 Export / Handoff Bundle",
-    `\`./server.sh ${command}\``,
-    "v370 Step 17 RED export handoff bundle gate",
-    "v370 Step 17 export handoff bundle final",
-    "v370 Step 17 UI 풀테스트",
-    "v370 Step 17 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.7 Step 17");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-101","LAB-110","SAFE-178","OPS-145"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/export-handoff-bundle"],
+    command, script: "verify_v370_export_handoff_bundle.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.7 Step 17 command", () => {

@@ -5,7 +5,7 @@
 #include "recording/recording_completion_trace.h"
 #include "recording_checkpoint_validation.h"
 #include "recording_derived_job_context.h"
-#include "recording/recording_finalize_recovery.h"
+#include "recording/recording_finalize_ticket.h"
 #include "recording/recording_presentation_interval.h"
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 #include "recording/recording_generation_recovery_session.h"

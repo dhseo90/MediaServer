@@ -4,6 +4,7 @@ import { copyWebRtcHttpServerSourceFixture } from "./webrtc_http_server_source_b
 // 파일 용도: REVIEW4-64 core-media→analysis 10개 witness를 port/callback 주입으로 역전했는지 검증한다.
 
 import fs from "node:fs";
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +27,7 @@ Checks:
   - AnalysisSessionService의 tap/runtime owner 및 generic auxiliary stream provider
   - analysis-neutral MediaAnalysisPort와 generic pipeline attachment
   - composition root의 동일 service 주입과 RTSP failure/unprepared detach 경계
-  - Policy v1 graph 14 violations/SCC 0 및 mutation fail-closed
+  - 현행 exact policy/source graph 및 mutation fail-closed
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help", "fixture-root", "skip-mutations"]);
@@ -280,13 +281,13 @@ check("composition and RTSP lifecycle bind one service and every detach boundary
   const httpHeader = read("include/ingress/webrtc_http_server.h");
   const httpServer = readWebRtcHttpServerBundle(read);
   for (const anchor of [
-    "analysis::AnalysisSessionService analysis_sessions(session_manager);",
+    "analysis::AnalysisSessionService analysis_sessions(session_manager, recording_evidence);",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
     "MakeWebRtcMediaApplicationAdapter(session_manager);",
     "SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config,\n        &recording_api);",
     "SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(application.includes(anchor), `composition owner binding missing: ${anchor}`);
   assert(rtspHeader.includes("core::MediaAnalysisPort& analysis_port") &&
@@ -415,66 +416,43 @@ check("PTS mapping, result lookup, event dispatch, and probe side effects stay o
 check("composition uses exactly one analysis service identity", () => {
   const application = read("src/application/media_server_application.cpp");
   for (const anchor of [
-    "analysis::AnalysisSessionService analysis_sessions(session_manager);",
+    "analysis::AnalysisSessionService analysis_sessions(session_manager, recording_evidence);",
     "ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
     "ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
     "ingress::MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
     "ingress::MakeWebRtcMediaApplicationAdapter(session_manager);",
-    "ingress::WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
+    "ingress::WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config,\n        &recording_api);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(count(application, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) === 1,
     `composition identity count drift: ${anchor}`);
   assertOrdered(application, "composition injection", [
-    "analysis::AnalysisSessionService analysis_sessions(session_manager);",
+    "analysis::AnalysisSessionService analysis_sessions(session_manager, recording_evidence);",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
     "MakeWebRtcMediaApplicationAdapter(session_manager);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config,\n        &recording_api);",
   ]);
 });
 
 check("graph target and source mutations fail closed", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const ledger = JSON.parse(read("test/fixtures/v390_structure_stabilization_execution.json"));
-  const allowedSuccessorViolations = new Set([
-    "analysis-services -> core-utilities",
-    "analysis-services -> stable-contract-dtos",
-    "application-service-interfaces -> core-utilities",
-    "application-service-interfaces -> ops-route-groups",
-    "core-media-interfaces -> domain-and-registry-owners",
-    "core-media-interfaces -> stable-contract-dtos",
-    "core-utilities -> stable-contract-dtos",
-    "domain-and-registry-owners -> stable-contract-dtos",
-    "transport-and-auth-adapter -> analysis-services",
-    "transport-and-auth-adapter -> core-media-interfaces",
-    "transport-and-auth-adapter -> core-utilities",
-    "transport-and-auth-adapter -> domain-and-registry-owners",
-    "transport-and-auth-adapter -> ops-route-groups",
-    "transport-and-auth-adapter -> product-ui-workspaces",
+  assertCurrentSourceGraph(sourceRoot, graph);
+  assertBoundaryOwners(graph, [
+    ['include/core/media_analysis_port.h', 'core-media-interfaces'],
+    ['include/analysis/analysis_session_service.h', 'analysis-services'],
+    ['src/analysis/analysis_session_service.cpp', 'analysis-services'],
+    ['include/ingress/webrtc_media_application_service.h', 'application-service-interfaces'],
+    ['src/ingress/webrtc_media_application_adapter.cpp', 'application-service-interfaces'],
   ]);
-  const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
-    graph.observedModuleEdges.length === 16 && violations.length === 0 &&
-    violations.every(item => allowedSuccessorViolations.has(item.direction)) &&
-    !edge("transport-and-auth-adapter -> analysis-services") &&
-    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
-    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
-    edge("application-service-interfaces -> core-media-interfaces")?.witnessSha256 ===
-      "9b012c5785ae13606c5cf056c7835123a767e53df641dbcd556b04a38258ae93" &&
-    graph.stronglyConnectedComponents.length === 0,
-  "core media analysis inversion graph metrics drift");
-  assert(!graph.observedModuleEdges.some(item =>
-    item.direction === "core-media-interfaces -> analysis-services" ||
-    item.direction === "core-media-interfaces -> application-service-interfaces"),
-  "core media outer-owner direction remains");
-  if (violations.length > 0) {
-    assert(ledger.currentContinuation.architectureStatus === "final-targets-unmet" &&
-      ledger.currentContinuation.finalCompletionClaimAllowed === false,
-    "SCC closure overclaims all architecture targets");
-  }
+  for (const direction of [
+    'transport-and-auth-adapter -> analysis-services',
+    'transport-and-auth-adapter -> core-media-interfaces',
+    'core-media-interfaces -> analysis-services',
+    'core-media-interfaces -> application-service-interfaces',
+  ]) assert(!graph.observedModuleEdges.some(item => item.direction === direction),
+    'core media outer-owner direction remains: ' + direction);
 });
 
 const oracleInputFiles = [
@@ -495,6 +473,7 @@ const oracleInputFiles = [
 ];
 
 function copyOracleInputs(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   copyWebRtcHttpServerSourceFixture(targetRoot);
   for (const relative of new Set(oracleInputFiles)) {
     const from = path.join(rootDir, relative);
@@ -568,7 +547,7 @@ if (!skipMutations) {
         file: "test/fixtures/v390_structure_stabilization_current_graph.json",
         mutate: text => text.replace('"direction": "application-service-interfaces -> core-media-interfaces"',
           '"direction": "transport-and-auth-adapter -> composition-root"'),
-        expectedFailure: "core media analysis inversion graph metrics drift",
+        expectedFailure: "graph target and source mutations fail closed",
       },
       {
         id: "analysis-include",

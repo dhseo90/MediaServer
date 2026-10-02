@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S04 VLM 설치/연결 Ops UI와 dry-run API 경계를 정적 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -155,21 +156,18 @@ check("dry-run API keeps S04 non-scope side effects false", () => {
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const backlog = readText("docs/development-backlog.md");
-  const stream = readText("docs/stream-verification.md");
-  const inventory = readText("docs/project-feature-test-inventory.md");
-  const vlmDoc = readText("docs/vlm-install-connection-dry-run.md");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "verify-vlm-install-connection-ui",
-    "/ops/vlm",
-    "/ops/api/vlm/install-connection/dry-run",
-    "/ops/api/vlm/profiles",
-  ]) {
-    assert(backlog.includes(snippet) || stream.includes(snippet) || inventory.includes(snippet) || vlmDoc.includes(snippet), `docs missing VLM UI snippet: ${snippet}`);
-  }
-  assert(inventory.includes("| UI-022 | `/ops/vlm` VLM 설치/연결 준비 |"), "feature inventory missing UI-022");
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-install-connection-dry-run.md") + "\n" + readText("docs/vlm-profile-storage.md"),
+    identifiers: ["/ops/vlm","/ops/api/vlm/install-connection/dry-run","/ops/api/vlm/profiles"],
+    command: "verify-vlm-install-connection-ui", script: "verify_vlm_install_connection_ui.mjs",
+    featureIds: ["UI-022","UI-025","UI-026","UI-027","UI-028","UI-030","UI-031","UI-034"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assert(serverSh.includes("verify-vlm-install-connection-ui"), "server.sh missing VLM UI verifier command");
   assert(serverSh.includes("verify_vlm_install_connection_ui.mjs"), "server.sh missing VLM UI verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_install_connection_ui.mjs"), "script inventory missing VLM UI verifier");
@@ -190,6 +188,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM install/connection Ops UI summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

@@ -1,6 +1,6 @@
 # LP18 공유 소유 focused 개별 결과
 
-최신1-A 준비 정합 결과는 [중앙 기록](../../../release-test-records.md)의 최상단 LP24 재개 절을 따른다.
+최신1-A 준비 정합 결과는 [중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)의 최상단 LP24 재개 절을 따른다.
 아래 LP24 준비 실패는 당시 이력이며07~10의 후속 진단/보완으로 덮어쓰지 않는다.1-B는11/12의14반례·15초복구·내용/파일 동등성으로 통과했다.
 
 ## LP24 신규 복구 반례와 실제 크기 준비 실패
@@ -8665,7 +8665,7 @@ RED의 capability FAIL만 예상 RED이며 나머지26개는 미실행이다. GR
 | LP18-E03 invalid candidate rejected before byte building null | 해당 원출력 focused 검사 | PASS |
 
 
-독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
+독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
 ## journal resident 해제·cold 재획득 기반

@@ -1,8 +1,8 @@
 # Ops Backup / Recovery Guide
 
-이 문서는 운영자가 auth store, registry, sample/model 파일, audit/event 기록을
-백업하고 복구할 때 따르는 기준입니다. 장기 영상 녹화 백업 절차가 아니라,
-제품 설정과 EventRecord 기반 짧은 증거 기록을 보존하는 절차입니다.
+이 문서는 운영자가 계정·설정·분석 자산·이벤트 자료를 백업·복구할 때 따르는 기준과
+관리 녹화 자료를 보존할 때의 한계를 설명합니다. 진단 bundle, fixture 리허설,
+실제 운영 백업과 복구는 서로 다른 결과입니다.
 
 ## 백업 대상
 
@@ -15,6 +15,7 @@
 | Ops audit | `.media_server.ops_audit.jsonl`, `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | 채널/룰/사용자/evidence export 변경 이력입니다. |
 | EventRecord | `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`, `.media_server.va_events.jsonl*` | active JSON Lines와 rotated archive를 함께 보관합니다. |
 | Evidence media | `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`, `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR` | snapshot 파일, clip manifest, frame bundle을 포함합니다. |
+| 관리 녹화 저장소 | `MEDIA_SERVER_RECORDING_STORAGE_ROOT`, `.media_server/recordings` | 일관된 전체 root를 보존합니다. 영상·SQLite만 따로 복사하지 않으며 아래 복구 한계를 확인합니다. |
 | Sample/model assets | `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_ANALYSIS_MODEL`, `MEDIA_SERVER_ANALYSIS_LABELS` | sample video, YOLO model, label 파일 보관 |
 | Config preset/env | `config/presets/*.env.example`, 운영 env 파일 | token/secret은 secret vault에 보관. 백업 bundle에는 redacted summary만 포함 |
 
@@ -35,8 +36,38 @@ sample/model/label asset, redacted env summary를 백업한 뒤 다른 runtime
 `restore-validation-plan.md`를 생성하고 checksum과 auth store `0600` 권한이
 유지되는지 확인합니다. 실제 운영 runtime을 수정하지 않는 리허설이며,
 실제 백업본 생성과 외부 보관을 대체하지는 않습니다.
+이 fixture 리허설에는 관리 녹화의 세대별 저장소·파생 작업·영상 재생 복구가 포함되지 않습니다.
+따라서 해당 명령의 성공을 녹화 백업·이관 검증으로 사용하지 않습니다.
 
-Evidence 보존 기간 정리는 백업과 별도 운영 job으로 처리합니다.
+## 관리 녹화 자료의 보존과 복구 한계
+
+- 현재 저장 구성은 [녹화 저장소와 시작 복구](config-reference.md#녹화-저장소와-시작-복구)를 따릅니다.
+  manifest, snapshot/active, identity·상세 증거 체인, 미디어, 숨김 관리 파일과 복구 자료를
+  같은 시점의 전체 root로 보존합니다. 파일명·세대 번호만 보고 일부를 버리지 않습니다.
+- 녹화·분석·이벤트 작업과 저장소 쓰기가 멈춘 것을 확인한 뒤 복사합니다. 실행 중 파일별
+  복사는 서로 다른 세대를 섞을 수 있으며 일관된 백업으로 보지 않습니다. 정상 종료 여부,
+  제품 버전·빌드, 관련 registry/env와 전체 상대경로·크기·checksum을 함께 남깁니다.
+- 원본을 덮어쓰지 않는 독립 사본으로 보존합니다. 제품은 symlink·예상하지 않은 hardlink와
+  소유권 변화를 거부하므로 링크를 이용한 복사나 수동 metadata 보정을 복구 수단으로 쓰지 않습니다.
+- 파일 바이트 보존은 정상 복구·재생 성공과 다릅니다. 파생 작업과 세대 전환 복구 자료는
+  디렉터리/파일의 device·inode 등 소유 근거를 포함합니다. 다른 경로·파일시스템·PC로 단순 복사한
+  자료를 자동 이관하거나 정상 복구한다고 보장하지 않습니다. 특히 중단 상태의 자료는 원본을
+  먼저 보존하고 복구 가능 범위를 별도로 판단합니다. ID·hash·소유 근거를 강제로 고치지 않습니다.
+- 복구 검토는 운영 원본·보존본에 대한 쓰기와 삭제, 외부 입력을 차단한 별도 환경에서 수행합니다.
+  시험 사본에서 시작 복구를 실행하면 내구 기록·파일이 변경될 수 있습니다. 현행 앱은
+  삭제 대기·ready·파생 작업·완결 파일을 검사하지만 백업 이관 도구는 아닙니다.
+  녹화 off와 포트 변경은 저장소 격리가 아닙니다. 기동 전에 `MEDIA_SERVER_RECORDING_STORAGE_ROOT`를
+  별도 작업 사본 또는 녹화 복구를 검사하지 않을 때의 빈 격리 root로 지정합니다.
+  상태·타임라인·실제 영상과 기존 참조가 확인되기 전에는 운영 복구 완료로 보고하지 않습니다.
+
+이 문서는 녹화 자료를 백업 대상에서 빠뜨리지 않게 하는 안내입니다. 관리 녹화의 실제
+백업/이관 리허설 통과 기록이나 신규 export/import 기능을 제공하지 않습니다.
+
+## 이벤트 근거 자료의 보존 정리
+
+EventRecord의 snapshot/clip과 compaction 결과 정리는 백업과 별도 운영 job으로 처리합니다.
+아래 도구는 관리 녹화 저장소의 순환 보존을 대신하지 않습니다. snapshot/clip 경로 인자에
+녹화 root를 넣지 말고 실제 생성 주체와 대상을 확인합니다.
 기본은 dry-run이고 `--apply`를 붙여야 삭제됩니다.
 
 ```bash
@@ -54,8 +85,8 @@ Evidence 보존 기간 정리는 백업과 별도 운영 job으로 처리합니�
 ## 백업 절차
 
 1. 유지보수 창을 잡고 운영 UI에서 채널 저장, 룰 저장, 사용자 변경을 멈춥니다.
-2. 가능하면 `./server.sh stop`으로 쓰기 중인 프로세스를 멈춥니다.
-3. `./server.sh ops-bundle --http-base http://127.0.0.1:8080`으로 복구 전 상태와 로그 요약을 남깁니다.
+2. 서버가 응답할 때 `./server.sh ops-bundle --http-base http://127.0.0.1:8080`으로 상태와 로그 요약을 남깁니다. 이 결과는 데이터 복사본이 아닙니다.
+3. 실제 실행 방식에 맞게 서버를 정상 종료하고 저장소를 쓰는 프로세스가 없는지 확인합니다. `server.sh`로 관리한 실행은 `./server.sh stop`을 사용합니다. 종료 실패 자료는 먼저 보존하되 정상 종료 백업으로 표시하지 않습니다.
 4. 위 표의 파일과 디렉터리를 같은 backup root 아래에 복사합니다. Auth store는 `0600`, registry와 EventRecord는 원본 owner/group을 유지합니다.
 5. `shasum -a 256` 또는 운영 표준 도구로 manifest를 만들고 backup root에 같이 저장합니다.
 6. 백업 manifest, ops bundle, redacted env summary를 같은 change ticket에 연결합니다.
@@ -71,6 +102,7 @@ backup-YYYYMMDD-HHMM/
   audit/
   events/
   evidence/
+  recordings/
   media-assets/
   ops-bundle/
   SHA256SUMS
@@ -80,8 +112,10 @@ backup-YYYYMMDD-HHMM/
 
 1. 대상 서버의 media server를 중지합니다.
 2. 새 runtime directory 또는 staging directory에 백업 파일을 먼저 복원합니다.
+   아래 일반 절차가 관리 녹화 저장소의 자동 이관을 뜻하지는 않습니다. 녹화 root는
+   [별도 한계](#관리-녹화-자료의-보존과-복구-한계)를 먼저 확인하고 원본과 분리해 다룹니다.
 3. Auth store 권한을 `0600`으로 맞추고, 운영 사용자만 읽을 수 있는지 확인합니다.
-4. 운영 env에서 다음 경로를 복원 위치로 지정합니다.
+4. 시험용 env에서 다음 경로를 복원 위치로 지정하고 운영 원본·독립 보존본을 참조하지 않는지 확인합니다.
    - `MEDIA_SERVER_AUTH_USERS_FILE`
    - `MEDIA_SERVER_SOURCE_REGISTRY`
    - `MEDIA_SERVER_PUBLISHED_VIEWS`
@@ -89,6 +123,7 @@ backup-YYYYMMDD-HHMM/
    - `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`
    - `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`
    - `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR`
+   - `MEDIA_SERVER_RECORDING_STORAGE_ROOT` — 녹화 복구를 검토할 작업 사본 또는 빈 격리 root. 기본값·운영 env를 그대로 재사용하지 않습니다.
    - `MEDIA_SERVER_FILE_ROOT`
    - `MEDIA_SERVER_ANALYSIS_MODEL`
    - `MEDIA_SERVER_ANALYSIS_LABELS`

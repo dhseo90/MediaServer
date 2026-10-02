@@ -498,7 +498,7 @@ S10-T02의 4034ms는 과거 관찰 규모를 반영한 재현 입력이며 제�
 T05~09는 판정 모델 P01~P23과 source 직접 조사까지 수행했다. 실제 재정렬 mux, cache/분석
 상관관계 전달, frame 끝·누락 없는 재생, bounded metadata 저장은 제품 통합 검증 전이다.
 모델 23/23 및 실제 writer 118/118은 각 실행 범위의 PASS이며 위 9개 제품 합격 전수 PASS가 아니다.
-실제 결과·RED 이력·cleanup은 [중앙 테스트 기록](../../release-test-records.md#s10-2-시간-판정-모델-사전등록-2026-09-12)에 보존한다.
+실제 결과·RED 이력·cleanup은 [중앙 테스트 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)에 보존한다.
 
 ## S10-3 저장·복구의 구현 순서와 호환 경계
 
@@ -542,8 +542,8 @@ B-frame·decoder fallback·시각 역행 경계를 설명하지 못하므로 채
 **원본 참조 → 증거가 있는 구간 선택 → 실제 출력과 출처 기록 → 내구 복구**를 분리한다.
 기존 journal/SQLite projection/ready 구조를 확장하며 별도 DB나 외부 의존성은 도입하지 않는다.
 
-근거는 [파일 시각 실측](../../release-artifacts/v4.1.0/s10-derived-time-probe/report.md),
-[요청 보존 검증](../../release-artifacts/v4.1.0/s10-consumer-request-admission/report.md),
+근거는 [파일 시각 실측](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-time-probe/report.md),
+[요청 보존 검증](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-consumer-request-admission/report.md),
 `RawVideoDecoder::ResolveSourcePtsLocked/PullLoop`, `RecordingReadService`의 참조·구간 조회,
 `GStreamerEventClipDeriver::Derive`, `RecoverFinalizeReadyTickets`다.
 실측의 8개 PASS는 측정 실행 결과다. AU decode-order 대조는 payload 동일성 증거가 아니며,

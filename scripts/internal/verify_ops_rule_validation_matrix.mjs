@@ -189,7 +189,7 @@ check("UI validation covers every matrix fixture", () => {
 });
 
 check("UI exposes S05 rule/scenario review loop before save", () => {
-  const html = readWebRtcHttpServerBundle(readText);
+  const html = readText("src/ingress/product_ui_server_pages.cpp");
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const css = readText("src/ingress/product_ui_css.cpp");
   for (const snippet of [

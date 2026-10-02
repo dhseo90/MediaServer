@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -72,37 +73,33 @@ check("status vocabulary negatives reject owner implementation, field PASS, and 
     "structure refactor-complete negative must fail");
 });
 
-check("roadmap, inventory, records, and evidence use the same truthful status vocabulary", () => {
+check("현행 정의와 역사 fixture의 비승격 용어 연결", () => {
   const sources = [
-    read("docs/development-backlog.md"),
     read("docs/project-feature-test-inventory.md"),
     read("docs/v390-feature-completion-inventory.md"),
     read("docs/stream-verification.md"),
-    read("docs/release-test-records.md"),
-    read("docs/release-evidence-index.md"),
   ].join("\n");
   for (const snippet of [
     "accountable-owner-decision-record",
     "conditional-not-run",
-    "gate-ready",
     "decision-only-not-implementation-or-execution-evidence",
     "decision-record-complete-capabilities-mixed",
     "post-v3.9-unassigned",
     "condition-record-not-field-pass",
-    "gate-contract-not-refactor-evidence",
     "approved-scheduled-after-review4-50-63",
     "approved-decision-contract-not-refactor-evidence",
     "verify-v390-truthfulness-status-vocabulary",
   ]) {
     assert(sources.includes(snippet), `truthfulness evidence missing: ${snippet}`);
   }
-  const backlog = read("docs/development-backlog.md");
-  assert(backlog.includes("| 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | decision record |"),
-    "Development 16 roadmap status must be decision record");
-  assert(backlog.includes("| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | historical readiness / REVIEW4-51 superseded |"),
-    "Development 17 roadmap status must preserve the superseded readiness boundary");
-  assert(backlog.includes("| 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 |"),
-    "Development 18 roadmap status must be 조건부 미실행");
+  for (const [command, script, featureIds] of [
+    ['verify-v390-deferred-product-owner-signoff', 'verify_v390_deferred_product_owner_signoff.mjs', ['SAFE-214', 'OPS-181']],
+    ['verify-v390-structure-stabilization-readiness', 'verify_v390_structure_stabilization_readiness.mjs', ['SAFE-215', 'OPS-182']],
+    ['verify-v390-external-field-smoke-no-device-closure', 'verify_v390_external_field_smoke_no_device_closure.mjs', ['SAFE-216', 'OPS-183']],
+  ]) {
+    const errors = validateCurrentGateDocumentation({read, command, script, featureIds});
+    assert(errors.length === 0, errors.join('; '));
+  }
 });
 
 check("server dispatch exposes the truthfulness verifier", () => {

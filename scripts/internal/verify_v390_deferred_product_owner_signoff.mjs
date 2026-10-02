@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -40,6 +42,18 @@ const accountableHandle = "@dhseo90";
 const sourceRegionContractMode = rawArgs.includes("--source-region-contract");
 const productUiPageScriptsPath = "src/ingress/product_ui_page_scripts.cpp";
 const productUiServerPagesPath = "src/ingress/product_ui_server_pages.cpp";
+// v3.9.0 fixture 바이트는 보존한다. 현행 연결은 별도 대조한 파일에만 적용하며
+// 과거 owner 결정의 재승인이나 제품 실행 증거가 아니다.
+// 제품 파일의 변경은 녹화 경로 추가이며 해당 credential/restore/Re-ID 경계는 유지된다.
+// 문서는 녹화 백업 한계를 추가했고 field 도구는 문서 입력만 현행화했다.
+const reviewedCurrentFiles = Object.freeze({
+  "src/ingress/product_ui_ops_sources_script.cpp": ["c88ca801a345ccfb635a8ba755bc652adddb24b82b846be70d96718a15cb93b9", "4e3c965ad5a9c6cf42ca79693ea5ee8461617b95f048b4868e0a3e45b933fb04"],
+  "src/ingress/webrtc_http_server_runtime.cpp": ["de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a", "15d3aaca9d4a786bfa8f872daa177700f9fa9734dbbbf8cadf7b233804624f50"],
+  "src/ingress/webrtc_http_server.cpp": ["d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f", "898129213076b73ff4f0a2c80a888bd6c38cab85b525133443ff931855ffe531"],
+  "docs/ops-backup-recovery.md": ["a81f3a07625caed9d11ab35e3c4b40e72dbff7e7e89128308c036a95d074b92b", "a1a797b03d1c909215296e6a12429a59b4b46ca6ccacf2c55b8f1cbf77ec303b"],
+  "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs": ["887a2c830da7849f1d1acd21a7ea59e7702cc60a028856784e14c195751dc7fb", "537615d05ae7a1ff7867f2b84c80af2a78012caebf62fa0db7bd4d661468184c"],
+  "src/analysis/analysis_manager.cpp": ["7e3e3068d5efa7791ae9b8f09a76395084d873430ff5337fe455f79f31de2936", "60d85e37b1d936d84017dd4e5f65d1986c55e6dd0b33420387daea193cee4712"],
+});
 const productUiSourceRegions = Object.freeze({
   "external-vlm-provider-call": Object.freeze({
     [productUiPageScriptsPath]: Object.freeze({
@@ -197,6 +211,11 @@ if (sourceRegionContractMode) {
 
 const checks = [];
 
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: read, command, script: targetScript, featureIds: ["SAFE-214","OPS-181"]});
+  assert(errors.length === 0, errors.join("; "));
+});
+
 check("v3 decision record binds the effective repository owner and current goal attestation", () => {
   assert(fs.existsSync(fixturePath), "missing deferred owner sign-off fixture");
   const fixture = loadFixture();
@@ -228,11 +247,8 @@ check("negative variants reject role-only, field-smoke substitution, owner drift
 check("roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS", () => {
   const sources = [
     ["feature inventory", "docs/v390-feature-completion-inventory.md", ["## Deferred Product Owner Sign-off (Development 16 / REVIEW4-63)", accountableHandle, "repository-scoped-product-scope-attestation", approvalSource, "post-v3.9-unassigned", "production-restore", "implemented-opt-in-experimental"]],
-    ["backlog", "docs/development-backlog.md", ["V390-REVIEW4-63", "실제 책임자 `@dhseo90`", "외부 field smoke는 별도 조건부"]],
     ["project inventory", "docs/project-feature-test-inventory.md", ["SAFE-214", "OPS-181", accountableHandle, "production restore", "model-backed Re-ID"]],
     ["stream verification", "docs/stream-verification.md", [command, "REVIEW4-63", "repository-code-owner"]],
-    ["release evidence", "docs/release-evidence-index.md", ["REVIEW4-63", accountableHandle, "production restore"]],
-    ["release records", "docs/release-test-records.md", ["V390-REVIEW4-63", "UI/30분/120분/field 미실행"]],
     ["implementation plan", "docs/superpowers/plans/2026-07-12-v390-review4-50-62.md", ["[x] 63", accountableHandle, "post-v3.9-unassigned"]],
   ];
   for (const [label, relativePath, snippets] of sources) {
@@ -370,7 +386,7 @@ function validateEvidence(fixture) {
         validateSourceRegionBinding(source, actualAnchor.sourceRegion, actualAnchor.requiredTokens, `${decision.id}: ${actualAnchor.file}`);
       } else {
         assert(!Object.hasOwn(actualAnchor, "sourceRegion"), `${decision.id}: unexpected source region binding at ${actualAnchor.file}`);
-        assert(actualAnchor.sourceFileSha256 === sha256(source), `${decision.id}: source file digest drift at ${actualAnchor.file}`);
+        validateCurrentFileBinding(actualAnchor, source);
         for (const token of actualAnchor.requiredTokens) {
           assert(source.includes(token), `${decision.id}: source anchor missing ${token} in ${actualAnchor.file}`);
         }
@@ -511,6 +527,23 @@ function runSourceRegionContract() {
   const sourceAnchor = decision?.evidence?.sourceAnchors?.find(item => item.file === productUiPageScriptsPath);
   assert(sourceAnchor, "contract fixture field source anchor missing");
 
+  contractCheck(contractChecks, "과거 입력과 검토된 현행 파일의 이중 결속 및 변조 거부", () => {
+    for (const [file, [historicalDigest]] of Object.entries(reviewedCurrentFiles)) {
+      const current = read(file);
+      const binding = { file, sourceFileSha256: historicalDigest };
+      validateCurrentFileBinding(binding, current);
+      for (const [alteredBinding, alteredSource] of [
+        [{ ...binding, sourceFileSha256: "0".repeat(64) }, current],
+        [binding, `${current}\n// changed\n`],
+        [{ ...binding, file: "unreviewed-file.cpp" }, current],
+      ]) {
+        let rejected = false;
+        try { validateCurrentFileBinding(alteredBinding, alteredSource); } catch { rejected = true; }
+        assert(rejected, `${file}: 잘못된 현행 재결속 허용`);
+      }
+    }
+  });
+
   contractCheck(contractChecks, "unrelated source region change preserves the bounded digest", () => {
     validateSourceRegionBinding(`// unrelated event-rule UI region\n${source}`, sourceAnchor.sourceRegion, sourceAnchor.requiredTokens, "unrelated-region");
   });
@@ -602,6 +635,12 @@ function contractCheck(contractChecks, name, fn) {
 
 function loadFixture() {
   return JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+}
+
+function validateCurrentFileBinding(anchor, source) {
+  const reviewed = reviewedCurrentFiles[anchor.file];
+  assert(anchor.sourceFileSha256 === (reviewed?.[0] ?? sha256(source)), `historical source digest drift at ${anchor.file}`);
+  if (reviewed) assert(sha256(source) === reviewed[1], `reviewed current source digest drift at ${anchor.file}`);
 }
 
 function expectRejected(fixture, label) {

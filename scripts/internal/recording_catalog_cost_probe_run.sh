@@ -58,7 +58,7 @@ read -r -a fc_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-ap
  -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 \
  "$fc_main" "$fc_repo/src/recording/gstreamer_segment_writer.cpp" \
  "$fc_root/recording_catalog.cpp" "$fc_root/recording_journal.cpp" "$fc_root/recording_contracts.cpp" \
- "$fc_repo/src/recording/recording_finalize_recovery.cpp" "$fc_repo/src/recording/recording_file_evidence.cpp" "$fc_repo/src/recording/recording_media_inspector.cpp" \
+ "$fc_repo/src/recording/recording_finalize_recovery.cpp" "$fc_repo/src/recording/recording_finalize_ticket.cpp" "$fc_repo/src/recording/recording_file_evidence.cpp" "$fc_repo/src/recording/recording_media_inspector.cpp" \
  "$fc_repo/src/recording/recording_derived_job.cpp" "$fc_repo/src/recording/recording_derived_job_ready.cpp" \
  "$fc_repo/src/recording/retention_coordinator.cpp" "$fc_json" "${fc_flags[@]}" -lz -o "$fc_root/check"
 if [[ "$fc_label" == scale-32* ]]; then

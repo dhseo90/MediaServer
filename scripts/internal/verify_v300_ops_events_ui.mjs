@@ -9,6 +9,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -26,7 +28,7 @@ Checks:
   - Ops review API returns an Ops-only eventEvidenceSearch view model with evidence timeline, feature reasons, retry, pin, and retention status
   - product UI script wires V300 query controls and renders the view model without provider/vector/client exposure
   - CSS provides responsive card/timeline/reason/retention layouts
-  - backlog, stream verification, release records, feature inventory, and server dispatch are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to V300-S08 static/local UI evidence and does not imply UI 풀테스트, 30분/120분, retention cleanup execution, or release publication
 `);
 }
@@ -35,18 +37,17 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v300-ops-events-ui";
 const files = {
+  currentGuide: readText("docs/ui-guide.md"),
   server: readWebRtcHttpServerBundle(readText),
   serverPage: readText("src/ingress/product_ui_server_pages.cpp"),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -144,45 +145,17 @@ check("ops static smoke tracks V300 markers", () => {
   }
 });
 
-check("docs and roadmap expose V300-S08 scope without overclaim", () => {
-  for (const snippet of [
-    "| 8 | V300-S08 | P1 | 완료 | Ops Events UI |",
-    "`/ops/events` 검색, evidence timeline, feature 근거, retry, pin, retention status",
-    "`./server.sh verify-v300-ops-events-ui`",
-    "UI 직접 조작/브라우저 evidence 없이는 UI 풀테스트 PASS가 아님",
-    "Retention/Pin/Cleanup lifecycle delete/dry-run/audit는 S09 범위",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V300-S08");
-  }
-  for (const snippet of [
-    "| V300-S08 | `./server.sh verify-v300-ops-events-ui` |",
-    "Ops-only /ops/events search/detail UI",
-    "evidence timeline, feature reasons, retry, pin, retention status",
-    "UI 풀테스트 직접 조작, 30분/120분, retention cleanup execution",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V300-S08");
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.currentGuide, identifiers: ["/ops/events"],
+    command, script: "verify_v300_ops_events_ui.mjs", featureIds: ["UI-059","SAFE-090","OPS-058"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    implementation: files.implementationManifest,
+    server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V300-S08 to UI-059, SAFE-090, and OPS-058", () => {
-  for (const snippet of [
-    "V300-S08 Ops Events UI | `UI-059`, `SAFE-090`, `OPS-058` | `verify-v300-ops-events-ui`, `verify-ops-client-ui`",
-    "UI-059 | `/ops/events` V300 Event Evidence Search UI",
-    "SAFE-090 | V300-S08 Ops Events UI boundary",
-    "OPS-058 | V300-S08 Ops Events UI 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V300-S08");
-  }
-  for (const snippet of [
-    "V300 Ops Events UI",
-    "`./server.sh verify-v300-ops-events-ui`",
-    "v300 S08 RED ops events UI gate",
-    "v300 S08 ops events UI final",
-    "v300 S08 UI fulltest/longrun/published",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V300-S08");
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S08 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

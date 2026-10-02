@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // 파일 용도: v3.1.0 S01 Encoded Event Clip Contract 문서, fixture, verifier wiring을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -21,7 +23,7 @@ Usage:
 Checks:
   - docs/v310-encoded-event-clip-contract.md defines EncodedClipManifest, MP4/WebM format, FrameRef/PTS mapping, retention lifecycle, privacy, and non-VMS boundaries
   - test fixture contains encoded clip artifact identity, format, FrameRef/PTS mapping, evidence links, retention, privacy, and non-VMS guards
-  - V310-S01 roadmap, stream verification, feature inventory, release records, docs index, and server entrypoint are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to contract/fixture/verifier evidence and does not imply encoder generation, replay UI, cleanup execution, UI fulltest, longrun, or release publication
 `);
 }
@@ -34,14 +36,12 @@ const contractPath = "docs/v310-encoded-event-clip-contract.md";
 const fixturePath = "test/fixtures/v310_event_clip_contract/encoded_clip_manifest_sample.json";
 
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   contract: readText(contractPath),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   eventStorageSource: readText("src/analysis/event_storage.cpp"),
   server: readText("server.sh"),
 };
@@ -61,27 +61,14 @@ check("encoded clip encoder source owns the runtime manifest contract", () => {
   assert(evt059ManifestBlock.includes("frameMap"), "EVT-059 frameMap queueName WebRTC SSE RTSP boundary");
 });
 
-check("contract document defines V310-S01 encoded clip boundary", () => {
-  for (const snippet of [
-    "v3.1.0 `V310-S01 Encoded Event Clip Contract`",
-    "EncodedClipManifest",
-    "MP4/WebM clip manifest",
-    "FrameRef/PTS mapping",
-    "EvidenceManifest/frame bundle/event frame 연결",
-    "Privacy And Non-VMS Boundary",
-    "encoded clip generation queue",
-    "실제 MP4/WebM으로 muxing",
-    "`/ops/events` replay timeline UI",
-    "VMS/NVR archive API",
-    "raw LLM/VLM prompt",
-    "raw provider response",
-    "Event POST/WebRTC DataChannel/SSE/WS metadata payload가 아니며",
-    "RTSP/WebRTC media path",
-    "encoder pipeline",
-    "UI 풀테스트, 30분/120분 longrun, published",
-  ]) {
-    assert(files.contract.includes(snippet), `contract document missing snippet: ${snippet}`);
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.contract, identifiers: ["EncodedClipManifest","media-server.encoded-event-clip-contract.v1","ptsMapping","privacy","nonVmsBoundary"],
+    command, script: "verify_v310_event_clip_contract.mjs", featureIds: ["OPS-062","SAFE-094"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("EncodedClipManifest fixture captures schema, clip identity, and format", () => {
@@ -182,46 +169,7 @@ check("retention, privacy, generation, and non-VMS fixture guards are explicit",
   assert(manifest.generationBoundary?.encoderPipelineStep === "V310-S02", "encoder pipeline must be scoped to V310-S02");
 });
 
-check("docs index, roadmap, and stream verification expose V310-S01 contract gate", () => {
-  assert(files.docsIndex.includes("[v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md)"), "docs index missing v310 encoded clip contract");
-  for (const snippet of [
-    "| 1 | V310-S01 | P0 | 완료 | Encoded Event Clip Contract |",
-    "MP4/WebM clip manifest, FrameRef/PTS mapping, non-VMS boundary 정의",
-    contractPath,
-    fixturePath,
-    "`./server.sh verify-v310-event-clip-contract`",
-    "encoder pipeline, replay timeline UI, cleanup 실행 완료 evidence가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V310-S01 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V310-S01 | `./server.sh verify-v310-event-clip-contract` |",
-    "EncodedClipManifest, MP4/WebM format, FrameRef/PTS mapping, evidence links, retention/privacy/non-VMS boundary",
-    "encoder generation, replay UI, cleanup execution, client digest, scoped API",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing snippet: ${snippet}`);
-  }
-});
 
-check("feature inventory and release records map V310-S01 to OPS-062 and SAFE-094", () => {
-  for (const snippet of [
-    "V310-S01 Encoded Event Clip Contract | `OPS-062`, `SAFE-094` | `verify-v310-event-clip-contract`",
-    "OPS-062 | V310-S01 Encoded Event Clip Contract 게이트",
-    "SAFE-094 | V310-S01 encoded clip contract boundary",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V310 Encoded Event Clip Contract",
-    "`./server.sh verify-v310-event-clip-contract`",
-    "v310 S01 RED contract gate",
-    "v310 S01 encoded event clip contract final",
-    "v310 S01 encoder pipeline",
-    "v310 S01 replay timeline UI",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V310-S01 command", () => {
   assert(files.server.includes(command), "server.sh missing V310-S01 command");

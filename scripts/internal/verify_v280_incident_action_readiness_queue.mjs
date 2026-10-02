@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.8.0 S02 Incident Action Readiness Queue와 승인 전 조치 경계를 검증한다.
 import { exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -14,26 +15,31 @@ const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const manualChecklist = readText("docs/manual-ui-checklist.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
-check("roadmap records V280-S02 as active/completed Incident Action Readiness Queue work", () => {
-  assert(/\| 2 \| V280-S02 \| P0 \| (진행|완료) \| Incident Action Readiness Queue \|/.test(backlog),
-    "backlog V280-S02 row must be 진행 or 완료 while S02 is under development");
-  for (const snippet of [
-    "media-server.ops.incident-action-readiness-queue.v1",
-    "ready/blocked/field-smoke-needed/not-run",
-    "Ops-only action readiness view model/UI",
-    "external delivery 미수행",
-    "자동 action write 없음",
-    "verify-v280-incident-action-readiness-queue",
-  ]) {
-    assertIncludes(backlog, snippet, "V280-S02 backlog");
+const definitionIds = ["UI-055","EVT-055","LAB-079","SAFE-065"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.incident-action-readiness-queue.v1"],
+    command: "verify-v280-incident-action-readiness-queue", script: "verify_v280_incident_action_readiness_queue.mjs",
+    featureIds: ["UI-055","EVT-055","LAB-079"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-065","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -118,17 +124,7 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S02", ()
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `verify-v280-incident-action-readiness-queue`",
-    "| UI-055 | `/ops/events` Incident Action Readiness Queue |",
-    "| EVT-055 | Ops incident action readiness queue view model |",
-    "| LAB-079 | V280-S02 incident action readiness queue static guard |",
-    "| SAFE-065 | V280-S02 incident action readiness queue boundary |",
-    "verify-v280-incident-action-readiness-queue",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S02 row");
-  }
-  assertIncludes(manualChecklist, "| V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` |", "manual UI checklist S02 row");
+  assert(manualChecklist.split(/\r?\n/).some(line => definitionIds.every(id => line.includes("`" + id + "`")) && line.includes("verify-v280-incident-action-readiness-queue")), "manual UI checklist S02 row: 기능 ID·명령 연결 누락");
   for (const [id, expectedCommand] of Object.entries({
     "UI-055": "verify-v280-incident-action-readiness-queue",
     "EVT-055": "verify-v280-incident-action-readiness-queue",
@@ -158,7 +154,7 @@ check("S02 keeps forbidden delivery/action/provider/schema/media side effects ab
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S02 snippet present: ${forbidden}`);
   }
 });
@@ -171,6 +167,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.8.0 S02 incident action readiness queue 통과 ==");
 
 function readText(filePath) {

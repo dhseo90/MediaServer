@@ -11,6 +11,7 @@ import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg
 import { collectSourceProvenanceWithAllowedArtifacts } from "./evidence_integrity_lib.mjs";
 import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { censusQualificationReasons } from "./v390_ui_policy_v4_reason_census.mjs";
+import { validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -253,22 +254,15 @@ function validatePolicyDocuments() {
     releasePolicy: readText("docs/release-policy.md"),
     stream: readText("docs/stream-verification.md"),
     inventory: readText("docs/project-feature-test-inventory.md"),
-    backlog: readText("docs/development-backlog.md"),
-    releaseRecords: readText("docs/release-test-records.md"),
-    releaseEvidence: readText("docs/release-evidence-index.md"),
     server: readText("server.sh"),
   };
+  errors.push(...validateUiPolicyDocumentation({agents: files.agents, fulltest: files.fulltest, policy}));
   const required = [
-    ["AGENTS.md", files.agents, ["#### 7.6.3 Policy v4 UI 대체 evidence 기준", "direct-browser", "qualified-native-automation", "policyValidationResult", "uiFulltestPass"]],
-    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "Current 실행은 pass 0/not-run 424", "historical source classification"]],
     ["docs/manual-ui-checklist.md", files.checklist, ["Policy v4 qualifier", "actual-browser evidence", "completion oracle"]],
-    ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "Policy v4 자동화/혼합 evidence 요약", "artifact hash/type/path containment", "uiFulltestPass"]],
-    ["docs/release-policy.md", files.releasePolicy, ["## Policy v4 UI evidence release gate", "uiFulltestPass=true"]],
-    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "exact-native-ready-current-not-run"]],
-    ["docs/project-feature-test-inventory.md", files.inventory, ["V390-ADD1-12 Policy v4 UI evidence transition", "Producer는 raw"]],
-    ["docs/development-backlog.md", files.backlog, ["V390-ADD1-12", "Policy v4 테스트 정책 전환"]],
-    ["docs/release-test-records.md", files.releaseRecords, ["Policy v4 UI Fulltest Evidence Qualification"]],
-    ["docs/release-evidence-index.md", files.releaseEvidence, ["V390-ADD1-12 Policy v4 UI evidence transition"]],
+    ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "artifact hash/type/path containment", "uiFulltestPass"]],
+    ["docs/release-policy.md", files.releasePolicy, ["uiFulltestPass=true"]],
+    ["docs/stream-verification.md", files.stream, ["verify-ui-fulltest-evidence-policy-v4"]],
+    ["docs/project-feature-test-inventory.md", files.inventory, ["verify-ui-fulltest-evidence-policy-v4"]],
     ["server.sh", files.server, ["verify-ui-fulltest-evidence-policy-v4", "verify_ui_fulltest_evidence_policy_v4.mjs"]],
   ];
   for (const [label, text, snippets] of required) {

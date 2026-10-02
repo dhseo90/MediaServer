@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -39,6 +41,11 @@ const importDraftRoute = "/ops/api/onvif/import-draft";
 const featureIds = ["UI-109", "SRC-066", "SAFE-204", "OPS-171"];
 const files = loadFiles();
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["UI-109","SRC-066","SAFE-204","OPS-171"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("Ops server exposes the v3.9 ONVIF live import persist decision", () => {
   for (const snippet of [
@@ -143,15 +150,6 @@ check("Ops sources UI renders the manual persist handoff decision", () => {
 
 check("roadmap, stream verification, inventory, and release records map v3.9 Step 12", () => {
   for (const snippet of [
-    "| 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 |",
-    "V390-CAND-002",
-    route,
-    "OpsV390OnvifLiveImportPersistDecisionJson",
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.9 Step 12");
-  }
-  for (const snippet of [
     `| v3.9.0 (12) / V390-ADD1-05 + V390-REVIEW4-55 | \`./server.sh ${atomicityCommand}\`, \`./server.sh ${command}\` | ONVIF import draft는 \`notSaved:true\``,
     "prepared/source/view/committed crash restart recovery",
     "actual HTTP/file 19개 case",
@@ -166,18 +164,6 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "OPS-171 | V390 ONVIF source/view atomicity gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 12");
-  }
-  for (const snippet of [
-    "V390 ONVIF Live Import Persist Decision",
-    `\`./server.sh ${command}\``,
-    "v390 Step 12 RED ONVIF live import persist decision gate",
-    "v390 Step 12 ONVIF live import persist decision final",
-    "V390-ADD1-05 ONVIF source/view atomicity final",
-    "V390-REVIEW4-55 ONVIF crash transaction final",
-    "v390 Step 12 UI 풀테스트",
-    "v390 Step 12 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.9 Step 12");
   }
 });
 
@@ -205,12 +191,12 @@ function loadFiles() {
     server: readWebRtcHttpServerBundle(readText),
     opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
     onvifImport: readText("src/ingress/onvif_live_import.cpp"),
-    backlog: readText("docs/development-backlog.md"),
+
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
+
     serverSh: readText("server.sh"),
   };
 }

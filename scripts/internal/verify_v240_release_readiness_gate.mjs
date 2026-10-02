@@ -7,6 +7,9 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {validateReleasePolicyDocumentation,validateReleaseCommandDispatch} from "./release_documentation_contract.mjs";
+import {validateVerificationDocumentation, validateUiPolicyDocumentation} from "./documentation_contract_lib.mjs";
+import {validatePolicy} from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -19,10 +22,9 @@ Usage:
   ./server.sh verify-v240-release-readiness-gate
 
 Checks:
-  - V240-S08 roadmap row references this gate and the local release readiness commands
-  - release policy records the v2.4.0 readiness command set and manual/not-run boundaries
-  - release evidence index records the S08 gate without promoting skipped release actions
-  - server.sh exposes the S08 verifier
+  - 현행 릴리즈 metadata·검증/UI 정책·독립 명령 연결을 확인
+  - 종료된 v2.4 실행 원장과 완료 문구는 요구하지 않음
+  - 준비 도구 검사이며 실제 릴리즈·UI·장시간 실행은 미수행
 `);
 }
 
@@ -39,67 +41,18 @@ const readinessCommands = [
   "git diff --check",
 ];
 
-check("backlog S08 points to the release readiness gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 8 \| V240-S08 \| P2 \| (진행|완료) \| Release readiness \|/.test(backlog),
-    "backlog V240-S08 row must be 진행 or 완료");
-  for (const snippet of readinessCommands) {
-    assert(backlog.includes(snippet), `backlog missing readiness command: ${snippet}`);
-  }
-  for (const snippet of [
-    "문서 링크/assets",
-    "release metadata",
-    "close-out dry-run",
-    "CI/local parity",
-    "미실행/제외 테스트 기록",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S08 scope snippet: ${snippet}`);
-  }
-});
-
-check("release policy records v2.4.0 readiness boundaries", () => {
-  const policy = readText("docs/release-policy.md");
-  for (const snippet of [
-    "## v2.4.0 Release Readiness Gate",
-    "media-server.v240-release-readiness-gate.v1",
-    "문서 링크/assets",
-    "release metadata",
-    "CI/local parity",
-    "close-out dry-run",
-    "tag/push/GitHub Release 생성 미수행",
-    "published metadata는 publish 이후 `--published`",
-    "UI 풀테스트 직접 조작 미실행",
-    "30분 테스트 미실행",
-    "120분 테스트 미실행",
-  ]) {
-    assert(policy.includes(snippet), `release policy missing readiness snippet: ${snippet}`);
-  }
-  for (const snippet of readinessCommands) {
-    assert(policy.includes(snippet), `release policy missing readiness command: ${snippet}`);
-  }
-});
-
-check("release evidence index records S08 without promoting not-run tests", () => {
-  const evidence = readText("docs/release-evidence-index.md");
-  for (const snippet of [
-    "v240-s08-release-readiness-gate-20260610",
-    "media-server.v240-release-readiness-gate.v1",
-    "v2.4.0 S08 Release Readiness Gate",
-    "문서 링크/assets",
-    "release metadata",
-    "CI/local parity",
-    "close-out dry-run",
-    "tag/push/GitHub Release manual-not-run",
-    "verify-release-metadata --published 미실행",
-    "UI 풀테스트 직접 조작 미실행",
-    "30분 테스트 미실행",
-    "120분 테스트 미실행",
-    "Not run for `v240-s08-release-readiness-gate-20260610`",
-  ]) {
-    assert(evidence.includes(snippet), `release evidence index missing S08 snippet: ${snippet}`);
-  }
-  for (const snippet of readinessCommands) {
-    assert(evidence.includes(snippet), `release evidence index missing readiness command: ${snippet}`);
+check("현행 릴리즈 정책·검증 정의와 준비 명령 연결",()=>{
+  const errors=validateReleasePolicyDocumentation({policy:readText("docs/release-policy.md"),
+    versioning:readText("docs/versioning-policy.md"),version:readText("VERSION").trim()});
+  const agents=readText("AGENTS.md"), verification=readText("docs/stream-verification.md");
+  const policy=JSON.parse(readText("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  errors.push(...validateVerificationDocumentation({agents,verification}),...validatePolicy(policy),
+    ...validateUiPolicyDocumentation({agents,fulltest:readText("docs/manual-ui-fulltest.md"),policy}));
+  assert(errors.length===0,errors.join("; "));
+  const dispatchErrors=validateReleaseCommandDispatch(readText("server.sh"),readinessCommands);
+  assert(dispatchErrors.length===0,dispatchErrors.join("; "));
+  for(const command of readinessCommands){
+    assert(verification.includes(command),"검증 정의 명령 누락: "+command);
   }
 });
 
@@ -130,6 +83,7 @@ console.log("- schema: media-server.v240-release-readiness-gate.v1");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 
+console.log("- 범위: 현재 정의·정책 연결 검사이며 실제 릴리즈·UI·장시간 실행은 미수행입니다.");
 if (fail > 0) process.exit(1);
 
 function check(name, fn) {

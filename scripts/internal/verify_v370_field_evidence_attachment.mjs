@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 14 Field Evidence Attachment 연결, 문서, 경계를 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/site-operations/field-evidence-attachment attaches ONVIF, external WHEP/TURN, and cloud/VLM conditional evidence to site/runbook refs
   - evidence remains conditional/not-run and never performs field smoke, endpoint probes, credential probes, provider calls, source/view writes, or media changes
   - /ops dashboard renders attachment status, condition refs, runbook/approval refs, and boundary text without client/viewer injection
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -45,14 +46,12 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -318,45 +317,22 @@ check("client/viewer scripts do not receive v3.7 Field Evidence Attachment mater
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.7 Step 14", () => {
-  for (const snippet of [
-    "| 14 | v3.7.0 (14) Field Evidence Attachment | P2 | 완료 |",
-    "## v3.7.0 Step 14 개발 기록",
-    route,
-    "OpsV370FieldEvidenceAttachmentJson",
-    `\`./server.sh ${command}\``,
-    "Limited Safe Execution Pilot 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.7 Step 14");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-098","SRC-060","MEDIA-025","LAB-107","SAFE-175","OPS-142"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/field-evidence-attachment"],
+    command, script: "verify_v370_field_evidence_attachment.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-060","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.7.0 (14) | \`./server.sh ${command}\` | Field Evidence Attachment.`,
-    "ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence",
-    "site/runbook에 not-run/conditional로",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.7 Step 14");
-  }
-  for (const snippet of [
-    `v3.7.0 (14) Field Evidence Attachment | \`UI-098\`, \`SRC-060\`, \`MEDIA-025\`, \`LAB-107\`, \`SAFE-175\`, \`OPS-142\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-098 | V370 Step 14 Field Evidence Attachment UI",
-    "SRC-060 | V370 Step 14 site/runbook field evidence source refs",
-    "MEDIA-025 | V370 Step 14 external WHEP/TURN field evidence attachment",
-    "LAB-107 | V370 Step 14 Field Evidence Attachment harness",
-    "SAFE-175 | V370 Step 14 Field Evidence Attachment boundary",
-    "OPS-142 | V370 Step 14 Field Evidence Attachment 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.7 Step 14");
-  }
-  for (const snippet of [
-    "V370 Field Evidence Attachment",
-    `\`./server.sh ${command}\``,
-    "v370 Step 14 RED field evidence attachment gate",
-    "v370 Step 14 field evidence attachment final",
-    "v370 Step 14 UI 풀테스트",
-    "v370 Step 14 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.7 Step 14");
-  }
+
 });
 
 check("server entrypoint and inventory verifiers include v3.7 Step 14 command", () => {

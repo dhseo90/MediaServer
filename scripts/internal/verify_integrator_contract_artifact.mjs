@@ -9,6 +9,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateArchitectureContractDocumentation, validateWebRtcMetadataDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -18,19 +19,22 @@ if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`Integrator contract artifact verification
 
 Usage:
-  ./server.sh verify-integrator-contract-artifact [--artifact-dir <dir>]
+  ./server.sh verify-integrator-contract-artifact [--artifact-dir <dir>] [--historical-source-pins]
 
 Checks:
   - manifest/schema/sample JSON parse와 contract identifier 일치
   - README/changelog/field index/schema review checklist가 manifest와 일치
   - sample payload가 제공된 JSON Schema subset을 만족
   - sample에 source URL/userinfo/credential/token/hash 노출 후보가 없음
-  - v2.0.0 entry freeze baseline SHA-256과 contract artifact/docs가 일치
-  - live contract 문서, backlog, server.sh, script inventory 연결 유지
+  - freeze baseline의 artifact pin과 현행 구조·metadata 문서의 권한·소비 경로 연결
+  - 현행 계약 문서, 문서 색인, server.sh, script inventory 연결 유지
+
+--historical-source-pins는 과거 문서·제품 파일의 전체 SHA 대조를 추가하는 감사 옵션이다.
+기본 artifact 검사와 실제 Auth/Rule/전송 동작 검증은 서로 다르다.
 `);
 }
 
-assertKnownOptions(rawArgs, ["artifact-dir", "h", "help"]);
+assertKnownOptions(rawArgs, ["artifact-dir", "historical-source-pins", "h", "help"]);
 
 const args = parseArgs(rawArgs);
 const artifactDir = path.resolve(rootDir, args.artifactDir || "test/fixtures/integrator_contract_artifact");
@@ -294,7 +298,7 @@ check("current source registry evolution preserves the external transport bounda
   }
 });
 
-check("v2.0.0 entry freeze baseline matches artifact and contract docs", () => {
+check("contract baseline pins artifacts; current documentation references remain valid", () => {
   const manifest = readJson(manifestPath);
   const baseline = readJson(freezeBaselinePath);
   const failures = freezeBaselineFailures(baseline, manifest);
@@ -325,6 +329,8 @@ console.log("== Integrator contract artifact verification summary ==");
 console.log(`- artifactDir: ${path.relative(rootDir, artifactDir)}`);
 console.log(`- pass: ${checks.length - failCount}`);
 console.log(`- fail: ${failCount}`);
+console.log(`- historical source byte audit: ${args.historicalSourcePins ? "executed" : "not-run (use --historical-source-pins)"}`);
+console.log("- runtime Auth/Rule/media verification: not-run-by-this-command");
 
 if (failCount > 0) {
   process.exit(1);
@@ -338,6 +344,10 @@ function parseArgs(args) {
     const name = eq >= 0 ? arg.slice(2, eq) : arg.replace(/^--/, "");
     const inlineValue = eq >= 0 ? arg.slice(eq + 1) : undefined;
     if (name === "artifact-dir") parsed.artifactDir = inlineValue ?? args[++i];
+    if (name === "historical-source-pins") {
+      if (inlineValue !== undefined) throw new Error("--historical-source-pins does not accept a value");
+      parsed.historicalSourcePins = true;
+    }
   }
   return parsed;
 }
@@ -414,6 +424,21 @@ function freezeBaselineFailures(baseline, manifest) {
       failures.push(`${entry.path}: missing freeze target`);
       continue;
     }
+    if (["docs/media-server-architecture.md", "docs/integrator-contract-artifact.md", "docs/webrtc-metadata-client.md"].includes(entry.path)) {
+      // 과거 SHA 값은 기록으로 유지한다. 현행 설명을 당시 파일 바이트에 묶거나
+      // 문서 갱신 때마다 baseline을 새 PASS로 덮어쓰지 않는다. bundle은 아래 기존
+      // pin/손상 거부 경로, 과거 제품 파일의 바이트 대조는 명시적 감사 옵션을 사용한다.
+      const architecture = entry.path === "docs/media-server-architecture.md";
+      if (entry.group !== (architecture ? "auth-session-scope" : "live-event-metadata")) {
+        failures.push(`${entry.path}: contract group mismatch`);
+      }
+      if (architecture) failures.push(...validateArchitectureContractDocumentation(fs.readFileSync(absolutePath, "utf8")));
+      if (entry.path === "docs/webrtc-metadata-client.md") {
+        failures.push(...validateWebRtcMetadataDocumentation(fs.readFileSync(absolutePath, "utf8")));
+      }
+      // artifact 안내의 현행 식별자·명령·문서 연결은 documentation references 검사에서 확인한다.
+      if (!args.historicalSourcePins) continue;
+    }
     if (entry.verificationMode === "historical-release-evidence") {
       if (!/^v\d+\.\d+\.\d+$/.test(entry.frozenRelease || "")) {
         failures.push(`${entry.path}: invalid historical frozenRelease`);
@@ -445,6 +470,18 @@ function freezeBaselineFailures(baseline, manifest) {
       if (historicalArtifact?.sha256 !== entry.sha256) {
         failures.push(`${entry.path}: historical evidence sha256 mismatch`);
       }
+      continue;
+    }
+    // 과거 버전의 전체 구현 파일 hash는 현행 제품 동작 검사가 아니다.
+    // 정상적인 구현 이동·리팩토링도 실패하므로 원래 pin은 변경하지 않고 감사로 분리한다.
+    // 알려진 직접 source pin 세 개만 대상이며 bundle/fixture와 그 밖의 pin은 건너뛰지 않는다.
+    const sourceGroups = {
+      "include/ingress/http_auth.h": "auth-session-scope",
+      "src/ingress/http_auth.cpp": "auth-session-scope",
+      "include/ingress/analysis_rule_registry.h": "rule-profile-payload",
+    };
+    if (!args.historicalSourcePins && Object.hasOwn(sourceGroups, entry.path)) {
+      if (entry.group !== sourceGroups[entry.path]) failures.push(`${entry.path}: contract group mismatch`);
       continue;
     }
     const actualHash = sha256File(absolutePath);

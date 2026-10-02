@@ -16,7 +16,8 @@ import {createLatencyTraceCollector,preserveLatencyEvidence} from './recording_l
 import {createProcessCleanup,processStartEvidence} from './recording_process_cleanup.mjs';
 import {createSelectionTraceCollector,matchSelectionTrace,reportSelectionTraceFailure} from './recording_selection_trace.mjs';
 import {createCompletionTraceCollector,summarizeCompletion,createTimelineObservation,observeTransitionWait,boundedUntil} from './recording_completion_trace.mjs';
-import {isTransientSqliteJournalMiss,statCurrentRunEntry} from './recording_current_observer.mjs';
+import {isTransientSqliteJournalMiss} from './recording_current_observer.mjs';
+import {scanCurrentAppTree,measureCurrentAppBudget} from './recording_current_app_scan.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const boundaryDiagnostic=process.argv.length===3&&process.argv[2]==='--diagnose-restart-boundary';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
@@ -41,21 +42,15 @@ const processes=[],processEvidence=[];let primaryError,processEvidencePreserved=
 let httpSequence=0;
 const check=(condition,label)=>{if(!condition)throw Error(label);passed++;console.log(`[pass] ${label}`);};
 function scan(directory,{hash=false,strict=false}={}){
-  const result=[];let bytes=0,entries=0,transientJournalMisses=0;
-  function visit(current){for(const name of fs.readdirSync(current).sort()){
-    const full=path.join(current,name);if(++entries>4096)throw Error('root-entry-cap');
-    const s=hash||strict?fs.lstatSync(full):statCurrentRunEntry(root,full);
-    if(!s){transientJournalMisses++;continue;}
-    if(s.isDirectory()){visit(full);continue;}
-    bytes+=s.size;if(bytes>512*MiB)throw Error('root-byte-cap');
-    if(s.isSymbolicLink()){if(strict)throw Error('archive-symlink');continue;}
-    if(!s.isFile()||(strict&&s.nlink!==1))throw Error('archive-not-regular-single-link');
-    const item={path:path.relative(directory,full),bytes:s.size};
-    if(hash){const digest=crypto.createHash('sha256'),fd=fs.openSync(full,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const after=fs.fstatSync(fd);if(after.ino!==s.ino||after.dev!==s.dev)throw Error('file-race');const buffer=Buffer.alloc(65536);let n;while((n=fs.readSync(fd,buffer,0,buffer.length,null)))digest.update(buffer.subarray(0,n));item.hash=digest.digest('hex');}finally{fs.closeSync(fd);}}
-    result.push(item);
-  }}visit(directory);return {bytes,entries,files:result,transientJournalMisses};
+  return scanCurrentAppTree(root,directory,{hash,strict});
 }
-function budget(){if(cancelled)throw Error('actual-app-cancelled');if(processes.some(p=>p.logOverflow))throw Error('app-log-cap');if(performance.now()>deadline)throw Error('actual-app-deadline');scan(root);}
+const liveBudgetObservation={measurements:0,retries:0,failures:0,maxAttempts:0};
+function budgetGuard(){if(cancelled)throw Error('actual-app-cancelled');if(processes.some(p=>p.logOverflow))throw Error('app-log-cap');if(performance.now()>deadline)throw Error('actual-app-deadline');}
+function budget(){measureCurrentAppBudget(root,rootStat,{guard:budgetGuard,report:value=>{
+  liveBudgetObservation.measurements++;liveBudgetObservation.retries+=value.retries;
+  liveBudgetObservation.failures+=Number(value.outcome==='fail');liveBudgetObservation.maxAttempts=Math.max(liveBudgetObservation.maxAttempts,value.attempts);
+  if(value.retries||value.outcome==='fail')console.log('[live-budget-measurement] '+JSON.stringify(value));
+}});}
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(label,fn,timeout=30000){return boundedUntil(label,fn,{deadline,timeout,pause,budget});}
 function environment(http,rtsp,stun){
@@ -394,5 +389,6 @@ if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{
 let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.archiveSafe)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved&&completionEvidencePreserved);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
 cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved&&completionEvidencePreserved;
 console.log(`[cleanup] ${JSON.stringify({root,bytes:size,...cleanup,udpClosed})}`);
+console.log('[live-budget-summary] '+JSON.stringify(liveBudgetObservation));
 console.log(JSON.stringify({mode:boundaryDiagnostic?'restart-boundary-diagnostic':latencyOnly?'current-http-latency':'current-actual-app',timelineUnplacedUnit,terminalObservations,passed,failed,latencyPass,actualEventPass,restartPass,boundaryDiagnosticPass,expectedOutputCount:2,observedOutputCounts,cleanup,elapsedMs:Math.round(performance.now()-start)}));
 process.exitCode=primaryError||failed||cleanup.failureCount||!cleanup.rootAbsent?1:0;

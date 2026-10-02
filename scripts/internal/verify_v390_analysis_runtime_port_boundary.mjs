@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-64 Slice 13의 analysis→core-utilities runtime port 역전을 검증한다.
 
 import crypto from "node:crypto";
+import {validateCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -184,19 +185,9 @@ function inspectGraph(value) {
   const violations = edges.filter(edge => edge.allowedByTarget === false);
   if (edges.some(edge => edge.direction === "analysis-services -> core-utilities"))
     errors.push("graph:analysis-core-utilities-remains");
-  if (edges.length !== 17) errors.push(`graph:edge-count:${edges.length}`);
-  if (violations.length !== 2) errors.push(`graph:violation-count:${violations.length}`);
-  if ((value.stronglyConnectedComponents || []).length !== 0) errors.push("graph:scc");
-  if (value.expectedProductionFiles !== 208 || value.expectedCppFiles !== 101)
-    errors.push(`graph:file-count:${value.expectedProductionFiles}/${value.expectedCppFiles}`);
-  if (!value.boundary.includes("Analysis Session read application boundary") || !value.boundary.includes("30B"))
-    errors.push("graph:boundary-description");
-  const expectedViolations = [
-    "transport-and-auth-adapter -> analysis-services",
-    "transport-and-auth-adapter -> core-media-interfaces",
-  ];
-  if (JSON.stringify(violations.map(edge => edge.direction).sort()) !== JSON.stringify(expectedViolations))
-    errors.push("graph:unexpected-violation-set");
+  errors.push(...validateCurrentSourceGraph(rootDir, value).errors);
+  assertBoundaryOwners(value, [['include/core/analysis_runtime_port.h', 'core-media-interfaces'],
+    ['src/core/analysis_runtime_port.cpp', 'core-media-interfaces'], ['include/core/analysis_runtime_config_data.h', 'core-utilities']]);
   return errors;
 }
 
@@ -260,8 +251,9 @@ check("isolated source, adapter, and graph mutations fail closed", () => {
   assert(inspectPortBoundary({ appConfig }).includes("app-config:inheritance"),
     "AppConfig inheritance mutation escaped");
   const shadowedAppConfig = read("include/app_config.h").replace(
-    "struct AppConfig : core::AnalysisRuntimeConfigData {",
-    "struct AppConfig : core::AnalysisRuntimeConfigData {\n    std::vector<std::string> analysis_intrusion_dwell_restricted_zone_ids;");
+    /(struct AppConfig\s*:\s*core::AnalysisRuntimeConfigData[^\{]*\{)/,
+    "$1\n    std::vector<std::string> analysis_intrusion_dwell_restricted_zone_ids;");
+  assert(shadowedAppConfig !== read("include/app_config.h"), 'AppConfig shadow mutation changed no bytes');
   assert(inspectPortBoundary({ appConfig: shadowedAppConfig }).includes("app-config:duplicate-analysis-fields"),
     "AppConfig analysis field shadow mutation escaped");
   const configData = read("include/core/analysis_runtime_config_data.h").replace(

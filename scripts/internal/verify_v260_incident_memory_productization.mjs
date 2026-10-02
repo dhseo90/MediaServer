@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S01 VLM summary candidate의 Ops incident memory productization 경계를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -15,9 +16,9 @@ const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const summaryDoc = readText("docs/vlm-summary-search-candidates.md");
 const streamVerification = readText("docs/stream-verification.md");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const incidentMemory = readText("src/analysis/incident_memory.cpp");
 const incidentMemoryHeader = readText("include/analysis/incident_memory.h");
@@ -25,24 +26,27 @@ const eventProjectionBlock = extractCppFunctionBlock(incidentMemory, "IncidentPr
 const memorySearchBlock = extractCppFunctionBlock(incidentMemory, "bool IncidentMemoryIndex::Search(");
 const summaryCandidateReviewBlock = extractCppFunctionBlock(server, "std::string OpsVlmSummaryCandidateReviewJson(");
 
+const definitionIds = ["UI-045","EVT-046","LAB-069","SAFE-052"];
+
 check("canonical incident projection and memory index source flows remain bound", () => {
   assert(eventProjectionBlock.includes("FinalizeDocument") && incidentMemory.includes("media-server.incident-text-projection.v1") && !eventProjectionBlock.includes("WebRTC") && !eventProjectionBlock.includes("SSE"), "Event POST/WebRTC/SSE incident projection finalization must remain local-only");
   assert(memorySearchBlock.includes("impl_->Search") && incidentMemoryHeader.includes("media-server.incident-memory-index.v1"), "incident memory search delegation schema mismatch");
 });
 
-check("roadmap and docs record V260-S01 productization boundary", () => {
-  const hasCurrentRoadmapRow = /\| 1 \| V260-S01 \| P0 \| (진행|완료) \| Incident memory productization \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V260-S01 | 완료 | VLM summary candidate의 Ops-only incident memory productization |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V260-S01 row must be present in current or archived roadmap format");
-  for (const snippet of [
-    "media-server.ops.vlm-summary-candidate-review.v1",
-    "ops-manual-review-not-auto-applied",
-    "sourceCandidateReport",
-    "viewer/client 비노출",
-    "verify-v260-incident-memory-productization",
-  ]) {
-    assertIncludes(summaryDoc, snippet, "summary search productization doc");
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: summaryDoc, identifiers: ["media-server.ops.vlm-summary-candidate-review.v1", "ops-manual-review-not-auto-applied", "sourceCandidateReport"],
+    command: "verify-v260-incident-memory-productization", script: "verify_v260_incident_memory_productization.mjs",
+    featureIds: ["UI-045","EVT-046","LAB-069"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-052","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -120,15 +124,6 @@ check("smoke, inventory, and command catalog track S01", () => {
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| UI-045 | `/ops/events` VLM Summary Candidate Review |",
-    "| EVT-046 | Ops VLM summary candidate review view model |",
-    "| LAB-069 | V260-S01 VLM summary productization fixture/static guard |",
-    "| SAFE-052 | V260-S01 VLM summary candidate productization boundary |",
-    "verify-v260-incident-memory-productization",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S01 row");
-  }
   assertIncludes(streamVerification, "verify-v260-incident-memory-productization", "stream verification S01 command");
   assertIncludes(serverSh, "verify-v260-incident-memory-productization", "server.sh S01 command");
   assertIncludes(serverSh, "verify_v260_incident_memory_productization.mjs", "server.sh S01 script target");
@@ -142,6 +137,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.6.0 S01 incident memory productization 통과 ==");
 
 function readText(filePath) {

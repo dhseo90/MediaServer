@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 17 transport Re-ID readiness의 dependency-free application 경계를 검증한다.
 
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -240,27 +241,13 @@ check("CMake and current graph preserve Slice 17 at the Slice 18 successor", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   assert(cmake.includes(sourcePath), "CMake source binding missing");
   const assertGraphBoundary = value => {
-    const applicationOwner = value.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-    assert(applicationOwner?.exactFiles.includes(headerPath) && applicationOwner.exactFiles.includes(sourcePath) &&
-      applicationOwner.expectedFileCount === 33 && applicationOwner.expectedCppCount === 14,
-    "current graph application ownership binding missing");
-    const edge = direction => value.observedModuleEdges.find(item => item.direction === direction);
-    assert(edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 3 &&
-      edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false,
-    "Slice 18 successor must preserve the Slice 17 boundary and reduce the next witness to 16");
-    assert(edge("application-service-interfaces -> analysis-services")?.witnessCount === 16 &&
-      edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 17 &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true,
-    "application successor edges drift");
-    assert(value.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
-      value.stronglyConnectedComponents.length === 0,
-    "Slice 17 successor must preserve current violations=2 and SCC=0");
+    assertCurrentSourceGraph(rootDir, value);
+    assertBoundaryOwners(value, [[headerPath, 'application-service-interfaces'], [sourcePath, 'application-service-interfaces']]);
   };
   assertGraphBoundary(graph);
   const mutated = structuredClone(graph);
   mutated.observedModuleEdges.find(item =>
-    item.direction === "transport-and-auth-adapter -> analysis-services").witnessCount = 12;
+item.direction === "application-service-interfaces -> analysis-services").witnessCount += 1;
   let rejected = false;
   try { assertGraphBoundary(mutated); } catch { rejected = true; }
   assert(rejected, "transport-to-analysis graph regression mutation was not rejected");

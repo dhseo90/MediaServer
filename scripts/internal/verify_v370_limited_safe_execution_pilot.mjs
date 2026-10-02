@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 15 Limited Safe Execution Pilot 연결, 문서, 경계를 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/site-operations/limited-safe-execution-pilot exposes only lowest-risk source recheck or notice queue pilot candidates
   - every pilot action is approval-gated and preview-only; no source recheck, notice send, queue write, runbook write, or media mutation occurs
   - /ops dashboard renders pilot candidates, approval gate state, execution preview, and boundaries without client/viewer injection
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -45,14 +46,12 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -285,45 +284,22 @@ check("client/viewer scripts do not receive v3.7 Limited Safe Execution Pilot ma
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.7 Step 15", () => {
-  for (const snippet of [
-    "| 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 완료 |",
-    "## v3.7.0 Step 15 개발 기록",
-    route,
-    "OpsV370LimitedSafeExecutionPilotJson",
-    `\`./server.sh ${command}\``,
-    "Outcome Reconciliation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.7 Step 15");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-099","SRC-061","CLIENT-038","LAB-108","SAFE-176","OPS-143"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/site-operations/limited-safe-execution-pilot"],
+    command, script: "verify_v370_limited_safe_execution_pilot.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-061","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.7.0 (15) | \`./server.sh ${command}\` | Limited Safe Execution Pilot.`,
-    "source recheck 또는 notice queue action",
-    "approval-gated",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.7 Step 15");
-  }
-  for (const snippet of [
-    `v3.7.0 (15) Limited Safe Execution Pilot | \`UI-099\`, \`SRC-061\`, \`CLIENT-038\`, \`LAB-108\`, \`SAFE-176\`, \`OPS-143\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-099 | V370 Step 15 Limited Safe Execution Pilot UI",
-    "SRC-061 | V370 Step 15 source recheck pilot candidate",
-    "CLIENT-038 | V370 Step 15 notice queue pilot candidate",
-    "LAB-108 | V370 Step 15 Limited Safe Execution Pilot harness",
-    "SAFE-176 | V370 Step 15 Limited Safe Execution Pilot boundary",
-    "OPS-143 | V370 Step 15 Limited Safe Execution Pilot 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.7 Step 15");
-  }
-  for (const snippet of [
-    "V370 Limited Safe Execution Pilot",
-    `\`./server.sh ${command}\``,
-    "v370 Step 15 RED limited safe execution pilot gate",
-    "v370 Step 15 limited safe execution pilot final",
-    "v370 Step 15 UI 풀테스트",
-    "v370 Step 15 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.7 Step 15");
-  }
+
 });
 
 check("server entrypoint and inventory verifiers include v3.7 Step 15 command", () => {

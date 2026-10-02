@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 // 파일 용도: V200-S12 VLM summary 검색 후보 fixture, sidecar query smoke, contract 경계를 검증한다.
 
 import fs from "node:fs";
@@ -131,33 +132,32 @@ check("C++ sidecar summary search builder and analysis-state smoke are wired", (
 });
 
 check("docs, inventory, stream verification, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-summary-search-candidates.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V200-S12",
-    "VLM summary 검색 후보",
-    "media-server.vlm-summary-search-candidates.v1",
-    "media-server.vlm-summary-search-candidate.v1",
-    "verify-vlm-summary-search-candidates",
-    "LAB-043",
-  ]) {
-    assert(docs.includes(snippet), `docs/inventory missing snippet: ${snippet}`);
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-summary-search-candidates.md"),
+    identifiers: ["media-server.vlm-summary-search-candidates.v1","media-server.vlm-summary-search-candidate.v1"],
+    command: "verify-vlm-summary-search-candidates", script: "verify_vlm_summary_search_candidates.mjs",
+    featureIds: ["EVT-032","LAB-054"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 실행 명령 결속이며 이 정적 검사로 인증·HTTP·규칙 실행을 대신하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["LAB-043","verify-v390-review4-lab-core-api","scripts/internal/verify_v390_review4_lab_core_api.mjs"]]) {
+    const rows = currentInventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = currentImplementation.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 실행 연결 불일치");
   }
   assert(server.includes("verify-vlm-summary-search-candidates"), "server command missing S12 verifier");
   assert(server.includes("verify_vlm_summary_search_candidates.mjs"), "server dispatch missing S12 verifier script");
   assert(scriptInventory.includes("verify_vlm_summary_search_candidates.mjs"),
     "script inventory missing S12 verifier");
   for (const id of ["LAB-043", "LAB-054"]) {
-    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-summary-search-candidates",
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === (id === "LAB-043" ? "verify-v390-review4-lab-core-api" : "verify-vlm-summary-search-candidates"),
       `${id} manifest verifier command drift`);
   }
   assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
@@ -171,7 +171,7 @@ check("S12 remains candidate-only and does not introduce provider/client/schema/
     "scripts/internal/analysis_state_smoke.cpp",
     "docs/vlm-summary-search-candidates.md",
     "test/fixtures/vlm_summary_search/cases.json",
-    "docs/development-backlog.md",
+    "docs/project-feature-test-inventory.md",
   ];
   const forbidden = [
     /\bcloudProviderApiCalled\s*:\s*true\b/,
@@ -209,6 +209,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM summary search candidate summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

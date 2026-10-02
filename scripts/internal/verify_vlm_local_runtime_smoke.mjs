@@ -9,6 +9,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -136,38 +137,30 @@ check("local runtime smoke stays out of external event, metadata, and media path
 });
 
 check("docs, feature inventory, server command, and script inventory are wired", async () => {
-  const docs = [
-    readText("docs/vlm-local-runtime-connection-smoke.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/README.md"),
-  ].join("\n");
+  const docs = readText("docs/vlm-local-runtime-connection-smoke.md");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V210-S02",
-    "Local VLM runtime connection smoke",
+  const errors = validateFeatureDocumentation({document: docs, identifiers: [
     "media-server.vlm-local-runtime-smoke-fixtures.v1",
     "media-server.vlm-local-runtime-smoke-report.v1",
     "verify-vlm-local-runtime-smoke",
     "ollama-loopback-chat-pass",
     "vllm-openai-compatible-pass",
+    "api-compatible-local-pass",
     "missing-runtime-fallback",
     "timeout-queue-cleanup",
     "invalid-output-fallback",
     "LAB-056",
     "SAFE-034",
-  ]) {
-    assert(docs.includes(snippet), `docs missing local runtime smoke snippet: ${snippet}`);
-  }
-  assert(serverSh.includes("verify-vlm-local-runtime-smoke"), "server.sh missing local runtime smoke command");
-  assert(serverSh.includes("verify_vlm_local_runtime_smoke.mjs"), "server.sh missing local runtime smoke script dispatch");
+  ], command: "verify-vlm-local-runtime-smoke", script: "verify_vlm_local_runtime_smoke.mjs",
+    featureIds: ["SAFE-034"], inventory: readText("docs/project-feature-test-inventory.md"),
+    verification: readText("docs/stream-verification.md"), server: serverSh});
+  assert(errors.length === 0, errors.join("; "));
   assert(scriptInventory.includes("verify_vlm_local_runtime_smoke.mjs"), "script inventory missing local runtime smoke verifier");
-  assert(manifest.items.find(item => item.id === "SAFE-034")?.verifierEvidence?.command === "verify-vlm-local-runtime-smoke",
-    "SAFE-034 manifest verifier command drift");
+  assert(manifest.items.find(item => item.id === "LAB-056")?.verifierEvidence?.command === "verify-vlm-local-runtime-smoke",
+    "LAB-056 manifest verifier command drift");
   assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
     "feature coverage must validate manifest-backed verifier evidence");
 });
@@ -495,7 +488,7 @@ function renderMarkdown(data) {
   const rows = data.cases
     .map(item => `| ${item.id} | ${item.endpointKind} | ${item.outcome} | ${item.queueCleanup} | ${item.serverCleanup} | ${item.status} |`)
     .join("\n");
-  return `# VLM Local Runtime Smoke Report
+  return `# VLM 로컬 연결 검사 결과
 
 - schema: \`${data.schema}\`
 - targetStep: \`${data.targetStep}\`
@@ -512,11 +505,9 @@ function renderMarkdown(data) {
 | --- | --- | --- | --- | --- | --- |
 ${rows}
 
-## Non-Substitution
+## 판정 범위
 
-This report is local loopback runtime smoke evidence only. It is not cloud provider
-field smoke evidence, model quality evidence, longrun evidence, UI fulltest
-evidence, or release close-out evidence.
+이 결과는 로컬 loopback fixture 연결 검사다. 실제 모델 품질·클라우드 연결·장시간·UI 풀테스트·릴리즈 완료를 대신하지 않는다.
 `;
 }
 

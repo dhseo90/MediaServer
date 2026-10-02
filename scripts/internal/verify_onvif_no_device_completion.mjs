@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: ONVIF 실장비 제외 조건의 종료 판정과 별도 후속 범위 분리를 검증한다.
-// 동작 요약: no-device 문서, suite/summary fixture, protocol matrix가 필수 잔여 없음과 미확인 항목을 함께 고정하는지 확인한다.
+// 동작 요약: 현행 문서·suite 정의·summary fixture의 연결을 확인한다. 이 정적 검사 자체는 suite 실행/완료가 아니다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink, validateOnvifNoDeviceDocumentation, validateOnvifSupportMatrixDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -20,8 +21,8 @@ Usage:
   ./server.sh verify-onvif-no-device-completion
 
 Checks:
-  - 실장비 제외 조건의 필수 잔여 없음 판정을 문서가 명시함
-  - 별도 후속 범위와 no-device 완료 범위를 구분함
+  - 현행 명령·summary 출력과 실장비 미확인 경계를 문서가 명시함
+  - protocol matrix와 연결하며 정적 검사와 실제 suite 완료를 구분함
   - no-device suite/summary fixture가 completion guard와 local simulator variant를 포함함
   - 실제 장비 성공은 계속 미확인으로 유지함
 `);
@@ -40,39 +41,20 @@ const expectedSchema = "media-server.onvif-no-device-suite-summary.v1";
 const checks = [];
 
 check("no-device completion criteria are documented", () => {
-  for (const term of [
-    "## 종료 판정",
-    "실장비 제외 조건의 잔여 필수 이슈 없음",
-    "실장비 endpoint 성공은 계속 미확인",
-    "local simulator variant",
-    "Media2 우선",
-    "Media fallback",
-    "Media-only",
-    "non-RTSP GetStreamUri 실패",
-  ]) {
-    assertContains(noDeviceDoc, term, `no-device doc missing completion term: ${term}`);
-  }
+  const errors = validateOnvifNoDeviceDocumentation(noDeviceDoc);
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("separate follow-up scope is not counted as no-device residual work", () => {
-  for (const term of [
-    "별도 후속 범위",
-    "실장비 field smoke",
-    "ONVIF 인증 주입",
-    "WS-Discovery 지원",
-    "Profile G",
-  ]) {
-    assertContains(noDeviceDoc, term, `no-device doc missing separate follow-up term: ${term}`);
-  }
-  assertContains(matrixDoc, "HTTPS/TLS ONVIF SOAP endpoint | OpenSSL 빌드 제한 지원", "matrix must keep HTTPS SOAP OpenSSL scope");
-  assertContains(matrixDoc, "Credential reference / HTTP Basic auth | v1.8.0 reference/redaction 정책 지원", "matrix must keep credential reference scope");
-  assertContains(matrixDoc, "ONVIF WS-Discovery | 비지원", "matrix must keep WS-Discovery unsupported");
-  assertContains(matrixDoc, "ONVIF Profile G / Recording / Replay | 비지원", "matrix must keep Profile G unsupported");
+  // 인증 주입 전체를 미래 기능으로 고정하지 않는다. 실제 지원 상태는 현행 matrix가 기준이다.
+  const errors = validateOnvifSupportMatrixDocumentation(matrixDoc);
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("live support verification includes no-device completion guard", () => {
-  assertContains(liveSupportDoc, "verify-onvif-no-device-completion", "live support doc missing no-device completion command");
-  assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc must keep real device success unverified");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-no-device-verification.md"), "live support doc missing no-device link");
+  assertContains(noDeviceDoc, "verify-onvif-no-device-completion", "no-device guide missing completion command");
+  assertContains(liveSupportDoc, "미확인", "live support doc must keep real device success unverified");
 });
 
 check("no-device suite includes completion guard", () => {
@@ -125,6 +107,7 @@ console.log("");
 console.log("== ONVIF no-device completion summary ==");
 console.log("- mode: 실장비 제외");
 console.log("- realDeviceEndpointSuccess: 미확인");
+console.log("- evidence: 문서·runner·정의 fixture 정적 검사; actual suite not-run");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

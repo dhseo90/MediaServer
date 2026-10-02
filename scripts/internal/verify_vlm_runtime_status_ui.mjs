@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S05 Ops VLM runtime status UI와 viewer/client 비노출 경계를 정적 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -130,32 +131,19 @@ check("viewer/client markup and external payload paths do not expose the Ops VLM
 });
 
 check("docs, feature inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-runtime-status-ui.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/README.md"),
-  ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
-  for (const snippet of [
-    "V210-S05",
-    "Ops VLM runtime status UI",
-    "verify-vlm-runtime-status-ui",
-    "/ops/vlm",
-    "/ops/api/runtime/status",
-    "provider 상태",
-    "runtime 연결 상태",
-    "마지막 evaluation",
-    "실패 사유",
-    "privacy mode",
-    "default-off",
-    "UI-033",
-  ]) {
-    assert(docs.includes(snippet), `docs missing S05 snippet: ${snippet}`);
-  }
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-runtime-status-ui.md"),
+    identifiers: ["/ops/vlm","/ops/api/runtime/status"],
+    command: "verify-vlm-runtime-status-ui", script: "verify_vlm_runtime_status_ui.mjs",
+    featureIds: ["UI-033"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assert(serverSh.includes("verify-vlm-runtime-status-ui"), "server.sh missing S05 command");
   assert(serverSh.includes("verify_vlm_runtime_status_ui.mjs"), "server.sh missing S05 script dispatch");
   assert(scriptInventory.includes("verify_vlm_runtime_status_ui.mjs"), "script inventory missing S05 verifier");
@@ -178,6 +166,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM runtime status UI summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

@@ -157,7 +157,21 @@ check("known REVIEW3 false mappings are replaced by actual source owners", () =>
   const byId = new Map(candidate.items.map(item => [item.id, item]));
   assertSpotCheck(byId, "UI-001", ["src/ingress/webrtc_http_server.cpp", 'request.path == "/"', "DefaultHomePath", "RoleLandingPath"]);
   assertSpotCheck(byId, "UI-022", ["src/ingress/product_ui_page_scripts.cpp", "wireOpsVlmControls"]);
-  assertSpotCheck(byId, "SRC-009", ["src/ingress/product_ui_ops_sources_script.cpp", "saveChannelSourceViewPair"]);
+  // SRC-009의 현행 근거는 form payload의 displayName과 저장 후 API readback이다.
+  // 실행 경로에 존재해도 해당 역할의 anchor가 아닌 함수명을 요구하지 않는다.
+  const sourceUpdateFragments = [
+    "src/ingress/product_ui_ops_sources_script.cpp",
+    "function channelPayloadsFromFormData(data) {",
+    "displayName: data.displayName,",
+    'source => source.displayName === updatedName && source.zone === "South"',
+  ];
+  assertSpotCheck(byId, "SRC-009", sourceUpdateFragments);
+  const wrongReadback = structuredClone(byId.get("SRC-009"));
+  wrongReadback.roles.readback = structuredClone(byId.get("RULE-009").roles.readback);
+  let unrelatedReadbackRejected = false;
+  try { assertSpotCheck(new Map(byId).set("SRC-009", wrongReadback), "SRC-009", sourceUpdateFragments); }
+  catch (error) { unrelatedReadbackRejected = error.message.includes("SRC-009 missing actual source fragment"); }
+  assert(unrelatedReadbackRejected, "SRC-009 unrelated readback must not satisfy source update spot check");
   assertSpotCheck(byId, "RULE-009", ["src/ingress/webrtc_http_server_runtime.cpp", "AnalysisRegistry().UpsertVaRule(id, request.body)"]);
   assertSpotCheck(byId, "SAFE-217", ["src/ingress/webrtc_http_server.cpp", "WriteAnalysisRegistryFileAtomically"]);
   assertSpotCheck(byId, "OPS-184", ["src/ingress/webrtc_http_server.cpp", "RecoverAnalysisRegistryTemporaryFiles"]);
@@ -973,7 +987,12 @@ function buildCandidate({ manifest: sourceManifest, rows: sourceRows, production
       const owners = (rawGroups.get(baseFacetKey(item)) || []).map(value => value.id).filter(id => id !== item.id);
       return { ...item, status: "unresolved", failureReason: "ambiguous-shared-contract-facet", sharedCandidateIds: owners, sourceFlowDigest: null };
     }
-    const candidates = [{ evidenceToken: item.evidenceToken, roles: item.roles, edges: item.edges }, ...(item.alternativeCandidates || [])];
+    // 후보 선택에서도 실제 본문 결속을 유지한다. 이를 버리면 서로 다른 본문의
+    // 같은 문장이 충돌하고, 반대로 선택 전후에 다른 canonical key를 사용하게 된다.
+    const candidates = [item, ...(item.alternativeCandidates || []).map(value => ({
+      ...item, ...value,
+      trustBindings: buildReview4TrustBindings(rootDir, { ...item, ...value }, commandDispatch),
+    }))];
     const selected = candidates.find(value => {
       const key = facetKey({ ...value, sharedContract: item.sharedContract });
       return !usedFacets.has(key);

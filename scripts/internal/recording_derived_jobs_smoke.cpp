@@ -1,6 +1,7 @@
 // 파일 용도: 실제 compact job 계약과 catalog/retention 원자 경계를 격리 검증한다.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
+#include "recording/recording_catalog.h"
 #include <iostream>
 #include <fstream>
 #include <atomic>

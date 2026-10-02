@@ -1,5 +1,6 @@
 // 파일 용도: 기본 녹화 구성의 관리 저장소·증거·복구 수명을 격리 검증한다.
 #include "recording_media_test_fixture.h"
+#include "app_config.h"
 #include "recording/recording_evidence_observer.h"
 #include "analysis/decoded_interval_evidence.h"
 #include "recording/event_recording_bridge.h"
@@ -183,8 +184,11 @@ int SourceRuntime(const std::filesystem::path& root) {
         check(recovered,"D02-07 실제 producer 시작 전 runtime 복구");if(!recovered)return 1;
         recording::RecordingSessionService sessions(manager,storage.catalog(),[&]{return std::make_unique<recording::GStreamerSegmentWriter>(storage.WriterOptions(10000));});
         core::RecordingRuntimeConfigData config;config.recording_enabled=enabled;config.recording_retention_interval_ms=10000;
-        recording::RecordingSupervisor supervisor(config,sources,sessions,retention);
+        std::string route=app::GetAppConfig().stream_route;
+        recording::RecordingSupervisor supervisor(config,sources,sessions,retention,route);
+        route="caller-changed-after-construction";
         if(!supervisor.Start(&error))return 2;
+        supervisor.ReconcileNow();supervisor.ReconcileNow();
         std::this_thread::sleep_for(std::chrono::milliseconds(enabled?1800:100));
         const auto active=sessions.ActiveChannelCount();
         supervisor.Stop();sessions.StopAll();
@@ -193,10 +197,37 @@ int SourceRuntime(const std::filesystem::path& root) {
         const auto count=storage.catalog().FinalizedSegmentIdsForStartup().size();
         check(enabled?(active==1&&count>previous_count):(active==0&&count==previous_count),
             enabled?"D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성":"D02-06 실제 supervisor/session off 생산0·기존 segment 보존");
+        check(enabled?active==1:active==0,"B2-S01 복사된 route와 반복 reconcile의 채널 멱등성");
         check(sessions.ActiveChannelCount()==0&&registry.ActiveStreamCount()==0&&guard.ActiveStreams()==0,"D02-08 실제 source/session 종료 owner0");
         previous_count=count;
     }
     std::cout<<"[summary] pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
+}
+int SupervisorStartFailure(const std::filesystem::path& root) {
+    std::filesystem::create_directories(root/"state");
+    const auto registry_path=root/"state/sources.json";
+    {std::ofstream out(registry_path);out<<"not-json";}
+    std::string error;
+    recording::RecordingRuntimeStorage storage(root/"managed");
+    if(!storage.Open(&error))return 2;
+    core::StreamRegistry registry;core::ResourceGuard guard(8,8);core::SessionManager manager(registry,guard);
+    recording::RetentionCoordinator retention(storage.catalog(),[&]{return storage.catalog().RetentionSnapshot();},
+        [](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},[](const auto&,auto*){return false;},{0,1,root/"managed"});
+    recording::RecordingSessionService sessions(manager,storage.catalog(),[]{return std::unique_ptr<recording::SegmentWriter>{};});
+    auto& sources=ingress::SourceViewApplicationService::Instance();
+    core::RecordingRuntimeConfigData config;
+    bool off=false;
+    {recording::RecordingSupervisor supervisor(config,sources,sessions,retention,app::GetAppConfig().stream_route);
+        off=supervisor.Start(&error);supervisor.Stop();}
+    config.recording_enabled=true;
+    bool first=false,again=false;
+    {recording::RecordingSupervisor supervisor(config,sources,sessions,retention,app::GetAppConfig().stream_route);
+        first=!supervisor.Start(&error)&&!error.empty();supervisor.Stop();
+        again=!supervisor.Start(&error)&&!error.empty();supervisor.Stop();}
+    const bool ok=off&&first&&again&&sessions.ActiveChannelCount()==0&&registry.ActiveStreamCount()==0&&
+        guard.ActiveStreams()==0&&FileBytes(registry_path)=="not-json";
+    std::cout<<(ok?"[pass] ":"[fail] ")<<"B2-S02 opt-out·시작 실패·재시도·반복 종료와 손상 입력 보존\n";
+    return ok?0:1;
 }
 bool DecodeRuntimeOutput(const std::filesystem::path& path) {
     const int fd=::open(path.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC);if(fd<0)return false;
@@ -282,6 +313,8 @@ int DefaultBudget(const std::filesystem::path& root) {
     std::cout<<"[summary] pass="<<(ok?1:0)<<" fail="<<(ok?0:1)<<'\n';return ok?0:1;
 }
 int main(int argc,char** argv) {
+    if(argc==3&&std::string(argv[2])=="supervisor-start-failure")
+        return SupervisorStartFailure(std::filesystem::path(argv[1])/"supervisor-start-failure");
     if(argc==3&&std::string(argv[2])=="provider-locks") {
         const bool ok=ProviderLockBoundaries(std::filesystem::path(argv[1])/"provider-locks");
         std::cout<<(ok?"[pass] ":"[fail] ")<<"D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사\n";

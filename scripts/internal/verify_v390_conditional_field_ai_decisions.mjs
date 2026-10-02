@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -53,6 +55,11 @@ const featureIds = [
 ];
 const files = loadFiles();
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["UI-114","UI-115","MEDIA-027","LAB-124","SAFE-209"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("MEDIA-027 exact product approval-only bridge preserves external WHEP/TURN no-execution", () => {
   const productBlock = extractCppFunctionBlock(files.server, "std::string OpsV390FieldEvidenceBridgeDecisionJson()");
@@ -369,19 +376,6 @@ check("client/viewer scripts do not receive field or Re-ID internals", () => {
 
 check("roadmap, stream verification, inventory, and release records map v3.9 Steps 17~18", () => {
   for (const snippet of [
-    "| 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 |",
-    "| 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 |",
-    "V390-CAND-009",
-    "V390-CAND-010",
-    fieldRoute,
-    reidRoute,
-    "OpsV390FieldEvidenceBridgeDecisionJson",
-    "OpsV390ReidAssistDecisionJson",
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.9 Steps 17~18");
-  }
-  for (const snippet of [
     `| v3.9.0 (17) | \`./server.sh ${command}\` | Field evidence bridge decision.`,
     `| v3.9.0 (18) / V390-ADD1-04 | \`./server.sh ${readinessCommand}\`, \`./server.sh ${command}\` | Re-ID readiness consistency.`,
     "approval-only-minimal-field-evidence-bridge",
@@ -404,18 +398,6 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "OPS-177 | V390 Re-ID readiness consistency gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Steps 17~18");
-  }
-  for (const snippet of [
-    "V390 Conditional Field/AI Decisions",
-    `\`./server.sh ${command}\``,
-    "v390 Step 17-18 RED conditional field/AI decisions gate",
-    "v390 Step 17 field evidence bridge final",
-    "v390 Step 18 Re-ID assist decision final",
-    "V390-ADD1-04 Re-ID readiness consistency final",
-    "v390 Step 17-18 UI 풀테스트",
-    "v390 Step 17-18 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.9 Steps 17~18");
   }
   for (const snippet of [
     "| V390-CAND-009 |",
@@ -484,7 +466,7 @@ function loadFiles() {
     uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
-    backlog: readText("docs/development-backlog.md"),
+
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     v390Inventory: readText("docs/v390-feature-completion-inventory.md"),
@@ -493,7 +475,7 @@ function loadFiles() {
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
+
     serverSh: readText("server.sh"),
   };
 }

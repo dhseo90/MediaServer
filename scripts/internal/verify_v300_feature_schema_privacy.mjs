@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -23,7 +25,7 @@ Checks:
   - docs/event-feature-schema-privacy.md defines V300-S03 feature envelope, namespace, privacy, and identity prohibition policy
   - fixture contains allowed non-identifying features and rejected identity feature examples
   - privacy guard rejects raw prompts, raw provider responses, identity matches, face embeddings, watchlists, and searchable identity material
-  - roadmap, stream verification, feature inventory, release records, docs index, and server entrypoint are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to schema/privacy policy evidence and does not imply VLM queue/runtime/provider success, search UI, longrun, or release publication
 `);
 }
@@ -36,13 +38,10 @@ const fixturePath = "test/fixtures/event_feature_schema_privacy/feature_set_samp
 
 const files = {
   policy: readText("docs/event-feature-schema-privacy.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
   featureSource: readText("src/analysis/vlm_feature_queue.cpp"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
@@ -66,30 +65,14 @@ check("product FeatureSet projection owns the schema and privacy boundary", () =
   }
 });
 
-check("policy document defines V300-S03 feature and privacy boundary", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S03 Feature Schema and Privacy Policy`",
-    "FeatureSet",
-    "Feature Envelope",
-    "Allowed Namespace Matrix",
-    "Disallowed Identity Matrix",
-    "Privacy Guard",
-    "`appearance`",
-    "`action`",
-    "`scene`",
-    "`spatial`",
-    "`event`",
-    "`operator`",
-    "`embedding`",
-    "raw LLM/VLM prompt",
-    "raw provider response",
-    "face embedding",
-    "watchlist",
-    "license plate",
-    "UI 풀테스트, 30분/120분 longrun, published",
-  ]) {
-    assert(files.policy.includes(snippet), `policy document missing snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.policy, identifiers: ["FeatureSet","appearance","action","scene","spatial","event","operator","embedding","rawPromptStored=false","rawProviderResponseStored=false","identityFeaturesAllowed=false","faceRecognitionAllowed=false","watchlistAllowed=false","faceEmbeddingStored=false"],
+    command, script: "verify_v300_feature_schema_privacy.mjs", featureIds: ["LAB-083","SAFE-085","OPS-053"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("fixture exposes stable feature envelope and evidence provenance", () => {
@@ -159,53 +142,18 @@ check("disallowed identity matrix is explicit and enforced by the fixture", () =
   assert(fixture.privacy?.durableRetentionMode === "feature-only-structured-non-identifying", "durable retention must be feature-only");
 });
 
-check("docs index, roadmap, and stream verification expose V300-S03 schema/privacy gate", () => {
-  assert(files.docsIndex.includes("[event-feature-schema-privacy.md](event-feature-schema-privacy.md)"), "docs index missing event feature schema privacy document");
-  for (const snippet of [
-    "| 3 | V300-S03 | P0 | 완료 | Feature Schema and Privacy Policy |",
-    "namespace 기반 feature envelope, 비식별 feature 허용, identity feature 금지",
-    "docs/event-feature-schema-privacy.md",
-    fixturePath,
-    "`./server.sh verify-v300-feature-schema-privacy`",
-    "얼굴 인식/신원 식별/model 품질 PASS가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S03 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S03 | `./server.sh verify-v300-feature-schema-privacy` |",
-    "FeatureSet envelope, allowed/disallowed matrix, privacy guard",
-    "VLM queue/runtime/provider success, Search DSL, `/ops/events` UI",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing snippet: ${snippet}`);
-  }
-});
-
-check("feature inventory and release records map V300-S03 to LAB-083, SAFE-085, and OPS-053", () => {
-  for (const snippet of [
-    "V300-S03 Feature Schema and Privacy Policy | `LAB-083`, `SAFE-085`, `OPS-053` | `verify-v300-feature-schema-privacy`",
-    "LAB-083 | V300-S03 feature schema fixture",
-    "SAFE-085 | V300-S03 privacy and identity boundary",
-    "OPS-053 | V300-S03 feature schema privacy 게이트",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 Feature Schema and Privacy Policy",
-    "`./server.sh verify-v300-feature-schema-privacy`",
-    "v300 S03 RED feature schema privacy gate",
-    "v300 S03 feature schema privacy final",
-    "v300 S03 VLM queue/runtime/provider",
-    "v300 S03 Search/UI/longrun/published",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S03 command", () => {
   assert(files.server.includes("verify-v300-feature-schema-privacy"), "server.sh missing V300-S03 command");
   assert(files.server.includes("verify_v300_feature_schema_privacy.mjs"), "server.sh missing V300-S03 script dispatch");
-  for (const id of ["LAB-083", "SAFE-064", "SAFE-085", "OPS-053"]) {
-    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v300-feature-schema-privacy", `${id} manifest verifier command drift`);
+  const expectedCommands = {
+    "LAB-083": command, "SAFE-085": command, "OPS-053": command,
+    // SAFE-064는 FeatureSet 개인정보 항목이 아니라 기존 2.x 기준 경계의 검사다.
+    "SAFE-064": "verify-project-inventory",
+  };
+  for (const [id, expected] of Object.entries(expectedCommands)) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expected, `${id} manifest verifier command drift`);
   }
   assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-083") && files.projectInventoryVerifier.includes("SAFE-085") && files.projectInventoryVerifier.includes("OPS-053"), "project inventory verifier missing V300-S03 IDs");

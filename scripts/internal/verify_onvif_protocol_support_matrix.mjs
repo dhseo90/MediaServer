@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink, validateOnvifSupportMatrixDocumentation, validateOnvifTlsDocumentation, validateOnvifCredentialDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -23,7 +24,7 @@ Checks:
   - docs/onvif-protocol-support-matrix.md가 지원/비지원 protocol matrix를 포함함
   - live support/no-device 문서가 protocol matrix를 참조함
   - 구현은 HTTP/HTTPS SOAP Device/Media/Media2/GetStreamUri 기준을 유지함
-  - credential injection, WS-Discovery, PTZ, Events, Recording/Replay를 지원으로 표현하지 않음
+  - Basic provider 조건과 WS-Discovery/PTZ/Events/Recording/Replay 비지원 경계를 구분함
 `);
 }
 
@@ -38,48 +39,8 @@ const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const checks = [];
 
 check("protocol support matrix names supported ONVIF live-source scope", () => {
-  for (const term of [
-    "ONVIF Profile S/T live source 현장 연동",
-    "제한 지원",
-    "Profile S/T 전체 conformance",
-    "ONVIF Device service SOAP",
-    "v1.8.0 Profile S/T live source 제한 지원",
-    "`http://` 또는 OpenSSL 빌드의 `https://` Device service endpoint",
-    "`GetServices`",
-    "ONVIF Media2 service SOAP",
-    "`Media2.GetProfiles`",
-    "`Media2.GetStreamUri`",
-    "ONVIF Media service SOAP",
-    "`Media.GetProfiles`",
-    "`Media.GetStreamUri`",
-    "SOAP Fault / malformed response",
-    "verify-onvif-soap-fault-matrix",
-    "`rtsp://` 또는 `rtsps://` GetStreamUri live 후보",
-    "`rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약",
-    "./onvif-rtsps-draft-policy.md",
-    "verify-onvif-rtsps-draft-policy",
-    "verify-onvif-local-simulator",
-    "./onvif-https-soap-transport-design.md",
-    "./onvif-https-tls-fixture-harness-design.md",
-    "fixture-only harness",
-    "OpenSSL 빌드 제한 지원",
-    "실장비 HTTPS endpoint 성공은 미확인",
-    "verify-onvif-https-soap-transport-design",
-    "verify-onvif-https-tls-fixture",
-    "./onvif-auth-injection-design.md",
-    "./onvif-credential-store-integration-design.md",
-    "Credential reference / HTTP Basic auth",
-    "`http_basic` material",
-    "Authorization header",
-    "verify-onvif-auth-injection-design",
-    "verify-onvif-auth-injection-loopback",
-    "./onvif-unsupported-api-guard.md",
-    "수동 ONVIF stream URI 등록",
-    "`rtsp://`, `rtsps://`, `http://`, `https://` live URI",
-    "MediaServer RTSP/WHEP/WebRTC 출력",
-  ]) {
-    assertContains(matrixDoc, term, `matrix missing supported scope term: ${term}`);
-  }
+  const errors = validateOnvifSupportMatrixDocumentation(matrixDoc);
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("protocol support matrix names unsupported ONVIF protocols", () => {
@@ -93,22 +54,20 @@ check("protocol support matrix names unsupported ONVIF protocols", () => {
     "ONVIF Device management",
     "WS-Security UsernameToken",
     "HTTP Digest auth 주입",
-    "ONVIF Profile S/T 전체 conformance 지원",
+    "Profile S/T 전체 conformance",
   ]) {
     assertContains(matrixDoc, term, `matrix missing unsupported scope term: ${term}`);
   }
 });
 
 check("related ONVIF docs link the protocol support matrix", () => {
-  assertContains(liveSupportDoc, "./onvif-protocol-support-matrix.md", "live support doc missing matrix link");
-  assertContains(noDeviceDoc, "./onvif-protocol-support-matrix.md", "no-device doc missing matrix link");
-  assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing matrix command");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-protocol-support-matrix.md"), "live support doc missing matrix link");
+  assert(hasDocumentLink(noDeviceDoc, "onvif-protocol-support-matrix.md"), "no-device doc missing matrix link");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "no-device verification missing matrix command");
-  assertContains(matrixDoc, "실제 ONVIF 카메라로 검증하지 않았고", "matrix doc missing no real camera statement");
-  assertContains(matrixDoc, "공개 인터넷의 임의 ONVIF endpoint도 사용하지 않았습니다", "matrix doc missing public endpoint exclusion");
-  assertContains(matrixDoc, "local simulator fixture 성공", "matrix doc missing simulator/real-device distinction");
-  assertContains(liveSupportDoc, "실제 ONVIF 카메라 smoke를 수행하지 않았고", "live support doc missing no real camera statement");
-  assertContains(noDeviceDoc, "실제 ONVIF 카메라를 사용한 field smoke를 수행하지 않았습니다", "no-device doc missing no real camera statement");
+  for (const doc of [matrixDoc, liveSupportDoc, noDeviceDoc]) {
+    assertContains(doc, "미확인", "ONVIF documentation missing unverified field boundary");
+    assertContains(doc, "fixture", "ONVIF documentation missing fixture boundary");
+  }
 });
 
 check("implementation matches documented probe transport scope", () => {
@@ -131,16 +90,13 @@ check("implementation matches documented probe transport scope", () => {
 });
 
 check("TLS policy doc keeps HTTPS scope explicit", () => {
-  assertContains(tlsDoc, "HTTP SOAP transport와 OpenSSL 기반 HTTPS SOAP fixture transport를 포함", "TLS doc must state HTTPS transport scope");
-  assertContains(tlsDoc, "`https://` endpoint는 OpenSSL 빌드에서 TCP connect", "TLS doc must state HTTPS OpenSSL transport");
-  assertContains(tlsDoc, "OpenSSL이 없는 빌드는 `https transport requires OpenSSL support`로 fail-closed", "TLS doc must keep OpenSSL fallback explicit");
+  const errors = validateOnvifTlsDocumentation(tlsDoc, "policy");
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("credential policy doc keeps auth scope explicit", () => {
-  assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
-  assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential doc must link credential store design");
-  assertContains(credentialDoc, "HTTP Digest 인증 주입", "credential doc must keep Digest auth unsupported");
-  assertContains(credentialDoc, "`credential_ready`와 `http_basic` material", "credential doc must state Basic provider scope");
+  const errors = validateOnvifCredentialDocumentation(credentialDoc, "policy");
+  assert(errors.length === 0, errors.join("; "));
 });
 
 let failures = 0;
@@ -158,6 +114,7 @@ console.log("");
 console.log("== ONVIF protocol support matrix summary ==");
 console.log("- doc: docs/onvif-protocol-support-matrix.md");
 console.log(`- failures: ${failures}`);
+console.log("- scope: static documentation/source contract; actual device and UI not-run");
 if (failures > 0) process.exit(1);
 
 function check(name, fn) {

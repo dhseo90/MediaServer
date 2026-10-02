@@ -2,6 +2,8 @@
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.1.0 S05 Scoped Integrator Search API 구현, 문서, inventory 연결을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -23,7 +25,7 @@ Checks:
   - /client/api/views/{id}/events/search is an integrator-only, PublishedView-scoped event search API
   - the route requires event:read:{viewId} scope and does not expose raw evidence, source URLs, debug material, feature provenance, encoded clip paths, rule/action controls, or internal evidence refs
   - the API reuses the local EventFeatureSearchIndex/Search DSL path without provider calls or vector search
-  - roadmap, stream verification, release records, feature inventory, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to V310-S05 local/API/static evidence and does not imply UI 풀테스트, 30분/120분, cleanup execution, vector search, or release publication
 `);
 }
@@ -32,17 +34,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-scoped-integrator-search-api";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
   routeOwnerSource: readText("src/ingress/ops_event_route_owner.cpp"),
   routeOwnerHeader: readText("include/ingress/ops_event_route_owner.h"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   authWorkflow: readText("scripts/internal/verify_auth_workflow.sh"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -136,47 +137,18 @@ check("scoped search response is redacted and client-safe", () => {
   }
 });
 
-check("docs and roadmap expose V310-S05 scope without overclaim", () => {
-  for (const snippet of [
-    "V310-S05` Scoped Integrator Search API 완료",
-    "| 5 | V310-S05 | P1 | 완료 | Scoped Integrator Search API |",
-    "`/client/api/views/{id}/events/search`",
-    "media-server.integrator.scoped-event-search.v1",
-    "UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아님",
-    "## v3.1.0 S05 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V310-S05");
-  }
-  for (const snippet of [
-    "| V310-S05 | `./server.sh verify-v310-scoped-integrator-search-api` |",
-    "integrator-only PublishedView-scoped event search API",
-    "event:read:{viewId}",
-    "source/raw/debug/provider/feature provenance/encoded clip path",
-    "UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V310-S05");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["CLIENT-026","SAFE-097","OPS-064"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/client/api/views/{id}/events/search","event:read:{viewId}","integrator"],
+    command, script: "verify_v310_scoped_integrator_search_api.mjs", featureIds: ["CLIENT-026","SAFE-097","OPS-064"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V310-S05", () => {
-  for (const snippet of [
-    "V310-S05 Scoped Integrator Search API | `CLIENT-026`, `SAFE-097`, `OPS-064` | `verify-v310-scoped-integrator-search-api`, `verify-auth-routes`",
-    "CLIENT-026 | V310-S05 Scoped Integrator Search API",
-    "SAFE-097 | V310-S05 scoped integrator search redaction boundary",
-    "OPS-064 | V310-S05 Scoped Integrator Search API 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V310-S05");
-  }
-  for (const snippet of [
-    "V310 Scoped Integrator Search API",
-    "`./server.sh verify-v310-scoped-integrator-search-api`",
-    "v310 S05 RED scoped integrator search API gate",
-    "v310 S05 UI 풀테스트",
-    "v310 S05 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V310-S05");
-  }
-});
 
 check("server entrypoint and inventory verifiers include V310-S05 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

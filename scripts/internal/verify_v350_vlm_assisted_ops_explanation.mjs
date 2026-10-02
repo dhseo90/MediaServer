@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 12 VLM-assisted Ops Explanation 구현, UI, 문서, inventory 연결을 검증한다.
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops/api/live-operations/vlm-assisted-explanation summarizes command plan blockers, incident/source relation, and operator review hints
   - VLM assistance is default-off and never performs provider/runtime calls in this gate
   - /ops command workspace renders VLM-assisted explanation without raw prompt, provider response, credential, or client material
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -38,18 +39,17 @@ const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const graphRoute = "/ops/api/live-operations/graph";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -79,7 +79,8 @@ check("Ops server builds default-off VLM-assisted explanation models", () => {
 });
 
 check("VLM-assisted explanation derives blocker, incident/source relation, and review hints without calling VLM", () => {
-  const block = extractBlock(files.server, "struct OpsV350VlmAssistedOpsExplanationItem", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV350VlmAssistedOpsExplanationItem", "std::string OpsV350VlmAssistedOpsExplanationJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV350VlmAssistedOpsExplanationJson(");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV350CommandPlanCandidates",
@@ -188,7 +189,7 @@ check("Ops API exposes the VLM-assisted explanation route as guarded no-store JS
 });
 
 check("/ops command workspace declares VLM-assisted explanation surfaces", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashCommandWorkspaceVlmAssistedExplanation",
     "data-v350-vlm-assisted-explanation",
@@ -269,65 +270,30 @@ check("client/viewer scripts do not expose VLM-assisted explanation operator mat
   }
 });
 
-check("roadmap records v3.5 Step 12 without overclaiming VLM/provider execution", () => {
-  for (const snippet of [
-    "| 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 완료 |",
-    "## v3.5.0 Step 12 개발 기록",
-    route,
-    "OpsV350VlmAssistedOpsExplanationJson",
-    "command plan blocker, incident/source relation, operator review hint",
-    `\`./server.sh ${command}\``,
-    "default-off VLM 보조 설명",
-    "VLM/provider 호출 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 12");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-087","SRC-048","EVT-076","LAB-094","SAFE-146","OPS-113"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/vlm-assisted-explanation"],
+    command, script: "verify_v350_vlm_assisted_ops_explanation.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-048","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-});
 
-check("stream verification exposes v3.5 Step 12 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (12) | \`./server.sh ${command}\` | VLM-assisted Ops Explanation.`,
-    route,
-    "default-off VLM",
-    "command plan blocker",
-    "incident/source relation",
-    "operator review hint",
-    "VLM/provider call 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 12");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 12", () => {
-  for (const snippet of [
-    `v3.5.0 (12) VLM-assisted Ops Explanation | \`UI-087\`, \`SRC-048\`, \`EVT-076\`, \`LAB-094\`, \`SAFE-146\`, \`OPS-113\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-087 | V350 Step 12 VLM-assisted Ops Explanation UI",
-    "SRC-048 | V350 Step 12 source relation explanation context",
-    "EVT-076 | V350 Step 12 incident/source relation explanation context",
-    "LAB-094 | V350 Step 12 default-off VLM ops explanation harness",
-    "SAFE-146 | V350 Step 12 VLM-assisted ops explanation boundary",
-    "OPS-113 | V350 Step 12 VLM-assisted Ops Explanation 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 12");
-  }
-  for (const snippet of [
-    "V350 VLM-assisted Ops Explanation",
-    `\`./server.sh ${command}\``,
-    "v350 Step 12 RED VLM-assisted ops explanation gate",
-    "v350 Step 12 VLM-assisted ops explanation final",
-    "v350 Step 12 VLM/provider execution",
-    "v350 Step 12 UI 풀테스트",
-    "v350 Step 12 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 12");
-  }
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 12 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_vlm_assisted_ops_explanation.mjs", "server.sh script dispatch");
   for (const id of ["UI-087", "SRC-048", "EVT-076", "LAB-094", "SAFE-146", "OPS-113"]) {
-    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+    const expectedCommand = id === "SRC-048" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
   }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");

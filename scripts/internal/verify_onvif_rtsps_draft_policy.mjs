@@ -10,6 +10,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink, validateOnvifRtspsDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -44,56 +45,35 @@ const policyDoc = readText("docs/onvif-rtsps-draft-policy.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
-const uiCode = readText("src/ingress/product_ui_page_scripts.cpp");
+const uiCode = readText("src/ingress/product_ui_ops_sources_script.cpp");
 const probeDraftApiSmoke = readText("scripts/internal/verify_onvif_probe_draft_api.mjs");
 const rtspsProbeFixture = JSON.parse(readText("test/fixtures/onvif_probe_result_rtsps_stub.json"));
 const profileVariants = JSON.parse(readText("test/fixtures/onvif_probe_profile_variants.json"));
 const checks = [];
 
-check("RTSPS policy document pins parser candidate scope", () => {
-  assertContains(policyDoc, "automatic probe candidate", "policy doc missing automatic probe candidate scope");
-  assertContains(policyDoc, "parser/probe candidate", "policy doc missing parser probe candidate scope");
-});
-
-check("RTSPS policy document pins automatic draft scope", () => {
-  assertContains(policyDoc, "automatic import draft", "policy doc missing automatic import draft scope");
-  assertContains(policyDoc, "Automatic import draft API fixture contract", "policy doc missing automatic draft API fixture contract");
-  assertContains(policyDoc, "`rtsps://` source draft를 기존 `kind=rtsp` draft로 생성할 수 있습니다", "policy doc missing kind=rtsp draft rule");
-});
-
-check("RTSPS policy document pins manual registration scope", () => {
-  for (const term of [
-    "manual source registration",
-    "허용",
-    "`/ops/sources` manual ONVIF stream URI registration",
-    "실제 camera 재생 성공은 미확인",
-  ]) {
-    assertContains(policyDoc, term, `policy doc missing term: ${term}`);
-  }
+check("RTSPS policy connects current parser, draft, manual and verification contracts", () => {
+  const errors = validateOnvifRtspsDocumentation(policyDoc);
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("protocol matrix links RTSPS policy", () => {
-  assertContains(matrixDoc, "./onvif-rtsps-draft-policy.md", "protocol matrix missing RTSPS policy link");
+  assert(hasDocumentLink(matrixDoc, "onvif-rtsps-draft-policy.md"), "protocol matrix missing RTSPS policy link");
 });
 
 check("live support doc links RTSPS policy", () => {
-  assertContains(liveSupportDoc, "./onvif-rtsps-draft-policy.md", "live support doc missing RTSPS policy link");
+  assert(hasDocumentLink(liveSupportDoc, "onvif-rtsps-draft-policy.md"), "live support doc missing RTSPS policy link");
 });
 
-check("live support doc lists RTSPS verifier", () => {
-  assertContains(liveSupportDoc, "verify-onvif-rtsps-draft-policy", "live support verification missing RTSPS policy command");
+check("linked RTSPS policy lists verifier", () => {
+  assertContains(policyDoc, "verify-onvif-rtsps-draft-policy", "linked policy missing RTSPS command");
 });
 
-check("live support doc lists RTSPS fixture", () => {
-  assertContains(liveSupportDoc, "test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS probe fixture");
+check("linked RTSPS policy lists fixture", () => {
+  assertContains(policyDoc, "test/fixtures/onvif_probe_result_rtsps_stub.json", "linked policy missing RTSPS probe fixture");
 });
 
-check("live support doc lists RTSPS API smoke", () => {
-  assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS API smoke command");
-});
-
-check("live support doc lists RTSPS profile variant smoke", () => {
-  assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp", "live support doc missing RTSPS profile variant API smoke command");
+check("linked RTSPS policy lists API smoke", () => {
+  assertContains(policyDoc, "verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json", "linked policy missing RTSPS API smoke command");
 });
 
 check("policy doc lists RTSPS profile variant smoke", () => {

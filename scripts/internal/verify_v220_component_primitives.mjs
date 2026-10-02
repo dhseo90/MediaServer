@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.2.0 S04 component primitive helper 경계와 사용 연결을 검증한다.
+// 파일 용도: 현행 UI primitives 계약·구현 연결을 확인한다. CLI 이름은 호환을 위해 유지한다.
 
+import { validateUiComponentDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -19,13 +20,10 @@ if (hasHelpFlag(rawArgs)) {
 Usage:
   ./server.sh verify-v220-component-primitives
 
-Checks:
-  - V220-S04 roadmap row points to the component primitive gate
-  - product_ui_components helper API exists, builds, and is wired in CMake
-  - helper API covers section/card, toolbar, tabs, segmented control, table shell,
-    drawer/details panel, form row, status badge, and empty/loading/error state
-  - static Ops/Auth templates consume the helper API without changing route/API contracts
-  - docs and stream verification expose the S04 command and boundaries
+검사 범위:
+  - 현행 UI 기술 안내와 정확한 명령 연결
+  - 기존 소스·helper·모듈 계약
+  - 정적 결과를 실제 UI/장시간 PASS로 사용하지 않음
 `);
 }
 
@@ -33,24 +31,19 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 
-check("backlog S04 points to component primitive gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 4 \| V220-S04 \| P1 \| (진행|완료) \| Component primitives \|/.test(backlog),
-    "backlog S04 row must be 진행 or 완료");
-  for (const snippet of [
-    "v220-component-primitives.md",
-    "verify-v220-component-primitives",
-    "card, toolbar, tab, segmented control, table, drawer, form row, status badge",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S04 snippet: ${snippet}`);
-  }
+check("현행 UI 안내·정책·명령 연결", () => {
+  const errors = validateUiComponentDocumentation({
+    document: readText("docs/product-shell-component-examples.md"), kind: "primitives",
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("component primitive source files exist and are wired", () => {
   for (const file of [
     "include/ingress/product_ui_components.h",
     "src/ingress/product_ui_components.cpp",
-    "docs/v220-component-primitives.md",
+    "docs/product-shell-component-examples.md",
   ]) {
     assert(fs.existsSync(path.join(rootDir, file)), `missing S04 file: ${file}`);
   }
@@ -99,23 +92,20 @@ check("component primitive implementation emits existing product classes", () =>
 
 check("static product templates consume component primitive helpers", () => {
   const server = readWebRtcHttpServerBundle(readText);
-  for (const snippet of [
-    "#include \"ingress/product_ui_components.h\"",
-    "ProductUiToolbarHtml(",
-    "ProductUiSectionCardHtml(",
-    "ProductUiBadgeRowHtml(",
-    "ProductUiEmptyStateHtml(",
-    "ProductUiFormRowHtml(",
-    "ProductUiStatusBadgeHtml(",
+  assert(server.includes('#include "ingress/product_ui_components.h"'), "missing component helper include");
+  // renderer 이동 뒤에도 실제 소비 파일을 확인한다. 문서·다른 helper의 동일 문자열로 대체하지 않는다.
+  for (const [file, snippets] of [
+    ["src/ingress/product_ui_server_pages.cpp", ["ProductUiToolbarHtml(", "ProductUiSectionCardHtml(", "ProductUiBadgeRowHtml(", "ProductUiEmptyStateHtml("]],
+    ["src/ingress/product_ui_auth_pages.cpp", ["ProductUiFormRowHtml(", "ProductUiStatusBadgeHtml("]],
   ]) {
-    assert(server.includes(snippet), `webrtc_http_server.cpp missing component helper usage: ${snippet}`);
+    const source = readText(file);
+    for (const snippet of snippets) assert(source.includes(snippet), `${file} missing component helper usage: ${snippet}`);
   }
 });
 
-check("S04 document records scope, primitives, and non-goals", () => {
-  const doc = readText("docs/v220-component-primitives.md");
+check("component guide documents public helper APIs", () => {
+  const doc = readText("docs/product-shell-component-examples.md");
   for (const snippet of [
-    "V220-S04 Component primitives",
     "ProductUiSectionCardHtml",
     "ProductUiToolbarHtml",
     "ProductUiNavTabsHtml",
@@ -125,23 +115,11 @@ check("S04 document records scope, primitives, and non-goals", () => {
     "ProductUiFormRowHtml",
     "ProductUiStatusBadgeHtml",
     "ProductUiEmptyStateHtml",
-    "S05~S08 route redesign",
-    "UI 풀테스트 PASS는 S04 완료 근거가 아닙니다.",
-    "Event POST/WebRTC/SSE/WS metadata schema",
-    "RTSP/WebRTC media path",
   ]) {
     assert(doc.includes(snippet), `S04 doc missing: ${snippet}`);
   }
 });
 
-check("stream verification and server expose the S04 command", () => {
-  const stream = readText("docs/stream-verification.md");
-  const server = readText("server.sh");
-  for (const text of [stream, server]) {
-    assert(text.includes("verify-v220-component-primitives"), "missing verify-v220-component-primitives reference");
-  }
-  assert(server.includes("verify_v220_component_primitives.mjs"), "server.sh missing S04 script dispatch");
-});
 
 let pass = 0;
 let fail = 0;

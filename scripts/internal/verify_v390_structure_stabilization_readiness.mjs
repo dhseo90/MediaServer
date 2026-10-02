@@ -2,6 +2,7 @@
 // 파일 용도: v3.9.0 (17) Development 17 구조 안정화 실행 branch, 경계, 의존성, contract, slice gate를 검증한다.
 
 import fs from "node:fs";
+import { classifyModule, fileDependencyAllowed, validateFileDependencyPolicy } from "./structure_dependency_policy_lib.mjs";
 import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
@@ -9,6 +10,8 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -64,6 +67,11 @@ const actualGraphFixture = JSON.parse(read(fixture.actualGraphEvidence.path));
 const execution = JSON.parse(read(executionPath));
 const currentGraph = JSON.parse(read(execution.currentGraph.path));
 const completionGraph = JSON.parse(read(execution.completionGraph.path));
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: read, command, script: targetScript, featureIds: ["SAFE-215","OPS-182"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("machine-readable readiness contract is complete", () => {
   const server = read("server.sh");
@@ -152,20 +160,20 @@ check("current REVIEW4-64 source and CMake graph match the completed execution l
   assert(execution.currentGraph.schema === currentGraph.schema &&
     execution.currentGraph.sha256 === sha256File(path.join(rootDir, execution.currentGraph.path)),
   "current graph path/schema/hash binding mismatch");
-  assert(currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
-    currentGraph.moduleClassifiers?.length === 10 && currentGraph.cmake?.targets?.length === 2,
+  assert(currentGraph.expectedProductionFiles === execution.currentGraph.metrics?.productionFiles &&
+    currentGraph.expectedCppFiles === execution.currentGraph.metrics?.cppSources &&
+    currentGraph.moduleClassifiers?.length === execution.currentGraph.metrics?.moduleOwners &&
+    currentGraph.cmake?.targets?.length === execution.currentGraph.metrics?.cmakeTargets,
   "current graph inventory mismatch");
-  assert(execution.currentGraph.metrics?.productionFiles === 215 && execution.currentGraph.metrics?.targetViolationDirections === 0 &&
-    execution.currentGraph.metrics?.cppSources === 103 &&
-    execution.currentGraph.metrics?.moduleOwners === 10 &&
-    execution.currentGraph.metrics?.cmakeTargets === 2 &&
+  // 실제 소스/파일별 정책/수치는 위 graph 자식 검사가 독립 계산한다. 과거 완료 수치와 혼합하지 않는다.
+  assert(execution.currentGraph.metrics?.targetViolationDirections === 0 &&
     execution.currentGraph.metrics?.largestSccOwners === 0 &&
-    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines <= execution.finalTargets.maxMixedOwnerFileLines &&
     execution.currentGraph.metrics?.internalTargetSeparation === true,
   "completed REVIEW4-64 " +
     "graph metrics mismatch");
   const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
-  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10346,
+  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === read("src/ingress/product_ui_page_scripts.cpp").split(/\r?\n/).length - 1,
     "current source graph product UI line count drift");
   assert(execution.completionGraph?.sha256 ===
       "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
@@ -254,9 +262,6 @@ check("historical REVIEW4-51 decision/readiness remain frozen and separate from 
     execution.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true,
   "REVIEW4-65 generated acceptance artifacts are not separated from REVIEW4-64 completion");
   for (const [label, text, snippets] of [
-    ["backlog", read("docs/development-backlog.md"), ["V390-REVIEW4-51", "current `v3.9.0` branch", "64 뒤 65 acceptance"]],
-    ["records", read("docs/release-test-records.md"), ["V390-REVIEW4-51", "base `027678ba`", "64 후 65 acceptance"]],
-    ["evidence", read("docs/release-evidence-index.md"), ["V390-REVIEW4-51", "approved-actual-refactor-after-review4-50-63", "V390-REVIEW4-65"]],
     ["stream", read("docs/stream-verification.md"), ["V390-REVIEW4-51", "approved-actual-refactor-after-review4-50-63", "V390-REVIEW4-65"]],
   ]) {
     for (const snippet of snippets) {
@@ -299,16 +304,10 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
 });
 
 check("roadmap and evidence preserve historical readiness and expose current REVIEW4-64 completion", () => {
-  const backlog = read("docs/development-backlog.md");
   const inventory = read("docs/project-feature-test-inventory.md");
-  const records = read("docs/release-test-records.md");
-  const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["structure stabilization implementation readiness", "gate 준비", "V390-REVIEW4-64 current continuation Slice 32", "REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다"]],
     ["inventory", inventory, ["SAFE-215", "OPS-182", command]],
-    ["records", records, ["V390 Structure Stabilization Readiness", "Development 17 structure readiness final", "V390-REVIEW4-64 continuation Slice 32 WebRTC media application final", "65 독립 acceptance PASS는 아닙니다"]],
-    ["evidence", evidence, ["Development 17 structure stabilization readiness", "SAFE-215", "OPS-182"]],
     ["stream", stream, ["Development 17", command, "approved-scheduled-after-review4-50-63", "not-executed"]],
   ]) {
     for (const snippet of snippets) assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);
@@ -563,13 +562,6 @@ function validateActualGraph(graph, graphFixture, readinessFixture) {
   return errors;
 }
 
-function classifyModule(file, classifiers) {
-  const match = classifiers.find(classifier =>
-    (classifier.exactFiles || []).includes(file) ||
-    (classifier.prefixes || []).some(prefix => file.startsWith(prefix)));
-  assert(match, `unclassified production file: ${file}`);
-  return match.id;
-}
 
 function sha256Text(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");

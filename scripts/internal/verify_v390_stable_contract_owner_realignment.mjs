@@ -4,6 +4,7 @@
 
 import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -64,9 +65,17 @@ const immutableContracts = new Map([
   ["include/ingress/product_ui_principal_view.h", "11dc3085469c3f7a42eced329a1df40d3ee450fd76f585e5bca34c2f8f792902"],
 ]);
 
-check("stable contract bytes stay unchanged", () => {
+// 현행 후속 기준은 공개된 v4.1.0 소스의 고정 바이트다.
+// 기준 커밋은 16f3df711bf02035da22aa1fc2a8720d8162871d이며 이 작업 트리에서 생성하지 않는다.
+// 위의 원래 Slice 8 기대값은 과거 자료로 유지한다.
+const releasedSuccessors = new Map([
+  ["include/analysis/analysis_types.h", "ff41f7a7142a93c800f8e2eaecf18f028bcfde5a6cd003dc8bcfd5db9693c1c1"],
+  ["include/media_types.h", "4c7ed4b29cd3385f109d55ed3bea47e1792f38198d11896840b3b0c8b8f9c54a"],
+]);
+
+check("stable contract bytes match the current released baseline", () => {
   for (const [file, expected] of immutableContracts) {
-    assert(sha256(file) === expected, `contract bytes drift: ${file}`);
+    assert(sha256(file) === (releasedSuccessors.get(file) || expected), `contract bytes drift: ${file}`);
   }
 });
 
@@ -95,26 +104,11 @@ check("stable owner retains the presentation leaf and approved public successors
 
 check("analysis media and RTSP contracts have their target owners", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const analysis = graph.moduleClassifiers.find(item => item.id === "analysis-services");
-  const coreUtilities = graph.moduleClassifiers.find(item => item.id === "core-utilities");
-  const coreMedia = graph.moduleClassifiers.find(item => item.id === "core-media-interfaces");
-  for (const file of [
-    "include/analysis/analysis_types.h",
-    "include/analysis/tracked_object_metadata.h",
-    "src/analysis/tracked_object_metadata.cpp",
-    "include/analysis/va_runtime_metadata.h",
-  ]) assert(!graph.moduleClassifiers.some(item => item.id !== "analysis-services" && item.exactFiles.includes(file)),
-    `analysis contract has a foreign exact owner: ${file}`);
-  assert(analysis.expectedFileCount === 73 && analysis.expectedCppCount === 37,
-    "analysis owner counts drift");
-  assert(coreUtilities.exactFiles.includes("include/media_types.h") &&
-    [[15, 6], [13, 5]].some(([files, cpp]) =>
-      coreUtilities.expectedFileCount === files && coreUtilities.expectedCppCount === cpp),
-  "media primitive is not core-utility owned");
-  for (const file of ["include/ingress/rtsp_request_context.h", "src/ingress/rtsp_request_context.cpp"])
-    assert(coreMedia.exactFiles.includes(file), `RTSP request contract owner drift: ${file}`);
-  assert(coreMedia.expectedFileCount === 30 && coreMedia.expectedCppCount === 13,
-    "core-media owner counts drift");
+  assertBoundaryOwners(graph, [
+    ...['include/analysis/analysis_types.h','include/analysis/tracked_object_metadata.h','src/analysis/tracked_object_metadata.cpp','include/analysis/va_runtime_metadata.h'].map(file => [file, 'analysis-services']),
+    ['include/media_types.h','core-utilities'],
+    ...['include/ingress/rtsp_request_context.h','src/ingress/rtsp_request_context.cpp'].map(file => [file,'core-media-interfaces']),
+  ]);
 });
 
 check("analysis decoder consumes media packets through the core-media facade", () => {
@@ -129,60 +123,8 @@ check("analysis decoder consumes media packets through the core-media facade", (
 
 check("current graph records only the planned four-direction reduction", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  const expectedDirections = [
-    "analysis-services -> core-media-interfaces",
-    "analysis-services -> core-utilities",
-    "analysis-services -> domain-and-registry-owners",
-    "application-service-interfaces -> analysis-services",
-    "application-service-interfaces -> core-utilities",
-    "application-service-interfaces -> domain-and-registry-owners",
-    "application-service-interfaces -> ops-route-groups",
-    "composition-root -> analysis-services",
-    "composition-root -> core-media-interfaces",
-    "composition-root -> core-utilities",
-    "composition-root -> transport-and-auth-adapter",
-    "core-media-interfaces -> core-utilities",
-    "core-media-interfaces -> domain-and-registry-owners",
-    "domain-and-registry-owners -> core-utilities",
-    "product-ui-workspaces -> stable-contract-dtos",
-    "transport-and-auth-adapter -> analysis-services",
-    "transport-and-auth-adapter -> application-service-interfaces",
-    "transport-and-auth-adapter -> core-media-interfaces",
-    "transport-and-auth-adapter -> core-utilities",
-    "transport-and-auth-adapter -> domain-and-registry-owners",
-    "transport-and-auth-adapter -> ops-route-groups",
-    "transport-and-auth-adapter -> product-ui-workspaces",
-  ];
-  const slice9Directions = [
-    "analysis-services -> core-media-interfaces",
-    "analysis-services -> core-utilities",
-    "analysis-services -> domain-and-registry-owners",
-    "application-service-interfaces -> analysis-services",
-    "application-service-interfaces -> domain-and-registry-owners",
-    "composition-root -> analysis-services",
-    "composition-root -> core-media-interfaces",
-    "composition-root -> core-utilities",
-    "composition-root -> transport-and-auth-adapter",
-    "core-media-interfaces -> core-utilities",
-    "core-media-interfaces -> domain-and-registry-owners",
-    "domain-and-registry-owners -> core-utilities",
-    "ops-route-groups -> application-service-interfaces",
-    "product-ui-workspaces -> stable-contract-dtos",
-    "transport-and-auth-adapter -> analysis-services",
-    "transport-and-auth-adapter -> application-service-interfaces",
-    "transport-and-auth-adapter -> core-media-interfaces",
-    "transport-and-auth-adapter -> core-utilities",
-    "transport-and-auth-adapter -> domain-and-registry-owners",
-    "transport-and-auth-adapter -> stable-contract-dtos",
-  ];
-  const directions = graph.observedModuleEdges.map(item => item.direction);
-  assert(graph.expectedProductionFiles === 163 && graph.expectedCppFiles === 80 &&
-    [[22, 10], [20, 6]].some(([edges, debt]) =>
-      graph.observedModuleEdges.length === edges && violations.length === debt) &&
-    graph.stronglyConnectedComponents.length === 0 &&
-    [JSON.stringify(expectedDirections), JSON.stringify(slice9Directions)].includes(JSON.stringify(directions)),
-  "stable owner graph metrics drift");
+  assertCurrentSourceGraph(sourceRoot, graph);
+
   for (const direction of [
     "analysis-services -> stable-contract-dtos",
     "core-media-interfaces -> stable-contract-dtos",
@@ -200,6 +142,7 @@ const oracleInputs = [
 ];
 
 function copyInputs(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   for (const file of oracleInputs) {
     const target = path.join(targetRoot, file);
     fs.mkdirSync(path.dirname(target), {recursive:true});
@@ -241,7 +184,7 @@ if (!skipMutations) {
       fs.rmSync(pristine, {recursive:true, force:true});
     }
     rejectMutation("contract-bytes", "include/media_types.h", text => `${text}\n// drift\n`,
-      "stable contract bytes stay unchanged");
+      "stable contract bytes match the current released baseline");
     rejectMutation("decoder-bypass", "include/analysis/raw_video_decoder.h",
       text => text.replace('#include "core/media_packet_contract.h"', '#include "media_types.h"'),
       "analysis decoder consumes media packets through the core-media facade");
@@ -253,10 +196,10 @@ if (!skipMutations) {
         '"include/analysis/analysis_types.h",\n        "include/ingress/product_ui_principal_view.h"'),
       "stable owner retains the presentation leaf and approved public successors");
     rejectMutation("graph-count", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 163', '"expectedProductionFiles": 162'),
+      text => { const value = JSON.parse(text); value.expectedProductionFiles += 1; return JSON.stringify(value); },
       "current graph records only the planned four-direction reduction");
     rejectMutation("direction-swap", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"direction": "analysis-services -> core-utilities"',
+      text => text.replace('"direction": "analysis-services -> core-media-interfaces"',
         '"direction": "analysis-services -> product-ui-workspaces"'),
       "current graph records only the planned four-direction reduction");
   });

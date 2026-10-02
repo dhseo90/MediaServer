@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -37,6 +39,11 @@ const sourceRoute = "/ops/api/vlm/rule-suggestion-drafts";
 const featureIds = ["UI-110", "RULE-111", "SAFE-205", "OPS-172"];
 const files = loadFiles();
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["UI-110","RULE-111","SAFE-205","OPS-172"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("Ops server exposes the v3.9 VLM rule suggestion draft bridge", () => {
   for (const snippet of [
@@ -195,15 +202,6 @@ check("Ops rules UI renders the bridge decision and provenance", () => {
 
 check("roadmap, stream verification, inventory, and release records map v3.9 Step 13", () => {
   for (const snippet of [
-    "| 13 | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | 완료 |",
-    "V390-CAND-003",
-    route,
-    "OpsV390VlmRuleSuggestionDraftBridgeJson",
-    `\`./server.sh ${command}\``,
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.9 Step 13");
-  }
-  for (const snippet of [
     `| v3.9.0 (13) | \`./server.sh ${command}\` | VLM rule suggestion draft bridge.`,
     "review-to-draft bridge",
     "manual-save-only",
@@ -218,16 +216,6 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "OPS-172 | V390 Step 13 VLM draft bridge decision gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 13");
-  }
-  for (const snippet of [
-    "V390 VLM Rule Suggestion Draft Bridge",
-    `\`./server.sh ${command}\``,
-    "v390 Step 13 RED VLM rule suggestion draft bridge gate",
-    "v390 Step 13 VLM rule suggestion draft bridge final",
-    "v390 Step 13 UI 풀테스트",
-    "v390 Step 13 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.9 Step 13");
   }
 });
 
@@ -252,13 +240,13 @@ function loadFiles() {
     server: readWebRtcHttpServerBundle(readText),
     opsRulesPage: readText("src/ingress/product_ui_server_pages.cpp"),
     opsRulesScript: readText("src/ingress/product_ui_page_scripts.cpp"),
-    backlog: readText("docs/development-backlog.md"),
+
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-    releaseRecords: readText("docs/release-test-records.md"),
+
     serverSh: readText("server.sh"),
   };
 }

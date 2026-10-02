@@ -39,12 +39,7 @@ const files = fs.readdirSync(workflowDir)
   .map((name) => path.join(workflowDir, name))
   .sort();
 const failures = [];
-const policyDocs = [
-  readText("docs/release-policy.md"),
-  readText("docs/public-repo-final-review.md"),
-  readText("docs/stream-verification.md"),
-  readText(".github/PULL_REQUEST_TEMPLATE.md"),
-].join("\n");
+const policyDocs = readText("docs/release-policy.md");
 
 for (const file of files) {
   const relative = toRelative(file);
@@ -131,11 +126,9 @@ function readText(relativePath) {
 
 function verifyAnnotationPolicyDocs() {
   const required = [
-    "GitHub Actions warning annotation gate",
     "warning/failure annotation",
-    "success check-run",
-    "./server.sh verify-actions-security --annotations-json <annotations.json>",
-    "PASS evidence로 대체하지 않습니다",
+    "verify-actions-security",
+    "--annotations-json",
   ];
   for (const phrase of required) {
     if (!policyDocs.includes(phrase)) {
@@ -146,11 +139,10 @@ function verifyAnnotationPolicyDocs() {
 
 function verifyNode24PolicyDocs() {
   const required = [
-    "GitHub Actions Node 24 baseline",
     "actions/checkout@v5",
     "actions/upload-artifact@v6",
     "Node.js 24",
-    "minimum Actions Runner version `2.327.1`",
+    "2.327.1",
     ".github/dependabot.yml",
   ];
   for (const phrase of required) {

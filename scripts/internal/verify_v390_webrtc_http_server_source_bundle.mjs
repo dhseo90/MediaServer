@@ -3,6 +3,7 @@
 
 import crypto from "node:crypto";
 import fs from "node:fs";
+import {assertCurrentSourceGraph, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -47,12 +48,18 @@ const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_gra
 const completionSourceCommit = "b9a45740e60f087cff6ff6d8358994855db8651f";
 const currentSourceBaselineCommit = "72c74f4f71bcb3e212082139077aaf8ed3d478fd";
 const completionGraphSha256 = "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
-const currentGraphSha256 = "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2";
 const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
 const currentOwnerRebindings = new Map([
+  ["scripts/internal/verify_ops_rule_validation_matrix.mjs", {
+    removedBundleReads: 1,
+    owner: "src/ingress/product_ui_server_pages.cpp",
+    tokens: ['data-testid="ops-rule-scenario-review-loop"',
+      'data-review-loop="expected-event-type-conflict-missing-reference-preset-eventrecord-coverage"',
+      'id="opsRulesReviewEventRecordLink"', 'data-event-record-coverage-link="/ops/events"'],
+  }],
   ["scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs", {
     removedBundleReads: 1,
     owner: "src/ingress/product_ui_server_pages.cpp",
@@ -426,6 +433,8 @@ check("completion and current bundles bind only their matching structure graphs"
   const currentGraphText = read(currentGraphPath);
   const graph = JSON.parse(completionGraphText);
   const currentGraph = JSON.parse(currentGraphText);
+  assertCurrentSourceGraph(sourceRoot, currentGraph);
+  const currentGraphSha256 = JSON.parse(read('test/fixtures/v390_structure_stabilization_execution.json')).currentGraph.sha256;
   const appCore = graph.observedModuleEdges.find(item =>
     item.direction === "application-service-interfaces -> core-media-interfaces");
   const transportCore = graph.observedModuleEdges.filter(item =>
@@ -443,7 +452,6 @@ check("completion and current bundles bind only their matching structure graphs"
     appCore?.witnessCount === 4 && appCore.allowedByTarget === true &&
     transportCore.length === 0 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
     currentGraph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
     currentGraph.stronglyConnectedComponents.length === 0,
   "source bundle completion/current graph boundary drift");
@@ -463,6 +471,7 @@ check("current snapshot generator preserves completion and historical evidence",
 });
 
 function copyInputs(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   const reboundOwners = [...currentOwnerRebindings.values()].flatMap(item =>
     (item.owners || [item]).map(binding => binding.owner));
   for (const file of [...baselineFiles, ...additionalResolverConsumers.keys(), helperPath, ...sourcePaths,
@@ -545,7 +554,7 @@ if (!skipMutations) {
       text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
       "completion and current bundles bind only their matching structure graphs");
     rejectMutation("current-graph", currentGraphPath,
-      text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
+      text => { const value = JSON.parse(text); value.expectedProductionFiles += 1; return JSON.stringify(value); },
       "completion and current bundles bind only their matching structure graphs");
     rejectMutation("completion-current-exchange", snapshotPath, text => {
       const value = JSON.parse(text);

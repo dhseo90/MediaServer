@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation, hasDocumentFieldValue, hasDocumentLink } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -146,32 +147,24 @@ check("required companion verifier list is explicit", () => {
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-queue-backpressure-stability.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/README.md"),
-  ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V210-S04",
-    "media-server.vlm-queue-backpressure-fixtures.v1",
-    "verify-vlm-queue-backpressure-stability",
-    "metadata fanout",
-    "Event POST dispatch",
-    "timeout-no-media-path-failure",
-    "30분 soak",
-  ]) {
-    assert(docs.includes(snippet), `docs missing S04 snippet: ${snippet}`);
-  }
+  const featureIds = ["LAB-058", "SAFE-032", "SAFE-036", "SAFE-056"];
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-queue-backpressure-stability.md"),
+    identifiers: ["media-server.vlm-queue-backpressure-fixtures.v1", "media-server.vlm-queue-backpressure-stability-report.v1",
+      "verify-analysis-state", "metadataFanoutBlocked", "eventPostDispatchBlocked", "timeout-no-media-path-failure"],
+    command: "verify-vlm-queue-backpressure-stability", script: "verify_vlm_queue_backpressure_stability.mjs",
+    featureIds, inventory: readText("docs/project-feature-test-inventory.md"), implementation: manifest,
+    verification: readText("docs/stream-verification.md"), server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
   assert(serverSh.includes("verify-vlm-queue-backpressure-stability"), "server.sh missing S04 command");
   assert(serverSh.includes("verify_vlm_queue_backpressure_stability.mjs"), "server.sh missing S04 script dispatch");
   assert(scriptInventory.includes("verify_vlm_queue_backpressure_stability.mjs"), "script inventory missing S04 verifier");
-  for (const id of ["LAB-058", "SAFE-036"]) {
+  for (const id of featureIds) {
     assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-queue-backpressure-stability",
       `${id} manifest verifier command drift`);
   }
@@ -181,20 +174,11 @@ check("docs, inventory, server command, and script inventory are wired", () => {
 
 check("S04 verifier scope does not claim UI, provider, or longrun PASS", () => {
   const doc = readText("docs/vlm-queue-backpressure-stability.md");
-  for (const phrase of [
-    "UI 풀테스트 PASS입니다",
-    "30분 안정화 PASS입니다",
-    "120분 장시간 PASS입니다",
-    "cloud provider field smoke PASS입니다",
-  ]) {
-    assert(!doc.includes(phrase), `doc overclaims: ${phrase}`);
+  for (const field of ["runtimeVlmCallPerformed", "sidecarStored", "viewerClientExposureAdded"]) {
+    assert(hasDocumentFieldValue(doc, field, "false"), `fixture boundary missing: ${field}=false`);
   }
-  for (const phrase of [
-    "실제 VLM runtime/provider 호출은 수행하지 않습니다",
-    "30분 soak는 runtime path나 queue/backpressure 제품 경로 변경이 있을 때만 실행합니다",
-    "브라우저 UI 직접 확인 evidence가 아닙니다",
-  ]) {
-    assert(doc.includes(phrase), `doc missing non-substitute wording: ${phrase}`);
+  for (const policy of ["stream-verification.md", "manual-ui-fulltest.md"]) {
+    assert(hasDocumentLink(doc, policy), `verification policy link missing: ${policy}`);
   }
 });
 
@@ -217,6 +201,9 @@ assertVlmQueueBackpressureArtifact(report);
 
 console.log("");
 console.log("== VLM queue/backpressure stability summary ==");
+console.log("- scope: fixture-and-compiled-analysis-state");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- schema: ${report.schema}`);
 console.log(`- cases: ${report.summary.cases}`);
 console.log(`- nonblockingCases: ${report.summary.nonblockingCases}`);

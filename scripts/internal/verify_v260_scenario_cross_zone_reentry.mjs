@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증한다.
 
@@ -19,24 +20,30 @@ const server = readWebRtcHttpServerBundle(readText);
 const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const videoDoc = readText("docs/video-analysis.md");
 const uiGuide = readText("docs/ui-guide.md");
 const configRef = readText("docs/config-reference.md");
 const streamVerification = readText("docs/stream-verification.md");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
-check("roadmap records V260-S05 scenario extension boundary", () => {
-  const hasCurrentRoadmapRow = /\| 5 \| V260-S05 \| P2 \| (진행|완료) \| Scenario extension \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V260-S05 | 완료 | ScenarioEngine cross-zone re-entry 후보 |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V260-S05 row must be present in current or archived roadmap format");
-  for (const snippet of [
-    "ScenarioEngine cross-zone re-entry",
-    "A→B",
-    "verify-v260-scenario-cross-zone-reentry",
-  ]) {
-    assertIncludes(backlog, snippet, "backlog S05 boundary");
+const definitionIds = ["UI-049","RULE-103","EVT-049","LAB-073","SAFE-056"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: videoDoc, identifiers: ["configured-zones"],
+    command: "verify-v260-scenario-cross-zone-reentry", script: "verify_v260_scenario_cross_zone_reentry.mjs",
+    featureIds: ["UI-049","EVT-049","LAB-073"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["RULE-103","verify-ops-rules-roundtrip"],["SAFE-056","verify-vlm-queue-backpressure-stability"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -122,22 +129,13 @@ check("docs and inventory track S05 without claiming full UI or longrun evidence
   for (const snippet of [
     "configured-zones",
     "A→B",
-    "Event POST payload schema, WebRTC/SSE/WS metadata schema",
+    "Event POST", "WebRTC", "SSE", "WS",
   ]) {
     assertIncludes(videoDoc, snippet, "video analysis S05 docs");
     assertIncludes(uiGuide, snippet, "UI guide S05 docs");
   }
-  assertIncludes(configRef, "A→B cross-zone 재진입 후보", "config reference S05 docs");
-  for (const snippet of [
-    "| V260-S05 Scenario extension | `UI-049`, `RULE-103`, `EVT-049`, `LAB-073`, `SAFE-056` | `verify-v260-scenario-cross-zone-reentry` |",
-    "| UI-049 | `/ops/rules` ReEntry cross-zone review control |",
-    "| RULE-103 | re-entry cross-zone A→B 후보 |",
-    "| EVT-049 | ScenarioEngine cross-zone re-entry candidate |",
-    "| LAB-073 | V260-S05 cross-zone re-entry replay/static guard |",
-    "| SAFE-056 | V260-S05 scenario schema/media boundary |",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S05 row");
-  }
+  assertIncludes(configRef, "reEntryMode=configured-zones", "config reference scenario mode");
+  assertIncludes(configRef, "reEntryZoneIds", "config reference destination zones");
   assertIncludes(streamVerification, "verify-v260-scenario-cross-zone-reentry", "stream verification S05 command");
   assertIncludes(serverSh, "verify-v260-scenario-cross-zone-reentry", "server.sh S05 command");
   assertIncludes(serverSh, "verify_v260_scenario_cross_zone_reentry.mjs", "server.sh S05 script target");
@@ -161,7 +159,7 @@ check("S05 keeps event type, external schema, media path, and client exposure si
       !server.includes(forbidden) &&
       !pageScripts.includes(forbidden) &&
       !inventory.includes(forbidden) &&
-      !backlog.includes(forbidden),
+      !currentDefinitions.includes(forbidden),
     `forbidden S05 snippet present: ${forbidden}`);
   }
 });
@@ -174,6 +172,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.6.0 S05 scenario cross-zone re-entry 통과 ==");
 console.log("[summary] analysis_state=required va_replay=required ui_rule_marker=present schema_media_boundary=unchanged");
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.7.0 S01 Incident Triage Board view model/UI와 비범위 경계를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -15,26 +16,30 @@ const triageBoardViewBlock = extractCppFunctionBlock(server, "std::string OpsInc
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
-const roadmapEvidence = [backlog, inventory, streamVerification].join("\n");
 
-check("roadmap records V270-S01 as active/completed Incident Triage Board work", () => {
-  const hasCurrentRoadmapRow = /\| 1 \| V270-S01 \| P0 \| (진행|완료) \| Incident Triage Board \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V270-S01 | 완료 | Incident Triage Board |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V270-S01 row must be present in current or archived roadmap format");
-  for (const snippet of [
-    "media-server.ops.incident-triage-board.v1",
-    "lane/filter/sort",
-    "viewer/client 비노출",
-    "verify-v270-incident-triage-board",
-  ]) {
-    assertIncludes(roadmapEvidence, snippet, "V270-S01 roadmap evidence");
+const definitionIds = ["UI-050","EVT-050","LAB-074","SAFE-058"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.incident-triage-board.v1"],
+    command: "verify-v270-incident-triage-board", script: "verify_v270_incident_triage_board.mjs",
+    featureIds: ["UI-050","EVT-050","LAB-074"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-058","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -121,16 +126,6 @@ check("smoke, inventory, coverage, and command catalog track S01", () => {
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V270-S01 Incident Triage Board | `UI-050`, `EVT-050`, `LAB-074`, `SAFE-058` | `verify-v270-incident-triage-board` |",
-    "| UI-050 | `/ops/events` Incident Triage Board |",
-    "| EVT-050 | Ops incident triage board view model |",
-    "| LAB-074 | V270-S01 incident triage board static guard |",
-    "| SAFE-058 | V270-S01 incident triage board boundary |",
-    "verify-v270-incident-triage-board",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S01 row");
-  }
   for (const id of ["UI-050", "EVT-050", "LAB-074"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-incident-triage-board", `${id} manifest verifier command drift`);
   }
@@ -154,7 +149,7 @@ check("S01 keeps forbidden client/runtime/schema/media side effects absent", () 
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S01 snippet present: ${forbidden}`);
   }
 });
@@ -167,6 +162,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.7.0 S01 incident triage board 통과 ==");
 
 function readText(filePath) {

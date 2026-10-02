@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -87,40 +88,44 @@ check("generator output is byte-stable across repeated runs and supports filtere
   const tmpDir = fs.mkdtempSync(path.join(osTmp(), "media_server_vlm_explain_"));
   const jsonOut = path.join(tmpDir, "report.json");
   const mdOut = path.join(tmpDir, "report.md");
-  const filtered = runGenerator(["--case", "line-crossing-person-ko", "--json-output", jsonOut, "--report", mdOut]);
-  assert(filtered.summary.cases === 1, "case filter should emit one case");
-  assert(fs.existsSync(jsonOut), "json report not written");
-  assert(fs.existsSync(mdOut), "markdown report not written");
-  const markdown = fs.readFileSync(mdOut, "utf8");
-  assert(markdown.includes("VLM Event Explanation Report"), "markdown report title missing");
-  assert(markdown.includes("runtimeVlmCallPerformed: false"), "markdown report missing invariant");
+  const failures = [];
+  try {
+    const filtered = runGenerator(["--case", "line-crossing-person-ko", "--json-output", jsonOut, "--report", mdOut]);
+    assert(filtered.summary.cases === 1, "case filter should emit one case");
+    assert(fs.existsSync(jsonOut), "json report not written");
+    assert(fs.existsSync(mdOut), "markdown report not written");
+    const markdown = fs.readFileSync(mdOut, "utf8");
+    assert(markdown.includes("VLM Event Explanation Report"), "markdown report title missing");
+    assert(markdown.includes("runtimeVlmCallPerformed: false"), "markdown report missing invariant");
+  } catch (error) {
+    failures.push(error.message || String(error));
+  } finally {
+    // 이 검사에서 만든 두 파일만 정리한다. 최초 실패와 정리 실패를 모두 남긴다.
+    for (const file of [jsonOut, mdOut]) {
+      try { if (fs.existsSync(file)) fs.unlinkSync(file); }
+      catch (error) { failures.push(`fixture report cleanup: ${error.code || "unknown"}`); }
+    }
+    try { fs.rmdirSync(tmpDir); }
+    catch (error) { failures.push(`fixture directory cleanup: ${error.code || "unknown"}`); }
+  }
+  assert(failures.length === 0, failures.join("; "));
 });
 
 check("docs, inventory, stream verification, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-event-explanation-hints.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V200-S09",
-    "media-server.vlm-event-explanation-report.v1",
-    "media-server.vlm-event-explanation.v1",
-    "generate-vlm-event-explanation",
-    "verify-vlm-event-explanation-hints",
-    "falsePositiveHints",
-    "operatorReviewQuestions",
-    "JSON stability",
-    "LAB-041",
-  ]) {
-    assert(docs.includes(snippet), `docs/inventory missing snippet: ${snippet}`);
-  }
+  const featureIds = ["EVT-028", "EVT-031", "LAB-041"];
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-event-explanation-hints.md"),
+    identifiers: ["media-server.vlm-event-explanation-report.v1", "media-server.vlm-event-explanation.v1",
+      "generate-vlm-event-explanation", "falsePositiveHints", "operatorReviewQuestions", "jsonStability"],
+    command: "verify-vlm-event-explanation-hints", script: "verify_vlm_event_explanation_hints.mjs",
+    featureIds, inventory: readText("docs/project-feature-test-inventory.md"), implementation: manifest,
+    verification: readText("docs/stream-verification.md"), server,
+  });
+  assert(errors.length === 0, errors.join("; "));
   for (const snippet of [
     "generate-vlm-event-explanation",
     "generate_vlm_event_explanation.mjs",
@@ -131,7 +136,7 @@ check("docs, inventory, stream verification, server command, and script inventor
   }
   assert(scriptInventory.includes("generate_vlm_event_explanation.mjs"), "script inventory missing S09 generator");
   assert(scriptInventory.includes("verify_vlm_event_explanation_hints.mjs"), "script inventory missing S09 verifier");
-  for (const id of ["EVT-040", "LAB-033", "LAB-041"]) {
+  for (const id of featureIds) {
     assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-event-explanation-hints",
       `${id} manifest verifier command drift`);
   }
@@ -184,6 +189,9 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM event explanation summary ==");
+console.log("- scope: fixture-generation-only");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

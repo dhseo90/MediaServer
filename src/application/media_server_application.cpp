@@ -407,7 +407,8 @@ int RunMediaServerApplication(int argc, char** argv) {
         config,
         ingress::SourceViewApplicationService::Instance(),
         recording_sessions,
-        recording_retention);
+        recording_retention,
+        config.stream_route);
     std::shared_ptr<recording::AnalysisObservationProjector> observation_projector;
     std::shared_ptr<recording::RecordingEvidenceObserver> recording_evidence;
     if (config.recording_enabled) {

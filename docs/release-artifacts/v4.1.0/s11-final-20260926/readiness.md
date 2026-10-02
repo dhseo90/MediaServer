@@ -10,7 +10,7 @@
 아래는 **최종 커밋에 담기 위한 문서 동결 시점**의 기록이다. 이후 실제 외부 결과는
 GitHub PR·Release의 실행 기록과 published metadata 판정이 권위 있는 근거다.
 태그를 최종 main 커밋에 유지하기 위해 외부 성공을 선기록하거나 태그 뒤 기록 커밋을
-추가하지 않는다. [중앙 B15 기록](../../../release-test-records.md#v410-b15-문서-및-실제-공개-절차-2026-09-28)을 따른다.
+추가하지 않는다. [중앙 B15 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 로컬 문서·이미지·재결속 검사는 마감했다. entry46, metadata18, 이미지10,
 집중 반례8, script inventory12, feature986/986·8검사, 독립 approval986,
@@ -97,7 +97,7 @@ PASS로 세지 않는다. 기존 B14 history500+2와 이번 새 커밋의 추가
 
 B14 당시 판정이다. 아래 B13은 당시 실패 이력이며 덮어쓰지 않는다. 사용자 승인
 1~4번과 릴리즈 잔여를 대조한다. 원본/정제본 관계는 [변환 영수증](b14-migration-receipt.json.gz),
-단계별 실행은 [중앙 B14 기록](../../../release-test-records.md#v410-s11-b14-공개-증거-정제-2026-09-28)을 따른다.
+단계별 실행은 [중앙 B14 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문)을 따른다.
 
 ### B14 지시 전수
 
@@ -286,7 +286,7 @@ close-out dry-run을 통과했다. 따라서 개발 브랜치의 로컬 release 
 | --- | --- | --- | --- | --- |
 | 1 | 누적 저장소·관측 비용 판정 | 완료·분할 커밋 | 2,049개 timeline/복구/관측/root/RSS 기존 상한 통과 | [결과](results.md), `3ca7ea01` |
 | 2 | 실제 HTTP·출력2개·hash·재기동 통합 | 완료·분할 커밋 | H01 74/74, I01 35+40+10+46+27, HTTP4초·두 기동·정리 통과 | [결과](results.md), `debeb12e` |
-| 3 | 코드 고정·최종 단기·증거 영향 판정 | 완료·분할 커밋 | build·manifest986/986·inventory/docs/version/close-out dry-run 통과, 최초 실패 이력 보존 | [중앙 기록](../../../release-test-records.md) |
+| 3 | 코드 고정·최종 단기·증거 영향 판정 | 완료·분할 커밋 | build·manifest986/986·inventory/docs/version/close-out dry-run 통과, 최초 실패 이력 보존 | [중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
 | 4 | 분할 커밋 | 수행 | 1·2번은 독립 커밋, 3번은 최종 단기/문서 정합 커밋으로 분리 | Git log |
 | 5 | 가능하면 푸시 | 수행 | clean·ahead26/behind0 확인 뒤 승인 범위의 `v4.1.0` 개발 branch를 origin에 동기화. PR/merge/tag/Release는 제외 | Git push·최종 보고 |
 | 6 | 종합 보고·잔여 이슈 | 수행 | 아래 7·8절에 릴리즈 전 잔여와 승인 경계 전수 기록 | 이 문서 |
@@ -307,7 +307,7 @@ close-out dry-run을 통과했다. 따라서 개발 브랜치의 로컬 release 
 | roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
 | --- | --- | --- | --- | --- |
 | S10/B11 저장·관측 구조 | 구현·focused 회귀 완료 | O03 누적과 H01/I01 실제 통합까지 통과 | 없음·로드맵 상단 보완 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [결과](results.md) |
-| S11 최종 단기 | 과거 B09 통과 뒤 B11 변경 | B11 최종 build·inventory·semantic·docs·metadata 통과 | 현행 결과로 재고정 | [중앙 기록](../../../release-test-records.md) |
+| S11 최종 단기 | 과거 B09 통과 뒤 B11 변경 | B11 최종 build·inventory·semantic·docs·metadata 통과 | 현행 결과로 재고정 | [중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
 | S11 30분 | B10 이전 코드 PASS | G03 저장 writer 반영 최종 코드에서 2,438초·20회·109 PASS·0 FAIL 재실행 | 해소 | [B11-G01/G03](results.md) |
 | S11 UI | B10 공통424+녹화8 ID PASS | 공통424 유지, 영향 녹화8 ID·31 action을 현행 backend에서31 PASS 재실행·메인 시각 적격 | 해소 | [B11-G02](b11-final-ui.md) |
 | S11 120분 | B10과 B11 1~9차 실패 이력 | B11 10차 실제7,200.547초·10,093 PASS·0 FAIL, 자원 상한·복구·정리 PASS | 해소·과거 실패 유지 | [B11-G03](b11-recording-120-attempt10.md) |
@@ -500,7 +500,7 @@ S11 마감과 푸시는 보류했다. 제품 코드는 이번 작업에서 변�
 | --- | --- | --- | --- |
 | 브랜치·버전 | `v4.1.0`·`4.1.0` | 일치 | `git branch --show-current`, `VERSION`, `CMakeLists.txt:3` |
 | 커밋·원격 | S11 성공 범위만 커밋, 푸시 전 clean·gate | HEAD `4fc1b768`, upstream 대비 ahead 3/behind 0, 실패·잔여 기록 6파일 미커밋 | `git log -4`, `git status`, `git rev-list --left-right --count HEAD...@{upstream}` |
-| 단기 gate | 현재 코드 build·인증·미디어·문서 | B09-F01 당시 통과; 이번 최종 소스의 주석 외 제품 변경 없음 | [B09 결과](../b09-final-short-20260926/results.md), [30분 결과](results.md) |
+| 단기 gate | 현재 코드 build·인증·미디어·문서 | B09-F01 당시 통과; 이번 최종 소스의 주석 외 제품 변경 없음 | [B09 결과](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b09-final-short-20260926/results.md), [30분 결과](results.md) |
 | 30분 | 실제 30분과 정리 | 2,437초·20회·109 PASS/0 FAIL, 외부 TURN 1건 제외 | [전수](predev-30-items.md), [원출력](predev-30.log.gz) |
 | 실제 UI | 현재 버전 424+녹화 8 ID·31 action | 공통 424/424 적격; 녹화 31 action은 부분 관측 뒤 탭 충돌 | [공통 전수](ui-baseline-items.md), [녹화 시도](recording-ui-attempt.md) |
 | 120분 | 녹화 전용·자원 증거 | 이번 미실행; 과거 공통 120분은 이전 바이너리·녹화 비활성 범위 | [과거 공통 결과](../s11-recording-ui-20260923/common-120-pass.md) |
@@ -509,7 +509,7 @@ S11 마감과 푸시는 보류했다. 제품 코드는 이번 작업에서 변�
 
 | roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
 | --- | --- | --- | --- | --- |
-| S10 | 제품 코드 고정·증거 연결 이력 | B09 단기 PASS 기록과 현재 버전 확인; 이번 턴 제품 변경 없음 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [B09](../b09-final-short-20260926/results.md) |
+| S10 | 제품 코드 고정·증거 연결 이력 | B09 단기 PASS 기록과 현재 버전 확인; 이번 턴 제품 변경 없음 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [B09](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b09-final-short-20260926/results.md) |
 | S11 30분 | PASS | 실제 109/109 실행 PASS | 없음 | [결과](results.md) |
 | S11 UI | 공통 PASS·녹화 미완료 | 공통 424 PASS, 녹화 탭 충돌·전체 미완료 | 없음 | [결과](results.md), [실패](recording-ui-attempt.md) |
 | S11 120분·릴리즈 | 미완료 | 이번 녹화 120분 미실행, 외부 release action 미승인 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md), [결과](results.md) |

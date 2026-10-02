@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 stable contract DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증한다.
 
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -68,9 +69,9 @@ const expectedEventBody = normalizeCpp(`
 check("stable DTO headers are self-contained leaves", () => {
   assert(leafHeadersValid(analysisTypes, mediaTypes, rtspContext),
     "stable DTO header retains stdafx or misses a direct standard include");
-  assert(objectTracker.includes('#include "app_config.h"') &&
-    appearanceExtractor.includes('#include "app_config.h"'),
-  "former transitive AppConfig consumers are not self-contained");
+  assert([objectTracker, appearanceExtractor].every(text =>
+    text.includes('#include "core/analysis_runtime_port.h"') && !text.includes('#include "app_config.h"')),
+  "analysis consumers must use the self-contained runtime port, not global AppConfig");
   assert(["functional", "memory"].every(header => rawVideoDecoder.includes(`#include <${header}>`)) &&
     rawVideoDecoderImpl.includes("#include <thread>"),
   "former transitive decoder standard-library dependencies are not direct");
@@ -88,63 +89,11 @@ check("AnalysisEvent has one exact contract owner and no service include", () =>
 });
 
 check("current graph removes stable reverse dependencies without metric drift", () => {
-  const allowedSuccessorDirections = new Set([
-    "analysis-services -> core-media-interfaces",
-    "analysis-services -> core-utilities",
-    "analysis-services -> domain-and-registry-owners",
-    "analysis-services -> stable-contract-dtos",
-    "application-service-interfaces -> analysis-services",
-    "application-service-interfaces -> core-utilities",
-    "application-service-interfaces -> domain-and-registry-owners",
-    "application-service-interfaces -> ops-route-groups",
-    "application-service-interfaces -> stable-contract-dtos",
-    "composition-root -> analysis-services",
-    "composition-root -> core-media-interfaces",
-    "composition-root -> core-utilities",
-    "composition-root -> transport-and-auth-adapter",
-    "core-media-interfaces -> analysis-services",
-    "core-media-interfaces -> application-service-interfaces",
-    "core-media-interfaces -> core-utilities",
-    "core-media-interfaces -> domain-and-registry-owners",
-    "core-media-interfaces -> stable-contract-dtos",
-    "core-utilities -> stable-contract-dtos",
-    "domain-and-registry-owners -> core-utilities",
-    "domain-and-registry-owners -> stable-contract-dtos",
-    "ops-route-groups -> application-service-interfaces",
-    "product-ui-workspaces -> stable-contract-dtos",
-    "transport-and-auth-adapter -> analysis-services",
-    "transport-and-auth-adapter -> application-service-interfaces",
-    "transport-and-auth-adapter -> core-media-interfaces",
-    "transport-and-auth-adapter -> core-utilities",
-    "transport-and-auth-adapter -> domain-and-registry-owners",
-    "transport-and-auth-adapter -> ops-route-groups",
-    "transport-and-auth-adapter -> product-ui-workspaces",
-    "transport-and-auth-adapter -> stable-contract-dtos",
-  ]);
-  assert([
-    "cc8bae1207886879ad076fa9e005b55b9212ee5c116a0fa7903759bbfc61002a",
-    "a7f5e614830d200be8f1cbed4aaaddaa4348295f847c353739e6019e9a7f1e66",
-    "77485b7be2b50bdbd93cfeca52e22080cfd9969ce367eb5646f81c0490bf6875",
-  ].includes(graph.expectedFileOwnershipSha256),
-  "stable leaf ownership digest is not bound to the current successor graph");
-  assert(!graph.observedModuleEdges.some(edge =>
-    edge.direction === "stable-contract-dtos -> analysis-services" ||
-    edge.direction === "stable-contract-dtos -> core-utilities" ||
-    edge.direction.startsWith("stable-contract-dtos ->")) &&
-    graph.observedModuleEdges.every(edge => allowedSuccessorDirections.has(edge.direction)),
-  "stable contract reverse dependency remains in current graph");
-  assert(graph.observedModuleEdges.length <= 29 &&
-    graph.observedModuleEdges.filter(edge => edge.allowedByTarget === false).length <= 17,
-  "stable leaf direction/violation metric drift");
-  assert(graph.stronglyConnectedComponents.every(component => component.length <= 3),
-    "stable leaf SCC regressed beyond the Slice 5 frontier");
-  const stableOwner = graph.moduleClassifiers.find(item => item.id === "stable-contract-dtos");
-  assert(!stableOwner.exactFiles.includes("src/analysis/va_runtime_metadata.cpp"),
-    "VA metadata implementation remains classified as stable DTO");
-  assert(ledger.currentArchitecturePolicy.sha256 ===
-    "1271a9838e6640056a8047b48e7e7f9f12d8bffdbb3d8c859b80216f22cdefd0" &&
-    graph.cmake.targets.length === 2 && graph.cmake.internalTargetSeparation === true,
-  "Policy v1 or CMake separation drift");
+  assertCurrentSourceGraph(rootDir, graph);
+  assert(!graph.observedModuleEdges.some(edge => edge.direction.startsWith('stable-contract-dtos ->')),
+    'stable contract reverse dependency remains');
+  assertBoundaryOwners(graph, [['src/analysis/va_runtime_metadata.cpp', 'analysis-services'],
+    ['include/ingress/product_ui_principal_view.h', 'stable-contract-dtos']]);
 });
 
 check("standalone AnalysisEvent contract compiles with exact defaults", () => {

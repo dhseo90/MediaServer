@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 10 Operations Export Bundle and Handoff Map 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops/api/live-operations/export-bundle-handoff-map combines command plan, drill ledger, field evidence refs, and client impact forecast refs
   - export bundle and handoff map stay release-safe, read-only, ops-only, and no-store
   - /ops command workspace renders bundle and handoff entries without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -40,20 +41,20 @@ const fieldEvidenceRoute = "/ops/api/source-registry/field-bridge-condition-gate
 const clientImpactRoute = "/client/api/views";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("Ops server builds release-safe export bundle and handoff map models", () => {
@@ -82,7 +83,8 @@ check("Ops server builds release-safe export bundle and handoff map models", () 
 });
 
 check("export bundle derives refs from command plan, drill ledger, field evidence, and client impact without execution", () => {
-  const block = extractBlock(files.server, "struct OpsV350OperationsExportBundleItem", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV350OperationsExportBundleItem", "std::string OpsV350OperationsExportBundleHandoffMapJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV350OperationsExportBundleHandoffMapJson(");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV350CommandPlanCandidates",
@@ -105,7 +107,7 @@ check("export bundle derives refs from command plan, drill ledger, field evidenc
 });
 
 check("export bundle boundary flags prevent writes, raw material, and media/schema changes", () => {
-  const block = extractBlock(files.server, "std::string OpsV350OperationsExportBundleHandoffMapJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350OperationsExportBundleHandoffMapJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -190,7 +192,7 @@ check("Ops API exposes the export bundle handoff route as guarded no-store JSON"
 });
 
 check("/ops command workspace declares export bundle and handoff map surfaces", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashCommandWorkspaceExportBundleMap",
     "data-v350-export-bundle-handoff-map",
@@ -271,52 +273,16 @@ check("client/viewer scripts do not expose export bundle operator material", () 
   }
 });
 
-check("roadmap records v3.5 Step 10 without overclaiming export execution or field intake", () => {
-  for (const snippet of [
-    "| 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 완료 |",
-    "## v3.5.0 Step 10 개발 기록",
-    route,
-    "OpsV350OperationsExportBundleHandoffMapJson",
-    "command plan, drill ledger, field evidence, client impact forecast",
-    `\`./server.sh ${command}\``,
-    "Field Evidence Intake 완료 evidence가 아닙니다",
-    "VLM-assisted Ops Explanation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 10");
-  }
-});
-
-check("stream verification exposes v3.5 Step 10 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (10) | \`./server.sh ${command}\` | Operations Export Bundle and Handoff Map.`,
-    route,
-    "release-safe export bundle",
-    "handoff map",
-    "artifact export/write/field smoke/provider call 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 10");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 10", () => {
-  for (const snippet of [
-    `v3.5.0 (10) Operations Export Bundle and Handoff Map | \`UI-085\`, \`SAFE-144\`, \`OPS-111\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-085 | V350 Step 10 Operations Export Bundle and Handoff Map UI",
-    "SAFE-144 | V350 Step 10 operations export bundle boundary",
-    "OPS-111 | V350 Step 10 Operations Export Bundle and Handoff Map 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 10");
-  }
-  for (const snippet of [
-    "V350 Operations Export Bundle and Handoff Map",
-    `\`./server.sh ${command}\``,
-    "v350 Step 10 RED operations export bundle gate",
-    "v350 Step 10 operations export bundle final",
-    "v350 Step 10 UI 풀테스트",
-    "v350 Step 10 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 10");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-085","SAFE-144","OPS-111"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/export-bundle-handoff-map"],
+    command, script: "verify_v350_operations_export_bundle_handoff_map.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 10 command", () => {

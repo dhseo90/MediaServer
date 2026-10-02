@@ -1,9 +1,9 @@
-# Development Guide
+# 설치·개발 가이드
 
-이 문서는 개발자가 바로 따라 실행할 수 있는 명령 중심 가이드입니다.
-환경변수 전체 reference는 [config-reference.md](./config-reference.md)를 봅니다.
-스트림 검증 기준은 [stream-verification.md](./stream-verification.md),
-UI 사용법은 [ui-guide.md](./ui-guide.md)를 봅니다.
+이 문서는 macOS/Linux에서 의존성을 설치하고 서버를 빌드·실행하는 방법을 설명합니다.
+제품 개요는 [README](../README.md), 환경변수는 [설정 참조](config-reference.md),
+UI 사용법은 [UI 가이드](ui-guide.md)를 봅니다. 변경별 검증 기준은
+[검증 정책과 명령](stream-verification.md), 기여 절차는 [CONTRIBUTING](../CONTRIBUTING.md)에 유지합니다.
 
 ## 목차
 
@@ -24,48 +24,32 @@ UI 사용법은 [ui-guide.md](./ui-guide.md)를 봅니다.
 ## 요구 환경
 
 - OS: macOS 또는 Linux
-- Language: C++17
-- Build: CMake 3.16+
-- Media framework: GStreamer 1.28+ (the pkg-config/API namespace remains `gstreamer-1.0`)
-- Optional AI: ONNX Runtime + YOLO ONNX model
-- Optional tooling: Node.js, Python 3, ffmpeg/ffprobe, curl
+- 언어·빌드: C++17 컴파일러, CMake 3.16+, pkg-config
+- 미디어: GStreamer 1.28+와 RTSP/WebRTC 플러그인. API/pkg-config 이름은 `gstreamer-1.0`을 사용합니다.
+- 영상 분석: ONNX Runtime, YOLO ONNX 모델과 라벨. 기본 스크립트 빌드는 AI를 포함합니다.
+- 개발·검증 도구: Node.js, Python 3, curl, 검사에 따라 ffmpeg/ffprobe
 
-macOS/Homebrew에서 권장 패키지:
-
-```bash
-brew install cmake pkg-config ffmpeg node python \
-  gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
-  gst-rtsp-server libnice libnice-gstreamer onnxruntime
-```
-
-YouTube import/source 실험 기능은 기본 빌드와 기본 설치에서 제외합니다.
-정책 검토가 끝난 lab-only 실험 빌드가 필요할 때만 선택 도구를 추가로 설치합니다.
-자세한 상태와 제약은 [youtube-import.md](./youtube-import.md)를 봅니다.
-
-```bash
-brew install yt-dlp deno
-```
-
-Debian/Ubuntu 계열:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y \
-  build-essential cmake pkg-config curl python3 nodejs ffmpeg \
-  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-  gstreamer1.0-tools gstreamer1.0-plugins-base \
-  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  gstreamer1.0-plugins-ugly gstreamer1.0-libav \
-  libgstrtspserver-1.0-dev
-```
+플랫폼별 패키지 목록은 [설치 스크립트](../scripts/internal/install_deps.sh)가 관리합니다.
+macOS는 Homebrew, 지원 Linux 배포판은 apt/dnf/pacman을 사용합니다.
+패키지 이름의 `1.0`은 최소 지원 버전을 뜻하지 않습니다. 배포판 저장소의 패키지가
+GStreamer 1.28+를 제공하는지 확인해야 하며, 설치 명령 성공만으로 빌드 호환성을 보장하지 않습니다.
+선택 의존성과 모델·런타임의 별도 조건은 [외부 의존성 안내](../THIRD_PARTY_NOTICES.md)를 따릅니다.
 
 ## 설치
 
-프로젝트 스크립트로 로컬 의존성, ONNX Runtime, YOLO 모델/라벨, 로컬 env 파일을 준비합니다.
+프로젝트 스크립트로 패키지와 ONNX Runtime, YOLO 모델·라벨을 설치·다운로드하고
+`scripts/.media_server.env`를 준비합니다. 기존 env 파일은 유지합니다.
+기본 생성값은 LAN 바인딩을 포함하므로 실행 전에 [서버 기본 설정](config-reference.md#서버-기본-env)을 확인하세요.
 
 ```bash
 ./server.sh install
 ```
+
+AI 없이 설치하려면 `./server.sh install --basic`을 사용합니다.
+YouTube import/source는 기본 설치·빌드에서 제외된 lab 전용 실험입니다.
+정책 검토 후 선택 도구가 필요할 때만 `./server.sh install --with-youtube`를 사용하며,
+실험 빌드와 사용 제약은 [YouTube 안내](youtube-import.md)를 따릅니다.
+로컬에 설치한 모델·런타임이 기본 소스 배포에 포함되는 것은 아닙니다.
 
 설치 후 현재 실행 가능한 URL과 포트 후보를 확인합니다.
 
@@ -97,14 +81,21 @@ cmake --build build-release-gst-onnx
 ONNX Runtime 없이 GStreamer 경로만 빌드:
 
 ```bash
-MEDIA_SERVER_ENABLE_AI=0 ./server.sh build
+./server.sh build --basic
 ```
 
-빌드 directory, binary path, ONNX Runtime root 등 build/script override는 [config-reference.md](./config-reference.md)의 `서버 기본 env`를 기준으로 확인합니다.
+`build`는 서버를 시작하지 않습니다. 기본 빌드 디렉터리는 AI 포함 시 `build-gst-onnx`,
+`--basic`에서는 `build-gst`이며 로컬 env의 경로 설정이 있으면 그 값을 사용합니다.
+위 직접 CMake 예제의 ONNX Runtime 경로는 설치 위치에 맞게 바꿉니다.
+
+`build`·`start`·`foreground`는 기본적으로 `scripts/.media_server.env`를 읽습니다.
+이 파일의 대입값은 셸에서 전달한 같은 이름의 값을 덮어쓸 수 있습니다.
+격리 실행에서 로컬 설정을 읽지 않으려면 `MEDIA_SERVER_SKIP_LOCAL_ENV=1`을 사용하고
+필요한 빌드·입력·저장 경로를 직접 지정합니다. 전체 옵션은 [설정 참조](config-reference.md#개발script-보조값)를 봅니다.
 
 ## 실행
 
-개발 중에는 foreground 실행이 가장 재현성이 좋습니다.
+`foreground`는 터미널에서 빌드·실행하며 `Ctrl-C`로 종료합니다.
 
 ```bash
 ./server.sh foreground
@@ -115,6 +106,9 @@ background 실행:
 ```bash
 ./server.sh start
 ```
+
+기본 인증은 `auto`입니다. 첫 실행에서 계정/관리자 hash가 없으면 `/setup`으로 이동하며
+기본 비밀번호는 없습니다. 로그인과 역할별 화면은 [UI 가이드](ui-guide.md)를 따릅니다.
 
 background 실행은 기본적으로 `nohup`을 사용합니다. macOS 사용자 세션에 붙여 오래 유지해야 하는 경우에만 다음처럼 실행합니다.
 
@@ -139,6 +133,12 @@ MEDIA_SERVER_START_MODE=launchd ./server.sh start
 파일이 다른 프로세스를 가리키면 signal하지 않습니다. start 시 같은 exact label이 이미
 등록돼 있으면 기존 job을 내리지 않고 실패하므로 실행마다 고유 label을 사용해야 합니다.
 기본값을 사용한 기존 실행의 종료 동작은 호환성을 위해 유지됩니다.
+
+상태 디렉터리는 PID·포트·로그 관리 범위만 분리합니다. 검증 서버를 띄울 때는
+인증·source/view/analysis registry·이벤트·audit·녹화 저장 경로와 포트도 별도로 격리해야 합니다.
+특히 `MEDIA_SERVER_RECORDING_ENABLED=0`이어도 시작 복구는 실행되므로
+`MEDIA_SERVER_RECORDING_STORAGE_ROOT`를 운영 원본과 다른 검증용 경로로 지정합니다.
+검증 준비와 정리는 [검증 정책](stream-verification.md#검증-정책)을 따릅니다.
 
 대표 접속 URL은 실제 `./server.sh status` 또는 `./server.sh urls` 결과를 우선합니다.
 
@@ -166,12 +166,18 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/webrtc/session?file=sample_h264.mp4'
 ```
 
-WHEP:
+WHEP는 클라이언트가 만든 유효한 SDP offer를 본문에 보냅니다.
+아래 `offer.sdp`는 실제 클라이언트의 offer 파일이며 빈 POST로 대체할 수 없습니다.
 
 ```bash
 curl -fsS -X POST \
+  -H 'Content-Type: application/sdp' \
+  --data-binary @offer.sdp \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
+
+위 생성 요청만으로 영상 재생까지 완료되지는 않습니다. 클라이언트는 응답 SDP와
+ICE 협상을 처리하고, 사용 후 응답 `Location`의 세션을 종료해야 합니다.
 
 외부 WHEP playback endpoint를 source로 pull할 때는 `source=whep`을 사용합니다.
 `source=webrtc`는 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
@@ -184,10 +190,13 @@ curl -fsS -X POST \
 위 URL은 placeholder입니다. 실제 WHEP endpoint와 네트워크/ICE/TURN 상태는 환경별로 별도 확인합니다.
 
 위 직접 WebRTC/WHEP 생성 요청은 개발/운영자 권한에서만 사용합니다.
-허용 조건은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한입니다.
+인증 사용 시 operator 역할 이상과 `ops:read`, 또는 `lab:read` scope가 필요합니다.
+위 curl 예제에는 인증정보를 넣지 않았습니다. 인증 사용 시 해당 권한의 세션을 전달하며,
+`MEDIA_SERVER_AUTH_MODE=off`를 선택하는 경우에는 명시적으로 준비한 격리 개발 서버에서만 사용합니다.
 
 Auth on에서 answer/ICE/delete 후속 요청은 같은 생성 principal로 보냅니다.
-또는 응답의 `sessionToken`을 `X-Session-Capability`로 보냅니다.
+또는 simple signaling의 JSON `sessionToken`, WHEP의 응답 헤더 `X-Session-Capability`로 받은
+세션 capability를 후속 요청의 `X-Session-Capability` 헤더에 보냅니다.
 인증 토큰이 필요한 외부 WHEP endpoint의 credential 저장/주입은 아직 별도 운영 정책 대상입니다.
 
 `/ws/va-metadata` 직접 WebSocket metadata side-channel도 auth on에서는 admin/operator 또는 `lab:read` 권한에서만 사용합니다.
@@ -227,6 +236,9 @@ tail -n 200 .media_server.log
 tail -f .media_server.log
 ```
 
+위 경로는 기본 상태 디렉터리 기준입니다. `MEDIA_SERVER_STATE_DIR`을 지정한 실행은
+그 디렉터리의 로그를 확인합니다. 공유할 로그에서 인증정보·원본 URL·운영 데이터를 제거합니다.
+
 macOS/Homebrew prefix가 다르면:
 
 ```bash
@@ -255,91 +267,35 @@ gst-inspect-1.0 uridecodebin
 
 ## 기본 테스트
 
-기본 smoke:
+변경한 기능과 영향을 받는 소비자에 맞춰 검사를 선택합니다. 기능별 기대값과 실행 영역은
+[기능별 테스트 정의](project-feature-test-inventory.md), 승인·실행·판정 기준은
+[검증 정책](stream-verification.md#검증-정책)에 있습니다. 아래 명령은 운영 환경에서 실행하지 않습니다.
 
-```bash
-./server.sh test
-```
+| 명령 | 실행 범위 |
+| --- | --- |
+| `./server.sh test` 또는 `test --basic` | 로컬 기본 회귀. 서버 시작, RTSP/HTTP, source·codec·VA 등 실제 실행 포함 |
+| `./server.sh test --full` | basic에 제품 UI smoke, 룰·이벤트·이미지 분석·Event POST·redaction 등 추가 |
+| `./server.sh test --external` | full에 LAN·외부 RTSP·ICE·외부 URI 등 외부 의존 검사 추가 |
+| `./server.sh test --basic --ffmpeg-free` | FFmpeg/ffprobe CLI가 없는 환경에서 해당 CLI 의존 검사를 분리한 기본 모드 |
 
-로컬 풀 검증:
+`--full` 성공은 실제 UI 풀테스트나 30분·120분 통과를 뜻하지 않습니다.
+문서 전용 수정에는 빌드와 위 통합 묶음을 자동으로 추가하지 않습니다.
+`verify-predev`는 `--quick`을 포함해 별도 실행 승인이 필요하며, 장시간·실제 UI 풀테스트도
+각각 승인을 확인합니다. 이미 승인된 범위는 철회나 변경이 없는 한 유지합니다.
 
-```bash
-./server.sh test --full
-```
-
-외부/LAN 선택 검증:
-
-```bash
-./server.sh test --external
-```
-
-주요 단독 검증:
-
-```bash
-./server.sh verify-codecs
-./server.sh verify-webrtc-ice
-./server.sh verify-uri-longrun
-./server.sh verify-va
-./server.sh verify-va-events
-./server.sh verify-event-post
-./server.sh verify-analysis-state
-./server.sh verify-va-runtime-console
-./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard
-./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard --include-rtsp --idle-after-cleanup-minutes 15
-./server.sh verify-va-runtime-console-cycles --cycles 10 --active-minutes 5 --idle-minutes 2 --clients 1 --include-sidechannel --include-dashboard --include-rtsp
-./server.sh verify-va-metadata-sidechannel
-./server.sh verify-webrtc-va-metadata
-./server.sh verify-rtsp-va-overlay-policy
-./server.sh replay-va-metadata --input test/fixtures/va_metadata_replay_basic.json --output /tmp/va_metadata_replay.json
-./server.sh verify-va-replay
-./server.sh verify-tracker-stability
-./server.sh verify-adaptive
-./server.sh verify-image-analysis
-./server.sh verify-predev --quick
-```
-
-`verify-predev --quick`와 `./server.sh test*` 계열은 느립니다.
-기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하기 때문입니다.
-
-문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않습니다.
-대신 `build`, `git diff --check`, `verify-script-inventory`, `verify-auth-routes`,
-`verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`,
-`verify-analysis-state`로 확인합니다.
-
-테이블, 탭 이동, 직접 클릭 흐름을 건드린 경우에는 `verify-ops-click-e2e`와
-`verify-ops-tables-layout`도 추가합니다.
-
-`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다.
-`verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-click-e2e`,
-`verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사합니다.
-검증 fixture가 auth store, EventStorage, evidence, audit 파일을 남기지 않는지
-보는 정적 계약은 `./server.sh verify-fixture-cleanup-contracts`로 확인합니다.
-
-UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄웁니다.
-포트가 다르면 각 명령에 `--http-base`를 지정합니다.
-Codex 인앱 Browser Use 환경에서 `Browser Use virtual clipboard is not installed`가
-나오면 제품 clipboard 회귀로 단정하지 않습니다. 세부 진단과 보고 기준은
-[browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md)를
-따릅니다.
-
-장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
-
-VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
-
-- 기본 `./server.sh test`에는 포함하지 않습니다.
-- WebRTC DataChannel, SSE side-channel, dashboard/state endpoint, RTSP overlay 정책을 수정했을 때 별도로 실행합니다.
-- 단기 명령은 summary JSON 경로를 출력합니다.
-- `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
-- 120분 Runtime Console longrun은 release candidate, 사용자 명시 요청, 또는 Runtime Console/VA metadata fanout/media path 고위험 변경에서만 실행합니다.
-- 문서/checklist/template 정리만 했으면 120분 longrun은 테스트 결과 행을 만들지 않고
-  별도 `미실행`으로만 기록하며, 30분 longrun이나 sample fixture를 120분 PASS
-  evidence로 대체하지 않습니다.
+단독 `verify-*`, Runtime Console·metadata 검사, 장시간·다채널 명령과 결과 형식은
+[검증 명령 안내](stream-verification.md)에 모읍니다. 실행 전 대상 서버·포트·계정·저장 경로와
+정리 방법을 확인하고, 실패·미실행·부분 실행을 PASS와 구분합니다.
+fixture 정리의 정적 계약은 `verify-fixture-cleanup-contracts`로 확인할 수 있지만
+실제 실행 후 프로세스·포트·자료 정리 확인을 대신하지 않습니다.
 
 ## Auth Bootstrap 개발 확인
 
-기본 auth mode는 `auto`입니다. 최초 admin 비밀번호 설정 흐름을 확인할 때는 임시 users file을 사용합니다.
+기본 auth mode는 `auto`입니다. 최초 admin 비밀번호 설정은 기존 운영 users file을
+사용하지 않는 격리 환경에서 확인합니다. 사용자 파일 하나만 바꿔서는 다른 저장 경로까지 격리되지 않습니다.
 
-자동 smoke는 아래 세 명령을 우선 사용합니다.
+인증 변경의 자동 smoke 후보는 다음과 같습니다. 격리 경로와 임시 자격증명의 준비는
+[격리 인증 기준](stream-verification.md#네-영역과-격리-인증)을 따릅니다.
 
 ```bash
 ./server.sh verify-auth-bootstrap
@@ -347,44 +303,19 @@ VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
 ./server.sh verify-auth-routes
 ```
 
-```bash
-MEDIA_SERVER_AUTH_MODE=auto \
-MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
-  ./server.sh foreground
-```
+수동 확인도 `MEDIA_SERVER_AUTH_USERS_FILE`을 포함한 실행 전용 설정을 사용합니다.
+확인 대상은 첫 `/setup`, 로그인·잠금, 비밀번호 변경과 세션 폐기,
+admin 전용 사용자 관리, 초대·접근 요청, role/scope 경계입니다.
+상세 조작과 기대값은 [UI 가이드](ui-guide.md)와 현행 테스트 정의를 따릅니다.
+비밀번호나 hash·session/token을 화면·로그·실행 기록에 복사하지 않습니다.
 
-확인 항목:
-
-- users file이 없으면 `/`가 `/setup`으로 이동
-- 약한 비밀번호는 `/setup`에서 거부
-- username 포함 비밀번호, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호는 거부
-- 강한 비밀번호 설정 후 users file에 `admin`, `passwordHash`, password history/audit/lockout field가 저장
-- setup 완료 후 `/setup`은 `/login`으로 이동
-- `/login`에서 admin 로그인 후 `/auth/whoami`에 `role=admin`, `setupRequired=false`
-- 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 lockout 메시지가 표시되고 만료 전 정상 비밀번호도 거부
-- `/password/change`에서 이전 비밀번호 재사용은 거부되고, 성공 후 기존 session은 폐기
-- logout 후 `/ops`, `/client`, `/lab/analysis/*` 보호 route는 `/login` 요구
-- admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화/복구하고,
-  상세 패널에서 임시 비밀번호 초기화를 수행합니다.
-- pending 접근 요청은 승인해 password setup invite를 발급하거나 거절합니다.
-- invite는 기본 24시간 후 만료되며 만료 후에는 새 초대를 발급합니다.
-- 사용자 변경 이력은 `/ops/users` 하단 audit 패널에서 JSON/CSV/Diff JSON으로 export할 수 있습니다.
-- Integrator는 UI shell 대신 client events/metadata API를 scope 기반으로 사용합니다.
-- 대상 API는 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`입니다.
-- CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력
-
-제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다.
-새 검증은 Ops/Client 화면과 현재 `/lab/analysis/*` API 경계를 기준으로 합니다.
-
-```bash
-MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
-./server.sh verify-ops-client-ui
-./server.sh verify-ops-rules-roundtrip
-```
+`off`는 명시적인 개발·검증 모드입니다. 일부 UI/API smoke의 전제일 수 있지만
+인증·역할·scope 검증을 대체하지 않습니다. 인증을 사용하는 검사와 인증을 끈 검사를 구분합니다.
 
 ## UI 개발 시 검증 명령
 
-Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합니다.
+Ops/영상 분석 UI 변경의 검사 후보입니다. 실제 변경 경로와
+[검증 정책의 UI/Auth 영향 기준](stream-verification.md#검증-정책)에 맞춰 선택합니다.
 
 ```bash
 ./server.sh verify-rule-ui
@@ -395,25 +326,32 @@ Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 ./server.sh verify-ops-tables-layout
 ```
 
+위 명령은 대상 HTTP 서버를 검사하므로 운영 서버가 아닌 격리 서버와 필요한 인증 상태를
+먼저 준비합니다. 포트가 다르면 각 명령의 `--http-base`를 지정합니다.
+정적/API 검사나 `--screenshots` 결과만으로 실제 UI 풀테스트를 통과했다고 보고하지 않습니다.
+
 이벤트 POST나 rule preview URL이 영향을 받으면:
 
 ```bash
 ./server.sh verify-event-post
 ```
 
-브라우저로 직접 확인할 때는 서버를 foreground로 띄운 뒤 `/ops/rules`에서 다음을 확인합니다.
+실제 브라우저 검사는 승인된 범위에서 [UI 풀테스트 기준](manual-ui-fulltest.md)을 따릅니다.
+변경에 따른 확인 대상의 예시는 다음과 같습니다.
 
 - 채널 분석 설정: 채널, 이벤트 템플릿, 분석 프로파일, 영역/라인, 활성 상태, 출력 URL 복사
 - 이벤트 템플릿: 기본 이벤트와 시나리오를 구분해 추가/수정/삭제
 - 분석 프로파일: detector, fps, queue, 입력 해상도 저장과 채널 분석 설정의 선택 가능 여부
-- 운영 미리보기: `/client/live`의 실시간 스트리밍, VA 오버레이, VA 룰 URL 복사/보기 동작
+- 운영 출력: `/ops/rules`의 허용된 RTSP/WHEP·VA URL 복사 동작
+- 클라이언트 미리보기: `/client/live`의 권한 내 영상·VA 오버레이와 viewer의 source/Developer URL 비노출
 - `/ops/dashboard`: source lifecycle, stale tap, reconnect/cleanup, auth/config 문제 원인과 다음 조치 버튼
 - 공통 테이블: 채널/룰/사용자 table row/action/detail 영역이 320/390/760px Chrome DevTools와 desktop resize에서 칸을 침범하지 않는지 확인
-- 수동 시각 리뷰: Chrome DevTools device toolbar에서 320/390/760px을 차례로 열고
-  nav/account, URL copy, 변경 이력 시작/종료 입력, dashboard 카드가 서로 겹치지 않는지
-  [stream-verification.md](./stream-verification.md)의 체크박스로 기록합니다.
+- 수동 시각 리뷰: nav/account, 허용된 URL copy, 변경 이력 입력과 dashboard 카드의 겹침·잘림 확인
 
-UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
+결과는 해당 실행 자료에 보존하고 테스트 정의 문서에 반복해서 복사하지 않습니다.
+Codex 인앱 환경의 `Browser Use virtual clipboard is not installed`는
+[클립보드 진단 기준](browser-use-clipboard-diagnostics.md)에 따라 제품 결함과 구분합니다.
+UI 사용 흐름은 [UI 가이드](ui-guide.md)에 유지합니다.
 
 ## 코드 변경 전후 체크리스트
 
@@ -425,25 +363,18 @@ UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 - env 변경은 [config-reference.md](./config-reference.md)를 확인합니다.
 - 테스트 기준 변경은 [stream-verification.md](./stream-verification.md)를 확인합니다.
 
-변경 후:
+변경 후에는 승인된 focused 검사와 영향 회귀를 수행하고 실제 결과와 정리 상태를 기록합니다.
+스크립트 연결을 변경했다면 `verify-script-inventory`, workflow 변경이면 `verify-actions-security`를 확인합니다.
+문서만 수정한 경우에는 최소한 diff와 영향받는 링크를 확인합니다.
 
 ```bash
-./server.sh build
-./server.sh verify-script-inventory
-./server.sh verify-actions-security
-./server.sh test
+git diff --check
+./server.sh verify-docs-links
 ```
 
-변경 범위에 맞는 `verify-*`를 추가 실행하고, 문서나 backlog가 바뀌어야 하면 함께 정리합니다.
-FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 `./server.sh test --basic --ffmpeg-free`로
-codec/RTSP decode 의존 검증을 분리합니다.
-
-문서만 수정한 경우에는 최소한 markdown diff와 링크를 확인합니다.
-
-```bash
-git diff --check -- README.md docs
-./server.sh verify-script-inventory
-```
+이미지·metadata·검증기 변경에는 해당 자체검사를 추가합니다.
+실행 결과와 현재 테스트 정의는 분리하고, 실패 원출력·수정 후 재검증·미실행·cleanup을 추적합니다.
+자료의 보존·정리는 [AGENTS 기록 수명 정책](../AGENTS.md#6-기록-수명과-정리)에 따릅니다.
 
 ## git/commit 주의
 
@@ -455,12 +386,7 @@ git diff --stat
 git diff --check
 ```
 
-사용자가 최신 요청에서 커밋을 명시 승인한 경우에만, 승인된 작업 파일만 stage합니다.
-
-```bash
-git add README.md docs/development-guide.md docs/config-reference.md
-```
-
-사용자가 명시적으로 승인하기 전에는 commit/push를 진행하지 않습니다.
-이미 다른 사람이 수정한 파일은 되돌리지 않습니다.
-필요한 경우 해당 변경 위에서 이어서 작업합니다.
+stage/commit, push, PR, 병합, tag, 공개와 브랜치 작업은 각각 승인된 범위를 확인합니다.
+기존 명시 승인은 철회·대체·범위 변경이 없는 한 유지하며 상태 질문만으로 취소되지 않습니다.
+승인된 파일과 변경만 stage하고 사용자 변경을 섞거나 되돌리지 않습니다.
+상세 승인 경계와 공개 순서는 [AGENTS](../AGENTS.md)와 [릴리즈 정책](release-policy.md)을 따릅니다.

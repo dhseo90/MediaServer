@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 계약 불변을 검증한다.
 
 import crypto from "node:crypto";
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -119,42 +120,15 @@ check("current verifier and semantic source bindings follow the moved owner", ()
 
 check("current graph records the planned intermediate owner delta without final claim", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const ledger = JSON.parse(read("test/fixtures/v390_structure_stabilization_execution.json"));
-  const analysisOwner = graph.moduleClassifiers.find(item => item.id === "analysis-services");
-  const applicationOwner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  assert(analysisOwner.expectedFileCount >= 73 && analysisOwner.expectedCppCount >= 37 &&
-    applicationOwner.expectedFileCount >= 31 && applicationOwner.expectedCppCount >= 13 &&
-    [
-      "include/ingress/analysis_frame_application_service.h",
-      "src/ingress/analysis_frame_application_service.cpp",
-      "include/ingress/onvif_live_import.h", "src/ingress/onvif_live_import.cpp",
-      "include/ingress/vlm_incident_rule_provenance.h", "src/ingress/vlm_incident_rule_provenance.cpp",
-    ].every(file => applicationOwner.exactFiles.includes(file)),
-  "analysis/application owner counts do not reflect the query move");
-  const slice7 = ledger.currentContinuation?.orderedSlices?.[6];
-  const laterInversionGraph = graph.stronglyConnectedComponents.length === 0 &&
-    graph.observedModuleEdges.length <= 28;
-  if (slice7?.status === "completed" || laterInversionGraph) {
-    assert(graph.observedModuleEdges.length <= 28 &&
-      graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length <= 15 &&
-      graph.stronglyConnectedComponents.length === 0,
-    "later core-media inversion regressed the query-owner graph frontier");
-  } else {
-    assert(graph.observedModuleEdges.length === 28 &&
-      graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 15,
-    "intermediate direction/violation graph drift");
-    assert(JSON.stringify(graph.stronglyConnectedComponents) === JSON.stringify([[
-      "analysis-services", "core-media-interfaces",
-    ]]), "intermediate SCC must remain explicit at two owners");
-  }
-  assert(!graph.observedModuleEdges.some(item =>
-    item.direction === "core-media-interfaces -> application-service-interfaces" ||
-    item.direction === "application-service-interfaces -> stable-contract-dtos"),
-  "removed query-owner directions remain in the graph");
-  assert(ledger.currentContinuation.architectureStatus === "final-targets-unmet" &&
-    ledger.currentContinuation.finalCompletionClaimAllowed === false &&
-    ledger.refactorComplete === false && ledger.completionClaimed === false,
-  "intermediate query move overclaims structure completion");
+  assertCurrentSourceGraph(rootDir, graph);
+  assertBoundaryOwners(graph, [['include/analysis/analysis_query.h', 'analysis-services'],
+    [newSourcePath, 'analysis-services'],
+    ...['include/ingress/analysis_frame_application_service.h','src/ingress/analysis_frame_application_service.cpp',
+      'include/ingress/onvif_live_import.h','src/ingress/onvif_live_import.cpp',
+      'include/ingress/vlm_incident_rule_provenance.h','src/ingress/vlm_incident_rule_provenance.cpp']
+      .map(file => [file,'application-service-interfaces'])]);
+  assert(!graph.observedModuleEdges.some(item => item.direction === 'core-media-interfaces -> application-service-interfaces' ||
+    item.direction === 'application-service-interfaces -> stable-contract-dtos'), 'removed query-owner directions remain');
 });
 
 check("owner, path, consumer, and graph mutations fail closed", () => {

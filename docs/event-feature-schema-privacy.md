@@ -126,5 +126,6 @@ V300-S03 Privacy Guard는 아래 조건을 만족해야 PASS입니다.
 ./server.sh verify-v300-feature-schema-privacy
 ```
 
-이 verifier는 schema/privacy policy, allowed/disallowed matrix, fixture, docs/inventory/release records/server wiring을 확인합니다.
+이 verifier는 스키마·개인정보 경계, 허용/거부 행렬, fixture와 제품 소스를 정적으로 확인합니다.
+현행 계약 식별자·기능 정의·검증 안내·명령 실행 연결을 검사하며 과거 실행 기록의 존재나 완료 문구는 요구하지 않습니다.
 이 명령의 PASS는 VLM queue/runtime/provider success, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분 longrun, published metadata 완료 evidence가 아닙니다.

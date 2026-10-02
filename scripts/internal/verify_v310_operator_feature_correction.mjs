@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +28,7 @@ Checks:
   - /ops/api/events/reviews persists corrected feature labels, aliases, and reanalysis requests in review state only
   - the API/view model does not mutate EventRecord, Event POST, WebRTC/DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer output, or provider runtime state
   - product UI renders correction controls and saves them through the existing review endpoint
-  - roadmap, stream verification, release records, feature inventory, manual UI checklist, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to V310-S06 local/Ops evidence and does not imply UI 풀테스트, 30분/120분, vector search, cleanup execution, or release publication
 `);
 }
@@ -35,18 +37,17 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-operator-feature-correction";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: `${readWebRtcHttpServerBundle(readText)}\n${readText("src/ingress/product_ui_server_pages.cpp")}`,
   runtime: readText("src/ingress/webrtc_http_server_runtime.cpp"),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualChecklist: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -223,58 +224,32 @@ check("ops static smoke tracks S06 markers", () => {
   }
 });
 
-check("docs and roadmap expose V310-S06 scope without overclaim", () => {
-  for (const snippet of [
-    "V310-S06` Operator Feature Correction 완료",
-    "| 6 | V310-S06 | P1 | 완료 | Operator Feature Correction |",
-    "correctedFeatureLabel",
-    "featureAliases",
-    "reanalysisRequested",
-    "UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님",
-    "## v3.1.0 S06 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V310-S06");
-  }
-  for (const snippet of [
-    "| V310-S06 | `./server.sh verify-v310-operator-feature-correction` |",
-    "operator feature correction",
-    "aliases",
-    "reanalysis request",
-    "EventRecord/Event POST/WebRTC/SSE/WS/media path",
-    "UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V310-S06");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-061","EVT-061","SAFE-098","OPS-065"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["correctedFeatureLabel","featureAliases","reanalysisRequested"],
+    command, script: "verify_v310_operator_feature_correction.mjs", featureIds: ["UI-061","EVT-061","SAFE-098","OPS-065"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  assert(files.documentationImplementation.items?.filter(item => item.id === "SAFE-098").length === 1 && files.documentationImplementation.items.find(item => item.id === "SAFE-098")?.verifierEvidence?.command === "verify-auth-routes", "SAFE-098 독립 검사 연결 불일치");
 });
 
-check("feature inventory, manual UI checklist, and release records map V310-S06", () => {
-  for (const snippet of [
-    "V310-S06 Operator Feature Correction | `UI-061`, `EVT-061`, `SAFE-098`, `OPS-065` | `verify-v310-operator-feature-correction`, `verify-ops-client-ui`",
-    "UI-061 | `/ops/events` V310 Operator Feature Correction",
-    "EVT-061 | V310-S06 operator feature correction state",
-    "SAFE-098 | V310-S06 operator correction boundary",
-    "OPS-065 | V310-S06 Operator Feature Correction 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V310-S06");
-  }
-  for (const snippet of [
-    "V310-S06 Operator Feature Correction",
-    "`UI-061`, `EVT-061`, `SAFE-098`, `OPS-065`",
-    "correctedFeatureLabel/featureAliases/reanalysisRequested",
-    "`verify-v310-operator-feature-correction`, `verify-ops-client-ui`",
-  ]) {
-    assertIncludes(files.manualChecklist, snippet, "manual UI checklist V310-S06");
-  }
-  for (const snippet of [
-    "V310 Operator Feature Correction",
-    "`./server.sh verify-v310-operator-feature-correction`",
-    "v310 S06 RED operator feature correction gate",
-    "v310 S06 operator feature correction final",
-    "v310 S06 UI 풀테스트",
-    "v310 S06 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V310-S06");
-  }
+
+
+check("manual UI 현재 조작 정의 연결", () => {
+  const ids = ["UI-061", "EVT-061", "SAFE-098", "OPS-065"];
+  const rows = files.manualChecklist.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/ops/events"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["correctedFeatureLabel/featureAliases/reanalysisRequested"]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v310-operator-feature-correction`", "manual UI 실행 명령");
+  assertIncludes(row[5], "`verify-ops-client-ui`", "manual UI companion 명령");
 });
 
 check("server entrypoint and inventory verifiers include V310-S06 command", () => {

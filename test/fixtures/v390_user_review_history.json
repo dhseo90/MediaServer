@@ -1,0 +1,20 @@
+{
+  "schema": "media-server.v390-user-review-history.v1",
+  "sourceVersion": "3.9.0",
+  "provenance": {
+    "commit": "68566d63b13396b359a3b493a5b7e4d8a70015d6",
+    "path": "docs/development-backlog.md",
+    "blob": "faceed411318832bea238e74a8948f7b063537f3",
+    "section": "Foundation initial review-ready 상태(historical snapshot) / Current user approval/closure reconciliation"
+  },
+  "initial": {
+    "approval": "pending-user-approval",
+    "development": "blocked-before-user-approval"
+  },
+  "laterRecordedClosure": {
+    "approval": "approved-through-recorded-user-goals",
+    "development": "closed-with-evidence"
+  },
+  "requiredOrder": ["V390-REQ-001", "V390-REQ-002", "V390-REQ-003"],
+  "closureIsExecutionEvidence": false
+}

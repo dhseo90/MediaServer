@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentFieldValue } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -168,7 +169,6 @@ check("probe contract excludes non live ONVIF scope", () => {
 
 check("ONVIF media profile selection policy is documented", () => {
   for (const term of [
-    "## Media/Media2 Profile Selection Policy",
     "Media2.GetProfiles",
     "Media",
     "GetStreamUri",
@@ -177,7 +177,7 @@ check("ONVIF media profile selection policy is documented", () => {
     "selected=true",
     "sourceDraft.rtspUrl",
     "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
-    "ONVIF Profile G recording/replay",
+    "Profile G",
   ]) {
     assert(onvifSupportDoc.includes(term), `ONVIF support doc missing profile policy term: ${term}`);
   }
@@ -187,15 +187,14 @@ check("probe preview contract is documented", () => {
   for (const term of [
     "previewContract",
     "media-server.onvif-draft-preview.v1",
-    "scope=ops-sources-before-save",
-    "requiresExplicitSave=true",
-    "storageAction=none",
-    "sourceRegistryMutation=false",
-    "publishedViewMutation=false",
-    "endpoint, credential material, raw SOAP",
+    "endpoint", "credential", "raw SOAP",
     "raw diagnostic JSON",
   ]) {
     assert(onvifSupportDoc.includes(term), `ONVIF support doc missing preview contract term: ${term}`);
+  }
+  for (const [field, value] of Object.entries({scope: "ops-sources-before-save", requiresExplicitSave: "true",
+    storageAction: "none", sourceRegistryMutation: "false", publishedViewMutation: "false"})) {
+    assert(hasDocumentFieldValue(onvifSupportDoc, field, value), `ONVIF support doc missing preview contract field: ${field}=${value}`);
   }
 });
 

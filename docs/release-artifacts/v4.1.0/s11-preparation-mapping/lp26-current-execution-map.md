@@ -208,7 +208,7 @@ suite의 `remaining`은 LP26에서 코드/증거 고정·30분/120분/UI·자원
 | ENV01~11 fixture 환경 | `bash scripts/internal/verify_gst_environment.sh` → `gst_environment_test.py` | wrapper3~16행에 명시된 격리 fixture. ENV12의 대체 runner로 선정하지 않음 |
 | ENV13 회귀 묶음 | event-recording/build/inventory/docs 기존 명령 | 단일 oracle 공백이 아니라 공유 묶음. ENV12 신규 실제검사 공백과 구분 |
 
-[중앙 기록](../../../release-test-records.md), [환경 wrapper](../../../../scripts/internal/verify_gst_environment.sh).
+[중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문), [환경 wrapper](../../../../scripts/internal/verify_gst_environment.sh).
 이 문서에서는 일회성 플랫폼 probe를 재작성하거나 실행하지 않는다. 향후 필요하면 실행 전 정의에 맞춘
 소유 cache·각 factory 개별 결과·READY/decode·원출력·cleanup을 가진 영속 runner 또는 정확 수동 절차를 확정해야 한다.
 

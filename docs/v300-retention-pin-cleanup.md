@@ -53,8 +53,8 @@ Policy:
 ./server.sh verify-analysis-state
 ```
 
-`verify-v300-retention-pin-cleanup`은 fixture, C++ cleanup contract, analysis smoke,
-roadmap, stream verification, feature inventory, release records, server dispatch
-연결을 정적으로 확인합니다. `verify-analysis-state`는 S09 dry-run, pin exclusion,
+`verify-v300-retention-pin-cleanup`은 fixture·C++ 정리 계약·smoke 검사 소스와 빌드 연결을 정적으로 확인합니다.
+현행 계약 식별자·기능 정의·검증 안내·명령 실행 연결을 검사하며 과거 실행 기록의 존재나 완료 문구는 요구하지 않습니다.
+`verify-analysis-state`는 S09 dry-run, pin exclusion,
 apply lifecycle delete/de-index, audit, provider/schema/media/viewer boundary를
 mock data로 확인합니다.

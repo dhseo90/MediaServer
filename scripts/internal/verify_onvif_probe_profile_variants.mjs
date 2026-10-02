@@ -35,6 +35,7 @@ const supportDocPath = path.join(rootDir, "docs/onvif-live-source-support.md");
 const fixtureText = fs.readFileSync(fixturePath, "utf8");
 const fixture = JSON.parse(fixtureText);
 const supportDoc = fs.readFileSync(supportDocPath, "utf8");
+const noDeviceDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-no-device-verification.md"), "utf8");
 const checks = [];
 
 check("variant fixture schema is pinned", () => {
@@ -191,7 +192,8 @@ check("fixture excludes non-goals", () => {
 
 check("ONVIF live support doc references profile variant verification", () => {
   assert(supportDoc.includes("test/fixtures/onvif_probe_profile_variants.json"), "support doc missing profile variant fixture path");
-  assert(supportDoc.includes("verify-onvif-probe-profile-variants"), "support doc missing profile variant command");
+  assert(supportDoc.includes("./onvif-no-device-verification.md"), "support doc missing verification guide link");
+  assert(noDeviceDoc.includes("verify-onvif-probe-profile-variants"), "linked guide missing profile variant command");
   assert(supportDoc.includes("media2-and-media-empty-profiles"), "support doc missing empty profile failure variant");
 });
 

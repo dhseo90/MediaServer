@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateOnvifCredentialDocumentation, hasDocumentLink } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -42,47 +44,12 @@ const authMatrixText = fs.readFileSync(authMatrixPath, "utf8");
 const authMatrix = JSON.parse(authMatrixText);
 const checks = [];
 
-check("auth injection design keeps current provider Basic status explicit", () => {
-  for (const term of [
-    "명시적으로 연결된 credential provider",
-    "`HTTP Basic` material",
-    "기본 provider는 계속 secret 없이",
-    "WS-Security UsernameToken과 HTTP Digest 인증 주입은 구현 완료가 아닙니다",
-    "`credentialRefPresent=true/false`",
-    "Authorization",
-    "Cookie",
-    "UsernameToken",
-    "credential_ready",
-    "http_basic",
-    "Authorization: Basic",
-    "verify-onvif-auth-injection-loopback",
-    "401 challenge",
-    "InMemoryCredentialSecretProvider",
-    "in-memory fixture store provider 연결 시 HTTP Basic header",
-    "제품 persistent secret 저장소 또는 외부 secret manager lookup은 현재 구현 완료가 아닙니다",
-    "HTTP 401/403은 sanitized probe failure",
-    "test/fixtures/onvif_auth_method_design_matrix.json",
-  ]) {
-    assertContains(designDoc, term, `design doc missing current auth boundary: ${term}`);
-  }
-});
-
-check("auth injection design documents future secret handling requirements", () => {
-  for (const term of [
-    "secret storage는 libsodium",
-    "외부 secret manager",
-    "secret lookup key",
-    "장비별 fallback 순서",
-    "인증 header와 SOAP security header는 redaction matrix",
-    "username, realm, nonce, token, password를 남기지 않습니다",
-    "`source:write` scope",
-    "credential rotation, expiry, audit event",
-    "URL credential",
-    "plaintext credential 저장",
-  ]) {
-    assertContains(designDoc, term, `design doc missing future auth requirement: ${term}`);
-  }
-});
+for (const [document, kind] of [[designDoc, "auth"], [credentialDoc, "policy"], [storeDesign, "store"]]) {
+  check("auth current " + kind + " contract linkage", () => {
+    const errors = validateOnvifCredentialDocumentation(document, kind);
+    assert(errors.length === 0, errors.join("; "));
+  });
+}
 
 check("auth method design fixture pins implemented Basic scope", () => {
   assert(authMatrix.schema === "media-server.onvif-auth-method-design-matrix.v1", "unexpected auth method fixture schema");
@@ -183,18 +150,18 @@ check("auth method design fixture contains no raw secrets or captured auth mater
 });
 
 check("credential policy links auth injection design", () => {
-  assertContains(credentialDoc, "./onvif-auth-injection-design.md", "credential policy missing auth design link");
-  assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential policy missing credential store design link");
+  assert(hasDocumentLink(credentialDoc, "onvif-auth-injection-design.md"), "credential policy missing auth design link");
+  assert(hasDocumentLink(credentialDoc, "onvif-credential-store-integration-design.md"), "credential policy missing credential store design link");
 });
 
 check("credential store design links auth injection design", () => {
-  assertContains(storeDesign, "./onvif-auth-injection-design.md", "credential store design missing auth design link");
+  assert(hasDocumentLink(storeDesign, "onvif-auth-injection-design.md"), "credential store design missing auth design link");
   assertContains(storeDesign, "InMemoryCredentialSecretProvider", "credential store design missing in-memory provider");
 });
 
 check("protocol matrix links auth injection design", () => {
-  assertContains(matrixDoc, "./onvif-auth-injection-design.md", "protocol matrix missing auth design link");
-  assertContains(matrixDoc, "./onvif-credential-store-integration-design.md", "protocol matrix missing credential store design link");
+  assert(hasDocumentLink(matrixDoc, "onvif-auth-injection-design.md"), "protocol matrix missing auth design link");
+  assert(hasDocumentLink(matrixDoc, "onvif-credential-store-integration-design.md"), "protocol matrix missing credential store design link");
   assertContains(matrixDoc, "verify-onvif-auth-injection-design", "protocol matrix missing auth design verification");
   assertContains(matrixDoc, "verify-onvif-auth-injection-loopback", "protocol matrix missing auth loopback verification");
 });
@@ -237,6 +204,7 @@ console.log("== ONVIF auth injection design summary ==");
 console.log("- doc: docs/onvif-auth-injection-design.md");
 console.log(`- fixture: ${path.relative(rootDir, authMatrixPath)}`);
 console.log(`- failures: ${failures}`);
+console.log("- scope: static documentation/source/fixture contract; actual auth/network/UI not-run");
 if (failures > 0) process.exit(1);
 
 function check(name, fn) {

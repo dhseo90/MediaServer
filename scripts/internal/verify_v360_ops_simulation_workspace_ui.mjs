@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 7 Ops Simulation Workspace UI 구현, 문서, inventory 연결을 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops dashboard renders an Ops-only simulation workspace UI shell
   - the renderer loads simulation input pack, simulation run, impact diff, and readiness blocker read models
   - the workspace keeps simulation/operator material out of client/viewer scripts
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -40,23 +41,23 @@ const impactDiffRoute = "/ops/api/live-operations/simulation/impact-diff";
 const readinessRoute = "/ops/api/live-operations/simulation/safe-apply-readiness";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("/ops dashboard declares the v3.6 simulation workspace UI shell", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "ops-simulation-workspace",
     "data-testid=\"ops-simulation-workspace\"",
@@ -75,7 +76,7 @@ check("/ops dashboard declares the v3.6 simulation workspace UI shell", () => {
     assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace").includes(marker)), "UI-088 no-write explicit absence oracle");
     assert(!["send(","sendClientNotice","deliveryQueueWritePerformed: true"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace").includes(marker)), "UI-088 no-send explicit absence oracle");
     assertIncludes(files.uiScript, "/ops/dashboard", "UI-088 canonical route obligation");
-    assertIncludes(files.server, "media-server.ops.v360-simulation-workspace-ui.v1", "UI-088 canonical schema obligation");
+    assertIncludes(files.pages, "media-server.ops.v360-simulation-workspace-ui.v1", "UI-088 canonical schema obligation");
   }
 });
 
@@ -165,53 +166,16 @@ check("client/viewer scripts do not expose simulation operator material", () => 
   }
 });
 
-check("roadmap records v3.6 Step 7 without overclaiming UI fulltest or longrun", () => {
-  for (const snippet of [
-    "| 7 | v3.6.0 (7) Ops Simulation Workspace UI | P1 | 완료 |",
-    "## v3.6.0 Step 7 개발 기록",
-    "AppendOpsDashboardPage",
-    "renderV360OpsSimulationWorkspace",
-    "ops-simulation-workspace",
-    inputPackRoute,
-    readinessRoute,
-    `\`./server.sh ${command}\``,
-    "Simulation Run Ledger and Comparison 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 7");
-  }
-});
-
-check("stream verification exposes v3.6 Step 7 command and boundary", () => {
-  for (const snippet of [
-    `| v3.6.0 (7) | \`./server.sh ${command}\` | Ops Simulation Workspace UI.`,
-    "/ops",
-    "simulation input, run, impact diff, readiness blocker",
-    "source URL/raw locator/raw JSON/debug/credential material",
-    "UI 풀테스트 직접 조작",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 7");
-  }
-});
-
-check("feature inventory and release records map v3.6 Step 7", () => {
-  for (const snippet of [
-    `v3.6.0 (7) Ops Simulation Workspace UI | \`UI-088\`, \`SAFE-154\`, \`OPS-121\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-088 | V360 Step 7 Ops Simulation Workspace UI",
-    "SAFE-154 | V360 Step 7 simulation workspace UI boundary",
-    "OPS-121 | V360 Step 7 Ops Simulation Workspace UI 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 7");
-  }
-  for (const snippet of [
-    "V360 Ops Simulation Workspace UI",
-    `\`./server.sh ${command}\``,
-    "v360 Step 7 RED ops simulation workspace UI gate",
-    "v360 Step 7 ops simulation workspace UI final",
-    "v360 Step 7 UI 풀테스트",
-    "v360 Step 7 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 7");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-088","SAFE-154","OPS-121"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v360-simulation-workspace-ui.v1"],
+    command, script: "verify_v360_ops_simulation_workspace_ui.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.6 Step 7 command", () => {

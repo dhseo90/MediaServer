@@ -9,8 +9,8 @@
 | 1 | 재산정 1번 실제 앱 시간·증거 계약 | 완료 | 제품 작업 30초·원본 대기·검증기 선택 참조/전체 페이지 30초를 분리, 과거 늦은 PASS를 유지하지 않음 | [계약](s11-current-app-time-and-evidence-contract.md) |
 | 2 | 2번 검증기 반례 | 완료 | 페이지 경계·첫 dispatch·독립 terminal/전체 페이지 81/81 뒤 O25의 분리 상한 83/83까지 확인 | [O25 결과](../lp26-o10-accumulation-20260923/o25-results.md) |
 | 3 | 3번 타임라인 지연 | 범위 한정 완료 | 요청 간 후보의 현재 원장 대조, 한정 앱 통과. O25 전체 통합에서 HTTP 최대 3.392초/4초; 전역 revision 후보 무효화의 비용은 별도 판정 필요 | [O25 원출력](../lp26-o10-accumulation-20260923/o25-current-integration-final.log.gz) |
-| 4 | 4번 누적 checkpoint·상태 HTTP | 단기 판정 완료·자원 미확정 | O24 합성 2,049개/8,196행 복구 12.098초/15초, 실제 1,024개·상태 HTTP 198건 최대 32ms/4초. 자동 checkpoint와 실제 HTTP의 최악 동시성, RSS 증가의 누수 여부는 이 결과만으로 확정하지 않음 | [O24 중앙 결과](../../../release-test-records.md) |
-| 5 | 5번 최종 집중·현행 5단계 통합 | 완료 | O25 최초 페이지 경계·작업 후순위 실패를 보완한 뒤 API35·인증40·수명10·기본46·실제 앱27개, 전체 exit0·정리 PASS | [O25 결과](../../../release-test-records.md#s11-o25-실행-결과와-실패-이력) |
+| 4 | 4번 누적 checkpoint·상태 HTTP | 단기 판정 완료·자원 미확정 | O24 합성 2,049개/8,196행 복구 12.098초/15초, 실제 1,024개·상태 HTTP 198건 최대 32ms/4초. 자동 checkpoint와 실제 HTTP의 최악 동시성, RSS 증가의 누수 여부는 이 결과만으로 확정하지 않음 | [O24 중앙 결과](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
+| 5 | 5번 최종 집중·현행 5단계 통합 | 완료 | O25 최초 페이지 경계·작업 후순위 실패를 보완한 뒤 API35·인증40·수명10·기본46·실제 앱27개, 전체 exit0·정리 PASS | [O25 결과](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
 | 6 | 분할 커밋·가능할 때 푸시 | 완료 | O24 기록·O25 페이지 경계·작업 순서·증거를 분할 커밋. 검증 뒤 `v4.1.0` 개발 브랜치를 origin에 푸시하고 clean/sync 확인. 릴리즈 실행은 별도 | Git 상태·AGENTS 5장 |
 | 7 | 외부 서비스·실기기 검증 제외 | 유지 | 실행하지 않았고 PASS로 세지 않음 | 사용자 명시 지시 |
 
@@ -21,7 +21,7 @@
 | 개발 기준 | `v4.1.0`, VERSION·CMake `4.1.0` | 세 값 일치 | Git·VERSION·CMakeLists.txt 직접 확인 |
 | 푸시 기준 | 승인 범위 검증·커밋·clean | 승인된 O24/O25 변경은 검증·커밋·푸시 완료, `v4.1.0...origin/v4.1.0` clean/sync. 릴리즈 게이트 충족 판정과는 별개 | `git status --short --branch`·AGENTS 5장 |
 | 로컬 릴리즈 태그 | 릴리즈 승인 뒤 서명 태그 | 로컬 `v4.1.0` 없음. 원격 태그·CI는 이번 조사에서 미확인 | `git tag --list`·AGENTS 4장 |
-| 시간·자원 제한 | HTTP 4초, 녹화 전용 120분 | O25 현행 HTTP 378건 최대 3,392ms로 단기 통과. O24 RSS 증가의 의미 미확정이며 녹화 120분 최종 PASS 없음 | [O25 결과](../lp26-o10-accumulation-20260923/o25-results.md)·[3차 실패](../../../release-test-records.md#lp26-o08-녹화-120분-재실행-실패) |
+| 시간·자원 제한 | HTTP 4초, 녹화 전용 120분 | O25 현행 HTTP 378건 최대 3,392ms로 단기 통과. O24 RSS 증가의 의미 미확정이며 녹화 120분 최종 PASS 없음 | [O25 결과](../lp26-o10-accumulation-20260923/o25-results.md)·[3차 실패](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
 
 ## 로드맵 대조
 
@@ -29,16 +29,16 @@
 | --- | --- | --- | --- | --- |
 | S09 | 종료·S10/S11로 대체 | 과거 실패·유효 수정 보존 | 없음 | [로드맵](../../../v410-v49-recording-search-roadmap.md) |
 | S10 | 구현·코드 고정·PREP 완료 기록 | S11에서 journal·상태 응답·타임라인·이벤트 작업 순서까지 제품 변경. 최종 소스 증거 재결속 필요 | 릴리즈 소스 재고정 필요 | 로드맵·O24/O25 결과 |
-| S11 | 단기·30분·기본 UI 부분 완료, 녹화 120분·새 UI 잔여 | O14/O16/O18 실패는 보존. O25 현행 5단계 단기 통합은 PASS, 자원 추세·최종 증거 승계·녹화 UI/120분은 남음 | 전체 완료 아님 | [O25 결과](../../../release-test-records.md#s11-o25-실행-결과와-실패-이력)·[LP31 UI](lp31-ui-final-items.md) |
+| S11 | 단기·30분·기본 UI 부분 완료, 녹화 120분·새 UI 잔여 | O14/O16/O18 실패는 보존. O25 현행 5단계 단기 통합은 PASS, 자원 추세·최종 증거 승계·녹화 UI/120분은 남음 | 전체 완료 아님 | [O25 결과](../../../history/README.md#중앙-기록과-backlog-종료-본문)·[LP31 UI](lp31-ui-final-items.md) |
 | v4.2.0 이후 검색 | 장기 방향만 확정 | v4.1.0 릴리즈 게이트 아님 | 없음 | 로드맵·사용자 범위 |
 
 ## 실제 구현·검증 연결
 
 | 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
 | --- | --- | --- | --- |
-| 장시간 실패 요청 | `webrtc_http_server_runtime.cpp`의 `GET /ops/api/recordings/status`, `RecordingApplicationService::Status` | 3차 녹화 120분의 4초 시간초과 지점. O24 현행 1,024개·198건 최대 32ms, 관측 최대 간격 11.052초이나 자동 checkpoint와 동시 겹침의 일반 보증 및 120분 자원 판정은 아님 | [O24 중앙 결과](../../../release-test-records.md) |
+| 장시간 실패 요청 | `webrtc_http_server_runtime.cpp`의 `GET /ops/api/recordings/status`, `RecordingApplicationService::Status` | 3차 녹화 120분의 4초 시간초과 지점. O24 현행 1,024개·198건 최대 32ms, 관측 최대 간격 11.052초이나 자동 checkpoint와 동시 겹침의 일반 보증 및 120분 자원 판정은 아님 | [O24 중앙 결과](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
 | 이번 실제 HTTP | 같은 runtime의 `/ops/api/recordings/timeline`, `verify_recording_current_app.mjs` | O25 두 기동·HTTP 378건 전체 최대 3.392초/4초. 전역 revision 후보 무효화의 요청 간 비용이 관측됐으나 단독 인과는 미확정. **status 장시간 자원 결과로 승격하지 않음** | [O25 원출력](../lp26-o10-accumulation-20260923/o25-current-integration-final.log.gz) |
-| 누적 저장 | `RecordingCatalog::PutObservationV2`, checkpoint·재개방 probe | O24 2,049개/8,196행 자동 checkpoint·엄격 복구 12.098초/15초, 수동 checkpoint catalog 잠금 약 7.16초. 해당 잠금을 실제 HTTP 4초 시간초과로 오인하지 않으며 동시성 위험은 별도 | [O24 중앙 결과](../../../release-test-records.md) |
+| 누적 저장 | `RecordingCatalog::PutObservationV2`, checkpoint·재개방 probe | O24 2,049개/8,196행 자동 checkpoint·엄격 복구 12.098초/15초, 수동 checkpoint catalog 잠금 약 7.16초. 해당 잠금을 실제 HTTP 4초 시간초과로 오인하지 않으며 동시성 위험은 별도 | [O24 중앙 결과](../../../history/README.md#중앙-기록과-backlog-종료-본문) |
 | 현행 통합 | `./server.sh verify-v410-recording-foundation --current-integration`, `verify_recording_current_app.mjs` | O25 전체 5단계 158개 검사 exit0·두 기동 각각 완전 출력2개·HTTP/파일 해시·재시작 보존·정리. 최초 페이지·작업 대기 FAIL은 이력 보존 | [O25 개별 결과](../lp26-o10-accumulation-20260923/o25-results.md) |
 | 녹화 화면 | `/ops/events` 및 I27~I34, Policy v4 | 이전 31조작 중 1건 실패 뒤 관련 MP4 브라우저 재생만 범위 한정 통과. 전체 31조작·시각/trace 적격은 미완료 | [수정 전 UI](../s11-recording-ui-20260923/README.md)·[I30 재검증](../s11-recording-ui-20260923/i30-mp4-revalidation.md) |
 
@@ -60,7 +60,7 @@
 | 안정화 | 진행 대상 | O25 build·집중 83/83·이벤트 통합·현행 5단계 158개 검사 PASS. O24 누적 관측 PASS는 장시간 자원 판정과 분리 | [O25 결과](../lp26-o10-accumulation-20260923/o25-results.md), roadmap S11 | 이번 영향 단기 완료, 릴리즈 전체 안정화 미완료 |
 | 30분 | 조건부 진행 | 이전 20회·109 PASS·0 FAIL 증거 있음. 이후 상태·타임라인·이벤트 작업 변경 diff와 source/환경을 비교해 유지·부분/전체 무효 판정 필요 | [30분 요약](../s11-recording-ui-20260923/predev-30-summary.json) | 과거 실행 완료, 현재 코드 승계 미판정 |
 | 공통 120분 | 조건부 진행 | 첫 무음 H.264 실패 뒤 80회·409 PASS·0 FAIL. 최종 diff와 원인 미확정 영향 대조 필요 | [공통 120분](../s11-recording-ui-20260923/common-120-pass.md) | 과거 실행 완료, 녹화 전용으로 대체 불가 |
-| 녹화 전용 120분 | 진행 대상 | 1차 root 상한, 2차 native 관측, 3차 status HTTP 4초 실패. O24/O25 단기로는 메모리·디스크 추세까지 포함한 120분 PASS 없음 | [1차](../s11-recording-ui-20260923/recording-120-attempt1.md)·[2/3차 중앙 기록](../../../release-test-records.md#lp26-o08-녹화-120분-재실행-실패) | 과거 승인·실행 이력. 이번 요청에서 재실행하지 않음 |
+| 녹화 전용 120분 | 진행 대상 | 1차 root 상한, 2차 native 관측, 3차 status HTTP 4초 실패. O24/O25 단기로는 메모리·디스크 추세까지 포함한 120분 PASS 없음 | [1차](../s11-recording-ui-20260923/recording-120-attempt1.md)·[2/3차 중앙 기록](../../../history/README.md#중앙-기록과-backlog-종료-본문) | 과거 승인·실행 이력. 이번 요청에서 재실행하지 않음 |
 | UI 풀테스트 | 진행 대상 | 기본 424/424·시각80 적격과 녹화 I27~I34/31조작은 별개. 최신 이벤트 렌더 순서가 재생·탐색에 주는 영향 판정 필요 | [LP31 UI](lp31-ui-final-items.md)·[수정 전 녹화 UI](../s11-recording-ui-20260923/README.md) | 과거 실제 실행 이력. 영향받는 새 녹화 전수는 이번 요청에서 미실행 |
 | 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | 사용자 지시·AGENTS 4.1 | 제외, PASS 아님 |
 

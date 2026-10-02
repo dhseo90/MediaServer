@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S01 VLM runtime opt-in contract fixture, 서버 validation, 문서 wiring을 검증한다.
 
@@ -128,41 +129,34 @@ check("existing external event and metadata paths do not expose runtimeContract"
 });
 
 check("docs, inventory, server command, and auth smoke are wired", () => {
-  const docs = [
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/README.md"),
-    readText("docs/vlm-profile-storage.md"),
-    readText("docs/vlm-runtime-opt-in-contract.md"),
-  ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   const authWorkflow = readText("scripts/internal/verify_auth_workflow.sh");
   const profileVerifier = readText("scripts/internal/verify_vlm_profile_storage.mjs");
-  for (const snippet of [
-    "V210-S01",
-    "VLM runtime opt-in contract",
-    "media-server.vlm-runtime-opt-in-contract.v1",
-    "verify-vlm-runtime-opt-in-contract",
-    "disabled",
-    "local-runtime",
-    "cloud-provider",
-    "missing-model",
-    "invalid-output",
-    "timeout",
-    "defaultEnabled=false",
-  ]) {
-    assert(docs.includes(snippet), `docs missing runtime contract snippet: ${snippet}`);
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-runtime-opt-in-contract.md"),
+    identifiers: ["media-server.vlm-runtime-opt-in-contract.v1","disabled","local-runtime","cloud-provider","missing-model","invalid-output","timeout","defaultEnabled"],
+    command: "verify-vlm-runtime-opt-in-contract", script: "verify_vlm_runtime_opt_in_contract.mjs",
+    featureIds: ["SAFE-025"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 실행 명령 결속이며 이 정적 검사로 인증·HTTP·규칙 실행을 대신하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SAFE-025","verify-auth-routes","scripts/internal/verify_auth_workflow.sh"]]) {
+    const rows = currentInventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = currentImplementation.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 실행 연결 불일치");
   }
   assert(serverSh.includes("verify-vlm-runtime-opt-in-contract"), "server.sh missing runtime contract verifier command");
   assert(serverSh.includes("verify_vlm_runtime_opt_in_contract.mjs"), "server.sh missing runtime contract verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_runtime_opt_in_contract.mjs"), "script inventory missing runtime contract verifier");
   assert(coverage.includes("validateImplementationManifest"), "feature inventory coverage must validate implementation manifest");
   const safe025 = (implementationManifest.items || []).find(item => item.id === "SAFE-025");
-  assert(safe025?.verifierEvidence?.command === "verify-vlm-runtime-opt-in-contract",
+  assert(safe025?.verifierEvidence?.command === "verify-auth-routes",
     "SAFE-025 implementation manifest missing runtime contract verifier command");
   assert(authWorkflow.includes("media-server.vlm-runtime-opt-in-contract.v1"), "auth workflow missing runtime contract profile payload");
   assert(profileVerifier.includes("media-server.vlm-runtime-opt-in-contract.v1"), "profile storage verifier missing runtime contract check");
@@ -183,6 +177,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM runtime opt-in contract summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

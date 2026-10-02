@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 14 Field Connector Evidence Package 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/actions/field-connector-evidence-package exposes an Ops-only read model for ONVIF, external WHEP/TURN, and cloud provider evidence conditions
   - connector evidence remains conditional/not-run and never performs field smoke, endpoint probes, credential probes, provider calls, source/view writes, action writes, or media changes
   - /ops action control workspace renders connector package refs, credential/endpoint approval gates, and not-run boundary text without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -46,16 +47,15 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("MEDIA-026 exact product connector package preserves external WHEP/TURN no-execution", () => {
@@ -320,45 +320,22 @@ check("client/viewer scripts do not receive v3.8 Field Connector Evidence Packag
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.8 Step 14", () => {
-  for (const snippet of [
-    "| 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 완료 |",
-    "## v3.8.0 Step 14 개발 기록",
-    route,
-    "OpsV380FieldConnectorEvidencePackageJson",
-    `\`./server.sh ${command}\``,
-    "Default-off Action Explanation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 14");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-106","SRC-063","MEDIA-026","LAB-121","SAFE-193","OPS-160"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/actions/field-connector-evidence-package"],
+    command, script: "verify_v380_field_connector_evidence_package.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-063","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = documentationImplementation.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.8.0 (14) | \`./server.sh ${command}\` | Field Connector Evidence Package.`,
-    "ONVIF, external WHEP/TURN, cloud provider 조건",
-    "credential/endpoint 승인 기반 field evidence",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.8 Step 14");
-  }
-  for (const snippet of [
-    `v3.8.0 (14) Field Connector Evidence Package | \`UI-106\`, \`SRC-063\`, \`MEDIA-026\`, \`LAB-121\`, \`SAFE-193\`, \`OPS-160\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-106 | V380 Step 14 Field Connector Evidence Package UI",
-    "SRC-063 | V380 Step 14 ONVIF field connector evidence refs",
-    "MEDIA-026 | V380 Step 14 external WHEP/TURN connector evidence",
-    "LAB-121 | V380 Step 14 Field Connector Evidence Package harness",
-    "SAFE-193 | V380 Step 14 Field Connector Evidence Package boundary",
-    "OPS-160 | V380 Step 14 Field Connector Evidence Package 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.8 Step 14");
-  }
-  for (const snippet of [
-    "V380 Field Connector Evidence Package",
-    `\`./server.sh ${command}\``,
-    "v380 Step 14 RED Field Connector Evidence Package gate",
-    "v380 Step 14 Field Connector Evidence Package final",
-    "v380 Step 14 UI 풀테스트",
-    "v380 Step 14 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.8 Step 14");
-  }
+
 });
 
 check("server entrypoint and inventory verifiers include v3.8 Step 14 command", () => {

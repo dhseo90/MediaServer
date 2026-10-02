@@ -2,58 +2,38 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release Target](https://img.shields.io/badge/release%20target-v4.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
-![Source Version](https://img.shields.io/badge/source-4.1.0-informational)
+![Source Version](https://img.shields.io/badge/source-4.1.1-informational)
 
-RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
-overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
+RTSP/WebRTC 영상 중계, YOLO/ONNX 영상 분석, 상시·이벤트 녹화를 제공하는
+macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분석 룰을 관리하고,
+라이브 영상과 저장된 녹화 영상을 확인할 수 있습니다.
 
-현재 release target v4.1.0은 **상시·이벤트 녹화, 순환 보존, 타임라인·재생 기반**을
-v4.0.0의 live source/VA 경계 위에 추가합니다. S11 제품 검증과 B14 공개 준비는 완료했으며,
-PR·병합·서명 tag·GitHub Release·published 검증 같은 외부 상태는 실제 실행 기록에서만 판정합니다.
-이 범위는 VMS/NVR 완성 제품·자연어 영상 검색·runtime/model bundle 배포를 뜻하지 않습니다.
+[English](README.en.md) · [문서](docs/README.md) ·
+[최신 릴리즈](https://github.com/dhseo90/MediaServer/releases/latest) ·
+[v4.1.1 릴리즈 후보 변경 사항](docs/release-notes-v4.1.1.md)
 
-- English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
-- 전체 문서 색인: [docs/README.md](docs/README.md)
-- Live GitHub Latest: [Releases/latest](https://github.com/dhseo90/MediaServer/releases/latest)
-- 현재 release target: [v4.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0)
-- 현재 소스 버전: `4.1.0`
-- 현재 source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 상태: S01~S08 구현, S10 보강, S11 제품 검증과 B14 공개 준비 완료. 외부 release action은 실제 기록에서 별도 판정
-- 직전 공개 baseline: v4.0.0 Local Operations Policy and Stabilization
-- 이전 공개 baseline: v3.9.1 Release Correctness and Public Repository Hygiene
+현재 소스는 v4.1.1 릴리즈 후보입니다. 기록된 공개 버전은 v4.1.0이며,
+현재 공개 상태는 위 최신 릴리즈 링크에서 확인하세요.
 
-## 한눈에 보기
+## 주요 기능
 
-- **Live relay**: file, RTSP pull, WHEP pull, WHIP publish, HTTP/HLS source를 RTSP와
-  WebRTC/WHEP 출력으로 중계합니다.
-- **제품 UI**: `/ops`는 운영자 콘솔, `/client`는 viewer용 라이브 화면입니다. `/lab/analysis/*`
-  는 제품 화면이 아니라 검증/연동 API입니다.
-- **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario,
-  live Event POST, runtime metadata를 제공합니다.
-- **Incident memory**: 현재 소스 트리는 EventRecord, audit, source health, alert dry-run을
-  `/ops/events` 검색, timeline, 설명, 유사 사건 lookup으로 정리합니다.
-- **녹화**: 채널별 opt-in 상시·이벤트 녹화, 설정 용량의 순환 보존, 이벤트 우선
-  타임라인과 권한에 따른 녹화 재생을 제공합니다.
-- **제외 범위**: 완성형 VMS/NVR, 무기한 아카이브 운영 보장, broad archive search, VLM default-on,
-  model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
+- 영상 중계: 파일, RTSP, WHEP, WHIP, HTTP/HLS 입력을 RTSP와 WebRTC/WHEP로 제공합니다.
+- 영상 분석: 객체 검출 오버레이, 저장 룰·시나리오, 이벤트 전송과 분석 메타데이터를 지원합니다.
+- 녹화: 채널별 상시녹화와 이벤트 연동 녹화, 용량 제한에 따른 순환 보존,
+  이벤트 우선 타임라인과 녹화 재생을 지원합니다.
+- 운영 화면: `/ops`에서 채널·룰·사용자·진단을 관리하고,
+  `/client`에서 권한이 부여된 라이브 영상을 봅니다.
+- 이벤트 조회: `/ops/events`에서 이벤트 기록·사건 타임라인과 녹화를 조회합니다.
 
-## 실행 환경
-
-| 구분 | 기준 |
-| --- | --- |
-| OS | macOS 또는 Linux |
-| 언어/빌드 | C++17, CMake 3.16+ |
-| 미디어 런타임 | GStreamer 1.28+, gst-rtsp-server, WebRTC 관련 GStreamer plugin |
-| 선택 AI | ONNX Runtime, YOLO ONNX model, label file |
-| 보조 도구 | Node.js, Python 3, ffmpeg/ffprobe, curl |
-| 기본 route/file root | RTSP route `dhseo`, file root `video/` |
-
-기본 인증 모드는 `MEDIA_SERVER_AUTH_MODE=auto`입니다.
-users file 또는 `admin.passwordHash`가 없으면 첫 접속 시 `/setup`으로 이동해
-관리자 비밀번호를 직접 설정합니다. 제품 기본 admin 비밀번호는 없습니다.
+자연어로 녹화 영상을 찾는 검색은 [후속 로드맵](docs/v410-v49-recording-search-roadmap.md)입니다.
+현재 버전은 완성형 VMS/NVR이나 무기한 영상 보관을 보장하지 않습니다.
+기본 배포는 소스만 제공하며 AI 모델·미디어 런타임 바이너리는 포함하지 않습니다.
 
 ## 빠른 시작
+
+macOS 또는 Linux에서 C++17 컴파일러, CMake 3.16+, GStreamer 1.28+를 사용합니다.
+영상 분석에는 ONNX Runtime과 YOLO ONNX 모델·라벨이 필요합니다.
+플랫폼별 의존성·선택 기능은 [설치 및 개발 가이드](docs/development-guide.md)를 확인하세요.
 
 ```bash
 ./server.sh install
@@ -63,170 +43,72 @@ users file 또는 `admin.passwordHash`가 없으면 첫 접속 시 `/setup`으�
 ./server.sh urls
 ```
 
-종료:
+브라우저에서 `http://127.0.0.1:8080/`에 접속합니다.
+포트를 변경했다면 `./server.sh urls`에 표시된 주소를 사용하세요.
+기본 인증 모드는 `auto`이며, 첫 실행 시 `/setup`에서 관리자 비밀번호를 설정합니다.
+기본 관리자 비밀번호는 없습니다.
 
-```bash
-./server.sh stop
-```
+종료는 `./server.sh stop`, 개발 중 포그라운드 실행은 `./server.sh foreground`를 사용합니다.
 
-개발 중 로그를 바로 보려면:
+## 녹화 설정부터 재생까지
 
-```bash
-./server.sh foreground
-```
+1. 녹화 켜기: 서버에 `MEDIA_SERVER_RECORDING_ENABLED=1`을 설정하고,
+   운영 채널의 녹화도 활성화합니다. 채널 자체가 비활성 상태이면 녹화하지 않습니다.
+   저장 경로·용량·보존 기간은 [녹화 설정](docs/config-reference.md#recording-env)을 참고하세요.
+2. 저장 상태 확인: `/ops/events`의 녹화 영역에서 채널별 녹화 상태,
+   상시·이벤트 사용량과 저장 공간 차단 여부를 확인합니다.
+   두 종류의 보존 용량은 분리되며, 한도를 넘으면 보호되지 않은 오래된 자료부터 정리합니다.
+   pin/hold 등으로 삭제할 수 없거나 디스크 여유가 부족하면 저장이 차단될 수 있습니다.
+3. 타임라인 조회: 채널과 시작·종료 시간을 선택합니다.
+   같은 원본의 겹치는 구간이 확인되면 이벤트 녹화를 우선 보여 줍니다.
+   부분 녹화나 시각 미확인 자료는 완전한 녹화와 구분하며 원본 보기도 제공합니다.
+4. 영상 재생: 항목을 선택한 뒤 재생·일시정지·탐색 컨트롤을 사용합니다.
+   재생은 파일 시작부터이며, 시간 선택에 따른 자동 탐색이나 다음 파일 자동 재생은 하지 않습니다.
+   브라우저가 해당 영상 형식을 지원해야 합니다.
 
-설치/빌드/디버깅 상세는 [docs/development-guide.md](docs/development-guide.md)를 봅니다.
+이벤트 연동과 화면별 상세 설명은 [녹화 조회·재생 가이드](docs/ui-guide.md#녹화-조회와-재생-v410-s06)를,
+API와 권한은 [녹화 API](docs/config-reference.md#녹화-조회재생-api-v410-s06)를 참고하세요.
 
-브라우저 접속:
+## 권한
 
-```text
-http://127.0.0.1:8080/
-```
+- `admin`: 채널·룰·사용자·진단 관리. 사용자 관리는 admin 전용입니다.
+- `operator`: 채널·룰·진단 운영. 사용자 관리 화면에는 접근하지 않습니다.
+- `viewer`: 할당된 클라이언트 화면만 사용합니다. 원본 source URL과 내부 진단 자료는 노출하지 않습니다.
+- `integrator`: 허용된 범위의 API 연동에 사용합니다.
 
-다른 포트로 실행한 경우에는 `./server.sh status`의 HTTP 주소를 사용합니다.
+녹화 조회와 재생에도 역할·채널 권한을 적용합니다.
+자세한 화면과 권한은 [UI 가이드](docs/ui-guide.md)에서 확인할 수 있습니다.
 
-## Sample/Asset 범위
+## 화면 미리보기
 
-추적되는 `video/*.mp4`와 allowlist된 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는
-검증 재현을 위해 생성한 sample fixture입니다. 운영/고객 영상, evidence media, YOLO model binary,
-FFmpeg/GStreamer runtime binary는 public repo 또는 기본 release asset에 포함하지 않습니다.
-fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md)에 기록합니다.
-
-## 문서 길잡이
-
-README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내부 검증 기록은 전용 문서로
-분리합니다.
-
-- 전체 색인: [docs/README.md](docs/README.md)
-- 설치/빌드/실행: [docs/development-guide.md](docs/development-guide.md)
-- 운영자/클라이언트 UI: [docs/ui-guide.md](docs/ui-guide.md)
-- RTSP/WebRTC/VA 구조: [docs/media-server-architecture.md](docs/media-server-architecture.md)
-- 영상 분석과 scenario: [docs/video-analysis.md](docs/video-analysis.md)
-- 검증 명령: [docs/stream-verification.md](docs/stream-verification.md)
-- release/version 기준: [docs/release-policy.md](docs/release-policy.md),
-  [docs/versioning-policy.md](docs/versioning-policy.md)
-- release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- 현재 release note source: [v4.1.0](docs/release-notes-v4.1.0.md)
-
-## 대표 UI 미리보기
-
-README에는 대표 제품 화면만 둡니다. 2026-08-31에 source `4.0.0` / published `v3.9.1`
-기준으로 v3.8.0 구도를 참고해 다시 캡처했으며 표·영상 viewport·control·카드가 잘리지
-않습니다. 상세 UI는 [docs/ui-guide.md](docs/ui-guide.md)와
-[docs/assets/ui/README.md](docs/assets/ui/README.md)를 봅니다. 이 이미지는 문서용
-미리보기이며 UI 풀테스트나 GitHub Release 증거가 아닙니다.
-
-**Ops Home**
+운영 홈
 
 ![운영 홈](docs/assets/ui/ops-home.png)
 
-**운영 채널 관리**
-
-![운영 채널 관리](docs/assets/ui/ops-channels.png)
-
-**운영 룰 관리**
-
-설정 유형 선택과 룰 목록 영역입니다. 긴 편집 페이지 전체를 축소한 이미지가 아닙니다.
-
-![운영 룰 관리](docs/assets/ui/ops-rules.png)
-
-**룰 영상/영역 편집**
-
-![룰 영상/영역 편집](docs/assets/ui/ops-rules-preview.png)
-
-**운영 사용자 관리**
-
-사용자 목록 카드 전체입니다. 초대·상세 편집은 UI 가이드를 참고하세요.
-
-![운영 사용자 관리](docs/assets/ui/ops-users.png)
-
-**클라이언트 라이브**
-
-영상 작업 영역과 도구 모음입니다. 전체 4신 영상·VA 오버레이·재생 제어를 담고,
-별도의 탐색 도크는 이 구도에 포함하지 않았습니다.
+클라이언트 라이브와 영상 분석 오버레이
 
 ![클라이언트 라이브](docs/assets/ui/client-live.png)
 
-채널 화면에서는 아래 두 입력을 분리해 설명합니다.
+채널·룰·사용자 화면은 [UI 가이드](docs/ui-guide.md)를 참고하세요.
 
-- `외부 WHEP pull`: 외부 playback endpoint를 서버 pull source로 등록
-- `Published WebRTC 소스`: 외부 URL이 아니라 내부 `/whip/publish`로 먼저 등록된 `sourceId` 연결
+## 문서와 개발
 
-## 전체 Pipeline
+| 목적 | 안내 |
+| --- | --- |
+| 설치·빌드·실행 | [개발 가이드](docs/development-guide.md) |
+| 운영·설정 | [UI 가이드](docs/ui-guide.md), [설정 참조](docs/config-reference.md) |
+| 구조·분석 | [서버 구조](docs/media-server-architecture.md), [영상 분석](docs/video-analysis.md) |
+| 검증·기여 | [검증 명령](docs/stream-verification.md), [기여 안내](CONTRIBUTING.md) |
+| 향후 개발 | [녹화·검색 로드맵](docs/v410-v49-recording-search-roadmap.md), [미완료 작업](docs/development-backlog.md) |
+| 전체 문서 | [분야별 색인](docs/README.md) |
 
-```text
-File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
-        -> Media Server
-        -> RTSP Output / WebRTC Output
-        -> optional VA 오버레이 / 룰 이벤트 / 시나리오 이벤트 / 런타임 메타데이터
-```
-
-VA 내부 흐름:
-
-```text
-YOLO Detection
-  -> Direction-Based Tracker
-  -> TrackStateManager
-  -> SceneContextBuilder
-  -> RuleEventEngine / ScenarioEngine
-  -> EventManager
-  -> Overlay / Runtime Metadata / Event POST / EventRecord
-```
-
-## 계정별 화면
-
-- 최초 실행 또는 계정 저장소가 비어 있으면 관리자 비밀번호 설정 화면으로 이동합니다.
-- `admin`은 운영 화면에서 채널, 룰, 사용자, 대시보드 진단을 봅니다. 사용자 관리는 admin 전용입니다.
-- `operator`는 운영 화면에서 채널, 룰, 대시보드 진단을 보지만 사용자 관리 화면에는 접근하지 않습니다.
-- `viewer`는 할당된 클라이언트 화면만 봅니다. 원본 source URL, 내부 진단 JSON, rule/profile editor는 노출하지 않습니다.
-- `integrator`는 화면 사용보다 scoped API 연동을 기준으로 합니다.
-
-세부 화면 구조와 권한 경계는 [docs/ui-guide.md](docs/ui-guide.md)에서 관리합니다.
-
-## 테스트 요약
-
-가장 넓은 기본 회귀:
-
-```bash
-./server.sh test
-```
-
-문서나 release metadata만 바꾼 경우에는 빠른 검증을 우선합니다.
-
-```bash
-git diff --check
-./server.sh verify-release-metadata
-./server.sh verify-docs-links
-```
-
-GitHub Release publish 직후에는 GitHub Latest Release와 원격 tag까지 확인하는
-`./server.sh verify-release-metadata --published`를 실행합니다.
-
-release 전 로컬 기준선:
-
-```bash
-./server.sh test --full
-```
-
-기능 개발 전후 안정화 묶음은 별도 명시 후 실행합니다.
-
-```bash
-./server.sh verify-predev --quick
-```
-
-UI/Auth/VA/장기 soak/부하 검증의 전체 명령과 실행 조건은
-[docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
-실장비 endpoint, 외부 credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
+저장소의 공개 샘플 영상은 검증용 생성 자료입니다.
+운영·고객 영상이나 인증정보를 저장소에 추가하지 마세요.
+샘플 출처는 [샘플 자료 안내](docs/sample-fixture-provenance.md)에 있습니다.
 
 ## 라이선스
 
-기본 기준:
-
-- 이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
-- Third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
-- 자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
-
-배포 전 확인:
-
-- 배포 bundle과 container image 정책은 [docs/distribution-policy.md](docs/distribution-policy.md)를 확인합니다.
-- 보안 제보와 기여 기준은 [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md)를 확인합니다.
+원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
+외부 의존성·모델의 별도 조건은 [NOTICE](NOTICE)와 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를,
+배포 범위는 [배포 정책](docs/distribution-policy.md)을 확인하세요.
+보안 제보는 [SECURITY.md](SECURITY.md)를 따릅니다.

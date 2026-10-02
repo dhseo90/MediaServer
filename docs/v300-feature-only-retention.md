@@ -72,8 +72,8 @@ Fixture:
 `verify-analysis-state`는 C++ smoke에서 feature revision store, raw prompt rejection,
 raw provider response rejection, reanalysis revision, previous revision 보존을 직접
 실행합니다.
-`verify-v300-feature-only-retention`은 fixture, module, docs, backlog, stream
-verification, feature inventory, release records, server dispatch 연결을 확인합니다.
+`verify-v300-feature-only-retention`은 fixture·제품 모듈·smoke 검사 소스와 빌드 연결을 정적으로 확인합니다.
+현행 계약 식별자·기능 정의·검증 안내·명령 실행 연결을 검사하며 과거 실행 기록의 존재나 완료 문구는 요구하지 않습니다.
 
 이 명령들의 PASS는 Search DSL, `/ops/events` UI, Retention/Pin/Cleanup lifecycle,
 UI 풀테스트, 30분/120분 longrun, published metadata 완료 evidence가 아닙니다.

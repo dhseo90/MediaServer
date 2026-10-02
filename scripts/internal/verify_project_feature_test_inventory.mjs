@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { validateS05Registration } from "./v410_s05_inventory.mjs";
+import { validateVerificationDocumentation } from "./documentation_contract_lib.mjs";
 import {
   loadImplementationManifest,
   validateImplementationManifest,
@@ -51,7 +52,6 @@ const fulltest = readText("docs/manual-ui-fulltest.md");
 const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
 const streamVerification = readText("docs/stream-verification.md");
-const releaseEvidence = readText("docs/release-evidence-index.md");
 const agents = readText("AGENTS.md");
 const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
 const seedFixtureText = readText(seedFixturePath);
@@ -1176,7 +1176,6 @@ check("manual UI docs reference inventory", () => {
     ["manual-ui-checklist.md", checklist],
     ["manual-ui-result-template.md", template],
     ["stream-verification.md", streamVerification],
-    ["release-evidence-index.md", releaseEvidence],
   ]) {
     requireText(text, "project-feature-test-inventory.md", `${label} missing inventory reference`);
   }
@@ -1209,17 +1208,9 @@ check("VA seed inventory commands select the latest published baseline explicitl
     "inventory seed apply boundary missing published baseline selection");
 });
 
-check("AGENTS requires individual future feature test rows", () => {
-  for (const phrase of [
-    "VA rule, scenario, tracker, Re-ID처럼 기능 축이 늘어나는 경우",
-    "각 event type, scenario type, line direction",
-    "tracker policy, Re-ID policy, invalid 조합",
-    "각각 독립 기능 ID/결과 행으로 추가한다.",
-    "기능별 테스트 결과 행의 판정값은 `PASS`와 `FAIL`만 쓴다.",
-    "`제외 기록`에만 남긴다.",
-  ]) {
-    requireText(agents, phrase, `AGENTS.md missing future feature test rule: ${phrase}`);
-  }
+check("AGENTS links current individual feature test definitions", () => {
+  const errors = validateVerificationDocumentation({agents, verification: streamVerification});
+  assert(errors.length === 0, errors.join('; '));
 });
 
 check("manual UI VA seed matrix covers required current release cases", () => {

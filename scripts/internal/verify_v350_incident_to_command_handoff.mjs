@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 4 Incident-to-Command Handoff 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops/api/events/reviews selected event detail includes an incident-to-command handoff
   - handoff links source cause, continuity drill candidate, and command plan draft references
   - the handoff is read-only and does not mutate source, view, rule, EventRecord, Ops audit, client, or media/schema contracts
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -39,13 +40,11 @@ const graphRoute = "/ops/api/live-operations/graph";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -206,52 +205,16 @@ check("Ops UI renderer has a stable handoff detail marker without client exposur
   assert(!block.includes("credentialMaterialExposed"), "UI must not render credential material markers as data");
 });
 
-check("roadmap records v3.5 Step 4 without overclaiming staging changes", () => {
-  for (const snippet of [
-    "| 4 | v3.5.0 (4) Incident-to-Command Handoff | P0 | 완료 |",
-    "/ops/events 사건 detail에서 source 원인, drill 후보, command plan 초안으로 이어지는 handoff",
-    "## v3.5.0 Step 4 개발 기록",
-    reviewRoute,
-    "OpsV350IncidentCommandHandoff",
-    "`./server.sh verify-v350-incident-to-command-handoff`",
-    "Staged Change Plan and Impact Preview 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 4");
-  }
-});
-
-check("stream verification exposes v3.5 Step 4 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (4) | \`./server.sh ${command}\` | Incident-to-Command Handoff.`,
-    reviewRoute,
-    "source 원인, continuity drill 후보, command plan 초안",
-    "selected detail handoff",
-    "source/view/rule/EventRecord/Ops audit/client/media mutation 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 4");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 4", () => {
-  for (const snippet of [
-    `v3.5.0 (4) Incident-to-Command Handoff | \`UI-080\`, \`EVT-075\`, \`SAFE-138\`, \`OPS-105\` | \`${command}\``,
-    "UI-080 | V350 Step 4 incident command handoff detail",
-    "EVT-075 | V350 Step 4 EventRecord to command handoff projection",
-    "SAFE-138 | V350 Step 4 handoff read-only boundary",
-    "OPS-105 | V350 Step 4 Incident-to-Command Handoff 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 4");
-  }
-  for (const snippet of [
-    "V350 Incident-to-Command Handoff",
-    `\`./server.sh ${command}\``,
-    "v350 Step 4 RED incident command handoff gate",
-    "v350 Step 4 incident command handoff final",
-    "v350 Step 4 UI 풀테스트",
-    "v350 Step 4 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 4");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-080","EVT-075","SAFE-138","OPS-105"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v350-incident-command-handoff.v1"],
+    command, script: "verify_v350_incident_to_command_handoff.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationEvidence,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 4 command", () => {
@@ -262,6 +225,7 @@ check("server entrypoint and inventory verifiers include v3.5 Step 4 command", (
     "UI-080",
     command,
     "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
+    'assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff"), "incidentCommandHandoff", "UI-080 block-scoped canonical product state");',
   );
   for (const id of ["UI-080", "EVT-075", "SAFE-138", "OPS-105"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
@@ -332,14 +296,16 @@ function readJson(relativePath) {
   return JSON.parse(readText(relativePath));
 }
 
-function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile, expectedAnchor) {
   const item = manifest.items?.find(entry => entry.id === featureId);
   assert(item?.verifierEvidence?.command === expectedCommand,
     `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
   assert(item?.verifierEvidence?.file === expectedFile,
     `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
-  assert(item?.verifierEvidence?.anchor === featureId,
+  assert(item?.verifierEvidence?.anchorKind === "review4-independent-readback" && item?.verifierEvidence?.anchor === expectedAnchor,
     `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
+  assert(readText(expectedFile).split(/\r?\n/).filter(line => line.trim() === expectedAnchor).length === 1,
+    `${featureId} exact verifier assertion must exist at one location`);
 }
 
 function assert(condition, message) {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S07 VLM review action workflow의 Ops-only 저장/API/UI 경계를 검증한다.
 
@@ -28,6 +29,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 const fixture = readJson("test/fixtures/vlm_review_action_workflow/cases.json");
 const server = readWebRtcHttpServerBundle(readText);
+const pages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -93,7 +95,7 @@ check("Ops events UI renders and submits VLM action controls", () => {
     'data-vlm-review-action-workflow="ops-only-review-state"',
     "VLM 설명/action",
   ]) {
-    assertIncludes(server, snippet, "Ops events static markup");
+    assertIncludes(pages, snippet, "Ops events static markup");
   }
   for (const snippet of [
     "VLM_REVIEW_ACTIONS",
@@ -130,22 +132,16 @@ check("existing review verifiers cover action roundtrip and UI boundary", () => 
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-review-action-workflow.md"),
-    readText("docs/README.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
-  for (const snippet of [
-    "V210-S07",
-    "verify-vlm-review-action-workflow",
-    "media-server.ops.vlm-review-action-state.v1",
-    "accept",
-    "review-needed",
-    "client/viewer",
-  ]) {
-    assertIncludes(docs, snippet, `docs snippet ${snippet}`);
-  }
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-review-action-workflow.md"),
+    identifiers: ["media-server.ops.vlm-review-action-state.v1","accept","review-needed"],
+    command: "verify-vlm-review-action-workflow", script: "verify_vlm_review_action_workflow.mjs",
+    featureIds: ["LAB-060"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assertIncludes(serverSh, "verify-vlm-review-action-workflow", "server.sh");
   assertIncludes(serverSh, "verify_vlm_review_action_workflow.mjs", "server.sh");
   assertIncludes(scriptInventory, "verify_vlm_review_action_workflow.mjs", "script inventory");
@@ -190,6 +186,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM review action workflow summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

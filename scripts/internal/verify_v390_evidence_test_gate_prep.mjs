@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
+import { validateCurrentGateDocumentation, validateUiPolicyDocumentation, hasDocumentFieldValue } from "./documentation_contract_lib.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
@@ -44,14 +46,16 @@ const files = {
   stream: readText("docs/stream-verification.md"),
   projectInventory: readText("docs/project-feature-test-inventory.md"),
   featureInventory: readText("docs/v390-feature-completion-inventory.md"),
-  backlog: readText("docs/development-backlog.md"),
-  releaseRecords: readText("docs/release-test-records.md"),
-  releaseEvidence: readText("docs/release-evidence-index.md"),
   serverSh: readText("server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
 };
 
 const checks = [];
+
+check("현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)", () => {
+  const errors = validateCurrentGateDocumentation({read: readText, command, script: targetScript, featureIds: ["SAFE-199","SAFE-200","OPS-166","OPS-167"]});
+  assert(errors.length === 0, errors.join("; "));
+});
 
 check("UI one-shot wrapper writes explicit evidence status schema", () => {
   for (const snippet of [
@@ -71,16 +75,17 @@ check("UI one-shot wrapper writes explicit evidence status schema", () => {
 
 check("manual UI docs explain wrapper result schema boundaries", () => {
   for (const snippet of [
-    "v3.9.0부터 wrapper summary는 아래 필드를 반드시 포함합니다",
     "`wrapperResult`",
     "`resultScope`",
     "`uiFulltestEvidenceStatus`",
     "`manualResultStatus`",
     "`longrunStatus`",
-    "longrun 실행 evidence로 사용할 수 없습니다",
   ]) {
     assertIncludes(files.manualUi, snippet, "manual UI wrapper schema docs");
   }
+  assert(hasDocumentFieldValue(files.manualUi, 'resultScope', 'wrapper-only') &&
+    hasDocumentFieldValue(files.manualUi, 'longrunStatus', 'not-run-by-this-wrapper'),
+  'wrapper 결과 범위와 장시간 미실행 필드가 필요합니다');
 });
 
 check("feature coverage report uses covered/missing and not execution evidence", () => {
@@ -135,61 +140,12 @@ check("manual UI docs record free automation adapter criteria and failure fields
   const falsePassAccepted = !uiFulltestPassSeparated;
   assert(falsePassAccepted === false && uiFulltestPassSeparated,
     "automation-equivalent-pass criteria and uiFulltestPass must remain explicitly separated");
-  for (const snippet of [
-    "Playwright",
-    "Selenium",
-    "SikuliX",
-    "route",
-    "viewport",
-    "theme",
-    "account/role",
-    "expected result",
-    "actual result",
-    "screenshot",
-    "trace/video",
-    "browser console",
-    "server log reference",
-    "cleanup/port state",
-    "manual intervention",
-    "v3.9.0 AI-minimized UI automation adapter / Policy v4 기준",
-    "`OPS-169`, `SAFE-202`",
-  ]) {
-    assertIncludes(uiCriteria, snippet, "UI automation adapter criteria");
-  }
+  const errors = validateUiPolicyDocumentation({agents: readText('AGENTS.md'), fulltest: files.manualUi,
+    policy: JSON.parse(readText('test/fixtures/ui_fulltest_evidence_policy_v4.json'))});
+  assert(errors.length === 0, errors.join('; '));
 });
 
-check("v390 inventory and backlog close approved items without execution overclaim", () => {
-  for (const snippet of [
-    "| 7 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | 완료 |",
-    "| 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 완료 |",
-    "| 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 완료 |",
-    "| 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 완료 |",
-    "Evidence/Test Gate and Test Model Prep 개발 기록",
-    "Closed approved items: `V390-CAND-007`, `V390-CAND-008`, `V390-CLOSED-003`, `V390-CLOSED-004`",
-    "UI wrapper/result schema closeout is not UI 풀테스트 직접 조작 evidence",
-    "AI-minimized server longrun runner criteria are not 30분/120분 longrun execution evidence",
-  ]) {
-    assertIncludes(files.backlog + "\n" + files.featureInventory, snippet, "backlog/v390 inventory closeout");
-  }
-});
 
-check("release records and evidence index track the gate and not-run boundaries", () => {
-  for (const snippet of [
-    "V390 Evidence/Test Gate and Test Model Prep",
-    "v390 Evidence/Test Gate RED gate",
-    "v390 Evidence/Test Gate and Test Model Prep final",
-    "v390 Evidence/Test Gate companion static gates final",
-    "v390 30분 longrun",
-    "v390 120분 longrun",
-    "v390 UI 풀테스트",
-    "v3.9.0 Evidence/Test Gate and Test Model Prep",
-    command,
-    "OPS-166",
-    "SAFE-202",
-  ]) {
-    assertIncludes(files.releaseRecords + "\n" + files.releaseEvidence, snippet, "release records/evidence");
-  }
-});
 
 check("server dispatch and script inventory expose the gate", () => {
   for (const snippet of [

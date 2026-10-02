@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 12 Field Evidence Simulation Adapter 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/live-operations/simulation/field-evidence-adapter connects ONVIF, external WHEP/TURN, and cloud/VLM provider conditions to simulation evidence
   - adapter produces conditional/not-run evidence without field execution, endpoint probe, credential probe, media mutation, or provider call
   - /ops simulation workspace renders adapter items without raw endpoint, credential, provider, or VLM material
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -39,14 +40,12 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -246,43 +245,25 @@ check("Field Evidence Simulation Adapter styling and client redaction are in pla
   }
 });
 
-check("docs, inventory, and dispatch map v3.6 Step 12", () => {
-  for (const snippet of [
-    "| 12 | v3.6.0 (12) Field Evidence Simulation Adapter | P2 | 완료 |",
-    "## v3.6.0 Step 12 개발 기록",
-    route,
-    "OpsV360FieldEvidenceSimulationAdapterJson",
-    `\`./server.sh ${command}\``,
-    "VLM-assisted Simulation Explanation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 12");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-093","SRC-052","MEDIA-024","LAB-099","SAFE-159","OPS-126"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/field-evidence-adapter"],
+    command, script: "verify_v360_field_evidence_simulation_adapter.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-052","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationManifest.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.6.0 (12) | \`./server.sh ${command}\` | Field Evidence Simulation Adapter.`,
-    "ONVIF, external WHEP/TURN, cloud/VLM provider",
-    "조건부/not-run evidence",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 12");
-  }
-  for (const snippet of [
-    `v3.6.0 (12) Field Evidence Simulation Adapter | \`UI-093\`, \`SRC-052\`, \`MEDIA-024\`, \`LAB-099\`, \`SAFE-159\`, \`OPS-126\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-093 | V360 Step 12 Field Evidence Simulation Adapter UI",
-    "SRC-052 | V360 Step 12 ONVIF simulation field evidence adapter",
-    "MEDIA-024 | V360 Step 12 external WHEP/TURN simulation field evidence adapter",
-    "LAB-099 | V360 Step 12 cloud/VLM simulation field evidence adapter",
-    "SAFE-159 | V360 Step 12 field evidence simulation boundary",
-    "OPS-126 | V360 Step 12 Field Evidence Simulation Adapter 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 12");
-  }
-  for (const snippet of [
-    "V360 Field Evidence Simulation Adapter",
-    `\`./server.sh ${command}\``,
-    "v360 Step 12 RED field evidence simulation adapter gate",
-    "v360 Step 12 field evidence simulation adapter final",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 12");
-  }
+
+});
+
+check("현행 실행·등록 연결 1", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_field_evidence_simulation_adapter.mjs", "server.sh script dispatch");
   for (const id of ["UI-093", "SRC-052", "MEDIA-024", "LAB-099", "SAFE-159", "OPS-126"]) {
@@ -326,7 +307,9 @@ console.log("- step: v3.6.0 (12)");
 console.log(`- route: ${route}`);
 console.log("- adapter: ONVIF, external WHEP/TURN, cloud/VLM provider conditions as conditional/not-run simulation evidence");
 console.log("- writes: no field smoke, endpoint probe, credential probe, provider call, simulation execution, source/view/EventRecord/Ops audit/client/media mutation performed");
-console.log(`- pass: ${results.pass}`);
+console.log("- uiFulltest: not-run-by-this-command");
+  console.log("- longrun30Or120: not-run-by-this-command");
+  console.log(`- pass: ${results.pass}`);
 console.log(`- fail: ${results.fail}`);
 if (results.fail > 0) process.exit(1);
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.8.0 S04 Evidence Intake and Field Readiness와 redaction/field-smoke 경계를 검증한다.
 import { exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -14,27 +15,31 @@ const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const manualChecklist = readText("docs/manual-ui-checklist.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
-check("roadmap records V280-S04 as active/completed evidence intake field readiness work", () => {
-  assert(/\| 4 \| V280-S04 \| P1 \| (진행|완료) \| Evidence Intake and Field Readiness \|/.test(backlog),
-    "backlog V280-S04 row must be 진행 or 완료 while S04 is under development");
-  for (const snippet of [
-    "media-server.ops.evidence-intake-field-readiness.v1",
-    "redacted evidence/source health/field smoke precondition",
-    "passed/failed/blocked/not-run",
-    "field readiness panel",
-    "credential/endpoint required",
-    "release-safe evidence intake 기준",
-    "verify-v280-evidence-intake-field-readiness",
-  ]) {
-    assertIncludes(backlog, snippet, "V280-S04 backlog");
+const definitionIds = ["UI-057","SRC-032","EVT-057","LAB-081","SAFE-067"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.evidence-intake-field-readiness.v1"],
+    command: "verify-v280-evidence-intake-field-readiness", script: "verify_v280_evidence_intake_field_readiness.mjs",
+    featureIds: ["UI-057","EVT-057","LAB-081"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SRC-032","verify-ops-source-registry-api"],["SAFE-067","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -132,18 +137,7 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S04", ()
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness`",
-    "| UI-057 | `/ops/events` Evidence Intake and Field Readiness |",
-    "| SRC-032 | Evidence intake source health readiness |",
-    "| EVT-057 | Ops evidence intake field readiness view model |",
-    "| LAB-081 | V280-S04 evidence intake field readiness static guard |",
-    "| SAFE-067 | V280-S04 evidence intake field readiness boundary |",
-    "verify-v280-evidence-intake-field-readiness",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S04 row");
-  }
-  assertIncludes(manualChecklist, "| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` |", "manual UI checklist S04 row");
+  assert(manualChecklist.split(/\r?\n/).some(line => definitionIds.every(id => line.includes("`" + id + "`")) && line.includes("verify-v280-evidence-intake-field-readiness")), "manual UI checklist S04 row: 기능 ID·명령 연결 누락");
   for (const [id, expectedCommand] of Object.entries({
     "UI-057": "verify-v280-evidence-intake-field-readiness",
     "SRC-032": "verify-ops-source-registry-api",
@@ -178,7 +172,7 @@ check("S04 keeps forbidden field PASS, secret exposure, provider/schema/media si
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S04 snippet present: ${forbidden}`);
   }
 });
@@ -191,6 +185,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.8.0 S04 evidence intake field readiness 통과 ==");
 
 function readText(filePath) {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 11 Simulation Export Bundle 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/live-operations/simulation/export-bundle combines simulation input/output, readiness blocker, and handoff map refs
   - export bundle stays redacted, release-safe, read-only, ops-only, and no-store
   - /ops simulation workspace renders bundle and handoff entries without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -35,17 +36,16 @@ const schema = "media-server.ops.v360-simulation-export-bundle.v1";
 const route = "/ops/api/live-operations/simulation/export-bundle";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -78,7 +78,8 @@ check("Ops server builds the v3.6 Simulation Export Bundle model", () => {
 });
 
 check("simulation export bundle derives from simulation input/output, blocker, and handoff refs", () => {
-  const block = extractBlock(files.server, "struct OpsV360SimulationExportBundleItem", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV360SimulationExportBundleItem", "std::string OpsV360SimulationExportBundleJson(") +
+    extractCppFunctionBlock(files.server, "std::string OpsV360SimulationExportBundleJson(");
   for (const snippet of [
     "BuildV360SimulationInputPackItems",
     "BuildV360SimulationRunLedgerEntries",
@@ -101,7 +102,7 @@ check("simulation export bundle derives from simulation input/output, blocker, a
 });
 
 check("simulation export bundle boundary flags prevent writes, raw material, and media/schema changes", () => {
-  const block = extractBlock(files.server, "std::string OpsV360SimulationExportBundleJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SimulationExportBundleJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -178,7 +179,7 @@ check("Ops API exposes the simulation export bundle route as guarded no-store JS
 });
 
 check("/ops simulation workspace declares and renders Simulation Export Bundle", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "dashSimulationWorkspaceExportBundleList",
     "ops-simulation-export-bundle-list",
@@ -229,42 +230,19 @@ check("Simulation Export Bundle styling and client redaction are in place", () =
   }
 });
 
-check("docs, inventory, and dispatch map v3.6 Step 11", () => {
-  for (const snippet of [
-    "| 11 | v3.6.0 (11) Simulation Export Bundle | P1 | 완료 |",
-    "## v3.6.0 Step 11 개발 기록",
-    route,
-    "OpsV360SimulationExportBundleJson",
-    `\`./server.sh ${command}\``,
-    "Field Evidence Simulation Adapter 완료 evidence가 아닙니다",
-    "VLM-assisted Simulation Explanation 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.6 Step 11");
-  }
-  for (const snippet of [
-    `| v3.6.0 (11) | \`./server.sh ${command}\` | Simulation Export Bundle.`,
-    "simulation input/output, blocker, handoff map",
-    "redacted release-safe export bundle",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.6 Step 11");
-  }
-  for (const snippet of [
-    `v3.6.0 (11) Simulation Export Bundle | \`UI-092\`, \`LAB-098\`, \`SAFE-158\`, \`OPS-125\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-092 | V360 Step 11 Simulation Export Bundle UI",
-    "LAB-098 | V360 Step 11 simulation export bundle",
-    "SAFE-158 | V360 Step 11 simulation export boundary",
-    "OPS-125 | V360 Step 11 Simulation Export Bundle 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 11");
-  }
-  for (const snippet of [
-    "V360 Simulation Export Bundle",
-    `\`./server.sh ${command}\``,
-    "v360 Step 11 RED simulation export bundle gate",
-    "v360 Step 11 simulation export bundle final",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.6 Step 11");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-092","LAB-098","SAFE-158","OPS-125"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/live-operations/simulation/export-bundle"],
+    command, script: "verify_v360_simulation_export_bundle.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+});
+
+check("현행 실행·등록 연결 1", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_simulation_export_bundle.mjs", "server.sh script dispatch");
   for (const id of ["UI-092", "LAB-098", "SAFE-158", "OPS-125"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
@@ -305,7 +283,9 @@ console.log("- step: v3.6.0 (11)");
 console.log(`- route: ${route}`);
 console.log("- combines: simulation input/output, readiness blocker, handoff map refs");
 console.log("- writes: no artifact export, file write, handoff write, simulation execution, source/view/rule/EventRecord/Ops audit/client/media mutation performed");
-console.log(`- pass: ${results.pass}`);
+console.log("- uiFulltest: not-run-by-this-command");
+  console.log("- longrun30Or120: not-run-by-this-command");
+  console.log(`- pass: ${results.pass}`);
 console.log(`- fail: ${results.fail}`);
 if (results.fail > 0) process.exit(1);
 

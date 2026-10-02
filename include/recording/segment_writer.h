@@ -4,9 +4,10 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 
-#include "media_types.h"
+#include "core/media_packet_contract.h"
 #include "recording/recording_contracts.h"
 #include "recording/recording_time_snapshot.h"
 

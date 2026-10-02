@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -25,7 +27,7 @@ Checks:
   - /client/api/views/{id}/events emits a PublishedView-scoped resolutionDigest with only viewer-safe fields
   - client live/dashboard/events render resolution status summary without source URL, raw evidence, debug material, provider material, operator notes, or action controls
   - ops/client static smoke tracks the client route markers
-  - roadmap, stream verification, release records, feature inventory, manual UI checklist, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to v3.2.0 Step 9 local/static evidence and does not imply UI 풀테스트, 30분/120분, resolution search/metrics, or release publication
 `);
 }
@@ -34,17 +36,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-client-safe-resolution-digest";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -168,56 +169,30 @@ check("client digest styling and ops/client smoke track v3.2 resolution digest m
   }
 });
 
-check("docs and roadmap expose v3.2 Step 9 scope without overclaim", () => {
-  for (const snippet of [
-    "| 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | 완료 |",
-    "viewer-safe status summary and redaction boundary",
-    "`./server.sh verify-v320-client-safe-resolution-digest`",
-    "Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
-    "## v3.2.0 Step 9 개발 기록",
-    "media-server.client.resolution-digest.v1",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.2 Step 9");
-  }
-  for (const snippet of [
-    "| v3.2.0 (9) | `./server.sh verify-v320-client-safe-resolution-digest` |",
-    "Client-safe Resolution Digest",
-    "resolutionStatus",
-    "resolutionLabel",
-    "source/raw/debug/provider/operator material",
-    "UI 풀테스트 직접 조작, 30분/120분, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.2 Step 9");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-068","CLIENT-027","SAFE-110","OPS-077"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.client.resolution-digest.v1","resolutionDigest"],
+    command, script: "verify_v320_client_safe_resolution_digest.mjs", featureIds: ["UI-068","CLIENT-027","SAFE-110","OPS-077"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory, manual UI checklist, and release records map v3.2 Step 9", () => {
-  for (const snippet of [
-    "v3.2.0 (9) Client-safe Resolution Digest | `UI-068`, `CLIENT-027`, `SAFE-110`, `OPS-077` | `verify-v320-client-safe-resolution-digest`, `verify-ops-client-ui`",
-    "UI-068 | V320 Step 9 Client-safe Resolution Digest UI",
-    "CLIENT-027 | V320 Step 9 Client-safe resolution digest API/UI",
-    "SAFE-110 | V320 Step 9 client-safe resolution digest boundary",
-    "OPS-077 | V320 Step 9 Client-safe Resolution Digest 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 9");
-  }
-  for (const snippet of [
-    "| V320 Step 9 Client-safe Resolution Digest | `UI-068`, `CLIENT-027`, `SAFE-110`, `OPS-077` | `/client/live`, `/client/dashboard`, `/client/events` |",
-    "Client-safe Resolution Digest card",
-    "media-server.client.resolution-digest.v1",
-  ]) {
-    assertIncludes(files.manualUi, snippet, "manual UI v3.2 Step 9");
-  }
-  for (const snippet of [
-    "V320 Client-safe Resolution Digest",
-    "`./server.sh verify-v320-client-safe-resolution-digest`",
-    "v320 Step 9 RED client-safe resolution digest gate",
-    "v320 Step 9 client-safe resolution digest final",
-    "v320 Step 9 UI 풀테스트",
-    "v320 Step 9 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.2 Step 9");
-  }
+
+
+check("manual UI 현재 조작 정의 연결", () => {
+  const ids = ["UI-068", "CLIENT-027", "SAFE-110", "OPS-077"];
+  const rows = files.manualUi.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/client/live", "/client/dashboard", "/client/events"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["Client-safe Resolution Digest card", "media-server.client.resolution-digest.v1"]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v320-client-safe-resolution-digest`", "manual UI 실행 명령");
 });
 
 check("server entrypoint and inventory verifiers include v3.2 Step 9 command", () => {

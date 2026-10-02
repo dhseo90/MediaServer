@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -78,37 +79,46 @@ check("single case mode and markdown report output work", () => {
   const tmpDir = fs.mkdtempSync(path.join(osTmp(), "media_server_vlm_eval_"));
   const jsonOut = path.join(tmpDir, "report.json");
   const mdOut = path.join(tmpDir, "report.md");
-  const output = runHarness(["--case", "line-crossing-ko-ab", "--json-output", jsonOut, "--report", mdOut]);
-  assert(output.summary.cases === 1, "single case filter should emit one case");
-  assert(fs.existsSync(jsonOut), "json report not written");
-  assert(fs.existsSync(mdOut), "markdown report not written");
-  const markdown = fs.readFileSync(mdOut, "utf8");
-  assert(markdown.includes("VLM Evaluation Harness Report"), "markdown report title missing");
-  assert(markdown.includes("runtimeVlmCallPerformed: false"), "markdown report missing runtime invariant");
+  const failures = [];
+  try {
+    const output = runHarness(["--case", "line-crossing-ko-ab", "--json-output", jsonOut, "--report", mdOut]);
+    assert(output.summary.cases === 1, "single case filter should emit one case");
+    assert(fs.existsSync(jsonOut), "json report not written");
+    assert(fs.existsSync(mdOut), "markdown report not written");
+    const markdown = fs.readFileSync(mdOut, "utf8");
+    assert(markdown.includes("VLM Evaluation Harness Report"), "markdown report title missing");
+    assert(markdown.includes("runtimeVlmCallPerformed: false"), "markdown report missing runtime invariant");
+  } catch (error) {
+    failures.push(error.message || String(error));
+  } finally {
+    // 이 검사에서 만든 두 파일만 정리한다. 최초 실패와 정리 실패를 모두 남긴다.
+    for (const file of [jsonOut, mdOut]) {
+      try { if (fs.existsSync(file)) fs.unlinkSync(file); }
+      catch (error) { failures.push(`fixture report cleanup: ${error.code || "unknown"}`); }
+    }
+    try { fs.rmdirSync(tmpDir); }
+    catch (error) { failures.push(`fixture directory cleanup: ${error.code || "unknown"}`); }
+  }
+  assert(failures.length === 0, failures.join("; "));
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-evaluation-harness.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "evaluate-vlm-harness",
-    "verify-vlm-evaluation-harness",
-    "media-server.vlm-evaluation-report.v1",
-    "latency",
-    "hallucination",
-    "JSON 안정성",
-    "한국어/영어",
-    "fixture-captured-output-only",
-    "V200-S06",
-  ]) {
-    assert(docs.includes(snippet), `docs missing snippet: ${snippet}`);
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const featureIds = ["LAB-039", "LAB-052"];
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-evaluation-harness.md"),
+    identifiers: ["evaluate-vlm-harness", "media-server.vlm-evaluation-report.v1",
+      "media-server.vlm-evaluation-fixtures.v1", "latency", "hallucination", "jsonStability", "fixture-captured-output-only"],
+    command: "verify-vlm-evaluation-harness", script: "verify_vlm_evaluation_harness.mjs",
+    featureIds, inventory: readText("docs/project-feature-test-inventory.md"), implementation: manifest,
+    verification: readText("docs/stream-verification.md"), server,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  for (const id of featureIds) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-evaluation-harness",
+      `${id} manifest verifier command drift`);
   }
   for (const snippet of [
     "evaluate-vlm-harness",
@@ -162,6 +172,9 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM evaluation harness summary ==");
+console.log("- scope: fixture-captured-output-only");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

@@ -3,6 +3,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 // 파일 용도: v3.3.0 Step 2 Source Registry Snapshot and Identity 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -25,7 +26,7 @@ Checks:
   - the read model joins sourceId, source kind, canonical source key, PublishedView links, and owner/site/group context
   - /ops/api/source-registry/snapshot is read-only, no-store, and guarded by the Ops principal
   - client/viewer output does not gain source locator, canonical key, raw JSON, or debug exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -38,13 +39,12 @@ const files = {
   header: readText("include/ingress/source_view_registry.h"),
   registry: readText("src/ingress/source_view_registry.cpp"),
   server: readWebRtcHttpServerBundle(readText),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -147,53 +147,25 @@ check("Ops API exposes the source registry snapshot route as guarded read-only n
   assert(!block.includes("CreateSource") && !block.includes("UpsertSource") && !block.includes("DisableSource"), "source identity snapshot route must be read-only");
 });
 
-check("roadmap records v3.3 Step 2 as implemented without overclaiming later steps", () => {
-  for (const snippet of [
-    "| 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 완료 |",
-    "## v3.3.0 Step 2 개발 기록",
-    route,
-    "SourceViewRegistry::SourceRegistrySnapshotIdentityJson",
-    "sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context",
-    "`./server.sh verify-v330-source-registry-snapshot-identity`",
-    "Source Onboarding Quality Summary, Reliability Timeline and Health History, Incident-to-Source Correlation Layer, Operator Recheck and Recovery Queue, Client-safe Source Status Digest, Source Reliability Search and Metrics 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 2");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["SRC-033","SAFE-114","OPS-081"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/snapshot"],
+    command, script: "verify_v330_source_registry_snapshot_identity.mjs", featureIds: featureIds.filter(id => !["SRC-033"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/snapshot"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-033"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 2 command and boundary", () => {
-  for (const snippet of [
-    "| v3.3.0 (2) | `./server.sh verify-v330-source-registry-snapshot-identity` |",
-    "Source Registry Snapshot and Identity",
-    route,
-    "canonical source key",
-    "PublishedView 연결",
-    "viewer/client 노출, source registry write, onboarding quality, reliability timeline, incident correlation, recovery queue, client digest, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 2");
-  }
-});
 
-check("feature inventory and release records map v3.3 Step 2", () => {
-  for (const snippet of [
-    `v3.3.0 (2) Source Registry Snapshot and Identity | \`SRC-033\`, \`SAFE-114\`, \`OPS-081\` | \`${command}\``,
-    "SRC-033 | V330 Step 2 Source Registry Snapshot and Identity",
-    "SAFE-114 | V330 Step 2 source registry snapshot boundary",
-    "OPS-081 | V330 Step 2 Source Registry Snapshot and Identity 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 2");
-  }
-  for (const snippet of [
-    "V330 Source Registry Snapshot and Identity",
-    `\`./server.sh ${command}\``,
-    "v330 Step 2 RED source registry snapshot identity gate",
-    "v330 Step 2 source registry snapshot identity final",
-    "v330 Step 2 UI 풀테스트",
-    "v330 Step 2 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 2");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.3 Step 2 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

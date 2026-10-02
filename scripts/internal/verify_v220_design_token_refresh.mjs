@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// 파일 용도: v2.2.0 S03 design token refresh 계약과 구현 연결을 검증한다.
+// 파일 용도: 현행 UI tokens 계약·구현 연결을 확인한다. CLI 이름은 호환을 위해 유지한다.
 
+import { validateUiComponentDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -18,13 +19,10 @@ if (hasHelpFlag(rawArgs)) {
 Usage:
   ./server.sh verify-v220-design-token-refresh
 
-Checks:
-  - V220-S03 roadmap row points to the design token refresh gate
-  - design token document records S03 scope, non-goals, S04 input contract, and verification
-  - ProductDesignTokensCss centralizes typography, density, component, table, badge, debug detail tokens
-  - ProductUiCss consumes the refreshed token families for common controls
-  - font-size rules do not use viewport-scaled clamp() values
-  - server.sh and stream verification expose this verifier
+검사 범위:
+  - 현행 UI 기술 안내와 정확한 명령 연결
+  - 기존 소스·helper·모듈 계약
+  - 정적 결과를 실제 UI/장시간 PASS로 사용하지 않음
 `);
 }
 
@@ -32,42 +30,14 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 
-check("backlog S03 points to design token refresh gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 3 \| V220-S03 \| P0 \| (진행|완료) \| Design token refresh \|/.test(backlog),
-    "backlog S03 row must be 진행 or 완료");
-  for (const snippet of [
-    "v220-design-token-refresh.md",
-    "verify-v220-design-token-refresh",
-    "light/dark theme-aware token, spacing, density, typography",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S03 snippet: ${snippet}`);
-  }
+check("현행 UI 안내·정책·명령 연결", () => {
+  const errors = validateUiComponentDocumentation({
+    document: readText("docs/product-shell-component-examples.md"), kind: "tokens",
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("design token refresh document covers S03 scope and boundaries", () => {
-  const doc = readText("docs/v220-design-token-refresh.md");
-  for (const snippet of [
-    "V220-S03 Design token refresh",
-    "ProductDesignTokensCss()",
-    "typography",
-    "density",
-    "component",
-    "button/input/table/badge/debug details",
-    "320",
-    "390",
-    "760",
-    "1180+",
-    "S04 component primitive",
-    "UI 풀테스트 PASS는 S03 완료 근거가 아닙니다.",
-    "30분 soak",
-    "120분 longrun",
-    "Event POST/WebRTC/SSE/WS metadata schema",
-    "RTSP/WebRTC media path",
-  ]) {
-    assert(doc.includes(snippet), `design token refresh doc missing: ${snippet}`);
-  }
-});
 
 check("ProductDesignTokensCss centralizes refreshed token families", () => {
   const tokenCss = productDesignTokensCss();
@@ -143,16 +113,6 @@ check("ProductUiCss does not scale font size with viewport width", () => {
     `viewport-scaled font-size clamp() rules are not allowed:\n${viewportFontMatches.join("\n")}`);
 });
 
-check("stream verification exposes the S03 design token refresh command", () => {
-  const stream = readText("docs/stream-verification.md");
-  for (const snippet of [
-    "verify-v220-design-token-refresh",
-    "v2.2.0 design token refresh",
-    "verify-product-ui-token-drift",
-  ]) {
-    assert(stream.includes(snippet), `stream verification missing S03 snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint exposes the S03 design token refresh verifier", () => {
   const server = readText("server.sh");

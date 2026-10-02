@@ -184,7 +184,73 @@ function renderedMetrics(report) {
   const row = report.split('\n').find(line => line.startsWith('| ') && line.includes('.json |'));
   return row ? row.split(' | ').slice(2, 6) : null;
 }
+function verifyRecordingStorageEnv() {
+  const source = fs.readFileSync(path.join(repo, 'scripts/internal/verify_predev_stability.sh'), 'utf8');
+  const start = source.indexOf('start_server() {');
+  const end = source.indexOf('\n# runtime status', start);
+  if (start < 0 || end < start) throw new Error('start-server-boundary-missing');
+  const body = source.slice(start, end);
+  const dir = path.join(root, 'recording-env');
+  const work = path.join(dir, 'work');
+  const protectedRoot = path.join(dir, 'protected');
+  fs.mkdirSync(path.join(dir, 'scripts/internal'), { recursive: true });
+  fs.mkdirSync(work); fs.mkdirSync(protectedRoot);
+  fs.writeFileSync(path.join(protectedRoot, 'sentinel'), 'unchanged');
+  fs.copyFileSync(path.join(repo, 'scripts/internal/run_server_foreground.sh'),
+    path.join(dir, 'scripts/internal/run_server_foreground.sh'));
+  fs.mkdirSync(path.join(dir, 'include'));
+  fs.copyFileSync(path.join(repo, 'include/stdafx.h'), path.join(dir, 'include/stdafx.h'));
+  fs.writeFileSync(path.join(dir, 'scripts/internal/env_common.sh'), `
+media_server_apply_homebrew_gst_env() { :; }
+media_server_read_const_charp() { :; }
+media_server_resolve_project_path() { printf '%s' "$2"; }
+`);
+  fs.writeFileSync(path.join(dir, 'scripts/.media_server.env'),
+    'MEDIA_SERVER_RECORDING_STORAGE_ROOT="$ROOT_DIR/protected"\nprintf "loaded\\n" >>"$ROOT_DIR/local-env-used"\n');
+  fs.writeFileSync(path.join(dir, 'capture-server'), `#!/bin/bash
+printf '%s\\n' "$MEDIA_SERVER_RECORDING_STORAGE_ROOT" >>"$ROOT_DIR/captured-roots"
+`, { mode: 0o700 });
+  const run = () => spawnSync('bash', ['-c', `
+set -eu
+export ROOT_DIR="$1"; WORK_DIR="$ROOT_DIR/work"; SERVER_LOG="$ROOT_DIR/server.log"
+RTSP_PORT=19554; HTTP_PORT=19080; AUTH_MODE=off; BUILD_DIR=unused
+RTSP_LISTEN_ADDRESS=127.0.0.1; HTTP_LISTEN_ADDRESS=127.0.0.1
+PASS_COUNT=0; FAIL_COUNT=0
+ensure_start_ports_free() { return 0; }
+log_info() { :; }
+append_step() { printf '%s\\n' "$*" >>"$ROOT_DIR/steps"; }
+mark_first_failure() { printf '%s\\n' "$1" >>"$ROOT_DIR/failures"; }
+wait_for_health() { wait "$SERVER_PID"; }
+${body}
+start_server 256
+start_server 2
+`, 'fixture', dir], { encoding: 'utf8', timeout: 5000,
+    env: { PATH: process.env.PATH, MEDIA_SERVER_RECORDING_STORAGE_ROOT: protectedRoot,
+      MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV: '0', MEDIA_SERVER_SKIP_ENV_CHECK: '1',
+      MEDIA_SERVER_BIN_PATH: path.join(dir, 'capture-server') } });
+  const normal = run();
+  const recordingRoot = path.join(work, 'recordings');
+  check('predev actual start_server overrides parent recording root for both starts', normal.status === 0 &&
+    fs.readFileSync(path.join(dir, 'captured-roots'), 'utf8') === `${recordingRoot}\n${recordingRoot}\n`);
+  check('predev actual foreground refuses inherited local-env override', !fs.existsSync(path.join(dir, 'local-env-used')));
+  fs.writeFileSync(path.join(recordingRoot, 'restart-state'), 'same-state');
+  check('predev repeated start preserves owned recording state', run().status === 0 &&
+    fs.readFileSync(path.join(recordingRoot, 'restart-state'), 'utf8') === 'same-state');
+  fs.unlinkSync(path.join(recordingRoot, 'restart-state')); fs.rmdirSync(recordingRoot);
+  const captured = fs.readFileSync(path.join(dir, 'captured-roots'), 'utf8');
+  for (const target of [protectedRoot, path.join(protectedRoot, 'missing')]) {
+    fs.symlinkSync(target, recordingRoot, 'dir');
+    const invalid = run();
+    check('predev recording symlink fails before spawn with first-failure record', invalid.status !== 0 &&
+      fs.readFileSync(path.join(dir, 'captured-roots'), 'utf8') === captured &&
+      fs.readFileSync(path.join(dir, 'failures'), 'utf8').includes('server-start-queue-256'));
+    fs.unlinkSync(recordingRoot);
+  }
+  check('predev protected storage unchanged', fs.readdirSync(protectedRoot).join() === 'sentinel' &&
+    fs.readFileSync(path.join(protectedRoot, 'sentinel'), 'utf8') === 'unchanged');
+}
 try {
+  verifyRecordingStorageEnv();
   const envPredev = execute('environment-predev', ['--skip-build', '--soak-minutes', '0', '--fail-fast'], true, {environment: true});
   check('PE01 predev integrated PATH sentinel', envPredev.read('sentinel-used').split('\n').includes('test'));
   check('PE01 predev initial and refresh PATH sentinel', envPredev.read('sentinel-used').split('\n').filter(x => x === 'summarize-reports').length === 2);

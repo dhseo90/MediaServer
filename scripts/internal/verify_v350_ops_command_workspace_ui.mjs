@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 6 Ops Command Workspace UI 구현, 문서, inventory 연결을 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -25,7 +26,7 @@ Checks:
   - /ops dashboard renders an Ops-only command workspace UI shell
   - the renderer loads incident, source, drill, staged plan, and client impact in one read-only flow
   - the workspace keeps command/staged plan/client impact material out of client/viewer scripts
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -35,16 +36,15 @@ const command = "verify-v350-ops-command-workspace-ui";
 const schema = "media-server.ops.v350-command-workspace-ui.v1";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -52,10 +52,11 @@ const graphRoute = "/ops/api/live-operations/graph";
 const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const stagedPlanRoute = "/ops/api/live-operations/staged-change-plan-impact-preview";
 const reviewRoute = "/ops/api/events/reviews";
+const documentationImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const checks = [];
 
 check("/ops dashboard declares the v3.5 command workspace UI shell", () => {
-  const block = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const block = extractBlock(files.pages, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
   for (const snippet of [
     "ops-command-workspace",
     "data-testid=\"ops-command-workspace\"",
@@ -105,7 +106,7 @@ check("/ops command workspace renderer loads incident, source, drill, staged pla
     assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 credential-redaction explicit absence oracle");
     assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 debug-redaction explicit absence oracle");
     assertIncludes(files.uiScript, "/ops/dashboard", "UI-081 canonical route obligation");
-    assertIncludes(files.server, "media-server.ops.v350-command-workspace-ui.v1", "UI-081 canonical schema obligation");
+    assertIncludes(files.pages, "media-server.ops.v350-command-workspace-ui.v1", "UI-081 canonical schema obligation");
   }
 });
 
@@ -163,49 +164,16 @@ check("client/viewer scripts do not expose command workspace operator material",
   }
 });
 
-check("roadmap records v3.5 Step 6 without overclaiming longrun or UI fulltest", () => {
-  for (const snippet of [
-    "| 6 | v3.5.0 (6) Ops Command Workspace UI | P1 | 완료 |",
-    "## v3.5.0 Step 6 개발 기록",
-    "AppendOpsDashboardPage",
-    "renderV350OpsCommandWorkspace",
-    "ops-command-workspace",
-    `\`./server.sh ${command}\``,
-    "Drill Run Ledger and Plan Comparison 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.5 Step 6");
-  }
-});
-
-check("stream verification exposes v3.5 Step 6 command and boundary", () => {
-  for (const snippet of [
-    `| v3.5.0 (6) | \`./server.sh ${command}\` | Ops Command Workspace UI.`,
-    "/ops",
-    "incident, source, drill, staged plan, client impact",
-    "source URL/raw locator/raw JSON/debug/credential material",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.5 Step 6");
-  }
-});
-
-check("feature inventory and release records map v3.5 Step 6", () => {
-  for (const snippet of [
-    `v3.5.0 (6) Ops Command Workspace UI | \`UI-081\`, \`SAFE-140\`, \`OPS-107\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-081 | V350 Step 6 Ops Command Workspace UI",
-    "SAFE-140 | V350 Step 6 Ops command workspace UI boundary",
-    "OPS-107 | V350 Step 6 Ops Command Workspace UI 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.5 Step 6");
-  }
-  for (const snippet of [
-    "V350 Ops Command Workspace UI",
-    `\`./server.sh ${command}\``,
-    "v350 Step 6 RED ops command workspace UI gate",
-    "v350 Step 6 UI 풀테스트",
-    "v350 Step 6 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.5 Step 6");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-081","SAFE-140","OPS-107"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v350-command-workspace-ui.v1"],
+    command, script: "verify_v350_ops_command_workspace_ui.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.5 Step 6 command", () => {

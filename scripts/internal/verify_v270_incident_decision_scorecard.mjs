@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.7.0 S02 Incident Decision Scorecard와 deterministic priority reason 경계를 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -14,29 +15,32 @@ const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const reviewDoc = readText("docs/vlm-ops-event-review-ui.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
-const roadmapEvidence = [backlog, inventory, streamVerification].join("\n");
 const decisionScorecardViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentDecisionScorecardViewJson(");
 const decisionScorecardItemBlock = extractCppFunctionBlock(server, "std::string OpsIncidentDecisionScorecardJson(");
 
-check("roadmap records V270-S02 as active/completed Decision scorecard work", () => {
-  const hasCurrentRoadmapRow = /\| 2 \| V270-S02 \| P0 \| (진행|완료) \| Decision scorecard \|/.test(backlog);
-  const hasArchivedRoadmapRow = backlog.includes("| V270-S02 | 완료 | Incident Decision Scorecard |");
-  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
-    "backlog V270-S02 row must be present in current or archived roadmap format");
-  for (const snippet of [
-    "media-server.ops.incident-decision-scorecard.v1",
-    "priority reason chips",
-    "provider 호출",
-    "raw JSON/source URL",
-    "verify-v270-incident-decision-scorecard",
-  ]) {
-    assertIncludes(roadmapEvidence, snippet, "V270-S02 roadmap evidence");
+const definitionIds = ["UI-051","EVT-051","LAB-075","SAFE-059"];
+const currentDefinitions = inventory.split(/\r?\n/).filter(line => definitionIds.includes(line.split("|")[1]?.trim())).join("\n");
+
+check("현행 계약·기능 정의·검증 명령 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: reviewDoc, identifiers: ["media-server.ops.incident-decision-scorecard.v1"],
+    command: "verify-v270-incident-decision-scorecard", script: "verify_v270_incident_decision_scorecard.mjs",
+    featureIds: ["UI-051","EVT-051","LAB-075"], inventory, implementation: implementationManifest,
+    verification: streamVerification, server: serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 runtime 검사의 결속을 확인할 뿐 여기서 실행하거나 정적 검사로 대체하지 않는다.
+  for (const [id, expectedCommand] of [["SAFE-059","verify-auth-routes"]]) {
+    const rows = inventory.split(/\r?\n/).filter(line => line.split("|")[1]?.trim() === id);
+    const entries = implementationManifest.items.filter(item => item.id === id);
+    assert(rows.length === 1 && entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand,
+      id + " 독립 실행 정의/명령 연결 누락 또는 중복");
   }
 });
 
@@ -169,16 +173,6 @@ check("smoke, inventory, coverage, and command catalog track S02", () => {
   ]) {
     assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
   }
-  for (const snippet of [
-    "| V270-S02 Decision scorecard | `UI-051`, `EVT-051`, `LAB-075`, `SAFE-059` | `verify-v270-incident-decision-scorecard` |",
-    "| UI-051 | `/ops/events` Incident Decision Scorecard |",
-    "| EVT-051 | Ops incident decision scorecard view model |",
-    "| LAB-075 | V270-S02 incident decision scorecard static guard |",
-    "| SAFE-059 | V270-S02 decision scorecard boundary |",
-    "verify-v270-incident-decision-scorecard",
-  ]) {
-    assertIncludes(inventory, snippet, "feature inventory S02 row");
-  }
   for (const id of ["UI-051", "EVT-051", "LAB-075"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-incident-decision-scorecard", `${id} manifest verifier command drift`);
   }
@@ -203,7 +197,7 @@ check("S02 keeps forbidden client/provider/raw/schema/media side effects absent"
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !currentDefinitions.includes(forbidden),
       `forbidden S02 snippet present: ${forbidden}`);
   }
 });
@@ -216,6 +210,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
+console.log("[scope] uiFulltest: not-run-by-this-command; longrun30Or120: not-run-by-this-command");
 console.log("== v2.7.0 S02 incident decision scorecard 통과 ==");
 
 function readText(filePath) {

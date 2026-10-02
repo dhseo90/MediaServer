@@ -4,6 +4,7 @@ import { copyWebRtcHttpServerSourceFixture } from "./webrtc_http_server_source_b
 // 파일 용도: REVIEW4-64 Slice 9 public contract/interface owner 재정렬을 검증한다.
 
 import crypto from "node:crypto";
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -109,51 +110,32 @@ const opsImplementationFiles = [
   "src/ingress/ops_action_execution_deferral.cpp", "src/ingress/onvif_credential_provider.cpp",
   "src/ingress/ops_event_route_owner.cpp", "src/ingress/vlm_evaluation_promotion.cpp",
 ];
-const expectedDirections = [
-  "analysis-services -> core-media-interfaces",
-  "analysis-services -> domain-and-registry-owners", "application-service-interfaces -> analysis-services",
-  "application-service-interfaces -> domain-and-registry-owners", "composition-root -> analysis-services",
-  "composition-root -> application-service-interfaces", "composition-root -> core-media-interfaces",
-  "composition-root -> core-utilities",
-  "composition-root -> transport-and-auth-adapter", "core-media-interfaces -> core-utilities",
-  "domain-and-registry-owners -> core-utilities",
-  "ops-route-groups -> application-service-interfaces", "product-ui-workspaces -> stable-contract-dtos",
-  "transport-and-auth-adapter -> analysis-services", "transport-and-auth-adapter -> application-service-interfaces",
-  "transport-and-auth-adapter -> core-media-interfaces", "transport-and-auth-adapter -> stable-contract-dtos",
-];
-
 check("public contract bytes stay unchanged", () => {
-  for (const [file, expected] of immutableContracts) assert(sha256(file) === expected, `contract bytes drift: ${file}`);
+  // 이 헤더의 용도 주석은 공개된 v4.1.0 소스보다 먼저 추가되었다.
+  // 공개 기준은 16f3df711bf02035da22aa1fc2a8720d8162871d이며 위의 과거 해시는 유지한다.
+  const currentStrictJson = "32ef5e1ab75432cf3c0cf9782fe942907242a75a1c0dec1a0496ae1e220ce9aa";
+  for (const [file, expected] of immutableContracts) {
+    assert(sha256(file) === (file === "include/domain/strict_json.h" ? currentStrictJson : expected),
+      `contract bytes drift: ${file}`);
+  }
+  // 72c74f4f는 빈 줄을 용도 주석으로 바꿨으며 parser 바이트는 그대로다.
   const strictSource = read("src/domain/strict_json.cpp")
-    .replace('#include "domain/strict_json.h"', '#include "core/strict_json.h"');
+    .replace('#include "domain/strict_json.h"', '#include "core/strict_json.h"')
+    .replace('// 파일 용도: 중복 키와 타입 경계를 엄격히 검사하는 JSON parser를 구현한다.\n', '\n');
   assert(sha256Text(strictSource) === "9371131f84ebe1d6e2a656d6e3eebd40b75c6ea86fe662e8fe623a0ff536ac5a",
     "strict JSON parser implementation drift");
 });
 
 check("interface and implementation owners are exact", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const owner = id => graph.moduleClassifiers.find(item => item.id === id);
-  const exact = id => [...owner(id).exactFiles].sort();
-  assert(JSON.stringify(exact("stable-contract-dtos")) === JSON.stringify([...stableHeaders].sort()) &&
-    owner("stable-contract-dtos").expectedFileCount === 9 && owner("stable-contract-dtos").expectedCppCount === 0,
-  "stable public contract owner drift");
-  assert(JSON.stringify(exact("application-service-interfaces")) === JSON.stringify([...applicationFiles].sort()) &&
-    owner("application-service-interfaces").expectedFileCount === 41 &&
-    owner("application-service-interfaces").expectedCppCount === 17,
-  "application public interface owner drift");
-  assert(JSON.stringify(exact("domain-and-registry-owners")) === JSON.stringify([...domainFiles].sort()) &&
-    owner("domain-and-registry-owners").expectedFileCount === 6 &&
-    owner("domain-and-registry-owners").expectedCppCount === 3,
-  "strict JSON domain owner drift");
-  assert(JSON.stringify(exact("ops-route-groups")) === JSON.stringify([...opsImplementationFiles].sort()) &&
-    owner("ops-route-groups").expectedFileCount === 4 && owner("ops-route-groups").expectedCppCount === 4,
-  "Ops implementation owner drift");
-  assert(owner("product-ui-workspaces").expectedFileCount === 12 &&
-    owner("product-ui-workspaces").expectedCppCount === 12,
-  "product UI implementation owner drift");
-  assert(owner("core-utilities").expectedFileCount === 15 && owner("core-utilities").expectedCppCount === 5 &&
-    !owner("core-utilities").exactFiles.some(file => file.includes("strict_json")),
-  "core utility retained strict JSON ownership");
+  assertBoundaryOwners(graph, [
+    ...stableHeaders.map(file => [file, 'stable-contract-dtos']),
+    ...applicationFiles.map(file => [file, 'application-service-interfaces']),
+    ...domainFiles.map(file => [file, 'domain-and-registry-owners']),
+    ...opsImplementationFiles.map(file => [file, 'ops-route-groups']),
+  ]);
+  assert(!graph.moduleClassifiers.find(item => item.id === 'core-utilities').exactFiles.some(file => file.includes('strict_json')),
+    'core utility retained strict JSON ownership');
 });
 
 check("public headers remain dependency-neutral", () => {
@@ -209,14 +191,10 @@ check("strict JSON has a physical domain owner boundary", () => {
 
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
-    graph.observedModuleEdges.length === 17 && violations.length === 2 &&
-    graph.stronglyConnectedComponents.length === 0 &&
-    JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
-  "public owner graph metrics or exact direction set drift");
+  assertCurrentSourceGraph(sourceRoot, graph);
+
+  // app→utility는 승인된 exact 진단 연결만 공통 판정기가 허용한다.
   for (const direction of [
-    "application-service-interfaces -> core-utilities",
     "application-service-interfaces -> ops-route-groups",
     "transport-and-auth-adapter -> ops-route-groups",
     "transport-and-auth-adapter -> product-ui-workspaces",
@@ -229,6 +207,7 @@ const oracleInputs = [...new Set([...immutableContracts.keys(), ...applicationFi
   "src/ingress/webrtc_http_server.cpp", "include/ingress/product_ui_principal_view.h"]),
   "test/fixtures/v390_structure_stabilization_current_graph.json"];
 function copyInputs(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   copyWebRtcHttpServerSourceFixture(targetRoot);
   for (const file of oracleInputs) {
     const target = path.join(targetRoot, file);
@@ -268,14 +247,14 @@ if (!skipMutations) {
       "public contract bytes stay unchanged");
     rejectMutation("stable-owner", "test/fixtures/v390_structure_stabilization_current_graph.json",
       text => text.replace('"include/ingress/product_ui_assets.h",', ""),
-      "stable public contract owner drift");
+      "boundary:owner:include/ingress/product_ui_assets.h:stable-contract-dtos");
     rejectMutation("implementation-owner", "test/fixtures/v390_structure_stabilization_current_graph.json",
       text => text.replace('"src/ingress/ops_event_route_owner.cpp"', '"include/ingress/ops_event_route_owner.h"'),
-      "Ops implementation owner drift");
+      "ambiguous exact production owner: include/ingress/ops_event_route_owner.h");
     rejectMutation("direction-swap", "test/fixtures/v390_structure_stabilization_current_graph.json",
       text => text.replace('"direction": "analysis-services -> core-media-interfaces"',
         '"direction": "analysis-services -> product-ui-workspaces"'),
-      "public owner graph metrics or exact direction set drift");
+      "current graph removes only the planned owner violations");
     rejectMutation("header-dependency", "include/ingress/product_ui_assets.h",
       text => text.replace("#include <string>", '#include <string>\n#include "core/session_manager.h"'),
       "public headers remain dependency-neutral");

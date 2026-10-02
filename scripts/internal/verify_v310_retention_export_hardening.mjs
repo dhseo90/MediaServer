@@ -2,6 +2,8 @@
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.1.0 S08 Retention/Export Hardening 구현, 감사, 문서, inventory 연결을 검증한다.
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -23,7 +25,7 @@ Checks:
   - encoded clip lifecycle cleanup is tied to EventRecord/EvidenceManifest/FeatureSet/SearchIndex cleanup planning
   - release-safe export bundles exclude encoded clip media/path/material and carry a V310 hardening policy marker
   - export bundle downloads write explicit Ops audit coverage with retention/export policy fields
-  - roadmap, stream verification, release records, feature inventory, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to V310-S08 local retention/export evidence and does not imply UI 풀테스트, 30분/120분, vector search, destructive operational cleanup, or release publication
 `);
 }
@@ -32,17 +34,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-retention-export-hardening";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   cleanupHeader: readText("include/analysis/event_retention_cleanup.h"),
   cleanupCpp: readText("src/analysis/event_retention_cleanup.cpp"),
   eventStorage: readText("src/analysis/event_storage.cpp"),
   server: readWebRtcHttpServerBundle(readText),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -113,49 +114,18 @@ check("export bundle download audit records retention/export hardening coverage"
   }
 });
 
-check("docs and roadmap expose V310-S08 scope without overclaim", () => {
-  for (const snippet of [
-    "V310-S08` Retention/Export Hardening 완료",
-    "| 8 | V310-S08 | P1 | 완료 | Retention/Export Hardening |",
-    "encoded clip lifecycle cleanup",
-    "release-safe export bundle",
-    "export-bundle audit",
-    "UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, published metadata evidence가 아님",
-    "## v3.1.0 S08 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog V310-S08");
-  }
-  for (const snippet of [
-    "| V310-S08 | `./server.sh verify-v310-retention-export-hardening` |",
-    "encoded clip lifecycle cleanup",
-    "release-safe export bundle",
-    "export-bundle audit",
-    "destructive operational cleanup",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification V310-S08");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["EVT-062","SAFE-099","OPS-066"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["encoded clip","pinned","export-bundle"],
+    command, script: "verify_v310_retention_export_hardening.mjs", featureIds: ["EVT-062","SAFE-099","OPS-066"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V310-S08", () => {
-  for (const snippet of [
-    "V310-S08 Retention/Export Hardening | `EVT-062`, `SAFE-099`, `OPS-066` | `verify-v310-retention-export-hardening`, `verify-analysis-state`",
-    "EVT-062 | V310-S08 encoded clip lifecycle cleanup",
-    "SAFE-099 | V310-S08 retention/export boundary",
-    "OPS-066 | V310-S08 Retention/Export Hardening 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory V310-S08");
-  }
-  for (const snippet of [
-    "V310 Retention/Export Hardening",
-    "`./server.sh verify-v310-retention-export-hardening`",
-    "v310 S08 RED retention/export hardening gate",
-    "v310 S08 retention/export hardening final",
-    "v310 S08 UI 풀테스트",
-    "v310 S08 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records V310-S08");
-  }
-});
 
 check("server entrypoint and inventory verifiers include V310-S08 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

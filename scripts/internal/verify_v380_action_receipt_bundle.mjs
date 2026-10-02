@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 13 Action Receipt Bundle 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/actions/receipt-bundle exposes an Ops-only read model that bundles request, approval, readiness, candidate, and outcome diff refs
   - receipt bundle is redacted, release-safe, handoff-oriented, and never writes files, artifacts, handoff state, EventRecord, source, rule, notice, approval, or media state
   - /ops action control workspace renders receipt bundle, handoff map, and redaction review signals without client/viewer exposure
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -44,17 +45,16 @@ const featureIds = ["UI-105", "EVT-085", "CLIENT-042", "LAB-120", "SAFE-192", "O
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  pages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -222,7 +222,7 @@ check("Ops API exposes the Action Receipt Bundle route as guarded no-store JSON"
 });
 
 check("/ops action control workspace declares and renders Action Receipt Bundle signals", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  const serverBlock = extractBlock(files.pages, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
   for (const snippet of [
     "ops-action-receipt-bundle",
     "data-testid=\"ops-action-receipt-bundle\"",
@@ -305,46 +305,16 @@ check("client/viewer scripts do not receive v3.8 Action Receipt Bundle material"
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.8 Step 13", () => {
-  for (const snippet of [
-    "| 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 완료 |",
-    "## v3.8.0 Step 13 개발 기록",
-    route,
-    "OpsV380ActionReceiptBundleJson",
-    `\`./server.sh ${command}\``,
-    "Field Connector Evidence Package 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 13");
-  }
-  for (const snippet of [
-    `| v3.8.0 (13) | \`./server.sh ${command}\` | Action Receipt Bundle.`,
-    "redacted release-safe receipt bundle",
-    "handoff map",
-    "not-run",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.8 Step 13");
-  }
-  for (const snippet of [
-    `v3.8.0 (13) Action Receipt Bundle | \`UI-105\`, \`EVT-085\`, \`CLIENT-042\`, \`LAB-120\`, \`SAFE-192\`, \`OPS-159\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-105 | V380 Step 13 Action Receipt Bundle UI",
-    "EVT-085 | V380 Step 13 EventRecord receipt reference",
-    "CLIENT-042 | V380 Step 13 client-safe receipt redaction",
-    "LAB-120 | V380 Step 13 Action Receipt Bundle harness",
-    "SAFE-192 | V380 Step 13 Action Receipt Bundle boundary",
-    "OPS-159 | V380 Step 13 Action Receipt Bundle 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.8 Step 13");
-  }
-  for (const snippet of [
-    "V380 Action Receipt Bundle",
-    `\`./server.sh ${command}\``,
-    "v380 Step 13 RED Action Receipt Bundle gate",
-    "v380 Step 13 Action Receipt Bundle final",
-    "v380 Step 13 UI 풀테스트",
-    "v380 Step 13 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.8 Step 13");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-105","EVT-085","CLIENT-042","LAB-120","SAFE-192","OPS-159"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/actions/receipt-bundle"],
+    command, script: "verify_v380_action_receipt_bundle.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationManifest,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("server entrypoint and inventory verifiers include v3.8 Step 13 command", () => {

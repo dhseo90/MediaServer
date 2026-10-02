@@ -7,6 +7,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink } from "./documentation_contract_lib.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -33,11 +35,6 @@ check("examples document defines product shell component contract", () => {
   const doc = readText("docs/product-shell-component-examples.md");
   const required = [
     "media-server.product-shell-component-examples.v1",
-    "Product Shell",
-    "Metric And Section Cards",
-    "Dense Tables",
-    "Detail And Audit Panels",
-    "Client Live Tile",
     "ProductUiCss()",
     "ProductSharedUiScript()",
     "ClientShellCss()",
@@ -51,13 +48,10 @@ check("examples document defines product shell component contract", () => {
 check("examples document keeps route boundaries explicit", () => {
   const doc = readText("docs/product-shell-component-examples.md");
   const required = [
-    "`Home`, `Dashboard`, `Channels`, `Rules`, `Users`, `Client Preview`",
-    "`/ops/events`는 primary nav가 아니라 Dashboard 내부 섹션 또는 직접 route로 취급합니다.",
-    "source URL 또는 ONVIF endpoint",
+    "/ops/home", "/ops/dashboard", "/ops/sources", "/ops/rules", "/ops/users", "/client/live", "/ops/events",
+    "source URL", "ONVIF endpoint",
     "Developer URL",
-    "raw JSON 또는 debug counter",
-    "rule/profile editor",
-    "내부 token/hash/session id",
+    "raw JSON", "debug counter", "rule/profile", "token", "hash", "session",
   ];
   for (const snippet of required) {
     assert(doc.includes(snippet), `examples boundary missing snippet: ${snippet}`);
@@ -67,7 +61,8 @@ check("examples document keeps route boundaries explicit", () => {
 check("examples document includes stable class examples", () => {
   const doc = readText("docs/product-shell-component-examples.md");
   const css = readText("src/ingress/product_ui_css.cpp");
-  const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
+  const clientCss = readText("src/ingress/product_ui_client_css.cpp");
+  const clientScript = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "app-chrome",
     "app-brand",
@@ -75,37 +70,37 @@ check("examples document includes stable class examples", () => {
     "account-menu",
     "section-card",
     "metric-card",
-    "status-badge warning",
+    "chip warn",
     "ops-responsive-table",
     "ops-row-actions",
     "ops-detail-panel",
     "ops-audit-panel",
     "tile",
     "tile-stage",
-    "aria-label=\"타일 1 보기 방식\"",
+    "aria-live=\"polite\"",
   ];
   for (const snippet of required) {
     assert(doc.includes(snippet), `examples class snippet missing: ${snippet}`);
   }
-  for (const className of ["app-chrome", "app-brand", "image-nav-tabs", "section-card", "metric-card", "ops-responsive-table", "tile-stage"]) {
+  for (const className of ["app-chrome", "app-brand", "image-nav-tabs", "section-card", "metric-card", "chip.warn", "ops-responsive-table"]) {
     assert(css.includes(`.${className}`), `product CSS missing documented class: ${className}`);
   }
-  assert(pageScripts.includes("class=\"tile"), "client live script missing documented tile class");
+  assert(clientCss.includes(".tile-stage"), "client CSS missing documented class: tile-stage");
+  assert(clientScript.includes("class=\"tile"), "client live script missing documented tile class");
 });
 
 check("UI guide references product shell examples verifier", () => {
   const guide = readText("docs/ui-guide.md");
-  const backlog = readText("docs/development-backlog.md");
-  assert(guide.includes("./product-shell-component-examples.md"), "UI guide missing examples link");
+  assert(hasDocumentLink(guide, "product-shell-component-examples.md"), "UI guide missing examples link");
   assert(guide.includes("./server.sh verify-product-shell-examples"), "UI guide missing examples verifier");
-  assert(backlog.includes("Product shell component examples"), "backlog missing examples closure");
 });
 
 check("server entrypoint exposes product shell examples verifier", () => {
   const server = readText("server.sh");
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  assert(server.includes("verify-product-shell-examples"), "server.sh missing verify-product-shell-examples");
-  assert(server.includes("verify_product_shell_examples.mjs"), "server.sh missing verifier script reference");
+  const targets = parseServerDispatches(server).filter(item => item.command === "verify-product-shell-examples");
+  assert(targets.length === 1 && targets[0].script === "verify_product_shell_examples.mjs",
+    "server.sh missing or mismatched product shell examples dispatch");
   assert(inventory.includes("verify_product_shell_examples.mjs"), "script inventory missing verify_product_shell_examples.mjs");
 });
 
@@ -124,6 +119,7 @@ console.log("");
 console.log("== Product shell examples verification summary ==");
 console.log(`- pass: ${checks.length - failCount}`);
 console.log(`- fail: ${failCount}`);
+console.log("- scope: static documentation/source wiring; actual UI not-run");
 
 if (failCount > 0) {
   process.exit(1);

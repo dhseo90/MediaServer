@@ -1,7 +1,0 @@
-[process] committed child exit=23 expected=23
-[pass] D02-07 runtime startup committed-parent recovery/보호/물리검사 순서
-[process] blocked child exit=23 expected=23
-[pass] D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서
-[pass] D02-07 runtime startup intent recovery/보호/물리검사 순서
-[cleanup] path=<owned-temp>/media-server-default-composition.B6iMSi bytes=9715439 removed=true
-[elapsed] seconds=2 source=bash-SECONDS

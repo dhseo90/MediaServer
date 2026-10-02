@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.2.0 F05 Client Preview / Viewer Redaction 재검수 산출물과 client 비노출 경계를 정적 검증한다.
+// 파일 용도: 현행 client-preview-redaction-review 소스·문서 연결을 정적으로 확인한다. CLI 이름은 호환용이다.
 import fs from 'node:fs';
+import {validateUiWorkspaceDocumentation} from './documentation_contract_lib.mjs';
 import { extractCppFunctionBlock } from './source_block_assertion_utils.mjs';
 
 const checks = [];
@@ -10,12 +11,9 @@ const source = readWebRtcHttpServerBundle(read);
 const script = read('src/ingress/product_ui_client_scripts.cpp');
 const css = read('src/ingress/product_ui_client_css.cpp');
 const uiSmoke = read('scripts/internal/verify_ops_client_ui_smoke.mjs');
-const backlog = read('docs/development-backlog.md');
 const inventory = read('docs/project-feature-test-inventory.md');
 const stream = read('docs/stream-verification.md');
-const docs = fs.existsSync('docs/v220-client-preview-redaction-review.md')
-  ? read('docs/v220-client-preview-redaction-review.md')
-  : '';
+const docs = read('docs/product-shell-component-examples.md');
 const server = read('server.sh');
 const clientShellPageHtml = extractCppFunctionBlock(source, 'std::string ClientShellPageHtml(');
 
@@ -23,16 +21,10 @@ function check(name, condition) {
   checks.push({ name, condition });
 }
 
-check('Client preview redaction command is exposed by server.sh', server.includes('verify-v220-client-preview-redaction-review'));
-check(
-  'Client preview redaction docs define requested routes and boundaries',
-  docs.includes('/client/live') &&
-    docs.includes('/client/dashboard') &&
-    docs.includes('/client/events') &&
-    docs.includes('admin preview') &&
-    docs.includes('viewer-safe') &&
-    docs.includes('비노출')
-);
+const documentationErrors = validateUiWorkspaceDocumentation({document: docs, kind: 'client-preview-redaction-review', inventory, verification: stream, server});
+check('현행 작업 영역 계약·기능 정의·명령 연결', documentationErrors.length === 0);
+for (const error of documentationErrors) console.error('[fail] ' + error);
+
 check(
   'Client shell exposes admin preview boundary without changing route set',
   source.includes('data-client-preview=")') &&
@@ -98,20 +90,6 @@ check(
     'client-dashboard-rendered-leak',
     'client-events-rendered-leak',
   ].every(needle => uiSmoke.includes(needle))
-);
-check(
-  'roadmap and verification docs record Client Preview / Viewer Redaction follow-up scope',
-  inventory.includes('V220-F05 Client Preview / Viewer Redaction') &&
-    docs.includes('Client Preview / Viewer Redaction') &&
-    server.includes('verify-v220-client-preview-redaction-review')
-);
-check(
-  'feature inventory maps Client Preview / Viewer Redaction verifier',
-  inventory.includes('V220-F05 Client Preview / Viewer Redaction') &&
-    inventory.includes('verify-v220-ui-evidence-closeout') &&
-    inventory.includes('SRC-028') &&
-    inventory.includes('CLIENT-014') &&
-    inventory.includes('SAFE-018')
 );
 check(
   'existing S07 verifier and client redaction smoke stay wired',

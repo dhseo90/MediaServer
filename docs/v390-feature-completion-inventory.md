@@ -89,6 +89,10 @@ wrapper, preflight, dry-run, field smoke, external credential, no-device는 별�
 
 ## Initial User Review Output (Historical Snapshot)
 
+아래 초기 상태와 후속 closure는 모두 v3.9.0 당시 기록이다. 현재 작업의 승인·완료가 아니다.
+승인 관계 회귀 입력은 [최소 역사 fixture](../test/fixtures/v390_user_review_history.json)에 있으며,
+현행 `SAFE-198`/`OPS-165` 정의는 [기능별 테스트 정의](project-feature-test-inventory.md)를 따른다.
+
 Review-ready status: `ready-for-user-review`
 Approval status at review gate: `pending-user-approval`
 Feature development status at review gate: `blocked-before-user-approval`

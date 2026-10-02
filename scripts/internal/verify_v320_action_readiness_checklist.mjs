@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +28,7 @@ Checks:
   - the checklist exposes rule draft, evidence bundle, and notification readiness without auto action or external delivery
   - /ops/events renders action readiness status, blockers, checklist items, and boundary flags
   - the context does not claim client digest, search/metrics, UI fulltest, longrun, or published metadata evidence
-  - backlog, stream verification, release records, feature inventory, ops smoke, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
 `);
 }
 
@@ -34,17 +36,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-action-readiness-checklist";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -170,49 +171,18 @@ check("ops static smoke tracks Step 8 action readiness checklist markers", () =>
   }
 });
 
-check("docs and roadmap expose v3.2 Step 8 scope without overclaim", () => {
-  for (const snippet of [
-    "| 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 완료 |",
-    "rule draft/evidence bundle/notification readiness checklist",
-    "`./server.sh verify-v320-action-readiness-checklist`",
-    "Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
-    "## v3.2.0 Step 8 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.2 Step 8");
-  }
-  for (const snippet of [
-    "| v3.2.0 (8) | `./server.sh verify-v320-action-readiness-checklist` |",
-    "Action Readiness Checklist",
-    "rule draft",
-    "evidence bundle",
-    "notification readiness",
-    "auto action, external delivery, client digest, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.2 Step 8");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-067","EVT-069","SAFE-109","OPS-076"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v320-action-readiness-checklist.v1","actionReadinessChecklist"],
+    command, script: "verify_v320_action_readiness_checklist.mjs", featureIds: ["UI-067","EVT-069","SAFE-109","OPS-076"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map v3.2 Step 8", () => {
-  for (const snippet of [
-    "v3.2.0 (8) Action Readiness Checklist | `UI-067`, `EVT-069`, `SAFE-109`, `OPS-076` | `verify-v320-action-readiness-checklist`, `verify-ops-client-ui`",
-    "UI-067 | V320 Step 8 Action Readiness Checklist UI",
-    "EVT-069 | V320 Step 8 action readiness checklist view model",
-    "SAFE-109 | V320 Step 8 action readiness boundary",
-    "OPS-076 | V320 Step 8 Action Readiness Checklist 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 8");
-  }
-  for (const snippet of [
-    "V320 Action Readiness Checklist",
-    "`./server.sh verify-v320-action-readiness-checklist`",
-    "v320 Step 8 RED action readiness checklist gate",
-    "v320 Step 8 action readiness checklist final",
-    "v320 Step 8 UI 풀테스트",
-    "v320 Step 8 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.2 Step 8");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.2 Step 8 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

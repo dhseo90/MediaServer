@@ -1,210 +1,53 @@
 #!/usr/bin/env node
-// 파일 용도: release evidence index가 실행/미실행/미확인 상태를 한곳에서 분리하는지 검증한다.
+// 파일 용도: 현행 기록 기준 연결과 OPS-039 버전 경계 회귀 입력을 확인한다. 실행 원장이 아니다.
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {assertKnownOptions, hasHelpFlag, printUsageAndExit} from './script_arg_utils.mjs';
+import {validateReleaseRecordDocumentation} from './documentation_contract_lib.mjs';
 
-import fs from "node:fs";
-import path from "node:path";
-import process from "node:process";
-import { fileURLToPath } from "node:url";
+const rootDir = fileURLToPath(new URL('../../', import.meta.url));
+const readText = p => fs.readFileSync(path.resolve(rootDir, p), 'utf8');
 
-import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(scriptDir, "../..");
-const rawArgs = process.argv.slice(2);
-
-if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`Release evidence index verification
-
-Usage:
-  ./server.sh verify-release-evidence-index
-
-Checks:
-  - release evidence index가 longrun, UI evidence, PR checks, release notes, skipped tests를 분리하는지 확인
-  - release test records가 상세 항목/ deprecated 항목/버전별 결과를 저장소 보존형으로 기록하는지 확인
-  - Test Token Usage Ledger의 최종 evidence 칸이 임시 경로를 증거로 보존하지 않는지 확인
-  - README 첫 화면이 evidence matrix를 반복하지 않고 docs index로 연결하는지 확인
-  - 미실행, manual-not-run, 미확인, 제외를 기능별 PASS/FAIL 판정과 구분하는 문구가 유지되는지 확인
-`);
+export function verifyReleaseEvidenceIndex({read = readText} = {}) {
+  const checks = [];
+  const check = (name, fn) => {
+    try {fn(); checks.push({name, status: 'pass'});}
+    catch (error) {checks.push({name, status: 'fail', message: error.message});}
+  };
+  check('현행 기록 정책·기능·명령 연결', () => {
+    const errors = validateReleaseRecordDocumentation({read, kind: 'index'});
+    assert(errors.length === 0, errors.join('; '));
+  });
+  check('OPS-039 source/published/next/runway 경계 회귀 정의', () => {
+    const fixture = JSON.parse(read('test/fixtures/release_metadata_boundary.json'));
+    const boundary = fixture.v280Boundary;
+    const v280BoundaryObserved = fixture.schema === 'media-server.release-boundary-fixture.v1' &&
+      fixture.executionEvidence === false && boundary &&
+      boundary.sourceVersion === '2.8.0' && boundary.publishedTag === 'v2.7.0' &&
+      boundary.nextSourceTag === 'v2.8.0' &&
+      JSON.stringify(boundary.runwayVersions) === JSON.stringify(['2.8.0', '2.9.0']) &&
+      boundary.majorBoundary === '3.0.0' &&
+      /^[0-9a-f]{40}$/.test(boundary.provenance?.commit || '') &&
+      boundary.provenance?.path === 'docs/project-feature-test-inventory.md' &&
+      boundary.provenance?.featureId === 'OPS-039' &&
+      Object.keys(boundary).every(key => ['provenance', 'sourceVersion', 'publishedTag', 'nextSourceTag', 'runwayVersions', 'majorBoundary'].includes(key));
+    assert(v280BoundaryObserved, 'OPS-039 회귀 정의 누락/값/출처/실행 증거 경계 불일치');
+  });
+  const fail = checks.filter(row => row.status === 'fail').length;
+  return {status: fail ? 'fail' : 'pass', checks, pass: checks.length - fail, fail,
+    exitCode: fail ? 1 : 0, executionEvidenceVerified: false};
 }
+function assert(condition, message) {if (!condition) throw new Error(message);}
 
-assertKnownOptions(rawArgs, ["h", "help"]);
-
-const checks = [];
-
-check("release evidence index owns required evidence categories", () => {
-  const doc = readText("docs/release-evidence-index.md");
-  for (const snippet of [
-    "# Release Evidence Index",
-    "v1.8.0 release trust hardening",
-    "GitHub Latest Release",
-    "repository page Releases/Latest link",
-    "remote tag/branch",
-    "media-server.published-release-evidence.v1",
-    "media-server.github-metadata-fallback-policy.v1",
-    "failure-class=external-auth-or-permission",
-    "--self-test-fallback-policy",
-    "Release metadata/docs drift",
-    "Docs UI assets",
-    "Manual UI evidence",
-    "English UI visual copy QA",
-    "Release close-out runbook",
-    "PR checks",
-    "Release notes",
-    "30분 soak",
-    "장시간/외부 gate",
-    "release-test-records.md",
-    "`/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence로 링크하지",
-    "Test Token Usage Ledger",
-    "token consumed",
-    "`PASS` 또는 `FAIL`",
-    "v2.9.0 Release Evidence Hygiene",
-    "verify-v290-release-evidence-hygiene",
-    "미실행/제외/manual-not-run/미확인",
-    "./server.sh verify-release-evidence-index",
-  ]) {
-    assert(doc.includes(snippet), `release evidence index missing snippet: ${snippet}`);
-  }
-});
-
-check("release test records own detailed item and result tables", () => {
-  const records = readText("docs/release-test-records.md");
-  const v280EvidenceHeading = records.includes("### v2.8.0") ? "### v2.8.0" : "";
-  const v280EvidenceSection = records.split(v280EvidenceHeading)[1]?.split("\n### v2.9.0")[0] || "";
-  for (const snippet of [
-    "# Release Test Records",
-    "| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |",
-    "| 제목 | 수행내용 | 수행 상세 내용(확인방법) | 몇버전부터 deprecated되었는지 |",
-    "| 제목 | 수행내용 | 결과(pass/fail) |",
-    "`/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence가 아닙니다.",
-    "docs/release-artifacts/<version>/<run-id>/",
-    "### v2.5.0",
-    "### v2.6.0",
-    "### v2.7.0",
-    v280EvidenceHeading,
-    "v280 UI wrapper rerun",
-    "임시 산출물 정리 기록",
-  ]) {
-    assert(records.includes(snippet), `release test records missing snippet: ${snippet}`);
-  }
-  assert(v280EvidenceSection.length > 0 && v280EvidenceSection.includes(v280EvidenceHeading) === false,
-    "release test records missing bounded v2.8.0 evidence section");
-});
-
-check("token usage ledger final evidence excludes temporary paths", () => {
-  const doc = readText("docs/release-evidence-index.md");
-  for (const line of doc.split(/\r?\n/)) {
-    if (!line.startsWith("| 2026-")) continue;
-    const cells = line.split("|").map((cell) => cell.trim());
-    const runId = cells[2] ?? "<unknown>";
-    const evidence = cells[11] ?? "";
-    for (const marker of ["/tmp", "/private/tmp", "$TMPDIR"]) {
-      assert(!evidence.includes(marker), `${runId} evidence cell keeps temporary path marker: ${marker}`);
-    }
-  }
-});
-
-check("skipped wording stays distinct from pass", () => {
-  const doc = readText("docs/release-evidence-index.md");
-  for (const snippet of [
-    "기능별 테스트 결과 행은 `PASS` 또는 `FAIL`만 기록합니다.",
-    "해당 기능 결과를 `FAIL`로 기록합니다.",
-    "별도 `제외 기록`에만 남깁니다.",
-    "기능별 테스트 결과 행에는 쓰지 않습니다.",
-    "`PASS` | 해당 release cut에서 실제 실행했고 통과",
-    "`FAIL` | 해당 release cut에서 실제 실행했고 실패",
-    "`미실행` | 실행 조건이 아니거나 명시 요청이 없어 실행하지 않음",
-    "`manual-not-run` | tag, push, PR merge, GitHub Release처럼 수동 승인 전이라 실행하지 않음",
-  ]) {
-    assert(doc.includes(snippet), `release evidence index missing skipped-test wording: ${snippet}`);
-  }
-});
-
-check("unverified wording stays distinct from pass", () => {
-  const doc = readText("docs/release-evidence-index.md");
-  for (const snippet of [
-    "`미확인` | 화면, screenshot, 외부 UI/API를 직접 열어 확인하지 않음",
-    "`제외` | 사용자 지시 또는 실기기/외부 credential 조건 때문에 테스트 기준에서 뺌",
-    "`미실행`, `manual-not-run`, `미확인`, `제외`는 PASS가 아닙니다.",
-    "UI 풀테스트 대상",
-    "기능별 결과 행에서는 `FAIL`",
-  ]) {
-    assert(doc.includes(snippet), `release evidence index missing skipped-test wording: ${snippet}`);
-  }
-});
-
-check("test evidence records include token usage fields", () => {
-  const releaseEvidence = readText("docs/release-evidence-index.md");
-  const manualUiStandard = readText("docs/manual-ui-fulltest.md");
-  const manualUiTemplate = readText("docs/manual-ui-result-template.md");
-  const longrunTemplate = readText("docs/runtime-dashboard-longrun-evidence-template.md");
-  for (const [label, text] of [
-    ["release evidence index", releaseEvidence],
-    ["manual UI fulltest standard", manualUiStandard],
-    ["manual UI result template", manualUiTemplate],
-    ["runtime longrun template", longrunTemplate],
-  ]) {
-    for (const snippet of ["token usage source", "token start", "token end", "token consumed", "elapsed"]) {
-      assert(text.includes(snippet), `${label} missing token usage field: ${snippet}`);
-    }
-  }
-  assert(releaseEvidence.includes("147,501"), "release evidence index missing latest stability token usage");
-});
-
-check("public docs do not expose evidence ledger as a front-door document", () => {
-  const readme = readText("README.md");
-  const readmeEn = readText("README.en.md");
-  const docsIndex = readText("docs/README.md");
-  const streamVerification = readText("docs/stream-verification.md");
-  assert(!docsIndex.includes("release-evidence-index.md"), "docs/README.md must not expose release evidence ledger as a public front-door link");
-  assert(!streamVerification.includes("./server.sh verify-release-evidence-index"), "stream verification public guide must not list internal evidence ledger verifier");
-  for (const [label, text] of [["README.md", readme], ["README.en.md", readmeEn]]) {
-    for (const snippet of [
-      "Release Evidence Index",
-      "30분 soak",
-      "manual-not-run",
-      "PR checks",
-      "Skipped / Not-run Wording",
-    ]) {
-      assert(!text.includes(snippet), `${label} repeats detailed evidence index content: ${snippet}`);
-    }
-  }
-});
-
-check("server entrypoint exposes release evidence index verifier", () => {
-  const server = readText("server.sh");
-  const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  assert(server.includes("verify-release-evidence-index"), "server.sh is missing verify-release-evidence-index");
-  assert(server.includes("verify_release_evidence_index.mjs"), "server.sh is missing release evidence verifier script reference");
-  assert(inventory.includes("verify_release_evidence_index.mjs"), "script inventory is missing release evidence index verifier");
-});
-
-let pass = 0;
-let fail = 0;
-for (const item of checks) {
-  try {
-    item.fn();
-    pass += 1;
-    console.log(`[pass] ${item.name}`);
-  } catch (error) {
-    fail += 1;
-    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-console.log("");
-console.log("== Release evidence index verification summary ==");
-console.log(`- pass: ${pass}`);
-console.log(`- fail: ${fail}`);
-if (fail > 0) process.exit(1);
-
-function check(name, fn) {
-  checks.push({ name, fn });
-}
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
-
-function readText(relativePath) {
-  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2);
+  if (hasHelpFlag(args)) printUsageAndExit('현행 기록 기준 검사\n\nUsage:\n  ./server.sh verify-release-evidence-index\n\n종료 원장 없이 정책·정의·명령과 OPS-039 회귀 입력을 확인합니다.\n실제 실행 기록/UI/장시간/공개 상태 PASS 검사가 아닙니다.');
+  assertKnownOptions(args, ['h', 'help']);
+  const report = verifyReleaseEvidenceIndex();
+  for (const row of report.checks) console.log('[' + row.status + '] ' + row.name + (row.message ? ': ' + row.message : ''));
+  console.log('\n== Release evidence index verification summary ==');
+  console.log('- scope: current-definitions-only; execution-evidence-not-verified');
+  console.log('- pass: ' + report.pass + '\n- fail: ' + report.fail);
+  process.exitCode = report.exitCode;
 }

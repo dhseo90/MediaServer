@@ -32,7 +32,7 @@ candidate_sources=(
   "$candidate_repo/src/recording/recording_cutover_stage_writer.cpp"
   "$candidate_repo/src/recording/recording_catalog_snapshot_export.cpp"
   "$candidate_repo/src/recording/retention_coordinator.cpp"
-  "$candidate_repo/src/recording/recording_finalize_recovery.cpp"
+  "$candidate_repo/src/recording/recording_finalize_recovery.cpp" "$candidate_repo/src/recording/recording_finalize_ticket.cpp"
   "$candidate_repo/src/recording/recording_file_evidence.cpp"
   "$candidate_repo/src/recording/recording_media_inspector.cpp"
   "$candidate_repo/src/domain/strict_json.cpp"

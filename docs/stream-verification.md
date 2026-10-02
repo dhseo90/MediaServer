@@ -6,12 +6,540 @@
 
 ## 역할과 경계
 
+`./server.sh verify-feature-scope-gate`는 [backlog의 기능 후보 기준](development-backlog.md#기능-후보의-범위-결정)의
+미승인/승인 범위/보류 상태, 필수 검토 항목, 보호 계약과 실제 명령 연결을 확인한다.
+과거 v1.8 제목이나 종료 원장은 입력이 아니다. 문서 검사 PASS는 실제 사용자 승인이나 제품 실행 PASS가 아니다.
+관련 자체검사는 `node --test scripts/internal/release_record_documentation.test.mjs`의
+`SCOPE-DOC` 항목이다. 종료 원장 접근 차단·제목 변경은 정상, 미승인 실행·승인 범위 확대·
+중복 상태·검토 항목/보호 계약/dispatch 누락은 실패해야 한다. 실제 파일은 수정하지 않는다.
+
+문서 소비자 자체검사 `node --test scripts/internal/v310_v320_documentation_consumers.test.mjs`는
+다음 사전 정의를 사용한다. 서버·브라우저를 실행하지 않으며 제품 기능 PASS를 대신하지 않는다.
+
+| ID | 확인 대상 | 독립 예상 결과 |
+| --- | --- | --- |
+| V31-V32-DOC-01 | v310·v320 기능 검증기 16개에서 종료 원장·backlog·직접 색인 접근 차단 및 제목 변경 | 현재 정의·계약·실행 연결이 있으면 정상 종료 |
+| V31-V32-DOC-02 | 각 기능의 현재 inventory 행 제거 | 누락 ID를 명시하고 실패 |
+| V31-V32-DOC-03 | 메모리에서만 해당 제품 schema 식별자 제거 | 기존 제품 소스 검사 실패 및 exit 1 유지 |
+| V31-V32-DOC-04 | UI 체크리스트 제거 | 기존 세 UI 정의 연결 검사 실패 |
+| V31-V32-DOC-05 | SAFE-095/098 인증, EVT-066 런타임 명령 결속 훼손 | 독립 검사 연결 불일치 실패; 정적 검사로 대체 금지 |
+| V31-V32-DOC-06 | pin 보호·신원 embedding 반례와 전체 입력 hash | 기존 안전 검사가 실패하고 실제 제품·fixture 파일은 불변 |
+| V31-V32-DOC-07 | 분리된 UI 소스의 control 삭제·구형 ID anchor·assertion 중복 | 실제 파일을 읽는 검증기가 누락·오래된 연결·중복 위치를 거부 |
+
+동일 자체검사에 `V33-V34-DOC-01`~`04`를 사전 정의한다. v330·v340의 정적 기능 검증기
+15개에서 종료 원장/backlog/직접 색인 없이 실행, 현재 ID 누락, 제품 schema 누락,
+현행 문서의 route/schema 식별자 누락을 각각 확인한다. 첫 조건은 정상 종료, 나머지는
+누락 근거와 exit 1이 예상 결과다. 해당 여섯 UI 체크리스트 누락도 기존 실패를 유지한다.
+실제 외부 장치·브라우저·운영 복구·장시간 검증은 실행하지 않는다. runbook/backup 안내,
+staging 복구 자체검사와 버전 마감 판정이 섞인 검증기는 이 묶음에 포함하지 않는다.
+`V33-V34-DOC-05`는 SRC-033~039/043의 `verify-ops-source-registry-api` 결속을 훼손하면
+정적 동반 검사도 실패하는 반례다. 이 연결 확인을 해당 API 런타임 검사의 실행 PASS로 대체하지 않는다.
+
+`V35-V38-DOC-01`~`04`는 같은 자체검사의 v350~v380 기능 검증기 53개에 적용한다.
+종료 원장/backlog/직접 색인 접근 차단·문서 제목 변경은 정상, 현재 ID·제품 schema·현행 문서
+식별자 누락은 exit 1을 기대한다. `V35-V38-DOC-05`는 별도 API로 연결된 27개 ID의
+명령을 훼손하면 실패해야 하며 정적 동반 명령으로 런타임 검사를 대체하지 않는다.
+`V35-V38-DOC-06`은 분리된 dashboard control·함수 내부 안전 조건 누락, 구형/중복 assertion
+연결을 거부한다. 실제 파일은 변경하지 않고 입력 hash로 불변을 확인한다.
+원래 검증기의 입력 파일·함수 범위·manifest 불일치 실패와 신규 자체검사의 예상 RED를 구분한다.
+버전 마감 gate·제품/외부 서비스·실제 UI·장시간 실행은 이 묶음에서 수행하지 않는다.
+
+`VLM-DOC-01`~`06`은 같은 자체검사의 VLM 정적 검증기 12개에 적용한다.
+종료 기록·직접 색인 없이 현행 정의와 계약이 있으면 정상 종료해야 한다. 현재 기능 ID,
+문서 식별자, 제품 식별자, 독립 인증/HTTP 명령 연결이 빠지면 실패해야 한다.
+sidecar 원문 저장·자동 runtime 호출 반례와 분리된 UI control 누락도 거부한다.
+입력은 자식 프로세스 메모리에서만 바꾸고 실제 제품/fixture hash를 대조한다.
+기존 명령 결속·UI 파일 위치 실패와 신규 예상 RED를 구분하고, 실제 인증/HTTP/UI 실행 PASS로 확대하지 않는다.
+
+`V26-V28-DOC-01`~`06`은 같은 자체검사의 v260~v280 정적 기능 검증기 15개에 적용한다.
+종료 기록·옛 제목 없이 정상 실행하고, 현행 ID·문서 계약·제품 식별자·UI 정의·독립 실행 연결의
+누락은 exit 1이어야 한다. 인증·규칙 저장·source API 등 기존 runtime 명령을 정적 동반 검사로
+바꾸지 않는다. 입력은 격리 자식 프로세스의 메모리에서만 변경하며 제품/fixture 파일은 불변이어야 한다.
+옛 제목·backlog 읽기에 따른 예상 RED와 기존 기능 검사 실패를 구분한다.
+실제 제품·브라우저·장시간·외부 장치 검증은 실행하지 않는다.
+
+`V26-V28-READY-01`~`08`은 같은 자체검사의 릴리즈 준비 명령 3개에 적용한다.
+과거 완료 행·실행 원장·옛 제목 없이 현행 정책과 기능 연결을 확인하며, 기능 ID·실행 명령·
+UI 정의·릴리즈 metadata·UI 증거 정책 누락/변조는 실패해야 한다. 각 명령은 제품·실제 UI·
+장시간·공개 상태를 실행하지 않았음을 구분하며 파일 변경·자식 명령·외부 요청을 하지 않는다.
+종료 기록에 묶인 최초 예상 RED와 정책 연결 구현 후 동일 검사·영향 회귀를 보존한다.
+
+릴리즈 준비 companion인 `./server.sh verify-release-evidence-index`는 증적 색인의 별도 검사다.
+준비 명령의 등록 확인은 이 명령의 실제 실행이나 릴리즈 검증 결과를 뜻하지 않는다.
+`./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`은 기존 one-shot
+정리 계획 검사 진입점이며, 이 명령의 등록 확인도 실제 정리·릴리즈 실행을 의미하지 않는다.
+`./server.sh verify-script-inventory`는 검증 스크립트의 역할 분류와 `server.sh` 실행 연결을 확인한다.
+이 검사도 등록된 개별 명령의 제품·UI·장시간 실행 결과를 대신하지 않는다.
+
+### 독립 도구와 자체검사의 선택 실행
+
+스크립트 역할 분류는 현재 코드·사용 안내를 사용합니다. `docs/release-artifacts/`,
+`docs/archive/`와 `.log` 실행 기록은 등록 근거에서 제외합니다. 과거 FAIL 로그를 보존해도
+미등록 도구가 등록된 것으로 바뀌지 않으며, 로그를 정리해도 정상 연결이 유지되어야 합니다.
+분류기 자체검사는 `node --test scripts/internal/script_inventory.test.mjs`입니다.
+SI-01~07은 정상 command/import/자체검사/수동 도구, 미등록·끊어진 연결·잘못된 dispatch,
+로그의 전체 경로/basename 참조 거부와 로그 포함/제외 시 같은 판정을 확인합니다.
+실제 스크립트를 모두 실행하는 검사가 아니며 제품·UI·장시간 PASS를 대신하지 않습니다.
+
+아래 명령은 저장소 루트에서 관련 변경에 맞춰 **하나씩 선택**합니다. 파일명 glob으로 모두
+실행하거나 acceptance의 필수 목록에 추가하지 않습니다. 자체검사도 native compiler·SQLite·
+소유 loopback fixture 또는 보존 capture를 사용할 수 있으므로 해당 파일의 입력·정리 조건을
+먼저 확인합니다. 필요한 fixture나 빌드가 없으면 준비 실패이며 새 PASS를 추정하지 않습니다.
+
+| 용도 | 독립 실행 명령 |
+| --- | --- |
+| 격리 파일과 자식 프로세스로 코덱 진단의 안전한 추출·기록 경계를 검증한다. | `python3 scripts/internal/codec_probe_diagnostics_test.py` |
+| LP26-O10의 규모·독립계수·회전 oracle 경계. 실제 부하 테스트가 아니다. | `node --test scripts/internal/recording_accumulation_plan.test.mjs` |
+| catalog 비교의 선택 단기 진단 | `node scripts/internal/recording_catalog_comparison_run.mjs selftest <새-run-id>` |
+| FC01 임시 계측만 수행한다. 제품 source/저장 계약과 최적화 flags는 변경하지 않는다. | `bash scripts/internal/recording_catalog_cost_probe_run.sh <새-run-id>` |
+| 녹화 완료 추적의 활성화 조건·식별자 해시·안전한 출력 판정을 검증한다. | `node --test scripts/internal/recording_completion_trace.test.mjs` |
+| 현행 녹화 보관소 복제 진단의 증거 정합성·완전성·원본 불변을 검증한다. | `node --test scripts/internal/recording_current_archive_probe.test.mjs` |
+| LP26-O07 생성기 비민감 결과 분류 자체검사. 생성기 실제 실행/장시간 PASS가 아니다. | `node --test scripts/internal/recording_current_fixture_generation.test.mjs` |
+| 현행 녹화 HTTP 관측의 시간 계측·실패 유지·비밀 비노출을 검증한다. | `node --test scripts/internal/recording_current_http_diagnostics.test.mjs` |
+| 현행 녹화 다섯 단계 통합의 순서·실제 결과 결속·실패와 정리 판정을 검증한다. | `node --test scripts/internal/recording_current_integration.test.mjs` |
+| 지연 관측과 요청 완전성 판정의 경계를 구분한다. | `node --test scripts/internal/recording_current_latency.test.mjs` |
+| 격리 SQLite로 lifecycle hold 관측 경로를 검증한다. 실제 HTTP/UI 검사는 아니다. | `node --test scripts/internal/recording_current_lifecycle_cache.test.mjs` |
+| LP26-O09 관측 간격의 결정적 경계·실패 자원 보존 검증. | `node --test scripts/internal/recording_current_longrun_diagnostics.test.mjs` |
+| 녹화 타임라인 페이지 수집과 독립 완료 관측의 검증·오류 전파 경계를 검증한다. | `node --test scripts/internal/recording_current_observation.test.mjs` |
+| LP26-O06 격리 root 용량 진단 자체검사. 제품/장시간 PASS가 아니다. | `node --test scripts/internal/recording_current_root_storage.test.mjs` |
+| 현행 녹화 상태와 중첩 원본 요약의 정확성·미상 분리·비밀 비노출을 검증한다. | `node --test scripts/internal/recording_current_state_diagnostics.test.mjs` |
+| 녹화 실패 관측의 고정 오류 분류·출력 제한·민감 원문 비노출을 검증한다. | `node --test scripts/internal/recording_failure_capture.test.mjs` |
+| 보존 capture의 sample·시간 경계 자체검사 | `node --test scripts/internal/recording_forward_probe_verify.test.cjs` |
+| 인증 검증 도우미의 입력·쿠키·가림 경계 검사. | `node --test scripts/internal/recording_foundation_auth_helpers.test.mjs` |
+| 녹화 관측기의 집계·자식 종료·오류 경계 검사. | `node --test scripts/internal/recording_foundation_observer.test.mjs` |
+| 초기 소스 집합과 계정별 허용 범위 대조 검사. | `node --test scripts/internal/recording_foundation_source_scope.test.mjs` |
+| 통합 검증 실행 순서와 실패 전파 검사. | `node --test scripts/internal/recording_foundation_suite.test.mjs` |
+| 녹화 세대 규모 probe의 결과와 경계 조건을 단위 검증한다. | `node --test scripts/internal/recording_generation_scale.test.mjs` |
+| 녹화 원장 증분 판독의 경계와 오류 검사. | `node --test scripts/internal/recording_journal_reader.test.mjs` |
+| 녹화 지연 추적 수집의 집계 정확성과 제한·오류 판정을 검증한다. | `node --test scripts/internal/recording_latency_trace.test.mjs` |
+| 실제 대기/서버 실행 없이 관측 시작간격의 독립 시간 oracle 검사. | `node --test scripts/internal/recording_longrun_cadence.test.mjs` |
+| 프로세스별 자원 관측 요약의 입력 및 분리 계약 검사. | `node --test scripts/internal/recording_longrun_summary.test.mjs` |
+| 녹화 검사 프로세스의 정상 종료·강제 종료·포트 정리 판정을 검증한다. | `node --test scripts/internal/recording_process_cleanup.test.mjs` |
+| 녹화 계측의 컴파일러·실행 메모리 분리와 단계별 상한 판정을 검증한다. | `node --test scripts/internal/recording_process_memory_probe.test.mjs` |
+| 별도 제어 프로세스를 이용한 자원 계측 검사. | `node --test scripts/internal/recording_process_metrics.test.mjs` |
+| 녹화 선택 추적의 안전한 행 수집·입력 상한·시도 순서 판정을 검증한다. | `node --test scripts/internal/recording_selection_trace.test.mjs` |
+| 녹화 UI acceptance의 CLI, 31행 manifest, redaction, artifact containment helper를 검증한다. | `node --test scripts/internal/recording_ui_acceptance.test.mjs` |
+| 녹화 UI driver callback의 메모리 전달, 취소, 오류 전파 경계를 단위 검증한다. | `node --test scripts/internal/recording_ui_driver_boundary.test.mjs` |
+| RP01~09 고정 loopback 전달·안전 관측·종료를 실제 HTTP 경계에서 검사한다. | `node --test scripts/internal/recording_ui_range_proxy.test.mjs` |
+| 고정 명령 분기 파서의 지원 및 거부 경계 검사. | `node --test scripts/internal/script_dispatch_parser.test.mjs` |
+| 승인된 exact 소유·제한 파일 연결과 기존 직접 packet 계약 진입점을 검사한다. | `node --test scripts/internal/structure_owner_classification.test.mjs` |
+| 실제 launcher wrapper를 fake binary/tool에 연결해 S05 lifecycle orchestration을 검증한다. | `node --test scripts/internal/v410_s05_service_lifecycle.test.mjs` |
+| 검증 준비가 외부 ICE 기본값을 허용하는 회귀를 검사한다. | `node --test scripts/internal/verify_local_ice_guard.test.mjs` |
+| application evidence 실제 adapter를 runtime archive와 동일 ABI로 검사한다. | `bash scripts/internal/verify_recording_application_evidence.sh` |
+| 실제 H264 이벤트와 opt-in 파생 worker의 격리 통합을 검사한다. | `bash scripts/internal/verify_recording_bounded_wait.sh` |
+| LP15 소유 source 복제본 계측. 제품 파일/원장은 변경하지 않는다. | `bash scripts/internal/verify_recording_checkpoint_cache.sh` |
+| O29 checkpoint I/O native fixture를 소유 임시 root에서 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_checkpoint_io_contract.sh` |
+| 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다. | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` |
+| 실제 H264 이벤트와 opt-in 파생 worker의 격리 통합을 검사한다. | `bash scripts/internal/verify_recording_derived_event_integration.sh` |
+| 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다. | `bash scripts/internal/verify_recording_derived_job_service.sh` |
+| 독립 canonical validation 기준 측정. 서버/catalog/media 생성 없음. | `bash scripts/internal/verify_recording_derived_job_validation.sh` |
+| 파생 job 계약/catalog/retention의 소유 fixture만 실행·정리한다. | `bash scripts/internal/verify_recording_derived_jobs.sh` |
+| 기존 runtime archive와 실제 managed media fixture의 파생 경계를 검사한다. | `bash scripts/internal/verify_recording_derived_remux.sh` |
+| 서버/외부 호출 없이 실제 내부 선택 모듈의 단기 fixture를 실행한다. | `bash scripts/internal/verify_recording_derived_selection.sh` |
+| 내부 검증 전용: 소유 root의 source/header 복제본만 계측한다. | `bash scripts/internal/verify_recording_derived_transition_reuse.sh` |
+| FE01~08 제품 파일 증거 검증. 원출력만 보존하고 소유 임시 media/store를 정리한다. | `bash scripts/internal/verify_recording_file_evidence.sh <새-run-id>` |
+| AVC framing 전용 단기 실제 writer 검사. 공개 저장/API는 바꾸지 않는다. | `bash scripts/internal/verify_recording_file_evidence_avc.sh` |
+| collector 진단 전용 단기 검사. 소유 cache/media/temp는 EXIT에서 전부 정리한다. | `bash scripts/internal/verify_recording_file_evidence_capture.sh` |
+| 직접 링크한 decoder와 bounded correlation을 소유 임시 경로에서 검증한다. | `bash scripts/internal/verify_recording_frame_correlation.sh` |
+| 녹화 세대 request proof smoke의 빌드·실행·정리를 수행한다. | `bash scripts/internal/verify_recording_generation_request_proof.sh` |
+| 실제 RTSP builder의 디코더 경계 진단·한정 보완 검사. 전체 제품/릴리즈 PASS가 아니다. | `bash scripts/internal/verify_recording_hw_impact.sh --self-test` |
+| 공유 소유의 선택 단기 진단 | `node scripts/internal/verify_recording_immutable_ownership.mjs green <새-run-id> envelope` |
+| 포트 없는 Gst 입력 관측과 실제 cache 전달 focused 검증을 실행한다. | `bash scripts/internal/verify_recording_input_observation.sh` |
+| 포트 없는 실제 원장/catalog 시간 위치 해석 fixture를 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_location_resolution.sh` |
+| 실제 미디어와 managed V2 writer의 격리 단기 계약을 검사한다. | `bash scripts/internal/verify_recording_managed_writer.sh` |
+| HW-03: 기존 codec/ICE 검사만 소유 loopback 환경에서 재사용한다. 실제 브라우저 검사가 아니다. | `node scripts/internal/verify_recording_media_impact.mjs --self-test` |
+| 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다. | `bash scripts/internal/verify_recording_native_derived.sh` |
+| 숫자 source/channel 참조의 실제 writer·원장·조회을 검사한다. | `bash scripts/internal/verify_recording_numeric_reference.sh` |
+| PREP-C01~08 전용 격리 native 검사. 실제 서버/네트워크/모델 실행 없음. | `bash scripts/internal/verify_recording_preparation_contracts.sh` |
+| 내부 정확 구간의 결정적 산술 검사. 파일 인증/실제 앱 통합 검사가 아니다. | `bash scripts/internal/verify_recording_presentation_interval.sh` |
+| 실제 public media의 격리 권한·보호을 검사한다. | `bash scripts/internal/verify_recording_public_media.sh` |
+| 공개 timeline 투영의 격리 시간·상태을 검사한다. | `bash scripts/internal/verify_recording_public_timeline.sh` |
+| 포트 없는 실제 원장/catalog 시간 위치 해석 fixture를 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_range_resolution.sh` |
+| 실제 원장/catalog의 source binding·상태 복구 fixture를 빌드·실행·정리한다. | `bash scripts/internal/verify_recording_source_binding.sh` |
+| S11 상태 전용 checkpoint snapshot 집중 검사를 격리 빌드·정리한다. | `bash scripts/internal/verify_recording_status_snapshot.sh` |
+| S10-2 순수 설계 모델만 컴파일·실행한다. 서버·포트·실제 미디어는 만들지 않는다. | `bash scripts/internal/verify_recording_time_policy_probe.sh` |
+| 제품 코드를 직접 링크한 파일 시각 측정 및 소유 임시 산출물 정리. | `bash scripts/internal/verify_recording_timing_probe.sh` |
+| 소유 임시 디렉터리에서 제품 내부 수락/최종화 단위검증을 실행한다. | `bash scripts/internal/verify_recording_write_boundaries.sh` |
+| 실제 격리 HTTP 서버의 두 운영 GET 진단 연결과 기본 off를 검증한다. | `node scripts/internal/verify_site_operations_request_diagnostic.mjs` |
+| 독립 운영 GET 진단 C++ smoke를 임시 경로에서 컴파일·실행·정리한다. | `bash scripts/internal/verify_site_operations_request_diagnostic.sh` |
+| finalizer PNG 중복 정리의 소유 경계·참조·삭제 안전성을 실제 임시 파일로 검증한다. | `node scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs` |
+| 녹화 고정 자료의 무결성 및 정리 경계 검사. | `node --test scripts/internal/verify_v410_recording_fixture_compatibility.test.mjs` |
+| 기존 runtime archive에 실제 decoder/manager smoke를 링크한다. 운영 env 파일은 읽지 않는다. | `bash scripts/internal/verify_v410_recording_observation_runtime.sh` |
+| UA01~08 인증 UI 준비의 옵션·비밀·실제 catalog seed를 검증한다. 실제 UI PASS가 아니다. | `node --test scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs` |
+
+native wrapper는 C++17, 해당 `pkg-config` 의존성, 필요한 경우 `build-gst-onnx`의
+현행 runtime archive를 요구하며 소유 임시 root에서 빌드·실행·정리합니다.
+`<새-run-id>`는 도구가 받는 영문 소문자·숫자·하이픈의 새 식별자로 바꿉니다.
+과거 출력 경로를 고정 사용하는 진단은 기존 출력 존재 여부를 먼저 확인하고 덮어쓰지 않습니다.
+`recording_forward_probe_verify.test.cjs`는 v4.1.0의 보존 forward-probe capture가 필요합니다.
+과거 capture 검증을 현행 UI 실행 PASS로 승격하지 않습니다.
+`verify_site_operations_request_diagnostic.mjs`는 실제 격리 HTTP 자식을 띄우므로
+소스 확인만 필요한 작업에서 자동 실행하지 않습니다. 하드웨어·미디어 도구의 `--self-test`는
+해당 모드만 선택하며 다른 실제 미디어 실행 모드나 장시간 검증을 뜻하지 않습니다.
+
+`recording_utc_observation_diagnostic.cpp`는 독립 C++ 진단 진입점이며 제품 시간 관측 header를
+직접 사용합니다. GStreamer 개발 환경에서 아래 명령으로 합성 입력만 선택할 수 있습니다.
+실제 파일 관측은 별도의 `--file <승인된-미디어>` 입력이 필요합니다.
+
+```bash
+utc_probe_root="$(mktemp -d "${TMPDIR:-/tmp}/media-server-utc-diagnostic.XXXXXX")"
+c++ -std=c++17 -Wall -Wextra -Werror -pthread -Iinclude \
+  $(pkg-config --cflags gstreamer-app-1.0) \
+  scripts/internal/recording_utc_observation_diagnostic.cpp \
+  $(pkg-config --libs gstreamer-app-1.0) -o "$utc_probe_root/check"
+"$utc_probe_root/check" --synthetic
+```
+
+종료 코드와 출력을 보존한 후 실행 종료·소유를 확인한 `$utc_probe_root/check`와 빈 임시
+디렉터리만 정리합니다. 이 안내는 새 실행 권한이나 과거 결과의 현재 PASS를 부여하지 않습니다.
+
+`V31-V38-READY-01`~`09`는 v3.1~v3.8 준비 명령 8개의 같은 경계를 확인한다.
+과거 기록 없이 통과하되 현행 SAFE/OPS 정의·독립 명령·서명 metadata·UI 판정·
+companion 안내와 실제 dispatch 누락은 거부해야 한다. 기존 CLI summary/schema와
+UI·장시간·published·외부 릴리즈/field 미실행 표시는 유지한다. 예상 RED는 종료 기록
+읽기 의존이며 이후 같은 89개 자체검사로 확인한다. 추가 `V31-V38-READY-10`은 실제
+동반 명령 입력·본문이 다른 16개 근거를 구분하되 ID·token·줄 번호만 바꾼 동일 근거는
+계속 거부해야 한다. 합계 90개 자체검사이며 실제 제품 실행을 대체하지 않는다.
+소스 감사의 기존 `known REVIEW3 false mappings` 검사에서는 `SRC-009`의 현행 form payload
+`displayName`과 저장 후 API의 `displayName/zone` 확인 지점을 대조한다. 다른 기능의 readback을
+대입한 반례는 거부해야 한다. 이는 소스 연결 자체검사이며 실제 채널 수정 UI를 실행한 결과가 아니다.
+
+`V30-V39-READY-01`~`12`는 v3.0·v3.9 준비 검사의 종료 기록 의존 제거를 확인한다.
+현행 정의·정책·companion 연결은 유지하며 v3.9의 `SAFE-212`·`OPS-179`는 기존 독립
+acceptance 명령에 그대로 연결한다. `./test_release.sh` 안내와 release 모드 진입도 확인하되
+실제 acceptance는 실행하지 않는다. 예상 RED는 과거 원장 읽기이며, 누락·변조 반례와
+미실행 출력 보존을 격리된 읽기 대체로 검사한다. 총 27개 도구 자체검사다.
+
+`PUBLIC-DOC-01`~`12`는 공개 문서 준비 검사의 현행 metadata·색인·이미지 관리·검수
+경계와 명령 연결을 확인한다. 제목·촬영 일지·과거 PASS 원장은 입력이 아니다. 현행
+문서/ID/명령 누락, 버전/서명 변조, 미관리·잘못된 언어 이미지와 검수 정책 완화를
+거부한다. 기존 검사의 과거 제목 누락 FAIL은 예상 RED와 구분하여 보존한다.
+실제 이미지 검수·제품/브라우저 실행은 이 자체검사의 범위가 아니다.
+
+`DOC-TRUTH`와 `DOC-LONGRUN` 자체검사는 공개 권한 안내·현행 릴리즈 metadata·UI 기준,
+단기/장시간 명령의 구분을 확인한다. 제목·고정 행수·종료 버전 원장을 요구하지 않으며
+권한 안내의 반전, GStreamer 최소 버전 불일치, 현행 문서/명령 누락, 장시간 자동 실행
+혼입과 공개 색인에 실행 기록을 넣는 반례는 거부한다. 같은 디렉터리의 공개 release note와
+상세 실행 자료를 구분한다. 실제 인증·장시간 실행은 하지 않는다.
+
 - AGENTS.md가 테스트/보고/커밋/푸시 권한의 최상위 규칙입니다.
-- 이 문서는 검증 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
+- 이 문서는 AGENTS에서 연결하는 상세 검증 정책과 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.
 - 안정화, 30분, 120분, UI 풀테스트는 서로 대체하지 않습니다.
 - 외부 조건이 필요한 테스트와 장시간 테스트는 별도 gate로 분리합니다.
 - endpoint, credential, runtime 승인 같은 사전 조건이 필요한 항목은 조건과 실행 evidence가 있을 때만 PASS 근거가 됩니다.
+
+## 검증 정책
+
+실행 준비에 사용하는 [장시간 결과 템플릿](runtime-dashboard-longrun-evidence-template.md)과
+[VLM 격리 리허설 정의](vlm-test-rehearsal.md)는 현재 명령의 범위·예상값을 확인하는 자료다.
+템플릿이나 fixture 검사의 통과를 실제 장시간·제품 UI·외부 provider 성공으로 사용하지 않는다.
+
+문서 검증기 자체검사는 `node --test scripts/internal/verify_docs_links.test.mjs`다.
+`DOC-01`~`DOC-11`의 개별 기대값은 해당 테스트에 정의하며, 다단계 색인·Git 없는 소스·유지보수
+문서 연결·깨진 링크/앵커/이미지·버전 접두사·코드 예제·미추적 파일·경로 이탈·symlink·CLI 오류를
+격리 디렉터리에서 검사한다. 실제 제품 기능·UI·장시간 검증은 실행하지 않는다.
+
+정책 문서 연결 자체검사는 `node --test scripts/internal/documentation_contract.test.mjs`다.
+`DOC-POL-01`~`DOC-POL-07`은 제목/옛 완료 문구 변경 허용, 정책 링크·식별자 누락 거부,
+과거 원장 없이 정의 검사, 문서 PASS와 실제 UI PASS 분리 및 기존 UI 정책의 완화 거부를 확인한다.
+
+UI 구조 문서 소비자 자체검사는 `node --test scripts/internal/ui_component_documentation.test.mjs`다.
+실제 정적 명령과 소유 파일은 [UI 공통 구성요소 안내](product-shell-component-examples.md)에 둔다.
+`UI-DOC-01`은 기존 구조·반응형·토큰·helper·renderer 명령 5개가 종료 문서·backlog·원장 없이
+현행 구성요소 안내로 실행되는지 확인한다. `UI-DOC-02`는 문서 제목 변경을 허용하되 현재
+문서·정책 링크·route·viewport·명령 dispatch 누락을 거부한다. `UI-DOC-03`은 실제 토큰,
+helper API·사용처·CMake, 모듈 분리 조건을 메모리에서 훼손해 기존 실패 전파를 확인한다.
+제품 파일은 변경하지 않으며 이 정적 자체검사는 실제 UI·Auth·미디어·장시간 실행이 아니다.
+
+같은 자체검사의 `UI-WORKSPACE-DOC-01`~`03`은 Auth·Client·Ops 작업 영역 정적 명령 8개에
+적용한다. 종료 단계 문서·backlog·직접 색인이 없어도 현행 안내·기능 ID·명령으로 실행해야 한다.
+현재 문서/ID/dispatch 누락은 실패하고, 실제 소유 파일의 form·권한·비노출·작업 순서·CSS
+조건을 메모리에서 훼손하면 기존 소스 검사의 실패가 유지돼야 한다. 최초 예상 RED는
+종료 기록 읽기이며, 분리 전 파일을 읽던 기존 소비자 문제는 별도 실패로 구분한다.
+제품 파일·정적 검사 대상 원본은 불변이어야 하며 실제 Auth·브라우저 동작 PASS가 아니다.
+
+`UI-CRITERIA-DOC-01`~`03`은 같은 자체검사에서 UI 기준 freeze 소비자의 종료 원장 독립성,
+제목 변경 허용, 현행 기준·Policy v4·기능 ID·명령 dispatch 누락 거부를 확인한다.
+최초 예상 RED는 과거 backlog/실행 원장 읽기다. `MANUAL-UI-DOC` 자체검사는
+`node --test scripts/internal/manual_ui_documentation.test.mjs`로 현재 424개 기본 case와
+녹화 8개 정의, 실제 결과와 미실행/FAIL 구분, 권한·정리·증거 적격 조건 및 실패 전파를
+격리 대역에서 확인한다. 결과 문서 구조의 유효성은 실제 UI 실행 PASS가 아니다.
+판정 기준은 [UI 풀테스트](manual-ui-fulltest.md), 실행과 기록은
+[체크리스트](manual-ui-checklist.md)·[결과 템플릿](manual-ui-result-template.md)에 둔다.
+
+기록 문서 소비자 자체검사는 `node --test scripts/internal/release_record_documentation.test.mjs`다.
+`RECORD-DOC`는 아래 네 명령이 종료 원장·backlog·과거 제목 없이 현행 정책/기능 ID/정확한
+dispatch로 실행되는지 확인한다. 현재 링크·명령·ID 누락은 실패해야 한다. `OPS-039`의
+source/공개 버전·2.x/3.0 경계는 `test/fixtures/release_metadata_boundary.json`의
+`v280Boundary`에 분리한 회귀 입력과 독립 예상값으로 검사한다. 이 입력은 당시 PASS 기록이 아니다.
+`RECORD-RESULT`는 합성 PASS/FAIL, 별도 미완료 상태, 빈/깨진/미인식 표, 코드 예제,
+최종 임시 증거 링크, 입력 전후 hash·원본 불변과 실패 exit를 확인한다. `RECORD-CONSISTENCY`는
+기존 v230 JSON/Markdown 출력 키, 네 영역·미실행·token 미집계 및 실패 전파를 유지한다.
+최초 예상 RED는 종료 기록을 읽거나 새 검사 진입점이 없는 상태이며 환경 오류는 포함하지 않는다.
+
+| 명령 | 기본 검사 범위 |
+| --- | --- |
+| `verify-release-evidence-index` | 현행 정책·정의의 연결 및 출처가 있는 버전 경계 회귀 입력 |
+| `verify-v230-test-evidence-consistency` | 네 검증 영역과 기록 기준. 기존 `--report`/`--json-report` 출력 유지 |
+| `verify-v290-release-test-records-enforcement` | 현행 기록 정책. 선택 `--result <Markdown 파일>`로 명시한 결과표의 구조·판정 검사 |
+| `verify-v290-release-evidence-hygiene` | 기록 정책·기능 정의·명령·실제 UI 기준 연결과 비승격 경계 |
+
+기본 검사는 실제 실행 결과를 읽거나 생성하지 않는다. `--result`의 PASS/FAIL 행과 별도
+미실행/부분/제외/미확인 상태를 구분하며 FAIL·미완료·깨진 결과는 exit 1이다. `/tmp` 등
+임시 경로를 최종 증거 링크로 사용하면 거부하되 임시자료 정리 설명 자체는 허용한다.
+구조 검사는 원출력의 실제 실행·artifact 내용/hash·제품/UI/장시간/공개 릴리즈를 보증하지 않는다.
+입력 원문을 쓰거나 과거 Git 로그를 fetch하지 않으며 Git 없는 source archive에서도 실행한다.
+
+`DOC-VLM-FIXTURE`는 VLM 설명 생성·평가·큐·리허설의 현행 schema/기능 ID/명령 dispatch를
+확인한다. 과거 단계 제목·중앙 실행 기록·공개 색인의 직접 링크 없이도 검사하며, 실제 계약·
+기능 연결·fixture 부작용 경계와 UI/장시간 정책 링크가 빠지면 실패한다. 자연어 문장의 의미
+전체를 자동 판정하거나 실제 모델 품질을 보증하는 검사는 아니다.
+`DOC-VLM-FIXTURE-OUTPUT`은 생성 보고서 검사 성공·자식 실패·잘못된 보고서·정리 실패를
+격리 대역으로 확인한다. 최초 실패를 정리 실패로 덮지 않고 검사 소유 파일만 정리해야 한다.
+`DOC-VLM-FIXTURE-QUEUE`는 C++ 관측 출력의 정상·자식 실패·누락·손상·미디어 차단·cross-zone schema 위반
+대역으로 실패 전파를 확인한다. 큐 검증기의 실제 `verify-analysis-state` C++ 실행이나
+provider·브라우저·장시간 검증을 이 도구 자체검사 결과로 대체하지 않는다.
+
+릴리즈 문서 검증기 자체검사는 `node --test scripts/internal/release_documentation_contract.test.mjs`다.
+`REL-POL-01`~`02`는 closeout·RC·reconciliation·v240/v250 준비·Actions/CI 소비자가 종료 원장·backlog·과거 제목 없이
+현행 계약으로 실행되는지, 서명/승인 링크·실제 dispatch·RC workflow·기본 smoke의 장시간
+혼입·UI 판정 훼손을 거부하는지 확인한다. RC 출력은 격리된 합성 결과를 사용하고 정리를
+확인하며 실제 120분 실행이 아니다. RC 정리 실패 뒤 추가 fixture 검사는 미실행이며
+Actions 쓰기 권한·warning 차단과 notice 허용을 별도 반례로 확인한다.
+v250 UI 정의는 현재 inventory와 canonical case의 `UI-039`~`UI-044` route/action 및
+기준서·체크리스트의 정의 링크로 확인한다. 같은 목록을 여러 문서에 복사하지 않으며
+정의·링크·action 누락 반례를 유지한다.
+선택 `--history`는 기록 형식만 확인하고 현재 PASS로 승격하지 않는다.
+`REL-DOC-01`~`REL-DOC-13`은 명시 metadata, source/target/공개 관측 분리, 문구 변경 허용,
+버전·서명/배포 정책·링크 오류 거부, Git 없는 소스 실행, 파일 누락·경로 이탈, 실패 exit·보고서를 확인한다.
+과거 OPS-041 사례는 `test/fixtures/release_metadata_boundary.json`의 테스트 입력이며 실행 증거가 아니다.
+입력의 source/공개 기준을 합치거나 실행 증거로 위장한 경우에도 CLI 실패가 유지되어야 한다.
+`verify-v400-entry-baseline`과 `verify-v410-entry-baseline`은 CLI 호환을 위해 현행 `verify-release-metadata`에 연결한다.
+과거 단계 완료를 재판정하거나 당시 로그를 복원하지 않으며, 잘못된 옵션과 실패 exit를 전달한다.
+v4.0 진입 호환 명령은 로컬 문서 검사만 허용하며 외부 공개 확인은 `verify-release-metadata --published`의 별도 범위다.
+
+진입 문서 회귀 자체검사는 `node --test scripts/internal/entry_baseline_documentation.test.mjs`다.
+`ENTRY-DOC-01`~`ENTRY-DOC-12`는 v3.0~v3.9 기존 명령·기능 ID를 유지하면서 현행 문서 정합성,
+과거 버전 경계 입력, 실행 증거 승격 거부, 정확한 dispatch/정의 연결, Git·종료 기록 없는 실행,
+입력 누락·변조·symlink 이탈·실패 exit를 확인한다. 과거 제목/완료 표/중앙 실행 기록의 존재 검사는
+현재 gate에서 분리한다. UI 자산 무결성은 전용 `verify-docs-ui-assets`가 담당하고 이 검사로 대체하지 않는다.
+`ENTRY-DOC-11`은 과거 선택·fallback·제외·제약 입력의 누락/변조와 현행 정책으로의 오인 표시를
+거부한다. 과거의 상시녹화 비범위를 현재 v4.1 녹화 지원 범위로 적용하지 않는다.
+`ENTRY-DOC-12`는 출처 있는 상태 parser fixture로 정상·누락·중복·상태/필수 내용 변조와 경로 이탈을 검사한다.
+`verify-v390-entry-baseline-contract`는 이 회귀 입력을 검사하며 현재 backlog에 과거 완료 표를 요구하지 않는다.
+기능 discovery 정의와 UI 자산의 실제 검사는 각각 전용 inventory·자산 명령에서 유지한다.
+
+초기 진입 보고서 자체검사는 `node --test scripts/internal/entry_baseline_report.test.mjs`다.
+`ENTRY-REPORT-01`~`ENTRY-REPORT-08`은 종료 기록·Git 없는 소스, 현재 버전/문서 오류,
+명령 연결 누락, 출력 옵션·기존 파일 보호, 실제 실패 전파, 보고서의 미실행/미확인 구분,
+v2.2 도구의 incident redaction/fallback 정적 경계와 경로 이탈을 검사한다.
+다음 호환 명령의 `--report`/`--json-report`는 명시한 새 파일만 생성하며 기존 파일을 덮어쓰지 않는다.
+보고서의 과거 버전 필드는 `historicalBaseline`에 분리하고 현재 값은 `currentContext`로 표시한다.
+보고서 생성의 PASS를 열거된 동반 명령이나 과거/현재 제품 테스트 실행으로 사용하지 않는다.
+
+| 명령 | 유지하는 JSON 식별자 |
+| --- | --- |
+| `verify-v190-entry-baseline` | `media-server.v190-entry-baseline-report.v1` |
+| `verify-v210-entry-baseline` | `media-server.v210-entry-baseline-report.v1` |
+| `verify-v220-entry-boundary` | `media-server.v220-entry-boundary-report.v1` |
+| `verify-v230-entry-baseline` | `media-server.v230-entry-baseline-report.v1` |
+
+`verify-v400-roadmap-contract`, `verify-v400-user-review-gate`,
+`verify-v400-release-readiness`는 종료된 v4.0 승인·완료 문구를 현행 gate로 검사하지 않는
+호환 명령이다. `verify-release-metadata`의 **로컬 문서 검사만** 실행하며 현재 승인·출시 가능,
+실제 30분/UI/120분·원격 공개 PASS를 판정하지 않는다. 신규 호출은 `verify-release-metadata`를 쓴다.
+세 구명령은 v4.1.1의 소비자 이관 기간에 유지하고 4/4 소비자 전수 확인 때 제거 가능성을 판정한다.
+기존 과거 fixture는 다른 소비자가 남아 있는 동안 보존하며 현재 승인이나 실행 기대값으로 복사하지 않는다.
+`node --test scripts/internal/release_documentation_contract.test.mjs`의 `REL-DOC-11`은
+호환 명령의 동일 판정·실패 전파를, `REL-DOC-14`는 과거 PASS/승인 자료 없이 실행 가능하고
+그 자료가 있어도 현재 문서 오류를 덮지 못하는 경계를 확인한다. 제품 동작 검사가 아니다.
+
+독자: 구현·검증 담당자. 수명: 현행 테스트 정책. 권한과 불변 계약은 [AGENTS](../AGENTS.md)가
+정하며, 이 절은 그 상세 실행·판정 기준이다. 같은 정책을 다른 문서에 다시 복사하지 않는다.
+
+기능 manifest의 일반 `--refresh-manifest`는 독립 REVIEW4 승인 정보를 보존하지 못하므로
+읽기/쓰기 전에 거부한다. 갱신이 승인된 작업에서는 기존
+`verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest`가
+현재 소스·개별 proof·독립 승인 원장을 대조하는 절차를 사용한다. 새 승인 생성이나
+과거 제품 테스트 PASS의 복사를 허용하는 뜻이 아니다. 기본 검증 명령은 읽기 전용으로 유지한다.
+`node --test scripts/internal/feature_manifest_refresh_boundary.test.mjs`의 자체검사 정의는 다음과 같다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| MANIFEST-WRITE-01 | 일반 재생성 거부, 기존 승인 자료 바이트 불변, 보고서 쓰기 없음 |
+| MANIFEST-WRITE-02 | 입력 누락·손상에도 파일 처리 전 거부 |
+| MANIFEST-WRITE-03 | 옵션 충돌·삭제된 migration·미등록 옵션 실패 유지 |
+| MANIFEST-WRITE-04 | 도움말에 폐기 옵션·독립 승인 경로·제품 미실행 경계 안내 |
+| MANIFEST-WRITE-05 | 정상 입력 검증 실패 시 반례 15개를 미실행으로 표시하고 실패 전파 |
+
+manifest 검증은 정상 입력의 **전체 986개**를 먼저 검사한다. 같은 실행의 내장 반례는
+전체 ID·개수·해시·승인 사유 조건과 변경된 항목을 동일 집합/항목 검사 함수로 확인하며,
+바뀌지 않은 986개 전체를 반례마다 반복 검사하지 않는다. 항목 검사는 전체 manifest PASS가 아니다.
+정상 입력은 동결해 반례의 제자리 수정을 거부하며, 정상 입력 검증 실패 뒤 반례는 미실행이다.
+`node --test scripts/internal/feature_manifest_validation.test.mjs`는 다음 도구 반례를 확인한다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| MANIFEST-SPLIT-01 | 전체 ID·개수·hash·승인 사유 집합 검사 |
+| MANIFEST-SPLIT-02 | 누락·중복·hash 불일치·승인 사유 누락/중복·배열 손상 거부 |
+| MANIFEST-SPLIT-03 | 전체 검사와 집합+모든 항목 검사 합성 일치. 불완전 fixture의 실패 유지 |
+| MANIFEST-SPLIT-04 | 변경된 항목의 실제 오류 검출과 원본 입력 불변 |
+
+v400 정책 호환 명령의 현행 안전 경계는 `v400_current_policy.mjs`에서 검사한다.
+과거 완료 표·중앙 실행 원장·당시 제목·파일 개수 상한은 현행 합격 조건이 아니다.
+기존 fixture 중 현재 계약에 필요한 입력만 사용하고 과거 source/시각/선택은 덮어쓰지 않는다.
+`node --test scripts/internal/v400_current_policy.test.mjs`는 다음 도구 자체검사다.
+구현 전 예상 RED는 공통 검사 함수 부재이며 제품 실행 실패와 구분한다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| V400-CURRENT-01 | 과거 문서가 없는 격리 입력에서도 현행 소스·fixture·dispatch 검사 가능 |
+| V400-CURRENT-02 | 비구현 쓰기 false 토큰, 5개 결정·승인 원본, field-smoke 비실행 경계 훼손 거부 |
+| V400-CURRENT-03 | Ops 기본 메뉴·workspace·Event POST 경계 훼손과 빈 검사 목록 거부 |
+| V400-CURRENT-04 | 이벤트 sidecar의 pin·dry-run·개인정보 조건 검사. 상시녹화 금지로 확대하지 않음 |
+| V400-CURRENT-05 | 실제 dispatch 대상·화면 소유/검증 연결 누락 거부. 과거 파일 개수 고정 없음 |
+| V400-CURRENT-06 | 경로 이탈·외부 symlink·잘못된 CLI 옵션 거부, 실패 exit 전파, 제품/UI/장시간 미실행 표시 |
+| V400-CURRENT-07 | 전체 inventory 집합·독립 REVIEW4 승인과 지정 6개 소스 proof 대조, 승인/소스 훼손 거부 |
+| V400-CURRENT-08 | 986/424/50/7 정의 및 wrapper/coverage의 실행 증거 분리 유지 |
+
+v300 이벤트 증거·개인정보·큐·검색·보존·Ops 정적 검사는 현행 계약의 식별자와
+기능 ID별 명령 연결을 확인하며 과거 완료 표·중앙 실행 원장을 읽지 않는다.
+분야별 색인 도달성·링크·이미지·앵커는 `verify-docs-links`가 별도로 검사한다.
+제목·절 번호·전체 문장을 고정하거나 docs/README의 직접 링크만 강제하지 않는다.
+`node --test scripts/internal/v300_documentation_consumers.test.mjs`의 도구 자체검사:
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| V300-DOC-01 | 공통 문서 검사: 필수 식별자·정확한 기능 ID/명령·dispatch 유지, 옛 제목·완료 표 불필요 |
+| V300-DOC-02 | 식별자·문서·ID·명령 누락/중복 및 잘못된 dispatch는 계속 실패. 표에 명령이 없는 정의만 exact manifest 연결을 사용하며 명시 오류는 덮어쓰지 않음 |
+| V300-DOC-03 | 정적 검사 8개가 과거 기록·직접 문서 색인 없이 실행. 실제 소스는 읽기만 하며 제목 변경은 허용 |
+| V300-DOC-04 | 8개 검사의 개인정보·media/provider 경계·실제 UI 소스 반례와 SAFE-064/LAB-002 독립 명령 연결 훼손이 실패로 전파 |
+| V300-DOC-05 | 기존 986개 정의·승인과 변경 파일의 exact 소스 본문을 대조. 변경된 전체 파일 해시는 현행 소스 검토·기존 승인 이관 절차 후 재결속하며 제품/실제 UI 실행 PASS로 승격하지 않음 |
+
+반례는 자식 프로세스의 읽기 결과만 메모리에서 변경하며 저장소·운영 자료는 수정하지 않는다.
+실제 제품/UI 실행은 아니며 최초 예상 RED는 공통 문서 검사 함수 부재다.
+
+### 영향별 1 문서 전용 변경
+
+최소 `git diff --check`. 허용 범위에서 `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`를 추가한다.
+릴리즈 버전/metadata/published 변경이면 관련 metadata 검증 필요성을 따로 판단한다.
+
+### 영향별 2 UI / Auth / Ops / Client 변경
+
+`./server.sh`의 build, verify-auth-bootstrap, verify-auth-users, verify-auth-routes,
+verify-ops-client-ui, verify-ops-client-ui --screenshots, verify-rule-ui 및 `git diff --check`.
+추가 후보: verify-ops-click-e2e, verify-ops-tables-layout, verify-ops-rules-roundtrip.
+
+### 영향별 3 `/ops/rules` / VA Rule / Scenario 변경
+
+`./server.sh`의 build, verify-rule-ui, verify-ops-rules-roundtrip, verify-analysis-state,
+verify-va-replay, verify-va-events 및 `git diff --check`.
+
+### 영향별 4 RTSP / WebRTC / Media path 변경
+
+`./server.sh`의 build, verify-codecs, verify-webrtc-ice, verify-webrtc-va-metadata 및 `git diff --check`.
+
+### 영향별 5 Runtime Dashboard / metadata / SSE / WS 변경
+
+`./server.sh`의 build, verify-va-runtime-console, verify-webrtc-va-metadata,
+verify-va-metadata-sidechannel, verify-ws-metadata 및 `git diff --check`.
+
+### 네 영역과 격리 인증
+
+영역은 안정화 테스트·30분 테스트·120분 테스트·UI 풀테스트 네 가지뿐이다.
+preflight/gate/wrapper/rehearsal/field smoke/credential/no-device는 해당 영역의 조건·절차·제외이지 다섯 번째 영역이 아니다.
+
+| 영역 | 인정 evidence | 대체 불가 |
+| --- | --- | --- |
+| 안정화 | build/static/API/auth/media/verifier 실제 명령·exit·summary·로그 | 장시간·실제 UI PASS |
+| 30분 | `verify-predev --soak-minutes 30` duration/iteration/summary/log | 안정화·120분·UI |
+| 120분 | 승인된 120분 명령의 실제 duration/자원·drift/summary/log | 안정화·30분·UI |
+| UI 풀테스트 | direct-browser 또는 7.6.3 적격 실제 실행의 control/action·상태·로그·시각 증거 | API-only·fixture·wrapper·replay·screenshot-only·coverage |
+
+안정화 실패 후 30분/120분/UI로 넘어가지 않는다. 개발·수정 요청의 관련 단기 검증과 재실행은 AGENTS의 승인된 같은 단계 수정 범위에 포함된다.
+조사만 요청받은 경우와 장시간/UI/릴리즈 검증 묶음은 별도 명시 실행 승인이 필요하다.
+30분과 UI는 버전 로드맵/릴리즈 완료의 필수 evidence다. 미실행/FAIL/미확인 시 생략 가능한 조건부가 아니라 blocker이며
+이를 알고 강제 release 진행하라는 최신 명시 승인 전에는 릴리즈 불가다. 120분은 아래 테스트 필요성 판정으로 결정한다.
+
+Auth verifier의 격리 검증에서는 사용자에게 비밀번호 지정을 요구하지 않는다. 실행마다 암호학적으로 안전한 난수로
+테스트 정책을 충족하는 서로 다른 임시값 다섯 개를 생성하고 아래 환경변수로 검증 프로세스에만 전달한다.
+파일 없는 메모리·자식 프로세스 환경 전달을 우선하며, 고정 기본값·이전 실행 값 재사용은 금지한다.
+실제 운영/기존 사용자 환경은 자동 생성값으로 대체하거나 비밀번호를 변경하지 않는다. 별도 승인·자격증명이 필요하다.
+실행 도구가 자동 생성을 지원하지 않으면 격리 실행 준비 단계에서 주입한다. 격리 또는 안전한 주입을 보장하지 못하면
+시작하지 않고 선수조건 실패/미실행을 보고한다. 문서 변경만으로 도구 구현까지 완료됐다고 보고하지 않는다.
+
+- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
+
+임시파일이 필요한 경우 저장소 밖 실행 전용 디렉터리(권한 0700)에 파일 권한 0600으로 생성한다.
+원문은 대화·로그·명령행 인자·증적·Git에 남기지 않고 shell tracing도 금지한다.
+성공·실패·중단 시 자식 프로세스 종료와 함께 환경 참조·임시파일·검증 소유 계정 저장소를 정리한다.
+강제 종료로 정리가 누락되면 다음 실행 전에 소유권이 확인된 잔여물만 정리하며 미확인 상태는 cleanup blocker로 남긴다.
+
+보고는 스크립트(단기·30분·120분·미실행)와 UI(evidence mode·화면/action·exact 대상/pass/fail/notRun/unsupported·시각·제외)를 분리한다.
+모든 영역 기록에 `token start`, `token end`, `token consumed`, `elapsed`, `source`를 남긴다.
+자동 goal usage 등 실제 집계가 우선이며 없으면 미집계 이유를 적는다.
+
+### 테스트 정의와 실행 결과
+
+기능별 정의는 현재 inventory/fixture에 한 번 등록하고 명령·route/control/action·역할/scope와
+네 영역의 매핑·독립 기대값·negative case를 둔다. 실행 결과는 정의가 아니라 별도 run 자료다.
+VA rule, scenario, tracker, Re-ID처럼 기능 축이 늘어나는 경우 한 줄로 뭉치지 않는다.
+각 event type, scenario type, line direction, tracker policy, Re-ID policy, invalid 조합,
+runtime 반영과 EventRecord 발생 여부를 각각 독립 기능 ID/결과 행으로 추가한다.
+기능별 테스트 결과 행의 판정값은 `PASS`와 `FAIL`만 쓴다.
+미실행·부분 실행·미확인·제외는 실행 상태로 별도 기록하며 사용자 명시 제외는 `제외 기록`에만 남긴다.
+UI 비대상 내부 기능은 그 이유를 정의에 적고 실제 UI 기능의 검사를 생략하는 근거로 쓰지 않는다.
+
+모든 개별 항목 결과·명령/exit·안전한 핵심 관측·원출력·source/환경·cleanup을 하나의 버전/run
+결과 위치에서 연결한다. JSON 등 구조화 전수 결과로 누락을 대조할 수 있으면 같은 표를 Markdown에
+다시 복사하지 않는다. 최초 실패와 재검증은 연결하고 최종 PASS로 실패를 덮어쓰지 않는다.
+사전등록 누락은 해당 증거 무효 → 영향 판단 → 정의 보완 → 관련 재실행으로 처리한다.
+사후 등록만으로 PASS를 복원하거나 무관한 전체 결과를 폐기하지 않는다.
+
+기본 결과 위치는 `docs/release-artifacts/<version>/<run-id>/`이며 실행 도구의 명시 output 계약을
+따른다. raw 임시 출력은 저장소 밖 소유 경로에 두고 보존할 결과만 정제한다.
+종료 버전의 중앙 원장을 계속 갱신하지 않는다. 단계별 source/명령/결과를 다른 문서에는 링크로 연결한다.
+버전 마감 때는 AGENTS의 Git 보존·내용 대조·별도 삭제 커밋 절차를 따른다.
+삭제 이후에도 과거 증거는 보존 commit/path에서 찾으며 현재 제품 테스트가 이를 fetch해야 하는 구조는 만들지 않는다.
+
+### 테스트 필요성·기존 증거 판정
+
+테스트 계획은 다음 표부터 만든다. 판정은 진행 대상/조건부 진행/미진행/미확인 중 하나다.
+
+`테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태`
+
+진행 대상은 이번 범위의 직접 근거가 있음, 조건부는 명시 조건 충족 시 실행, 미진행은 범위 밖/근거 없음,
+미확인은 source-of-truth 미확인이다. 직접 근거는 사용자 지시, 이번 cut 필수 gate, 변경 기능의 영역 매핑,
+선수 결과의 high-risk signal 또는 제공된 외부 조건+승인이다. baseline ID 존재만으로 이번 cut에 끌어오지 않는다.
+
+120분 진행 대상은 다음 중 하나가 있어야 하며 실행 승인은 별도로 확인한다.
+
+1. 사용자 120분 명시 지시.
+2. 현재 release policy/roadmap/evidence의 필수 gate.
+3. 이번 변경/신규 기능 ID의 120분 직접 매핑.
+4. RTSP/WebRTC/WHEP/WHIP media path, source worker lifecycle, shared stream reuse, runtime/metadata fanout, cleanup/port lifecycle 직접 변경.
+5. 안정화/30분의 memory leak, runtime/cleanup drift, media/session 유지 문제 신호.
+
+연결된 정확한 기능 ID·파일·route·module 없이 필요성을 단정하지 않는다. 새 근거 없이 판정을 뒤집지 않는다.
+정정 시 이전 보고·오류 이유·새 직접 근거·새 판정·문서/커밋 영향을 적는다. 세부 명령은 영역 판정 뒤 제시한다.
+
+기존 증거는 변경 diff·실행 source/환경·검증 경계를 근거로 유지/부분 무효/전체 무효를 메인이 판단한다.
+수정된 기능과 영향 회귀는 다시 검증하되 수정마다 30분/UI 전체를 자동 무효화하지 않는다.
+공통 수명·인증·미디어·관측/판정 경계의 변경으로 기존 전수 증거가 성립하지 않으면 그 범위의 재검증이 필요하다.
+개발 중 focused 검증을 최종 전체 검증으로 확대하지 않으며, 코드 고정 후 승인된 최종 대상과 남은 조건을 확인한다.
+
+### 실행 전·후 정리
+
+실행 전 성공/실패 oracle, output/temp/registry/event/browser 경로, 원출력 보존과 종료 방법을 정한다.
+실패·중단도 비민감 재현 명령·기대/관측·exit·source/환경·최초 실패·필수 hash를 보존한 뒤
+소유 프로세스·포트·임시 파일을 정리하고 부재를 확인한다. cleanup 실패·소유 미확인은 blocker다.
+큰 media/trace 보존은 별도 승인이 필요하며 credentials·raw source URL·debug 원문은 증거에 넣지 않는다.
+과거 로그·임시 경로·fixture 준비 결과는 실제 실행 PASS의 대체가 아니다.
 
 ## 빠른 실행 경계
 
@@ -31,6 +559,8 @@
 | `./server.sh verify-v390-review3-discovery-ledger` | V390-REVIEW3-36의 `AGENTS.md` 별도 전문 감사, 나머지 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action, source/tooling explicit incomplete marker disposition, RulesJson 두 scope decision과 986-row 불변을 검증. 문서/source 정적 coverage이며 UI/30분/120분 실행 PASS가 아님 |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
+| `./server.sh verify-v240-release-readiness-gate` | 구 CLI 호환: 현행 릴리즈·UI 정책과 metadata/docs/CI parity/closeout 명령 연결. 과거 완료 원장이나 실제 릴리즈 PASS를 요구·판정하지 않음 |
+| `./server.sh verify-ci-local-gate-parity` | 현행 Preflight·static gate·guardrail과 로컬 명령의 대응 검사. 실제 원격 CI 실행 결과는 아님 |
 
 ## 현재 v4.1.0 녹화 기반 verifier
 
@@ -77,18 +607,18 @@ UI 풀테스트·30분·120분·published metadata 또는 release action evidenc
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.1.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
-| v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | current source `4.0.0`, latest published `v4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization` 정렬. v4.0.0 2~8번, 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정하고 신규 기능을 `blocked-until-v400-complete`로 둡니다. 각 스텝 전용 verifier PASS, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424 유지, v390 verifier·contract·fixture 상한, v400 command allowlist, wrapper PASS와 실행 PASS 분리를 검사합니다. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (4) | `./server.sh verify-v400-local-ops-policy-freeze` | v3.9 defer 5개를 4.0 `policy-frozen` / `not-implemented-write-paths`로 유지하고 field smoke는 별도 `conditional-not-run`입니다. 기존 v390 deferral/signoff verifier는 재사용만 합니다. write 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (5) | `./server.sh verify-v400-incident-os-policy` | 기존 `/ops/events` 검색/timeline/resolution을 Ops-only `policy-frozen` 면으로 유지하고 primary nav 승격과 새 event type을 금지합니다. Incident OS 제품 승격, Event POST schema 변경, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (6) | `./server.sh verify-v400-evidence-ops-policy` | EventRecord/clip/retention을 `policy-frozen` opt-in·비-VMS로 유지하고 default-on 저장은 v4.1.0입니다. Evidence default-on 제품화, VMS/NVR archive API, 24/7 상시녹화, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (7) | `./server.sh verify-v400-local-ops-stabilization` | 역사적 v390 verifier 118개를 `keep-118-not-deleted`로 유지하고, stream-verification 현재 source `4.0.0`과 inherited 3.9 행을 구분하며, v320 page-owner/bundle drift를 `recorded-not-fixed`로 남깁니다. 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 (8) | `./server.sh verify-v400-release-readiness` | concrete release-note candidate와 네 테스트 영역 판정을 확인합니다. 동일 clean source `b96f74ab`의 fresh 30분/UI는 `fresh-executed-pass`, 120분은 `conditional-not-run`입니다. readiness PASS는 tag/GitHub Release, published metadata, release action evidence가 아닙니다 |
-| v4.0.0 roadmap contract | `./server.sh verify-v400-roadmap-contract` | v4.0.0 Local Operations Policy and Stabilization 로드맵이 정책/안정화와 v4.1.0 신규 기능을 분리하고, 모든 스텝에 테스트 스크립트 반영 필수를 심었는지 확인합니다. v4.0.0 2~8번 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+| v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | 현행 `VERSION`·release context·README와 문서 연결을 확인하는 로컬 문서 검사입니다. 현재 source를 과거 4.0.0으로 고정하지 않으며 제품/UI/장시간/원격 공개 실행 증거가 아닙니다. |
+| v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 현행 로컬 문서 검사로 연결하는 호환 명령입니다. 과거 사용자 승인·완료 기록을 요구하거나 현재 작업 승인으로 재사용하지 않습니다. 신규 호출은 `verify-release-metadata`를 사용합니다. |
+| v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424/50/7 현행 정의, 기존 v400 명령 연결, wrapper/coverage의 비실행 경계와 지정 6개 REVIEW4 승인·소스 proof를 검사합니다. 과거 파일 개수·완료 표·전체 파일 hash 고정은 검사하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (4) | `./server.sh verify-v400-local-ops-policy-freeze` | 5개 미구현/제외 기능의 기존 독립 결정·현재 false 토큰과 명령 연결을 검사합니다. field-smoke 자료의 비실행 상태는 실제 외부 검증 PASS가 아닙니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (5) | `./server.sh verify-v400-incident-os-policy` | Ops 기본 메뉴·이벤트 workspace·Event POST 기존 선언과 검사 명령 연결을 확인합니다. 과거 v4.1.0 이월 표기를 현재 제품 금지 정책으로 적용하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (6) | `./server.sh verify-v400-evidence-ops-policy` | 이벤트 이미지 sidecar의 실제 계약·저장 선언과 pin·dry-run·개인정보 fixture를 검사합니다. 별도 관리 녹화의 상시/이벤트 녹화·재생 지원을 금지하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (7) | `./server.sh verify-v400-local-ops-stabilization` | 이벤트 workspace 화면 소유·기존 bundle 검사 연결과 로컬 운영 명령 dispatch를 확인합니다. 과거 파일 개수·제목·수정 금지 상태를 고정하지 않습니다. 정적 검사이며 제품/UI/30분/120분/원격 공개 PASS가 아닙니다. |
+| v4.0.0 (8) | `./server.sh verify-v400-release-readiness` | 현행 로컬 문서 검사로 연결하는 호환 명령입니다. 당시 30분/UI PASS를 현재 출력·기대값으로 사용하지 않으며, 실제 테스트 증거와 출시 가능 판정은 별도입니다. |
+| v4.0.0 roadmap contract | `./server.sh verify-v400-roadmap-contract` | 현행 release context의 roadmap 문서 연결을 검사하는 호환 명령입니다. 종료된 v4.0 스텝·옛 v4.1 후보 목록을 현재 계획에 강제하지 않으며 실제 구현·사용자 승인·릴리즈 PASS가 아닙니다. |
 | v3.9.0 (1) | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬. v3.9 기능 discovery/dev, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (2) | `./server.sh verify-v390-feature-completion-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계를 확인합니다. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
-| v3.9.0 (3) | `./server.sh verify-v390-user-review-gate` | initial historical review-ready snapshot의 승인 전 개발 중단 경계와 후속 사용자 goal 이후 current `approved-through-recorded-user-goals`/`closed-with-evidence` 상태를 함께 검증합니다. current review closure도 UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+| v3.9.0 (3) | `./server.sh verify-v390-user-review-gate` | 출처가 고정된 `test/fixtures/v390_user_review_history.json`의 과거 `pending-user-approval`/`blocked-before-user-approval`와 기록된 `approved-through-recorded-user-goals`/`closed-with-evidence`를 구분합니다. 현행 기능 정의·정책·dispatch를 별도로 검사하며 현재 승인·개발 완료는 `not-assessed`입니다. UI·장시간·공개·릴리즈 실행 증거가 아닙니다 |
 | v3.9.0 (4)~(6) | `./server.sh verify-manual-ui-evidence`, `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-project-inventory` | Required Closeout `V390-REQ-001`~`V390-REQ-003` 문서/test-source gate입니다. manual UI 기준서 v3.9 current화, 장시간/UI 테스트 시작 조건 v3.9화, `v3.5-v3.8 UI coverage bridge`를 확인합니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (7)~(10) | `./server.sh verify-v390-evidence-test-gate-prep`, `./server.sh verify-ui-fulltest-one-shot`, `./server.sh verify-feature-inventory-coverage` | Evidence/Test Gate와 Test Model Prep 문서/test-source gate입니다. UI wrapper `wrapperResult`/`uiFulltestEvidenceStatus`/`manualResultStatus`/`longrunStatus`, feature coverage `covered/missing` wording, AI-minimized 30분/120분 stop-on-fail runner 기준, 무료 UI automation adapter failure report 기준을 확인합니다. UI 풀테스트 직접 조작, 30분/120분 longrun 실행, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (11) | `./server.sh verify-v390-onvif-credential-provider-status` | ONVIF credential/provider status summary. `/ops/api/onvif/credential-provider-status`와 `/ops/sources`가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer, secret/reference value 비노출 상태를 Ops-only read-only summary로 표시하는지 확인합니다. credential lookup, credential material/reference value exposure, source/view write, Auth/Role/Scope/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun, field credential success evidence가 아닙니다 |
@@ -689,8 +1219,10 @@ PASS 근거로 사용합니다.
 
 ## 직전 published baseline v3.2.0 verifier
 
-아래 명령은 v3.2.0 published baseline 구현 단계에서 추가된 verifier입니다. v3.3.0
-완료 evidence로 재사용하지 않습니다.
+아래 명령은 v3.2.0에서 추가된 기능의 현행 소스·정의 검사입니다. 명령 이름의 버전은
+도입 시점이며 이번 실행이나 실제 UI·장시간 통과를 뜻하지 않습니다. 기능 검증기는 현재
+계약 식별자·기능 정의·검증 안내·실제 실행 연결을 확인하고 종료된 실행 원장을 읽지 않습니다.
+별도 runtime sample과 release-readiness 검사는 해당 명령의 실행·증거 경계를 따릅니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
@@ -708,9 +1240,9 @@ PASS 근거로 사용합니다.
 
 ## 직전 published baseline v3.1.0 verifier
 
-아래 명령은 v3.1.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은
-항목은 문서 gate 또는 후보로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때
-`server.sh` wiring과 script inventory로 확인합니다.
+아래 명령은 v3.1.0에서 추가된 기능의 현행 소스·정의 검사입니다. 기능 검증기는 과거
+완료 문구가 아니라 현행 계약·기능 ID·실행 연결을 확인합니다. 정적 검사 PASS는 실제
+인증·분석·UI·장시간 실행을 대신하지 않으며 release-readiness의 별도 범위도 확대하지 않습니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
@@ -914,8 +1446,10 @@ RC command set:
 | --- | --- | --- |
 | ONVIF field smoke | `verify-onvif-field-smoke-gate`, `verify-onvif-no-device-suite` | no-device suite is not field smoke PASS |
 | External TURN/WHEP | `verify-external-turn-whep-field-gate` | endpoint/credential 없는 default PASS 금지 |
+| ONVIF·외부 연결 계약 | `verify-v230-conditional-field-evidence` | 위 두 로컬 절차와 현행 기능 정의 연결 검사. 실제 장비·외부 실행 아님 |
 | VLM cloud provider | `verify-vlm-cloud-provider-field-smoke-gate` | provider call 미실행은 PASS가 아님 |
 | VLM local runtime | `verify-vlm-local-runtime-smoke` | loopback local runtime smoke이며 cloud/provider/model 품질 evidence가 아님 |
+| VLM opt-in·정보 비노출 연결 | `verify-v230-vlm-opt-in-operational-evidence` | 현행 계약과 위 두 검사 결과를 연결. 실제 모델·provider·UI·장시간 성공 아님 |
 
 ## VLM / Runtime Boundary Commands
 

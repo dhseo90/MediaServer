@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 // 파일 용도: V200-S08 VLMObservation sidecar 저장소와 EventRecord 상관 경계를 검증한다.
 
 import fs from "node:fs";
@@ -117,27 +118,20 @@ check("analysis state smoke verifies side storage, eventId correlation, and payl
 });
 
 check("docs, inventory, stream verification, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-observation-sidecar.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V200-S08",
-    "media-server.vlm-observation.v1",
-    "media-server.vlm-observation-correlation-report.v1",
-    "verify-vlm-observation-sidecar",
-    "EventRecord correlation",
-    "LAB-040",
-  ]) {
-    assert(docs.includes(snippet), `docs/inventory missing snippet: ${snippet}`);
-  }
+  const currentInventory = readText("docs/project-feature-test-inventory.md");
+  const currentImplementation = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  const errors = validateFeatureDocumentation({
+    document: readText("docs/vlm-observation-sidecar.md"),
+    identifiers: ["media-server.vlm-observation.v1","media-server.vlm-observation-correlation-report.v1"],
+    command: "verify-vlm-observation-sidecar", script: "verify_vlm_observation_sidecar.mjs",
+    featureIds: ["EVT-030","LAB-040","LAB-053"], inventory: currentInventory, implementation: currentImplementation,
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
   assert(server.includes("verify-vlm-observation-sidecar"), "server command missing S08 verifier");
   assert(server.includes("verify_vlm_observation_sidecar.mjs"), "server dispatch missing S08 verifier script");
   assert(scriptInventory.includes("verify_vlm_observation_sidecar.mjs"), "script inventory missing S08 verifier");
@@ -189,6 +183,8 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM observation sidecar summary ==");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

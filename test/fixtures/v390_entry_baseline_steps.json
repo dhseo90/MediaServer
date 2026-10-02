@@ -31,5 +31,14 @@
         "current active candidate가 없음"
       ]
     }
-  ]
+  ],
+  "executionEvidence": false,
+  "purpose": "상태 parser의 역사 입력이다. 당시 PASS를 현행 완료/실행 증거로 사용하지 않는다.",
+  "provenance": {
+    "commit": "afc1ece8641f43b07b7910c948268f4673863e90",
+    "path": "docs/development-backlog.md",
+    "section": "### v3.9.0 진행 상태",
+    "sha256": "9e209100720bdae09fb9044bb5b599c89a2197df1bf095d45fca8bed1619e183"
+  },
+  "markdown": "### v3.9.0 진행 상태\n\n| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |\n| --- | --- | --- | --- | --- |\n| 1 | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs/backlog/source roadmap과 `verify-v390-entry-baseline` 기준 정렬 |\n| 2 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | 완료 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 항목과 checked source group 반영 |\n| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료/initial snapshot historical/current closed | initial review-ready·승인 전 차단 상태는 historical snapshot으로 보존하고, 후속 사용자 goal 승인으로 required/candidate 개발이 모두 `closed-with-evidence`, current active candidate가 없음으로 reconciliation |\n"
 }

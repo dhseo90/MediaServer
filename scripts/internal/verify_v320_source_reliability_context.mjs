@@ -4,6 +4,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -26,7 +28,7 @@ Checks:
   - sourceReliability exposes source health, recent failure context, and operator recheck hints
   - /ops/events renders source reliability without source URL, raw JSON, debug material, source registry writes, or client/viewer exposure
   - the context does not claim AI review quality, operator flow, client digest, search/metrics, UI fulltest, longrun, or published metadata evidence
-  - backlog, stream verification, release records, feature inventory, ops smoke, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
 `);
 }
 
@@ -34,17 +36,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-source-reliability-context";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -148,56 +149,25 @@ check("ops static smoke tracks Step 5 source reliability markers", () => {
   }
 });
 
-check("docs and roadmap expose v3.2 Step 5 scope without overclaim", () => {
-  for (const snippet of [
-    "| 5 | v3.2.0 (5) Source Reliability Context | P1 | 완료 |",
-    "source health, recent failure, operator recheck hint",
-    "`./server.sh verify-v320-source-reliability-context`",
-    "`./server.sh verify-v320-source-reliability-runtime-sample --http-base <running-server>`",
-    "AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
-    "## v3.2.0 Step 5 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.2 Step 5");
-  }
-  for (const snippet of [
-    "| v3.2.0 (5) | `./server.sh verify-v320-source-reliability-context`; 실행 중인 서버 대상",
-    "`./server.sh verify-v320-source-reliability-runtime-sample --http-base <running-server>`",
-    "Source Reliability Context",
-    "source health와 recent failure context",
-    "fixture EventRecord item",
-    "source registry write",
-    "AI review quality, operator assignment flow, client digest, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.2 Step 5");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-064","EVT-066","SAFE-106","OPS-073"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.v320-source-reliability-context.v1","sourceReliability"],
+    command, script: "verify_v320_source_reliability_context.mjs", featureIds: ["UI-064","SAFE-106","OPS-073"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["sourceReliability"],
+    command: "verify-v320-source-reliability-runtime-sample", script: "verify_v320_source_reliability_runtime_sample.mjs",
+    featureIds: ["EVT-066"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
+  assert(files.documentationImplementation.items?.filter(item => item.id === "EVT-066").length === 1 && files.documentationImplementation.items.find(item => item.id === "EVT-066")?.verifierEvidence?.command === "verify-v320-source-reliability-runtime-sample", "EVT-066 독립 검사 연결 불일치");
 });
 
-check("feature inventory and release records map v3.2 Step 5", () => {
-  for (const snippet of [
-    "v3.2.0 (5) Source Reliability Context | `UI-064`, `EVT-066`, `SAFE-106`, `OPS-073` | `verify-v320-source-reliability-context`, `verify-v320-source-reliability-runtime-sample`, `verify-ops-client-ui`",
-    "UI-064 | V320 Step 5 Source Reliability Context UI",
-    "EVT-066 | V320 Step 5 source reliability view model",
-    "SAFE-106 | V320 Step 5 source reliability boundary",
-    "OPS-073 | V320 Step 5 Source Reliability Context 게이트",
-    "`UI-001`~`UI-115`",
-    "`EVT-001`~`EVT-087`",
-    "`SAFE-001`~`SAFE-216`",
-    "`OPS-035`~`OPS-184`",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 5");
-  }
-  for (const snippet of [
-    "V320 Source Reliability Context",
-    "`./server.sh verify-v320-source-reliability-context`",
-    "`./server.sh verify-v320-source-reliability-runtime-sample --http-base http://127.0.0.1:8081`",
-    "v320 Step 5 RED source reliability context gate",
-    "v320 Step 5 RED source reliability runtime sample command",
-    "v320 Step 5 UI 풀테스트",
-    "v320 Step 5 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.2 Step 5");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.2 Step 5 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

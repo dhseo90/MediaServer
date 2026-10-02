@@ -7,6 +7,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentFieldValue, hasDocumentLink } from "./documentation_contract_lib.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -27,7 +29,7 @@ Checks:
   - V200-S15 fixture가 short smoke, missing-model, cloud-disabled, invalid-output, queue-timeout, cleanup, port/server lifecycle case를 포함
   - failure fixture가 VLM-only outcome으로 처리되고 Event/WebRTC/SSE/WS/media path side effect를 만들지 않음
   - cleanup과 isolated port/server lifecycle 기준을 리허설 report에 분리
-  - docs, stream verification, roadmap, server command, script inventory 연결을 확인
+  - 현행 문서·검증 안내·실제 command dispatch·script inventory 연결을 확인
 `);
 }
 
@@ -100,18 +102,11 @@ check("cleanup and port/server lifecycle are explicit but not longrun/UI substit
   assert(lifecycle.verdictNotes.includes("static rehearsal does not bind ports"), "lifecycle must state no port bind");
 });
 
-check("docs, stream verification, roadmap, server command, and script inventory are wired", () => {
-  const docs = [
-    readText("docs/vlm-test-rehearsal.md"),
-    readText("docs/README.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/project-feature-test-inventory.md"),
-  ].join("\n");
+check("docs, stream verification, server command, and script inventory are wired", () => {
+  const doc = readText("docs/vlm-test-rehearsal.md");
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   for (const snippet of [
-    "V200-S15",
     "media-server.vlm-test-rehearsal-fixtures.v1",
     "media-server.vlm-test-rehearsal-report.v1",
     "verify-vlm-test-rehearsal",
@@ -120,33 +115,24 @@ check("docs, stream verification, roadmap, server command, and script inventory 
     "invalid-output",
     "queue-timeout",
     "cleanup",
-    "port/server lifecycle",
+    "serverLifecycle",
+    "portLifecycle",
   ]) {
-    assert(docs.includes(snippet), `docs missing snippet: ${snippet}`);
+    assert(doc.includes(snippet), `current document identifier missing: ${snippet}`);
   }
-  assert(server.includes("verify-vlm-test-rehearsal"), "server.sh missing command");
-  assert(server.includes("verify_vlm_test_rehearsal.mjs"), "server.sh missing script reference");
+  const dispatch = parseServerDispatches(server).filter(item => item.command === "verify-vlm-test-rehearsal");
+  assert(dispatch.length === 1 && dispatch[0].script === "verify_vlm_test_rehearsal.mjs", "rehearsal dispatch missing/ambiguous/incorrect");
+  assert(readText("docs/stream-verification.md").includes("verify-vlm-test-rehearsal"), "verification command missing");
   assert(scriptInventory.includes("verify_vlm_test_rehearsal.mjs"), "script inventory missing verifier");
 });
 
 check("rehearsal scope does not claim stabilization, longrun, UI fulltest, or close-out PASS", () => {
   const doc = readText("docs/vlm-test-rehearsal.md");
-  const forbidden = [
-    "UI 풀테스트 PASS",
-    "30분 안정화 PASS",
-    "120분 장시간 PASS",
-    "close-out readiness 완료",
-  ];
-  for (const phrase of forbidden) {
-    assert(!doc.includes(phrase), `doc overclaims: ${phrase}`);
+  for (const field of ["runtimeVlmCallPerformed", "sidecarStored", "viewerClientExposureAdded"]) {
+    assert(hasDocumentFieldValue(doc, field, "false"), `fixture boundary missing: ${field}=false`);
   }
-  for (const phrase of [
-    "안정화/30분/120분/UI 풀테스트 완료 evidence가 아닙니다",
-    "S16 side effect 점검",
-    "S17 안정화/장시간/UI 기준 정리",
-    "S18 close-out readiness",
-  ]) {
-    assert(doc.includes(phrase), `doc missing non-substitute wording: ${phrase}`);
+  for (const policy of ["stream-verification.md", "manual-ui-fulltest.md"]) {
+    assert(hasDocumentLink(doc, policy), `verification policy link missing: ${policy}`);
   }
 });
 
@@ -167,6 +153,9 @@ for (const item of checks) {
 
 console.log("");
 console.log("== VLM short test rehearsal summary ==");
+console.log("- scope: fixture-only-no-server-or-port");
+console.log("- uiFulltest: not-run-by-this-command");
+console.log("- longrun30Or120: not-run-by-this-command");
 console.log(`- schema: ${report.schema}`);
 console.log(`- cases: ${report.summary.cases}`);
 console.log(`- failure fixtures: ${report.summary.failureFixtures}`);

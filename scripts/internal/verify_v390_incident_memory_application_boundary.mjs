@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 20 incident-memory projection/search/privacy의 application 경계를 검증한다.
 
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -255,27 +256,8 @@ check("CMake and dispatch bind the focused boundary", () => {
 });
 
 check("actual graph successor reduces one transport-analysis witness", () => {
-  const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary.includes("Analysis Session read application boundary") && graph.boundary.includes("30B") &&
-    graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
-    owner?.expectedFileCount === 41 && owner.expectedCppCount === 17 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
-    edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
-    edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
-    edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
-    graph.observedModuleEdges.length === 17 &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
-    graph.stronglyConnectedComponents.length === 0,
-  "Slice 20 graph successor missing");
+  const graph = assertCurrentSourceGraph(root);
+  assertBoundaryOwners(graph, [[headerPath, 'application-service-interfaces'], [sourcePath, 'application-service-interfaces']]);
 });
 
 for (const item of checks) console.log(`- ${item.status}: ${item.name}${item.detail ? ` — ${item.detail}` : ""}`);

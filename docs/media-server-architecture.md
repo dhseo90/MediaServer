@@ -1,12 +1,16 @@
-# Media Server Architecture
+# 서버 구조
 
-이 문서는 MediaServer의 서버 구조와 VA pipeline 배치를 빠르게 이해하기 위한 문서입니다.
+대상 독자는 서버를 수정하거나 운영 경계를 확인하는 개발자입니다. 현재 서버의
+미디어·분석·녹화 배치와 소유 관계를 설명하며, 실행 이력이나 향후 구현 계획과 구분합니다.
+상세 설정·공개 연동 계약은 아래 분야 문서를 기준으로 합니다.
 
 관련 문서:
 
 - 사용 명령: [development-guide.md](./development-guide.md)
 - 검증 기준: [stream-verification.md](./stream-verification.md)
 - VA 상세: [video-analysis.md](./video-analysis.md)
+- 녹화 설정·조회: [config-reference.md](./config-reference.md#녹화-저장소와-시작-복구)
+- 공개 연동 계약: [live-event-metadata-contracts.md](./live-event-metadata-contracts.md)
 - YouTube 실험 기능: [youtube-import.md](./youtube-import.md)
 
 ## 목차
@@ -32,6 +36,7 @@
 - 동일 source에 여러 client가 붙어도 source pull은 1회만 유지하고 fan-out
 - RTSP/WebRTC egress를 같은 stream/session 구조 위에서 제공
 - VA 분석은 media relay를 막지 않는 선택 계층으로 배치
+- 채널별 상시녹화와 분석 이벤트 녹화를 공유 source의 독립 구독자로 연결
 - 다채널 환경에서 session, stream, analysis state가 무한 증가하지 않도록 제한과 cleanup 적용
 
 ## 2. 전체 연결 모델
@@ -72,6 +77,8 @@ SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHEP / WHIP-publi
     +----> WebRTC Egress
     |
     +----> optional Analysis Tap
+    |
+    +----> optional Recorder -> 확정 세그먼트 / 관리 저장소
 ```
 
 ## 3. 주요 컴포넌트
@@ -86,6 +93,11 @@ SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHEP / WHIP-publi
 | RTSP Egress | SharedStream packet을 RTSP route별 output으로 변환 |
 | WebRTC Egress | SharedStream packet을 WebRTC signaling/WHEP client로 전송 |
 | Analysis Tap | SharedStream을 구독해 VA decode/inference/overlay/event 처리를 수행 |
+| RecordingSupervisor / RecordingSessionService | 전역·채널 opt-in을 확인하고 독립 녹화 구독자와 writer 수명을 관리 |
+| RecordingRuntimeStorage / RecordingCatalog | 관리 원장·카탈로그의 저장, 조회, 시작 복구를 연결 |
+| RetentionCoordinator | 상시/이벤트 보존 한도와 여유 공간, 쓰기 예약·pin/hold·삭제 상태를 관리 |
+| CatalogEventRecordingBridge / DerivedJobService | 같은 분석 입력의 증거로 이벤트를 원본 세그먼트와 연결하고 파생 영상 작업을 관리 |
+| RecordingReadService | 권한이 확인된 채널의 타임라인과 보호된 파일 재생을 제공 |
 
 ### HTTP Auth / Principal
 
@@ -368,6 +380,52 @@ client dashboard는 같은 상태 의미를 sanitized summary로만 노출합니
 tap context의 rule id 목록에 병합됩니다.
 저장된 rule/scenario evaluation은 같은 분석 결과 위에서 fanout됩니다.
 
+### 녹화·분석·재생 연결
+
+녹화는 live 시청 session과 독립된 `SharedStream` 구독자입니다.
+전역 녹화 설정, source 활성 상태, 채널의 녹화 설정을 모두 만족하면
+`RecordingSupervisor`가 recorder를 유지합니다. 따라서 시청자가 없어도 녹화할 수 있습니다.
+`RecordingSessionService`는 descriptor와 첫 keyframe을 확인한 뒤 writer를 시작합니다.
+
+```text
+SharedStream -> Recorder -> GStreamerSegmentWriter -> 확정 원본 세그먼트
+                    |                                       |
+                    +---------- 관리 원장 / Catalog <--------+
+                                      ^
+같은 입력의 분석 결과 -> 원본 식별·시간 대응 증거 -> 이벤트 참조
+                                      |
+                            파생 영상 작업 -> 확정 이벤트 영상
+                                      |
+Ops 권한·채널 scope -> RecordingReadService -> 타임라인 / 보호된 파일 전송
+```
+
+상시녹화는 H.264/MP4와 VP8/WebM 영상 세그먼트를 사용합니다. 현재 이벤트 파생 경로는
+H.264/MP4 원본에서 video-only fragmented MP4를 생성합니다. 원본 확정을 제한 시간 동안
+기다리되 확보한 구간만 결과로 남기며, 작업 종료 상태와 `complete`/`partial`은 별개입니다.
+짧은 분석 프레임을 보관하는 기존 Snapshot/Clip hook과 관리 녹화는 서로 다른 기능입니다.
+
+서버 조립은 `src/application/media_server_application.cpp`가 담당합니다.
+저장소 열기와 시작 복구를 마친 뒤 분석 observer·이벤트 bridge를 연결하고 녹화 생산자를 시작합니다.
+시작 복구에는 삭제 대기, 원자 확정 대기, 파생 작업 정합, 확정 파일 검사가 포함됩니다.
+녹화 설정이 꺼져 있어도 저장소 열기·시작 복구는 수행하므로, 시험 실행은 별도 저장 root를 사용해야 합니다.
+파일 형식과 이관 한계는 [저장소 설명](./config-reference.md#녹화-저장소와-시작-복구)과
+[백업·복구 안내](./ops-backup-recovery.md#관리-녹화-자료의-보존과-복구-한계)를 봅니다.
+
+시간과 참조는 다음 경계를 유지합니다.
+
+- 파일 식별·영속 순서, 원본 미디어 시간, UTC 대응은 별개입니다. PTS를 날짜로 취급하거나
+  시각 역행을 값 덮어쓰기로 감추지 않으며, UTC를 확정할 수 없는 자료는 미확인으로 남깁니다.
+- 분석 관측·이벤트에는 같은 입력의 식별 정보와 대응 증거를 전달합니다. overlay 표시의
+  최근 결과 fallback을 녹화 연결에 적용하지 않습니다. 증거가 없거나 모순되면 연결을 확정하지 않습니다.
+- 이벤트 우선 표시는 입증된 중첩 구간에만 적용합니다. 부분 결과가 있다는 이유로 상시녹화 전체를
+  가리지 않으며, 파일 재생 가능성과 브라우저의 실제 디코딩 성공도 구분합니다.
+- 보존은 상시/이벤트 한도를 분리하고 영속 순서와 보호 상태를 확인합니다. pin/hold·진행 중 참조·
+  재생 보호를 무시해 용량을 확보하지 않으며, 확보할 수 없으면 쓰기 상태에 반영합니다.
+
+설정에서 저장 확인·타임라인·재생으로 이어지는 사용법은 [UI 가이드](./ui-guide.md#녹화-조회와-재생-v410-s06),
+HTTP 응답·권한은 [녹화 API](./config-reference.md#녹화-조회재생-api-v410-s06)를 봅니다.
+관측 자료 저장은 후속 검색의 기반이며, 자연어로 영상을 찾아 재생하는 기능의 구현 완료를 뜻하지 않습니다.
+
 ## 4. Source 종류
 
 | Source | 요청 예 | 상태 |
@@ -411,6 +469,7 @@ SourceWorker thread
        -> subscriber queue A -> RTSP writer
        -> subscriber queue B -> WebRTC writer
        -> subscriber queue C -> AnalysisManager
+       -> subscriber queue D -> RecordingSessionService / SegmentWriter
 ```
 
 동시성 원칙:
@@ -551,12 +610,14 @@ VA 상태는 streamId/channelId 기준으로 분리합니다. 서로 다른 chan
 | ScenarioInstance | ScenarioEngine | stream/channel/track/scenario별 phase와 timestamp |
 | EventState | EventManager | event lifecycle, cooldown, dedupe, cleanup 대상 state |
 | EventRecord | EventStorage | event 조회/연결용 optional 저장 record |
+| 원본 세그먼트·관측·이벤트 참조 | RecordingCatalog | 파일 식별·순서·시간 대응·분석 연결과 보존 상태 |
+| 파생 영상 작업 | DerivedJobService | 원본 선택·결과 파일 확정·중단 복구; EventRecord 자체와 별도 수명 |
 | VaRuntimeMetadataFrame | VaRuntimeMetadataBuilder | stream/channel/frame 기준 tracks/events/scenarios/metrics를 묶는 dashboard/DataChannel/side-channel 공통 frame |
 
 핵심 원칙:
 
-- frame 원본 장기 저장 금지
-- track별 metadata만 제한 보관
+- VA runtime state는 원본 frame을 무기한 쌓지 않고 track metadata를 제한 보관
+- opt-in 관리 녹화와 Snapshot/Clip 자료는 각 저장·보존 정책으로 별도 관리
 - trajectory는 downsample
 - appearance/Re-ID profile은 optional
 - state는 stream/channel scope로 분리
@@ -585,6 +646,8 @@ Cleanup은 다채널 장기 실행에서 state가 무한 증가하지 않게 하
 - lock 범위는 state map 정리 시점으로 제한
 
 상세 설정명은 [config-reference.md](./config-reference.md)를 봅니다.
+관리 녹화 삭제는 `RetentionCoordinator`의 보호·원장 전이를 거칩니다.
+위 VA state cleanup이나 EventRecord evidence 정리 도구로 녹화 root를 직접 삭제하지 않습니다.
 
 ## 11. Metrics / Runtime Status
 
@@ -596,6 +659,7 @@ GET /lab/analysis/taps/{tapId}
 GET /lab/analysis/taps/{tapId}/metrics
 GET /lab/analysis/event-post/status
 GET /lab/analysis/event-storage/status
+GET /ops/api/recordings/status
 ```
 
 주요 지표:
@@ -612,6 +676,7 @@ GET /lab/analysis/event-storage/status
 - inference latency
 - TrackHealth unstable/overlap/missed/direction summary
 - EventStorage/Event POST queue 상태
+- 채널별 녹화 활성/저장 차단·상시/이벤트 사용량·조회 카탈로그 및 복구 상태
 - metadata side-channel active client count
 - WebRTC metadata sent/dropped/failure count는 trace log와 longrun summary에서 확인
 
@@ -657,7 +722,11 @@ GET /lab/analysis/event-storage/status
   - 상태: 짧은 frame evidence recorder
   - 목적: EventRecord와 snapshot media/pre-post frame bundle manifest path 연결
   - Evidence retention cleanup job은 운영 명령으로 분리
-  - 장기 녹화/MP4 recorder는 현재 범위가 아니며 별도 제품 phase로만 검토
+  - 관리 녹화의 원본 세그먼트·이벤트 파생 영상과 구분
+- 관리 녹화
+  - 상태: 채널 opt-in 상시녹화, 이벤트 연결, 순환 보존, Ops 타임라인·재생
+  - 시간·원본 참조·복구 근거를 유지하며 세부 계약은 설정·저장 문서에서 관리
+  - 자연어 영상 검색과 질의 응답은 [후속 로드맵](./v410-v49-recording-search-roadmap.md)의 범위
 - Ops audit/backup
   - 상태: 운영 변경 이력과 복구 리허설
   - 목적: `/ops/api/audit` 서버 저장/검색/export, `ops-bundle`,

@@ -1,6 +1,6 @@
 // 파일 용도: 내부 파생 job의 compact 선택·엄격 JSON 계약.
 #include "recording/recording_derived_job.h"
-#include "recording/recording_derived_selection.h"
+#include "recording/recording_selection_values.h"
 #include "recording_derived_job_context.h"
 #include "domain/strict_json.h"
 #include <algorithm>

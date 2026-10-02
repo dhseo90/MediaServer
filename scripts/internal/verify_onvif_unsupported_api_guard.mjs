@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: ONVIF 비지원 protocol이 제품 API/UI route로 열리지 않았는지 정적으로 검증한다.
-// 동작 요약: import-draft만 허용하고 PTZ/Events/Profile G/Recording/Replay route가 없는지 확인한다.
+// 동작 요약: 초안·쌍 저장·상태 조회 경계를 보존하고 PTZ/Events/Profile G route가 없는지 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -42,11 +42,16 @@ const guardDoc = readText("docs/onvif-unsupported-api-guard.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
 const serverCode = readWebRtcHttpServerBundle(readText);
+const routeCode = readText("src/ingress/webrtc_http_server_runtime.cpp");
 const negativeRouteFixture = JSON.parse(readText("test/fixtures/onvif_unsupported_api_negative_routes.json"));
 const checks = [];
 
 check("unsupported API guard document pins allowed route", () => {
   assertContains(guardDoc, "POST /ops/api/onvif/import-draft", "guard doc missing allowed import draft route");
+  for (const route of ["PUT /ops/api/onvif/channels/{channelId}", "GET /ops/api/onvif/live-import-persist-decision",
+    "GET /ops/api/onvif/credential-provider-status", "source:write", "manual-recovery-required"]) {
+    assertContains(guardDoc, route, "guard doc missing allowed boundary: " + route);
+  }
   assertContains(guardDoc, "test/fixtures/onvif_unsupported_api_negative_routes.json", "guard doc missing negative route fixture path");
   assertContains(guardDoc, "405", "guard doc missing method-not-allowed status");
   assertContains(guardDoc, "404", "guard doc missing not-found status");
@@ -88,7 +93,7 @@ check("unsupported API guard document lists non-supported ONVIF protocols", () =
 check("related docs link unsupported API guard", () => {
   assertContains(matrixDoc, "./onvif-unsupported-api-guard.md", "protocol matrix missing unsupported API guard link");
   assertContains(liveSupportDoc, "./onvif-unsupported-api-guard.md", "live support doc missing unsupported API guard link");
-  assertContains(liveSupportDoc, "verify-onvif-unsupported-api-guard", "live support verification missing unsupported API guard command");
+  assertContains(guardDoc, "verify-onvif-unsupported-api-guard", "linked guard doc missing command");
 });
 
 check("negative route matrix pins method guard expectations", () => {
@@ -129,8 +134,12 @@ check("negative route matrix pins forbidden response terms", () => {
   }
 });
 
-check("product server only exposes ONVIF import draft route", () => {
+check("product server keeps supported ONVIF routes and rejects control routes", () => {
   assertContains(serverCode, "/ops/api/onvif/import-draft", "server must keep existing import draft route");
+  for (const route of ["/ops/api/onvif/channels/", "/ops/api/onvif/live-import-persist-decision",
+    "/ops/api/onvif/credential-provider-status"]) {
+    assertContains(routeCode, route, "server missing supported ONVIF route: " + route);
+  }
   assertContains(serverCode, "method not allowed", "server must keep method guard response for import-draft");
   for (const forbidden of unsupportedRoutePaths()) {
     assert(!serverCode.includes(forbidden), `server unexpectedly exposes unsupported ONVIF route: ${forbidden}`);

@@ -8,7 +8,7 @@ export const currentSteps=Object.freeze([
   {id:'http-api',file:'verify_v410_recording_ui_contract.mjs',args:['--http-api'],checks:35},
   {id:'http-auth',file:'verify_v410_recording_ui_contract.mjs',args:['--http-auth'],checks:40},
   {id:'http-lifecycle',file:'verify_v410_recording_ui_contract.mjs',args:['--http-lifecycle'],checks:10},
-  {id:'default-composition',file:'verify_recording_default_composition.sh',args:[],checks:46},
+  {id:'default-composition',file:'verify_recording_default_composition.sh',args:[],checks:51},
   {id:'actual-app',file:'verify_recording_current_app.mjs',args:[]}
 ]);
 function requireValue(ok,reason){if(!ok)throw Error(reason);}
@@ -36,11 +36,30 @@ export function completedCurrentStep(step,result){
     return {id:step.id,checks:step.checks,exit:0,cleanup:true};
   }
   if(step.id==='default-composition'){
-    requireValue(JSON.stringify(lines.filter(x=>x.startsWith('[summary]')))==JSON.stringify(['[summary] pass=24 fail=0','[summary] pass=16 fail=0','[summary] pass=1 fail=0']),'composition-summary');
-    requireValue(lines.filter(x=>x.startsWith('[pass]')).length===46,'composition-check-count');
-    for(const kind of ['committed','blocked'])requireValue(lines.filter(x=>x===`[process] ${kind} child exit=23 expected=23`).length===1,'composition-recovery');
+    requireValue(JSON.stringify(lines.filter(x=>x.startsWith('[summary]')))==JSON.stringify(['[summary] pass=24 fail=0','[summary] pass=20 fail=0','[summary] pass=1 fail=0']),'composition-summary');
+    // main 24 + source-runtime 4회×5 + supervisor 1 + default-budget 1 + crypto-off 1 + locks 1 + recovery 3.
+    const passes=lines.filter(x=>x.startsWith('[pass]'));
+    requireValue(passes.length===51,'composition-check-count');
+    const summaries=lines.flatMap((line,index)=>line.startsWith('[summary]')?[index]:[]);
+    const groups=[lines.slice(0,summaries[0]),lines.slice(summaries[0]+1,summaries[1]),lines.slice(summaries[1]+1,summaries[2]),lines.slice(summaries[2]+1)]
+      .map(group=>group.filter(line=>line.startsWith('[pass]')));
+    requireValue(JSON.stringify(groups.map(group=>group.length))===JSON.stringify([24,20,2,5]),'composition-child-counts');
+    // source-runtime의 반복 결과만 중복을 허용한다. 한 assertion을 복제해 다른 검사를 대신할 수 없다.
+    const runtimeCounts=new Map([
+      ['[pass] D02-06 off/on 재개방 동일 store identity',4],
+      ['[pass] D02-07 실제 producer 시작 전 runtime 복구',4],
+      ['[pass] D02-06 실제 supervisor/session off 생산0·기존 segment 보존',2],
+      ['[pass] D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성',2],
+      ['[pass] B2-S01 복사된 route와 반복 reconcile의 채널 멱등성',4],
+      ['[pass] D02-08 실제 source/session 종료 owner0',4],
+    ]);
+    requireValue([...runtimeCounts].every(([line,count])=>groups[1].filter(value=>value===line).length===count),'composition-source-runtime');
+    const singleChecks=[...groups[0],...groups[2],...groups[3]];
+    requireValue(new Set(singleChecks).size===singleChecks.length,'composition-duplicate-check');
+    requireValue(groups[2][0]==='[pass] B2-S02 opt-out·시작 실패·재시도·반복 종료와 손상 입력 보존','composition-supervisor');
+    requireValue(JSON.stringify(lines.filter(x=>x.startsWith('[process]')))===JSON.stringify(['committed','blocked'].map(kind=>`[process] ${kind} child exit=23 expected=23`)),'composition-recovery');
     requireValue(/^\[cleanup\] path=.+ bytes=\d+ removed=true$/.test(one(lines,'[cleanup]')),'composition-cleanup');
-    return {id:step.id,checks:46,exit:0,cleanup:true};
+    return {id:step.id,checks:51,exit:0,cleanup:true};
   }
   const s=JSON.parse(one(lines,'{"mode":"current-actual-app"'));
   requireValue(s.actualEventPass===true&&s.restartPass===true&&s.expectedOutputCount===2&&Array.isArray(s.observedOutputCounts)&&s.observedOutputCounts.length===2&&s.observedOutputCounts.every(n=>n===2)&&s.failed===0&&s.passed===27,'actual-app-summary');

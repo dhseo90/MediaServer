@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-64 Slice 10 core-media registry ownership과 RTSP rule port를 검증한다.
 
 import crypto from "node:crypto";
+import {assertCurrentSourceGraph, assertBoundaryOwners, copyCurrentGraphInputs} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -40,39 +41,6 @@ function walkProductionFiles(dir, extensions, files = []) {
   return files;
 }
 
-function classifyModule(file, classifiers) {
-  const owner = classifiers.find(item =>
-    item.exactFiles.includes(file) || item.prefixes.some(prefix => file.startsWith(prefix)));
-  assert(owner, `production owner classification drift: ${file}`);
-  return owner.id;
-}
-
-function collectActualGraph(graph) {
-  const productionFiles = graph.productionRoots
-    .flatMap(root => walkProductionFiles(path.join(sourceRoot, root), graph.sourceExtensions))
-    .map(file => path.relative(sourceRoot, file).replaceAll(path.sep, "/"))
-    .sort();
-  const productionSet = new Set(productionFiles);
-  const ownerByFile = new Map(productionFiles.map(file => [file, classifyModule(file, graph.moduleClassifiers)]));
-  const directions = new Set();
-  for (const source of productionFiles) {
-    for (const match of read(source).matchAll(/^\s*#\s*include\s*["<]([^">]+)[">]/gm)) {
-      const include = match[1];
-      const candidates = [
-        path.posix.join(path.posix.dirname(source), include),
-        `include/${include}`,
-        `src/${include}`,
-      ].map(candidate => path.posix.normalize(candidate));
-      const resolved = candidates.find(candidate => productionSet.has(candidate));
-      if (!resolved) continue;
-      const from = ownerByFile.get(source);
-      const to = ownerByFile.get(resolved);
-      if (from !== to) directions.add(`${from} -> ${to}`);
-    }
-  }
-  return { productionFiles, ownerByFile, directions: [...directions].sort() };
-}
-
 function validateFixtureRoot(value) {
   if (!skipMutations) throw new Error("--fixture-root requires --skip-mutations");
   const resolved = fs.realpathSync(path.resolve(value));
@@ -88,20 +56,6 @@ function check(name, fn) {
 
 const registryHeader = "include/core/webrtc_source_registry.h";
 const registrySource = "src/core/webrtc_source_registry.cpp";
-const expectedDirections = [
-  "analysis-services -> core-media-interfaces", "analysis-services -> core-utilities",
-  "analysis-services -> domain-and-registry-owners", "application-service-interfaces -> analysis-services",
-  "application-service-interfaces -> domain-and-registry-owners", "composition-root -> analysis-services",
-  "composition-root -> core-media-interfaces", "composition-root -> core-utilities",
-  "composition-root -> transport-and-auth-adapter", "core-media-interfaces -> core-utilities",
-  "domain-and-registry-owners -> core-utilities", "ops-route-groups -> application-service-interfaces",
-  "product-ui-workspaces -> stable-contract-dtos", "transport-and-auth-adapter -> analysis-services",
-  "transport-and-auth-adapter -> application-service-interfaces",
-  "transport-and-auth-adapter -> core-media-interfaces", "transport-and-auth-adapter -> core-utilities",
-  "transport-and-auth-adapter -> domain-and-registry-owners",
-  "transport-and-auth-adapter -> stable-contract-dtos",
-];
-
 check("WebRTC published source registry physically belongs to core-media", () => {
   assert(!fs.existsSync(path.join(sourceRoot, "include/ingress/webrtc_source_registry.h")) &&
     !fs.existsSync(path.join(sourceRoot, "src/ingress/webrtc_source_registry.cpp")),
@@ -121,7 +75,7 @@ check("registry consumers and CMake use only the core-media path", () => {
   const consumers = [
     "include/ingress/webrtc_source_session.h",
     "src/core/source_factory.cpp",
-    "src/ingress/webrtc_http_server.cpp",
+    "src/ingress/webrtc_media_application_adapter.cpp",
     registrySource,
   ];
   for (const file of consumers) {
@@ -173,24 +127,12 @@ check("RTSP rule lookup crosses the injected media-analysis port", () => {
 
 check("current graph removes the complete core-media to domain direction", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const actual = collectActualGraph(graph);
-  const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  const owner = id => graph.moduleClassifiers.find(item => item.id === id);
-  assert(actual.productionFiles.length === 163 &&
-    actual.productionFiles.filter(file => file.endsWith(".cpp")).length === 80 &&
-    JSON.stringify(actual.directions) === JSON.stringify(expectedDirections) &&
-    graph.expectedProductionFiles === 163 && graph.expectedCppFiles === 80 &&
-    graph.observedModuleEdges.length === 19 && violations.length === 5 &&
-    graph.stronglyConnectedComponents.length === 0 &&
-    JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
-  "core-media registry/rule graph metrics or exact direction set drift");
-  assert(owner("core-media-interfaces").expectedFileCount === 32 &&
-    owner("core-media-interfaces").expectedCppCount === 14 &&
-    owner("domain-and-registry-owners").expectedFileCount === 5 &&
-    owner("domain-and-registry-owners").expectedCppCount === 2 &&
-    !graph.observedModuleEdges.some(item =>
-      item.direction === "core-media-interfaces -> domain-and-registry-owners"),
-  "core-media to domain direction or owner count remains");
+  assertCurrentSourceGraph(sourceRoot, graph);
+  assertBoundaryOwners(graph, [[registryHeader, 'core-media-interfaces'], [registrySource, 'core-media-interfaces'],
+    ['include/ingress/analysis_rule_registry.h', 'domain-and-registry-owners'],
+    ['src/ingress/analysis_rule_registry.cpp', 'domain-and-registry-owners']]);
+  assert(!graph.observedModuleEdges.some(item => item.direction === 'core-media-interfaces -> domain-and-registry-owners'),
+    'core-media to domain direction remains');
 });
 
 const oracleInputs = [
@@ -201,6 +143,7 @@ const oracleInputs = [
   "test/fixtures/v390_structure_stabilization_current_graph.json",
 ];
 function copyInputs(targetRoot) {
+  copyCurrentGraphInputs(rootDir, targetRoot);
   const graph = JSON.parse(fs.readFileSync(path.join(rootDir,
     "test/fixtures/v390_structure_stabilization_current_graph.json"), "utf8"));
   const productionFiles = graph.productionRoots
@@ -270,7 +213,7 @@ if (!skipMutations) {
       text => text.replace(/^#include/m, '#include "ingress/source_view_registry.h"\n#include'),
       "current graph removes the complete core-media to domain direction");
     rejectMutation("direction", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"direction": "analysis-services -> core-utilities"',
+      text => text.replace('"direction": "analysis-services -> core-media-interfaces"',
         '"direction": "core-media-interfaces -> domain-and-registry-owners"'),
       "current graph removes the complete core-media to domain direction");
   });

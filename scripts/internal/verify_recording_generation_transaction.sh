@@ -34,7 +34,7 @@ transaction_sources=(
   "$transaction_repo/src/recording/recording_generation_receipt.cpp"
   "$transaction_repo/src/recording/recording_catalog_snapshot_export.cpp"
   "$transaction_repo/src/recording/retention_coordinator.cpp"
-  "$transaction_repo/src/recording/recording_finalize_recovery.cpp"
+  "$transaction_repo/src/recording/recording_finalize_recovery.cpp" "$transaction_repo/src/recording/recording_finalize_ticket.cpp"
   "$transaction_repo/src/recording/recording_file_evidence.cpp"
   "$transaction_repo/src/recording/recording_media_inspector.cpp"
   "$transaction_repo/src/domain/strict_json.cpp"

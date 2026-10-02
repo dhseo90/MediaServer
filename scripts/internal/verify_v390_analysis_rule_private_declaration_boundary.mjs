@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 23 transport/domain hidden link를 실제 DIP port로 대체했는지 검증한다.
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -308,31 +309,10 @@ check("transport configures the exact backend once and consumes only application
 check("dispatch and actual graph close the domain direction without relabeling", () => {
   assert((read("server.sh").match(/verify-v390-analysis-rule-private-declaration-boundary/g) || []).length === 3,
     "dispatch binding");
-  const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
-  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 48 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 19 &&
-    classifier("domain-and-registry-owners")?.expectedFileCount === 6 &&
-    classifier("domain-and-registry-owners")?.expectedCppCount === 3 &&
-    classifier("transport-and-auth-adapter")?.expectedFileCount === 11 &&
-    graph.observedModuleEdges.length === 16 &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 0 &&
-    !edge("transport-and-auth-adapter -> domain-and-registry-owners") &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 25 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-      "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7" &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 3 &&
-    edge("application-service-interfaces -> domain-and-registry-owners")?.witnessCount === 4 &&
-    edge("analysis-services -> domain-and-registry-owners")?.witnessCount === 2 &&
-    !edge("transport-and-auth-adapter -> analysis-services") &&
-    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
-    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
-    !graph.stronglyConnectedComponents.length, "graph successor");
-  const structureOutput = execFileSync(path.join(root, "server.sh"),
-    ["verify-v390-review4-structure-stabilization-execution"], { cwd: root, encoding: "utf8" });
-  assert(structureOutput.includes("summary: pass=15 fail=0"), "actual graph recomputation gate failed");
+  const graph = assertCurrentSourceGraph(root);
+  assertBoundaryOwners(graph, [[appHeader, 'application-service-interfaces'], [appSource, 'application-service-interfaces'],
+    [domainHeader, 'domain-and-registry-owners'], [domainSource, 'domain-and-registry-owners'],
+    [backendHeader, 'transport-and-auth-adapter']]);
 });
 
 for (const item of checks) {

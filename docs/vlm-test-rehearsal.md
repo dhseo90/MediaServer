@@ -1,89 +1,61 @@
-# VLM Test Rehearsal
+# VLM 검증 전 fixture 리허설
 
-이 문서는 `v2.0.0 V200-S15 간이 테스트 리허설`의 세부 기준 문서입니다.
-S15는 안정화, 30분, 120분, UI 풀테스트를 실행하기 전에 VLM 전용 짧은 smoke와
-failure fixture가 막히지 않는지 확인하는 단계입니다. 이 문서와 verifier는
-실제 VLM runtime 호출, model download, cloud provider API 호출, longrun, UI
-풀테스트를 실행하지 않습니다.
+개발자가 실패 상태와 실행 준비 조건을 짧게 점검하는 정적 리허설이다.
+`verify-vlm-test-rehearsal`은 JSON fixture를 평가하고 선택한 보고서를 쓰지만
+제품 서버·모델·cloud provider를 호출하거나 포트를 bind하지 않는다.
+실제 큐 실행은 [큐 검증](vlm-queue-backpressure-stability.md),
+연결 smoke는 [로컬 연결](vlm-local-runtime-connection-smoke.md)과 구분한다.
 
-## 직접 답
+## 사례와 불변 조건
 
-S15에서 쓰기로 한 1차 리허설은 `verify-vlm-test-rehearsal`입니다. 이 리허설은
-fixture-only 방식으로 `short-vlm-smoke`, `missing-model`, `cloud-disabled`,
-`invalid-output`, `queue-timeout`, `cleanup-lifecycle`, `port-server-lifecycle`을
-확인합니다.
+[fixture](../test/fixtures/vlm_test_rehearsal/cases.json) schema는
+`media-server.vlm-test-rehearsal-fixtures.v1`이다.
+[검증기](../scripts/internal/verify_vlm_test_rehearsal.mjs)의 `deriveOutcome/evaluateCase`가
+아래 기대값 및 side effect false 조건을 비교한다.
 
-Fallback은 기존 짧은 VLM verifier 묶음입니다. 구체적으로
-`verify-vlm-boundary`, `verify-vlm-install-connection-dry-run`,
-`verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`,
-`verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`,
-`verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`를
-사용합니다.
+| case | 기대 outcome |
+| --- | --- |
+| `short-vlm-smoke` | `fixture-smoke-ready` |
+| `missing-model` | `blocked-missing-model` |
+| `cloud-disabled` | `blocked-cloud-disabled` |
+| `invalid-output` | `rejected-invalid-output` |
+| `queue-timeout` | `timeout-no-media-path-failure` |
+| `cleanup-lifecycle` | `cleanup-ok` |
+| `port-server-lifecycle` | `lifecycle-plan-valid` |
 
-제외 대상과 이유:
+각 fixture의 `runtimeVlmCallPerformed=false`, `cloudProviderApiCalled=false`,
+`sidecarStored=false`, `viewerClientExposureAdded=false`를 유지한다.
+모델 다운로드·credential/profile 저장·Event POST/WebRTC DataChannel/SSE/WS schema·
+RTSP/WebRTC 경로 변경도 false다.
 
-- 실제 VLM runtime 호출: S15는 테스트 리허설이며 runtime 품질 판정이 아닙니다.
-- model/runtime download: bundle/release 경계와 privacy 검토가 별도입니다.
-- cloud provider API 호출: cloud opt-in과 provider logging/retention 검토 전 호출하지 않습니다.
-- sidecar 저장 또는 EventRecord 변경: S08~S13 fixture 검증과 S16 side effect 점검으로 분리합니다.
-- 30분/120분 장시간 실행: 사용자 명시 요청 또는 S17 trigger 기준이 필요합니다.
-- 인앱 브라우저 UI 풀테스트: S18 close-out readiness 전용 evidence로 분리합니다.
+`cleanupRequired`와 `cleanupState=cleanup-ok`는 fixture의 기대 계약에서 만든 값이며,
+실제 파일을 삭제하고 부재를 확인한 결과가 아니다.
+`serverLifecycle=throwaway-required-for-attached-smoke`,
+`portLifecycle=explicit-isolated-port-required`도 후속 attached smoke의 준비 조건이다.
+현재 리허설이 서버 시작·포트 격리·종료를 실행했다는 뜻으로 사용하지 않는다.
 
-## Fixture Matrix
-
-Fixture schema는 `media-server.vlm-test-rehearsal-fixtures.v1`입니다.
-Report schema는 `media-server.vlm-test-rehearsal-report.v1`입니다.
-
-| Case | 목적 | 기대 outcome |
-| --- | --- | --- |
-| `short-vlm-smoke` | VLM fixture-only command가 짧은 gate로 준비되는지 확인 | `fixture-smoke-ready` |
-| `missing-model` | local model 부재를 media path 실패로 전파하지 않음 | `blocked-missing-model` |
-| `cloud-disabled` | cloud 후보가 opt-in 없이 호출 가능 상태가 되지 않음 | `blocked-cloud-disabled` |
-| `invalid-output` | 잘못된 structured output을 저장하지 않고 거부 | `rejected-invalid-output` |
-| `queue-timeout` | queue timeout을 VLM-only timeout으로 분리 | `timeout-no-media-path-failure` |
-| `cleanup-lifecycle` | throwaway artifact cleanup 필요 여부를 명시 | `cleanup-ok` |
-| `port-server-lifecycle` | attached smoke는 격리 port/server lifecycle을 요구 | `lifecycle-plan-valid` |
-
-`port/server lifecycle` case는 정적 리허설에서 포트를 bind하지 않습니다. 실제 attached
-smoke가 필요한 경우에는 S16 또는 UI/attached verifier가 격리 HTTP/RTSP 포트와
-throwaway registry를 명시해야 합니다.
-
-## Command
+## 실행과 결과
 
 ```bash
+: "${vlm_run_root:?이번 실행의 소유 절대 경로를 지정하세요}"
 ./server.sh verify-vlm-test-rehearsal \
-  --report /tmp/media_server_vlm_test_rehearsal.md \
-  --json-report /tmp/media_server_vlm_test_rehearsal.json
+  --report "$vlm_run_root/rehearsal.md" \
+  --json-report "$vlm_run_root/rehearsal.json"
 ```
 
-## Non-Scope
+report schema는 `media-server.vlm-test-rehearsal-report.v1`이다.
+`summary`의 `cases/failureFixtures/cleanupCases/lifecycleCases`와
+`cases[].status/outcome/expectedOutcome/sideEffects/verdictNotes`, `checks`를 함께 읽는다.
+기대된 실패 outcome을 올바르게 분류하면 case는 `pass`이며, 실제 운영 성공을 뜻하지 않는다.
+불일치는 report의 `status=fail`과 exit 1로 전파된다.
 
-S15에서 하지 않는 일:
+필요한 범위의 기존 짧은 검사를 선택하는 fallback은
+`verify-vlm-boundary`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`,
+`verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar`,
+`verify-vlm-event-explanation-hints`, `verify-vlm-summary-search-candidates`,
+`verify-vlm-rule-suggestion-candidates`다. 리허설은 이 명령들을 자동 실행하지 않으며
+실패한 선행 검사를 건너뛰기 위한 대체 PASS도 아니다.
 
-- 안정화/30분/120분/UI 풀테스트 완료 evidence 생성
-- 실제 VLM runtime 호출
-- cloud provider API 호출
-- model/runtime download 또는 bundle 추가
-- credential 저장
-- profile 저장
-- VLMObservation sidecar 저장
-- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
-- RTSP/WebRTC media path 변경
-- viewer/client 화면 노출
-- S16 side effect 점검
-- S17 안정화/장시간/UI 기준 정리
-- S18 close-out readiness
-
-이 리허설은 안정화/30분/120분/UI 풀테스트 완료 evidence가 아닙니다. 실패 fixture가
-기대 outcome으로 처리되는지 확인할 뿐, 실제 운영 안정성이나 수동 UI 품질 판정을
-대신하지 않습니다.
-
-## 완료 기준
-
-- `./server.sh verify-vlm-test-rehearsal`이 fixture matrix, VLM-only outcome,
-  cleanup, port/server lifecycle, docs/server/script inventory 연결을 검증합니다.
-- 기존 VLM short verifier 중 필요한 명령이 계속 PASS합니다.
-- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
-
-S15를 완료해도 S16 side effect 점검, S17 안정화/장시간/UI 기준 정리, S18 close-out
-readiness는 완료되지 않습니다.
+실제 부작용·정리·서버 수명·runtime 품질은 별도로 관측해야 한다.
+[검증 정책](stream-verification.md#검증-정책)과 [UI 풀테스트](manual-ui-fulltest.md)의
+승인·증거 요건을 따르며 이 결과만으로 안정화/30분/120분/UI 완료를 선언하지 않는다.

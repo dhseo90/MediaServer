@@ -1,135 +1,114 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 release 수동 UI 풀테스트 문서가 PASS/FAIL 이원화와 개별 기능 증거를 강제하는지 검증한다.
-
+// 파일 용도: 현행 UI 정의와 결과 구조를 확인한다. 검사 통과는 실제 UI 실행 PASS가 아니다.
 import fs from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { hasDocumentLink, validateUiPolicyDocumentation } from "./documentation_contract_lib.mjs";
+import { parseServerDispatches } from "./script_dispatch_parser.mjs";
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(scriptDir, "../..");
-const rawArgs = process.argv.slice(2);
+const rootDir = fileURLToPath(new URL("../../", import.meta.url));
+export const recordingIds = Array.from({length: 8}, (_, i) => "V410-S06-I" + (i + 27));
+const recordingCounts = [4, 1, 1, 3, 6, 3, 1, 12];
+const routes = ["/setup", "/login", "/password/change", "/invite/setup", "/ops/home",
+  "/ops/dashboard", "/ops/sources", "/ops/rules", "/ops/users", "/ops/events", "/ops/vlm",
+  "/client/live", "/client/dashboard", "/client/events", "/client/request-access"];
 
-if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`Manual UI evidence verification
+// 메모리 읽기 대역으로 같은 판정을 검사할 수 있다. 쓰기/서버/자식 명령은 없다.
+export function verifyManualUiEvidence({read = readText, exists = fs.existsSync, resultPath = ""} = {}) {
+  const result = resultPath ? read(resultPath) : "";
+  const checklist = read("docs/manual-ui-checklist.md");
+  const template = read("docs/manual-ui-result-template.md");
+  const fulltest = read("docs/manual-ui-fulltest.md");
+  const inventory = read("docs/project-feature-test-inventory.md");
+  const implementationManifest = JSON.parse(read("test/fixtures/project_feature_implementation_evidence.json"));
+  const seedFixture = JSON.parse(read("test/fixtures/manual_ui_fulltest_va_seed_matrix.json"));
+  const policy = JSON.parse(read("test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const agents = read("AGENTS.md"), server = read("server.sh");
+  const currentVersion = read("VERSION").trim();
+  const checks = [], check = (name, fn) => checks.push({name, fn});
 
-Usage:
-  ./server.sh verify-manual-ui-evidence [options]
+  check("current UI documentation links and execution identifiers", () => {
+    assert(/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(currentVersion), "VERSION missing/invalid");
+    for (const [name, document, links] of [
+      ["fulltest", fulltest, ["../VERSION", "../AGENTS.md", "manual-ui-checklist.md", "manual-ui-result-template.md", "project-feature-test-inventory.md", "stream-verification.md"]],
+      ["checklist", checklist, ["../VERSION", "../AGENTS.md", "manual-ui-fulltest.md", "manual-ui-result-template.md", "project-feature-test-inventory.md"]],
+      ["template", template, ["../VERSION", "manual-ui-fulltest.md", "manual-ui-checklist.md", "project-feature-test-inventory.md"]],
+    ]) for (const link of links) assert(hasDocumentLink(document, link), name + " missing link: " + link);
+    for (const command of ["verify-manual-ui-evidence", "verify-v220-ui-evidence-closeout"]) {
+      assertIncludes(checklist, [command], "checklist command");
+      const script = command.replaceAll("-", "_") + ".mjs";
+      const targets = parseServerDispatches(server).filter(row => row.command === command);
+      assert(targets.length === 1 && targets[0].script === script, "dispatch missing/duplicate/mismatch: " + command);
+    }
+    for (const document of [fulltest, checklist, template]) assertIncludes(document, ["424", "432", "Policy v4"], "UI scope");
+    assertIncludes(fulltest, ["--result", "policyValidationResult", "uiFulltestPass", "completion oracle",
+      "manualIntervention", "reviewRequired", "cleanup", "EventRecord"], "UI evidence identifiers");
+    assertIncludes(checklist, ["--emit-registry-dir <dir>", "--dry-run", "--apply",
+      "manual_ui_fulltest_va_seed_matrix.json", "verify-predev --soak-minutes 30",
+      "verify-predev --soak-minutes 120", "verify-va-runtime-console-longrun --duration-minutes 120",
+      "verify-product-ui-no-native-dialogs", "verify-ui-blocking-dialog-policy"], "UI preparation");
+  });
 
-Options:
-  --result <path>  실제 manual UI result 문서입니다. 지정한 경우 template 구조도 함께 검증합니다.
-  -h, --help       도움말 출력
+  check("Policy v4 and role/redaction definitions remain connected", () => {
+    const errors = validateUiPolicyDocumentation({agents, fulltest, policy});
+    assert(errors.length === 0, errors.join("; "));
+    assert(policy.schema === "media-server.ui-fulltest-evidence-policy.v4" && policy.policyVersion === 4,
+      "Policy v4 schema/version mismatch");
+    assert(policy.suiteClosure.expectedExactUiTestIds === 424, "Policy v4 baseline must remain 424");
+    for (const flag of ["policyVerifierPassIsUiFulltestPass", "replayAloneIsUiFulltestPass",
+      "coverageMappingAloneIsUiFulltestPass", "partialAutomationIsUiFulltestPass", "historicalEvidenceIsRetroactivelyUpgraded"]) {
+      assert(policy.boundaries[flag] === false, "Policy non-promotion boundary changed: " + flag);
+    }
+    for (const field of ["fail", "notRun", "unsupported", "unapprovedExclusions", "manualIntervention"]) {
+      assert(policy.suiteClosure.requiredZeroCounts.includes(field), "Policy zero-count missing: " + field);
+    }
+    assertIncludes(fulltest, ["admin", "operator", "viewer", "integrator", "role/scope",
+      "320", "390", "760", "1180", "light/dark", "source URL", "Developer URL", "raw JSON",
+      "debug counter", "BBox diagnostics", "rule/profile editor", "Ops/Lab primary navigation",
+      "Client Preview as admin"], "UI role/privacy");
+    assertIncludes(template, routes, "UI result routes");
+    for (const [route, role] of [["/ops/users", "admin"], ["/client/live", "viewer/admin preview"],
+      ["/invite/setup", "invite"], ["/password/change", "must-change/reset"]]) {
+      const rows = parseGenericTableRows(template).filter(row => row[0].replaceAll(String.fromCharCode(96), "") === route);
+      assert(rows.some(row => row[1] === role), "UI route role missing: " + route + "/" + role);
+    }
+    for (const env of ["TEST_PASSWORD", "PREVIOUS_PASSWORD", "SECOND_PREVIOUS_PASSWORD", "WRONG_PASSWORD_ONE", "WRONG_PASSWORD_TWO"]) {
+      assertIncludes(checklist, ["MEDIA_SERVER_VERIFY_AUTH_" + env], "Auth prerequisite");
+      assertIncludes(template, ["MEDIA_SERVER_VERIFY_AUTH_" + env], "Auth result");
+    }
+  });
 
-Checks:
-  - 현재 릴리즈 기준 UI 풀테스트 판정이 PASS/FAIL만 쓰고 개별 기능 결과를 기록하는지 확인
-  - client/viewer 비노출 항목과 admin preview 경계가 명시됐는지 확인
-  - 사용자 명시 제외 항목은 판정표 밖 제외 기록으로 남기는지 확인
-`);
-}
-
-assertKnownOptions(rawArgs, ["result", "h", "help"]);
-
-const args = parseArgs(rawArgs);
-const resultPath = args.result ? path.resolve(rootDir, args.result) : "";
-const result = resultPath ? fs.readFileSync(resultPath, "utf8") : "";
-const checklist = readText("docs/manual-ui-checklist.md");
-const template = readText("docs/manual-ui-result-template.md");
-const fulltest = readText("docs/manual-ui-fulltest.md");
-const backlog = readText("docs/development-backlog.md");
-const inventory = readText("docs/project-feature-test-inventory.md");
-const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
-const seedFixture = JSON.parse(readText(seedFixturePath));
-const currentVersion = readText("VERSION").trim();
-const currentTag = `v${currentVersion}`;
-
-const checks = [];
-
-check("manual UI docs are current release baseline", () => {
-  assertIncludes(checklist, [
-    `현재 release 목표는 \`${currentTag}\``,
-    "현재 제품 UI actual-browser evidence 없이 완료 판정에 포함하지 않습니다.",
-    "qualified-native-automation",
-    "Policy v4 qualifier",
-    `${currentTag} release UI gate`,
-    "V390-REQ-001",
-    "V390-REQ-002",
-    "V390-REQ-003",
-    "v3.5-v3.8 UI coverage bridge",
-    "`/setup`",
-    "`/login`",
-    "`/ops/rules`",
-    "`/client/live`",
-    "Evidence index",
-    "raw JSON/API-only 확인",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(fulltest, [
-    "현재 제품 UI 기준",
-    `${currentTag} Release Correctness`,
-    "V390-REQ-001",
-    "V390-REQ-002",
-    "V390-REQ-003",
-    "v3.5-v3.8 UI coverage bridge",
-    "지원 가능한 모든 exact 기능 case를 실제 브라우저 조작으로",
-    "Policy v4",
-    "테스트 영역 역할 분리",
-    "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
-    "열지 않은 화면",
-    "UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다.",
-    "카테고리 묶음 판정은 금지합니다.",
-    "제외 기록",
-  ], "docs/manual-ui-fulltest.md");
-});
-
-check("manual UI docs pin v3.9 required closeout and coverage bridge", () => {
-  assertIncludes(checklist, [
-    "v3.9.0 Required Closeout / v3.5-v3.8 coverage bridge",
-    "Manual UI 기준서 v3.9 current화",
-    "장시간/UI 테스트 시작 조건 v3.9화",
-    "v3.5-v3.8 UI coverage bridge",
-    "UI-080",
-    "UI-107",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(fulltest, [
-    "v3.9.0 Required Closeout coverage bridge",
-    "V390-REQ-001",
-    "V390-REQ-002",
-    "V390-REQ-003",
-    "UI-080",
-    "UI-107",
-    "이 bridge를 만족해도 인앱 브라우저 UI 풀테스트",
-  ], "docs/manual-ui-fulltest.md");
-  assertIncludes(template, [
-    "## v3.9.0 Required Closeout 기록 기준",
-    "V390-REQ-001",
-    "V390-REQ-002",
-    "V390-REQ-003",
-    "v3.5-v3.8 UI coverage bridge",
-    "UI-080",
-    "UI-107",
-  ], "docs/manual-ui-result-template.md");
-  assertNotIncludes(checklist, [
-    "현재 release 목표는 `v2.9.0`",
-  ], "docs/manual-ui-checklist.md");
-  assertNotIncludes(fulltest, [
-    "최신 공개 release 기준은 `v2.8.0 Operator-Supervised Action Readiness`",
-  ], "docs/manual-ui-fulltest.md");
-});
+  check("current 424 baseline plus recording 8 IDs and 31 actions", () => {
+    const baseline = uiTargetFeatureIds(inventory);
+    const manifestRows = implementationManifest.items.filter(item => item.testAreas?.includes("UI"));
+    assert(baseline.length === 424 && new Set(baseline).size === 424, "inventory baseline must contain 424 unique UI IDs");
+    assert(manifestRows.length === 424 && new Set(manifestRows.map(row => row.id)).size === 424,
+      "manifest baseline must contain 424 unique UI IDs");
+    for (const item of manifestRows) assert(baseline.includes(item.id) && item.manualUiCaseId === item.id &&
+      item.uiEvidence?.screenRoute && item.uiEvidence?.anchor, "baseline UI mapping missing: " + item.id);
+    const recording = recordingRows(template);
+    for (const [index, id] of recordingIds.entries()) {
+      const definitions = inventory.split("\n").filter(line => line.startsWith("| " + id + " |"));
+      assert(definitions.length === 1 && definitions[0].includes("/ops/events"), "recording inventory mapping missing: " + id);
+      const actions = recording.filter(row => row.id === id);
+      assert(actions.length === recordingCounts[index] && new Set(actions.map(row => row.action)).size === actions.length,
+        "recording action mapping missing/duplicate: " + id);
+    }
+    assert(recording.length === 31 && baseline.length + recordingIds.length === 432, "whole UI mapping must be 432 IDs/31 recording actions");
+    assertIncludes(template, expectedSeedResultRows(seedFixture), "VA seed result definitions");
+    assertIncludes(template, ["line-crossing:any", "line-crossing:forward", "line-crossing:reverse",
+      "server cleanup:", "port cleanup:", "temp cleanup:"], "UI event/cleanup result fields");
+  });
 
 check("v3.5-v3.8 bridge binds all 36 exact IDs to route/control/action semantic evidence", () => {
   const expectedIds = v350ToV380BridgeIds();
   const result = validateBridgeItems(expectedIds, implementationManifest.items || []);
   assert(result.errors.length === 0, result.errors.join("; "));
   assert(expectedIds.length === 36, `bridge ID count drift: ${expectedIds.length}`);
-  assertIncludes(fulltest, [
-    "`UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`",
-    "`UI-088`~`UI-094`",
-    "`UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`",
-    "`UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`",
-  ], "docs/manual-ui-fulltest.md exact bridge ranges");
+
 
   const omitted = (implementationManifest.items || []).filter(item => item.id !== "UI-094");
   const negative = validateBridgeItems(expectedIds, omitted);
@@ -152,326 +131,6 @@ check("inventory longrun mapping counts are derived from the current 986-row man
     `completed coverage 120-minute mapping must equal derived ${soak120}/${soak120}`);
 });
 
-check("manual result template covers required screens", () => {
-  assertIncludes(template, [
-    "# Manual UI Result Template",
-    "evidence mode: direct-browser / qualified-native-automation / hybrid",
-    "policy validation result:",
-    "UI fulltest pass:",
-    "`/setup`",
-    "`/login`",
-    "`/password/change`",
-    "`/invite/setup`",
-    "`/ops/home`",
-    "`/ops/dashboard`",
-    "`/ops/sources`",
-    "`/ops/rules`",
-    "`/ops/users`",
-    "`/ops/events`",
-    "`/client/live`",
-    "`/client/dashboard`",
-    "`/client/request-access`",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template splits tracker policy results", () => {
-  assertIncludes(template, [
-    "profile: tracker `none` + Re-ID `off`",
-    "profile: tracker `lite` + Re-ID `off`",
-    "profile: tracker `kalman-lite` + Re-ID `off`",
-    "profile: tracker `bytetrack` + Re-ID `off`",
-    "profile: tracker `lite` + Re-ID `assist`",
-    "profile: tracker `kalman-lite` + Re-ID `assist`",
-    "profile: tracker `bytetrack` + Re-ID `assist`",
-    "invalid policy: tracker `none` + Re-ID `assist`",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template splits event template results", () => {
-  assertIncludes(template, [
-    "event template: line-crossing any",
-    "event template: line-crossing forward",
-    "event template: line-crossing reverse",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template splits scenario preset results", () => {
-  assertIncludes(template, [
-    "scenario preset: default",
-    "scenario preset: custom",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template splits vaRule results", () => {
-  assertIncludes(template, [
-    "vaRule: line-crossing any",
-    "vaRule: line-crossing forward",
-    "vaRule: line-crossing reverse",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template splits event record keys", () => {
-  assertIncludes(template, [
-    "`line-crossing:any`",
-    "`line-crossing:forward`",
-    "`line-crossing:reverse`",
-  ], "docs/manual-ui-result-template.md");
-  assertNotIncludes(template, [
-    "tracker/Re-ID 조합 7개",
-    "basic 6개 + scenario 6개",
-    "basic/scenario 최종 12개 이상",
-    "| `/ops` |",
-    "| `/client` |",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template separates qualified UI execution from support smoke", () => {
-  assertIncludes(template, [
-    "## 테스트 영역별 판정",
-    "스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다.",
-    "안정화 테스트",
-    "30분 테스트",
-    "120분 테스트",
-    "## 스크립트 테스트 기록",
-    "## UI 풀테스트 기록",
-    "관련 자동 검증",
-    "verify-product-ui-no-native-dialogs",
-    "verify-ops-click-e2e",
-    "## 확인됨",
-    "실제로 열고 클릭한 화면만 적습니다.",
-    "Policy v4 qualifier",
-    "completion oracle",
-    "policyValidationResult",
-    "uiFulltestPass",
-    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
-    "raw JSON/API-only로만 확인한 항목",
-    "## 제외 기록",
-    "## 실패",
-  ], "docs/manual-ui-result-template.md");
-  assertNotIncludes(template, [
-    "PASS/FAIL/BLOCKED",
-    "PASS/FAIL/미확인",
-    "PASS/FAIL/BLOCKED/미확인",
-    "## 미확인",
-    "## 건너뜀",
-    "NOT RUN",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual UI docs separate script stability tests from UI full test", () => {
-  assertIncludes(checklist, [
-    "스크립트 테스트, 30분 안정화, 120분 장시간 테스트",
-    "UI 풀테스트와",
-    "스크립트 안정화 테스트는 서로 대체하지 않으며",
-    "verify-predev --soak-minutes 30",
-    "verify-predev --soak-minutes 120",
-    "verify-va-runtime-console-longrun --duration-minutes 120",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(fulltest, [
-    "30분 테스트",
-    "120분 테스트",
-    "로드맵 각 스텝 종료 시 먼저 수행합니다",
-    "장기간 테스트 지시 시 기본으로 수행",
-    "메모리 릭",
-    "UI 풀테스트 PASS를 대체하지 않습니다.",
-    "30분/120분 안정화 PASS를 대체하지 않습니다.",
-  ], "docs/manual-ui-fulltest.md");
-});
-
-check("manual UI docs require native-dialog-free autonomous UI flow", () => {
-  assertIncludes(checklist, [
-    "verify-product-ui-no-native-dialogs",
-    "native confirm/alert/prompt가 아니라 제품 화면 안",
-    "첫 클릭에서 POST가 발생하지",
-    "두 번째 클릭 뒤 거절 POST",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(fulltest, [
-    "사용자에게 pane 열기, 버튼 클릭, 팝업 확인을",
-    "테스트 harness FAIL",
-    "verify-product-ui-no-native-dialogs",
-    "위험 action은 제품 화면 안 2회 확인 상태",
-    "첫 클릭에는 write POST가",
-  ], "docs/manual-ui-fulltest.md");
-  assertIncludes(template, [
-    "direct-browser 또는 Policy v4-qualified actual-browser 조작",
-    "verify-product-ui-no-native-dialogs",
-    "verify-ops-click-e2e",
-  ], "docs/manual-ui-result-template.md");
-  assertNotIncludes(checklist, [
-    "runner가 자동 수락",
-  ], "docs/manual-ui-checklist.md");
-  assertNotIncludes(fulltest, [
-    "팝업은 테스트 runner가 정책대로 처리",
-  ], "docs/manual-ui-fulltest.md");
-});
-
-check("manual result template pins admin preview boundary", () => {
-  assertIncludes(template, [
-    "Client Preview as admin",
-    "client/viewer 화면에서 보이지 않아야 하는 항목입니다.",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template pins client redaction boundary", () => {
-  assertIncludes(template, [
-    "source URL:",
-    "Developer URL:",
-    "raw JSON:",
-    "debug counter:",
-    "BBox diagnostics:",
-    "rule/profile editor:",
-    "Ops/Lab primary navigation:",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual UI docs require operator-provided auth verifier passwords", () => {
-  for (const envName of [
-    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
-    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
-    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
-  ]) {
-    assertIncludes(checklist, [envName], "docs/manual-ui-checklist.md");
-    assertIncludes(template, [envName], "docs/manual-ui-result-template.md");
-  }
-  assertIncludes(checklist, [
-    "값이 없으면 auth 테스트를 시작하지 않고",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(template, [
-    "Auth verifier 선수 조건",
-    "SET / MISSING",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual result template records explicit exclusions outside UI verdict", () => {
-  assertIncludes(template, [
-    "## 제외 기록",
-    "사용자가 의도적으로 UI 풀테스트 기준에서 제외하라고 한 항목만 적습니다.",
-    "여기에 있는 항목은 PASS/FAIL 판정표에 넣지 않습니다.",
-    "제외 이유",
-    "후속 확인 조건",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual UI docs keep rewrite requirements", () => {
-  assertIncludes(template, [
-    "## 문서 재작성/신규 작성/비교 병합",
-    "재작성한 UI 풀테스트 관련 문서:",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual UI docs keep new document requirements", () => {
-  assertIncludes(template, [
-    "새로 작성한 UI 풀테스트 문서:",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual UI docs keep merge requirements", () => {
-  assertIncludes(template, [
-    "비교 결과:",
-    "병합 결과:",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual checklist references UI fulltest document", () => {
-  assertIncludes(checklist, [
-    "UI 풀테스트 문서를 재작성하거나 새 문서를 추가한 경우",
-    "manual-ui-fulltest.md",
-  ], "docs/manual-ui-checklist.md");
-});
-
-check("manual checklist links evidence verifier", () => {
-  assertIncludes(checklist, [
-    "verify-manual-ui-evidence",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(checklist, [
-    "--emit-registry-dir <dir>",
-  ], "docs/manual-ui-checklist.md");
-});
-
-check("manual template links evidence verifier", () => {
-  assertIncludes(template, [
-    "verify-manual-ui-evidence",
-    "seed registry dir",
-    "## 현재 보존 증적",
-    "retained artifact",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("manual UI docs link v2.2.0 UI Evidence Close-out", () => {
-  assertIncludes(checklist, [
-    "v2.2.0 UI Evidence Close-out",
-    "V220-F02",
-    "V220-F03",
-    "V220-F04",
-    "V220-F05",
-    "V220-F06",
-    "verify-v220-ui-evidence-closeout",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(fulltest, [
-    "v2.2.0 UI Evidence Close-out",
-    "F06는 UI 풀테스트 실행 결과가 아니라",
-    "기능 inventory",
-    "manual UI checklist",
-    "result template",
-  ], "docs/manual-ui-fulltest.md");
-  assertIncludes(template, [
-    "## v2.2.0 UI Evidence Close-out 기록 기준",
-    "로드맵 항목",
-    "실행 evidence",
-    "V220-F06",
-  ], "docs/manual-ui-result-template.md");
-});
-
-check("roadmap links evidence verifier", () => {
-  assertIncludes(backlog, [
-    "| V180-P0-03 |",
-    "verify-manual-ui-evidence",
-  ], "docs/development-backlog.md");
-});
-
-check("current release UI checklist requires direct UI evidence index", () => {
-  assertIncludes(checklist, [
-    `${currentTag} release UI gate`,
-    "`/setup`",
-    "`/login`",
-    "`/ops`",
-    "`/client`",
-    "`/ops/rules`",
-    "`/client/live`",
-    "Evidence index",
-    "열지 않은 화면은 `FAIL`",
-    "raw JSON/API-only 확인만",
-    "판정은 `PASS` 또는 `FAIL`만 사용합니다.",
-  ], "docs/manual-ui-checklist.md");
-  assertIncludes(template, [
-    "evidence index:",
-    `## ${currentTag} Release Evidence Index`,
-    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
-    "| `/setup` |",
-    "| `/login` |",
-    "| `/ops/home` |",
-    "| `/ops/dashboard` |",
-    "| `/ops/sources` |",
-    "| `/ops/users` |",
-    "| `/ops/events` |",
-    "| `/ops/rules` |",
-    "| `/client/live` |",
-    "| `/client/dashboard` |",
-    "직접 열어보지 않은 화면",
-    "실패 후 재검수한 화면",
-    "client/viewer 비노출 재확인",
-    "카테고리 묶음 판정은 금지합니다.",
-  ], "docs/manual-ui-result-template.md");
-  assertIncludes(backlog, [
-    "| V180-P0-03 |",
-    "Manual UI evidence checklist hardening",
-    "`/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live`",
-    "evidence index",
-  ], "docs/development-backlog.md");
-});
-
 if (resultPath) {
   check("provided manual result follows current evidence structure", () => {
     assertIncludes(result, [
@@ -492,28 +151,52 @@ if (resultPath) {
   });
 
   check("provided manual result covers every UI-target feature ID", () => {
-    const inventoryRows = uiTargetFeatureIds();
+    const inventoryRows = uiTargetFeatureIds(inventory);
     const resultRows = parseFeatureRows(result);
     const resultIds = new Set(resultRows.map(row => row.id));
     const missing = inventoryRows.filter(id => !resultIds.has(id));
     assert(missing.length === 0, `manual result missing UI target feature rows: ${missing.join(", ")}`);
     for (const row of resultRows) {
       if (!/^(UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+$/.test(row.id)) continue;
-      assert(["PASS", "FAIL"].includes(row.verdict), `manual result row ${row.id} verdict must be PASS or FAIL: ${row.verdict || "(empty)"}`);
+      assert(["PASS", "FAIL", "미실행"].includes(row.verdict), `manual result row ${row.id} verdict must be PASS, FAIL or 미실행: ${row.verdict || "(empty)"}`);
     }
   });
 
-  check("provided manual result UI summary count matches UI-target rows", () => {
-    const uiIds = new Set(uiTargetFeatureIds());
-    const resultRows = parseFeatureRows(result).filter(row => uiIds.has(row.id));
-    const pass = resultRows.filter(row => row.verdict === "PASS").length;
-    const fail = resultRows.filter(row => row.verdict === "FAIL").length;
-    const summary = result.match(/UI 풀테스트\s*\|\s*(\d+)개 UI 대상 기능 ID 중 (\d+) PASS, (\d+) FAIL/);
+  check("provided manual result 432-ID summary and recording actions agree", () => {
+    const baselineIds = uiTargetFeatureIds(inventory);
+    const rows = parseFeatureRows(result).filter(row => baselineIds.includes(row.id));
+    assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate baseline result ID");
+    const definitions = recordingRows(template), actual = recordingRows(result);
+    assert(actual.length === definitions.length, "recording action row count mismatch");
+    for (const definition of definitions) {
+      const matching = actual.filter(row => row.id === definition.id && row.action === definition.action);
+      assert(matching.length === 1, "recording action missing/duplicate: " + definition.id + "/" + definition.action);
+      assert(["PASS", "FAIL", "미실행"].includes(matching[0].verdict), "recording action verdict invalid: " + definition.id);
+    }
+    const recording = recordingIds.map(id => {
+      const actions = actual.filter(row => row.id === id);
+      return {id, verdict: actions.some(row => row.verdict === "FAIL") ? "FAIL" :
+        actions.some(row => row.verdict === "미실행") ? "미실행" : "PASS"};
+    });
+    const pass = [...rows, ...recording].filter(row => row.verdict === "PASS").length;
+    const fail = [...rows, ...recording].filter(row => row.verdict === "FAIL").length;
+    const notRun = [...rows, ...recording].filter(row => row.verdict === "미실행").length;
+    const summary = result.match(/UI 풀테스트\s*\|\s*(\d+)개 UI 대상 기능 ID 중 (\d+) PASS, (\d+) FAIL(?:, (\d+) 미실행)?/);
     assert(summary, "manual result missing UI full-test summary count");
-    const [, totalText, passText, failText] = summary;
-    assert(Number(totalText) === uiIds.size, `manual result UI summary total mismatch: ${totalText} != ${uiIds.size}`);
-    assert(Number(passText) === pass, `manual result UI summary PASS mismatch: ${passText} != ${pass}`);
-    assert(Number(failText) === fail, `manual result UI summary FAIL mismatch: ${failText} != ${fail}`);
+    assert(Number(summary[1]) === 432 && Number(summary[2]) === pass && Number(summary[3]) === fail &&
+      Number(summary[4] || 0) === notRun, "manual result 432-ID summary mismatch");
+    const conclusion = result.match(/^- 최종 결론:\s*(PASS|FAIL)\s*$/m)?.[1];
+    assert(conclusion, "manual result missing final PASS/FAIL conclusion");
+    for (const kind of ["server", "port", "temp"]) {
+      const cleanup = result.match(new RegExp("^- " + kind + " cleanup:\\s*(PASS|FAIL|미확인|미실행)\\s*$", "m"))?.[1];
+      assert(cleanup, "manual result missing " + kind + " cleanup");
+      if (conclusion === "PASS") assert(cleanup === "PASS", "PASS contradicts cleanup failure: " + kind);
+    }
+    if (conclusion === "PASS") {
+      assert(fail === 0 && notRun === 0, "PASS contradicts failed/not-run feature/action");
+      assert(!parseGenericTableRows(result).some(cells => cells.includes("FAIL") || cells.includes("미실행")),
+        "PASS contradicts failed/not-run result row");
+    }
   });
 
   check("provided manual result retained evidence paths exist", () => {
@@ -525,7 +208,7 @@ if (resultPath) {
     const missing = [];
     for (const row of rows) {
       const rawPath = String(row[1] || "").replace(/^`|`$/g, "");
-      if (!fs.existsSync(rawPath)) {
+      if (!exists(rawPath)) {
         missing.push(rawPath);
       }
       const status = String(row[2] || "").trim();
@@ -558,7 +241,7 @@ if (resultPath) {
       const row = byName.get(name) || [];
       const actual = row[2] || "";
       const verdict = row[3] || "";
-      if (!actual || !["PASS", "FAIL"].includes(verdict) || verdict === "PASS/FAIL") {
+      if (!actual || !["PASS", "FAIL", "미실행"].includes(verdict)) {
         incomplete.push(name);
       }
     }
@@ -566,7 +249,7 @@ if (resultPath) {
   });
 
   check("provided manual result splits VA EventRecord coverage by exact event key", () => {
-    const section = sectionBetween(result, "## VA Event Occurrence Coverage", "### VA EventRecord 후속");
+    const section = sectionBetween(result, "## VA Event Occurrence Coverage", "## 확인됨");
     assert(section, "manual result missing VA Event Occurrence Coverage section");
     const expectedKeys = [
       "`presence`",
@@ -596,9 +279,11 @@ if (resultPath) {
       const row = byKey.get(key) || [];
       const evidence = eventCoverageEvidence(row);
       const verdict = evidence.verdict;
-      if (!["PASS", "FAIL"].includes(verdict || "")) {
+      if (!["PASS", "FAIL", "미실행"].includes(verdict || "")) {
         invalidPass.push(`${key}: invalid verdict ${verdict || "(empty)"}`);
-      } else if (verdict === "PASS" && (!/^(yes|[1-9]\d*)$/i.test(evidence.uiRows) || Number(evidence.jsonRecords) <= 0)) {
+      } else if (verdict === "미실행" && !/^- VA 미실행 사유:[ \t]*\S[^\r\n]*$/m.test(section)) {
+        invalidPass.push(`${key}: missing VA not-run reason`);
+      } else if (verdict === "PASS" && (!/^(yes|[1-9]\d*)$/i.test(evidence.uiRows) || !/^[1-9]\d*$/.test(evidence.jsonRecords))) {
         invalidPass.push(`${key}: PASS without UI row and record evidence`);
       }
     }
@@ -606,34 +291,37 @@ if (resultPath) {
   });
 }
 
-let pass = 0;
-let fail = 0;
-for (const item of checks) {
-  try {
-    item.fn();
-    pass += 1;
-    console.log(`[pass] ${item.name}`);
-  } catch (error) {
-    fail += 1;
-    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
-  }
+  const results = checks.map(item => {
+    try { item.fn(); return {name: item.name, ok: true}; }
+    catch (error) { return {name: item.name, ok: false, error: error instanceof Error ? error.message : String(error)}; }
+  });
+  return {checks: results, pass: results.filter(item => item.ok).length, fail: results.filter(item => !item.ok).length, resultPath};
 }
 
-console.log("");
-console.log("== Manual UI evidence verification summary ==");
-console.log(`- result: ${resultPath ? path.relative(rootDir, resultPath).replaceAll(path.sep, "/") : "not provided; template/checklist only"}`);
-console.log(`- pass: ${pass}`);
-console.log(`- fail: ${fail}`);
-if (fail > 0) process.exit(1);
-
-function check(name, fn) {
-  checks.push({ name, fn });
+function recordingRows(text) {
+  return parseGenericTableRows(text).filter(row => /^V410-S06-I(?:2[7-9]|3[0-4])$/.test(row[0] || ""))
+    .map(row => ({id: row[0], action: String(row[1] || "").split(/[：:]/)[0].trim(), verdict: String(row[2] || "").toUpperCase()}));
 }
-
 function readText(relativePath) {
-  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+  return fs.readFileSync(path.resolve(rootDir, relativePath), "utf8");
 }
-
+export function printManualUiReport(report) {
+  for (const item of report.checks) console.log("[" + (item.ok ? "pass" : "fail") + "] " + item.name + (item.error ? ": " + item.error : ""));
+  console.log("\n== Manual UI evidence verification summary ==");
+  console.log("- result: " + (report.resultPath ? path.relative(rootDir, report.resultPath).replaceAll(path.sep, "/") : "not provided; template/checklist only"));
+  console.log("- pass: " + report.pass);
+  console.log("- fail: " + report.fail);
+  console.log("- uiFulltest: not-run-by-this-command");
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const rawArgs = process.argv.slice(2);
+  if (hasHelpFlag(rawArgs)) printUsageAndExit("Manual UI evidence verification\n\nUsage:\n  ./server.sh verify-manual-ui-evidence [options]\n\nOptions:\n  --result <path>  실제 결과 문서의 ID/action·집계·VA·보존 경로 구조를 함께 검사합니다.\n  -h, --help       도움말 출력\n\n구조 검사 exit 0은 실제 UI 실행 PASS가 아니며 유효한 FAIL 기록도 보존합니다.");
+  assertKnownOptions(rawArgs, ["result", "h", "help"]);
+  const args = parseArgs(rawArgs);
+  const report = verifyManualUiEvidence({resultPath: args.result ? path.resolve(rootDir, args.result) : ""});
+  printManualUiReport(report);
+  if (report.fail) process.exitCode = 1;
+}
 function parseFeatureRows(text) {
   return text
     .split(/\r?\n/)
@@ -656,7 +344,7 @@ function hasArea(area, token) {
   return String(area || "").split(",").map(item => item.trim()).includes(token);
 }
 
-function uiTargetFeatureIds() {
+function uiTargetFeatureIds(inventory) {
   return parseFeatureRows(inventory)
     .filter(row => hasArea(row.area, "UI"))
     .map(row => row.id);

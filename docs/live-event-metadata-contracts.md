@@ -137,6 +137,11 @@ hash를 갱신하더라도 sample schema/payload hash는 변경하지 않습니�
 ./server.sh verify-integrator-contract-artifact
 ```
 
+위 freeze 설명은 과거 기준선의 범위입니다. 현행 명령은 bundle 무결성과 현재 문서 연결을
+검사하며, 당시 직접 고정한 문서·구현 파일의 전체 SHA 대조는 `--historical-source-pins` 감사
+옵션으로 구분합니다. baseline을 최신 PASS로 덮어쓰지 않으며 상세 범위는
+[연동 산출물 검증 안내](./integrator-contract-artifact.md#verification)를 따릅니다.
+
 이 명령만 실행한 경우에는 Event POST/WebRTC/SSE/WS delivery runtime smoke를
 재검증했다고 보고하지 않습니다. runtime delivery는 verification matrix의 각
 명령을 별도로 실행한 결과로만 판단합니다.

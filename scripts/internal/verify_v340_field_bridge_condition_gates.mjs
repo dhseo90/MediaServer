@@ -4,6 +4,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -27,7 +28,7 @@ Checks:
   - Source-only/local verifier PASS is explicitly not accepted as field bridge PASS
   - /ops/sources renders the gates read-only without endpoint URLs, credentials, raw locator, raw JSON, debug, or provider material
   - SourceRegistry, PublishedView, EventRecord/Event POST, media, metadata schemas, Rule/Profile payload, search/metrics, automatic recovery, and real field probes are not mutated/executed
-  - backlog, stream verification, release records, feature inventory, manual UI checklist, ops/client smoke, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -42,14 +43,13 @@ const files = {
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
@@ -193,73 +193,37 @@ check("field bridge styling and ops/client smoke track Step 10 markers", () => {
   }
 });
 
-check("roadmap records v3.4 Step 10 without overclaiming field smoke execution", () => {
-  for (const snippet of [
-    "| 10 | v3.4.0 (10) Field Bridge Condition Gates | P2 | 완료 |",
-    "## v3.4.0 Step 10 개발 기록",
-    "OpsV340FieldBridgeConditionGatesJson",
-    "renderFieldBridgeConditionGates",
-    `\`./server.sh ${command}\``,
-    "fieldSmokeExecuted=false",
-    "sourceOnlyPassAccepted=false",
-    "ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider field smoke 실행 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.4 Step 10");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["UI-079","SRC-043","MEDIA-022","LAB-091","SAFE-133","OPS-100"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/field-bridge-condition-gates"],
+    command, script: "verify_v340_field_bridge_condition_gates.mjs", featureIds,
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.4 Step 10 command and boundary", () => {
-  for (const snippet of [
-    `| v3.4.0 (10) | \`./server.sh ${command}\` | Field Bridge Condition Gates.`,
-    route,
-    "ONVIF 실기기",
-    "external WHEP/TURN",
-    "real cloud/VLM provider",
-    "endpoint/credential/approval",
-    "source-only PASS",
-    "fieldSmokeExecuted=false",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.4 Step 10");
-  }
-});
 
-check("feature inventory, manual UI, and release records map v3.4 Step 10", () => {
-  for (const snippet of [
-    `v3.4.0 (10) Field Bridge Condition Gates | \`UI-079\`, \`SRC-043\`, \`MEDIA-022\`, \`LAB-091\`, \`SAFE-133\`, \`OPS-100\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-079 | V340 Step 10 Field Bridge Condition Gates UI",
-    "SRC-043 | V340 Step 10 ONVIF real-device condition gate",
-    "MEDIA-022 | V340 Step 10 external WHEP/TURN condition gate",
-    "LAB-091 | V340 Step 10 real cloud/VLM provider condition gate",
-    "SAFE-133 | V340 Step 10 source-only PASS and credential boundary",
-    "OPS-100 | V340 Step 10 Field Bridge Condition Gates 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 10");
-  }
-  for (const snippet of [
-    "| V340 Step 10 Field Bridge Condition Gates | `UI-079`, `SRC-043`, `MEDIA-022`, `LAB-091`, `SAFE-133`, `OPS-100` | `/ops/sources` |",
-    "Field Bridge Condition Gates",
-    schema,
-  ]) {
-    assertIncludes(files.manualUi, snippet, "manual UI v3.4 Step 10");
-  }
-  for (const snippet of [
-    "V340 Field Bridge Condition Gates",
-    `\`./server.sh ${command}\``,
-    "v340 Step 10 RED field bridge condition gates",
-    "v340 Step 10 field bridge condition gates final",
-    "v340 Step 10 UI 풀테스트",
-    "v340 Step 10 field smoke",
-    "v340 Step 10 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.4 Step 10");
-  }
+check("실제 UI 체크리스트 정의 연결", () => {
+  const ids = ["UI-079", "SRC-043", "MEDIA-022", "LAB-091", "SAFE-133", "OPS-100"];
+  const rows = files.manualUi.split(/\r?\n/).map(line => line.split("|").map(cell => cell.trim()))
+    .filter(cells => cells[2]?.includes("`" + ids[0] + "`"));
+  assert(rows.length === 1, "manual UI 대상 행 누락·중복: " + ids[0]);
+  const row = rows[0];
+  for (const id of ids) assertIncludes(row[2], "`" + id + "`", "manual UI 기능 ID");
+  for (const route of ["/ops/sources"]) assertIncludes(row[3], "`" + route + "`", "manual UI route");
+  for (const token of ["Field Bridge Condition Gates", schema]) assertIncludes(row[4], token, "manual UI 조작 계약");
+  assertIncludes(row[5], "`verify-v340-field-bridge-condition-gates`", "manual UI 실행 명령");
 });
 
 check("server entrypoint and inventory verifiers include v3.4 Step 10 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_field_bridge_condition_gates.mjs", "server.sh script dispatch");
   for (const id of ["SRC-043", "MEDIA-022", "LAB-091", "SAFE-133", "OPS-100"]) {
-    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+    const expectedCommand = id === "SRC-043" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
   }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");

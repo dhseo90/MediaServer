@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 15 Default-off Action Explanation 구현, 문서, inventory 연결을 검증한다.
 
@@ -24,7 +25,7 @@ Checks:
   - /ops/api/actions/default-off-explanation exposes an Ops-only read model for approval blockers, readiness reasons, and outcome hints
   - explanation hints remain default-off and never perform VLM/provider/runtime calls, action execution, source/view writes, or media changes
   - /ops action control workspace renders default-off explanation summaries without raw prompt, provider response, credential, locator, or debug material
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - 현행 기능 정의·계약·검증 안내·실제 dispatch 연결 (실행 결과 판정 아님)
 `);
 }
 
@@ -46,13 +47,11 @@ const files = {
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -308,45 +307,22 @@ check("client/viewer scripts do not receive v3.8 Default-off Action Explanation 
   }
 });
 
-check("roadmap, stream verification, inventory, and release records map v3.8 Step 15", () => {
-  for (const snippet of [
-    "| 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 완료 |",
-    "## v3.8.0 Step 15 개발 기록",
-    route,
-    "OpsV380DefaultOffActionExplanationJson",
-    `\`./server.sh ${command}\``,
-    "Stabilization and Release Readiness 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.8 Step 15");
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["UI-107","SRC-064","EVT-086","LAB-122","SAFE-194","OPS-161"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/actions/default-off-explanation"],
+    command, script: "verify_v380_default_off_action_explanation.mjs", featureIds: ids,
+    inventory: files.featureInventory, implementation: files.implementationEvidence,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
+  // 독립 API 검사 결속이며 이 정적 명령의 실행 결과로 대체하지 않는다.
+  for (const [id, expectedCommand, expectedFile] of [["SRC-064","verify-ops-source-registry-api","scripts/internal/verify_ops_source_registry_api.mjs"]]) {
+    const entries = files.implementationEvidence.items.filter(item => item.id === id);
+    assert(entries.length === 1 && entries[0].verifierEvidence?.command === expectedCommand && entries[0].verifierEvidence?.file === expectedFile, id + " 독립 API 검증 연결 불일치");
   }
-  for (const snippet of [
-    `| v3.8.0 (15) | \`./server.sh ${command}\` | Default-off Action Explanation.`,
-    "approval blocker, readiness reason, outcome hint",
-    "provider/runtime call은 opt-in 전 미수행",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.8 Step 15");
-  }
-  for (const snippet of [
-    `v3.8.0 (15) Default-off Action Explanation | \`UI-107\`, \`SRC-064\`, \`EVT-086\`, \`LAB-122\`, \`SAFE-194\`, \`OPS-161\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-107 | V380 Step 15 Default-off Action Explanation UI",
-    "SRC-064 | V380 Step 15 source readiness explanation context",
-    "EVT-086 | V380 Step 15 outcome hint explanation context",
-    "LAB-122 | V380 Step 15 default-off action explanation harness",
-    "SAFE-194 | V380 Step 15 Default-off Action Explanation boundary",
-    "OPS-161 | V380 Step 15 Default-off Action Explanation 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.8 Step 15");
-  }
-  for (const snippet of [
-    "V380 Default-off Action Explanation",
-    `\`./server.sh ${command}\``,
-    "v380 Step 15 RED Default-off Action Explanation gate",
-    "v380 Step 15 Default-off Action Explanation final",
-    "v380 Step 15 UI 풀테스트",
-    "v380 Step 15 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.8 Step 15");
-  }
+
 });
 
 check("server entrypoint and inventory verifiers include v3.8 Step 15 command", () => {

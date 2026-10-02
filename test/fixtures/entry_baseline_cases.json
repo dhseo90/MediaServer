@@ -1,0 +1,256 @@
+{
+  "schema": "media-server.entry-baseline-cases.v1",
+  "executionEvidence": false,
+  "purpose": "기존 OPS/SAFE 진입 테스트의 버전·공개 기준·선택 계획을 보존한 회귀 입력. 과거 PASS를 복사한 실행 결과가 아니다.",
+  "provenance": {
+    "commit": "fdcf5455a86929219af333ca62b2d44817e542e1",
+    "path": "docs/project-feature-test-inventory.md",
+    "basis": "명시된 테스트 정의의 독립 기대값. 과거 중앙 실행 결과를 읽지 않는다.",
+    "decisionSource": {
+      "commit": "5456680cae74130fa1a4656f0f9f2a9c4db97817",
+      "path": "docs/development-backlog.md",
+      "sections": [
+        "v3.0.0 S00",
+        "v3.1.0 S00",
+        "v3.2.0 Step 1",
+        "v3.3.0 Step 1"
+      ],
+      "basis": "당시 선택·fallback·제외·제약의 최소 회귀 입력이며 과거 PASS나 현행 제품 정책이 아님"
+    }
+  },
+  "cases": [
+    {
+      "command": "verify-v300-entry-baseline",
+      "sourceVersion": "3.0.0",
+      "publishedTag": "v3.0.0",
+      "roadmap": "v3.0.0 Event Evidence Search MVP",
+      "featureIds": [
+        "OPS-051",
+        "SAFE-081"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      },
+      "decision": {
+        "scope": "historical-not-current-policy",
+        "selected": "Event Evidence Search MVP",
+        "fallback": "Conservative Foundation",
+        "excluded": [
+          "encoded MP4/WebM event clip·playback은 v3.1로 분리",
+          "24/7 상시녹화·VMS/NVR archive API는 당시 비범위",
+          "얼굴 인식·신원 식별·watchlist·face embedding 제외",
+          "raw prompt/response/provider request body 보관 제외",
+          "client/viewer 노출·cloud default-on 제외"
+        ],
+        "constraints": [
+          "비식별 feature-only 보존",
+          "Ops-only·local-first·명시 opt-in",
+          "FrameRef 근거 추적"
+        ]
+      }
+    },
+    {
+      "command": "verify-v310-entry-baseline",
+      "sourceVersion": "3.1.0",
+      "publishedTag": "v3.1.0",
+      "roadmap": "v3.1.0 Encoded Event Clip and Safe Sharing Expansion",
+      "featureIds": [
+        "OPS-061",
+        "SAFE-093"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      },
+      "decision": {
+        "scope": "historical-not-current-policy",
+        "selected": "Encoded Event Clip and Safe Sharing Expansion",
+        "fallback": "Encoded Clip Foundation",
+        "excluded": [
+          "24/7 상시녹화·VMS/NVR archive API는 당시 비범위",
+          "broad archive playback/search 제외",
+          "얼굴 인식·신원 식별·watchlist·face embedding 제외",
+          "raw prompt/response 보관 제외",
+          "client/viewer 내부 feature/provenance/raw evidence 전체 노출 제외",
+          "자동 rule 적용·cloud default-on 제외"
+        ],
+        "constraints": [
+          "source-only 배포·runtime/model binary 미포함",
+          "당시 encoded clip은 이벤트 중심 bounded evidence",
+          "credential·prompt/raw response·source URL·raw frame bytes 비노출",
+          "외부 endpoint/credential/승인 없이 field PASS 금지",
+          "안정화·UI·30분·120분·공개 검증 상호 대체 금지"
+        ]
+      }
+    },
+    {
+      "command": "verify-v320-entry-baseline",
+      "sourceVersion": "3.2.0",
+      "publishedTag": "v3.2.0",
+      "roadmap": "v3.2.0 Operations Resolution Workspace",
+      "featureIds": [
+        "OPS-069",
+        "SAFE-102"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      },
+      "decision": {
+        "scope": "historical-not-current-policy",
+        "selected": "Operations Resolution Workspace",
+        "fallback": "Resolution Core Baseline",
+        "excluded": [
+          "새 저장소 제품군으로 확장 제외",
+          "자동 승인·자동 조치 적용 제외",
+          "viewer/client 내부 판단 근거 전체 노출 제외",
+          "raw provider/debug material 노출 제외",
+          "local baseline으로 장시간 증거 대체 제외"
+        ],
+        "constraints": [
+          "source-only 배포·binary/runtime/model bundle 미포함",
+          "credential·prompt/response·source URL·raw frame·debug 비노출",
+          "viewer에는 resolution summary만 노출",
+          "외부 endpoint/credential/승인 없이 field PASS 금지",
+          "안정화·UI·30분·120분·공개 검증 상호 대체 금지"
+        ]
+      }
+    },
+    {
+      "command": "verify-v330-entry-baseline",
+      "sourceVersion": "3.3.0",
+      "publishedTag": "v3.2.0",
+      "roadmap": "v3.3.0 Live Source Reliability Workspace",
+      "featureIds": [
+        "OPS-080",
+        "SAFE-113"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      },
+      "decision": {
+        "scope": "historical-not-current-policy",
+        "selected": "Live Source Reliability Workspace",
+        "fallback": "Source Reliability Core",
+        "excluded": [
+          "ONVIF 실장비 중심 roadmap 제외",
+          "VLM default-on·provider 품질 중심 roadmap 제외",
+          "runtime/model bundle release 제외",
+          "자동 recovery/action 적용 제외"
+        ],
+        "constraints": [
+          "source-only 배포·binary/runtime/model bundle 미포함",
+          "기존 registry/PublishedView/health/EventRecord/audit 저장·노출 경계 재사용",
+          "viewer-safe digest·운영 locator/credential/raw diagnostics 비노출",
+          "외부 서비스 결과는 별도 field evidence 필요"
+        ]
+      }
+    },
+    {
+      "command": "verify-v340-entry-baseline",
+      "sourceVersion": "3.4.0",
+      "publishedTag": "v3.4.0",
+      "roadmap": "v3.4.0 Operations Continuity Drill Workspace",
+      "featureIds": [
+        "OPS-091",
+        "SAFE-124"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    },
+    {
+      "command": "verify-v350-entry-baseline",
+      "sourceVersion": "3.5.0",
+      "publishedTag": "v3.4.0",
+      "roadmap": "v3.5.0 Live Operations Control Plane",
+      "featureIds": [
+        "OPS-102",
+        "SAFE-135"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    },
+    {
+      "command": "verify-v360-entry-baseline",
+      "sourceVersion": "3.6.0",
+      "publishedTag": "v3.6.0",
+      "roadmap": "v3.6.0 Operations Simulation and Safe Apply Readiness",
+      "featureIds": [
+        "OPS-115",
+        "SAFE-148"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    },
+    {
+      "command": "verify-v370-entry-baseline",
+      "sourceVersion": "3.7.0",
+      "publishedTag": "v3.7.0",
+      "roadmap": "v3.7.0 Site-Aware Operations and Safe Runbook Control Plane",
+      "featureIds": [
+        "OPS-129",
+        "SAFE-162"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    },
+    {
+      "command": "verify-v380-entry-baseline",
+      "sourceVersion": "3.8.0",
+      "publishedTag": "v3.8.0",
+      "roadmap": "v3.8.0 Operator-Gated Action Pilot & Outcome Loop",
+      "featureIds": [
+        "OPS-147",
+        "SAFE-180"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    },
+    {
+      "command": "verify-v390-entry-baseline",
+      "sourceVersion": "3.9.0",
+      "publishedTag": "v3.8.0",
+      "roadmap": "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation",
+      "featureIds": [
+        "OPS-163",
+        "SAFE-196"
+      ],
+      "claims": {
+        "featureImplementation": "not-run-by-this-command",
+        "uiFulltest": "not-run-by-this-command",
+        "longrun30Or120": "not-run-by-this-command",
+        "publishedMetadata": "not-run-by-this-command"
+      }
+    }
+  ]
+}

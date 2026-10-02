@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// 파일 용도: v2.2.0 UI architecture inventory 문서와 S01 roadmap 연결을 검증한다.
+// 파일 용도: 현행 UI architecture 계약·구현 연결을 확인한다. CLI 이름은 호환을 위해 유지한다.
 
+import { validateUiComponentDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -18,11 +19,10 @@ if (hasHelpFlag(rawArgs)) {
 Usage:
   ./server.sh verify-v220-ui-architecture-inventory
 
-Checks:
-  - V220-S01 roadmap row points to this inventory gate
-  - inventory covers C++ string UI source files, public helper APIs, route/template boundaries
-  - inventory records component primitive candidates and unchanged product contracts
-  - server.sh exposes this verifier
+검사 범위:
+  - 현행 UI 기술 안내와 정확한 명령 연결
+  - 기존 소스·helper·모듈 계약
+  - 정적 결과를 실제 UI/장시간 PASS로 사용하지 않음
 `);
 }
 
@@ -30,21 +30,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 
-check("backlog S01 points to UI architecture inventory gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 1 \| V220-S01 \| P0 \| (진행|완료) \| UI architecture inventory \|/.test(backlog),
-    "backlog S01 row must be 진행 or 완료");
-  for (const snippet of [
-    "verify-v220-ui-architecture-inventory",
-    "v220-ui-architecture-inventory.md",
-    "C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S01 snippet: ${snippet}`);
-  }
+check("현행 UI 안내·정책·명령 연결", () => {
+  const errors = validateUiComponentDocumentation({
+    document: readText("docs/product-shell-component-examples.md"), kind: "architecture",
+    verification: readText("docs/stream-verification.md"), server: readText("server.sh"),
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
 check("inventory document covers required UI source files", () => {
-  const doc = readText("docs/v220-ui-architecture-inventory.md");
+  const doc = readText("docs/product-shell-component-examples.md");
   for (const file of [
     "src/ingress/webrtc_http_server.cpp",
     "src/ingress/product_ui_css.cpp",
@@ -62,7 +57,7 @@ check("inventory document covers required UI source files", () => {
 });
 
 check("inventory document covers public helper API boundaries", () => {
-  const doc = readText("docs/v220-ui-architecture-inventory.md");
+  const doc = readText("docs/product-shell-component-examples.md");
   for (const symbol of [
     "ProductDesignTokensCss",
     "ProductUiCss",
@@ -86,7 +81,7 @@ check("inventory document covers public helper API boundaries", () => {
 });
 
 check("inventory document covers route and template boundaries", () => {
-  const doc = readText("docs/v220-ui-architecture-inventory.md");
+  const doc = readText("docs/product-shell-component-examples.md");
   for (const snippet of [
     "/setup",
     "/invite/setup",
@@ -113,55 +108,8 @@ check("inventory document covers route and template boundaries", () => {
   }
 });
 
-check("inventory document lists component primitive candidates", () => {
-  const doc = readText("docs/v220-ui-architecture-inventory.md");
-  for (const primitive of [
-    "ProductShell",
-    "PageSection",
-    "ActionToolbar",
-    "ResponsiveTable",
-    "DetailDrawerPanel",
-    "FormGrid",
-    "StatusBadgeRow",
-    "EmptyLoadingErrorState",
-    "DebugDetails",
-    "ResponsiveTaskShell",
-  ]) {
-    assert(doc.includes(primitive), `inventory missing primitive candidate: ${primitive}`);
-  }
-});
 
-check("inventory document keeps S01 non-implementation and contract boundaries explicit", () => {
-  const doc = readText("docs/v220-ui-architecture-inventory.md");
-  for (const snippet of [
-    "route/API/schema/Event POST/WebRTC/SSE/WS metadata/RTSP-WebRTC media",
-    "Event POST payload",
-    "WebRTC DataChannel payload",
-    "SSE/WS metadata schema",
-    "RTSP/WebRTC media path",
-    "Auth/session/scope contract",
-    "Rule/Profile payload schema",
-    "`/ops/rules` smoke selector",
-    "client/viewer source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics",
-    "실제 브라우저 UI",
-    "visual redesign mockup",
-    "30분 soak",
-    "120분 longrun은 실행하지 않습니다.",
-  ]) {
-    assert(doc.includes(snippet), `inventory missing contract boundary: ${snippet}`);
-  }
-});
 
-check("stream verification exposes the S01 inventory command", () => {
-  const stream = readText("docs/stream-verification.md");
-  for (const snippet of [
-    "verify-v220-ui-architecture-inventory",
-    "v2.2.0 UI architecture inventory",
-    "verify-ops-client-ui --browser-mode static",
-  ]) {
-    assert(stream.includes(snippet), `stream verification missing S01 snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint exposes the S01 inventory verifier", () => {
   const server = readText("server.sh");

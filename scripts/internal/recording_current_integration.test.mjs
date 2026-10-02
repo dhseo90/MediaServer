@@ -1,6 +1,7 @@
 // 파일 용도: 현행 녹화 다섯 단계 통합의 순서·실제 결과 결속·실패와 정리 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import './recording_current_app_scan.test.mjs';
 import {runCurrentIntegration,completedCurrentStep,currentSteps} from './recording_current_integration_suite.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,observeInteriorBoundary,fixtureFirstKeyframeBoundary} from './recording_current_app_helpers.mjs';
@@ -13,16 +14,73 @@ async function producedCleanup(pid){
 }
 const actualProcesses=await Promise.all([producedCleanup(1001),producedCleanup(1002)]);
 const cleanup='[cleanup] PASS {"rootAbsent":true,"failureCount":0,"process":{"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"http","closed":true},{"kind":"rtsp","closed":true}]}\n';
+// C++ SourceRuntime의 off/on/off/on 네 회와 회별 다섯 assertion을 그대로 대역에 둔다.
+const compositionRuntime=Array.from({length:4},(_,cycle)=>[
+  '[pass] D02-06 off/on 재개방 동일 store identity',
+  '[pass] D02-07 실제 producer 시작 전 runtime 복구',
+  cycle%2?'[pass] D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성':'[pass] D02-06 실제 supervisor/session off 생산0·기존 segment 보존',
+  '[pass] B2-S01 복사된 route와 반복 reconcile의 채널 멱등성',
+  '[pass] D02-08 실제 source/session 종료 owner0',
+]).flat();
+const supervisorPass='[pass] B2-S02 opt-out·시작 실패·재시도·반복 종료와 손상 입력 보존';
+const compositionOutput=[
+  ...Array.from({length:24},(_,i)=>`[pass] main-${i}`),'[summary] pass=24 fail=0',
+  ...compositionRuntime,'[summary] pass=20 fail=0',supervisorPass,
+  '[pass] D02-04/10 실제 default10s+post5s 후행 finalize·동시 실제decoder cache·2출력 decode','[summary] pass=1 fail=0',
+  '[pass] D02-01 crypto-off OS CSPRNG 생성/재개방 identity',
+  '[pass] D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사',
+  '[process] committed child exit=23 expected=23','[pass] D02-07 runtime startup committed recovery/보호/물리검사 순서',
+  '[process] blocked child exit=23 expected=23','[pass] D02-07 runtime startup blocked recovery/보호/물리검사 순서',
+  '[pass] D02-07 runtime startup intent recovery/보호/물리검사 순서',
+  '[cleanup] path=/unit bytes=1 removed=true','',
+].join('\n');
 const outputs={
   'http-api':'[S06 HTTP API] checks=35 fail=0 authMode=off roleTests=NOT_RUN\n'+cleanup,
   'http-auth':'[S06 HTTP AUTH] checks=40 fail=0 actualUiActions=NOT_RUN\n'+cleanup,
   'http-lifecycle':'[S06 HTTP lifecycle] checks=10 fail=0 codecPlayback=NOT_RUN\n'+cleanup,
-  'default-composition':'[summary] pass=24 fail=0\n[summary] pass=16 fail=0\n[summary] pass=1 fail=0\n'+Array.from({length:46},(_,i)=>`[pass] case-${i}`).join('\n')+'\n[process] committed child exit=23 expected=23\n[process] blocked child exit=23 expected=23\n[cleanup] path=/unit bytes=1 removed=true\n',
+  'default-composition':compositionOutput,
   'actual-app':JSON.stringify({mode:'current-actual-app',passed:27,failed:0,actualEventPass:true,restartPass:true,expectedOutputCount:2,observedOutputCounts:[2,2],cleanup:{rootAbsent:true,failureCount:0,processes:actualProcesses}})+'\n'
 };
 test('S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박',async()=>{
   const called=[];const r=await runCurrentIntegration(async step=>{called.push(step.id);return {exit:0,stdout:outputs[step.id]};});
   assert.deepEqual(called,ids);assert.equal(r.currentIntegrationExecutionPass,true);assert.equal(r.stages.length,5);
+});
+test('S11-CI08 현행 composition의 24+20+2+5와 B2 두 경로 수용',()=>{
+  const step=currentSteps.find(s=>s.id==='default-composition');
+  assert.equal(step.checks,51);
+  assert.deepEqual(completedCurrentStep(step,{exit:0,stdout:compositionOutput}),{id:step.id,checks:51,exit:0,cleanup:true});
+});
+for(const [name,change,reason] of [
+  ['구형 source 16',r=>({...r,stdout:r.stdout.replace('pass=20','pass=16')}),'composition-summary'],
+  ['잘못된 source 21',r=>({...r,stdout:r.stdout.replace('pass=20','pass=21')}),'composition-summary'],
+  ['summary 누락',r=>({...r,stdout:r.stdout.replace('[summary] pass=20 fail=0\n','')}),'composition-summary'],
+  ['summary 중복',r=>({...r,stdout:r.stdout+'[summary] pass=20 fail=0\n'}),'composition-summary'],
+  ['assertion 누락',r=>({...r,stdout:r.stdout.replace('[pass] main-0\n','')}),'composition-check-count'],
+  ['assertion 추가 중복',r=>({...r,stdout:r.stdout+'[pass] main-0\n'}),'composition-check-count'],
+  ['같은 합계의 main 중복',r=>({...r,stdout:r.stdout.replace('[pass] main-1\n','[pass] main-0\n')}),'composition-duplicate-check'],
+  ['하위 검사 사이 결과 중복',r=>({...r,stdout:r.stdout.replace('[pass] D02-07 runtime startup intent recovery/보호/물리검사 순서','[pass] main-0')}),'composition-duplicate-check'],
+  ['같은 합계의 child 이동',r=>({...r,stdout:r.stdout.replace('[pass] main-0\n','')+'[pass] main-0\n'}),'composition-child-counts'],
+  ['B2-S01 누락 대체',r=>({...r,stdout:r.stdout.replace(compositionRuntime[3],compositionRuntime[0])}),'composition-source-runtime'],
+  ['off/on 횟수 모순',r=>({...r,stdout:r.stdout.replace(compositionRuntime[2],compositionRuntime[7])}),'composition-source-runtime'],
+  ['B2-S02 누락 대체',r=>({...r,stdout:r.stdout.replace(supervisorPass,'[pass] unrelated')}),'composition-supervisor'],
+  ['recovery child exit 오류',r=>({...r,stdout:r.stdout.replace('committed child exit=23','committed child exit=0')}),'composition-recovery'],
+  ['recovery child 결과 누락',r=>({...r,stdout:r.stdout.replace('[process] blocked child exit=23 expected=23\n','')}),'composition-recovery'],
+  ['recovery child 결과 중복',r=>({...r,stdout:r.stdout+'[process] blocked child exit=23 expected=23\n'}),'composition-recovery'],
+  ['cleanup 누락',r=>({...r,stdout:r.stdout.replace('[cleanup] path=/unit bytes=1 removed=true\n','')}),'summary-count'],
+  ['cleanup 실패',r=>({...r,stdout:r.stdout.replace('removed=true','removed=false')}),'composition-cleanup'],
+  ['cleanup 중복',r=>({...r,stdout:r.stdout+'[cleanup] path=/unit bytes=1 removed=true\n'}),'summary-count'],
+  ['명시 fail',r=>({...r,stdout:r.stdout+'[fail] assertion\n'}),'child-failed-check'],
+  ['명시 cleanup FAIL',r=>({...r,stdout:r.stdout+'[cleanup] FAIL {}\n'}),'child-failed-check'],
+  ['nonzero',r=>({...r,exit:1}),'child-execution'],
+  ['signal',r=>({...r,signal:'SIGTERM'}),'child-execution'],
+  ['spawn 오류',r=>({...r,error:'spawn-failed'}),'child-execution'],
+])test(`S11-CI08 ${name} 거부·actual-app 미실행`,async()=>{
+  const calls=[];const result=await runCurrentIntegration(async step=>{
+    calls.push(step.id);const output={exit:0,stdout:outputs[step.id]};
+    return step.id==='default-composition'?change(output):output;
+  });
+  assert.equal(result.currentIntegrationExecutionPass,false);assert.equal(result.failedStage,'default-composition');
+  assert.equal(result.error,reason);assert.deepEqual(calls,ids.slice(0,4));assert.deepEqual(result.notRun,['actual-app']);
 });
 for(const [id,tag,expected,obsolete] of [['http-auth','AUTH',40,38],['http-lifecycle','lifecycle',10,12]])
 test(`LP25-C10 ${id} 실제 producer 총계 수용·구형 및 불일치 거부`,()=>{

@@ -155,10 +155,10 @@ URL·password·authorization·cookie·사용자 절대 경로 패턴 검사는0�
 | --- | --- | --- |
 | 일반 RTSP/WebRTC·auth·Event POST·redaction | 해당 구현 직접 diff 없음. 변경44파일은 녹화 내부·상태 provider 및 CMake 연결 | 해당 구성요소의 과거 반복 관측 유지. 현행 전체 프로세스 장시간 PASS로 확대하지 않음 |
 | 저장소 시작·복구 | `media_server_application.cpp:328`에서 녹화 off도 Open/recovery 실행. `recording_runtime_composition.cpp:34`의 probe/복구/전환/owner reset 변경 | 이전 시작·종료·runtime idle 결과의 현행 전체 승계 불가. 현행30분·현재 녹화120분의 실제 시작/재기동/정리와 별도 대조 |
-| 중단 거래 복구 | B05 runtime33개에 실제 전환·중단 복구, B04의 private 복구·원자게시 증거 존재 | [B05](../b05-consumers-runtime-20260925/results.md)의 해당 focused 증거를 사용. 정상120분 재기동이 pending 복구 반례까지 검증했다고 주장하지 않음 |
+| 중단 거래 복구 | B05 runtime33개에 실제 전환·중단 복구, B04의 private 복구·원자게시 증거 존재 | [B05](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b05-consumers-runtime-20260925/results.md)의 해당 focused 증거를 사용. 정상120분 재기동이 pending 복구 반례까지 검증했다고 주장하지 않음 |
 | 녹화 상태·용량·조회 | status snapshot+검증과 generation backend 변경 | 과거 공통120분으로 승계 안 함. 현행 B08 통합·UI·이번120분의 각각 실제 범위 사용 |
-| 파생 이벤트 worker | ready queue·예약·저장 경로 변경 | 일반 Event POST 반복을 파생 녹화 장시간 증거로 사용 안 함. [B08 실제 두 출력·통합](../b08-actual-app-20260925/results.md)과 관련 집중 검사 사용 |
-| CMake/ZLIB·현행 binary | generation backend·ZLIB 추가, 서버 SHA 변경 | [B09 빌드·단기](../b09-final-short-20260926/results.md)와 현행30분/120분으로 판정. 과거 binary의 전체 RSS/종료 안정성 자동 승계 금지 |
+| 파생 이벤트 worker | ready queue·예약·저장 경로 변경 | 일반 Event POST 반복을 파생 녹화 장시간 증거로 사용 안 함. [B08 실제 두 출력·통합](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b08-actual-app-20260925/results.md)과 관련 집중 검사 사용 |
+| CMake/ZLIB·현행 binary | generation backend·ZLIB 추가, 서버 SHA 변경 | [B09 빌드·단기](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/b09-final-short-20260926/results.md)와 현행30분/120분으로 판정. 과거 binary의 전체 RSS/종료 안정성 자동 승계 금지 |
 
 공통120분과 녹화120분은 같은 검사나 상호 대체가 아니다. 위 구분과 현행 실행의 결과가
 모두 확인된 뒤 최종 승계·잔여 조건을 판정한다. 현재 표는 녹화120분 통과 선언이 아니다.

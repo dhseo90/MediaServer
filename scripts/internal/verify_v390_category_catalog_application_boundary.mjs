@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4-64 Slice 18 transport category catalog의 dependency-free application 경계를 검증한다.
 
+import {assertCurrentSourceGraph, assertBoundaryOwners} from "./structure_dependency_policy_lib.mjs";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import os from "node:os";
@@ -98,44 +99,15 @@ check("CMake and exact graph successor bind Slice 18", () => {
   const cmake = read("CMakeLists.txt");
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   assert(cmake.split(sourcePath).length - 1 === 1, "CMake source exact-once binding missing");
-  const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  assert(owner?.exactFiles.includes(headerPath) && owner.exactFiles.includes(sourcePath) &&
-    owner.expectedFileCount === 41 && owner.expectedCppCount === 17, "application owner successor drift");
-  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  const exactEdges = {
-    "transport-and-auth-adapter -> analysis-services": [1, false, "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7"],
-    "application-service-interfaces -> analysis-services": [20, true, "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a"],
-    "transport-and-auth-adapter -> application-service-interfaces": [20, true, "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e"],
-  };
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
-    graph.observedModuleEdges.length === 17 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
-    graph.stronglyConnectedComponents.length === 0 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 1,
-  "exact graph successor drift");
-  for (const [direction, [count, allowed, witnessSha256]] of Object.entries(exactEdges)) {
-    const item = edge(direction);
-    assert(item?.witnessCount === count && item.allowedByTarget === allowed &&
-      item.witnessSha256 === witnessSha256, `exact graph edge drift: ${direction}`);
-  }
-  for (const [direction, field] of [
-    ["transport-and-auth-adapter -> analysis-services", "witnessCount"],
-    ["application-service-interfaces -> analysis-services", "witnessSha256"],
-    ["transport-and-auth-adapter -> application-service-interfaces", "allowedByTarget"],
-  ]) {
+  assertCurrentSourceGraph(root, graph);
+  assertBoundaryOwners(graph, [[headerPath, 'application-service-interfaces'], [sourcePath, 'application-service-interfaces']]);
+  for (const field of ['witnessCount', 'witnessSha256', 'allowedByTarget']) {
     const mutated = structuredClone(graph);
-    const item = mutated.observedModuleEdges.find(value => value.direction === direction);
-    item[field] = field === "witnessCount" ? item[field] + 1 : field === "allowedByTarget" ? !item[field] : "0".repeat(64);
+    const item = mutated.observedModuleEdges.find(value => value.direction === 'application-service-interfaces -> analysis-services');
+    item[field] = field === 'witnessCount' ? item[field] + 1 : field === 'allowedByTarget' ? !item[field] : '0'.repeat(64);
     let rejected = false;
-    try {
-      const expected = exactEdges[direction];
-      const value = mutated.observedModuleEdges.find(edgeValue => edgeValue.direction === direction);
-      assert(value.witnessCount === expected[0] && value.allowedByTarget === expected[1] &&
-        value.witnessSha256 === expected[2], "mutation accepted");
-    } catch { rejected = true; }
-    assert(rejected, `graph mutation was not rejected: ${direction}/${field}`);
+    try { assertCurrentSourceGraph(root, mutated); } catch { rejected = true; }
+    assert(rejected, 'actual graph mutation was not rejected: ' + field);
   }
 });
 

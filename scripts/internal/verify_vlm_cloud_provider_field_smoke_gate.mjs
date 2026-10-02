@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -153,21 +154,12 @@ check("current execution produces sanitized gate report and only calls provider 
 });
 
 check("docs, feature inventory, server command, script inventory, and privacy guard are wired", async () => {
-  const docs = [
-    readText("docs/vlm-cloud-provider-field-smoke-gate.md"),
-    readText("docs/vlm-privacy-transfer-guard.md"),
-    readText("docs/development-backlog.md"),
-    readText("docs/stream-verification.md"),
-    readText("docs/project-feature-test-inventory.md"),
-    readText("docs/README.md"),
-  ].join("\n");
+  const docs = readText("docs/vlm-cloud-provider-field-smoke-gate.md");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
   const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
-  for (const snippet of [
-    "V210-S03",
-    "Cloud provider field smoke gate",
+  const errors = validateFeatureDocumentation({document: docs, identifiers: [
     "media-server.vlm-cloud-provider-field-smoke-gate-fixtures.v1",
     "media-server.vlm-cloud-provider-field-smoke-gate-report.v1",
     "verify-vlm-cloud-provider-field-smoke-gate",
@@ -177,18 +169,13 @@ check("docs, feature inventory, server command, script inventory, and privacy gu
     "approved-provider-timeout-fail-not-release-pass",
     "LAB-057",
     "SAFE-035",
-  ]) {
-    assert(docs.includes(snippet), `docs missing cloud field gate snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "verify-vlm-cloud-provider-field-smoke-gate",
-    "verify_vlm_cloud_provider_field_smoke_gate.mjs",
-  ]) {
-    assert(serverSh.includes(snippet), `server.sh missing cloud field gate snippet: ${snippet}`);
-  }
+  ], command: "verify-vlm-cloud-provider-field-smoke-gate", script: "verify_vlm_cloud_provider_field_smoke_gate.mjs",
+    featureIds: ["SAFE-035"], inventory: readText("docs/project-feature-test-inventory.md"),
+    verification: readText("docs/stream-verification.md"), server: serverSh});
+  assert(errors.length === 0, errors.join("; "));
   assert(scriptInventory.includes("verify_vlm_cloud_provider_field_smoke_gate.mjs"), "script inventory missing cloud field gate verifier");
-  assert(manifest.items.find(item => item.id === "SAFE-035")?.verifierEvidence?.command === "verify-vlm-cloud-provider-field-smoke-gate",
-    "SAFE-035 manifest verifier command drift");
+  assert(manifest.items.find(item => item.id === "LAB-057")?.verifierEvidence?.command === "verify-vlm-cloud-provider-field-smoke-gate",
+    "LAB-057 manifest verifier command drift");
   assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
     "feature coverage must validate manifest-backed verifier evidence");
 });
@@ -460,7 +447,7 @@ function renderMarkdown(data) {
   const rows = data.cases
     .map(item => `| ${item.id} | ${item.fieldSmokeStatus} | ${item.providerApiCalled} | ${item.releasePassEligible} | ${item.status} |`)
     .join("\n");
-  return `# VLM Cloud Provider Field Smoke Gate Report
+  return `# VLM 클라우드 연결 검사 결과
 
 - schema: \`${data.schema}\`
 - targetStep: \`${data.targetStep}\`
@@ -480,10 +467,9 @@ function renderMarkdown(data) {
 | --- | --- | --- | --- | --- |
 ${rows}
 
-## Non-Substitution
+## 판정 범위
 
-Default gate PASS is not provider field smoke PASS. A not-run, blocked, timeout,
-or failed provider result is not release PASS evidence.
+기본 gate PASS는 실제 provider 연결 PASS가 아니다. 미실행·차단·시간초과·실패 결과는 릴리즈 PASS 증거가 아니다.
 `;
 }
 

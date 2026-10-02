@@ -3,6 +3,8 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 // 파일 용도: v3.2.0 Step 2 Resolution State Contract 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -24,7 +26,7 @@ Checks:
   - /ops/api/events/reviews persists an Ops-only resolution state contract with status, reason, close/reopen lifecycle, and boundary flags
   - the resolution contract is separate from EventRecord, Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, and client/viewer output
   - the review catalog exposes allowed resolution statuses, reasons, and transitions
-  - roadmap, stream verification, release records, feature inventory, and server dispatch are wired
+  - 현행 계약 식별자·기능 정의·검증 명령·실제 dispatch를 확인하며 과거 실행 기록은 읽지 않음
   - PASS is limited to v3.2.0 Step 2 local/API/static evidence and does not imply Unified Ops Events Workspace, UI 풀테스트, 30분/120분, operator assignment flow, client digest, search/metrics, or release publication
 `);
 }
@@ -33,14 +35,13 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-resolution-state-contract";
 const files = {
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readWebRtcHttpServerBundle(readText),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 const checks = [];
@@ -139,48 +140,18 @@ check("review update API accepts resolution payload and audits resolution transi
   }
 });
 
-check("docs and roadmap expose v3.2 Step 2 scope without overclaim", () => {
-  for (const snippet of [
-    "| 2 | v3.2.0 (2) Resolution State Contract | P0 | 완료 |",
-    "media-server.ops.resolution-state.v1",
-    "resolutionStatus/resolutionReason/resolution.transition",
-    "close/reopen lifecycle contract",
-    "Unified Ops Events Workspace, UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, client digest, search/metrics, published metadata evidence가 아님",
-    "## v3.2.0 Step 2 개발 기록",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.2 Step 2");
-  }
-  for (const snippet of [
-    "| v3.2.0 (2) | `./server.sh verify-v320-resolution-state-contract` |",
-    "Resolution State Contract",
-    "status/reason/close-reopen lifecycle",
-    "EventRecord/Event POST/WebRTC/SSE/WS/media path",
-    "UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, client digest, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.2 Step 2");
-  }
+check("현행 계약 식별자·기능 정의·검증 명령 연결", () => {
+  const ids = ["EVT-063","SAFE-103","OPS-070"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => ids.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["media-server.ops.resolution-state.v1","resolutionStatus","resolutionReason"],
+    command, script: "verify_v320_resolution_state_contract.mjs", featureIds: ["EVT-063","SAFE-103","OPS-070"],
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map v3.2 Step 2", () => {
-  for (const snippet of [
-    "v3.2.0 (2) Resolution State Contract | `EVT-063`, `SAFE-103`, `OPS-070` | `verify-v320-resolution-state-contract`",
-    "EVT-063 | V320 Step 2 resolution state contract",
-    "SAFE-103 | V320 Step 2 resolution boundary",
-    "OPS-070 | V320 Step 2 Resolution State Contract 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 2");
-  }
-  for (const snippet of [
-    "V320 Resolution State Contract",
-    "`./server.sh verify-v320-resolution-state-contract`",
-    "v320 Step 2 RED resolution state contract gate",
-    "v320 Step 2 resolution state contract final",
-    "v320 Step 2 UI 풀테스트",
-    "v320 Step 2 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.2 Step 2");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.2 Step 2 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

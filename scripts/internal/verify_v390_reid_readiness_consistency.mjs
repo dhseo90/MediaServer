@@ -184,7 +184,14 @@ function buildCaseEnv(item, ports) {
 }
 
 function startServer(env) {
-  const child = spawn("./server.sh", ["foreground"], { cwd: rootDir, env, stdio: ["ignore", "pipe", "pipe"] });
+  // 재시작은 같은 소유 저장소를 사용하며 외부 경로·symlink는 서버 실행 전에 거부한다.
+  const recordingRoot = path.join(workDir, "recordings");
+  assert(path.isAbsolute(recordingRoot) && recordingRoot === path.join(workDir, "recordings") &&
+    fs.lstatSync(workDir).isDirectory() && !fs.lstatSync(workDir).isSymbolicLink(), "recording root must be test-owned");
+  if (!fs.existsSync(recordingRoot)) fs.mkdirSync(recordingRoot, { mode: 0o700 });
+  assert(fs.lstatSync(recordingRoot).isDirectory() && !fs.lstatSync(recordingRoot).isSymbolicLink() &&
+    fs.realpathSync(recordingRoot) === path.join(fs.realpathSync(workDir), "recordings"), "recording root must be a real owned directory");
+  const child = spawn("./server.sh", ["foreground"], { cwd: rootDir, env: { ...env, MEDIA_SERVER_RECORDING_STORAGE_ROOT: recordingRoot }, stdio: ["ignore", "pipe", "pipe"] });
   child.stdout.on("data", rememberLog);
   child.stderr.on("data", rememberLog);
   return child;

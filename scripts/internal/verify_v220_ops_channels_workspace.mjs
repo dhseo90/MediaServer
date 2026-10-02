@@ -1,36 +1,26 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// 파일 용도: v2.2.0 Ops Channels Workspace 재배치 산출물과 route/CSS/문서 연결을 정적 검증한다.
+// 파일 용도: 현행 ops-channels-workspace 소스·문서 연결을 정적으로 확인한다. CLI 이름은 호환용이다.
 import fs from 'node:fs';
+import {validateUiWorkspaceDocumentation} from './documentation_contract_lib.mjs';
 
 const checks = [];
 const read = (path) => fs.readFileSync(path, 'utf8');
 const source = readWebRtcHttpServerBundle(read);
 const css = read('src/ingress/product_ui_css.cpp');
-const backlog = read('docs/development-backlog.md');
 const inventory = read('docs/project-feature-test-inventory.md');
 const stream = read('docs/stream-verification.md');
 const server = read('server.sh');
-const docs = fs.existsSync('docs/v220-ops-channels-workspace.md')
-  ? read('docs/v220-ops-channels-workspace.md')
-  : '';
+const docs = read('docs/product-shell-component-examples.md');
 
 function check(name, condition) {
   checks.push({ name, condition });
 }
 
-check('Ops Channels command is exposed by server.sh', server.includes('verify-v220-ops-channels-workspace'));
-check(
-  'Ops Channels docs define requested route and task units',
-  docs.includes('/ops/sources') &&
-    docs.includes('채널 목록') &&
-    docs.includes('source detail') &&
-    docs.includes('ONVIF') &&
-    docs.includes('WHEP') &&
-    docs.includes('WHIP') &&
-    docs.includes('PublishedView') &&
-    docs.includes('audit')
-);
+const documentationErrors = validateUiWorkspaceDocumentation({document: docs, kind: 'ops-channels-workspace', inventory, verification: stream, server});
+check('현행 작업 영역 계약·기능 정의·명령 연결', documentationErrors.length === 0);
+for (const error of documentationErrors) console.error('[fail] ' + error);
+
 check(
   'Ops sources route exposes channels workspace class and task markers',
   source.includes('data-ops-panel="sources"') &&
@@ -82,16 +72,6 @@ check(
     '.ops-channels-audit-panel',
     '@media (max-width: 760px)',
   ].every((needle) => css.includes(needle))
-);
-check(
-  'roadmap and verification docs record Ops Channels follow-up scope',
-  backlog.includes('V220-F02 Ops Channels Workspace 재배치') &&
-    stream.includes('verify-v220-ops-channels-workspace')
-);
-check(
-  'feature inventory maps Ops Channels workspace verifier',
-  inventory.includes('v2.2.0 F02 Ops Channels Workspace 재배치') &&
-    inventory.includes('verify-v220-ops-channels-workspace')
 );
 check(
   'existing source/view API and route hooks stay present',

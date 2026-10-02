@@ -1003,7 +1003,7 @@ JSONL 비활성/활성·queue=2에서 퇴출·5개 내구 PTS 연결 보존을 �
 I02에 20개 check를 선등록했다. 기존 고정 action ID 27개를 유지한다.
 실제 runtime 20/0·mutation 2/0, C++ 140/0·application 7/0·등록기 단위 26/0·
 action 27/0(check 89개). mutation 로그 소비자 보강의 TDD RED/수정 이력 및 최종 결과는
-[테스트 기록](../../release-test-records.md)에 남긴다. S06 이후는 착수하지 않는다.
+[테스트 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)에 남긴다. S06 이후는 착수하지 않는다.
 
 ### 중단 재개 보정 계획 (2026-09-04)
 
@@ -1156,7 +1156,7 @@ git commit -m "feat: 이벤트 녹화 연결과 파생 clip 추가"
 event 우선 읽기 서비스·권한별 상태/timeline·opaque media 해석·GET/HEAD Range·전송 gate와
 Ops 필터/목록/재생 UI를 구현했다. 잔여 1~5번은 afb6c5a3, 9de62e0e, f03ec0a6,
 a4a02991, 4da626e6으로 분할 커밋했다. 제품/검증 구현 위치와 개별 결과는
-[실행 기록](../../release-test-records.md)의 S06 잔여 3~6번을 따른다.
+[실행 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)의 S06 잔여 3~6번을 따른다.
 1970은 검증 fixture의 epoch 시간이며 운영 녹화 시간은 변경하지 않았다.
 S06 범위 직접 UI와 관련 회귀 통과는 버전 전체 UI·30분/120분 PASS가 아니다.
 S07과 릴리즈 action은 이번 문서 마감 범위 밖이다.
@@ -2482,7 +2482,7 @@ browser mode와 legacy UI seed는 이번 실행·수정에서 제외하며 후�
 사용자가 3D-2 개발·관련 단기 검증·마지막 커밋/푸시를 승인했다. 기존 `v4.1.0` checkout을 유지한다.
 메인은 아래 구성/안전 판단과 최종 diff·증거 검토, 기존 단일 Astra/medium 담당자는 확정 구현을 맡는다.
 하위 위임은 금지한다. 구현과 관련 단기 검증을 마쳤으며, 실제 명령·개별 결과·최초 실패와 정리는
-[중앙 테스트 기록](../../release-test-records.md)의 3D-2 및 연결된 D01/D02 실행 기록을 따른다.
+[중앙 테스트 기록](../../history/README.md#중앙-기록과-backlog-종료-본문)의 3D-2 및 연결된 D01/D02 실행 기록을 따른다.
 실제 file source의 off→on→off→on, 동일 store ID 유지, 기본 10초 세그먼트·후행 5초 출력의
 실제 디코딩, 별도 프로세스 중단 복구 및 접수/종료 잠금 경계를 검사했다. macOS 격리 단기 증거이며
 Linux·외부 입력·실제 서버 전체·공개 UI·30분/120분 최종 묶음의 PASS로 확대하지 않는다.
@@ -2615,7 +2615,7 @@ queue에는 decoded sequence만 결박하고 worker의 기존 namespace reset �
 3C-5.1의 시간 증거 생산·순수 선택 단위는 구현했다. 메인이 실제 diff와 최종 원출력을 대조했으며
 focused27, 실제 decoder/manager19, source association10, consumer connection22,
 consumer reference19, range16 및 제품 build가 통과했다. 준비 실패와 D09 oracle 정정,
-D21 초기화 후 재eviction 결함/수정 이력은 [실행 기록](../../release-artifacts/v4.1.0/s10-derived-selection/report.md)에 남겼다.
+D21 초기화 후 재eviction 결함/수정 이력은 [실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-selection/report.md)에 남겼다.
 시간 선택은 재생 가능 판정이 아니다. catalog 공급 adapter·실제 bridge 생성 호출·작업/출처의
 내구 직렬화는 3C-5.2~5.4에 남는다. 직접 증거 없는 Gap/post-roll watermark를 생성하지 않는다.
 worker reset 전에 새 namespace 자료까지 상한 밖으로 소실됐다면 해당 namespace는 미확인으로
@@ -2634,7 +2634,7 @@ preroll/decode dependency·미충족 범위를 보존한다. binding에 없는 �
 최종 remux31개(단발 취소1+실제 미디어30), 선택 회귀27개, 시각 probe8개 및 build가 통과했다.
 비영점/B-frame seek·분수 duration·보이는 픽셀·동일/상이 epoch별 독립 출력과 FD/취소 오류를 확인했다.
 누락 source/참조 결박 및 단발 취소 결함의 RED→GREEN, 준비 실패와 잘린 probe 출력의 재수집은
-[실행 기록](../../release-artifacts/v4.1.0/s10-derived-remux/report.md)에 보존한다.
+[실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-remux/report.md)에 보존한다.
 검증된 FD 출력이지 게시·내구 작업·이벤트 통합 완료가 아니다. 3C-5.3/5.4는 아직 남아 있다.
 
 3C-5.2 커밋은 `d6554de7`이다. 이어지는 3C-5.3은 같은 담당자가 원장/자원 단위와
@@ -2644,7 +2644,7 @@ preroll/decode dependency·미충족 범위를 보존한다. binding에 없는 �
 단일 retention 소유권과 동시 용량 계산을 구현했다. focused23, catalog246,
 retention56, V2 retention24(실제 미디어22·GStreamer-off2), build가 통과했다.
 V2 복구 fixture의 겹친 coordinator 수명을 순차 수명으로 고쳤으며 최초 회귀 실패와
-그 수정 중의 컴파일 오류도 [실행 기록](../../release-artifacts/v4.1.0/s10-derived-jobs/report.md)에 보존한다.
+그 수정 중의 컴파일 오류도 [실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-jobs/report.md)에 보존한다.
 메인은 제품 단일 coordinator 구성과 B13/B14/B18의 기존 검사 유지 여부를 직접 대조했다.
 349개 단기 PASS는 원장·자원 단위에 한정한다. 실제 파일의 소유 확인·Ready·게시·
 중단 복구는 5.3b, 이벤트 통합은 5.4에 남아 있다.
@@ -2682,7 +2682,7 @@ post-roll 대기는 steady clock의 유한 대기 예산으로 제한하되 시�
 개별 429개가 통과했으며 build도 통과했다. 메인이 실제 서비스/직렬화/원장 diff와
 파일 hash·catalog·단일 mutation·보호/예약·정리의 독립 oracle을 직접 대조했다.
 혼합 ABI 및 필드명/fixture 준비 실패, 요청 결박과 생성 전 취소의 RED→GREEN은
-[실행 기록](../../release-artifacts/v4.1.0/s10-derived-job-service/report.md)에 보존한다.
+[실행 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-job-service/report.md)에 보존한다.
 소유 receipt 없는 실물과 바뀐 파일/경로는 자동 삭제하지 않는 명시 blocker다.
 복구는 한 호출에서 active job 최대8개·단일30초 예산으로 제한하고 초과를 숨기지 않는다.
 이는 opt-in 내부 파일 서비스 완료이며 실제 이벤트 worker 통합은 5.4,
@@ -2708,7 +2708,7 @@ post-roll 대기는 steady clock의 유한 대기 예산으로 제한하되 시�
 최종 통합56/선택27/연결22/참조19/구간16/legacy bridge144/identity23/finalize140/
 catalog246/retention24로 총717개가 통과했다. catalog의 composition 행은 정적 검사다.
 UTC 손상 후보 판정·종료/비권위/resolver의 소유권 누락과 검증 기대값 오류를 보완했으며
-최초 실패와 준비 오류는 [단위 기록](../../release-artifacts/v4.1.0/s10-derived-event-integration/report.md)에 보존한다.
+최초 실패와 준비 오류는 [단위 기록](https://github.com/dhseo90/MediaServer/blob/0f85cec7ea066ff626f7b2983f924468467c9717/docs/release-artifacts/v4.1.0/s10-derived-event-integration/report.md)에 보존한다.
 메인이 실제 제품 diff·주요 oracle·원출력을 직접 대조했다. source22개 hash, 최종717행과
 임시27경로 부재 및 문서 링크·diffcheck를 확인하여 해당 내부 단위의 커밋 조건을 충족했다.
 기본 서버 주입·공개 결과 소비·3D/S11·장시간/UI·푸시는 이번 완료 범위가 아니다.

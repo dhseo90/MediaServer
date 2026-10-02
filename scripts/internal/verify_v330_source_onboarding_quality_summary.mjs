@@ -3,6 +3,7 @@ import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.m
 // 파일 용도: v3.3.0 Step 3 Source Onboarding Quality Summary 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
+import { validateFeatureDocumentation } from "./documentation_contract_lib.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -25,7 +26,7 @@ Checks:
   - the read model summarizes pre-save validation, duplicate/conflict/missing/ready states, and ONVIF/WHEP/RTSP input quality
   - /ops/api/source-registry/onboarding-quality is read-only, no-store, and guarded by the Ops principal
   - /ops/sources renders the summary without exposing raw locators to client/viewer output
-  - backlog, stream verification, release records, feature inventory, coverage verifier, script inventory, and server dispatch are wired
+  - current feature definitions, contract identifiers, verification guide, and server dispatch are wired
 `);
 }
 
@@ -39,13 +40,12 @@ const files = {
   registry: readText("src/ingress/source_view_registry.cpp"),
   server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
-  backlog: readText("docs/development-backlog.md"),
+  documentationImplementation: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
@@ -201,54 +201,25 @@ check("/ops/sources renders onboarding quality summary without client/viewer exp
   }
 });
 
-check("roadmap records v3.3 Step 3 as implemented without overclaiming later steps", () => {
-  for (const snippet of [
-    "| 3 | v3.3.0 (3) Source Onboarding Quality Summary | P0 | 완료 |",
-    "## v3.3.0 Step 3 개발 기록",
-    route,
-    "SourceViewRegistry::SourceOnboardingQualitySummaryJson",
-    "채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약",
-    "`./server.sh verify-v330-source-onboarding-quality-summary`",
-    "Reliability Timeline and Health History, Incident-to-Source Correlation Layer, Operator Recheck and Recovery Queue, Client-safe Source Status Digest, Source Reliability Search and Metrics 완료 evidence가 아닙니다",
-  ]) {
-    assertIncludes(files.backlog, snippet, "backlog v3.3 Step 3");
-  }
+check("현재 기능 정의·계약·검증 명령·dispatch 연결", () => {
+  const featureIds = ["SRC-034","SAFE-115","OPS-082"];
+  const currentDefinitions = files.featureInventory.split(/\r?\n/).filter(line => featureIds.includes(line.split("|")[1]?.trim())).join("\n");
+  const errors = validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/onboarding-quality"],
+    command, script: "verify_v330_source_onboarding_quality_summary.mjs", featureIds: featureIds.filter(id => !["SRC-034"].includes(id)),
+    inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  });
+  errors.push(...validateFeatureDocumentation({
+    document: currentDefinitions, identifiers: ["/ops/api/source-registry/onboarding-quality"],
+    command: "verify-ops-source-registry-api", script: "verify_ops_source_registry_api.mjs",
+    featureIds: ["SRC-034"], inventory: files.featureInventory, implementation: files.documentationImplementation,
+    verification: files.streamVerification, server: files.serverSh,
+  }));
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("stream verification exposes v3.3 Step 3 command and boundary", () => {
-  for (const snippet of [
-    "| v3.3.0 (3) | `./server.sh verify-v330-source-onboarding-quality-summary` |",
-    "Source Onboarding Quality Summary",
-    route,
-    "pre-save validation",
-    "duplicate/conflict/missing/ready",
-    "ONVIF/WHEP/RTSP input quality",
-    "viewer/client 노출, source registry write, reliability timeline, incident correlation, recovery queue, client digest, search/metrics",
-  ]) {
-    assertIncludes(files.streamVerification, snippet, "stream verification v3.3 Step 3");
-  }
-});
 
-check("feature inventory and release records map v3.3 Step 3", () => {
-  for (const snippet of [
-    `v3.3.0 (3) Source Onboarding Quality Summary | \`SRC-034\`, \`SAFE-115\`, \`OPS-082\` | \`${command}\``,
-    "SRC-034 | V330 Step 3 Source Onboarding Quality Summary",
-    "SAFE-115 | V330 Step 3 source onboarding quality boundary",
-    "OPS-082 | V330 Step 3 Source Onboarding Quality Summary 게이트",
-  ]) {
-    assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 3");
-  }
-  for (const snippet of [
-    "V330 Source Onboarding Quality Summary",
-    `\`./server.sh ${command}\``,
-    "v330 Step 3 RED source onboarding quality summary gate",
-    "v330 Step 3 source onboarding quality summary final",
-    "v330 Step 3 UI 풀테스트",
-    "v330 Step 3 30분/120분 longrun",
-  ]) {
-    assertIncludes(files.releaseRecords, snippet, "release records v3.3 Step 3");
-  }
-});
 
 check("server entrypoint and inventory verifiers include v3.3 Step 3 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");

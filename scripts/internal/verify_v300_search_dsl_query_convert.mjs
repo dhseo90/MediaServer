@@ -6,6 +6,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {validateFeatureDocumentation} from "./documentation_contract_lib.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -23,7 +25,7 @@ Checks:
   - V300-S06 fixture covers natural-language conversion, strict DSL filters, tags, matching, and identity-query rejection
   - analysis/event_search_query converts natural language to media-server.event-search-dsl.v1 without provider calls or raw prompt/response retention
   - analysis-state smoke includes S06 query conversion and text/tags/filter matching behavior
-  - docs/backlog/stream verification/release records/feature inventory/server dispatch are wired
+  - 현재 계약 문서의 식별자·기능 ID·검증 명령·server dispatch 연결 (과거 실행 기록 제외)
   - PASS is limited to V300-S06 Search DSL/query convert evidence and does not imply search index, /ops/events UI, vector search, longrun, or release publication
 `);
 }
@@ -38,15 +40,12 @@ const files = {
   smoke: readText("scripts/internal/analysis_state_smoke.cpp"),
   smokeBuild: readText("scripts/internal/verify_analysis_state_smoke.sh"),
   policy: readText("docs/v300-search-dsl-query-convert.md"),
-  docsIndex: readText("docs/README.md"),
-  backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
-  releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
   cmake: readText("CMakeLists.txt"),
 };
@@ -121,59 +120,16 @@ check("analysis-state smoke verifies S06 behavior and build links module", () =>
   assert(files.cmake.includes("src/analysis/event_search_query.cpp"), "CMake missing event_search_query.cpp");
 });
 
-check("docs and roadmap expose V300-S06 scope without overclaim", () => {
-  for (const snippet of [
-    "v3.0.0 `V300-S06 Search DSL and Query Convert`",
-    "media-server.event-search-dsl.v1",
-    "natural language",
-    "text/tags/filter",
-    "strict structured output",
-    "identity-search-disallowed",
-    "raw prompt/response",
-    "Feature/Search Index",
-    "`/ops/events` UI",
-    "vector search",
-  ]) {
-    assert(files.policy.includes(snippet), `policy doc missing snippet: ${snippet}`);
-  }
-  assert(files.docsIndex.includes("[v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md)"), "docs index missing S06 doc");
-  for (const snippet of [
-    "| 6 | V300-S06 | P0 | 완료 | Search DSL and Query Convert |",
-    "natural language to constrained Search DSL, text/tags/filter search",
-    "docs/v300-search-dsl-query-convert.md",
-    "`./server.sh verify-v300-search-dsl-query-convert`",
-    "search index나 `/ops/events` UI evidence가 아님",
-  ]) {
-    assert(files.backlog.includes(snippet), `backlog missing V300-S06 snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "| V300-S06 | `./server.sh verify-v300-search-dsl-query-convert` |",
-    "Natural-language query conversion to constrained Search DSL",
-    "Feature/Search Index, `/ops/events` UI, vector search",
-  ]) {
-    assert(files.streamVerification.includes(snippet), `stream verification missing V300-S06 snippet: ${snippet}`);
-  }
+check("현재 계약 문서와 기능별 검증 연결", () => {
+  const errors = validateFeatureDocumentation({
+    document: files.policy, identifiers: ["media-server.event-search-dsl.v1","textTerms","tags","filters","limit","offset","identity-search-disallowed","strictStructuredOutput=true","rawPromptStored=false","runtimeProviderCallPerformed=false"],
+    command, script: "verify_v300_search_dsl_query_convert.mjs", featureIds: ["LAB-086","SAFE-088","OPS-056"],
+    inventory: files.featureInventory, verification: files.streamVerification,
+    server: files.server,
+  });
+  assert(errors.length === 0, errors.join("; "));
 });
 
-check("feature inventory and release records map V300-S06 to LAB-086, SAFE-088, and OPS-056", () => {
-  for (const snippet of [
-    "V300-S06 Search DSL and Query Convert | `LAB-086`, `SAFE-088`, `OPS-056` | `verify-v300-search-dsl-query-convert`, `verify-analysis-state`",
-    "LAB-086 | V300-S06 search DSL/query convert fixture",
-    "SAFE-088 | V300-S06 query convert privacy and boundary",
-    "OPS-056 | V300-S06 search DSL/query convert 게이트",
-  ]) {
-    assert(files.featureInventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "V300 Search DSL and Query Convert",
-    "`./server.sh verify-v300-search-dsl-query-convert`",
-    "v300 S06 RED search DSL/query convert gate",
-    "v300 S06 search DSL/query convert final",
-    "v300 S06 index/UI/vector/longrun/published",
-  ]) {
-    assert(files.releaseRecords.includes(snippet), `release records missing snippet: ${snippet}`);
-  }
-});
 
 check("server entrypoint and inventory verifiers include V300-S06 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S06 command");

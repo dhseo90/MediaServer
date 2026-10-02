@@ -1,56 +1,54 @@
-# VLMObservation Sidecar
+# VLM observation 별도 저장 계약
 
-이 문서는 `v2.0.0 V200-S08 VLMObservation sidecar`의 세부 계약 문서입니다.
-S08은 EventRecord와 기존 live event/metadata payload를 바꾸지 않고, VLM 결과를
-별도 JSONL observation 저장소에 기록하는 단계입니다.
+개발자가 VLM 결과를 EventRecord와 분리해 저장·조회하는 C++ 계약이다.
+[vlm_observation_store.h](../include/analysis/vlm_observation_store.h)와
+[vlm_observation_store.cpp](../src/analysis/vlm_observation_store.cpp)가 기준이며,
+저장 기능의 존재가 실제 모델 결과를 자동 생성·저장한다는 뜻은 아니다.
 
-## 직접 답
+## 저장·조회와 상관관계
 
-S08 observation schema는 `media-server.vlm-observation.v1`입니다. Correlation report
-schema는 `media-server.vlm-observation-correlation-report.v1`입니다. EventRecord와
-observation은 `eventId`로만 상관시키며, EventRecord top-level field, Event POST,
-WebRTC DataChannel, SSE/WS metadata schema에는 VLM 결과 필드를 추가하지 않습니다.
+`FileVlmObservationStore::Store`는 `eventId`가 있는 observation을 지정 경로에 JSONL로
+append한다. 기본 경로는 `DefaultVlmObservationStorePath`가 EventRecord active path의
+stem 뒤에 `.vlm-observations`를 넣고 확장자를 유지해 만든다.
+`events.jsonl`이면 `events.vlm-observations.jsonl`이며 확장자가 없으면 `.jsonl`을 사용한다.
 
-저장 위치 기본값은 EventRecord active path 옆의 `.vlm-observations.jsonl` 파일입니다.
-예를 들어 EventRecord가 `events.jsonl`이면 observation 기본 파일은
-`events.vlm-observations.jsonl`입니다.
+`QueryVlmObservations`는 eventId/sourceId/provider/model/privacyMode 및 offset/limit으로
+조회한다. 파일 부재와 빈 결과, 열기 오류를 구분하며 손상된 JSON/과대 행은 건너뛰어
+`skippedCorruptLines`에 집계한다. 현재 저장은 append 방식이므로 저장소 전체를
+원자 확정·자동 보존/복구하는 녹화 저장소와 같은 보장으로 설명하지 않는다.
 
-## Sidecar Fields
+| 항목 | 현재 직렬화 |
+| --- | --- |
+| schema | `media-server.vlm-observation.v1` |
+| 식별·입력 | `observationId/eventId/sourceId/ruleId/scenarioId/inputType/inputEvidenceRefs` |
+| 설명 | `summary/eventExplanation`, 문자열 배열 `falsePositiveHints[]/operatorReviewQuestions[]` |
+| 후보·불확실성 | JSON object 또는 null인 `ruleSuggestion`, 숫자 `uncertainty` |
+| 출처·시각 | 문자열 `provider/model/promptProfile/privacyMode`, 정수 `latencyMs/createdAt` |
+| 경계 | `storageScope=vlm-observation-store-only`, `redactionReview`, `contractInvariants`, `metadata` |
 
-- `observationId`
-- `eventId`
-- `sourceId`
-- `ruleId`
-- `scenarioId`
-- `inputType`
-- `inputEvidenceRefs`
-- `summary`
-- `eventExplanation`
-- `falsePositiveHints[]`
-- `operatorReviewQuestions[]`
-- `ruleSuggestion`
-- `uncertainty`
-- `provider`
-- `model`
-- `promptProfile`
-- `privacyMode`
-- `latencyMs`
-- `createdAt`
+`createdAt`은 호출자가 준 `created_at_ms` 그대로이며 저장 함수가 현재 시각을 생성하지 않는다.
+[설명 생성기](vlm-event-explanation-hints.md)의 객체형 힌트·prompt·불확실성 및 ISO 시각은
+그대로 호환되는 입력이 아니므로 저장 전 명시적 변환이 필요하다.
 
-## Redaction Boundary
+`BuildVlmObservationCorrelationReportJson`은
+`media-server.vlm-observation-correlation-report.v1`에 두 schema와 `eventIdMatched`,
+`eventRecordTopLevelObservationFieldsPresent`, `externalPayloadChanged=false`를 담는다.
+상관 키는 `eventId`이며 EventRecord 최상위·Event POST·WebRTC DataChannel·SSE/WS에
+VLM 결과를 복사하지 않는다. [Ops 검토](vlm-ops-event-review-ui.md)는 별도 조회 모델을 사용한다.
 
-Observation 저장소는 다음 값을 저장하지 않습니다.
+## 입력 정제 책임
 
-- raw prompt
-- raw provider response
-- credential material
-- source URL
-- raw frame bytes
+raw prompt/provider response·credential·source URL·raw frame bytes를 입력이나 임의
+`metadata/inputEvidenceRefs/ruleSuggestion`에 넣지 않는다.
+serializer는 문자열 escaping과 object 모양 처리를 하지만 임의 문자열의 비밀을 자동 제거하지 않는다.
+`redactionReview`의 `rawPromptStored/rawResponseStored/sourceUrlExposed/credentialMaterialStored/rawMediaEmbedded=false`는
+고정 계약 표기이지 저장한 모든 값의 무해성 증명은 아니다. 호출자가 정제된 DTO를 제공해야 한다.
+라이선스·출처·cloud 전송 판단은 [privacy guard](vlm-privacy-transfer-guard.md)와 profile 기준을 유지한다.
 
-`redactionReview`와 `contractInvariants`에는 위 경계와 기존 payload/schema/media path
-불변 조건을 `false`로 기록합니다.
+## 검사와 실제 실행 구분
 
-## Command
+[fixture](../test/fixtures/vlm_observation_store/observations.json)는
+`media-server.vlm-observation-fixtures.v1`이고 EVT-030·LAB-040·LAB-053과 연결된다.
 
 ```bash
 ./server.sh verify-vlm-observation-sidecar
@@ -59,28 +57,9 @@ Observation 저장소는 다음 값을 저장하지 않습니다.
 ./server.sh verify-ws-metadata
 ```
 
-## Non-Scope
-
-S08에서 하지 않는 일:
-
-- 실제 VLM runtime 호출
-- cloud provider API 호출
-- 이벤트 설명/오탐 힌트 생성 품질 판정
-- Ops 이벤트 리뷰 UI 노출
-- viewer/client 화면 노출
-- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
-- RTSP/WebRTC media path 변경
-- 자동 rule/profile 적용
-
-## 완료 기준
-
-- `./server.sh verify-vlm-observation-sidecar`가 schema fixture, C++ store/query,
-  EventRecord correlation report, docs, inventory, non-scope boundary를 확인합니다.
-- `./server.sh verify-analysis-state`가 observation 저장, eventId correlation,
-  EventRecord payload drift 없음, correlation report를 실행 smoke로 확인합니다.
-- `./server.sh verify-event-post`와 `./server.sh verify-ws-metadata`가 기존 외부 payload
-  변경이 없음을 확인합니다.
-- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
-
-이 검증은 실제 VLM runtime 호출, 설명 품질 평가, Ops 리뷰 UI, Privacy/전송 guard,
-semantic search 후보, rule 추천 후보, 장시간 안정화, UI 풀테스트 완료를 대신하지 않습니다.
+첫 명령은 fixture와 C++ store/query/correlation·smoke source 연결을 읽는 정적 검사다.
+실제 C++ 저장·조회는 별도 `verify-analysis-state`가 실행한다.
+기존 외부 payload 회귀도 각 명령의 범위에서 별도로 기록한다.
+자동 Rule/Profile 적용·runtime/provider 호출·미디어 경로 변경·viewer/client 노출은 하지 않는다.
+[검증 정책](stream-verification.md#검증-정책)과 [UI 풀테스트](manual-ui-fulltest.md)에 따라
+실제 모델·UI·장시간 미실행을 구분한다.
