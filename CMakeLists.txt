@@ -133,6 +133,7 @@ add_library(media_server_runtime STATIC
     src/recording/recording_evidence_observer.cpp
     src/recording/recording_runtime_composition.cpp
     src/recording/recording_derived_remux.cpp
+    src/ingress/recording_search_application_service.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp
     src/recording/recording_session_service.cpp

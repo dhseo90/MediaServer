@@ -2,6 +2,7 @@
 // 파일 용도: 녹화 UI 계약과 HTTP 권한의 격리 검증.
 
 import fs from "node:fs";
+import {verifyRecordingSearchHttp} from "./recording_search_http_checks.mjs";
 import net from "node:net";
 import dgram from "node:dgram";
 import os from "node:os";
@@ -614,6 +615,7 @@ async function verifyRecordingHttpAuth(baseUrl, root, seed, passwords) {
   check(page.status !== 200 && !(await page.text()).includes('ops-recording-timeline'), `I34 viewer 녹화 화면 거부 status=${page.status}`);
   const store = fs.readFileSync(path.join(root, 'data/users.json'), 'utf8');
   check(passwords.every(value => !store.includes(value)), 'I17 인증 fixture plaintext 저장 없음');
+  await verifyRecordingSearchHttp({cookies,call,seed,check});
   console.log(`[S06 HTTP AUTH] checks=${checks} fail=0 actualUiActions=NOT_RUN`);
 }
 

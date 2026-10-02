@@ -45,9 +45,16 @@ public:
     ApplicationServiceResult Status(const ChannelAuthorizer& authorize, bool include_global_observations = false) const;
     ApplicationServiceResult Timeline(const std::unordered_map<std::string, std::string>& query,
                                       const ChannelAuthorizer& authorize) const;
+    ApplicationServiceResult Search(const std::unordered_map<std::string,std::string>& query,
+        const std::string& principal, const std::string& scope, const ChannelAuthorizer& authorize) const;
+    ApplicationServiceResult SearchSeek(const std::unordered_map<std::string,std::string>& query,
+        const std::string& principal, const std::string& scope, const ChannelAuthorizer& authorize) const;
     std::unique_ptr<recording::ResolvedRecordingMedia> Media(const std::string& opaque_id,
                                                            const ChannelAuthorizer& authorize) const;
 private:
+    mutable std::mutex search_mutex_;
+    struct SearchState;
+    mutable std::shared_ptr<SearchState> search_state_;
     recording::RecordingReadService& reader_;
     recording::RecordingCatalog& catalog_;
     bool enabled_;

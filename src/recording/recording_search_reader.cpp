@@ -1,7 +1,9 @@
 // 파일 용도: 원본 참조와 검색의 UTC/PTS를 결합한다. 검색 결과를 파일 재생 증명으로 사용하지 않는다.
 #include "recording/recording_search_reader.h"
 #include <limits>
+#include <algorithm>
 #include <map>
+#include <set>
 #include <tuple>
 #include "recording/recording_file_evidence.h"
 #include "recording/recording_derived_remux.h"
@@ -22,6 +24,8 @@ void Locate(SearchDocument& d, const ConsumerReferenceResolution& resolution) {
         d.unavailable_reason = "unresolved-location";return;
     }
     const auto& candidate = location.candidates.front();
+    d.source_id=resolved.original.segment.source_id;d.store_id=resolved.original.segment.store_id;
+    d.media_epoch_id=resolved.original.segment.media_epoch_id;
     d.segment_id = candidate.segment_id;d.media_pts = candidate.media_pts;
     d.time_base_num = candidate.time_base_num;d.time_base_den = candidate.time_base_den;
     d.unavailable_reason = "media-not-checked";
@@ -204,5 +208,54 @@ bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::st
     result.frame_duration_seconds=static_cast<double>(duration)/1000000000;
     result.sample_ordinal=selected->ordinal;result.basis="verified-derived-file-presentation";
     *output=std::move(result);if(error)error->clear();return true;
+}
+bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const RecordingSearchQuery& query,
+    std::shared_ptr<const RecordingSearchModel>* output,std::string* error,SearchModelLimits limits) const {
+    if(!output){if(error)*error="search-invalid-output";return false;}
+    std::vector<SearchPlaybackCandidate> candidates;if(!PlaybackCandidates(model,query,&candidates,error))return false;
+    try {
+        std::vector<SearchDocument> documents;std::set<std::string> replaced_outputs;std::size_t bytes=0;
+        const auto add=[&](SearchDocument document){
+            if(documents.size()>=limits.max_documents||!AccountSearchDocument(document,&bytes,limits.max_bytes))return false;
+            documents.push_back(std::move(document));return true;
+        };
+        const auto ns=[](std::int64_t pts,std::int32_t num,std::int32_t den)->std::optional<std::int64_t>{
+            if(num<=0||den<=0)return {};const __int128 value=static_cast<__int128>(pts)*num*1000000000;
+            if(value%den||value/den<0||value/den>std::numeric_limits<std::int64_t>::max())return {};
+            return static_cast<std::int64_t>(value/den);
+        };
+        for(const auto& input:model.documents()) {
+            auto document=input;document.playback_segment_id=document.segment_id;
+            document.playback_event_id.clear();document.playback_job_id.clear();
+            const auto start=document.media_pts?ns(*document.media_pts,document.time_base_num,document.time_base_den):std::nullopt;
+            const auto end=document.kind==SearchDocumentKind::Observation?
+                (start&&*start<std::numeric_limits<std::int64_t>::max()?std::optional<std::int64_t>(*start+1):std::nullopt):
+                (document.media_end_pts?ns(*document.media_end_pts,document.time_base_num,document.time_base_den):std::nullopt);
+            // 시간 변환을 입증할 수 없는 행은 원본 참조를 보존한다.
+            if(!start||!end||*start>=*end||document.segment_id.empty()||
+                (document.kind==SearchDocumentKind::Recording&&document.start_ns&&*document.end_ns-*document.start_ns!=*end-*start)) {
+                if(!add(std::move(document))){if(error)*error="search-capacity-exceeded";return false;}continue;
+            }
+            ConfirmedMediaInterval original{document.source_id,document.store_id,document.media_epoch_id,
+                document.segment_id,1,1000000000,*start,*end};
+            std::vector<SearchPlaybackSlice> slices;if(!SelectSearchPlayback(original,candidates,&slices,error))return false;
+            for(const auto& slice:slices) {
+                auto part=document;part.media_pts=slice.original.start_pts;part.media_end_pts=slice.original.end_pts;
+                part.time_base_num=1;part.time_base_den=1000000000;
+                part.playback_segment_id=slice.playback_segment_id;part.playback_event_id=slice.event_id;part.playback_job_id=slice.job_id;
+                if(document.kind==SearchDocumentKind::Recording) {
+                    if(!slice.event_id.empty())replaced_outputs.insert(slice.playback_segment_id);
+                    if(slices.size()>1)part.id=document.id+":range:"+std::to_string(slice.original.start_pts)+":"+std::to_string(slice.original.end_pts);
+                    if(document.start_ns){part.start_ns=*document.start_ns+(slice.original.start_pts-*start);part.end_ns=*document.start_ns+(slice.original.end_pts-*start);}
+                }
+                if(!add(std::move(part))){if(error)*error="search-capacity-exceeded";return false;}
+            }
+        }
+        documents.erase(std::remove_if(documents.begin(),documents.end(),[&](const auto& document){
+            return document.kind==SearchDocumentKind::Recording&&replaced_outputs.count(document.segment_id);
+        }),documents.end());
+        return RecordingSearchModel::Build(documents,model.source_instance(),model.revision(),output,error,limits);
+    }catch(const std::bad_alloc&){if(error)*error="search-capacity-exceeded";return false;}
+     catch(const std::length_error&){if(error)*error="search-capacity-exceeded";return false;}
 }
 } // namespace recording

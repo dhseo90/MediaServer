@@ -17,6 +17,7 @@
 
 - 공개 진입점은 Ops의 `GET /ops/api/recordings/search`다. 기존 timeline/media endpoint와
   Event Search DSL의 payload·offset 의미를 변경하지 않는다.
+- 목록 값은 쉼표로 구분하며 빈 항목은 거부한다. 빈 `cursor`도 거부한다.
 - `channelIds`는 명시한 채널 집합이다. 1~32개, 중복은 정규화한다. 전체 권한 채널을
   암묵적으로 확장하지 않는다. 모든 채널이 허용돼야 하며 일부만 허용되면 전체 요청을 거부한다.
 - `startTimeMs`/`endTimeMs`는 UTC 밀리초의 반개구간 `[start,end)`다. 정수 문자열로 파싱하고
@@ -102,6 +103,8 @@ fallback·누락·미완성 영상은 근거 없이 complete로 승격하지 않
 현재 file evidence와 원본/파생 provenance를 재사용하고, 파일 대응을 입증할 수 없으면
 `seek-unavailable`로 반환한다. 이 경우 파일 시작 재생과 검색 시점 이동을 UI에서 구분한다.
 
+`GET /ops/api/recordings/search/seek`는 원래 검색 조건과 `snapshotId`·`hitId`를 받는다.
+현재 사용자·scope·질의에 결박된 snapshot에 포함된 hit만 선택할 수 있다.
 검색 재생 응답은 허용된 media URL, 파일 내 target seconds, 시간 품질·사유를 포함한다.
 URL과 위치만으로 권한이나 파일 존재를 보장하지 않으며 기존 media 경로에서 재검증하고
 기존 fd/hold 수명을 유지한다. 선택 변경·늦은 loadedmetadata/seek 응답이 이전 파일 위치를

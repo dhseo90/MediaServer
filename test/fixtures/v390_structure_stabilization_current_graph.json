@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 331,
-  "expectedCppFiles": 149,
+  "expectedProductionFiles": 332,
+  "expectedCppFiles": 150,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -58,6 +58,7 @@
         "src/ingress/event_storage_application_service.cpp",
         "include/ingress/recording_application_service.h",
         "src/ingress/recording_application_service.cpp",
+        "src/ingress/recording_search_application_service.cpp",
         "src/ingress/recording_evidence_application_mapping.h",
         "include/ingress/event_rule_application_service.h",
         "src/ingress/event_rule_application_service.cpp",
@@ -135,8 +136,8 @@
         "src/recording/recording_search_reader.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 86,
-      "expectedCppCount": 37
+      "expectedFileCount": 87,
+      "expectedCppCount": 38
     },
     {
       "id": "domain-and-registry-owners",
@@ -328,7 +329,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "8af0435258f17074f6c862329a9a602bf9502fe1c1ec5a71d44212abb5412103",
+  "expectedFileOwnershipSha256": "c226c5d43278a2abf5af95ac9003ee0ba03087ca99e3281651810922d93f3297",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -452,6 +453,7 @@
           "src/recording/recording_evidence_observer.cpp",
           "src/recording/recording_runtime_composition.cpp",
           "src/recording/recording_derived_remux.cpp",
+          "src/ingress/recording_search_application_service.cpp",
           "src/ingress/recording_application_service.cpp",
           "src/recording/retention_coordinator.cpp",
           "src/recording/recording_session_service.cpp",
@@ -484,9 +486,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "ef39e74b8f55bcddf0ebe86c77a1495bcbf5e32d05aff58dfb182bb28f988b19",
-        "declaredSourceCount": 147,
-        "defaultActiveSourceCount": 146,
+        "productionSourceSha256": "574dc2c75f3bfeeabb12cfc5afaa7a98b21d138f0180ca4f990f5e8a73a61f5c",
+        "declaredSourceCount": 148,
+        "defaultActiveSourceCount": 147,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -570,8 +572,8 @@
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 37,
-      "witnessSha256": "b1d89915cb5ce9e7148982d8e1c4fdee37d492dce78b163e45dbef7803bda7ca",
+      "witnessCount": 38,
+      "witnessSha256": "ca814d54fa1861f1ad3a54d8278b1d2f5c640e96d3804c1b330e5c0ba04d30bb",
       "allowedByTarget": true
     },
     {
@@ -704,7 +706,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5286,
+      "lineCount": 5303,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",

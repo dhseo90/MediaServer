@@ -29,7 +29,8 @@ bool Valid(const SearchDocument& d) {
     if (d.kind == SearchDocumentKind::Recording && d.segment_id.empty()) return false;
     if (d.kind == SearchDocumentKind::Observation && d.observation_id.empty()) return false;
     for (const auto* field : {&d.segment_id, &d.observation_id, &d.reference_id, &d.analysis_namespace,
-            &d.stream_epoch_id, &d.track_id, &d.object, &d.time_provenance, &d.unavailable_reason})
+            &d.stream_epoch_id, &d.track_id, &d.object, &d.time_provenance, &d.unavailable_reason, &d.source_id, &d.store_id, &d.media_epoch_id,
+            &d.playback_segment_id, &d.playback_event_id, &d.playback_job_id})
         if (!Text(*field)) return false;
     for (const auto* values : {&d.event_ids, &d.zone_ids, &d.rule_ids}) {
         if (values->size() > 64) return false;
@@ -62,7 +63,8 @@ bool Account(const SearchDocument& d, std::size_t* total, std::size_t limit) {
     };
     for (const auto* field : {&d.id, &d.channel_id, &d.segment_id, &d.observation_id, &d.reference_id,
             &d.analysis_namespace, &d.stream_epoch_id, &d.track_id, &d.object,
-            &d.time_provenance, &d.unavailable_reason}) if (!text(*field)) return false;
+            &d.time_provenance, &d.unavailable_reason, &d.source_id, &d.store_id, &d.media_epoch_id,
+            &d.playback_segment_id, &d.playback_event_id, &d.playback_job_id}) if (!text(*field)) return false;
     for (const auto* values : {&d.event_ids, &d.zone_ids, &d.rule_ids}) {
         if (values->capacity() > limit / (2 * sizeof(std::string)) ||
             !Add(2 * values->capacity() * sizeof(std::string), total, limit)) return false;

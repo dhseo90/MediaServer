@@ -13,7 +13,8 @@
   5 불변 결과 snapshot/cursor를 구현·단기 검증했다.
   6 동일 원본 이벤트 우선과 실제 파일/파생 출력 후보 연결을 구현·단기 검증했다.
   7 원본·파생 파일 presentation seek와 실제 frame 대조를 구현·검증했다.
-  다음은 8 인증된 API/service 통합이다. 8~10 미완료. 제품 완료·push 미수행.
+  8 검색·seek service와 HTTP 연결을 구현했다. application 13개 및 실제 HTTP 67개 검사가 통과했다.
+  남은 8단계 권한/수명 경계 보강, 9 UI, 10 최종 회귀·문서·push는 미완료다. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -1141,3 +1142,318 @@ include/recording/recording_search_reader.h 244190f397c5d03ce1c0d2b29c26b19671d4
 src/recording/recording_search_reader.cpp a05970f8cba8d2973780f9cdd230b96f6e163eb906b3486ef635d53d4d44164b
 scripts/internal/recording_search_derived_seek_smoke.cpp 21ba2bff8317a71a679356cd70f8ef080b41ce55f0e966b549fff3d1934dbba3
 ```
+
+### 8 application 통합 최초 검사
+
+source: 8f575fb9 + stage8 worktree. runtime build exit 0. 서버·포트 없음.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_application_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-application-zqhr2ckn/check
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-application-zqhr2ckn/check /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-application-zqhr2ckn/fixture
+[pass] pages preserve exact unique membership and count
+[pass] cursor rejects other principal
+[pass] cursor rejects changed scope
+[pass] cursor rejects changed query
+[pass] empty explicit cursor rejected
+[pass] unknown field rejected
+[pass] mixed unauthorized channels rejected
+[pass] zero page limit rejected
+[pass] nonmember hit rejected
+[pass] partial event preserves uncovered original results
+[pass] preferred event resolves current file presentation target
+[pass] missing event file falls back to healthy original
+[pass] public result excludes internal paths and storage identity
+[search-application] pass=13 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+
+exit: 0
+cleanup: owned temporary root removed=True
+```
+
+### 8 모델 확장 영향 회귀
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_model.cpp scripts/internal/recording_search_model_smoke.cpp -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-model-regression-jrzenywl/model
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-model-regression-jrzenywl/model
+[pass] M01 build
+[pass] M01 known-desc/channel/id then unknown
+[pass] M01 channel index and absent channel
+[pass] M01 source immutable / normalized projection
+[pass] M01 identity and unknown are preserved
+[pass] M01 rebuild independent of input order
+[pass] M02 duplicate cannot replace published model
+[pass] M02 empty interval rejected atomically
+[pass] M02 half-known interval rejected
+[pass] M02 unlinked event fact rejected
+[pass] M02 conflicting event facts rejected
+[pass] M01 numeric track reuse does not merge sessions
+[pass] M03 row limit overflow atomic
+[pass] M03 row limit equality
+[pass] M03 byte accounting baseline
+[pass] M03 exact byte budget admitted
+[pass] M03 one byte short rejected atomically
+[pass] M02 invalid source rejected
+[pass] M02 successful empty distinct from failed build
+[pass] M01 retained immutable model survives replacements
+[pass] L01 delta adds/updates/deletes and reorders exact expected ids
+[pass] L02 removal changes new snapshot without mutating held pages
+[pass] L01 stale predecessor requires rebuild
+[pass] L02 restarted source cannot apply old lineage
+[pass] L02 upsert/delete same id rejected atomically
+[pass] L01 empty delta advances only revision
+[pass] M03 scale explicit endpoints
+[scale] rows=1 accountedBytes=3169 elapsedUs=6
+[pass] M03 scale explicit endpoints
+[scale] rows=1000 accountedBytes=3020149 elapsedUs=329
+[pass] M03 scale explicit endpoints
+[scale] rows=10000 accountedBytes=30200149 elapsedUs=4541
+[pass] M03 default 100001 rows rejected before projection
+[pass] M03 100000 valid rows still obey earlier 64MiB limit
+[search-model] pass=31 fail=0
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_model.cpp scripts/internal/recording_search_filter_smoke.cpp -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-model-regression-jrzenywl/filter
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-model-regression-jrzenywl/filter
+[pass] fixture-build
+[pass] F01 camera-time returns intervals without analysis
+[pass] F01 channel OR global stable order duplicate normalized
+[pass] F02 F03 half-open UTC sampled person only
+[pass] F03 object OR
+[pass] F03 exact case no synonym
+[pass] F04 F06 same-track observations never combine tags
+[pass] F04 namespaces remain distinct hits
+[pass] F06 F07 field AND list OR
+[pass] F05 stored event reference exact
+[pass] F08 event behaviour confirmed fact
+[pass] F09 named scenario fact
+[pass] F09 rule ID is not scenario name
+[pass] F10 event behaviour require same event
+[pass] F10 shared matching event
+[pass] F08 missing event facts never inferred
+[pass] F02 unknown separate after known
+[pass] F02 separate counts
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[search-filter] pass=27 fail=0
+
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_model.cpp src/recording/recording_search_snapshots.cpp scripts/internal/recording_search_cursor_smoke.cpp -DMEDIA_SERVER_USE_OPENSSL=1 -I/opt/homebrew/Cellar/openssl@3/3.6.2/include -L/opt/homebrew/Cellar/openssl@3/3.6.2/lib -lssl -lcrypto -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-model-regression-jrzenywl/cursor
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-model-regression-jrzenywl/cursor
+[pass] fixture
+[pass] first page stable ties and full counts
+[pass] normalized equivalent query resumes
+[pass] cursor replay idempotent
+[pass] unknown last final page no cursor
+[pass] other principal rejected atomically
+[pass] scope change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] tampered MAC rejected
+[pass] schema mismatch rejected
+[pass] restart rejects prior server cursor
+[pass] changed source fixture
+[pass] new observation and removal do not mutate old membership
+[pass] before expiry accepted
+[pass] exact expiry rejected
+[pass] snapshot count evicts oldest
+[pass] aggregate byte budget evicts oldest
+[fail] failed admission preserves existing snapshot
+[pass] byte limit failure output unchanged
+[pass] empty successful page
+[pass] expiry arithmetic overflow rejected
+[search-cursor] pass=23 fail=1
+
+
+exit: 1
+cleanup: owned temporary root removed=True
+```
+
+8단계 cursor 영향 회귀 최초 실패: 23 PASS/1 FAIL, exit 1.
+`failed admission preserves existing snapshot`의 단일 큰 문자열 fixture가 확장된 SearchDocument의
+기본 비용으로 계산한 기존 pool budget보다 작아졌다. 모델 31/31·필터 27/27은 통과했다.
+다음 단계는 보류하고 fixture에 유효한 큰 zone 값들을 더해 실제 초과 입력을 만들며,
+기존 pool 한도는 그대로 유지하고 초과 사전조건을 독립 assertion으로 확인한다.
+이는 예상 RED가 아니며 제품 용량 판정 완화도 아니다.
+
+### 8 cursor 초과 fixture 수정 재검증
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude -DMEDIA_SERVER_USE_OPENSSL=1 src/recording/recording_search_model.cpp src/recording/recording_search_snapshots.cpp scripts/internal/recording_search_cursor_smoke.cpp -I/opt/homebrew/Cellar/openssl@3/3.6.2/include -L/opt/homebrew/Cellar/openssl@3/3.6.2/lib -lssl -lcrypto -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-retest-wk4a62n3/check
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-cursor-retest-wk4a62n3/check
+[pass] fixture
+[pass] first page stable ties and full counts
+[pass] normalized equivalent query resumes
+[pass] cursor replay idempotent
+[pass] unknown last final page no cursor
+[pass] other principal rejected atomically
+[pass] scope change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] tampered MAC rejected
+[pass] schema mismatch rejected
+[pass] restart rejects prior server cursor
+[pass] changed source fixture
+[pass] new observation and removal do not mutate old membership
+[pass] before expiry accepted
+[pass] exact expiry rejected
+[pass] snapshot count evicts oldest
+[pass] aggregate byte budget evicts oldest
+[pass] oversized fixture exceeds unchanged pool budget
+[pass] failed admission preserves existing snapshot
+[pass] byte limit failure output unchanged
+[pass] empty successful page
+[pass] expiry arithmetic overflow rejected
+[search-cursor] pass=25 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True
+```
+
+### 8 HTTP 최초 실행: 환경 거부
+
+command: `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth`
+exit: 1. loopback listen EPERM으로 서버 시작 전 실패. 제품 HTTP 결과 없음.
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.h5I5R8 bytes=9883832 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-HV93dS","rootBeforeBytes":830665,"rootBeforeEntries":29,"rootSymlinksNotFollowed":0,"rootAbsent":true,"process":{"pid":null,"exitCode":null,"signalCode":null,"graceful":true,"notStarted":true},"ports":[],"attempted":3,"failureCount":0,"cleanupElapsedMs":3,"verifierElapsedMs":1631}
+[V410-S06 verifier] FAIL: listen EPERM: operation not permitted 127.0.0.1
+```
+
+### 8 HTTP 재실행
+
+command: `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth`
+exit: 0. loopback 권한으로 동일 검사 재실행.
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.nCfdiw bytes=9883832 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[auth-subcheck] PASS I17 인증 fixture plaintext 저장 없음
+[auth-subcheck] PASS V420-A01 search role/scope principal 0
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 1
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 2
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 3
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 4
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 anonymous denied
+[auth-subcheck] PASS V420-A01 mixed channel request denied
+[auth-subcheck] PASS V420-C01 first page and cursor
+[auth-subcheck] PASS V420-C02 cross-user cursor denied
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 exact total membership
+[auth-subcheck] PASS V420-P03 authenticated hit playback URL
+[auth-subcheck] PASS V420-P03 selected media uses existing protected range route
+[auth-subcheck] PASS V420-P03 snapshot nonmember denied
+[auth-subcheck] PASS V420-F10 empty cursor rejected
+[S06 HTTP AUTH] checks=67 fail=0 actualUiActions=NOT_RUN
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-SFlbet","rootBeforeBytes":2667982,"rootBeforeEntries":321,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":62898,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":60245,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":60246,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":156,"verifierElapsedMs":5629}
+```
+
+### 8 통합 변경 중간 판정
+
+- runtime 및 `cmake --build build-gst-onnx --target media_server -j2`: exit 0.
+- application 실제 media 13/13; 모델 31/31; 필터 27/27; cursor 최초 23/24 후 fixture 원인 수정 재실행 25/25.
+- 실제 HTTP 인증/검색/기존 media 회귀 67/67. 초기 sandbox listen EPERM과 재실행을 위에 분리 보존했다.
+- 구조 graph-only 4/4, CMake separation 5/5, docs 295파일/9222링크 failures 0,
+  harness 단위 5 cases/40 checks, `git diff --check` exit 0.
+- 검색 상태는 승인된 첫 요청에서 지연 생성하여 기존 서비스 생성 경로가 검색 crypto 초기화를 요구하지 않는다.
+  검색/seek는 현재 role/scope guard 아래 연결하며 scope 목록을 정렬·중복 제거해 cursor에 결박한다.
+- 원본/파생 playback 선택을 불변 페이지 전에 반영하고 media 상태는 각 요청에서 다시 검사한다.
+  검색 read model의 추가 identity와 media end 값은 공개 JSON에 내보내지 않는다.
+- application/HMAC/HTTP 검사를 실제 UI 검증으로 보고하지 않는다. integrator 직접 HTTP 거부,
+  snapshot hit 선택의 만료/권한 변경 경계 추가 확인과 source/generation 영향 검증을 다음에 마친 뒤 UI로 진행한다.
+- 모든 실행 소유 임시 저장소·binary 제거, 서버 정상 종료와 loopback 두 포트 폐쇄 확인.
+  릴리즈 장시간/predev/UI 풀테스트 미실행. 최종 push 미수행.

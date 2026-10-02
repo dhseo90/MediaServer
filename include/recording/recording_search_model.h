@@ -25,6 +25,8 @@ struct SearchDocument {
     std::string channel_id;
     SearchDocumentKind kind{SearchDocumentKind::Recording};
     std::string segment_id;
+    std::string source_id, store_id, media_epoch_id;
+    std::string playback_segment_id, playback_event_id, playback_job_id;
     std::string observation_id;
     std::string reference_id;
     std::string analysis_namespace;
@@ -37,7 +39,7 @@ struct SearchDocument {
     std::string time_provenance;
     std::optional<std::int64_t> uncertainty_ns;
     // 원본 segment 시간축. 파일 내 재생 offset은 별도 검증/변환한다.
-    std::optional<std::int64_t> media_pts;
+    std::optional<std::int64_t> media_pts, media_end_pts;
     std::int32_t time_base_num{1}, time_base_den{1000000000};
     std::vector<std::string> event_ids;
     std::vector<std::string> zone_ids;

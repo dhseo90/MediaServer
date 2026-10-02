@@ -53,7 +53,9 @@ int main(){
         !byte_pool.Resume(first.next_cursor,q,"alice","scope-1",&page,&error,now)&&error=="search-snapshot-expired","aggregate byte budget evicts oldest");
     const auto current_cursor=page.next_cursor;
     auto big=Doc("big","one",1700);big.object=std::string(4096,'x');
+    big.zone_ids={std::string(4096,'z'),std::string(4096,'y'),std::string(4096,'w')};
     std::shared_ptr<const RecordingSearchModel> large;RecordingSearchModel::Build({big},"catalog",3,&large,&error);
+    Check(large&&large->accounted_bytes()>model->accounted_bytes()*3/2,"oversized fixture exceeds unchanged pool budget");
     Check(!byte_pool.Begin(large,q,"alice","scope-1",&page,&error,now)&&
         byte_pool.Resume(current_cursor,q,"alice","scope-1",&page,&error,now),"failed admission preserves existing snapshot");
     RecordingSearchSnapshots tiny({8,1,std::chrono::minutes(5)});page=held;

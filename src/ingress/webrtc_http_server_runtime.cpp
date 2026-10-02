@@ -768,6 +768,23 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     auth::RequireScope(principal_result.principal, "source:read:*")));
                             if (request.method == "GET" && request.path == "/ops/api/recordings/timeline")
                                 return api_response(recording_service->Timeline(query, authorize_channel));
+                            if (request.method == "GET" &&
+                                (request.path == "/ops/api/recordings/search" ||
+                                 request.path == "/ops/api/recordings/search/seek")) {
+                                const auto& principal = principal_result.principal;
+                                const auto field = [](const std::string& value) {
+                                    return std::to_string(value.size()) + ":" + value;
+                                };
+                                const auto identity = field(principal.auth_mode) + field(principal.username);
+                                auto scopes = principal.scopes;
+                                std::sort(scopes.begin(), scopes.end());
+                                scopes.erase(std::unique(scopes.begin(), scopes.end()), scopes.end());
+                                std::string scope = field(principal.role);
+                                for (const auto& value : scopes) scope += field(value);
+                                return api_response(request.path == "/ops/api/recordings/search"
+                                    ? recording_service->Search(query, identity, scope, authorize_channel)
+                                    : recording_service->SearchSeek(query, identity, scope, authorize_channel));
+                            }
                             const std::string media_prefix = "/ops/api/recordings/media/";
                             if ((request.method == "GET" || request.method == "HEAD") &&
                                 request.path.compare(0, media_prefix.size(), media_prefix) == 0) {

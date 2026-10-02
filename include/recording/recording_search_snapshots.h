@@ -28,6 +28,10 @@ public:
     bool Resume(const std::string& cursor, const RecordingSearchQuery&,
         const std::string& principal, const std::string& scope,
         RecordingSearchPage*, std::string* error, Clock::time_point now=Clock::now());
+    bool ResolveHit(const std::string& snapshot_id, const std::string& hit_id,
+        const RecordingSearchQuery&, const std::string& principal, const std::string& scope,
+        std::shared_ptr<const RecordingSearchModel>*, std::size_t* position,
+        std::string* error, Clock::time_point now=Clock::now());
 private:
     struct Entry {
         std::shared_ptr<const RecordingSearchModel> model;

@@ -4161,3 +4161,18 @@ V420-P01/P03 원본 seek focused: 30fps 12-frame/7초 source PTS 원점의 실�
 V420-P03의 기본 10fps mux fixture는 현재 file-evidence profile 미지원 시 explicit seek-unavailable을 검사한다. 원인 진단은 생성된 MP4의 movie/track timescale을 직접 읽어 30fps 지원 fixture와 대조하며 원본이나 검증 정책을 수정하지 않는다.
 
 V420-P02 파생 seek focused: 실제 Complete job의 원본 AU→출력 AU 대응을 현재 MP4 SHA/VCL/PTS와 대조하고 GStreamer stream time으로 변환한다. 서로 다른 원본 GOP의 출력마다 accurate seek frame hash를 별도로 디코딩한 원본 frame hash와 비교하며 한 frame duration 오차 이내를 확인한다. intent/다른 채널/다른 원본/미결박 출력/실제 범위 밖/파일 부재는 거부하고 복구 후 재확인한다. FD offset은 pread 기반 기존 media reader가 유지한다.
+
+
+### V420-A01/A02 application 통합 기대값
+
+실제 V2 원본·partial 파생 파일을 사용해 검색의 구간 분할 후 중복 없는 페이지 순회,
+정규화 동치 질의, 다른 사용자/scope/조건 cursor 거부, snapshot 밖 hit 거부,
+seek 응답의 실제 출력 URL·위치, 출력 소실 시 원본 fallback을 확인한다.
+잘못된 필드·빈 cursor·범위·limit를 거부하고 혼합 무권한 채널은 source 읽기 전에 전체 거부한다.
+공개 응답에 저장소 경로·source/store/epoch·job·인증 자료가 없는지 검사한다.
+application 직접 호출은 실제 HTTP 역할 검증을 대신하지 않으며 HTTP는 별도 실행한다.
+
+V420-A01/A02 HTTP 연결은 기존 격리 `--http-auth` fixture에서 admin/operator 정상,
+viewer·ops/source scope 누락·미인증·혼합 채널 거부, cross-user cursor, 정확한 전체 페이지 건수,
+비노출·no-store, hit membership와 실제 protected media Range 응답을 독립 확인한다.
+기존 인증·녹화 HTTP 회귀도 같은 서버 실행에서 유지한다. 릴리즈 UI/장시간 검사가 아니다.

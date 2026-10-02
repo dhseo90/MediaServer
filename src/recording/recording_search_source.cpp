@@ -22,7 +22,7 @@ SearchDocument Observation(const AnalysisObservationV2& o, const std::string& pr
     SearchDocument d; d.kind = SearchDocumentKind::Observation;
     d.id = prefix + Key(o.observation_id); d.observation_id = o.observation_id; d.channel_id = o.channel_id;
     d.analysis_namespace = o.analysis_namespace; d.stream_epoch_id = o.stream_epoch_id;
-    d.track_id = o.track_id; d.object = o.class_label;
+    d.track_id = o.track_id; d.object = o.class_label;d.source_id=o.source_id;
     d.zone_ids = o.zone_ids; d.rule_ids = o.rule_ids; d.event_ids = o.event_ids;
     d.media_pts = o.pts; d.unavailable_reason = o.locator_reason;
     return d;
@@ -89,6 +89,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             if (found == segments_.end() || found->second.channel_id != d.channel_id) {
                 d.unavailable_reason = "missing-original";return;
             }
+            d.source_id=found->second.source_id;d.media_epoch_id=found->second.stream_epoch_id;
             d.unavailable_reason = State(found->second.lifecycle);
             Point(d, Ns(locator.frame.utc_ms));d.time_provenance = "legacy-locator";
         };
@@ -119,7 +120,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             for (const auto& [id,s] : segments_) {
                 if (!selected(s.channel_id) || s.lifecycle == RecordingLifecycle::Deleted || tombstones_.count(id)) continue;
                 SearchDocument d;d.id="s1:"+Key(id);d.channel_id=s.channel_id;d.segment_id=id;
-                d.stream_epoch_id=s.stream_epoch_id;d.start_ns=Ns(s.start.utc_ms);d.end_ns=Ns(s.end.utc_ms);
+                d.source_id=s.source_id;d.media_epoch_id=s.stream_epoch_id;d.stream_epoch_id=s.stream_epoch_id;d.media_end_pts=s.end.pts;d.start_ns=Ns(s.start.utc_ms);d.end_ns=Ns(s.end.utc_ms);
                 if (!d.start_ns || !d.end_ns || *d.start_ns>=*d.end_ns) {d.start_ns.reset();d.end_ns.reset();}
                 d.media_pts=s.start.pts;d.time_base_num=s.start.time_base_num;d.time_base_den=s.start.time_base_den;
                 d.time_provenance="legacy-segment";d.unavailable_reason=State(s.lifecycle);
@@ -131,7 +132,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                 if (!selected(s.channel_id) || lifecycle==RecordingLifecycle::Deleted) continue;
                 const auto segment = [&](const RecordingUtcMappingV1* m) {
                     SearchDocument d;d.id="s2:"+Key(id)+Key(m?m->mapping_id:"");d.channel_id=s.channel_id;d.segment_id=id;
-                    d.stream_epoch_id=s.media_epoch_id;d.media_pts=m?m->start_pts:s.media_start_pts;
+                    d.source_id=s.source_id;d.store_id=s.store_id;d.media_epoch_id=s.media_epoch_id;d.stream_epoch_id=s.media_epoch_id;d.media_end_pts=m?m->end_pts:s.media_end_pts;d.media_pts=m?m->start_pts:s.media_start_pts;
                     d.time_base_num=s.time_base_num;d.time_base_den=s.time_base_den;d.unavailable_reason=State(lifecycle);
                     if(m){d.time_provenance=m->provenance;d.uncertainty_ns=m->uncertainty_ns;
                         if(m->provenance!="unknown"&&m->utc_start_ns&&m->utc_end_ns&&*m->utc_start_ns<*m->utc_end_ns){
