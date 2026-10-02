@@ -9,8 +9,8 @@
 - 정의: [V420 기능 ID](../../project-feature-test-inventory.md#v420-구조화-검색).
 - 현재: 1 계약·조사·사전 정의 완료(`a8098ff3`), 2 불변 read model·채널/ID 인덱스와 단기 검증 완료.
   3 카탈로그 adapter·증분 갱신·V2 mapping/삭제·generation 참조/재개방 연결을 단기 검증했다.
-  4 필터 모델은 구현·단기 검증했고 실제 이벤트 저장소의 행동 근거 연결이 남았다.
-  4~10 미완료. 제품 완료·push 미수행.
+  4 필터 모델과 실제 이벤트 행동 근거 연결을 구현·단기 검증했다.
+  다음은 5 불변 결과 snapshot/cursor다. 5~10 미완료. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -651,4 +651,83 @@ cleanup: owned temporary root removed=True; no server/port
 include/recording/recording_search_model.h 9fabc91f99bc65ae89588f9148994d4706cd8224483c61ac4b74af1d107b6aeb
 src/recording/recording_search_model.cpp 41d26ff74cb5054a91e97e72b496873cec5ec98bf62edeae5d2113a308beda15
 scripts/internal/recording_search_filter_smoke.cpp 9459ea555762e7ac6a8e397b3783ad93eb78701dbd0d5ff37d83ee2cdea6ab52
+```
+
+### 4 실제 이벤트 행동 근거 연결 검사
+
+source: 6377486c + typed event/query join worktree.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_events_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-events-4nl8jw7t/events
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-events-4nl8jw7t/events /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-events-4nl8jw7t/fixture
+[pass] typed real event storage facts
+[pass] legacy JSON query unchanged
+[pass] event source model
+[pass] join requires linked id channel track epoch
+[pass] stored scenario reaches behaviour filter
+[pass] new search refreshes events without catalog revision change
+[pass] identical event rows deduplicated
+[pass] conflicting event identity rejected atomically
+[pass] corrupt scan is not successful empty
+[pass] partial scan rejected atomically
+[pass] empty event store clears facts no inference
+[pass] event row cap rejects partial facts
+[search-events] pass=12 fail=0 error=search-event-evidence-incomplete
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+행 한도보다 먼저 적용되는 byte 한도 사례 추가 후 재검증:
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_events_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-event-budget-57m56_bc/events
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-event-budget-57m56_bc/events /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-event-budget-57m56_bc/fixture
+[pass] typed real event storage facts
+[pass] legacy JSON query unchanged
+[pass] event source model
+[pass] join requires linked id channel track epoch
+[pass] stored scenario reaches behaviour filter
+[pass] new search refreshes events without catalog revision change
+[pass] identical event rows deduplicated
+[pass] conflicting event identity rejected atomically
+[pass] corrupt scan is not successful empty
+[pass] partial scan rejected atomically
+[pass] empty event store clears facts no inference
+[pass] event row cap rejects partial facts
+[pass] event byte cap rejects before row cap
+[search-events] pass=13 fail=0 error=search-event-evidence-incomplete
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+### 4 필터·행동 근거 판정
+
+- 모델 필터 27개와 기존 모델 31개는 이전 실행에서 PASS. 이번 actual EventRecord 연결은 최종 13 PASS/0 FAIL, native compile/실행 exit 0. row/byte 상한, 손상/부분 줄, 충돌은 기대된 오류 응답을 확인한 음성 검사다.
+- `cmake --build build-gst-onnx --target media_server_runtime -j2`: exit 0. 이벤트 저장소·application DTO·검색 reader와 실제 소비자 rebuild 성공.
+- `node scripts/internal/verify_v390_structure_stabilization_execution.mjs --graph-only`: 4 PASS/0 FAIL, exit 0. 기존 소유 방향/정책/graph 변경 없음.
+- `node scripts/internal/verify_docs_links.mjs`: 295 Markdown/9,222 links, failures 0, exit 0. `git diff --check`: exit 0.
+- Typed 읽기와 기존 JSON 읽기는 같은 parser/파일 조회 경계를 쓴다. 검색만 최소 사실 vector와 8MiB admission을 사용하고 기존 기본 응답은 그대로다. 이벤트 누락은 추정하지 않으며 읽기 불완전/충돌은 명시 실패다.
+- `WithEventFacts`는 검색 요청별로 갱신하는 application 연결이다. 신규 HTTP endpoint에서 catalog refresh와 이어 호출하는 구성은 8단계에 남는다. 현재 제품 API/UI 완료를 의미하지 않는다.
+- 임시 실행 디렉터리 제거, EventStorage 종료 확인. 서버/포트/외부 호출 없음. 릴리즈용 테스트 미실행.
+
+최종 source SHA-256:
+
+```text
+include/analysis/event_storage.h 34c5fc9afeee40c51cd95f1c789348f51d0ee2af5dc6f649c3ae89af62edf7b4
+src/analysis/event_storage.cpp 5e6816e393f1f0811be478ef5cbb031680e9a61f27dfe44c43e431ef08fc2bf7
+include/ingress/event_storage_application_service.h 007adda557b6592eb52a0068d880371f385917204f0b8fb117564bbc4301a456
+src/ingress/event_storage_application_service.cpp 56c8b1e099f95c0f1db228b3cb660447f3416d4fc968ad71fc539d99edc48cf5
+include/recording/recording_search_reader.h 6aeeebae2525c520d39264294c442e279ffa7f80a94a261074ab9ef9cd2b74e6
+src/recording/recording_search_reader.cpp ca66f4dd0ef5c83e6ebe07e47bd9ceb08489a92e500b4d87b3197caad46772b1
+scripts/internal/recording_search_events_smoke.cpp bbbaa33eefe2abb40ad2046e8e66be268aeb83e368b5eb894b41327e74a486f3
 ```

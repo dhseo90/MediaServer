@@ -139,6 +139,14 @@ struct EventStorageApplicationQueryResult {
     std::uint64_t matched_records{0};
 };
 
+struct EventSearchApplicationFact {
+    std::string event_id, channel_id, event_type, scenario_name, stream_epoch_id;
+    std::uint64_t track_id{0};
+};
+// 전체 결과의 신뢰도가 확인되지 않으면 실패하며 output을 보존한다.
+bool ReadEventSearchFactsForApplication(const std::string& channel,
+    std::vector<EventSearchApplicationFact>* output, std::string* error);
+
 struct EventStorageApplicationCompactionResult {
     EventStorageApplicationSnapshot storage;
     bool active_file_exists{false};

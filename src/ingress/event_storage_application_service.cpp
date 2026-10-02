@@ -165,6 +165,22 @@ bool QueryEventRecordsForApplication(const EventStorageApplicationQueryOptions& 
     return succeeded;
 }
 
+bool ReadEventSearchFactsForApplication(const std::string& channel,
+    std::vector<EventSearchApplicationFact>* output, std::string* error) {
+    if (!output || channel.empty()) {if(error)*error="search-invalid-event-query";return false;}
+    analysis::EventRecordQueryOptions options;
+    options.channel_id=channel;options.include_archives=true;options.limit=10000;options.search_facts_only=true;
+    analysis::EventRecordQueryResult result;
+    if (!analysis::QueryEventRecords(options,&result,error))return false;
+    if(result.has_more||result.truncated||result.skipped_corrupt_lines||result.partial_line_count) {
+        if(error)*error="search-event-evidence-incomplete";return false;
+    }
+    std::vector<EventSearchApplicationFact> next;next.reserve(result.search_facts.size());
+    for(auto& fact:result.search_facts)next.push_back({std::move(fact.event_id),std::move(fact.channel_id),
+        std::move(fact.event_type),std::move(fact.scenario_name),std::move(fact.stream_epoch_id),fact.track_id});
+    *output=std::move(next);if(error)error->clear();return true;
+}
+
 bool CompactEventRecordsForApplication(const EventStorageApplicationQueryOptions& options,
                                        EventStorageApplicationCompactionResult* result,
                                        std::string* error_message) {

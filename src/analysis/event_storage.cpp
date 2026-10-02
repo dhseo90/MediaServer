@@ -492,6 +492,7 @@ struct ParsedEventRecordLine {
     std::string status;
     std::string zone_id;
     std::string line_id;
+    std::string stream_epoch_id;
     std::string scenario_name;
     std::string scenario_phase;
     std::string snapshot_path;
@@ -831,6 +832,7 @@ bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record
     record->zone_id = ExtractTopLevelString(line, "zoneId").value_or("");
     record->line_id = ExtractTopLevelString(line, "lineId").value_or("");
     record->scenario_name = ExtractTopLevelString(line, "scenarioName").value_or("");
+    record->stream_epoch_id = ExtractTopLevelString(line, "streamEpochId").value_or("");
     record->scenario_phase = ExtractTopLevelString(line, "scenarioPhase").value_or("");
     record->snapshot_path = ExtractTopLevelString(line, "snapshotPath").value_or("");
     record->clip_path = ExtractTopLevelString(line, "clipPath").value_or("");
@@ -3242,12 +3244,29 @@ bool QueryEventRecordPath(const std::filesystem::path& path,
         if (match_index < options.offset) {
             continue;
         }
-        if (result->records_json.size() >= limit) {
+        const auto returned = options.search_facts_only ? result->search_facts.size() : result->records_json.size();
+        if (returned >= limit) {
             result->has_more = true;
             result->truncated = true;
             break;
         }
-        result->records_json.push_back(std::move(line));
+        if (options.search_facts_only) {
+            EventSearchFact fact{parsed.event_id, parsed.channel_id, parsed.event_type,
+                parsed.scenario_name, parsed.stream_epoch_id, parsed.track_id};
+            std::size_t bytes = 2 * sizeof(EventSearchFact);
+            bool valid = true;
+            for (const auto* value : {&fact.event_id, &fact.channel_id, &fact.event_type,
+                    &fact.scenario_name, &fact.stream_epoch_id}) {
+                valid = valid && value->size() <= 4096;
+                bytes += 2 * value->capacity();
+            }
+            constexpr std::size_t budget = 8 * 1024 * 1024;
+            if (!valid || bytes > budget || result->search_fact_bytes > budget - bytes) {
+                result->truncated = true;result->has_more = true;break;
+            }
+            result->search_fact_bytes += bytes;
+            result->search_facts.push_back(std::move(fact));
+        } else result->records_json.push_back(std::move(line));
     }
     if (error_message != nullptr) {
         error_message->clear();
@@ -3318,7 +3337,8 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
     result->storage.last_recovery_time_ms = NowMs();
     result->storage.last_recovery_status =
         RecoveryStatusForCounts(result->skipped_corrupt_lines, result->partial_line_count);
-    result->next_offset = result->has_more ? options.offset + result->records_json.size() : options.offset;
+    result->next_offset = result->has_more ? options.offset +
+        (options.search_facts_only ? result->search_facts.size() : result->records_json.size()) : options.offset;
 
     if (error_message != nullptr) {
         error_message->clear();
