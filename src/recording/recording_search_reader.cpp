@@ -100,4 +100,32 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
     } catch(const std::bad_alloc&) {if(error)*error="search-capacity-exceeded";return false;}
       catch(const std::length_error&) {if(error)*error="search-capacity-exceeded";return false;}
 }
+bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model,const RecordingSearchQuery& input,
+    std::vector<SearchPlaybackCandidate>* output,std::string* error) const {
+    if(!output){if(error)*error="search-invalid-output";return false;}
+    RecordingSearchQuery query;if(!NormalizeSearchQuery(input,&query,error))return false;
+    SearchSourceBatch guard;
+    if(!catalog_.CaptureSearchSource(query.channels,&model,&guard,error))return false;
+    if(guard.rebuild){if(error)*error="search-source-changed";return false;}
+    try {
+        std::vector<SearchPlaybackCandidate> candidates;
+        for(const auto& channel:query.channels) {
+            RecordingTimelineResult timeline;
+            if(!reader_.QuerySearchTimeline(channel,query.start_time_ms,query.end_time_ms,&timeline,error))return false;
+            for(const auto& item:timeline.items) {
+                if(item.kind!="event"||!item.playable||item.job_state!="complete"||item.event_id.empty())continue;
+                for(const auto& proof:item.coverage) {
+                    if(candidates.size()==4096){if(error)*error="search-playback-candidate-capacity";return false;}
+                    // coverage는 기존 reader가 원본/요청/실제 파생 범위를 대조한 media-ns 축이다.
+                    ConfirmedMediaInterval original{proof.source_id,proof.store_id,proof.epoch_id,proof.segment_id,
+                        1,1000000000,proof.start_ns,proof.end_ns};
+                    candidates.push_back({std::move(original),item.event_id,item.segment_id,true,true});
+                }
+            }
+        }
+        if(!catalog_.ValidateSearchSource(guard,error))return false;
+        *output=std::move(candidates);if(error)error->clear();return true;
+    }catch(const std::bad_alloc&){if(error)*error="search-playback-candidate-capacity";return false;}
+     catch(const std::length_error&){if(error)*error="search-playback-candidate-capacity";return false;}
+}
 } // namespace recording

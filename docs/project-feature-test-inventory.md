@@ -4153,3 +4153,5 @@ V420-F08~10 이벤트 저장소 통합: 실제 EventRecord 조회에서 최소 �
 V420-C01~03 focused: 시간 동률/channel/ID/unknown 순서, 전체 known/unknown 건수 유지, 정규화 동치 질의, cursor 재요청의 동일 페이지, 다른 사용자/scope/limit/시간/필터/unknown 조건 거부, MAC 변조/schema/재시작 거부, 새 관측·제거 후 기존 멤버십 보존, 299초 허용/300초 만료, snapshot 수·합산 byte 축출/byte admission 원자 실패와 기존 snapshot 보존, 빈 결과, 만료 시간 산술 overflow 거부를 검사한다. OpenSSL 미지원은 서명 없는 cursor를 만들지 않고 명시 실패한다. 현재 권한·삭제/재생 건강도 재검사는 8단계 요청 경계가 담당한다.
 
 V420-E01/E02 우선 선택 값 검사: 같은 source/store/epoch/segment/timebase 구간만 대체, partial 양쪽 잔여 원본 보존, 이벤트 중첩의 안정 ID 선택, 입력 순서/중복 불변, 원본 identity 불명·다른 원본·건강도/출처 미검증의 fallback, 관측 점의 시작/끝 반개구간, 전체 포함 clipping, invalid/candidate 4,096개 초과 원자 거부. 이 값 검사는 실제 파일 건강도/파생 job의 출처 읽기 검증을 대신하지 않는다.
+
+V420-E01/E02 실제 미디어 연결: 기존 GStreamer 30-frame fixture의 원본과 파생 job을 생성하여 intent 제외, job 완료 전후 source revision 무효화, 현재 재생 가능한 출력과 검증된 원본 media-ns coverage, 부분 이벤트 밖 원본 tail 유지, 출력 파일 부재 제외/복구 후 재검사, 기존 timeline 1,000행 page 상한 불변을 확인한다. 격리 임시 저장소·동기 job 한 번만 사용하며 서버/포트 없이 종료 후 전체 소유 fixture를 제거한다.

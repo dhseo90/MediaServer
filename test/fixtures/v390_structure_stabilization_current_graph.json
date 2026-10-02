@@ -570,8 +570,8 @@
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 36,
-      "witnessSha256": "be91875127f146abbd4d2e9cbafe0bd5f773443e2375bdfb7cdf43c367e67d9c",
+      "witnessCount": 37,
+      "witnessSha256": "b1d89915cb5ce9e7148982d8e1c4fdee37d492dce78b163e45dbef7803bda7ca",
       "allowedByTarget": true
     },
     {

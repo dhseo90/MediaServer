@@ -41,6 +41,9 @@ public:
         : catalog_(catalog), event_root_(std::move(event_root)) {}
     bool QueryTimeline(const RecordingTimelineQuery& query,
                        RecordingTimelineResult* result, std::string* error) const;
+    // 검색 전용 전체 projection. 기존 공개 timeline의 1,000개 page 계약은 유지한다.
+    bool QuerySearchTimeline(const std::string& channel_id, std::int64_t start_ms, std::int64_t end_ms,
+        RecordingTimelineResult*, std::string* error) const;
     bool ResolveConsumerReference(const RecordingConsumerReferenceV1&, ConsumerReferenceResolution*, std::string*) const;
     bool ResolveMediaLocation(const std::string& channel_id, const std::string& segment_id,
                               std::int64_t pts, RecordingLocationResult* result, std::string* error) const;
@@ -54,6 +57,7 @@ public:
     std::unique_ptr<ResolvedRecordingMedia> ResolveMedia(
         const std::string& channel_id, const std::string& segment_id) const;
 private:
+    bool QueryTimelineImpl(const RecordingTimelineQuery&, RecordingTimelineResult*, std::string*, std::size_t max_limit) const;
     RecordingCatalog& catalog_;
     bool FinishTimelineV2(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*) const;
     bool FinishTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,RecordingCatalog::JobReadContext*) const;

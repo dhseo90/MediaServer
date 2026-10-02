@@ -71,7 +71,7 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "a28f6684e328e180693a98fcae131974ab564b998ff19c57b9251c4a15f51c20",
+    "sha256": "f6fe8825b9983b501d1080736a164e8d322c76897f56bbe9b79ba813b6d722e7",
     "metrics": {
       "productionFiles": 331,
       "cppSources": 149,

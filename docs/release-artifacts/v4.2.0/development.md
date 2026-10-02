@@ -11,8 +11,8 @@
   3 카탈로그 adapter·증분 갱신·V2 mapping/삭제·generation 참조/재개방 연결을 단기 검증했다.
   4 필터 모델과 실제 이벤트 행동 근거 연결을 구현·단기 검증했다.
   5 불변 결과 snapshot/cursor를 구현·단기 검증했다.
-  6 동일 원본 이벤트 우선의 구간 선택 로직을 구현·단기 검증했다. 실제 재생/출처 adapter 연결은 남았다.
-  6~10 미완료. 제품 완료·push 미수행.
+  6 동일 원본 이벤트 우선과 실제 파일/파생 출력 후보 연결을 구현·단기 검증했다.
+  다음은 7 파일 presentation 위치/seek다. 7~10 미완료. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -887,4 +887,55 @@ cleanup: owned temporary root removed=True; no server/port
 include/recording/recording_search_precedence.h 335e407ef1716afb796b64b1d45f93a248f4904555410c855627e96656b7d04b
 src/recording/recording_search_precedence.cpp 3f2e363f4007ddc2b46239570341256bb30d92130fc74b3b4a9a80e4da8623fb
 scripts/internal/recording_search_precedence_smoke.cpp fdde33fa5dc3701b3715a11b83c36706258ff79d59a6cdcbe51459457dd05779
+```
+
+### 6 실제 파일/파생 출력 연결 검사
+
+source: a9739dae + read-service/search adapter worktree.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_playback_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-playback-g5azk2ly/playback
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-playback-g5azk2ly/playback /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-playback-g5azk2ly/fixture
+[pass] intent cannot replace source
+[pass] completed job invalidates prior source view
+[pass] actual completed outputs yield playable proven candidates
+[pass] actual original coverage retains uncovered source tail
+[pass] missing event file cannot supersede source
+[pass] restored file is revalidated on new lookup
+[pass] legacy timeline page limit unchanged
+[search-playback] pass=7 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+- 첫 graph-only 검사 exit 1: `current:include-edge; policy:stored-witness-drift:application-service-interfaces -> domain-and-registry-owners`, 3 PASS/1 FAIL. search reader가 precedence header를 include하면서 허용된 방향의 실제 witness가 바뀌었다. 기존 generator로 현행 graph/currentGraph 연결을 갱신하고 재검사한다. 의존 허용 정책은 변경하지 않는다.
+
+### 6 실제 연결 판정
+
+- 실제 30-frame fixture, GStreamer writer, DerivedJobService와 현재 reader를 사용한 focused 7 PASS/0 FAIL. native compile/실행 exit 0. 값 선택 17개는 이전 단계 PASS이며 이번 변경은 그 입력을 실제 reader에 연결한다.
+- 검색 전용 전체 timeline 조회는 기존 projection/파일 확인 구현을 재사용한다. 공개 page의 1,000행 상한은 그대로이며 검색은 최대 100,000행과 기존 projection 메모리 한도 안에서 total과 반환 수가 같아야 성공한다. 후보 원본 구간은 media-ns이며 UTC로 동등성을 추정하지 않는다.
+- 조회 앞뒤 catalog 구조 revision을 검사한다. job 완료 등 구조 변경 시 기존 source model을 새 상태로 위장하지 않고 재구축을 요구한다. 출력 부재는 후보에서 제외하고 새 조회에서 재검사한다.
+- `cmake --build build-gst-onnx --target media_server_runtime -j2`: exit 0. graph 첫 witness drift 1 FAIL은 현행 witness/hash만 갱신한 재검사 4/4 PASS로 해소했다. docs links failures 0, diff check exit 0.
+- stderr의 `[recording] file evidence unavailable: file evidence profile/bound 오류` 3건은 fixture 원본 생성 중 기존 GStreamerSegmentWriter의 선택적 file-evidence 생성 경고다. 이벤트 출력 건강도/coverage 검사는 통과했으나 원본의 정확한 파일 presentation mapping까지 검증한 것은 아니다. 이 경고를 숨기지 않고 7단계 원본 seek 검증의 확인 대상으로 유지한다.
+- 사용자 응답에 우선 선택 결과를 결합하는 8단계 HTTP 구성은 아직 미완료다. 6단계 검사는 실제 UI/seek·제품 전체 완료가 아니다.
+- 동기 job 종료 후 소유 임시 저장소/영상/binary 제거 확인. 서버/포트 없음. 장시간/릴리즈 검사 미실행.
+
+최종 source SHA-256:
+
+```text
+include/recording/recording_read_service.h 7d7395342744daac6fcba202d9ea634c439a496a113e4fade211ecbab60d7135
+src/recording/recording_read_service.cpp f60c07e1b4d4fef74ace7f41911806277685b0fec5412633045ec0eefdd9a979
+include/recording/recording_search_reader.h c42039e786cf6d9026a09be9c014e05f1a4124922ee71bd4be70287cc8941bc6
+src/recording/recording_search_reader.cpp b197fcdd1b6b4e95ba370a8ce1e02695b4781710dbac220811ee66325f3ed7e8
+scripts/internal/recording_search_playback_smoke.cpp 40734e6ad7d8dfd40bb8fcc5ac3ad16597630bd7261bba56434d473af8a9a7a5
+scripts/internal/recording_public_timeline_smoke.cpp bfedfc8c45df5f0b58ea855b3382d642039776d37e653a9641f18e1a51377d4b
+scripts/internal/recording_media_test_fixture.h 404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
 ```
