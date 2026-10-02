@@ -1,0 +1,179 @@
+{
+  "readbackAt": "2026-10-02T11:15:16.720653+00:00",
+  "preservationCommit": "bf81919f0ac3bc1b9726ce22f01f2aa1d4933149",
+  "files": [
+    {
+      "file": "allocation-analysis.json",
+      "bytes": 167533,
+      "sha256": "b5902a8fc89aff5c9a2e798dda486a00b5089f7d88be3b1c723a0f882ca54c8b",
+      "equal": true
+    },
+    {
+      "file": "cleanup-check.json",
+      "bytes": 1768,
+      "sha256": "33106d8fcdbafca714e5121539594589285bb783466d93bf989b626e89b9f6dc",
+      "equal": true
+    },
+    {
+      "file": "generated-inputs.json",
+      "bytes": 540,
+      "sha256": "35cce34fe5a898e48e8acb00418d03cd6d7d5082f5987686d6f2c50e642d1f8e",
+      "equal": true
+    },
+    {
+      "file": "invocation-result.json",
+      "bytes": 163,
+      "sha256": "0c81ffdc93b7a76154f614be1273c36f00cae35557472e00deb4793e9251c9f9",
+      "equal": true
+    },
+    {
+      "file": "invocation-start.json",
+      "bytes": 188,
+      "sha256": "256766192caf1e435f4031fe2a1e1d733970cbe644967db5a5d51f91dade878f",
+      "equal": true
+    },
+    {
+      "file": "launcher.stderr.log",
+      "bytes": 55,
+      "sha256": "3c81141bb3550d15a252d2ee2fc015da2181aab7cc8367e0d17f7907cfd611ce",
+      "equal": true
+    },
+    {
+      "file": "launcher.stdout.sanitized.jsonl.gz",
+      "bytes": 10000,
+      "sha256": "9fc74edc67269f32183a86c9cb1a57e0780046e799bd48e0e42da2d2a7d17352",
+      "equal": true
+    },
+    {
+      "file": "preparation.stderr.sanitized.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "equal": true
+    },
+    {
+      "file": "preparation.stdout.sanitized.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "equal": true
+    },
+    {
+      "file": "preservation-manifest.json",
+      "bytes": 7096,
+      "sha256": "01107bff9659c56d40200cb404bbed5c993df99b0eadc30c5c101cef63124a56",
+      "equal": true
+    },
+    {
+      "file": "prior-footprint-comparison.json",
+      "bytes": 11923,
+      "sha256": "0f0ada654820e11295fe934db2b6ca41fa3dd31bda18a385827bdf1bd1781e95",
+      "equal": true
+    },
+    {
+      "file": "profiles/initial-heap.txt.gz",
+      "bytes": 7015,
+      "sha256": "18996842846383a35c84f7084f07d76c8061f9203de349fa095f2dc4e105a078",
+      "equal": true
+    },
+    {
+      "file": "profiles/initial-selected-stacks.txt.gz",
+      "bytes": 15130,
+      "sha256": "89ff061f4049c17b138db06d670bcf1719a4aa96b7b657abdd6278a6c0d45835",
+      "equal": true
+    },
+    {
+      "file": "profiles/initial-vmmap.txt.gz",
+      "bytes": 1546,
+      "sha256": "87d785ced7779d6c2a390905a9b63809dfc6d09d0ed42395bb36a4efd6ee69e7",
+      "equal": true
+    },
+    {
+      "file": "profiles/recording-5min-selected-stacks.txt.gz",
+      "bytes": 32244,
+      "sha256": "779b1cbcc6539a11a7ff4a593604cba9c2eea349233c5b49a46fe562fa8d28e6",
+      "equal": true
+    },
+    {
+      "file": "provenance.json",
+      "bytes": 2257,
+      "sha256": "ab199b02193862686323bb3b5af2d007a8d7abdfd532b2b5fc5b99b897653b94",
+      "equal": true
+    },
+    {
+      "file": "result.json",
+      "bytes": 1633,
+      "sha256": "fc191159a91280a6b159f9138f011e04fa3fcd832e54e6b403435ab8c85d7794",
+      "equal": true
+    },
+    {
+      "file": "review.md",
+      "bytes": 14541,
+      "sha256": "a7cbb814ab9e82b7b7915932d5d523dc29c0f539db38a9a5529a531abc6b4c7c",
+      "equal": true
+    },
+    {
+      "file": "run-observations.json",
+      "bytes": 4296,
+      "sha256": "2d45a821065ff4630b9c5712a213ab0ab4cb745ba2b5492d0a333f46ce1d0d00",
+      "equal": true
+    },
+    {
+      "file": "runner-summary.json",
+      "bytes": 5487,
+      "sha256": "17045b34e695e1ffd9819a37a9d6b1c84d6775cda6577f6dc04760bf58012517",
+      "equal": true
+    },
+    {
+      "file": "server.sanitized.log.gz",
+      "bytes": 2619,
+      "sha256": "c42e0c7f9a3778d41b896fcba8249e36d73098ef43b5f8fe412312294278796c",
+      "equal": true
+    }
+  ],
+  "manifestRepresentationsVerified": 10,
+  "largeStackOriginalHashesVerified": 2,
+  "largeStackOriginalBytesRetained": false,
+  "selectedSanitizedStackGroupsGitVerified": true,
+  "priorFiveProfilesUnchanged": true,
+  "priorTrackedInputsAndEvidenceUnchanged": true,
+  "productAndLauncherGroupAbsent": [
+    30793,
+    30777
+  ],
+  "profilerExitObserved": "initial tools exit0; recording malloc_history exit255/ENOBUFS; whole owned group absent",
+  "ports": [
+    {
+      "name": "http",
+      "port": 65368,
+      "bindable": true
+    },
+    {
+      "name": "rtsp",
+      "port": 65369,
+      "bindable": true
+    },
+    {
+      "name": "stun",
+      "port": 56291,
+      "bindable": true
+    }
+  ],
+  "defaultRecordingRootAbsent": true,
+  "ownedLiteStackLogDirectoryEmpty": true,
+  "removedOwnedTargets": [
+    {
+      "name": "media-server-current-observer-2ndz562b",
+      "dev": 16777232,
+      "ino": 164819513
+    },
+    {
+      "name": "v411-rss-followup.npk1l88o",
+      "dev": 16777232,
+      "ino": 164819511
+    }
+  ],
+  "otherUserOrSystemProfileDataTouched": false,
+  "cleanup": "PASS",
+  "removedTargetsAbsent": true,
+  "completedAt": "2026-10-02T11:15:16.759170+00:00",
+  "removed": "only owned temporary product/media/observer binaries/profiler originals/scratch; necessary sanitized selected evidence in Git"
+}

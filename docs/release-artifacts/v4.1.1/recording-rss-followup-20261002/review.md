@@ -69,6 +69,6 @@ Catalog/Journal 합계의 관측 하한은5,670,160B다. 초기보다 늘어난 
 
 이번 자료만 한 폴더에 보존했다. 초기 heap/vmmap·launcher/server 출력은 주소·소유 경로·URL 정제 후 gzip, 큰 malloc_history 원문은 **원문 hash와 선택된 완결 stack의 정제 발췌**만 보존한다. 캡처되지 않은 꼬리는 존재하지 않는 증거이며, 보존하지 않은 전체 원문을 재현 가능하다고 하지 않는다([manifest](preservation-manifest.json)). 프로파일 내용·credential·memory graph는 넣지 않았다.
 
-제품/observer/profiler 그룹 종료와 HTTP65368/RTSP65369/UDP56291 해제, 기본 recording root 부재 및 제품/입력 불변을 확인했다. lite의 소유 stack directory는 비어 있었으며 시스템/사용자 profiling 자료를 건드리지 않았다. 소유 root와 임시 준비 경로는 Git 원본 재조회 후 이 run의 대상만 정리하고 후속 기록에 연결한다.
+제품/observer/profiler 그룹 종료와 HTTP65368/RTSP65369/UDP56291 해제, 기본 recording root 부재 및 제품/입력 불변을 확인했다. lite의 소유 stack directory는 비어 있었으며 시스템/사용자 profiling 자료를 건드리지 않았다. 보존 커밋 `bf81919f0ac3bc1b9726ce22f01f2aa1d4933149`의21개 파일·압축 해제 표현과 큰 stack 원문 hash를 재조회했다. 소유 identity·종료·포트 해제를 재확인한 뒤 이번 root/임시 준비 경로2개만 정리하고 부재를 확인했다([최종 대조·cleanup](readback-cleanup.json)). 원본 결과의 pending은 보존 시점 상태이며 이 후속 기록으로 완료를 연결한다.
 
 candidate·C2·producer·일반 acceptance·UI·120분을 실행하지 않았다. 기존 증거 파일은 불변이고 원본 FAIL·시각·commit·판정 필드도 바꾸지 않았다. 판단자는 현재 대화의 메인 Codex AI이며 독립/인간 승인을 가장하지 않는다. push·PR·병합·태그·Release는 수행하지 않는다.
