@@ -1,0 +1,20 @@
+{
+  "command": [
+    "./server.sh",
+    "verify-v410-recording-longrun",
+    "--duration-minutes",
+    "120"
+  ],
+  "cwd": "/Users/dhseo/Workspace/mediaServer",
+  "sourceHead": "860aa46b4d616291e0fad5cadb17ea127ebf2dc8",
+  "startedAt": "2026-10-01T22:53:53.661930+00:00",
+  "invocationCount": 1,
+  "environmentOverrides": {},
+  "parentPid": 10351,
+  "pid": 10353,
+  "processGroup": 10353,
+  "finishedAt": "2026-10-02T00:55:06.366275+00:00",
+  "elapsedSeconds": 7272.657434583991,
+  "returncode": 0,
+  "signal": null
+}

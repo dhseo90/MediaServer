@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-01T22:54:25.412739+00:00",
+  "ownedRoot": {
+    "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-BGC3JB",
+    "dev": 16777232,
+    "ino": 164661947,
+    "uid": 501
+  },
+  "files": {
+    "normalize": {
+      "bytes": 10048648,
+      "sha256": "d6ac2df4aa544f2e35f90a9258ddeba841a72f9a2f65921bb977b1c30de48ac5"
+    },
+    "process-metrics": {
+      "bytes": 82880,
+      "sha256": "e35370a1e56df52b556e7aa493789039cabf9011192ed0591bcef58c6b382e19"
+    },
+    "catalog-instrumented.cpp": {
+      "bytes": 284898,
+      "sha256": "e8df9464dc330955312afc70771f3cc4f690d5dd7c46306eb191c2000417dd67"
+    },
+    "input/retention-9101.mp4": {
+      "bytes": 62334405,
+      "sha256": "ee2a8139a5bd6a5325fa2b18bb58c5ddf5bac745c99d203ed79bdbfc3a6ce193"
+    },
+    "input/retention-9201.mp4": {
+      "bytes": 62334405,
+      "sha256": "ee2a8139a5bd6a5325fa2b18bb58c5ddf5bac745c99d203ed79bdbfc3a6ce193"
+    }
+  },
+  "fixtureGeneration": [
+    {
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedMs": 1301,
+      "timeoutMs": 30000,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "outputBytes": 62334405,
+      "categories": {
+        "missingElement": false,
+        "negotiation": false,
+        "pluginScanner": false,
+        "permission": false,
+        "resource": false,
+        "macosService": false
+      },
+      "rawBodyPublished": false
+    }
+  ]
+}

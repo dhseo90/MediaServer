@@ -1,0 +1,2750 @@
+{
+  "recordedAt": "2026-10-02T00:56:15.697046+00:00",
+  "rawStdout": {
+    "bytes": 5847516,
+    "sha256": "a6bb5c93ca7237142ee125fe04fec08f0d463234eee8543b8a04afd1eaa34d49"
+  },
+  "rawSummary": {
+    "mode": "current-recording-120",
+    "passed": 10097,
+    "failed": 0,
+    "elapsedMs": 7269735,
+    "verifiedDurationMs": 7200449.665833,
+    "longrunObservationCompleted": true,
+    "shortPreparationPass": false,
+    "statusCumulativePass": false,
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false,
+    "phase": {
+      "elapsedMs": 7200449.665833,
+      "channels": {
+        "9101": {
+          "finalized": 3592,
+          "deleted": 3590,
+          "lastAt": 7202762.951,
+          "order": "7184",
+          "store": "2f680c4ef38cebf17ed3436cd0f50801c2fa9aafd89a6460955d730c2639d41d",
+          "knownMappings": 2628,
+          "unknownMappings": 114614
+        },
+        "9201": {
+          "finalized": 3592,
+          "deleted": 3590,
+          "lastAt": 7202762.951,
+          "order": "7183",
+          "store": "2f680c4ef38cebf17ed3436cd0f50801c2fa9aafd89a6460955d730c2639d41d",
+          "knownMappings": 2653,
+          "unknownMappings": 111914
+        }
+      },
+      "records": 7184,
+      "logicalBytes": 4312304
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 1440,
+      "groups": [
+        {
+          "pid": 10392,
+          "startIdentity": "macos:1790895237:863063",
+          "sampleCount": 1440,
+          "first": {
+            "phaseAt": 3063.1775,
+            "sampledAt": 1790895239534,
+            "rssBytes": 93831168,
+            "threadCount": 28,
+            "fdCount": 29,
+            "mutationCount": 2
+          },
+          "last": {
+            "phaseAt": 7202762.951,
+            "sampledAt": 1790902439280,
+            "rssBytes": 493862912,
+            "threadCount": 25,
+            "fdCount": 23,
+            "mutationCount": 28730
+          },
+          "max": {
+            "rssBytes": 532791296,
+            "threadCount": 28,
+            "fdCount": 30
+          },
+          "delta": {
+            "rssBytes": 400031744,
+            "threadCount": -3,
+            "fdCount": -6,
+            "mutationCount": 28728
+          },
+          "elapsedMs": 7199699.7735,
+          "maxGapMs": 5014.138874999946,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 1380,
+            "delta": {
+              "rssBytes": 202571776,
+              "threadCount": 0,
+              "fdCount": 2,
+              "mutationCount": 27552
+            },
+            "elapsedMs": 6899486.1145,
+            "rssMiBPerMinute": 1.6800164255189618
+          }
+        }
+      ]
+    },
+    "processCount": 3,
+    "processesClosed": true,
+    "udpClosed": true,
+    "tokenStart": null,
+    "tokenEnd": null,
+    "tokenConsumed": null,
+    "tokenSource": "전용 집계 없음"
+  },
+  "continuity": {
+    "count": 1440,
+    "uniquePids": [
+      10392
+    ],
+    "uniqueStartIdentities": [
+      "macos:1790895237:863063"
+    ],
+    "duplicatePhaseAt": 0,
+    "duplicateSampledAt": 0,
+    "nonIncreasingPhaseCount": 0,
+    "nonIncreasingSampledAtCount": 0,
+    "gapsOver15000Ms": 0,
+    "minGapMs": 5000.337125000544,
+    "maxGapMs": 5014.138874999946,
+    "firstBoundaryGapMs": 303.86258299999963,
+    "lastBoundaryGapMs": 446.02974999975413,
+    "sampleTimingCount": 1440,
+    "sampleTimingIndicesExact": true
+  },
+  "windows": [
+    {
+      "fromMinute": 0,
+      "toMinute": 5,
+      "count": 60,
+      "rssMiB": {
+        "first": 89.484375,
+        "last": 274.71875,
+        "min": 89.484375,
+        "median": 224.1015625,
+        "max": 274.71875
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 28
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 1160
+    },
+    {
+      "fromMinute": 5,
+      "toMinute": 10,
+      "count": 60,
+      "rssMiB": {
+        "first": 277.796875,
+        "last": 345.09375,
+        "min": 277.796875,
+        "median": 339.421875,
+        "max": 345.09375
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 1176
+    },
+    {
+      "fromMinute": 10,
+      "toMinute": 20,
+      "count": 120,
+      "rssMiB": {
+        "first": 345.109375,
+        "last": 357.515625,
+        "min": 345.109375,
+        "median": 351.3359375,
+        "max": 362.265625
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2392
+    },
+    {
+      "fromMinute": 20,
+      "toMinute": 30,
+      "count": 120,
+      "rssMiB": {
+        "first": 357.53125,
+        "last": 368.390625,
+        "min": 357.53125,
+        "median": 364.5703125,
+        "max": 378.96875
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2376
+    },
+    {
+      "fromMinute": 30,
+      "toMinute": 40,
+      "count": 120,
+      "rssMiB": {
+        "first": 368.453125,
+        "last": 378.515625,
+        "min": 368.453125,
+        "median": 376.6796875,
+        "max": 388.546875
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2376
+    },
+    {
+      "fromMinute": 40,
+      "toMinute": 50,
+      "count": 120,
+      "rssMiB": {
+        "first": 385.875,
+        "last": 401.09375,
+        "min": 379.59375,
+        "median": 386.4140625,
+        "max": 401.09375
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 26
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2400
+    },
+    {
+      "fromMinute": 50,
+      "toMinute": 60,
+      "count": 120,
+      "rssMiB": {
+        "first": 395.828125,
+        "last": 402.40625,
+        "min": 387.578125,
+        "median": 394.4453125,
+        "max": 419.6875
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2376
+    },
+    {
+      "fromMinute": 60,
+      "toMinute": 70,
+      "count": 120,
+      "rssMiB": {
+        "first": 396.21875,
+        "last": 405.140625,
+        "min": 396.21875,
+        "median": 410.25,
+        "max": 431.421875
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 30
+      },
+      "mutationDelta": 2376
+    },
+    {
+      "fromMinute": 70,
+      "toMinute": 80,
+      "count": 120,
+      "rssMiB": {
+        "first": 405.15625,
+        "last": 414.8125,
+        "min": 405.15625,
+        "median": 413.4765625,
+        "max": 440.921875
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2384
+    },
+    {
+      "fromMinute": 80,
+      "toMinute": 90,
+      "count": 120,
+      "rssMiB": {
+        "first": 414.8125,
+        "last": 456.1875,
+        "min": 414.8125,
+        "median": 424.359375,
+        "max": 474.78125
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2376
+    },
+    {
+      "fromMinute": 90,
+      "toMinute": 100,
+      "count": 120,
+      "rssMiB": {
+        "first": 448.609375,
+        "last": 465.328125,
+        "min": 446.765625,
+        "median": 452.640625,
+        "max": 478.890625
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2380
+    },
+    {
+      "fromMinute": 100,
+      "toMinute": 110,
+      "count": 120,
+      "rssMiB": {
+        "first": 465.375,
+        "last": 462.921875,
+        "min": 454.921875,
+        "median": 461.78125,
+        "max": 488.9375
+      },
+      "threads": {
+        "min": 25,
+        "median": 25.0,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23.0,
+        "max": 29
+      },
+      "mutationDelta": 2384
+    },
+    {
+      "fromMinute": 110,
+      "toMinute": 120,
+      "count": 120,
+      "rssMiB": {
+        "first": 462.921875,
+        "last": 470.984375,
+        "min": 462.921875,
+        "median": 468.6328125,
+        "max": 508.109375
+      },
+      "threads": {
+        "min": 25,
+        "median": 25,
+        "max": 25
+      },
+      "fd": {
+        "min": 19,
+        "median": 23,
+        "max": 29
+      },
+      "mutationDelta": 2376,
+      "includesFinalBoundarySample": true
+    }
+  ],
+  "descriptiveRegressions": [
+    {
+      "afterMinute": 5,
+      "count": 1380,
+      "rssMiBPerMinuteLeastSquares": 1.2793905139159576,
+      "note": "descriptive only; no new pass threshold"
+    },
+    {
+      "afterMinute": 10,
+      "count": 1320,
+      "rssMiBPerMinuteLeastSquares": 1.2376874606964,
+      "note": "descriptive only; no new pass threshold"
+    },
+    {
+      "afterMinute": 30,
+      "count": 1080,
+      "rssMiBPerMinuteLeastSquares": 1.2709026918142399,
+      "note": "descriptive only; no new pass threshold"
+    },
+    {
+      "afterMinute": 60,
+      "count": 720,
+      "rssMiBPerMinuteLeastSquares": 1.37498852346238,
+      "note": "descriptive only; no new pass threshold"
+    },
+    {
+      "afterMinute": 90,
+      "count": 360,
+      "rssMiBPerMinuteLeastSquares": 0.8807671534151643,
+      "note": "descriptive only; no new pass threshold"
+    }
+  ],
+  "timingMs": {
+    "metricsMs": {
+      "min": 1.5478750001639128,
+      "median": 1.8694790001027286,
+      "p95": 2.296875,
+      "max": 303.66245800000024
+    },
+    "drainMs": {
+      "min": 1.1358749996870756,
+      "median": 291.41737499972805,
+      "p95": 467.74820800032467,
+      "max": 1421.4037080006674
+    },
+    "storageMs": {
+      "min": 1.0502080000001115,
+      "median": 1.5766870002262294,
+      "p95": 1.961625000461936,
+      "max": 6.098499999963678
+    },
+    "totalMs": {
+      "min": 5.029333000071347,
+      "median": 295.0402499998454,
+      "p95": 476.87374999932945,
+      "max": 1425.1957499999553
+    }
+  },
+  "rootStorage": {
+    "observations": 1442,
+    "maxBytes": 469627506,
+    "capBytes": 469762048,
+    "capExceededCount": 0,
+    "maxEntries": 496,
+    "transientTreeRetryTotal": 0,
+    "postStop": {
+      "reason": "post-stop",
+      "final": true,
+      "elapsedMs": 7269730,
+      "journalMutationTypes": {
+        "segment_finalized": 0,
+        "event_link_created": 0,
+        "observation_put": 0,
+        "observation_v2_put": 0,
+        "deletion_requested": 0,
+        "deletion_completed": 0,
+        "corruption_detected": 0,
+        "recording_order_reserved": 7194,
+        "segment_v2_finalized": 0,
+        "segment_v2_bound_finalized": 7194,
+        "consumer_reference_put": 0,
+        "derived_reference_accepted": 0,
+        "referenced_observation_put": 0,
+        "derived_job_intent": 0,
+        "derived_job_files": 0,
+        "derived_job_ready": 0,
+        "derived_job_committed": 0,
+        "derived_job_complete": 0,
+        "derived_job_failed": 0,
+        "segment_v2_state": 7187,
+        "segment_v2_deleted": 7187
+      },
+      "journalMutationTypesCoverage": "drained-prefix-only; unread-or-partial-tail-excluded",
+      "totalBytes": 413604253,
+      "capBytes": 469762048,
+      "capExceeded": false,
+      "entries": 495,
+      "categories": {
+        "input": {
+          "bytes": 124668810,
+          "files": 2
+        },
+        "media": {
+          "bytes": 130906890,
+          "files": 7
+        },
+        "mediaPartial": {
+          "bytes": 0,
+          "files": 0
+        },
+        "journal": {
+          "bytes": 91564214,
+          "files": 88
+        },
+        "checkpoint": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationSnapshot": {
+          "bytes": 13246500,
+          "files": 1
+        },
+        "generationIdentity": {
+          "bytes": 12950190,
+          "files": 87
+        },
+        "generationEvidence": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationManifest": {
+          "bytes": 403,
+          "files": 1
+        },
+        "generationTransaction": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqlite": {
+          "bytes": 26681344,
+          "files": 1
+        },
+        "wal": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqliteAux": {
+          "bytes": 0,
+          "files": 0
+        },
+        "tmp": {
+          "bytes": 0,
+          "files": 0
+        },
+        "log": {
+          "bytes": 18282,
+          "files": 3
+        },
+        "state": {
+          "bytes": 4655,
+          "files": 2
+        },
+        "events": {
+          "bytes": 0,
+          "files": 0
+        },
+        "cache": {
+          "bytes": 3146396,
+          "files": 280
+        },
+        "tools": {
+          "bytes": 10131528,
+          "files": 2
+        },
+        "recordingsOther": {
+          "bytes": 143,
+          "files": 3
+        },
+        "other": {
+          "bytes": 284898,
+          "files": 1
+        }
+      },
+      "ownership": {
+        "productRecording": {
+          "bytes": 275349684,
+          "files": 188
+        },
+        "fixtureInput": {
+          "bytes": 124668810,
+          "files": 2
+        },
+        "observerTools": {
+          "bytes": 10131528,
+          "files": 2
+        },
+        "cache": {
+          "bytes": 3146396,
+          "files": 280
+        },
+        "temporary": {
+          "bytes": 0,
+          "files": 0
+        },
+        "runtimeSupport": {
+          "bytes": 22937,
+          "files": 5
+        },
+        "other": {
+          "bytes": 284898,
+          "files": 1
+        }
+      },
+      "transientJournalMisses": 0,
+      "sqlitePages": {
+        "status": "observed",
+        "mainBytes": 26681344,
+        "walBytes": 0,
+        "pageSize": 4096,
+        "pageCount": 6514,
+        "freePageCount": 783,
+        "livePageCount": 5731,
+        "liveBytes": 23474176,
+        "freeBytes": 3207168
+      },
+      "measurement": "logical-file-bytes-nonatomic",
+      "rawPathsPublished": false,
+      "transientTreeRetries": 0
+    },
+    "peak": {
+      "elapsedMs": 7203184,
+      "bytes": 469627506,
+      "marginBytes": 134542,
+      "categories": {
+        "input": {
+          "bytes": 124668810,
+          "files": 2
+        },
+        "media": {
+          "bytes": 124670556,
+          "files": 4
+        },
+        "mediaPartial": {
+          "bytes": 62334382,
+          "files": 2
+        },
+        "journal": {
+          "bytes": 91476128,
+          "files": 88
+        },
+        "checkpoint": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationSnapshot": {
+          "bytes": 13246500,
+          "files": 1
+        },
+        "generationIdentity": {
+          "bytes": 12950190,
+          "files": 87
+        },
+        "generationEvidence": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationManifest": {
+          "bytes": 403,
+          "files": 1
+        },
+        "generationTransaction": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqlite": {
+          "bytes": 26664960,
+          "files": 1
+        },
+        "wal": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqliteAux": {
+          "bytes": 0,
+          "files": 0
+        },
+        "tmp": {
+          "bytes": 0,
+          "files": 0
+        },
+        "log": {
+          "bytes": 1049,
+          "files": 1
+        },
+        "state": {
+          "bytes": 4655,
+          "files": 2
+        },
+        "events": {
+          "bytes": 0,
+          "files": 0
+        },
+        "cache": {
+          "bytes": 3146149,
+          "files": 280
+        },
+        "tools": {
+          "bytes": 10131528,
+          "files": 2
+        },
+        "recordingsOther": {
+          "bytes": 47298,
+          "files": 7
+        },
+        "other": {
+          "bytes": 284898,
+          "files": 1
+        }
+      },
+      "ownership": {
+        "productRecording": {
+          "bytes": 331390417,
+          "files": 191
+        },
+        "fixtureInput": {
+          "bytes": 124668810,
+          "files": 2
+        },
+        "observerTools": {
+          "bytes": 10131528,
+          "files": 2
+        },
+        "cache": {
+          "bytes": 3146149,
+          "files": 280
+        },
+        "temporary": {
+          "bytes": 0,
+          "files": 0
+        },
+        "runtimeSupport": {
+          "bytes": 5704,
+          "files": 3
+        },
+        "other": {
+          "bytes": 284898,
+          "files": 1
+        }
+      }
+    },
+    "initialSample": {
+      "reason": "sample",
+      "final": false,
+      "elapsedMs": 3427,
+      "journalMutationTypes": {
+        "segment_finalized": 0,
+        "event_link_created": 0,
+        "observation_put": 0,
+        "observation_v2_put": 0,
+        "deletion_requested": 0,
+        "deletion_completed": 0,
+        "corruption_detected": 0,
+        "recording_order_reserved": 2,
+        "segment_v2_finalized": 0,
+        "segment_v2_bound_finalized": 0,
+        "consumer_reference_put": 0,
+        "derived_reference_accepted": 0,
+        "referenced_observation_put": 0,
+        "derived_job_intent": 0,
+        "derived_job_files": 0,
+        "derived_job_ready": 0,
+        "derived_job_committed": 0,
+        "derived_job_complete": 0,
+        "derived_job_failed": 0,
+        "segment_v2_state": 0,
+        "segment_v2_deleted": 0
+      },
+      "journalMutationTypesCoverage": "drained-prefix-only; unread-or-partial-tail-excluded",
+      "totalBytes": 159064158,
+      "capBytes": 469762048,
+      "capExceeded": false,
+      "entries": 318,
+      "categories": {
+        "input": {
+          "bytes": 124668810,
+          "files": 2
+        },
+        "media": {
+          "bytes": 0,
+          "files": 0
+        },
+        "mediaPartial": {
+          "bytes": 20775788,
+          "files": 2
+        },
+        "journal": {
+          "bytes": 922,
+          "files": 2
+        },
+        "checkpoint": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationSnapshot": {
+          "bytes": 267,
+          "files": 1
+        },
+        "generationIdentity": {
+          "bytes": 160,
+          "files": 1
+        },
+        "generationEvidence": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationManifest": {
+          "bytes": 391,
+          "files": 1
+        },
+        "generationTransaction": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqlite": {
+          "bytes": 49152,
+          "files": 1
+        },
+        "wal": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqliteAux": {
+          "bytes": 0,
+          "files": 0
+        },
+        "tmp": {
+          "bytes": 0,
+          "files": 0
+        },
+        "log": {
+          "bytes": 1049,
+          "files": 1
+        },
+        "state": {
+          "bytes": 4655,
+          "files": 2
+        },
+        "events": {
+          "bytes": 0,
+          "files": 0
+        },
+        "cache": {
+          "bytes": 3146149,
+          "files": 280
+        },
+        "tools": {
+          "bytes": 10131528,
+          "files": 2
+        },
+        "recordingsOther": {
+          "bytes": 389,
+          "files": 5
+        },
+        "other": {
+          "bytes": 284898,
+          "files": 1
+        }
+      },
+      "ownership": {
+        "productRecording": {
+          "bytes": 20827069,
+          "files": 13
+        },
+        "fixtureInput": {
+          "bytes": 124668810,
+          "files": 2
+        },
+        "observerTools": {
+          "bytes": 10131528,
+          "files": 2
+        },
+        "cache": {
+          "bytes": 3146149,
+          "files": 280
+        },
+        "temporary": {
+          "bytes": 0,
+          "files": 0
+        },
+        "runtimeSupport": {
+          "bytes": 5704,
+          "files": 3
+        },
+        "other": {
+          "bytes": 284898,
+          "files": 1
+        }
+      },
+      "transientJournalMisses": 0,
+      "measurement": "logical-file-bytes-nonatomic",
+      "rawPathsPublished": false,
+      "transientTreeRetries": 0
+    }
+  },
+  "snapshotProcesses": [
+    {
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "failureCode": null,
+      "elapsedMs": 10453,
+      "outputBytes": 1777,
+      "lastOpenedPhase": "catalog-destruct",
+      "lastCompletedPhase": "destruct",
+      "traceStatus": "complete",
+      "traceLoss": false,
+      "rawOutputPublished": false
+    },
+    {
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "failureCode": null,
+      "elapsedMs": 10428,
+      "outputBytes": 1777,
+      "lastOpenedPhase": "catalog-destruct",
+      "lastCompletedPhase": "destruct",
+      "traceStatus": "complete",
+      "traceLoss": false,
+      "rawOutputPublished": false
+    },
+    {
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "failureCode": null,
+      "elapsedMs": 10474,
+      "outputBytes": 1783,
+      "lastOpenedPhase": "catalog-destruct",
+      "lastCompletedPhase": "destruct",
+      "traceStatus": "complete",
+      "traceLoss": false,
+      "rawOutputPublished": false
+    }
+  ],
+  "snapshotReceipts": [
+    {
+      "preserved": true,
+      "bytes": 67993,
+      "sha256": "bedade3ad601a36ce0ea953b2eddfa29d2af08298789d01c297244aeeb0cb174",
+      "rawPathsPublished": false
+    },
+    {
+      "preserved": true,
+      "bytes": 67993,
+      "sha256": "769334686fd8a4dad78f6c2f73894debaf46df4153665a7531a1ea155d9dd710",
+      "rawPathsPublished": false
+    },
+    {
+      "preserved": true,
+      "bytes": 68345,
+      "sha256": "d5b53c0ccbb3fafe3d0ef3c5673636d0d92a1a99f8e998de0069075d322395c6",
+      "rawPathsPublished": false
+    }
+  ],
+  "processCleanup": [
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 10392,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 55107,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 55108,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 14521,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 57947,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 57948,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 14588,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 58064,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 58065,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    }
+  ],
+  "copyCleanup": [
+    {
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-SXVWQD",
+      "bytes": 274770742,
+      "copied": true,
+      "absent": true,
+      "reason": null,
+      "receiptPreserved": true,
+      "originalUnchanged": true,
+      "manifestUnchanged": true,
+      "groupClosed": true
+    },
+    {
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-MT4zeT",
+      "bytes": 274770742,
+      "copied": true,
+      "absent": true,
+      "reason": null,
+      "receiptPreserved": true,
+      "originalUnchanged": true,
+      "manifestUnchanged": true,
+      "groupClosed": true
+    },
+    {
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-1kDYyW",
+      "bytes": 275349684,
+      "copied": true,
+      "absent": true,
+      "reason": null,
+      "receiptPreserved": true,
+      "originalUnchanged": true,
+      "manifestUnchanged": true,
+      "groupClosed": true
+    }
+  ],
+  "wrapperCleanup": [
+    {
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-BGC3JB",
+      "bytes": 413604253,
+      "absent": true
+    }
+  ],
+  "statusUsage": [
+    {
+      "channelId": "9101",
+      "aliveBytes": "62855707",
+      "historicalBytes": "111985846908",
+      "deleted": 3591,
+      "apiContinuousBytes": 62855707,
+      "apiEventBytes": 0,
+      "physicalFilesChecked": true
+    },
+    {
+      "channelId": "9201",
+      "aliveBytes": "67530582",
+      "historicalBytes": "111990521783",
+      "deleted": 3591,
+      "apiContinuousBytes": 67530582,
+      "apiEventBytes": 0,
+      "physicalFilesChecked": true
+    }
+  ],
+  "channelObservation": [
+    {
+      "expectedIds": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "9101",
+        "9201"
+      ],
+      "channels": [
+        {
+          "id": "1",
+          "enabled": false,
+          "active": false
+        },
+        {
+          "id": "2",
+          "enabled": false,
+          "active": false
+        },
+        {
+          "id": "3",
+          "enabled": false,
+          "active": false
+        },
+        {
+          "id": "4",
+          "enabled": false,
+          "active": false
+        },
+        {
+          "id": "5",
+          "enabled": false,
+          "active": false
+        },
+        {
+          "id": "9101",
+          "enabled": false,
+          "active": false
+        },
+        {
+          "id": "9201",
+          "enabled": false,
+          "active": false
+        }
+      ]
+    }
+  ],
+  "serverDiagnostics": [
+    {
+      "pid": 10392,
+      "bytes": 12350,
+      "capturedBytes": 12350,
+      "sha256": "6f470e4919790a1781eadebe2682ef8b09220f89926369a427fd6c806194801b",
+      "overflow": false,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    {
+      "pid": 14521,
+      "bytes": 1765,
+      "capturedBytes": 1765,
+      "sha256": "711f8ea45ffdf0e9c8eb0f757a84503eb53a37c883fee77c4b3bc015f589efab",
+      "overflow": false,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    {
+      "pid": 14588,
+      "bytes": 4167,
+      "capturedBytes": 4167,
+      "sha256": "ff2d7dfb96b3e56177de9a92d7709615d7f909b9fd0077589689369a2b0c1dbe",
+      "overflow": false,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    }
+  ],
+  "serverSlowDiagnostics": [
+    {
+      "status": "captured",
+      "seen": 19928,
+      "retained": 64,
+      "thresholdNs": 10000000,
+      "rows": [
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7173716870375,
+          "a": 7173716870375,
+          "e": 7173729711375,
+          "n": 1,
+          "w": 0,
+          "h": 12841000,
+          "x": 0,
+          "y": 12841000
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7173716171833,
+          "a": 7173716171833,
+          "e": 7173729711875,
+          "n": 1,
+          "w": 0,
+          "h": 13540042,
+          "x": 0,
+          "y": 13540042
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7175676322042,
+          "a": 7175676322042,
+          "e": 7175687406583,
+          "n": 1,
+          "w": 0,
+          "h": 11084541,
+          "x": 0,
+          "y": 11084541
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7175675721875,
+          "a": 7175675721958,
+          "e": 7175687408000,
+          "n": 1,
+          "w": 83,
+          "h": 11686042,
+          "x": 83,
+          "y": 11686042
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7175689420125,
+          "a": 7175689420125,
+          "e": 7175700466167,
+          "n": 1,
+          "w": 0,
+          "h": 11046042,
+          "x": 0,
+          "y": 11046042
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7175687829167,
+          "a": 7175687829292,
+          "e": 7175700467208,
+          "n": 1,
+          "w": 125,
+          "h": 12637916,
+          "x": 125,
+          "y": 12637916
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7175712036667,
+          "a": 7175712036667,
+          "e": 7175724535458,
+          "n": 1,
+          "w": 0,
+          "h": 12498791,
+          "x": 0,
+          "y": 12498791
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7175711370625,
+          "a": 7175711370667,
+          "e": 7175724536083,
+          "n": 1,
+          "w": 42,
+          "h": 13165416,
+          "x": 42,
+          "y": 13165416
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7177672635000,
+          "a": 7177672635292,
+          "e": 7177683305792,
+          "n": 1,
+          "w": 292,
+          "h": 10670500,
+          "x": 292,
+          "y": 10670500
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7177705842958,
+          "a": 7177705842958,
+          "e": 7177717215375,
+          "n": 1,
+          "w": 0,
+          "h": 11372417,
+          "x": 0,
+          "y": 11372417
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7177704177208,
+          "a": 7177704177458,
+          "e": 7177717216542,
+          "n": 1,
+          "w": 250,
+          "h": 13039084,
+          "x": 250,
+          "y": 13039084
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7177728467917,
+          "a": 7177728467917,
+          "e": 7177739806167,
+          "n": 1,
+          "w": 0,
+          "h": 11338250,
+          "x": 0,
+          "y": 11338250
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7177727858500,
+          "a": 7177727858542,
+          "e": 7177739807167,
+          "n": 1,
+          "w": 42,
+          "h": 11948625,
+          "x": 42,
+          "y": 11948625
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7179670762875,
+          "a": 7179670763125,
+          "e": 7179681158167,
+          "n": 1,
+          "w": 250,
+          "h": 10395042,
+          "x": 250,
+          "y": 10395042
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7179696449208,
+          "a": 7179696449208,
+          "e": 7179706809042,
+          "n": 1,
+          "w": 0,
+          "h": 10359834,
+          "x": 0,
+          "y": 10359834
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7179692018417,
+          "a": 7179694958417,
+          "e": 7179706810458,
+          "n": 1,
+          "w": 2940000,
+          "h": 11852041,
+          "x": 2940000,
+          "y": 11852041
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7179717678708,
+          "a": 7179717678708,
+          "e": 7179728731250,
+          "n": 1,
+          "w": 0,
+          "h": 11052542,
+          "x": 0,
+          "y": 11052542
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7179717064708,
+          "a": 7179717064750,
+          "e": 7179728731708,
+          "n": 1,
+          "w": 42,
+          "h": 11666958,
+          "x": 42,
+          "y": 11666958
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7181692003667,
+          "a": 7181692003667,
+          "e": 7181702325625,
+          "n": 1,
+          "w": 0,
+          "h": 10321958,
+          "x": 0,
+          "y": 10321958
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7181690614833,
+          "a": 7181690614958,
+          "e": 7181702326750,
+          "n": 1,
+          "w": 125,
+          "h": 11711792,
+          "x": 125,
+          "y": 11711792
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7181736290042,
+          "a": 7181736290042,
+          "e": 7181747796292,
+          "n": 1,
+          "w": 0,
+          "h": 11506250,
+          "x": 0,
+          "y": 11506250
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7181735667875,
+          "a": 7181735667917,
+          "e": 7181747797250,
+          "n": 1,
+          "w": 42,
+          "h": 12129333,
+          "x": 42,
+          "y": 12129333
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7183674641583,
+          "a": 7183674641833,
+          "e": 7183684757125,
+          "n": 1,
+          "w": 250,
+          "h": 10115292,
+          "x": 250,
+          "y": 10115292
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7185711688042,
+          "a": 7185711688042,
+          "e": 7185722760583,
+          "n": 1,
+          "w": 0,
+          "h": 11072541,
+          "x": 0,
+          "y": 11072541
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7185710202292,
+          "a": 7185710202417,
+          "e": 7185722761833,
+          "n": 1,
+          "w": 125,
+          "h": 12559416,
+          "x": 125,
+          "y": 12559416
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7187697519333,
+          "a": 7187697519583,
+          "e": 7187707962292,
+          "n": 1,
+          "w": 250,
+          "h": 10442709,
+          "x": 250,
+          "y": 10442709
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7187726863625,
+          "a": 7187726863625,
+          "e": 7187737997542,
+          "n": 1,
+          "w": 0,
+          "h": 11133917,
+          "x": 0,
+          "y": 11133917
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7187725379750,
+          "a": 7187725380000,
+          "e": 7187738009375,
+          "n": 1,
+          "w": 250,
+          "h": 12629375,
+          "x": 250,
+          "y": 12629375
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7189700555750,
+          "a": 7189700555750,
+          "e": 7189712486458,
+          "n": 1,
+          "w": 0,
+          "h": 11930708,
+          "x": 0,
+          "y": 11930708
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7189698931125,
+          "a": 7189698931333,
+          "e": 7189712487833,
+          "n": 1,
+          "w": 208,
+          "h": 13556500,
+          "x": 208,
+          "y": 13556500
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7189730427292,
+          "a": 7189730427292,
+          "e": 7189741852250,
+          "n": 1,
+          "w": 0,
+          "h": 11424958,
+          "x": 0,
+          "y": 11424958
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7189724386708,
+          "a": 7189728649167,
+          "e": 7189741853333,
+          "n": 1,
+          "w": 4262459,
+          "h": 13204166,
+          "x": 4262459,
+          "y": 13204166
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7189753255125,
+          "a": 7189753255125,
+          "e": 7189763693625,
+          "n": 1,
+          "w": 0,
+          "h": 10438500,
+          "x": 0,
+          "y": 10438500
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7189752678125,
+          "a": 7189752678167,
+          "e": 7189763694417,
+          "n": 1,
+          "w": 42,
+          "h": 11016250,
+          "x": 42,
+          "y": 11016250
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7191707086208,
+          "a": 7191707086208,
+          "e": 7191719808250,
+          "n": 1,
+          "w": 0,
+          "h": 12722042,
+          "x": 0,
+          "y": 12722042
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7191705327792,
+          "a": 7191705327875,
+          "e": 7191719809667,
+          "n": 1,
+          "w": 83,
+          "h": 14481792,
+          "x": 83,
+          "y": 14481792
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7191725859625,
+          "a": 7191725859625,
+          "e": 7191736965333,
+          "n": 1,
+          "w": 0,
+          "h": 11105708,
+          "x": 0,
+          "y": 11105708
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7191724214375,
+          "a": 7191724214583,
+          "e": 7191736966375,
+          "n": 1,
+          "w": 208,
+          "h": 12751792,
+          "x": 208,
+          "y": 12751792
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 597,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7191725051625,
+          "a": 7191736973917,
+          "e": 7191737246667,
+          "n": 1,
+          "w": 11922292,
+          "h": 272750,
+          "x": 11922292,
+          "y": 272750
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7191756696792,
+          "a": 7191756696792,
+          "e": 7191767251792,
+          "n": 1,
+          "w": 0,
+          "h": 10555000,
+          "x": 0,
+          "y": 10555000
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7191756116000,
+          "a": 7191756116083,
+          "e": 7191767252792,
+          "n": 1,
+          "w": 83,
+          "h": 11136709,
+          "x": 83,
+          "y": 11136709
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7193721782125,
+          "a": 7193721782125,
+          "e": 7193734504667,
+          "n": 1,
+          "w": 0,
+          "h": 12722542,
+          "x": 0,
+          "y": 12722542
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7193721118292,
+          "a": 7193721118375,
+          "e": 7193734506000,
+          "n": 1,
+          "w": 83,
+          "h": 13387625,
+          "x": 83,
+          "y": 13387625
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7193725914125,
+          "a": 7193734514542,
+          "e": 7193744628667,
+          "n": 1,
+          "w": 8600417,
+          "h": 10114125,
+          "x": 8600417,
+          "y": 10114125
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7193755065458,
+          "a": 7193755065458,
+          "e": 7193766952542,
+          "n": 1,
+          "w": 0,
+          "h": 11887084,
+          "x": 0,
+          "y": 11887084
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7193754392917,
+          "a": 7193754392958,
+          "e": 7193766953333,
+          "n": 1,
+          "w": 41,
+          "h": 12560375,
+          "x": 41,
+          "y": 12560375
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7195722850125,
+          "a": 7195722850125,
+          "e": 7195736510667,
+          "n": 1,
+          "w": 0,
+          "h": 13660542,
+          "x": 0,
+          "y": 13660542
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7195722117125,
+          "a": 7195722117208,
+          "e": 7195736512000,
+          "n": 1,
+          "w": 83,
+          "h": 14394792,
+          "x": 83,
+          "y": 14394792
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7195755661458,
+          "a": 7195755661458,
+          "e": 7195767055167,
+          "n": 1,
+          "w": 0,
+          "h": 11393709,
+          "x": 0,
+          "y": 11393709
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7195755050750,
+          "a": 7195755050792,
+          "e": 7195767055917,
+          "n": 1,
+          "w": 42,
+          "h": 12005125,
+          "x": 42,
+          "y": 12005125
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7197718391833,
+          "a": 7197718391833,
+          "e": 7197730309375,
+          "n": 1,
+          "w": 0,
+          "h": 11917542,
+          "x": 0,
+          "y": 11917542
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7197716721708,
+          "a": 7197716721917,
+          "e": 7197730310500,
+          "n": 1,
+          "w": 209,
+          "h": 13588583,
+          "x": 209,
+          "y": 13588583
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7197748171042,
+          "a": 7197748171042,
+          "e": 7197758769500,
+          "n": 1,
+          "w": 0,
+          "h": 10598458,
+          "x": 0,
+          "y": 10598458
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7197743056833,
+          "a": 7197746652083,
+          "e": 7197758770208,
+          "n": 1,
+          "w": 3595250,
+          "h": 12118125,
+          "x": 3595250,
+          "y": 12118125
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7199709251125,
+          "a": 7199709251125,
+          "e": 7199721234500,
+          "n": 1,
+          "w": 0,
+          "h": 11983375,
+          "x": 0,
+          "y": 11983375
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7199707606208,
+          "a": 7199707606333,
+          "e": 7199721235625,
+          "n": 1,
+          "w": 125,
+          "h": 13629292,
+          "x": 125,
+          "y": 13629292
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7199739350042,
+          "a": 7199739350042,
+          "e": 7199750677625,
+          "n": 1,
+          "w": 0,
+          "h": 11327583,
+          "x": 0,
+          "y": 11327583
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7199733287458,
+          "a": 7199737706250,
+          "e": 7199750678625,
+          "n": 1,
+          "w": 4418792,
+          "h": 12972375,
+          "x": 4418792,
+          "y": 12972375
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7201733913625,
+          "a": 7201733913625,
+          "e": 7201745470292,
+          "n": 1,
+          "w": 0,
+          "h": 11556667,
+          "x": 0,
+          "y": 11556667
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7201732320000,
+          "a": 7201732320125,
+          "e": 7201745471583,
+          "n": 1,
+          "w": 125,
+          "h": 13151458,
+          "x": 125,
+          "y": 13151458
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7201766130292,
+          "a": 7201766130292,
+          "e": 7201778240333,
+          "n": 1,
+          "w": 0,
+          "h": 12110041,
+          "x": 0,
+          "y": 12110041
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 5,
+          "r": 0,
+          "b": 7201765473000,
+          "a": 7201765473042,
+          "e": 7201778241042,
+          "n": 1,
+          "w": 42,
+          "h": 12768000,
+          "x": 42,
+          "y": 12768000
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7201784728792,
+          "a": 7201784728792,
+          "e": 7201794953000,
+          "n": 1,
+          "w": 0,
+          "h": 10224208,
+          "x": 0,
+          "y": 10224208
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 3,
+          "t": 4,
+          "r": 0,
+          "b": 7201784160792,
+          "a": 7201784160833,
+          "e": 7201794953542,
+          "n": 1,
+          "w": 41,
+          "h": 10792709,
+          "x": 41,
+          "y": 10792709
+        }
+      ],
+      "completedSpansOnly": true,
+      "rawBodyPublished": false
+    },
+    {
+      "status": "captured",
+      "seen": 1,
+      "retained": 1,
+      "thresholdNs": 10000000,
+      "rows": [
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 583,
+          "m": 2,
+          "t": 1,
+          "r": 0,
+          "b": 24208,
+          "a": 24250,
+          "e": 4901888500,
+          "n": 1,
+          "w": 42,
+          "h": 4901864250,
+          "x": 42,
+          "y": 4901864250
+        }
+      ],
+      "completedSpansOnly": true,
+      "rawBodyPublished": false
+    },
+    {
+      "status": "captured",
+      "seen": 16,
+      "retained": 16,
+      "thresholdNs": 10000000,
+      "rows": [
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 583,
+          "m": 2,
+          "t": 1,
+          "r": 0,
+          "b": 23375,
+          "a": 23416,
+          "e": 4900828041,
+          "n": 1,
+          "w": 41,
+          "h": 4900804625,
+          "x": 41,
+          "y": 4900804625
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 5375024208,
+          "a": 5375024208,
+          "e": 5387765500,
+          "n": 1,
+          "w": 0,
+          "h": 12741292,
+          "x": 0,
+          "y": 12741292
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 5374334958,
+          "a": 5374334958,
+          "e": 5387766916,
+          "n": 1,
+          "w": 0,
+          "h": 13431958,
+          "x": 0,
+          "y": 13431958
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 8699615416,
+          "a": 8699615416,
+          "e": 8711217333,
+          "n": 1,
+          "w": 0,
+          "h": 11601917,
+          "x": 0,
+          "y": 11601917
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 8697967500,
+          "a": 8697967791,
+          "e": 8711219041,
+          "n": 1,
+          "w": 291,
+          "h": 13251250,
+          "x": 291,
+          "y": 13251250
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 8712917541,
+          "a": 8712917541,
+          "e": 8724553458,
+          "n": 1,
+          "w": 0,
+          "h": 11635917,
+          "x": 0,
+          "y": 11635917
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 8705491375,
+          "a": 8711226791,
+          "e": 8724554333,
+          "n": 1,
+          "w": 5735416,
+          "h": 13327542,
+          "x": 5735416,
+          "y": 13327542
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 8731612333,
+          "a": 8731612333,
+          "e": 8743310750,
+          "n": 1,
+          "w": 0,
+          "h": 11698417,
+          "x": 0,
+          "y": 11698417
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 8730935375,
+          "a": 8730935458,
+          "e": 8743311416,
+          "n": 1,
+          "w": 83,
+          "h": 12375958,
+          "x": 83,
+          "y": 12375958
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 8750006375,
+          "a": 8750006375,
+          "e": 8761586333,
+          "n": 1,
+          "w": 0,
+          "h": 11579958,
+          "x": 0,
+          "y": 11579958
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2494,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 8749370625,
+          "a": 8749370666,
+          "e": 8761586750,
+          "n": 1,
+          "w": 41,
+          "h": 12216084,
+          "x": 41,
+          "y": 12216084
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 10679957166,
+          "a": 10679957166,
+          "e": 10691322875,
+          "n": 1,
+          "w": 0,
+          "h": 11365709,
+          "x": 0,
+          "y": 11365709
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 10678470333,
+          "a": 10678470583,
+          "e": 10691323916,
+          "n": 1,
+          "w": 250,
+          "h": 12853333,
+          "x": 250,
+          "y": 12853333
+        },
+        {
+          "k": 1,
+          "o": 7,
+          "s": 1,
+          "l": 1947,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 10699720125,
+          "a": 10699720125,
+          "e": 10710439000,
+          "n": 1,
+          "w": 0,
+          "h": 10718875,
+          "x": 0,
+          "y": 10718875
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 2139,
+          "m": 2,
+          "t": 3,
+          "r": 0,
+          "b": 10697324791,
+          "a": 10698235541,
+          "e": 10710439541,
+          "n": 1,
+          "w": 910750,
+          "h": 12204000,
+          "x": 910750,
+          "y": 12204000
+        },
+        {
+          "k": 0,
+          "o": 1,
+          "s": 1,
+          "l": 638,
+          "m": 2,
+          "t": 2,
+          "r": 0,
+          "b": 10698248291,
+          "a": 10710445875,
+          "e": 10710446041,
+          "n": 1,
+          "w": 12197584,
+          "h": 166,
+          "x": 12197584,
+          "y": 166
+        }
+      ],
+      "completedSpansOnly": true,
+      "rawBodyPublished": false
+    }
+  ],
+  "httpOutcomeCounts": {
+    "health:error": 214,
+    "health:ok": 3,
+    "ice:ok": 3,
+    "recording-status:ok": 1441,
+    "source:ok": 4,
+    "source-item:ok": 4
+  },
+  "httpMaxElapsedMs": 1100,
+  "failLines": [],
+  "stderrBytes": 0,
+  "readinessReview": {
+    "launches": [
+      {
+        "launchNumber": 1,
+        "preReadyErrors": 12,
+        "readyStatus": 200
+      },
+      {
+        "launchNumber": 2,
+        "preReadyErrors": 101,
+        "readyStatus": 200
+      },
+      {
+        "launchNumber": 3,
+        "preReadyErrors": 101,
+        "readyStatus": 200
+      }
+    ],
+    "errorsAfterHealthy": 0,
+    "pendingErrorsAtEnd": 0,
+    "interpretation": "health readiness poll errors before each successful ready response; all three launches reached ready within existing timeout"
+  },
+  "resourceReview": {
+    "reviewer": "현재 대화의 메인 Codex AI",
+    "reviewedAt": "2026-10-02T00:58:38.999289+00:00",
+    "execution": "PASS",
+    "continuity": "PASS",
+    "threadsAndFd": "이번 표본에서 누적 증가 관측 없음",
+    "rssStability": "보류: 초기 5분 후에도 구간 중앙값 상승이 지속됨. 누수·캐시·할당기 고수위·누적 메타데이터의 기여를 이 표본만으로 분리할 수 없음",
+    "newPassThresholdIntroduced": false,
+    "leakConfirmed": false,
+    "overallResourceTrendApproved": false,
+    "rawFlagsEdited": false,
+    "limitations": [
+      "주 관측 PID 10392만 120분 자원 표본을 가짐. 재기동 PID 14521/14588은 준비·정합·정리 결과만 존재하며 장기 추세 표본이 없음.",
+      "메모리 할당 구성·회수 가능성·heap 자료는 이번 기존 실행기가 수집하지 않음.",
+      "slow trace는 완료된 구간 중 기존 10ms 필터와 64행 상한을 적용한 보존 자료임. 전체 내부 지연의 최대값으로 확대하지 않음.",
+      "소유 root 최대값은 원출력에 기록된 비원자 논리 파일 크기 관측이며 RSS 상한이 아님."
+    ]
+  }
+}

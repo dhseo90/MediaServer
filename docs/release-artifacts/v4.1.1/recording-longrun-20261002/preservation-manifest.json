@@ -1,0 +1,126 @@
+{
+  "schema": "media-server.v411-preservation-manifest.v1",
+  "recordedAt": "2026-10-02T00:59:54.422661+00:00",
+  "sourceCommit": "860aa46b4d616291e0fad5cadb17ea127ebf2dc8",
+  "originals": [
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/preparation.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/preparation.json",
+      "bytes": 38538,
+      "sha256": "d4f9b770a27d93a28ab50ac6345d8a66c92d03bda29053dc4255ca02e7d11519",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/pre-execution.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/pre-execution.json",
+      "bytes": 377,
+      "sha256": "352555d312f3764965aca34d556bc4426e9759b953f5b56b4e146cc429597ea5",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/generated-inputs.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/generated-inputs.json",
+      "bytes": 1459,
+      "sha256": "2476bf2ab3afe9019f7cd839f8ee762121aa15eac7a820805827b9733e296446",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/invocation.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/invocation.json",
+      "bytes": 518,
+      "sha256": "b2e25993cbc92b7770ee73c2cbe2bef84076a71e38b1e0025d6b2a527977c080",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/evidence-analysis.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/evidence-analysis.json",
+      "bytes": 59863,
+      "sha256": "ee294fd821b5759ff62b8736c545a1f880d24b3c8125816ab795f3cbad94427d",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/cleanup-observation.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/cleanup-observation.json",
+      "bytes": 3653,
+      "sha256": "ac849ba9ecfb2796fdd614c29498f68244c2baa892210562f354c5e376026d95",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/launcher.stderr.log",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/launcher.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/tool-preparation.stdout.log",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/tool-preparation.stdout.log",
+      "bytes": 187,
+      "sha256": "849411b66ebe7041480ffe1485917f7be555d3438dd844b24c94d8d9240c97eb",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/tool-preparation.stderr.log",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/tool-preparation.stderr.log",
+      "bytes": 491,
+      "sha256": "21217c12f7a560dc489b2d323d1130ebee76d0251fee3069e5c3ecc980321d36",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/tool-preparation-qualified.stdout.log",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/tool-preparation-qualified.stdout.log",
+      "bytes": 89,
+      "sha256": "d5081de10cf3602e41d3f9411e14acc8f385660c19197c8e5373c312b3cc5707",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/tool-preparation-qualified.stderr.log",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/tool-preparation-qualified.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": ".media_server.test/v411-recording-longrun.ysd_4nps/launcher.stdout.log",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/launcher.stdout.log.gz",
+      "bytes": 5847516,
+      "sha256": "a6bb5c93ca7237142ee125fe04fec08f0d463234eee8543b8a04afd1eaa34d49",
+      "representation": "gzip-lossless",
+      "compressedBytes": 315057,
+      "compressedSha256": "6ef51e714ac51784ce7627c0d0f83c655c0d4b9c358c0c6bd0cd950975d082b6"
+    },
+    {
+      "originalPath": "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-current-snapshot-04661959-2be3-4108-ae74-5b41c08ada9a.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/receipts/o28-current-snapshot-04661959-2be3-4108-ae74-5b41c08ada9a.json",
+      "bytes": 67993,
+      "sha256": "769334686fd8a4dad78f6c2f73894debaf46df4153665a7531a1ea155d9dd710",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-current-snapshot-81aabf43-fa33-4d96-b106-1d6a987eda45.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/receipts/o28-current-snapshot-81aabf43-fa33-4d96-b106-1d6a987eda45.json",
+      "bytes": 68345,
+      "sha256": "d5b53c0ccbb3fafe3d0ef3c5673636d0d92a1a99f8e998de0069075d322395c6",
+      "representation": "byte-identical"
+    },
+    {
+      "originalPath": "docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/o28-current-snapshot-9ffcac30-8397-40fd-b4a8-d49bedb51ced.json",
+      "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/receipts/o28-current-snapshot-9ffcac30-8397-40fd-b4a8-d49bedb51ced.json",
+      "bytes": 67993,
+      "sha256": "bedade3ad601a36ce0ea953b2eddfa29d2af08298789d01c297244aeeb0cb174",
+      "representation": "byte-identical"
+    }
+  ],
+  "runnerSummary": {
+    "source": "launcher.stdout.log의 최종 JSON 행",
+    "preservedPath": "docs/release-artifacts/v4.1.1/recording-longrun-20261002/runner-summary.json",
+    "bytes": 1764,
+    "sha256": "382c51de7094dd617d174bfed3f4cdbe4aca8680418a364e10b78ace255f7d4a",
+    "representation": "exact-line-extraction"
+  },
+  "notPreserved": [
+    "생성 MP4와 소유 녹화 파일은 기존 wrapper가 성공 cleanup에서 삭제했다. 해시/표본/복제본 receipt에 한정한 증거이며 media 원본 보존을 주장하지 않는다.",
+    "제품 private 로그 원문은 wrapper가 삭제했다. 표준 출력의 기존 정제 진단·원문 해시·크기·범주 집계·제한된 slow span만 보존한다.",
+    "관측용 임시 바이너리와 instrumented catalog는 해시를 기록했으며 실행기 cleanup으로 삭제됐다."
+  ]
+}

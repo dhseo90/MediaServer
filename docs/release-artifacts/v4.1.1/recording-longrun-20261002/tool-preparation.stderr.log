@@ -1,0 +1,3 @@
+2026-10-02 07:51:40.453 gst-launch-1.0[10183:3679809] Failure on line 688 in function id scheduleApplicationNotification(LSNotificationCode, NSWorkspaceNotificationCenter *): noErr == _LSModifyNotification(notificationID, 1, &code, 0, NULL, NULL, NULL)
+2026-10-02 07:51:40.679 gst-launch-1.0[10183:3679809] Error received in message reply handler: Connection invalid
+2026-10-02 07:51:40.679 gst-launch-1.0[10183:3679812] Connection Invalid error for service com.apple.hiservices-xpcservice.

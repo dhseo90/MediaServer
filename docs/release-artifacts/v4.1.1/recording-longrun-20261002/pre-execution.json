@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-01T22:53:26.600518+00:00",
+  "existingMediaServerPids": [],
+  "pgrepExit": 1,
+  "toolPreparation": {
+    "sandboxExit": 143,
+    "qualifiedExit": 0,
+    "sandboxOwnedPidsClosed": [
+      10168,
+      10183
+    ]
+  },
+  "gstPluginPreparation": [
+    "videotestsrc",
+    "x264enc",
+    "h264parse",
+    "mp4mux"
+  ],
+  "fixedReceiptExistingCount": 211
+}
