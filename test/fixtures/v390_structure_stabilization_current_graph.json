@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 329,
-  "expectedCppFiles": 148,
+  "expectedProductionFiles": 331,
+  "expectedCppFiles": 149,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -207,11 +207,13 @@
         "include/recording/recording_search_source.h",
         "src/recording/recording_search_source.cpp",
         "include/recording/recording_search_snapshots.h",
-        "src/recording/recording_search_snapshots.cpp"
+        "src/recording/recording_search_snapshots.cpp",
+        "include/recording/recording_search_precedence.h",
+        "src/recording/recording_search_precedence.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 67,
-      "expectedCppCount": 28
+      "expectedFileCount": 69,
+      "expectedCppCount": 29
     },
     {
       "id": "product-ui-workspaces",
@@ -326,7 +328,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "68fe016d53eadbbf64188b56c57b4954f33fa45de6dafc5e81ffa7a2fa3e56cb",
+  "expectedFileOwnershipSha256": "8af0435258f17074f6c862329a9a602bf9502fe1c1ec5a71d44212abb5412103",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -410,6 +412,7 @@
           "src/ingress/product_ui_action_execution_deferral.cpp",
           "src/ingress/product_ui_auth_pages.cpp",
           "src/recording/recording_contracts.cpp",
+          "src/recording/recording_search_precedence.cpp",
           "src/recording/recording_search_snapshots.cpp",
           "src/recording/recording_search_model.cpp",
           "src/recording/recording_search_source.cpp",
@@ -481,9 +484,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "29770216bdf8c5eafc9d9fd484d299191d8105ff1d73e34ba926b99068d9f3cc",
-        "declaredSourceCount": 146,
-        "defaultActiveSourceCount": 145,
+        "productionSourceSha256": "ef39e74b8f55bcddf0ebe86c77a1495bcbf5e32d05aff58dfb182bb28f988b19",
+        "declaredSourceCount": 147,
+        "defaultActiveSourceCount": 146,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",

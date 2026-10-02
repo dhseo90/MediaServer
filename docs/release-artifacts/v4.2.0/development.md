@@ -11,7 +11,8 @@
   3 카탈로그 adapter·증분 갱신·V2 mapping/삭제·generation 참조/재개방 연결을 단기 검증했다.
   4 필터 모델과 실제 이벤트 행동 근거 연결을 구현·단기 검증했다.
   5 불변 결과 snapshot/cursor를 구현·단기 검증했다.
-  다음은 6 동일 원본 이벤트 우선이다. 6~10 미완료. 제품 완료·push 미수행.
+  6 동일 원본 이벤트 우선의 구간 선택 로직을 구현·단기 검증했다. 실제 재생/출처 adapter 연결은 남았다.
+  6~10 미완료. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -838,4 +839,52 @@ cleanup: owned temporary root removed=True; no server/port
 include/recording/recording_search_snapshots.h d43d55334c609957e578142f0fbc4e15cdf8c677bc77d5254ef74692125ce2e7
 src/recording/recording_search_snapshots.cpp b204640101448cf7b614fa579880df955c3a9e5fbbd4b394058c519e20b8913e
 scripts/internal/recording_search_cursor_smoke.cpp 65b688cb5c4497337dcf6eb8fb06b00d602e60b7f9bac6edfb8d519ea8cc78f3
+```
+
+### 6 동일 원본 이벤트 우선 값 검사
+
+source: 4680339f + precedence worktree.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_precedence.cpp scripts/internal/recording_search_precedence_smoke.cpp -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-precedence-ss_gjfcw/precedence
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-precedence-ss_gjfcw/precedence
+[pass] partial event preserves both uncovered original ranges
+[pass] overlapping events stable ID priority
+[pass] candidate order and duplicate invariant
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] observation point inside event
+[pass] exclusive event end keeps original
+[pass] full event clipped to original
+[pass] missing original identity never inferred
+[pass] invalid candidate rejects atomically
+[pass] candidate cap explicit failure
+[search-precedence] pass=17 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+- 우선 선택 값 검사 17 PASS/0 FAIL, native compile/실행 exit 0. source/store/epoch/segment/timebase가 같은 확인된 구간만 이벤트로 대체하며 잔여 구간을 원본으로 유지한다.
+- `cmake --build build-gst-onnx --target media_server_runtime -j2`: exit 0. graph-only 4/4, CMake target separation 5/5, docs links failures 0, diff check exit 0.
+- 현행 소유 graph/currentGraph hash·metrics만 갱신했다. 과거 실행/완료 자료와 의존 정책은 그대로다.
+- 6단계 전체는 미완료다. candidate의 playable/provenance_verified는 값 입력이며 이번 검사만으로 실제 파일이 건강하다고 주장하지 않는다. 후속 adapter는 기존 RecordingReadService::QueryTimeline이 제공하는 현재 재생 판정과 원본 media-ns coverage를 재사용할 수 있음을 소스로 확인했다. 새 저장 형식이나 원장 직접 해석을 추가하지 않는다.
+- 임시 compiler/binary 루트 제거 확인. 서버/포트 없음. 제품 UI/실제 재생/릴리즈용 검사 미실행.
+
+최종 source SHA-256:
+
+```text
+include/recording/recording_search_precedence.h 335e407ef1716afb796b64b1d45f93a248f4904555410c855627e96656b7d04b
+src/recording/recording_search_precedence.cpp 3f2e363f4007ddc2b46239570341256bb30d92130fc74b3b4a9a80e4da8623fb
+scripts/internal/recording_search_precedence_smoke.cpp fdde33fa5dc3701b3715a11b83c36706258ff79d59a6cdcbe51459457dd05779
 ```
