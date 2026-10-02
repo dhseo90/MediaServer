@@ -139,6 +139,10 @@ S10 시간·식별·저장 보강과 S11 최종 검증으로 마감했다.
 
 ## v4.2.0 — Structured Search
 
+승인된 개발의 세부 계약·순서는 [v4.2.0 개발 설계](superpowers/specs/2026-10-03-v420-structured-search-design.md),
+기능별 기대값은 [테스트 정의](project-feature-test-inventory.md#v420-구조화-검색)를 따른다.
+개발 진행을 제품 완료나 릴리즈 검증 완료로 해석하지 않는다.
+
 1. v4.1.0 카탈로그를 소비하는 별도 read model을 만든다.
 2. 카메라, 시간, 객체, track, event, zone, rule, behaviour filter를 제공한다.
 3. 안정 정렬과 query checksum에 묶인 cursor pagination을 고정한다.

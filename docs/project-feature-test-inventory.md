@@ -4,6 +4,52 @@
 종료 버전의 실행 시점·실패·승인 기록은 [Git 이력 안내](history/README.md)에서 조회한다.
 아래 역사 링크는 출처 조회용이며 일반 검사 실행의 입력이나 현재 승인·PASS가 아니다.
 
+## v420 구조화 검색
+
+계약은 [v4.2.0 개발 설계](superpowers/specs/2026-10-03-v420-structured-search-design.md)에 둔다.
+아래는 실행 전 정의다. 결과는 [개발 기록](release-artifacts/v4.2.0/development.md)에서 확인한다.
+`안정화`는 각 행의 단기 검사이며 전체 안정화/릴리즈 PASS를 뜻하지 않는다.
+30분·120분·릴리즈 UI 풀테스트는 이번 사용자 목표에서 제외했다. 아래 UI는 변경 기능의
+단기 직접 확인과 향후 릴리즈 매핑을 구분한다. 새 event/scenario 판정·line direction·tracker/
+Re-ID 정책은 변경하지 않으며 검색은 저장된 사실을 소비한다.
+
+| 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| V420-M01 | source→read model; 같은 ID 재구축 결과 동일, 입력 불변, namespace/epoch 다른 track 분리 | native 모델 | 향후 검색 병행 | 영향 판정 | 비대상: 내부 |
+| V420-M02 | projection 게시; 빈 입력은 ready-empty, 불완전/손상/중복 ID는 실패 및 이전 게시 불변 | native 실패 원자성 | 향후 복구 | 영향 판정 | 미준비 표시 연결 |
+| V420-M03 | admission; 100,000/100,001행·64MiB 경계, 초과는 부분 결과 대신 명시 오류 | 한도/규모 | 향후 자원 | 영향 판정 | 용량 오류 |
+| V420-L01 | source revision 증분; 관측 추가·동일 revision 재조회·이력 유실 재구축 | catalog 통합 | 향후 갱신 | 영향 판정 | 재검색 반영 |
+| V420-L02 | 삭제/손상/재시작; tombstone 적용, 원장 재개방 후 삭제 hit 재생 불가, 원본 불변 | catalog 복구 | 향후 순환 | 영향 판정 | 상태 갱신 |
+| V420-F01 | search channelIds; 2채널 OR, 무권한 혼합 전체 거부, 0/33개 거부 | 필터/API | 향후 검색 | 영향 판정 | 채널 선택 |
+| V420-F02 | startTimeMs/endTimeMs; 100≤t<200의 경계, 31일/초과, 역전/overflow 거부 | 시간 필터 | 향후 검색 | 영향 판정 | 로컬→UTC |
+| V420-F03 | object; person만 일치, vehicle 불일치, 분석 없는 원본은 객체 질의에 불일치 | 객체 필터 | 향후 검색 | 영향 판정 | 객체 입력 |
+| V420-F04 | track; 같은 ID의 다른 namespace/epoch를 독립 hit로 보존 | track 필터 | 향후 검색 | 영향 판정 | track 입력 |
+| V420-F05 | event; 연결된 eventId만 일치, 같은 시각의 무관 이벤트 불일치 | event 필터 | 향후 검색 | 영향 판정 | event 입력 |
+| V420-F06 | zone; 동일 관측의 zone 참조만 일치, 다른 관측 zone으로 보충 불가 | zone 필터 | 향후 검색 | 영향 판정 | zone 입력 |
+| V420-F07 | rule; 저장 당시 rule ID만 일치, 현재 rule 변경으로 과거 결과 변경 불가 | rule 필터 | 향후 검색 | 영향 판정 | rule 입력 |
+| V420-F08-I | behaviour=event:Intrusion; 해당 연결 이벤트만 일치 | 행동 필터 | 향후 검색 | 영향 판정 | 행동 선택 |
+| V420-F08-L | behaviour=event:LineCrossing; Intrusion과 독립 기대값, 방향 판정 변경 없음 | 행동 필터 | 향후 검색 | 영향 판정 | 행동 선택 |
+| V420-F08-D | behaviour=scenario:intrusion-dwell; 저장된 scenario_name 근거, scenario ID 추정 금지 | 행동 필터 | 향후 검색 | 영향 판정 | 행동 선택 |
+| V420-F08-O | behaviour=scenario:loitering; dwell과 별개 결과, 미저장 행동 추론 금지 | 행동 필터 | 향후 검색 | 영향 판정 | 행동 선택 |
+| V420-F09 | AND/OR; 같은 필드 OR/다른 필드 AND, 다른 관측 및 다른 연결 이벤트 조합의 거짓 일치 거부 | 복합 반례 | 향후 검색 | 영향 판정 | 복합 검색 |
+| V420-F10 | invalid/unknown; 모르는 field·빈 값·limit0/201·행동 namespace 오류 거부; 불명 UTC는 별도 결과 | 파싱/unknown | 향후 검색 | 영향 판정 | 오류/미확인 |
+| V420-C01 | cursor; 동일 UTC 5개를 2/2/1로 정확히 순회, 중복/누락 없음 | pagination | 향후 연속 페이지 | 영향 판정 | 다음 페이지 |
+| V420-C02 | cursor; 조건·사용자·scope 변경/변조 거부, 5분 만료·서버 재시작·축출 구분 | cursor 반례 | 향후 만료 | 영향 판정 | 재검색 안내 |
+| V420-C03 | 페이지 중 추가/삭제; 새 hit는 새 검색에만, 기존 membership 고정·삭제 hit 재생 거부 | 동시성/수명 | 향후 순환 | 영향 판정 | 상태/페이지 |
+| V420-E01 | event 우선; 동일 원본 전체 coverage에서 event 선택, 다른 원본의 같은 UTC 유지 | 선택 oracle | 향후 선택 | 영향 판정 | 원본/이벤트 |
+| V420-E02 | partial/fallback/미완성; 입증 범위만 event 우선, 남은 원본 유지·complete 승격 금지 | 부분 구간 | 향후 파생 | 영향 판정 | 부분/불가 표시 |
+| V420-P01 | hit→원본 파일; nonzero PTS·timebase·edit 기준 실제 목표 frame 오차≤1 frame duration | 실제 파일/독립 decode | 향후 재생 | 영향 판정 | 검색 시점 재생 |
+| V420-P02 | hit→파생 파일; 원본과 다른 시작점·partial 범위·서로 다른 GOP 목표 위치 | 실제 파생 파일 | 향후 재생 | 영향 판정 | 이벤트 seek |
+| V420-P03 | 불명/복수/삭제·재생 중 보존; 임의 offset 금지, 권한 재검사·fd/hold 수명 유지 | 실패/보호 | 향후 삭제 병행 | 영향 판정 | 불가 사유 |
+| V420-A01 | GET /ops/api/recordings/search; admin/scoped operator 정상, anonymous/viewer/integrator/다른 채널 거부 | 실제 HTTP auth | 향후 역할 | 영향 판정 | 접근 경계 |
+| V420-A02 | 공개 JSON·오류·건수·cursor; raw path/URL/JSON/비밀 및 금지 채널 정보 없음 | HTTP 응답 경계 | 향후 역할 | 영향 판정 | 안전 표시 |
+| V420-U01 | /ops/events 검색; 필터→결과→페이지→목표 재생, empty/invalid/expired, 늦은 응답/선택 변경 안전 | UI 코드/API | 향후 UI 병행 | 영향 판정 | 변경 기능 직접 조작 |
+| V420-U02 | /ops/events 표시; 390/1440px·light/dark에서 필터/표/플레이어 잘림 없음, nav/client 경계 유지 | 영향 정적 검사 | 비대상: 외관 | 비대상: 외관 | 변경 영역 직접 시각 확인 |
+| V420-K01 | v4.1 golden bytes/reader와 새 검색; digest 불변, 기대 ID/시간 의미 유지 | 기존+새 호환 | 향후 회귀 | 영향 판정 | 비대상: reader |
+| V420-K02 | 현재 V2/generation source; SQLite 유무·재개방 후 검색 동등, pin/hold/삭제 계약 유지 | 현재 경로 통합 | 향후 회귀 | 영향 판정 | 조회/재생 연결 |
+| V420-K03 | 검색 병행 녹화; 새 source worker 없음·검색 작업을 미디어 callback에서 수행하지 않음·종료 정리 | 한정 runtime 통합 | 향후 녹화 병행 | 영향 판정 | 비대상: 내부 수명 |
+
+
 ## B14 공개 증거 정제 사전 등록
 
 기존 OPS-163/SAFE-196 공개 준비의 자료/검증 경계 보완이며 새 제품 기능 ID가 아니다.
