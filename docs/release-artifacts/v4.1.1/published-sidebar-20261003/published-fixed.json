@@ -1,0 +1,287 @@
+{
+  "schema": "media-server.release-metadata-consistency.v1",
+  "generatedAt": "2026-10-02T15:06:33.266Z",
+  "status": "pass",
+  "mode": "published-release",
+  "currentVersion": "4.1.1",
+  "currentTag": "v4.1.1",
+  "checks": [
+    {
+      "name": "current release documents preserve version and publication boundaries",
+      "status": "pass",
+      "detail": {
+        "version": "4.1.1",
+        "releaseTargetTag": "v4.1.1",
+        "publishedSnapshotTag": "v4.1.0",
+        "priorPublishedTag": "v4.1.0",
+        "tagType": "signed-annotated",
+        "distribution": "source-only",
+        "releaseNotes": "docs/release-notes-v4.1.1.md",
+        "roadmap": "docs/v410-v49-recording-search-roadmap.md"
+      }
+    },
+    {
+      "name": "historical v2.9 source-of-truth remains distinct from latest published v2.8",
+      "status": "pass",
+      "detail": {
+        "fixture": "test/fixtures/release_metadata_boundary.json",
+        "productExecutionEvidence": false,
+        "externalActionsExecuted": false
+      }
+    },
+    {
+      "name": "GitHub release list latest tag matches release target",
+      "status": "pass",
+      "detail": {
+        "repository": "dhseo90/MediaServer",
+        "releaseListTag": "v4.1.1",
+        "source": "gh release list",
+        "fallbackUsed": false
+      }
+    },
+    {
+      "name": "GitHub API latest release matches release target",
+      "status": "pass",
+      "detail": {
+        "repository": "dhseo90/MediaServer",
+        "apiTag": "v4.1.1",
+        "releaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "source": "gh api repos/<repo>/releases/latest",
+        "fallbackUsed": false
+      }
+    },
+    {
+      "name": "GitHub release view matches release target",
+      "status": "pass",
+      "detail": {
+        "repository": "dhseo90/MediaServer",
+        "releaseViewTag": "v4.1.1",
+        "releaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "source": "gh release view",
+        "fallbackUsed": false
+      }
+    },
+    {
+      "name": "remote origin exposes release target tag",
+      "status": "pass",
+      "detail": {
+        "repository": "dhseo90/MediaServer",
+        "remoteTag": "v4.1.1",
+        "remoteTagObjectSha": "e15f2451b813b9eec402e4d8db043096f58f7d03",
+        "source": "git ls-remote --tags origin",
+        "fallbackUsed": false
+      }
+    },
+    {
+      "name": "remote origin exposes release branch head",
+      "status": "pass",
+      "detail": {
+        "repository": "dhseo90/MediaServer",
+        "remoteBranch": "v4.1.1",
+        "remoteSha": "74ae5ff448580b212d973f900e7d5fc23b8c2fd8",
+        "source": "git ls-remote --heads origin",
+        "fallbackUsed": false
+      }
+    },
+    {
+      "name": "GitHub repository page exposes Releases Latest link",
+      "status": "pass",
+      "detail": {
+        "repository": "dhseo90/MediaServer",
+        "repositoryUrl": "https://github.com/dhseo90/MediaServer",
+        "expectedRightRail": "Releases / Latest",
+        "expectedHref": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "source": "repository-html+github-sidebar-json"
+      }
+    }
+  ],
+  "releaseTargetTag": "v4.1.1",
+  "latestPublishedTag": "v4.1.1",
+  "cutPriorPublishedTag": "v4.1.0",
+  "publishedSnapshot": {
+    "tag": "v4.1.0",
+    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.0",
+    "observedAt": "2026-09-28T13:42:28Z",
+    "source": "documented-observation-not-current-remote-verification"
+  },
+  "latestPublishedVersion": "4.1.1",
+  "github": {
+    "repository": "dhseo90/MediaServer",
+    "repositoryUrl": "https://github.com/dhseo90/MediaServer",
+    "expectedReleaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+    "currentBranch": "heads/v4.1.1",
+    "releaseBranch": "v4.1.1",
+    "latestRelease": {
+      "url": "https://api.github.com/repos/dhseo90/MediaServer/releases/401898824",
+      "assets_url": "https://api.github.com/repos/dhseo90/MediaServer/releases/401898824/assets",
+      "upload_url": "https://uploads.github.com/repos/dhseo90/MediaServer/releases/401898824/assets{?name,label}",
+      "html_url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+      "id": 401898824,
+      "author": {
+        "login": "dhseo90",
+        "id": 34980612,
+        "node_id": "MDQ6VXNlcjM0OTgwNjEy",
+        "avatar_url": "https://avatars.githubusercontent.com/u/34980612?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/dhseo90",
+        "html_url": "https://github.com/dhseo90",
+        "followers_url": "https://api.github.com/users/dhseo90/followers",
+        "following_url": "https://api.github.com/users/dhseo90/following{/other_user}",
+        "gists_url": "https://api.github.com/users/dhseo90/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/dhseo90/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/dhseo90/subscriptions",
+        "organizations_url": "https://api.github.com/users/dhseo90/orgs",
+        "repos_url": "https://api.github.com/users/dhseo90/repos",
+        "events_url": "https://api.github.com/users/dhseo90/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/dhseo90/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "node_id": "RE_kwDOSGxS6M4X9H1I",
+      "tag_name": "v4.1.1",
+      "target_commitish": "main",
+      "name": "MediaServer v4.1.1",
+      "draft": false,
+      "immutable": false,
+      "prerelease": false,
+      "created_at": "2026-10-02T14:39:44Z",
+      "updated_at": "2026-10-02T14:41:10Z",
+      "published_at": "2026-10-02T14:41:10Z",
+      "assets": [],
+      "tarball_url": "https://api.github.com/repos/dhseo90/MediaServer/tarball/v4.1.1",
+      "zipball_url": "https://api.github.com/repos/dhseo90/MediaServer/zipball/v4.1.1",
+      "body": "## v4.1.1 source-only 패치\n\nv4.1.0 녹화 기반의 내부 계약·소유 수명, 검증 연결과 문서/기록 수명을 정리한 호환 유지 패치입니다.\n\n- 녹화 저장 값·selection·remux 결과와 finalize ticket 저장 경계를 분리했습니다.\n- timeline의 read-service 연결과 snapshot/context/FD/hold 검증, supervisor의 route·callback·thread·session 소유를 정리했습니다.\n- 소유 graph와 canonical/companion·manifest 전체 경로 검증, VLM 오류 보존을 보강했습니다.\n- 검사 준비·녹화 저장소 격리·하위 결과 집계·live 용량 관측을 보완하고, 종료 자료를 Git 이력으로 정리했습니다.\n\n공개 API·녹화 저장 형식·데이터 migration 변경은 없습니다. Apache-2.0 소스·문서만 공개합니다. 별도 binary/runtime/model·운영 자료·대형 테스트 원본은 배포하지 않습니다. 외부 서비스·실기기 ONVIF·TURN/WHEP·cloud VLM 성공을 주장하지 않습니다.\n\n## 검증 범위와 보존\n\n다음 결과는 각 실행의 소스·환경에 대한 기존 증거입니다. 이번 최종 main에서 일반 acceptance/UI/장시간 검증을 다시 실행했다는 뜻이 아닙니다. 이후 제품 바이너리와 일반 검증 조건을 유지한 녹화 검사 준비·집계·관측 및 문서/증거 변경의 경계를 확인했습니다.\n\n- 일반 acceptance: `c888ac9baf613c773cbd8bb14bb547d3a3e4cc3a`의 build·36개 기능 검사·30분·기본 UI 424개 적격 판정·서버 120분·최종 무결성 PASS. [원본의 standardAcceptance](https://github.com/dhseo90/MediaServer/blob/0cfc7cc0d932ad69ed7db094ebf40739fe83244e/docs/release-artifacts/v4.1.1/test-acceptance-current-final/release-attempt.json)와 같은 기록의 후속 녹화 링크 FAIL을 구분합니다.\n- 녹화 단기: [finalize 통합 140·기본 74·timeline 166](https://github.com/dhseo90/MediaServer/blob/71b423d4cfafa56fcbe2fea7812752d07d87c22a/docs/release-artifacts/v4.1.1/recording-short-resume-20261002/result.json), [current-integration HTTP 35·Auth 40·lifecycle 10·composition 51·actual-app 27](https://github.com/dhseo90/MediaServer/blob/ce0d01e2b964cdcde27360b2f533039499ed2941/docs/release-artifacts/v4.1.1/recording-live-budget-20261002/result.json) PASS.\n- UI 432개 범위: 기존 baseline 424개와 `ce0d01e2b964cdcde27360b2f533039499ed2941`에서 실행한 [녹화 8개 ID·31개 action 및 캡처 42개 검토](https://github.com/dhseo90/MediaServer/blob/860aa46b4d616291e0fad5cadb17ea127ebf2dc8/docs/release-artifacts/v4.1.1/recording-ui-20261002/review.md)를 결합한 판단입니다. 서로 다른 실행입니다.\n- 별도 녹화 120분: `860aa46b4d616291e0fad5cadb17ea127ebf2dc8`의 [기능·저장·재기동·재활성화·cleanup PASS](https://github.com/dhseo90/MediaServer/blob/6297af4b9fb0a7d5394a9af2cb34e5aff02c7ac0/docs/release-artifacts/v4.1.1/recording-longrun-20261002/review.md)를 유지합니다.\n\n최초 Opus timeout의 원인은 미확정이며 제한 진단 2회에서는 미재현, 이후 정식 재검증은 위 run의 PASS입니다. 과거 snapshot ENOENT, 최초 FAIL·재검증·부분 수집 기록과 source SHA·시각·원본 `resourceTrendPass`/`reviewRequired`는 변경하지 않았습니다.\n\n## 알려진 메모리 운영 제한\n\n**누적 녹화 이력의 지원 규모·RAM 예산·장기 관리 범위는 미확정이며, 일부 live 할당 귀속이 미확인이다. 무조건적 자원 안정성 보증은 하지 않는다.** 녹화 off 이후의 일부 live 할당 귀속도 미확인 상태이며, 무제한 연속 운용의 안전성을 승인하지 않습니다.\n\n사용자는 이 특정 운영 제한을 이해하고 공개 문서에 유지하는 조건으로 source-only 공개를 승인했습니다. 공개 결정은 기술적 미확인을 PASS로 바꾸지 않습니다. [녹화 누적 이력의 메모리 운영 한계](https://github.com/dhseo90/MediaServer/blob/74ae5ff448580b212d973f900e7d5fc23b8c2fd8/docs/development-backlog.md#녹화-누적-이력의-메모리-운영-한계)는 미해결로 유지합니다. [부분 수집과 판단 한계](https://github.com/dhseo90/MediaServer/blob/c4995e0ee2c912c3bf15923f369cc282b0a5fcfb/docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md)도 그대로 보존합니다. 미디어 quota/age는 누적 이력 RAM 상한이 아니며, 2채널·120분 관측을 새로운 지원 한도나 무기한 안정성 보증으로 해석하지 않습니다.\n\n## 공개 이력\n\n[PR #73](https://github.com/dhseo90/MediaServer/pull/73)을 merge commit 방식으로 병합해 보존·삭제 커밋의 이력을 유지합니다. 종료 자료는 [이력 색인과 고정 commit/path](https://github.com/dhseo90/MediaServer/blob/74ae5ff448580b212d973f900e7d5fc23b8c2fd8/docs/history/README.md)에서 조회할 수 있습니다. 최신 트리 정리 커밋은 `74ae5ff448580b212d973f900e7d5fc23b8c2fd8`입니다. 최종 CI·main·서명 태그·공개 후 확인은 PR에 기록합니다.\n\n최종 main: `d4505b6f5c9c9923b701c16cd66f163a8ba5e4cf`.\n[PR Preflight](https://github.com/dhseo90/MediaServer/actions/runs/37020136949)·[PR Guardrails](https://github.com/dhseo90/MediaServer/actions/runs/37020137062) 및 [main Preflight](https://github.com/dhseo90/MediaServer/actions/runs/37020736327)·[main Guardrails](https://github.com/dhseo90/MediaServer/actions/runs/37020736606)가 모두 성공했습니다. 필수 단계 생략은 없으며 수동 RC Release Gate는 실행하지 않았습니다.\n\n`v4.1.1`은 위 main을 대상으로 한 SSH signed annotated tag입니다. Tag object는 `e15f2451b813b9eec402e4d8db043096f58f7d03`이며 로컬 서명 검증과 GitHub tag API `verified=true`, `reason=valid`를 확인했습니다.\n"
+    },
+    "releaseListLatest": {
+      "isDraft": false,
+      "isLatest": true,
+      "isPrerelease": false,
+      "publishedAt": "2026-10-02T14:41:10Z",
+      "tagName": "v4.1.1",
+      "source": "gh release list",
+      "fallbackUsed": false,
+      "primaryFailure": null
+    },
+    "releaseView": {
+      "isDraft": false,
+      "isPrerelease": false,
+      "publishedAt": "2026-10-02T14:41:10Z",
+      "tagName": "v4.1.1",
+      "targetCommitish": "main",
+      "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+      "source": "gh release view",
+      "fallbackUsed": false,
+      "primaryFailure": null
+    },
+    "remoteTag": {
+      "tag": "v4.1.1",
+      "sha": "e15f2451b813b9eec402e4d8db043096f58f7d03",
+      "source": "git ls-remote --tags origin",
+      "fallbackUsed": false,
+      "primaryFailure": null
+    },
+    "remoteBranch": {
+      "branch": "v4.1.1",
+      "remoteSha": "74ae5ff448580b212d973f900e7d5fc23b8c2fd8",
+      "localHead": "74ae5ff448580b212d973f900e7d5fc23b8c2fd8",
+      "source": "git ls-remote --heads origin",
+      "fallbackUsed": false,
+      "primaryFailure": null
+    },
+    "repositoryLandingPage": {
+      "url": "https://github.com/dhseo90/MediaServer",
+      "expectedRightRail": "Releases / Latest",
+      "expectedHref": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+      "observedTagPath": "/dhseo90/MediaServer/releases/tag/v4.1.1",
+      "source": "repository-html+github-sidebar-json",
+      "sidebarUrl": "https://github.com/dhseo90/MediaServer/_sidebar",
+      "latestMarkerSource": "sidebar.latestRelease",
+      "observedReleasesPath": "/dhseo90/MediaServer/releases"
+    }
+  },
+  "publishedEvidence": {
+    "schema": "media-server.published-release-evidence.v1",
+    "status": "pass",
+    "repository": "dhseo90/MediaServer",
+    "repositoryUrl": "https://github.com/dhseo90/MediaServer",
+    "expectedReleaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+    "currentTag": "v4.1.1",
+    "releaseTargetTag": "v4.1.1",
+    "latestPublishedTag": "v4.1.1",
+    "cutPriorPublishedTag": "v4.1.0",
+    "currentBranch": "heads/v4.1.1",
+    "releaseBranch": "v4.1.1",
+    "command": "./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>",
+    "fallbackPolicy": {
+      "schema": "media-server.github-metadata-fallback-policy.v1",
+      "ghFallback": "curl GitHub REST API /releases, /releases/latest, /releases/tags/<tag>",
+      "remoteRefFallback": "git ls-remote against https://github.com/dhseo90/MediaServer.git",
+      "failureClasses": [
+        "external-auth-or-permission",
+        "external-network",
+        "tool-unavailable",
+        "external-github-access"
+      ]
+    },
+    "evidence": {
+      "releaseListLatest": {
+        "isDraft": false,
+        "isLatest": true,
+        "isPrerelease": false,
+        "publishedAt": "2026-10-02T14:41:10Z",
+        "tagName": "v4.1.1",
+        "source": "gh release list",
+        "fallbackUsed": false,
+        "primaryFailure": null
+      },
+      "latestReleaseApi": {
+        "id": 401898824,
+        "tagName": "v4.1.1",
+        "htmlUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "publishedAt": "2026-10-02T14:41:10Z",
+        "draft": false,
+        "prerelease": false,
+        "source": "gh api repos/<repo>/releases/latest",
+        "fallbackUsed": false,
+        "primaryFailure": null
+      },
+      "releaseView": {
+        "isDraft": false,
+        "isPrerelease": false,
+        "publishedAt": "2026-10-02T14:41:10Z",
+        "tagName": "v4.1.1",
+        "targetCommitish": "main",
+        "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "source": "gh release view",
+        "fallbackUsed": false,
+        "primaryFailure": null
+      },
+      "remoteTag": {
+        "tag": "v4.1.1",
+        "sha": "e15f2451b813b9eec402e4d8db043096f58f7d03",
+        "source": "git ls-remote --tags origin",
+        "fallbackUsed": false,
+        "primaryFailure": null
+      },
+      "remoteBranch": {
+        "branch": "v4.1.1",
+        "remoteSha": "74ae5ff448580b212d973f900e7d5fc23b8c2fd8",
+        "localHead": "74ae5ff448580b212d973f900e7d5fc23b8c2fd8",
+        "source": "git ls-remote --heads origin",
+        "fallbackUsed": false,
+        "primaryFailure": null
+      },
+      "repositoryLandingPage": {
+        "url": "https://github.com/dhseo90/MediaServer",
+        "expectedRightRail": "Releases / Latest",
+        "expectedHref": "https://github.com/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "observedTagPath": "/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "source": "repository-html+github-sidebar-json",
+        "sidebarUrl": "https://github.com/dhseo90/MediaServer/_sidebar",
+        "latestMarkerSource": "sidebar.latestRelease",
+        "observedReleasesPath": "/dhseo90/MediaServer/releases"
+      }
+    }
+  }
+}

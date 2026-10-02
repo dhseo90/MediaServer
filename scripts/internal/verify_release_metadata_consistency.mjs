@@ -292,26 +292,14 @@ if (!publishedMode) {
   });
 
   check("GitHub repository page exposes Releases Latest link", () => {
-  const pageHtml = readRepositoryPageHtml();
-  const expectedTagPath = `/${githubRepository}/releases/tag/${releaseTargetTag}`;
-  const expectedLatestPath = `/${githubRepository}/releases/latest`;
-  const hasTagLink = pageHtml.includes(expectedTagPath) || pageHtml.includes(expectedReleaseUrl);
-  const hasLatestMarker = pageHtml.includes(expectedLatestPath) || /\bLatest\b/i.test(pageHtml);
-  assert(hasTagLink, `repository page ${repositoryUrl} does not include release link ${expectedTagPath}`);
-  assert(hasLatestMarker, `repository page ${repositoryUrl} does not include a Latest release marker`);
-  report.github.repositoryLandingPage = {
-    url: repositoryUrl,
-    expectedRightRail: "Releases / Latest",
-    expectedHref: expectedReleaseUrl,
-    observedTagPath: expectedTagPath,
-    observedLatestMarker: true,
-  };
+  report.github.repositoryLandingPage = readRepositoryReleaseLink();
   report.publishedEvidence.evidence.repositoryLandingPage = report.github.repositoryLandingPage;
   return {
     repository: githubRepository,
     repositoryUrl,
     expectedRightRail: "Releases / Latest",
     expectedHref: expectedReleaseUrl,
+    source: report.github.repositoryLandingPage.source,
   };
   });
 }
@@ -616,6 +604,49 @@ function readRepositoryPageHtml() {
   } catch (error) {
     throw new Error(formatExternalFailure("GitHub repository page Releases/Latest link", errorMessage(error), ""));
   }
+}
+
+function readRepositoryReleaseLink() {
+  const html = readRepositoryPageHtml();
+  const expectedTagPath = `/${githubRepository}/releases/tag/${releaseTargetTag}`;
+  const common = {url: repositoryUrl, expectedRightRail: "Releases / Latest",
+    expectedHref: expectedReleaseUrl, observedTagPath: expectedTagPath};
+  const hasTagLink = [...html.matchAll(/<a\b[^>]*\shref\s*=\s*(["'])(.*?)\1/gi)]
+    .some(match => match[2] === expectedTagPath || match[2] === expectedReleaseUrl);
+  const hasLatestMarker = html.includes(`/${githubRepository}/releases/latest`) || /\bLatest\b/i.test(html);
+  if (hasTagLink && hasLatestMarker) {
+    return {...common, source: "repository-html", observedLatestMarker: true};
+  }
+
+  // GitHub의 동적 Releases는 초기 HTML에 자리 표시자만 두고 /_sidebar의 latestRelease를 표시한다.
+  // 같은 저장소에서 활성화한 영역임을 먼저 확인하며, README 링크나 REST API 성공으로 대신하지 않는다.
+  const contexts = [];
+  for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    if (!/\btype=["']application\/json["']/i.test(match[1]) ||
+        !/\bdata-target=["']react-app\.embeddedData["']/i.test(match[1])) continue;
+    const context = JSON.parse(match[2])?.payload?.sidebarAbout;
+    if (context) contexts.push(context);
+  }
+  assert(contexts.length === 1, `repository page ${repositoryUrl} has no unambiguous dynamic Releases context or release link ${expectedTagPath}`);
+  const context = contexts[0];
+  const [owner, name] = githubRepository.split("/");
+  assert(context.ownerLogin === owner && context.repoName === name, "repository page sidebar owner/repository mismatch");
+  const releases = context.sections?.releases;
+  assert(releases && Number.isInteger(releases.releaseCount) && releases.releaseCount > 0,
+    "repository page Releases section is disabled or has no published releases");
+
+  const sidebarUrl = `${repositoryUrl}/_sidebar`;
+  let sidebar;
+  try {
+    sidebar = JSON.parse(runTextCommand("curl", ["-fsSL", "-H", "Accept: application/json", sidebarUrl]));
+  } catch (error) {
+    throw new Error(formatExternalFailure("GitHub repository Releases sidebar", errorMessage(error), ""));
+  }
+  assert(sidebar?.releases?.releasesPath === `/${githubRepository}/releases`, "repository sidebar releasesPath mismatch");
+  assert(sidebar.releases.latestRelease?.path === expectedTagPath,
+    `repository sidebar latestRelease does not point to ${expectedTagPath}`);
+  return {...common, source: "repository-html+github-sidebar-json", sidebarUrl,
+    latestMarkerSource: "sidebar.latestRelease", observedReleasesPath: sidebar.releases.releasesPath};
 }
 
 function normalizeGithubApiReleaseForList(release) {

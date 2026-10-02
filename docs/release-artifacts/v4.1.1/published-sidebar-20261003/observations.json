@@ -1,0 +1,40 @@
+{
+  "purpose": "공개 후 GitHub 저장소 Releases 동적 표시 진단. 제품 UI 검증 아님.",
+  "firstFailure": "https://github.com/dhseo90/MediaServer/pull/73#issuecomment-5954893008",
+  "initialHtml": {
+    "url": "https://github.com/dhseo90/MediaServer",
+    "responseDate": "Fri, 02 Oct 2026 14:57:50 GMT",
+    "sha256": "36b90409ae37998254652294d6b6945fda5c25b03281694546ecb21ab21dc7f2",
+    "bytes": 335915,
+    "exactTargetLinkPresent": false,
+    "observedReleasesSection": "Releases heading and SkeletonText placeholders; sidebarAbout.sections.releases enabled"
+  },
+  "frontend": {
+    "url": "https://github.githubassets.com/assets/code-view-e53eadf83397acf7.js",
+    "sha256": "39d245c8b8dad55fdf967240ccbc36480d7057039dec56d597b0831f4a792995",
+    "observedBehavior": "code-view-sidebar query requests /<owner>/<repo>/_sidebar; SidebarReleases renders latestRelease.path and the Latest label"
+  },
+  "sidebar": {
+    "url": "https://github.com/dhseo90/MediaServer/_sidebar",
+    "sha256": "c2d08d1e8528652239b3c74c9e12665876552f28b7695b267b1511507087b40d",
+    "bytes": 1172,
+    "releases": {
+      "latestRelease": {
+        "name": "MediaServer v4.1.1",
+        "path": "/dhseo90/MediaServer/releases/tag/v4.1.1",
+        "publishedAt": "2026-10-02T14:41:10Z"
+      },
+      "releasesPath": "/dhseo90/MediaServer/releases",
+      "tagsPath": "/dhseo90/MediaServer/tags",
+      "canWrite": false
+    }
+  },
+  "browserObservation": {
+    "tool": "cua_repl, Codex in-app browser",
+    "url": "https://github.com/dhseo90/MediaServer",
+    "renderedLinkText": "MediaServer v4.1.1 Latest",
+    "observedHref": "/dhseo90/MediaServer/releases/tag/v4.1.1",
+    "scope": "actual DOM observation only, no product UI run"
+  },
+  "preservation": "집계·선택 관측만 보존. 초기 HTML/헤더/외부 frontend 전체 원문은 임시 진단 자료이며 Git 전체 원본 보존을 주장하지 않음."
+}
