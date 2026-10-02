@@ -4159,3 +4159,5 @@ V420-E01/E02 실제 미디어 연결: 기존 GStreamer 30-frame fixture의 원�
 V420-P01/P03 원본 seek focused: 30fps 12-frame/7초 source PTS 원점의 실제 MP4를 기록하고 현재 file evidence를 검증하여 6번째 frame의 파일 위치를 산출한다. 전체 독립 디코딩의 6번째 frame hash와 실제 accurate seek 뒤 frame hash를 비교하고 시각 오차가 한 frame duration 이내인지 확인한다. 표본 PTS 다음 1ns의 native 구간 소속도 확인한다. 다른 채널/표현 불가 시간/범위 밖/파일 부재는 원자 거부한다. 파생 출력 seek와 브라우저 UI는 별도 검사다.
 
 V420-P03의 기본 10fps mux fixture는 현재 file-evidence profile 미지원 시 explicit seek-unavailable을 검사한다. 원인 진단은 생성된 MP4의 movie/track timescale을 직접 읽어 30fps 지원 fixture와 대조하며 원본이나 검증 정책을 수정하지 않는다.
+
+V420-P02 파생 seek focused: 실제 Complete job의 원본 AU→출력 AU 대응을 현재 MP4 SHA/VCL/PTS와 대조하고 GStreamer stream time으로 변환한다. 서로 다른 원본 GOP의 출력마다 accurate seek frame hash를 별도로 디코딩한 원본 frame hash와 비교하며 한 frame duration 오차 이내를 확인한다. intent/다른 채널/다른 원본/미결박 출력/실제 범위 밖/파일 부재는 거부하고 복구 후 재확인한다. FD offset은 pread 기반 기존 media reader가 유지한다.

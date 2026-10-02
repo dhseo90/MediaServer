@@ -12,8 +12,8 @@
   4 필터 모델과 실제 이벤트 행동 근거 연결을 구현·단기 검증했다.
   5 불변 결과 snapshot/cursor를 구현·단기 검증했다.
   6 동일 원본 이벤트 우선과 실제 파일/파생 출력 후보 연결을 구현·단기 검증했다.
-  7 원본 file-evidence 기반 seek와 실제 frame 대조를 구현·검증했다. 파생 출력 seek가 남았다.
-  7~10 미완료. 제품 완료·push 미수행.
+  7 원본·파생 파일 presentation seek와 실제 frame 대조를 구현·검증했다.
+  다음은 8 인증된 API/service 통합이다. 8~10 미완료. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -1034,4 +1034,110 @@ cleanup: owned temporary root removed=True; no server/port
 include/recording/recording_search_reader.h 1659ee1564f01b913c77ad66394ed27067b5db7cd04f9e8f0e59c3d902392d12
 src/recording/recording_search_reader.cpp 46065a9d1174f076d6344c26f3b6eebf9beeb50619f4401a97e299c85acfe117
 scripts/internal/recording_search_seek_smoke.cpp aa9d120860043a994e41bb3843921bc0ff1d6c6c88d12680329f17d1f83c0b93
+```
+
+### 7 파생 출력 seek focused 검사
+
+source: d70218a4 + derived seek worktree.
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_derived_seek_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-seek-wqrql28t/seek
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-seek-wqrql28t/seek /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-seek-wqrql28t/fixture
+[pass] intent output seek unavailable
+[pass] original AU maps to current output presentation
+[pass] derived accurate seek matches independent original decoded frame
+[pass] foreign channel rejects atomically
+[pass] foreign original segment rejected
+[pass] unbound output rejected
+[pass] outside derived actual range rejected
+[pass] missing output no seek proof
+[pass] restored output revalidated
+[search-derived-seek] pass=9 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+다른 GOP의 출력 사례 추가 및 job ID 전달 영향 선택 회귀:
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_derived_seek_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-gop-s2hs_ilx/seek
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-gop-s2hs_ilx/seek /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-gop-s2hs_ilx/fixture
+[pass] intent output seek unavailable
+[pass] original AU maps to current output presentation
+[pass] derived accurate seek matches independent original decoded frame
+[pass] different source GOP output has independent file origin
+[pass] foreign channel rejects atomically
+[pass] foreign original segment rejected
+[pass] unbound output rejected
+[pass] outside derived actual range rejected
+[pass] missing output no seek proof
+[pass] restored output revalidated
+[search-derived-seek] pass=10 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude src/recording/recording_search_precedence.cpp scripts/internal/recording_search_precedence_smoke.cpp -o /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-gop-s2hs_ilx/precedence
+
+
+exit: 0
+command: /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-derived-gop-s2hs_ilx/precedence
+[pass] partial event preserves both uncovered original ranges
+[pass] overlapping events stable ID priority
+[pass] candidate order and duplicate invariant
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] observation point inside event
+[pass] exclusive event end keeps original
+[pass] full event clipped to original
+[pass] missing original identity never inferred
+[pass] invalid candidate rejects atomically
+[pass] candidate cap explicit failure
+[search-precedence] pass=17 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True; no server/port
+```
+
+### 7 파생 seek 판정
+
+- 최종 actual derived seek 10 PASS/0 FAIL. 서로 다른 원본/GOP 출력의 accurate seek frame을 각각 독립 원본 디코딩 hash와 대조했다. 원본과 다른 파일 시작점을 가진 partial 파생에서도 한 frame duration 이내이며 hash가 일치했다.
+- job 완료·원본 source/store/epoch·출력 binding을 확인하고 현재 보호된 FD의 SHA/VCL/PTS를 다시 확인한다. stream time은 기존 GStreamer demux 경계에서 얻는다. 요청 UTC/요청 range의 시작을 파일 offset으로 사용하지 않는다.
+- `ResolveRecordingPresentationTime`은 기존 32MiB/4,096 AU 경계와 5초 단기 읽기 budget을 적용한다. 불명/변경/복수 대응은 명시 seek-unavailable로 전달한다. 원본 파일·원장·저장 provenance shape는 변경하지 않았다.
+- 우선 선택 값 회귀 17 PASS/0 FAIL. 후보와 slice에 job ID를 전달해 HTTP 구성에서 동일 출처를 재검증할 수 있게 했다.
+- actual runtime build exit 0, graph-only 4/4, docs links failures 0, diff check exit 0. 최종 graph/역사 fixture 변경 없음.
+- stderr의 10fps file-evidence 경고는 앞서 직접 확인한 movie/track timescale 미지원 조건이다. 이 테스트는 기존 legacy remux의 저장 provenance와 현재 출력의 직접 재검증을 사용하여 원본 native evidence 없이도 파생 파일의 위치를 입증한다.
+- 사용자 권한·URL·snapshot/seek 호출 결박과 브라우저 stale 선택 방지는 8~9단계에 남는다. GStreamer decode 결과를 실제 브라우저/UI PASS로 보고하지 않는다.
+- 모든 소유 임시 영상·저장소·binary, demux/decoder pipeline 종료·제거 확인. 서버/포트/외부 호출 없음. 릴리즈 검사 미실행.
+
+최종 source SHA-256:
+
+```text
+include/recording/recording_derived_remux.h d140f0dd0010d732fef472730582ed8841ecc4685eb90011dc1b1c65aa5c194a
+src/recording/recording_derived_remux.cpp 05dfc56bbc69a2e882040681d6815eb52eab15349c3b0dd854c217df356f02c8
+include/recording/recording_search_precedence.h a391f78508e2e0b4cf807accc7854ba56a540d83c6b34a4637518420f413519f
+src/recording/recording_search_precedence.cpp efbedcd6bd89211f5618bab2a47acc868bf458f480920eb8fb699e92c4219b0d
+include/recording/recording_search_reader.h 244190f397c5d03ce1c0d2b29c26b19671d4820d69f3da560815db8d2ebcf9b6
+src/recording/recording_search_reader.cpp a05970f8cba8d2973780f9cdd230b96f6e163eb906b3486ef635d53d4d44164b
+scripts/internal/recording_search_derived_seek_smoke.cpp 21ba2bff8317a71a679356cd70f8ef080b41ce55f0e966b549fff3d1934dbba3
 ```

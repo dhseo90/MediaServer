@@ -37,9 +37,9 @@ bool SelectSearchPlayback(const ConfirmedMediaInterval& original,
             SearchPlaybackSlice slice{original,original.segment_id,{}};
             slice.original.start_pts=boundaries[i-1];slice.original.end_pts=boundaries[i];
             for(const auto* c:eligible)if(c->original.start_pts<=slice.original.start_pts&&c->original.end_pts>=slice.original.end_pts){
-                slice.playback_segment_id=c->output_segment_id;slice.event_id=c->event_id;break;
+                slice.playback_segment_id=c->output_segment_id;slice.event_id=c->event_id;slice.job_id=c->job_id;break;
             }
-            if(!result.empty()&&result.back().playback_segment_id==slice.playback_segment_id&&result.back().event_id==slice.event_id)
+            if(!result.empty()&&result.back().playback_segment_id==slice.playback_segment_id&&result.back().event_id==slice.event_id&&result.back().job_id==slice.job_id)
                 result.back().original.end_pts=slice.original.end_pts;
             else result.push_back(std::move(slice));
         }

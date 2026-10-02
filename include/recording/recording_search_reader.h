@@ -19,6 +19,9 @@ public:
                  const std::shared_ptr<const RecordingSearchModel>& previous,
                  std::shared_ptr<const RecordingSearchModel>* output,
                  std::string* error, SearchModelLimits limits = {}) const;
+    bool DerivedSeek(const std::string& channel, const std::string& job,
+        const std::string& original_segment, const std::string& output_segment,
+        std::int64_t original_ns, SearchSeekTarget*, std::string* error) const;
     bool SourceSeek(const std::string& channel, const std::string& segment,
         std::int64_t media_pts, std::int32_t time_base_num, std::int32_t time_base_den,
         SearchSeekTarget*, std::string* error) const;

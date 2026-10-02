@@ -21,6 +21,12 @@ struct DerivedRemuxRequest {
     std::function<bool()> cancelled;
 };
 
+// 현재 보호된 MP4 FD의 AU를 다시 읽고 저장된 출력 PTS/VCL에 대응하는 stream time을 반환한다.
+// 원본 PTS→출력 AU 연결은 caller가 검증한다. FD offset/소유권은 바꾸지 않는다.
+bool ResolveRecordingPresentationTime(int fd, std::uint64_t bytes, const std::string& sha256,
+    std::int64_t output_pts_ns, const std::string& vcl_sha256,
+    std::int64_t* stream_time_ns, std::int64_t* duration_ns, std::string* error);
+
 // FD offset/소유권은 caller에 남는다. source/output은 서로 다른 inode이며 output은 빈 O_RDWR regular FD여야 한다.
 // 같은 epoch도 현재 프로파일은 source별 독립 출력이다. close/unlink/publish/fsync/ready/catalog mutation은 caller 책임이다.
 DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request);

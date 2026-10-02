@@ -4,6 +4,7 @@
 #include <map>
 #include <tuple>
 #include "recording/recording_file_evidence.h"
+#include "recording/recording_derived_remux.h"
 #include "ingress/event_storage_application_service.h"
 
 namespace recording {
@@ -120,7 +121,7 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
                     // coverage는 기존 reader가 원본/요청/실제 파생 범위를 대조한 media-ns 축이다.
                     ConfirmedMediaInterval original{proof.source_id,proof.store_id,proof.epoch_id,proof.segment_id,
                         1,1000000000,proof.start_ns,proof.end_ns};
-                    candidates.push_back({std::move(original),item.event_id,item.segment_id,true,true});
+                    candidates.push_back({std::move(original),item.event_id,item.segment_id,true,true,item.job_id});
                 }
             }
         }
@@ -163,6 +164,45 @@ bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::str
     result.seconds=static_cast<double>(selected->native_pts-evidence.edit_media_time)/evidence.timescale;
     result.frame_duration_seconds=static_cast<double>(selected->native_duration)/evidence.timescale;
     result.sample_ordinal=selected->ordinal;result.basis="verified-native-file-presentation";
+    *output=std::move(result);if(error)error->clear();return true;
+}
+bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::string& job_id,
+    const std::string& original_id,const std::string& output_id,std::int64_t original_ns,
+    SearchSeekTarget* output,std::string* error) const {
+    const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
+    if(!output||original_ns<0)return unavailable("seek-unavailable-invalid-time");
+    std::optional<DerivedJobRecordV1> job;
+    if(!catalog_.FindDerivedJob(job_id,&job,error)||!job||job->state!=DerivedJobState::Complete||
+        !job->ready||!job->ready->verified_output||job->intent.reference.channel_id!=channel)
+        return unavailable("seek-unavailable-derived-job");
+    const DerivedJobReadyOutputV1* chosen=nullptr;
+    for(const auto& candidate:job->ready->outputs)if(candidate.segment.segment_id==output_id){
+        if(chosen)return unavailable("seek-unavailable-ambiguous-output");chosen=&candidate;
+    }
+    if(!chosen||chosen->source_index>=job->intent.sources.size()||chosen->segment.channel_id!=channel||
+        chosen->segment.container!="mp4"||!chosen->provenance.verified_output)
+        return unavailable("seek-unavailable-derived-output");
+    const auto& source=job->intent.sources[chosen->source_index].segment;const auto& proof=chosen->provenance;
+    if(source.segment_id!=original_id||source.channel_id!=channel||proof.segment_id!=source.segment_id||
+        proof.source_id!=source.source_id||proof.store_id!=source.store_id||proof.media_epoch_id!=source.media_epoch_id)
+        return unavailable("seek-unavailable-original-mismatch");
+    const DerivedRemuxAu* selected=nullptr;
+    for(const auto& au:proof.access_units)if(au.original_pts_ns==original_ns){
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&au;
+    }
+    if(!selected)for(const auto& au:proof.access_units)if(au.original_pts_ns<=original_ns&&
+        static_cast<__int128>(original_ns)<static_cast<__int128>(au.original_pts_ns)+au.file_duration_ns){
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&au;
+    }
+    if(!selected)return unavailable("seek-unavailable-outside-file");
+    auto media=reader_.ResolveMedia(channel,output_id);if(!media)return unavailable("seek-unavailable-media");
+    std::int64_t stream=0,duration=0;std::string detail;
+    if(!ResolveRecordingPresentationTime(media->fd(),chosen->segment.size_bytes,chosen->segment.checksum_sha256,
+        selected->output_pts_ns,selected->output_vcl_sha256,&stream,&duration,&detail))
+        return unavailable("seek-unavailable-output-presentation");
+    SearchSeekTarget result;result.seconds=static_cast<double>(stream)/1000000000;
+    result.frame_duration_seconds=static_cast<double>(duration)/1000000000;
+    result.sample_ordinal=selected->ordinal;result.basis="verified-derived-file-presentation";
     *output=std::move(result);if(error)error->clear();return true;
 }
 } // namespace recording
