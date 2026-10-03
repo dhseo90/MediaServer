@@ -112,3 +112,8 @@ test('LP23-DH06 exact instrumentation drift and trace bounds fail closed',()=>ow
   console.log('[profile-native] '+JSON.stringify({compileExit:compile.status,runExit:run.status,sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(cpp)).digest('hex'),binarySha256:crypto.createHash('sha256').update(fs.readFileSync(binary)).digest('hex')}));
   const trace=parsePhases(run.stderr,{timeout:true});assert.equal(trace.rows.length,256);assert(trace.loss);assert.equal(trace.rows[1].kind,'end');assert.equal(trace.rows[1].phase,'query');assert(Buffer.byteLength(run.stderr)<=131072);assert.equal(run.stdout,'');
 }));
+
+test('workspace copy callback refuses equality before writing and preserves source hash',()=>owned(root=>{
+  const original=path.join(root,'original');fs.mkdirSync(original);fs.writeFileSync(path.join(original,'file'),'12345678');const before=snapshotTree(original),copy=path.join(root,'limited-copy');let observed=0;
+  assert.throws(()=>copyVerified(original,copy,before,n=>{observed=n;if(n>=8)throw Error('copy-cap');}),/copy-cap/);assert.equal(observed,8);assert.equal(fs.statSync(path.join(copy,'file')).size,0);assert.equal(snapshotTree(original).sha256,before.sha256);
+}));

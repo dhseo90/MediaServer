@@ -149,12 +149,13 @@ export function snapshotTree(root){
     }else{const value=readFileChecked(p,uid);bytes+=value.bytes;requireSafe(bytes<=536870912,'tree-bytes');entries.push({relative:path.relative(root,p),...value});}
   }visit(root);return {entries,directories,bytes,count,sha256:hash(JSON.stringify({entries,directories}))};
 }
-export function copyVerified(original,destination,before){
+export function copyVerified(original,destination,before,beforeWrite=null){
+  let copiedBytes=0;
   requireSafe(!fs.existsSync(destination),'copy-existing');fs.mkdirSync(destination,{recursive:true,mode:0o700});
   for(const relative of before.directories){requireSafe(!relative.startsWith('..')&&!path.isAbsolute(relative),'copy-containment');fs.mkdirSync(path.join(destination,relative),{recursive:true,mode:0o700});}
   for(const e of before.entries){const target=path.join(destination,e.relative);requireSafe(path.relative(destination,target)===e.relative&&!e.relative.startsWith('..'),'copy-containment');
     fs.mkdirSync(path.dirname(target),{recursive:true,mode:0o700});const fd=fs.openSync(target,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
-    try{const observed=readFileChecked(path.join(original,e.relative),process.getuid(),chunk=>{let written=0;while(written<chunk.length){const n=fs.writeSync(fd,chunk,written,chunk.length-written);requireSafe(n>0,'copy-short-write');written+=n;}});
+    try{const observed=readFileChecked(path.join(original,e.relative),process.getuid(),chunk=>{beforeWrite?.(copiedBytes+chunk.length);copiedBytes+=chunk.length;let written=0;while(written<chunk.length){const n=fs.writeSync(fd,chunk,written,chunk.length-written);requireSafe(n>0,'copy-short-write');written+=n;}});
       requireSafe(observed.sha256===e.sha256&&observed.bytes===e.bytes,'copy-source-changed');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}
   }
   const copied=snapshotTree(destination);requireSafe(copied.sha256===before.sha256&&snapshotTree(original).sha256===before.sha256,'copy-mismatch');return copied;

@@ -7,7 +7,7 @@ case "$*" in
 esac
 observer_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 observer_repo="$(cd "$observer_script/../.." && pwd)"
-observer_receipts="$observer_repo/docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923"
+observer_receipts="${MEDIA_SERVER_RECORDING_RECEIPT_DIR:-$observer_repo/docs/release-artifacts/v4.1.0/lp26-o10-accumulation-20260923}"
 [[ -d "$observer_receipts" && ! -L "$observer_receipts" ]] || exit 2
 export MEDIA_SERVER_RECORDING_RECEIPT_DIR="$observer_receipts"
 observer_run="$(mktemp -d "${TMPDIR:-/tmp}/media-server-current-observer-XXXXXX")"

@@ -409,3 +409,73 @@ export function summarizeCurrentSamples(samples,{warmupMs=300000}={}){
         rssMiBPerMinute:(post.at(-1).rssBytes-post[0].rssBytes)/1048576/((post.at(-1).phaseAt-post[0].phaseAt)/60000)}};
   })};
 }
+
+// 장시간 관측에서만 선택하는 고정/가변 예산. 미선택 호출자의 전체 root C 제한은 유지한다.
+const fixedWorkspaceNames=Object.freeze(['input/retention-9101.mp4','input/retention-9201.mp4','normalize','process-metrics','catalog-instrumented.cpp']);
+const fixedIdentity=s=>({dev:s.dev,ino:s.ino,uid:s.uid,mode:s.mode,size:s.size,mtimeMs:s.mtimeMs,ctimeMs:s.ctimeMs});
+function fixedWorkspaceFile(root,name){
+  const file=path.join(root,name);
+  need(fs.realpathSync(file)===file,'workspace-fixed-path');
+  const s=fs.lstatSync(file);need(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.uid===process.getuid(),'workspace-fixed-owner');
+  return {file,identity:fixedIdentity(s)};
+}
+export function freezeCurrentWorkspace(root,{capBytes=CURRENT_ROOT_CAP_BYTES,inputMaxBytes=96*1024*1024}={}){
+  need(Number.isSafeInteger(capBytes)&&capBytes>0&&capBytes<=CURRENT_ROOT_CAP_BYTES&&Number.isSafeInteger(inputMaxBytes)&&inputMaxBytes>0&&inputMaxBytes<=96*1024*1024,'workspace-budget-options');
+  const st=fs.lstatSync(root);need(fs.realpathSync(root)===root&&st.isDirectory()&&!st.isSymbolicLink()&&st.uid===process.getuid()&&(st.mode&511)===448,'workspace-root-owner');
+  need(measureCurrentRootStable(root).totalBytes<capBytes,'workspace-preparation-cap');
+  const files=fixedWorkspaceNames.map(name=>{
+    const before=fixedWorkspaceFile(root,name),fd=fs.openSync(before.file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);let sha256;
+    try{need(JSON.stringify(fixedIdentity(fs.fstatSync(fd)))===JSON.stringify(before.identity),'workspace-fixed-replaced');sha256=crypto.createHash('sha256').update(fs.readFileSync(fd)).digest('hex');}
+    finally{fs.closeSync(fd);}
+    need(JSON.stringify(fixedWorkspaceFile(root,name).identity)===JSON.stringify(before.identity),'workspace-fixed-changed');
+    need(before.identity.size>0&&(!name.startsWith('input/')||before.identity.size<inputMaxBytes),'workspace-input-limit');
+    return Object.freeze({name,...before.identity,sha256});
+  });
+  need(files[0].dev!==files[1].dev||files[0].ino!==files[1].ino,'workspace-distinct-inputs');
+  return Object.freeze({root,dev:st.dev,ino:st.ino,uid:st.uid,capBytes,fixedBytes:files.reduce((n,f)=>n+f.size,0),files:Object.freeze(files)});
+}
+export function workspaceBounds(totalBytes,fixedBytes,copyBytes,capBytes=CURRENT_ROOT_CAP_BYTES){
+  need([totalBytes,fixedBytes,copyBytes,capBytes].every(n=>Number.isSafeInteger(n)&&n>=0)&&capBytes>0&&totalBytes>=fixedBytes,'workspace-size-bound');
+  const variableBytes=totalBytes-fixedBytes;
+  need(variableBytes<capBytes&&totalBytes<fixedBytes+capBytes,'workspace-variable-cap');
+  need(copyBytes<capBytes,'workspace-copy-cap');
+  need(totalBytes+copyBytes<fixedBytes+2*capBytes,'workspace-combined-cap');
+  return {fixedBytes,variableBytes,copyBytes,totalBytes,combinedBytes:totalBytes+copyBytes,rootCapBytes:fixedBytes+capBytes,combinedCapBytes:fixedBytes+2*capBytes};
+}
+// 복제본은 symlink 예외 없이 모든 소유 임시 파일을 포함한다. 파일 목록은 외부에 출력하지 않는다.
+export function measureCurrentCopy(root,identity){
+  const top=fs.lstatSync(root);need(fs.realpathSync(root)===root&&top.dev===identity.dev&&top.ino===identity.ino&&top.uid===process.getuid()&&(top.mode&511)===448,'workspace-copy-owner');
+  let bytes=0,entries=0;
+  const visit=file=>{const s=fs.lstatSync(file);need(++entries<=4096&&s.uid===process.getuid()&&!s.isSymbolicLink(),'workspace-copy-entry');
+    if(s.isDirectory())for(const name of fs.readdirSync(file))visit(path.join(file,name));
+    else{need(s.isFile()&&s.nlink===1&&Number.isSafeInteger(s.size)&&s.size>=0,'workspace-copy-file');bytes+=s.size;need(Number.isSafeInteger(bytes),'workspace-copy-size');}};
+  // 생성/삭제와 순회가 교차하면 항목을 누락하지 않고 전체를 제한적으로 다시 측정한다.
+  for(let retry=0;;retry++){bytes=0;entries=0;try{visit(root);return {bytes,entries};}catch(e){if(e.code!=='ENOENT'||retry>=2)throw e;}}
+}
+export function measureCurrentWorkspace(root,baseline,copy=null){
+  need(root===baseline.root,'workspace-baseline-root');const st=fs.lstatSync(root);
+  need(st.dev===baseline.dev&&st.ino===baseline.ino&&st.uid===baseline.uid&&!st.isSymbolicLink(),'workspace-root-changed');
+  for(const f of baseline.files)need(JSON.stringify(fixedWorkspaceFile(root,f.name).identity)===JSON.stringify(Object.fromEntries(Object.keys(fixedIdentity(st)).map(k=>[k,f[k]]))),'workspace-fixed-changed');
+  const storage=measureCurrentRootStable(root),copyStorage=copy?measureCurrentCopy(copy.root,copy.identity):{bytes:0,entries:0};
+  return {...storage,...workspaceBounds(storage.totalBytes,baseline.fixedBytes,copyStorage.bytes,baseline.capBytes),copyEntries:copyStorage.entries,capBytes:baseline.fixedBytes+baseline.capBytes,capExceeded:false,workspacePolicy:'fixed-plus-variable-v1'};
+}
+// spawnSync와 달리 실제 자식 실행 중 감시한다. 100ms 주기이며 표본 사이 순간 최고치는 보장하지 않는다.
+export async function runCurrentRecovery({command,args,env,observe,timeoutMs=15000,outputCap=16384,intervalMs=100}){
+  need(timeoutMs>0&&timeoutMs<=15000&&outputCap>0&&outputCap<=16384&&intervalMs>0&&intervalMs<=100,'recovery-monitor-options');
+  observe();const began=performance.now(),child=spawn(command,args,{env,stdio:['ignore','pipe','pipe'],detached:true});
+  let stdout='',stderr='',bytes=0,failure=null,error=null,force=null,last=began,maxGapMs=0,samples=0,peak=null;
+  const signal=sig=>{if(child.pid)try{process.kill(-child.pid,sig);}catch(e){if(e.code!=='ESRCH')failure??='recovery-group-signal';}};
+  const stop=why=>{failure??=why;signal('SIGTERM');if(!force)force=setTimeout(()=>signal('SIGKILL'),1000);};
+  const sample=()=>{const now=performance.now();maxGapMs=Math.max(maxGapMs,now-last);last=now;try{const v=observe();samples++;if(v&&(!peak||v.combinedBytes>peak.combinedBytes))peak=v;}catch(e){stop(e.message);}};
+  const collect=(chunk,isError)=>{const remaining=Math.max(0,outputCap-bytes);bytes+=chunk.length;const text=chunk.subarray(0,remaining).toString();if(isError)stderr+=text;else stdout+=text;if(bytes>outputCap)stop('recovery-output-cap');};
+  child.stdout.on('data',b=>collect(b,false));child.stderr.on('data',b=>collect(b,true));child.on('error',e=>{error=e;failure??='recovery-spawn';});
+  const abort=()=>stop('recovery-cancelled');process.once('SIGTERM',abort);process.once('SIGINT',abort);
+  const timer=setTimeout(()=>{error=Object.assign(Error('timeout'),{code:'ETIMEDOUT'});stop('recovery-timeout');},timeoutMs),poll=setInterval(sample,intervalMs);
+  const ended=await new Promise(resolve=>child.once('close',(status,signal)=>resolve({status,signal})));
+  clearInterval(poll);clearTimeout(timer);sample();
+  let groupClosed=!child.pid;
+  for(let i=0;child.pid&&i<20;i++){try{process.kill(-child.pid,0);}catch(e){groupClosed=e.code==='ESRCH';break;}stop('recovery-child-remains');if(i>=10)signal('SIGKILL');await new Promise(r=>setTimeout(r,100));}
+  clearTimeout(force);process.removeListener('SIGTERM',abort);process.removeListener('SIGINT',abort);
+  if(!groupClosed)failure??='recovery-group-open';
+  return {...ended,error,pid:child.pid,stdout,stderr,groupClosed,monitor:{failure,samples,intervalMs,maxGapMs,elapsedMs:performance.now()-began,peak,continuousEnforcement:false}};
+}
