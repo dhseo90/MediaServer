@@ -5,6 +5,7 @@
 
 #include <condition_variable>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <shared_mutex>

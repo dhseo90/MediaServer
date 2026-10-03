@@ -176,7 +176,7 @@ public:
     bool SnapshotStatus(RecordingCatalogStatusSnapshot* result, std::string* error) const;
     bool ValidateStatusSnapshot(const RecordingCatalogStatusSnapshot& snapshot) const;
     RecordingOrphanReport InspectOrphans() const;
-    RetentionSnapshot RetentionSnapshot() const;
+    recording::RetentionSnapshot RetentionSnapshot() const;
     // startup 내부 전용: 경로 유효성과 무관하게 모든 Finalized metadata의 잠금 snapshot.
     std::vector<RecordingSegmentV1> FinalizedSegmentsForStartup() const;
     std::vector<std::string> FinalizedSegmentIdsForStartup() const;
