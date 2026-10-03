@@ -13,7 +13,7 @@ rules in a browser, watch live streams, and review recorded video.
 [v4.2.0 release candidate notes](docs/release-notes-v4.2.0.md)
 
 The current source is a v4.2.0 release candidate. The recorded published version is
-v4.1.0; use the Latest release link above to check the current publication status.
+v4.1.1; use the Latest release link above to check the current publication status.
 
 ## Features
 

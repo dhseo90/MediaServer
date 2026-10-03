@@ -236,3 +236,12 @@ git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/
 git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/release-execution-20261003/final-original-preservation.json
 git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/release-execution-20261003/c02-budget-final/recording120-review.json
 ```
+
+### v4.2.0 공개 준비의 문서 자체검사 보완
+
+공개 확인기의 응답 대역이 v4.1.1에 고정되어 현행 v4.2.0 문서와 어긋난 자체검사를 보완했다.
+최초291pass/20fail과 수정 후311pass/0fail, base+diff/hash는
+`dbea05e639dd5b4317a20b9cb80949f7c9e66fa9`의 `docs/release-artifacts/v4.2.0/publication-preparation-20261004/`에서 조회한다.
+원출력·patch는 무손실 gzip이며 원본/저장 표현 hash를 구분한다. 새4개 파일(22,438바이트)을
+Git에서 재조회·해제 대조한 뒤 별도 정리 커밋에서 제거했다. 제품·공개 확인기 본문·승인 원장은 불변이며,
+실제 제품·UI·장시간 재실행이나 외부 공개 확인을 대신하는 증거가 아니다.
