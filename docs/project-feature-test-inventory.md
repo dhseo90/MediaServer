@@ -4,6 +4,26 @@
 종료 버전의 실행 시점·실패·승인 기록은 [Git 이력 안내](history/README.md)에서 조회한다.
 아래 역사 링크는 출처 조회용이며 일반 검사 실행의 입력이나 현재 승인·PASS가 아니다.
 
+## v430 자원 수명과 벡터 검색
+
+계약·업무 순서는 [v4.3.0 개발 설계](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)에 둔다.
+아래는 실행 전 정의다. 벡터 모델·route·UI별 세부 oracle은 해당 구현/실행 전에 확정한다.
+미정 행은 실행 준비 완료나 PASS가 아니다. 안정화 열은 단기 focused이며 릴리즈 묶음은 미실행이다.
+
+| 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| V430-R01 | historical identity 상주 중복; 기존 entity/time/digest 문자열과 조회 결과 동일, checkpoint/reopen 뒤 중복 digest 문자열 0바이트, active identity 유지 | native residency 및 append/checkpoint/cold-link 회귀 | 향후 녹화 병행 | 이력 수명 영향으로 필요성 판정 | 비대상: 내부 |
+| V430-R02 | 활성 자료 고정·누적 identity 증가; 필수 ID/receipt 보존, 반복 삭제·off·재시작/재구축의 논리/RSS 분리 | 규모·소유 측정 | 향후 순환 | 필요성 판정 | 비대상: 내부 |
+| V430-R03 | 검색 snapshot 299초 유효/300초 만료, idle 후 상주 해제, caller가 가진 불변 결과 수명 보존 | 수명 oracle | 향후 idle/재활성화 | 필요성 판정 | 기존 만료 안내 |
+| V430-R04 | 검색 4요청·녹화 동시 진행; 기존 ID/건수/순서/권한·최종 파일 불변, 대기/준비/지연·peak 예산 | 실제 writer 단기 통합 | 향후 혼합 부하 | 필요성 판정 | 비대상: 내부 |
+| V430-E01 | image/text/cross-modal contract; 동일 차원 다른 모델·전처리 혼합 거부, 구계약 새 공간으로 재색인 | 값/실제 모델; 세부 준비 중 | 향후 색인 | 영향 판정 | 미정 |
+| V430-I01 | event snapshot/대표 frame 색인; 원본 참조·삭제/누락·중단/rebuild, 부분 게시 금지 | 저장·실제 frame; 세부 준비 중 | 향후 순환 | 영향 판정 | 미정 |
+| V430-Q01 | exact top-k; 독립 score/동점 ID/threshold·NaN/Inf/zero norm/차원 mismatch | native oracle; 세부 준비 중 | 향후 검색 | 영향 판정 | 미정 |
+| V430-Q02 | 실제 text→frame; 고정 모델/fixture의 Hit@K·MRR·지연·메모리·디스크 | 실제 추론; 기준 준비 중 | 향후 혼합 | 영향 판정 | 미정 |
+| V430-A01 | 벡터 검색·선택 재생; admin/scoped operator 허용, viewer/integrator·혼합 금지 채널 거부·공개 정제 | HTTP/재생; route 준비 중 | 향후 역할/재생 | 영향 판정 | 미정 |
+| V430-I02 | 상시녹화 설정 주기 색인; bounded 대기/중복·실패·종료·재활성화, 미디어 callback 분리 | worker 통합; 세부 준비 중 | 향후 녹화/색인 | 영향 판정 | 미정 |
+| V430-U01 | Ops 검색 입력→유사 결과→재생; empty/invalid/unavailable·늦은 응답과 light/dark·모바일 | 변경 영역 직접 조작; control 준비 중 | 향후 UI 병행 | 영향 판정 | 단기 직접 UI·별도 릴리즈 풀테스트 |
+
 ## v420 구조화 검색
 
 계약은 [v4.2.0 개발 설계](superpowers/specs/2026-10-03-v420-structured-search-design.md)에 둔다.
