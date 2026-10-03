@@ -8,6 +8,9 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {readReleaseContext, validateReleaseContext, validateReadmeMetadata, validateLocalReleaseDocuments} from './release_documentation_contract.mjs';
 
+// 현행 CLI를 읽는 공개 응답 대역은 VERSION에 결속하고 아래 v4.1.1 문서 fixture와 구분한다.
+const currentSourceTag='v'+fs.readFileSync(new URL('../../VERSION',import.meta.url),'utf8').trim();
+
 // CLI 소비자의 읽기 입력만 격리한다. 제품·문서 원본은 변경하지 않는다.
 function runPolicyConsumer(file, mutation, temporaryRoot, args = []) {
   const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -28,7 +31,7 @@ function runPolicyConsumer(file, mutation, temporaryRoot, args = []) {
     }
     if(mutation?.published){
       const input=mutation.published, repo='dhseo90/MediaServer', url='https://github.com/'+repo;
-      const sha='a'.repeat(40), tag='v4.1.1';
+      const sha='a'.repeat(40), tag=${JSON.stringify(currentSourceTag)};
       const release={tagName:tag,url:url+'/releases/tag/'+tag,isLatest:true,isDraft:false,isPrerelease:false,publishedAt:'2026-10-02T14:41:10Z',targetCommitish:'main'};
       const ok=value=>({status:0,signal:null,stdout:typeof value==='string'?value:JSON.stringify(value),stderr:''});
       childProcess.spawnSync=(command,args)=>{
@@ -205,18 +208,18 @@ test('REL-DOC-14 v4.0 승인·완료 기록은 현재 승인/실행 결과나 �
 }));
 
 test('REL-DOC-15 published 검사는 정적 HTML과 동적 Releases를 대조하고 잘못된 연결을 거부',async t=>{
-  const repo='dhseo90/MediaServer', tagPath='/'+repo+'/releases/tag/v4.1.1';
+  const repo='dhseo90/MediaServer', tagPath='/'+repo+'/releases/tag/'+currentSourceTag;
   const about={ownerLogin:'dhseo90',repoName:'MediaServer',sections:{releases:{releaseCount:33,tagCount:35}}};
   const dynamicHtml=value=>'<h2>Releases</h2><div class="SkeletonText"></div><script type="application/json" data-target="react-app.embeddedData">'+JSON.stringify({payload:{sidebarAbout:value}})+'</script>';
-  const sidebar={releases:{releasesPath:'/'+repo+'/releases',latestRelease:{path:tagPath,name:'MediaServer v4.1.1',publishedAt:'2026-10-02T14:41:10Z'}}};
+  const sidebar={releases:{releasesPath:'/'+repo+'/releases',latestRelease:{path:tagPath,name:'MediaServer '+currentSourceTag,publishedAt:'2026-10-02T14:41:10Z'}}};
   const html=dynamicHtml(about);
   const cases=[
-    ['정적 HTML', {html:'<h2>Releases</h2><a href="'+tagPath+'">v4.1.1 <span>Latest</span></a>'},true,0],
+    ['정적 HTML', {html:'<h2>Releases</h2><a href="'+tagPath+'">'+currentSourceTag+' <span>Latest</span></a>'},true,0],
     ['정적 절대 링크', {html:'<h2>Releases</h2><a href="https://github.com'+tagPath+'">Latest</a>'},true,0],
     ['비슷한 정적 태그 이름', {html:'<a href="'+tagPath+'0">Latest</a>',sidebar},false,0],
-    ['정적 태그 링크에 Latest 없음', {html:'<a href="'+tagPath+'">v4.1.1</a>',sidebar},false,0],
+    ['정적 태그 링크에 Latest 없음', {html:'<a href="'+tagPath+'">'+currentSourceTag+'</a>',sidebar},false,0],
     ['실제 동적 sidebar 계약', {html,sidebar},true,1],
-    ['다른 최신 버전', {html,sidebar:{releases:{...sidebar.releases,latestRelease:{path:tagPath.replace('4.1.1','4.1.0')}}}},false,1],
+    ['다른 최신 버전', {html,sidebar:{releases:{...sidebar.releases,latestRelease:{path:'/'+repo+'/releases/tag/'+currentSourceTag+'-other'}}}},false,1],
     ['외부 경로', {html,sidebar:{releases:{...sidebar.releases,latestRelease:{path:'https://example.invalid'+tagPath}}}},false,1],
     ['다른 저장소 경로', {html,sidebar:{releases:{...sidebar.releases,releasesPath:'/other/repo/releases'}}},false,1],
     ['latestRelease 누락', {html,sidebar:{releases:{releasesPath:'/'+repo+'/releases'}}},false,1],
