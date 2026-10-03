@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-032",
-  "correlationId": "UI-032:fill-control:completion",
-  "targetSelector": "#opsIncidentSearchInput",
-  "screenshotSha256": "4676f951eb611b70e8d243eff4e91b721739430325181d2eefba6d1a0ecf0100",
-  "measurementSha256": "f099458bc245ea8c7b0fb6577f61615d9798d7dbff5149d8bf7fbd5eadefd3e7",
-  "qualificationStatus": "unqualified-raw-capture"
-}

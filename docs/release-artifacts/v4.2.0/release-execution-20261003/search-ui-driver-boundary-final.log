@@ -1,7 +1,0 @@
-PASS: DB01 성공 driver는 비밀을 파일 없이 메모리 context로만 받는다
-PASS: DB02 driver 오류는 성공으로 바꾸지 않고 비밀 없는 오류로 caller에게 전파한다
-PASS: DB03 timeout은 AbortSignal을 전달하고 browser cleanup 완료를 기다린다
-PASS: DB04 UI 외 mode와 비함수 driver는 시작 전에 거부한다
-PASS: DB05 driver 경로는 handoff 없이 공통 cleanup try 범위에서 실행된다
-PASS: DB06 관측 실패는 driver를 취소하고 정리 후 실패로 남긴다
-{"pass":6,"fail":0,"actualUi":false,"scope":"recording-ui-driver-boundary"}

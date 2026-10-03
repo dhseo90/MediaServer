@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "EVT-031",
-  "correlationId": "EVT-031:assert-visible-read-model:completion",
-  "targetSelector": "[data-testid=\"ops-vlm-event-review-card\"]",
-  "screenshotSha256": "860763bb3d0b2a10d5f5b5bc5cfb11276a2bcd3cdcd2d6024dee2e26b47ad1dd",
-  "measurementSha256": "586d30e0d33800fb343279ebfaedbe755f85b49b26d1149a98e6e931934d3e6b",
-  "qualificationStatus": "unqualified-raw-capture"
-}

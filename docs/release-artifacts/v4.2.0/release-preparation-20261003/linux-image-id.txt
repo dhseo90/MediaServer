@@ -1,3 +1,0 @@
-2026-10-03: immutable ID readback
-sha256:3b125ebe29a37140c55b7681bb631e779dc4a247110b2625b77ecfba11412998 linux/arm64 ["mediaserver-v420-verify:sid-arm64"]
-Final tag lookup once returned No such image; subsequent desktop-linux list and immutable ID inspect both confirmed the same image. No rebuild or deletion was performed.

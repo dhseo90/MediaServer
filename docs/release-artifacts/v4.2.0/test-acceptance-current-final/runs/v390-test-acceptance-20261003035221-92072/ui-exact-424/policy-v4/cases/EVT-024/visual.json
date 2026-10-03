@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "EVT-024",
-  "correlationId": "EVT-024:assert-visible-read-model:completion",
-  "targetSelector": "#dashRuntimeTrendSparkline",
-  "screenshotSha256": "144cc8685956f4fb7d63baca2aab2f0adad3bc0c0acbeac5b37ed8f595d5ae30",
-  "measurementSha256": "3458d2b07057301d1265dc53366cb65bc6658c2275846596689c8878a123b633",
-  "qualificationStatus": "unqualified-raw-capture"
-}

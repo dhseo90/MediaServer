@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "RULE-111",
-  "correlationId": "RULE-111:activate-control:completion",
-  "targetSelector": "[data-vlm-rule-draft-index]",
-  "screenshotSha256": "4d7d29e6c787f05131df685f97487de12fcad1d0d4eacb275a6cb4e5109bf4fe",
-  "measurementSha256": "f54a2e1610c944f742fd3747b357a3ae8ff2f846252c841a86f2e8f1304857cb",
-  "qualificationStatus": "unqualified-raw-capture"
-}

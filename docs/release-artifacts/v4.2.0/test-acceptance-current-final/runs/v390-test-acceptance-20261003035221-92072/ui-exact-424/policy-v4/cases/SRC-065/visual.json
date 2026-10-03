@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "SRC-065",
-  "correlationId": "SRC-065:assert-product-state:completion",
-  "targetSelector": "body",
-  "screenshotSha256": "e5788434c9e3e2ba0dda4baff2ef5f45b6085692812ddbe5b8bbe454189a5563",
-  "measurementSha256": "38e83ed0969b67bb2cd928a3c6ccba14ff964aa0d393bc6c0dcf8f3f3a8d84fa",
-  "qualificationStatus": "unqualified-raw-capture"
-}

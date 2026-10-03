@@ -86,6 +86,8 @@ retired receipt·source 요약을 미디어 삭제 후의 참조·삭제·조회
 근거는 원본 보존 `bf81919f0ac3bc1b9726ce22f01f2aa1d4933149`와 대조·정리 `c4995e0ee2c912c3bf15923f369cc282b0a5fcfb`의
 [RSS 보완 판단](https://github.com/dhseo90/MediaServer/blob/c4995e0ee2c912c3bf15923f369cc282b0a5fcfb/docs/release-artifacts/v4.1.1/recording-rss-followup-20261002/review.md)과 연결된 원자료에 둔다.
 
+v4.2.0의 후속 기능 검증과 자원 검토도 이 제한을 해소하지 않았습니다([최신 검증 범위](release-notes-v4.2.0.md#검증과-공개-상태)).
+
 추가 진단 실행은 종료한다. 후속 작업을 시작하려면 지원할 누적 이력 규모·운영 RAM 예산·장기 관리 범위를
 먼저 결정해야 한다. 이번 정리는 추가 실행·개발·새 메모리 정책의 승인이 아니며,
 2채널·120분 관측을 지원 상한으로 바꾸거나 관측 메모리 값을 새 합격선으로 삼지 않는다.

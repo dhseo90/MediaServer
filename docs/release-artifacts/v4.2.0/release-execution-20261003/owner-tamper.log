@@ -1,2 +1,0 @@
-{"baseline":"PASS","blobOnlyEnvelope":"accepted-as-expected","currentBodyTamper":"REJECTED","errors":["OPS-174 REVIEW4 owner blob/enclosing-body trust binding drift","OPS-174 REVIEW4 dispatch blob/enclosing-body trust binding drift","OPS-174 REVIEW4 action blob/enclosing-body trust binding drift"]}
-owned negative fixture cleanup: PASS

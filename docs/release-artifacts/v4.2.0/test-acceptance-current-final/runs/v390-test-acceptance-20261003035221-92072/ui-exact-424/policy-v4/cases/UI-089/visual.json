@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-089",
-  "correlationId": "UI-089:assert-visible-read-model:completion",
-  "targetSelector": "#dashSimulationWorkspaceLedgerList > [data-v360-simulation-run-ledger-entry]:nth-child(2)",
-  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
-  "measurementSha256": "a750f104fee44ea1adb47d040518e490ded3695f58c51ef3956a30b8ee5fdaa4",
-  "qualificationStatus": "unqualified-raw-capture"
-}

@@ -7,7 +7,7 @@
 ## v420 구조화 검색
 
 계약은 [v4.2.0 개발 설계](superpowers/specs/2026-10-03-v420-structured-search-design.md)에 둔다.
-아래는 실행 전 정의다. 결과는 [개발 기록](release-artifacts/v4.2.0/development.md)에서 확인한다.
+아래는 실행 전 정의다. 결과는 [개발 기록 보존 위치](history/README.md#v420-개발과-최종-검증)에서 확인한다.
 `안정화`는 각 행의 단기 검사이며 전체 안정화/릴리즈 PASS를 뜻하지 않는다.
 개발 보완 당시에는 30분·120분·릴리즈 UI 풀테스트를 제외했다. 현재 릴리즈 검증은
 별도 승인된 실행 범위를 따르며, 아래 UI는 변경 기능의 단기 직접 확인과 릴리즈 매핑을 구분한다. 새 event/scenario 판정·line direction·tracker/

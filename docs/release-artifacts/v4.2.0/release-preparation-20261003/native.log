@@ -1,9 +1,0 @@
-
-== v3.9.0 exact native UI case manifest summary ==
-- schema: media-server.v390-ui-native-exact-cases.v2
-- caseCount: 424
-- positiveNative: 423
-- negativeRoute: 1
-- unsupported: 0
-- manifest: /Users/dhseo/Workspace/mediaServer/test/fixtures/v390_ui_native_exact_cases.json
-- actualBrowserExecution: not-run-by-this-command
