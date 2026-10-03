@@ -1,0 +1,57 @@
+{
+  "id": "I30-play",
+  "startedAt": "2026-10-03T09:32:19.057Z",
+  "completedAt": "2026-10-03T09:32:19.770Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "control": "#opsRecordingPlayer",
+    "action": "focused Space",
+    "selected": {
+      "itemId": "v2-source:36:874de6c7-7065-4536-af21-5c909918938039:874de6c7-7065-4536-af21-5c9099189380-m0",
+      "segmentId": "874de6c7-7065-4536-af21-5c9099189380",
+      "selector": "#opsRecordingTimelineRows button",
+      "index": 4,
+      "src": "/ops/api/recordings/media/874de6c7-7065-4536-af21-5c9099189380"
+    },
+    "metadata": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 0,
+      "src": "/ops/api/recordings/media/874de6c7-7065-4536-af21-5c9099189380",
+      "error": null,
+      "focused": false
+    },
+    "beforePlay": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 0,
+      "src": "/ops/api/recordings/media/874de6c7-7065-4536-af21-5c9099189380",
+      "error": null,
+      "focused": true
+    },
+    "afterPlay": {
+      "paused": false,
+      "currentTime": 0.665468,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 25,
+      "src": "/ops/api/recordings/media/874de6c7-7065-4536-af21-5c9099189380",
+      "error": null,
+      "focused": true
+    }
+  }
+}

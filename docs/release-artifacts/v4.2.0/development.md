@@ -4949,3 +4949,72 @@ final-integrity가 통과했다. 일반120분은 누적 미디어·source 수명
 `git diff --check`는 runner 원출력 `report.md:13`의 빈 reproductionCommand 뒤 공백으로
 exit2였다. 원출력 hash와 실행 provenance를 보존하기 위해 이를 사후 편집하지 않았다.
 수기 추가한 이 개발 기록에는 해당 공백 오류가 없다. 제품 동작 실패가 아닌 원출력 형식 한계다.
+
+
+## 2026-10-03 녹화120 실패·검색 UI 세 번째 실패에 따른 중단
+
+canonical 통과와 원격 보존 `aa2ea23a2ddab768d765b4650172e0ad3e884b41`은 유지한다.
+이번 제품 코드는 변경하지 않았다. 이하 결과는 최종 HEAD에서 전체를 재실행한 의미가 아니다.
+사용자가 검색 UI의 기존 격리 fixture·실행 연결 보완을 승인했고, 해당 미커밋 변경은
+[중단 시 소스 diff](release-execution-20261003/stopped-ui-worktree.patch)로 보존한다.
+실행별 base·소스/runner/product hash와 원출력 위치는
+[보존 목록](release-execution-20261003/stopped-ui-preservation.json)에 연결한다.
+코드 변경은 작업 트리에 남기며 완료 커밋으로 처리하지 않는다.
+
+- `./server.sh verify-v410-recording-longrun --duration-minutes 120`: `aa2ea23a`에서 시작,
+  고정 제품 SHA-256 `253810c36869096349c05ad68caacfc21b569e6d6aba13b5223d13c01d84969b`.
+  exit1, `observation-root-cap`. 마지막 유효 관측은 7,150,106.247167ms(119분10.106초),
+  전체 실행은 7,156,218ms다. 120분 완료·이후 disable/restart/reenable 검사는 미완료다.
+  두 채널 finalized 3,567/3,568, deleted 3,565/3,566까지 관측했으나 PASS로 승격하지 않는다.
+  실패 시 root 469,874,944바이트가 기존 469,762,048바이트(448MiB)를 112,896바이트 초과했다.
+  input 124,668,810, media 124,670,556, mediaPartial 62,335,278,
+  journal 91,954,643, generationSnapshot 13,248,797, generationIdentity 12,941,696,
+  SQLite 26,411,008바이트 등이 포함된다. 전체 분류는 원출력에 있다.
+  RSS는 첫 94,584,832/마지막 668,352,512/최대 707,854,336바이트 관측이다.
+  `resourceTrendPass=false`이며 기존 Catalog/RSS 운영 한계를 재판정하지 않았다.
+  서버 PID67789 정상 exit0, HTTP51232/RTSP51233 폐쇄와 UDP 종료를 확인했다.
+  실패 root는 종료 후 408,615,477바이트로 로컬 보존됐고 Git에 media를 넣지 않았다.
+  한도 상향·부하 축소·같은 조건 재실행은 하지 않았다.
+- `node scripts/internal/run_recording_ui_acceptance.mjs --all --output-dir <owned-output>`:
+  1차는 `ce163652`에서 action31 PASS였지만 일부 오류 화면이 복원 뒤 캡처돼 시각 근거가 부족했다.
+  캡처 시점과 전체 플레이어 위치만 보완한 2차는 `aa2ea23a`+보존된 미커밋 diff에서
+  exit0, 31pass/0fail/0notRun, 77,209ms였다. 수정한 empty/inverted/gap/error 안내와
+  event/original/partial/deleted/corrupt/pending의 전체 플레이어·상태 화면을 직접 확인했다.
+  나머지 외관은 제품 바이트가 같은 1차 시각 관측을 재사용한다. raw `uiFulltestPass=false`는
+  사후 편집하지 않았다. 검색 추가 대상까지 포함한 릴리즈 UI 전체 PASS는 아니다.
+  브라우저 종료, 서버 정상 종료, HTTP/RTSP/UDP 폐쇄, 소유 fixture 제거가 통과했다.
+- 검색 UI 명령은 `node scripts/internal/run_recording_search_ui_acceptance.mjs <owned-output>`다.
+  아래 각 실행은 별도 빈 출력 경로를 사용했고 이전 원출력을 덮어쓰지 않았다.
+
+| 검색 UI 시도 | 실제 결과·실패 이유 | 변경·판정 |
+| --- | --- | --- |
+| 1 | exit1, 4pass/1fail/33notRun. V420-F07 rule 검색의 예상 HTTP200 대신 503 | 오류 본문이 저장되지 않아 내부 원인 미확정 |
+| 2 | exit1, 4pass/1fail/33notRun. 같은 조건에서 HTTP503 `recording-search-unavailable` | 공개 오류 본문을 trace에 추가 보존. 용량 초과 코드가 아님을 확인 |
+| 3 | exit1, 18pass/1fail/19notRun. C03 `new members only in fresh search` assertion 실패 | 정상 필터 구간의 배경 녹화를 끄고 C03에서만 켰다. F07과 4종 행동·동일 이벤트·불완전·페이지는 통과했으나 새 검색의 증가/신규 ID 조건은 실패 |
+
+첫 두 실패에는 배경 채널 갱신과 기존 source 변경 거부 계약의 충돌 가능성이 있다.
+3차 고정 자료에서 F07 통과는 확인했지만, 내부 오류 원출력 없이 해당 원인을 확정하지 않는다.
+C03은 녹화 활성 상태에서 새 확정 bytes 증가와 기존 cursor 멤버십 유지까지 진행한 뒤,
+녹화 정지 후 새 검색 조건에서 실패했다. 실패 당시 새 응답의 구체 건수/ID가 저장되지 않아
+제품 결함과 fixture 시각 귀속·기대값 문제의 구분은 미완료다. 이를 추정 복원하지 않는다.
+세 실행 모두 브라우저·서버·HTTP/RTSP/UDP·소유 fixture 정리는 통과했다.
+3차의 서버 PID75541, HTTP55919/RTSP55918 폐쇄, root 부재를 원출력으로 확인했다.
+사용자의 같은 단계 세 번째 실패 중단 조건에 따라 4차 실행·추가 수정·검증을 하지 않는다.
+
+서버 없는 검색 fixture 준비의 최초 실패는 referenced observation에 epoch를 넣은 계약 오류였다.
+이를 별도 unknown observation으로 분리한 2차 준비는 실제 seed/restart/add/capacity와 cleanup을
+exit0으로 확인했다. 600개 유효 관측의 참조 문자열로 기존 64MiB 모델 admission을 넘기는
+fixture이며 100,001행·파일 검사가 아니다. 이후 제품·정책·승인 원장 변경은 없다.
+보완 중의 준비 단위21, driver 경계6, 캡처 도구9와 기능 연결986/negative15/15는 exit0이었다.
+구문·diff 공백도 통과했지만 이는 실제 UI 미실행19개나 실패한 녹화120을 대신하지 않는다.
+
+중단 후에는 위 실패·기존 변경의 최소 증거 보존만 수행한다. JSON/text·소스 patch는 Git 보존,
+PNG 합계 24,493,098바이트와 녹화 실패 root는 로컬에 유지한다. 원격에 PNG까지 전부 보존했다고
+하지 않는다. canonical 약340MB의 승인된 별도 정리는 필수 검증이 남아 이번에는 수행하지 않는다.
+PR·병합·tag·Release도 수행하지 않는다. 재개에는 세 번째 UI 실패의 중단 조건을 해소하는
+명시적 지시가 필요하며, 녹화 관측 fixture/예산 계약은 별도 범위 판단이 필요하다.
+
+최소 보존 확인에서 새 JSON/text의 바이트 readback과 작업 patch 일치를 확인했다.
+증거 포함 `git diff --cached --check`는 raw patch 4개의 context 빈 줄(` `)을
+후행 공백으로 판정해 exit2였다. 적용 가능한 원본 patch와 hash를 보존하기 위해 편집하지 않았다.
+수기 개발 기록의 공백 검사와 새 링크 대상 존재 확인은 통과했다. 추가 제품 검사는 실행하지 않았다.

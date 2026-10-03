@@ -1,0 +1,179 @@
+[
+  {
+    "id": "F03-object",
+    "phase": "begin",
+    "at": "2026-10-03T09:35:12.067Z"
+  },
+  {
+    "action": "F03-object",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020112119
+  },
+  {
+    "action": "F03-object",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020112778
+  },
+  {
+    "id": "F03-object",
+    "phase": "end",
+    "at": "2026-10-03T09:35:13.348Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "F04-track",
+    "phase": "begin",
+    "at": "2026-10-03T09:35:13.348Z"
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020113393
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020113978
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020114571
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020115206
+  },
+  {
+    "id": "F04-track",
+    "phase": "end",
+    "at": "2026-10-03T09:35:15.816Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "F05-event",
+    "phase": "begin",
+    "at": "2026-10-03T09:35:15.816Z"
+  },
+  {
+    "action": "F05-event",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020115876
+  },
+  {
+    "action": "F05-event",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020116458
+  },
+  {
+    "id": "F05-event",
+    "phase": "end",
+    "at": "2026-10-03T09:35:17.032Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "V420-F06",
+    "phase": "begin",
+    "at": "2026-10-03T09:35:17.032Z"
+  },
+  {
+    "action": "V420-F06",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020117079
+  },
+  {
+    "action": "V420-F06",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020117641
+  },
+  {
+    "id": "V420-F06",
+    "phase": "end",
+    "at": "2026-10-03T09:35:18.215Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "V420-F07",
+    "phase": "begin",
+    "at": "2026-10-03T09:35:18.215Z"
+  },
+  {
+    "action": "V420-F07",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020118270
+  },
+  {
+    "action": "V420-F07",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020118843
+  },
+  {
+    "id": "V420-F07",
+    "phase": "end",
+    "at": "2026-10-03T09:35:19.354Z",
+    "status": "fail",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  }
+]

@@ -1,0 +1,187 @@
+[
+  {
+    "id": "F03-object",
+    "phase": "begin",
+    "at": "2026-10-03T09:37:59.877Z"
+  },
+  {
+    "action": "F03-object",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020279913
+  },
+  {
+    "action": "F03-object",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020280585
+  },
+  {
+    "id": "F03-object",
+    "phase": "end",
+    "at": "2026-10-03T09:38:01.162Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "F04-track",
+    "phase": "begin",
+    "at": "2026-10-03T09:38:01.162Z"
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020281207
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020281791
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020282388
+  },
+  {
+    "action": "F04-track",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020283036
+  },
+  {
+    "id": "F04-track",
+    "phase": "end",
+    "at": "2026-10-03T09:38:03.629Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "F05-event",
+    "phase": "begin",
+    "at": "2026-10-03T09:38:03.629Z"
+  },
+  {
+    "action": "F05-event",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020283691
+  },
+  {
+    "action": "F05-event",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020284272
+  },
+  {
+    "id": "F05-event",
+    "phase": "end",
+    "at": "2026-10-03T09:38:04.846Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "V420-F06",
+    "phase": "begin",
+    "at": "2026-10-03T09:38:04.846Z"
+  },
+  {
+    "action": "V420-F06",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020284895
+  },
+  {
+    "action": "V420-F06",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020285456
+  },
+  {
+    "id": "V420-F06",
+    "phase": "end",
+    "at": "2026-10-03T09:38:06.030Z",
+    "status": "pass",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "V420-F07",
+    "phase": "begin",
+    "at": "2026-10-03T09:38:06.030Z"
+  },
+  {
+    "action": "V420-F07",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020286088
+  },
+  {
+    "action": "V420-F07",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791020286657
+  },
+  {
+    "action": "V420-F07",
+    "kind": "unexpected-search-response",
+    "status": 503,
+    "body": {
+      "error": "recording-search-unavailable"
+    }
+  },
+  {
+    "id": "V420-F07",
+    "phase": "end",
+    "at": "2026-10-03T09:38:07.169Z",
+    "status": "fail",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  }
+]

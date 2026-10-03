@@ -1,0 +1,43 @@
+{
+  "total": 0,
+  "unplacedTotal": 1,
+  "offset": 0,
+  "limit": 100,
+  "items": [],
+  "unplacedItems": [
+    {
+      "itemId": "v2-source:36:8a9905f3-310f-4a30-83df-38cdbe43e9b339:8a9905f3-310f-4a30-83df-38cdbe43e9b3-m0",
+      "segmentId": "8a9905f3-310f-4a30-83df-38cdbe43e9b3",
+      "channelId": "3",
+      "kind": "continuous",
+      "displayPriority": 100,
+      "startTimeMs": null,
+      "endTimeMs": null,
+      "eventId": "",
+      "referenceId": "",
+      "jobId": "",
+      "jobState": "",
+      "catalogState": "finalized",
+      "completeness": "complete",
+      "playable": true,
+      "unavailableReason": "utc-unavailable",
+      "playbackUrl": "/ops/api/recordings/media/8a9905f3-310f-4a30-83df-38cdbe43e9b3",
+      "contentType": "video/mp4",
+      "rangeBasis": "segment",
+      "requestedRange": null,
+      "actualRange": null,
+      "orderSequence": "116",
+      "utcRange": null,
+      "mediaRange": {
+        "timeBasis": "segment-media-pts",
+        "startPts": "0",
+        "endPts": "10066666666",
+        "timeBaseNum": "1",
+        "timeBaseDen": "1000000000"
+      },
+      "hideByEvent": false,
+      "supersededByEventIds": [],
+      "eventOverlaps": []
+    }
+  ]
+}

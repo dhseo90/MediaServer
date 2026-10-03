@@ -1,0 +1,16 @@
+{
+  "id": "I27-filter",
+  "startedAt": "2026-10-03T07:18:58.949Z",
+  "completedAt": "2026-10-03T07:18:59.452Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "total": 115,
+    "unplacedTotal": 31,
+    "knownStatus": "시간 확인 115개 · 현재 페이지 100개 중 100개 표시 · 완전히 겹친 원본은 원본 보기에서 확인",
+    "unknownStatus": "시간 귀속 미확인 31개 · 현재 페이지 31개. 채널 내 자료이며 조회 시간에 속한다는 의미가 아닙니다."
+  }
+}

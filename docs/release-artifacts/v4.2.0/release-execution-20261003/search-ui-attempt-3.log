@@ -1,0 +1,66 @@
+[start] 2026-10-03T09:43:33Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+38dc824f289fe523f848b32162088ce955a6848c173f8e731e803a039c00c142  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+86eb8de4cf1fdd31059deb47ac5e5df5639581cc20609ccf12493acf94e59a31  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+f53192a630bc0378638ece917308611a95f819e5fc2537dec3235202da7d94ed  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.1LQRMZ","bytes":13537884,"removed":true}
+[elapsed] seconds=9 source=bash-SECONDS actualUiPass=false
+[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false
+[ui-seed-selection] {"seekSegmentId":"a8d930f1-1a40-4e0e-932d-98543fce7b2d","eventOutputIds":[{"scenario":"full","ids":["dj-e0d2d3574abc4138282c40ae2408437b44df3c198417097dc298b1cb4fcbd61b-o0","dj-e0d2d3574abc4138282c40ae2408437b44df3c198417097dc298b1cb4fcbd61b-o1"]},{"scenario":"partial","ids":["dj-2c57e9c28d0a65f525ea850dd8e4284ff9ea624fc18066095b0234d4e703a84d-o0","dj-2c57e9c28d0a65f525ea850dd8e4284ff9ea624fc18066095b0234d4e703a84d-o1"]}],"actualUiPass":false}
+[search-ui-action] F03-object begin
+[search-ui-action] F03-object pass
+[search-ui-action] F04-track begin
+[search-ui-action] F04-track pass
+[search-ui-action] F05-event begin
+[search-ui-action] F05-event pass
+[search-ui-action] V420-F06 begin
+[search-ui-action] V420-F06 pass
+[search-ui-action] V420-F07 begin
+[search-ui-action] V420-F07 pass
+[search-ui-action] V420-F08-I begin
+[search-ui-action] V420-F08-I pass
+[search-ui-action] V420-F08-L begin
+[search-ui-action] V420-F08-L pass
+[search-ui-action] V420-F08-D begin
+[search-ui-action] V420-F08-D pass
+[search-ui-action] V420-F08-O begin
+[search-ui-action] V420-F08-O pass
+[search-ui-action] F09-combined begin
+[search-ui-action] F09-combined pass
+[search-ui-action] F09-same-event begin
+[search-ui-action] F09-same-event pass
+[search-ui-action] M02-missing begin
+[search-ui-action] M02-missing pass
+[search-ui-action] M02-unrelated begin
+[search-ui-action] M02-unrelated pass
+[search-ui-action] F10-invalid begin
+[search-ui-action] F10-invalid pass
+[search-ui-action] F10-unknown begin
+[search-ui-action] F10-unknown pass
+[search-ui-action] F01-channels begin
+[search-ui-action] F01-channels pass
+[search-ui-action] F02-time begin
+[search-ui-action] F02-time pass
+[search-ui-action] C01-pages begin
+[search-ui-action] C01-pages pass
+[search-ui-action] C03-live-membership begin
+[search-ui-action] C03-live-membership fail
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-yNoTNy","rootBeforeBytes":27753922,"rootBeforeEntries":436,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":75541,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":55918,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":55919,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":375,"verifierElapsedMs":44597,"uiUdpClosed":true}
+search UI run failed; inspect private evidence: UI auth preparation failed stage=driver code=PREPARATION_FAILED

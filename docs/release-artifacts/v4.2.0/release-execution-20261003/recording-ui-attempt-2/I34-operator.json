@@ -1,0 +1,56 @@
+{
+  "id": "I34-operator",
+  "startedAt": "2026-10-03T09:32:34.079Z",
+  "completedAt": "2026-10-03T09:32:41.583Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "principal": {
+      "requestedRole": "operator",
+      "requestedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "observedRole": "operator",
+      "observedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "landing": "/ops/home",
+      "session": 2
+    },
+    "channels": [
+      "1"
+    ],
+    "deniedChannel": {
+      "route": "/ops/api/recordings/timeline?channelId=2&startTimeMs=1000&endTimeMs=10000",
+      "status": 403,
+      "body": "{\"error\":\"recording channel forbidden\"}"
+    },
+    "deniedMedia": {
+      "route": "/ops/api/recordings/media/9e27afcc-7db3-43fa-a82b-f5cb19275c81",
+      "status": 404,
+      "body": "{\"error\":\"recording media unavailable\"}"
+    },
+    "noSource": {
+      "requestedRole": "operator",
+      "requestedScopes": [
+        "ops:read"
+      ],
+      "observedRole": "operator",
+      "observedScopes": [
+        "ops:read"
+      ],
+      "landing": "/ops/home",
+      "session": 3
+    },
+    "noOps": {
+      "route": "/ops/events",
+      "status": 403,
+      "body": "Access Denied\n\n운영 콘솔은 admin/operator role과 ops:read scope가 필요합니다.\n\nGo Home"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "I31-pending",
+  "startedAt": "2026-10-03T07:19:09.694Z",
+  "completedAt": "2026-10-03T07:19:10.287Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "scenario": "pending",
+    "item": "reference-state:16:ui-accepted-only",
+    "catalogState": "absent",
+    "message": "삭제·미완성·파일 누락 상태로 재생할 수 없습니다.",
+    "state": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 0,
+      "duration": null,
+      "videoWidth": 0,
+      "videoHeight": 0,
+      "frames": 0,
+      "src": null,
+      "error": null,
+      "focused": false
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "channelId": "3",
+  "displayName": "S09 UI 3",
+  "enabled": false,
+  "active": false,
+  "storageBlocked": false,
+  "continuousBytes": 243999,
+  "eventBytes": 0,
+  "continuousMaxBytes": 134217728,
+  "eventMaxBytes": 134217728
+}

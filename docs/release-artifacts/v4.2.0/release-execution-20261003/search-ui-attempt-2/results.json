@@ -1,0 +1,383 @@
+{
+  "results": [
+    {
+      "id": "F03-object",
+      "status": "pass",
+      "features": [
+        "V420-F03"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-03T09:37:59.877Z",
+      "observation": {
+        "yes": {
+          "known": 6,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3",
+            "or:12:ui-release-2",
+            "or:12:ui-release-1",
+            "or:12:ui-search-60",
+            "or:12:ui-release-0",
+            "or:12:ui-search-30"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-03T09:38:01.162Z"
+    },
+    {
+      "id": "F04-track",
+      "status": "pass",
+      "features": [
+        "V420-F04"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-03T09:38:01.162Z",
+      "observation": {
+        "yes": {
+          "known": 4,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3",
+            "or:12:ui-release-2",
+            "or:12:ui-release-1",
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "distinct": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:13:ui-release-29",
+            "or:13:ui-release-30"
+          ]
+        },
+        "epoch": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "47444b27613808f0aba7c1291a2f1365",
+          "nextCursor": null,
+          "knownCount": 0,
+          "unplacedCount": 2,
+          "items": [
+            {
+              "id": "o2:18:ui-release-epoch-0",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "",
+              "observationId": "ui-release-epoch-0",
+              "startTimeNs": null,
+              "endTimeNs": null,
+              "timeProvenance": "",
+              "uncertaintyNs": null,
+              "object": "epoch-collision",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "unresolved-original"
+            },
+            {
+              "id": "o2:18:ui-release-epoch-1",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "",
+              "observationId": "ui-release-epoch-1",
+              "startTimeNs": null,
+              "endTimeNs": null,
+              "timeProvenance": "",
+              "uncertaintyNs": null,
+              "object": "epoch-collision",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "unresolved-original"
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-03T09:38:03.629Z"
+    },
+    {
+      "id": "F05-event",
+      "status": "pass",
+      "features": [
+        "V420-F05"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-03T09:38:03.629Z",
+      "observation": {
+        "yes": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-03T09:38:04.846Z"
+    },
+    {
+      "id": "V420-F06",
+      "status": "pass",
+      "features": [
+        "V420-F06"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-03T09:38:04.846Z",
+      "observation": {
+        "yes": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-2",
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-03T09:38:06.030Z"
+    },
+    {
+      "id": "V420-F07",
+      "status": "fail",
+      "features": [
+        "V420-F07"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-03T09:38:06.030Z",
+      "reason": "search HTTP 503 expected 200 code recording-search-unavailable",
+      "endedAt": "2026-10-03T09:38:07.169Z"
+    },
+    {
+      "id": "V420-F08-I",
+      "status": "notRun"
+    },
+    {
+      "id": "V420-F08-L",
+      "status": "notRun"
+    },
+    {
+      "id": "V420-F08-D",
+      "status": "notRun"
+    },
+    {
+      "id": "V420-F08-O",
+      "status": "notRun"
+    },
+    {
+      "id": "F09-combined",
+      "status": "notRun"
+    },
+    {
+      "id": "F09-same-event",
+      "status": "notRun"
+    },
+    {
+      "id": "M02-missing",
+      "status": "notRun"
+    },
+    {
+      "id": "M02-unrelated",
+      "status": "notRun"
+    },
+    {
+      "id": "F10-invalid",
+      "status": "notRun"
+    },
+    {
+      "id": "F10-unknown",
+      "status": "notRun"
+    },
+    {
+      "id": "F01-channels",
+      "status": "notRun"
+    },
+    {
+      "id": "F02-time",
+      "status": "notRun"
+    },
+    {
+      "id": "C01-pages",
+      "status": "notRun"
+    },
+    {
+      "id": "C03-live-membership",
+      "status": "notRun"
+    },
+    {
+      "id": "P01-original",
+      "status": "notRun"
+    },
+    {
+      "id": "P02-derived",
+      "status": "notRun"
+    },
+    {
+      "id": "E02-current-fallback",
+      "status": "notRun"
+    },
+    {
+      "id": "P03-missing-current-file",
+      "status": "notRun"
+    },
+    {
+      "id": "P03-corrupt-current-file",
+      "status": "notRun"
+    },
+    {
+      "id": "U02-390-light",
+      "status": "notRun"
+    },
+    {
+      "id": "U02-390-dark",
+      "status": "notRun"
+    },
+    {
+      "id": "U02-1440-light",
+      "status": "notRun"
+    },
+    {
+      "id": "U02-1440-dark",
+      "status": "notRun"
+    },
+    {
+      "id": "U01-late-search",
+      "status": "notRun"
+    },
+    {
+      "id": "U01-late-seek",
+      "status": "notRun"
+    },
+    {
+      "id": "C02-restart",
+      "status": "notRun"
+    },
+    {
+      "id": "C02-expiry",
+      "status": "notRun"
+    },
+    {
+      "id": "L01-add-restart",
+      "status": "notRun"
+    },
+    {
+      "id": "A01-operator",
+      "status": "notRun"
+    },
+    {
+      "id": "A01-denied-2",
+      "status": "notRun"
+    },
+    {
+      "id": "A01-denied-5",
+      "status": "notRun"
+    },
+    {
+      "id": "A01-denied-null",
+      "status": "notRun"
+    },
+    {
+      "id": "M03-capacity",
+      "status": "notRun"
+    }
+  ],
+  "pass": 4,
+  "fail": 1,
+  "notRun": 33,
+  "failure": "search HTTP 503 expected 200 code recording-search-unavailable",
+  "browserClosed": true,
+  "uiFulltestPass": false,
+  "visualReviewRequired": true
+}

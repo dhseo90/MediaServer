@@ -1,0 +1,26 @@
+{
+  "id": "I31-partial",
+  "startedAt": "2026-10-03T09:32:21.001Z",
+  "completedAt": "2026-10-03T09:32:21.642Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "item": "v2-event:70:dj-fe0d95a8da68184278e0d68f2b8c7f84e318814606069b0944967dd5c36ec2c9-o039:31ed5a14-fbdf-46ca-8c27-2bdd165bd3de-m0:7000000000:8000000000",
+    "label": "작업 완료 · 일부 구간 · 등록됨 · 요청 원본 미디어: 6500 ~ 8500 ms",
+    "media": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 4,
+      "duration": 1,
+      "videoWidth": 160,
+      "videoHeight": 90,
+      "frames": 0,
+      "src": "/ops/api/recordings/media/dj-fe0d95a8da68184278e0d68f2b8c7f84e318814606069b0944967dd5c36ec2c9-o0",
+      "error": null,
+      "focused": false
+    }
+  }
+}

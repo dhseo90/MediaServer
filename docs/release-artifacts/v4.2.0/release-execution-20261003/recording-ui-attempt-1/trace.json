@@ -1,0 +1,1250 @@
+[
+  {
+    "id": "I27-filter",
+    "phase": "begin",
+    "at": "2026-10-03T07:18:58.949Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I27-filter",
+    "phase": "end",
+    "at": "2026-10-03T07:18:59.525Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I27-empty",
+    "phase": "begin",
+    "at": "2026-10-03T07:18:59.525Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I27-empty",
+    "phase": "end",
+    "at": "2026-10-03T07:19:00.140Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I27-inverted",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:00.140Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I27-inverted",
+    "phase": "end",
+    "at": "2026-10-03T07:19:00.757Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I27-page",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:00.757Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I27-page",
+    "phase": "end",
+    "at": "2026-10-03T07:19:01.884Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I28-event",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:01.884Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I28-event",
+    "phase": "end",
+    "at": "2026-10-03T07:19:02.475Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I29-original",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:02.475Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I29-original",
+    "phase": "end",
+    "at": "2026-10-03T07:19:04.682Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I30-play",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:05.841Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I30-play",
+    "phase": "end",
+    "at": "2026-10-03T07:19:06.643Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I30-pause",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:06.643Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I30-pause",
+    "phase": "end",
+    "at": "2026-10-03T07:19:07.089Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I30-seek",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:07.089Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I30-seek",
+    "phase": "end",
+    "at": "2026-10-03T07:19:07.757Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I31-partial",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:07.758Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I31-partial",
+    "phase": "end",
+    "at": "2026-10-03T07:19:08.427Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I31-deleted",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:08.427Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I31-deleted",
+    "phase": "end",
+    "at": "2026-10-03T07:19:09.062Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I31-corrupt",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:09.062Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I31-corrupt",
+    "phase": "end",
+    "at": "2026-10-03T07:19:09.694Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I31-pending",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:09.694Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I31-pending",
+    "phase": "end",
+    "at": "2026-10-03T07:19:10.324Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I31-gap",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:10.324Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I31-gap",
+    "phase": "end",
+    "at": "2026-10-03T07:19:10.891Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I31-error",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:10.891Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I31-error",
+    "phase": "end",
+    "at": "2026-10-03T07:19:12.108Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I32-quota",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:12.108Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I32-quota",
+    "phase": "end",
+    "at": "2026-10-03T07:19:14.272Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I32-active",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:14.272Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I32-active",
+    "phase": "end",
+    "at": "2026-10-03T07:19:19.143Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I32-blocked",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:19.143Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I32-blocked",
+    "phase": "end",
+    "at": "2026-10-03T07:19:19.226Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I33-navigation",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:19.226Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I33-navigation",
+    "phase": "end",
+    "at": "2026-10-03T07:19:19.255Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I34-admin",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:19.255Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-admin",
+    "phase": "end",
+    "at": "2026-10-03T07:19:20.779Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    }
+  },
+  {
+    "id": "I34-operator",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:20.779Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 1
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-operator",
+    "phase": "end",
+    "at": "2026-10-03T07:19:28.351Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "operator",
+      "requestedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "observedRole": "operator",
+      "observedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "landing": "/ops/home",
+      "session": 5
+    }
+  },
+  {
+    "id": "I34-viewer-unauth",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:28.351Z",
+    "principal": {
+      "requestedRole": "operator",
+      "requestedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "observedRole": "operator",
+      "observedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "landing": "/ops/home",
+      "session": 5
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-viewer-unauth",
+    "phase": "end",
+    "at": "2026-10-03T07:19:30.830Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "operator",
+      "requestedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "observedRole": "operator",
+      "observedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "landing": "/ops/home",
+      "session": 8
+    }
+  },
+  {
+    "id": "I34-redaction",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:30.830Z",
+    "principal": {
+      "requestedRole": "operator",
+      "requestedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "observedRole": "operator",
+      "observedScopes": [
+        "ops:read",
+        "source:read:1"
+      ],
+      "landing": "/ops/home",
+      "session": 8
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-redaction",
+    "phase": "end",
+    "at": "2026-10-03T07:19:33.733Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-320-light",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:33.733Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-320-light",
+    "phase": "end",
+    "at": "2026-10-03T07:19:37.045Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-320-dark",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:37.045Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 320,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-320-dark",
+    "phase": "end",
+    "at": "2026-10-03T07:19:40.471Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-390-light",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:40.472Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 320,
+      "height": 900
+    },
+    "theme": "dark"
+  },
+  {
+    "id": "I34-390-light",
+    "phase": "end",
+    "at": "2026-10-03T07:19:43.841Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-390-dark",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:43.841Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-390-dark",
+    "phase": "end",
+    "at": "2026-10-03T07:19:47.294Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-760-light",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:47.294Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "theme": "dark"
+  },
+  {
+    "id": "I34-760-light",
+    "phase": "end",
+    "at": "2026-10-03T07:19:50.749Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-760-dark",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:50.749Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 760,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-760-dark",
+    "phase": "end",
+    "at": "2026-10-03T07:19:54.146Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-1180-light",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:54.146Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 760,
+      "height": 900
+    },
+    "theme": "dark"
+  },
+  {
+    "id": "I34-1180-light",
+    "phase": "end",
+    "at": "2026-10-03T07:19:57.620Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  },
+  {
+    "id": "I34-1180-dark",
+    "phase": "begin",
+    "at": "2026-10-03T07:19:57.620Z",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    },
+    "viewport": {
+      "width": 1180,
+      "height": 900
+    },
+    "theme": "light"
+  },
+  {
+    "id": "I34-1180-dark",
+    "phase": "end",
+    "at": "2026-10-03T07:20:01.035Z",
+    "status": "pass",
+    "principal": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "observedRole": "admin",
+      "observedScopes": [
+        "*"
+      ],
+      "landing": "/ops/home",
+      "session": 10
+    }
+  }
+]

@@ -1,0 +1,118 @@
+{
+  "id": "I34-320-light",
+  "startedAt": "2026-10-03T07:19:33.733Z",
+  "completedAt": "2026-10-03T07:19:37.020Z",
+  "observedViewport": {
+    "width": 320,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "width": 320,
+    "theme": "light",
+    "geometry": [
+      {
+        "id": "opsRecordingChannelFilter",
+        "left": 33,
+        "right": 287,
+        "width": 254,
+        "height": 38,
+        "visible": true,
+        "label": "채널S06 channel 1S06 channel 2S09 UI 3S09 UI 4",
+        "color": "rgb(23, 28, 31)",
+        "background": "rgb(255, 255, 255)",
+        "outline": "rgb(23, 28, 31) none 3px",
+        "scrollWidth": 252,
+        "clientWidth": 252
+      },
+      {
+        "id": "opsRecordingStartTime",
+        "left": 33,
+        "right": 287,
+        "width": 254,
+        "height": 38,
+        "visible": true,
+        "label": "시작 시간 (브라우저 현지 시간)",
+        "color": "rgb(23, 28, 31)",
+        "background": "rgb(255, 255, 255)",
+        "outline": "rgb(23, 28, 31) none 3px",
+        "scrollWidth": 252,
+        "clientWidth": 252
+      },
+      {
+        "id": "opsRecordingEndTime",
+        "left": 33,
+        "right": 287,
+        "width": 254,
+        "height": 38,
+        "visible": true,
+        "label": "종료 시간 (브라우저 현지 시간)",
+        "color": "rgb(23, 28, 31)",
+        "background": "rgb(255, 255, 255)",
+        "outline": "rgb(23, 28, 31) none 3px",
+        "scrollWidth": 252,
+        "clientWidth": 252
+      },
+      {
+        "id": "opsRecordingLoad",
+        "left": 33,
+        "right": 287,
+        "width": 254,
+        "height": 40,
+        "visible": true,
+        "label": "조회",
+        "color": "rgb(23, 28, 31)",
+        "background": "rgb(255, 255, 255)",
+        "outline": "rgb(23, 28, 31) none 3px",
+        "scrollWidth": 252,
+        "clientWidth": 252
+      },
+      {
+        "id": "opsRecordingOriginalView",
+        "left": 33,
+        "right": 51,
+        "width": 18,
+        "height": 18,
+        "visible": true,
+        "label": " 이벤트와 겹치는 상시녹화 원본 보기",
+        "color": "rgb(23, 28, 31)",
+        "background": "rgb(255, 255, 255)",
+        "outline": "rgb(23, 28, 31) none 3px",
+        "scrollWidth": 18,
+        "clientWidth": 18
+      },
+      {
+        "id": "opsRecordingPlayer",
+        "left": 33,
+        "right": 287,
+        "width": 254,
+        "height": 142.875,
+        "visible": true,
+        "label": "선택한 녹화영상",
+        "color": "rgb(23, 28, 31)",
+        "background": "rgb(238, 243, 245)",
+        "outline": "rgb(23, 28, 31) none 3px",
+        "scrollWidth": 254,
+        "clientWidth": 254
+      }
+    ],
+    "focus": {
+      "id": "opsRecordingStartTime",
+      "outline": "rgba(20, 184, 166, 0.28) solid 3px",
+      "boxShadow": "none"
+    },
+    "video": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 4,
+      "src": "/ops/api/recordings/media/2208a0fc-bbc0-4378-a95a-4c0e6ec40d7b",
+      "error": null,
+      "focused": false
+    },
+    "visualReviewRequired": true
+  }
+}

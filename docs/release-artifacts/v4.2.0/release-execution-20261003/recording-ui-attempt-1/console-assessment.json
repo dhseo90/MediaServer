@@ -1,0 +1,317 @@
+{
+  "approved": [
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "route": "/ops/api/recordings/timeline",
+        "session": 1,
+        "action": "I31-error",
+        "at": 1791011951537
+      },
+      "response": {
+        "requestId": 55,
+        "route": "/ops/api/recordings/timeline",
+        "method": "GET",
+        "session": 1,
+        "action": "I31-error",
+        "status": 503,
+        "at": 1791011951537
+      },
+      "contract": {
+        "action": "I31-error",
+        "route": "/ops/api/recordings/timeline",
+        "status": 503
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/api/users",
+        "session": 2,
+        "action": "I34-operator",
+        "at": 1791011961071
+      },
+      "response": {
+        "requestId": 200,
+        "route": "/ops/api/users",
+        "method": "GET",
+        "session": 2,
+        "action": "I34-operator",
+        "status": 403,
+        "at": 1791011961071
+      },
+      "contract": {
+        "action": "I34-operator",
+        "session": 2,
+        "route": "/ops/api/users",
+        "status": 403,
+        "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/api/recordings/timeline",
+        "session": 2,
+        "action": "I34-operator",
+        "at": 1791011963427
+      },
+      "response": {
+        "requestId": 216,
+        "route": "/ops/api/recordings/timeline",
+        "method": "GET",
+        "session": 2,
+        "action": "I34-operator",
+        "status": 403,
+        "at": 1791011963423
+      },
+      "contract": {
+        "action": "I34-operator",
+        "route": "/ops/api/recordings/timeline",
+        "status": 403
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "route": "/ops/api/recordings/media/8a9905f3-310f-4a30-83df-38cdbe43e9b3",
+        "session": 2,
+        "action": "I34-operator",
+        "at": 1791011963446
+      },
+      "response": {
+        "requestId": 217,
+        "route": "/ops/api/recordings/media/8a9905f3-310f-4a30-83df-38cdbe43e9b3",
+        "method": "GET",
+        "session": 2,
+        "action": "I34-operator",
+        "status": 404,
+        "at": 1791011963445
+      },
+      "contract": {
+        "action": "I34-operator",
+        "route": "/ops/api/recordings/media/8a9905f3-310f-4a30-83df-38cdbe43e9b3",
+        "status": 404
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/api/users",
+        "session": 3,
+        "action": "I34-operator",
+        "at": 1791011965408
+      },
+      "response": {
+        "requestId": 242,
+        "route": "/ops/api/users",
+        "method": "GET",
+        "session": 3,
+        "action": "I34-operator",
+        "status": 403,
+        "at": 1791011965408
+      },
+      "contract": {
+        "action": "I34-operator",
+        "session": 3,
+        "route": "/ops/api/users",
+        "status": 403,
+        "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/home",
+        "session": 4,
+        "action": "I34-operator",
+        "at": 1791011966267
+      },
+      "response": {
+        "requestId": 256,
+        "route": "/ops/home",
+        "method": "GET",
+        "session": 4,
+        "action": "I34-operator",
+        "status": 403,
+        "at": 1791011966265
+      },
+      "contract": {
+        "action": "I34-operator",
+        "session": 4,
+        "route": "/ops/home",
+        "status": 403,
+        "reason": "로그인 landing의 ops:read 거부"
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/events",
+        "session": 4,
+        "action": "I34-operator",
+        "at": 1791011966283
+      },
+      "response": {
+        "requestId": 257,
+        "route": "/ops/events",
+        "method": "GET",
+        "session": 4,
+        "action": "I34-operator",
+        "status": 403,
+        "at": 1791011966282
+      },
+      "contract": {
+        "action": "I34-operator",
+        "route": "/ops/events",
+        "status": 403
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/api/users",
+        "session": 5,
+        "action": "I34-operator",
+        "at": 1791011966570
+      },
+      "response": {
+        "requestId": 269,
+        "route": "/ops/api/users",
+        "method": "GET",
+        "session": 5,
+        "action": "I34-operator",
+        "status": 403,
+        "at": 1791011966570
+      },
+      "contract": {
+        "action": "I34-operator",
+        "session": 5,
+        "route": "/ops/api/users",
+        "status": 403,
+        "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/events",
+        "session": 6,
+        "action": "I34-viewer-unauth",
+        "at": 1791011968641
+      },
+      "response": {
+        "requestId": 286,
+        "route": "/ops/events",
+        "method": "GET",
+        "session": 6,
+        "action": "I34-viewer-unauth",
+        "status": 403,
+        "at": 1791011968639
+      },
+      "contract": {
+        "action": "I34-viewer-unauth",
+        "route": "/ops/events",
+        "status": 403
+      }
+    },
+    {
+      "console": {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "route": "/ops/api/users",
+        "session": 8,
+        "action": "I34-viewer-unauth",
+        "at": 1791011969100
+      },
+      "response": {
+        "requestId": 299,
+        "route": "/ops/api/users",
+        "method": "GET",
+        "session": 8,
+        "action": "I34-viewer-unauth",
+        "status": 403,
+        "at": 1791011969100
+      },
+      "contract": {
+        "action": "I34-viewer-unauth",
+        "session": 8,
+        "route": "/ops/api/users",
+        "status": 403,
+        "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+      }
+    }
+  ],
+  "unapproved": [],
+  "expectedErrors": [
+    {
+      "action": "I31-error",
+      "route": "/ops/api/recordings/timeline",
+      "status": 503
+    },
+    {
+      "action": "I34-operator",
+      "session": 2,
+      "route": "/ops/api/users",
+      "status": 403,
+      "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+    },
+    {
+      "action": "I34-operator",
+      "route": "/ops/api/recordings/timeline",
+      "status": 403
+    },
+    {
+      "action": "I34-operator",
+      "route": "/ops/api/recordings/media/8a9905f3-310f-4a30-83df-38cdbe43e9b3",
+      "status": 404
+    },
+    {
+      "action": "I34-operator",
+      "session": 3,
+      "route": "/ops/api/users",
+      "status": 403,
+      "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+    },
+    {
+      "action": "I34-operator",
+      "session": 4,
+      "route": "/ops/home",
+      "status": 403,
+      "reason": "로그인 landing의 ops:read 거부"
+    },
+    {
+      "action": "I34-operator",
+      "route": "/ops/events",
+      "status": 403
+    },
+    {
+      "action": "I34-operator",
+      "session": 5,
+      "route": "/ops/api/users",
+      "status": 403,
+      "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+    },
+    {
+      "action": "I34-viewer-unauth",
+      "route": "/ops/events",
+      "status": 403
+    },
+    {
+      "action": "I34-viewer-unauth",
+      "session": 8,
+      "route": "/ops/api/users",
+      "status": 403,
+      "reason": "기존 operator-users-page-load-forbidden 계약·whoami·권한 없음 DOM 확인"
+    }
+  ]
+}

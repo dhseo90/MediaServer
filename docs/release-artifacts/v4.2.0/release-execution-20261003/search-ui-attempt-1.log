@@ -1,0 +1,38 @@
+[start] 2026-10-03T09:35:00Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+38dc824f289fe523f848b32162088ce955a6848c173f8e731e803a039c00c142  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.cpp
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_ui_seed.mjs
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h
+86eb8de4cf1fdd31059deb47ac5e5df5639581cc20609ccf12493acf94e59a31  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_current_ui_seed.sh
+f53192a630bc0378638ece917308611a95f819e5fc2537dec3235202da7d94ed  /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.FMT53j","bytes":13537884,"removed":true}
+[elapsed] seconds=8 source=bash-SECONDS actualUiPass=false
+[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false
+[ui-seed-selection] {"seekSegmentId":"435b8929-2f42-4f0a-8a01-05b40643f624","eventOutputIds":[{"scenario":"full","ids":["dj-c9b4f3ba0362a1fe707564187f98a63b07ab0d3321912e377f1b9dd63b83905d-o0","dj-c9b4f3ba0362a1fe707564187f98a63b07ab0d3321912e377f1b9dd63b83905d-o1"]},{"scenario":"partial","ids":["dj-b72693ebc109ded061d61e9fd68812b8197d32d8c5a9d6ca46354792b1b1b537-o0","dj-b72693ebc109ded061d61e9fd68812b8197d32d8c5a9d6ca46354792b1b1b537-o1"]}],"actualUiPass":false}
+[search-ui-action] F03-object begin
+[search-ui-action] F03-object pass
+[search-ui-action] F04-track begin
+[search-ui-action] F04-track pass
+[search-ui-action] F05-event begin
+[search-ui-action] F05-event pass
+[search-ui-action] V420-F06 begin
+[search-ui-action] V420-F06 pass
+[search-ui-action] V420-F07 begin
+[search-ui-action] V420-F07 fail
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-bJjQCy","rootBeforeBytes":27725406,"rootBeforeEntries":436,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":75013,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":55575,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":55576,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":1214,"verifierElapsedMs":20655,"uiUdpClosed":true}
+search UI run failed; inspect private evidence: UI auth preparation failed stage=driver code=PREPARATION_FAILED
