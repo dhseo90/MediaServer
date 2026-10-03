@@ -1,30 +1,110 @@
 {
   "schema": "media-server.user-test-failure-handoff.v1",
-  "generatedAt": "2026-10-03T03:15:31.063Z",
+  "generatedAt": "2026-10-03T03:38:13.788Z",
   "suite": "release",
   "userCommand": "./test_release.sh",
   "result": "fail",
   "source": {
-    "commitSha": "8a422a26d5c55f5a5c69856a7471166a24de943c",
+    "commitSha": "f99eeda950194f76fc01e056cadbd61d32b617d6",
     "branch": "v4.2.0",
     "worktreeClean": true
   },
   "counts": {
     "total": 50,
-    "pass": 21,
+    "pass": 5,
     "fail": 3,
-    "notRun": 26
+    "notRun": 42
   },
   "firstFailure": {
     "stage": "feature-gates",
-    "testcaseId": "v390-deferred-product-owner-signoff",
-    "command": "./server.sh verify-v390-deferred-product-owner-signoff",
+    "testcaseId": "code-comments",
+    "command": "./server.sh verify-code-comments",
     "exitCode": 1,
-    "errorSummary": "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1",
-    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log",
+    "errorSummary": "[fail] 상단 용도 주석 누락 | - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0",
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log",
     "reproductionCommand": "./test_release.sh"
   },
   "laterNotRun": [
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-ui-native-exact-cases-contract",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-stabilization-release-readiness",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-entry-baseline",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-feature-completion-inventory",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-user-review-gate",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/manual-ui-evidence",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-evidence-test-gate-prep",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-onvif-credential-provider-status",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-onvif-live-import-persist-decision",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-vlm-rule-suggestion-draft-bridge",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-vlm-incident-rule-provenance",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-vlm-evaluation-promotion-guard",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-vlm-promotion-trust-boundary",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-backup-recovery-handoff-validation",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-action-execution-deferral-decision",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v390-deferred-product-owner-signoff",
+      "reason": ""
+    },
     {
       "scope": "check",
       "id": "feature-gates/v390-conditional-field-ai-decisions",

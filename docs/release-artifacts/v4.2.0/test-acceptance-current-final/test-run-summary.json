@@ -1,20 +1,20 @@
 {
   "schema": "media-server.user-test-run-summary.v1",
-  "generatedAt": "2026-10-03T03:15:31.063Z",
+  "generatedAt": "2026-10-03T03:38:13.788Z",
   "suite": "release",
   "userCommand": "./test_release.sh",
   "result": "fail",
   "syntheticSourceSummary": false,
   "source": {
-    "commitSha": "8a422a26d5c55f5a5c69856a7471166a24de943c",
+    "commitSha": "f99eeda950194f76fc01e056cadbd61d32b617d6",
     "branch": "v4.2.0",
     "worktreeClean": true
   },
   "counts": {
     "total": 50,
-    "pass": 21,
+    "pass": 5,
     "fail": 3,
-    "notRun": 26
+    "notRun": 42
   },
   "items": [
     {
@@ -23,7 +23,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/preflight.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/preflight.log",
       "reason": ""
     },
     {
@@ -32,8 +32,8 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/build.log",
-      "reason": "[ 95%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_workflows.cpp.o"
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/build.log",
+      "reason": "[env] local override skipped"
     },
     {
       "scope": "stage",
@@ -47,155 +47,155 @@
     {
       "scope": "check",
       "id": "feature-gates/code-comments",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-01-code-comments.log",
-      "reason": "== Code comment policy summary =="
+      "status": "fail",
+      "originalStatus": "FAIL",
+      "exitCode": 1,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log",
+      "reason": "[fail] 상단 용도 주석 누락"
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-ui-native-exact-cases-contract",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-02-v390-ui-native-exact-cases-contract.log",
-      "reason": "[pass] evidence producer failure always leaves an exact 424 failure ledger"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-stabilization-release-readiness",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-03-v390-stabilization-release-readiness.log",
-      "reason": "[pass] 최종 acceptance 진입 안내와 launcher 모드"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-entry-baseline",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-04-v390-entry-baseline.log",
-      "reason": "[pass] SAFE-196 canonical V390 historical baseline boundary"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-feature-completion-inventory",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-05-v390-feature-completion-inventory.log",
-      "reason": "- inventory: docs/v390-feature-completion-inventory.md"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-user-review-gate",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-06-v390-user-review-gate.log",
-      "reason": "- historicalApprovalStatus: approved-through-recorded-user-goals"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/manual-ui-evidence",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-07-manual-ui-evidence.log",
-      "reason": "[pass] current UI documentation links and execution identifiers"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-evidence-test-gate-prep",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-08-v390-evidence-test-gate-prep.log",
-      "reason": "- schema: media-server.v390-evidence-test-gate-prep.v1"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-onvif-credential-provider-status",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-09-v390-onvif-credential-provider-status.log",
-      "reason": "[pass] v3.9 feature completion inventory separates original review candidates from current active candidates"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-onvif-live-import-persist-decision",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-10-v390-onvif-live-import-persist-decision.log",
-      "reason": "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 12"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-vlm-rule-suggestion-draft-bridge",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-11-v390-vlm-rule-suggestion-draft-bridge.log",
-      "reason": "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 13"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-vlm-incident-rule-provenance",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-12-v390-vlm-incident-rule-provenance.log",
-      "reason": "- event/candidate/evaluation source mapped: true"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-vlm-evaluation-promotion-guard",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-13-v390-vlm-evaluation-promotion-guard.log",
-      "reason": "- step: v3.9.0 (14)"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-vlm-promotion-trust-boundary",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-14-v390-vlm-promotion-trust-boundary.log",
-      "reason": "[pass] review-active-rejected"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-backup-recovery-handoff-validation",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-15-v390-backup-recovery-handoff-validation.log",
-      "reason": "- schema: media-server.ops.v390-staging-restore-validation-handoff.v1"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-action-execution-deferral-decision",
-      "status": "pass",
-      "originalStatus": "PASS",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-16-v390-action-execution-deferral-decision.log",
-      "reason": "- step: v3.9.0 (16)"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
       "id": "feature-gates/v390-deferred-product-owner-signoff",
-      "status": "fail",
-      "originalStatus": "FAIL",
-      "exitCode": 1,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log",
-      "reason": "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp"
+      "status": "not-run",
+      "originalStatus": "not-run",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
     },
     {
       "scope": "check",
@@ -401,7 +401,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/ui-server-cleanup.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/ui-server-cleanup.log",
       "reason": ""
     },
     {
@@ -437,7 +437,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/cleanup.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/cleanup.log",
       "reason": ""
     },
     {
@@ -455,7 +455,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/report.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/report.log",
       "reason": ""
     },
     {
@@ -464,17 +464,17 @@
       "status": "fail",
       "originalStatus": "FAIL",
       "exitCode": 1,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/final-integrity.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/final-integrity.log",
       "reason": "[pass] canonical artifacts contain no duplicate screenshots or video placeholders"
     }
   ],
   "firstFailure": {
     "stage": "feature-gates",
-    "testcaseId": "v390-deferred-product-owner-signoff",
-    "command": "./server.sh verify-v390-deferred-product-owner-signoff",
+    "testcaseId": "code-comments",
+    "command": "./server.sh verify-code-comments",
     "exitCode": 1,
-    "errorSummary": "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1",
-    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log",
+    "errorSummary": "[fail] 상단 용도 주석 누락 | - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0",
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log",
     "reproductionCommand": "./test_release.sh"
   },
   "cleanup": {

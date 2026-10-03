@@ -1,20 +1,36 @@
 # User Test Failure Handoff
 
 - suite: release
-- sourceCommit: 8a422a26d5c55f5a5c69856a7471166a24de943c
+- sourceCommit: f99eeda950194f76fc01e056cadbd61d32b617d6
 - sourceBranch: v4.2.0
 - sourceWorktreeClean: true
 - failureStage: feature-gates
-- testcaseId: v390-deferred-product-owner-signoff
-- command: ./server.sh verify-v390-deferred-product-owner-signoff
+- testcaseId: code-comments
+- command: ./server.sh verify-code-comments
 - exitCode: 1
-- error: [fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1
-- logPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log
+- error: [fail] 상단 용도 주석 누락 | - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0
+- logPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log
 - reproductionCommand: ./test_release.sh
 - cleanup: pass
 
 ## Later Not Run
 
+- check:feature-gates/v390-ui-native-exact-cases-contract
+- check:feature-gates/v390-stabilization-release-readiness
+- check:feature-gates/v390-entry-baseline
+- check:feature-gates/v390-feature-completion-inventory
+- check:feature-gates/v390-user-review-gate
+- check:feature-gates/manual-ui-evidence
+- check:feature-gates/v390-evidence-test-gate-prep
+- check:feature-gates/v390-onvif-credential-provider-status
+- check:feature-gates/v390-onvif-live-import-persist-decision
+- check:feature-gates/v390-vlm-rule-suggestion-draft-bridge
+- check:feature-gates/v390-vlm-incident-rule-provenance
+- check:feature-gates/v390-vlm-evaluation-promotion-guard
+- check:feature-gates/v390-vlm-promotion-trust-boundary
+- check:feature-gates/v390-backup-recovery-handoff-validation
+- check:feature-gates/v390-action-execution-deferral-decision
+- check:feature-gates/v390-deferred-product-owner-signoff
 - check:feature-gates/v390-conditional-field-ai-decisions
 - check:feature-gates/v390-reid-readiness-consistency
 - check:feature-gates/v390-onvif-source-view-atomicity

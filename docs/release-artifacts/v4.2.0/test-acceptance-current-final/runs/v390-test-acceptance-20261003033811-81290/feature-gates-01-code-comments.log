@@ -1,0 +1,7 @@
+[fail] 상단 용도 주석 누락
+  - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs
+
+== Code comment policy summary ==
+- files: 1330
+- missing headers: 1
+- english-only comments: 0

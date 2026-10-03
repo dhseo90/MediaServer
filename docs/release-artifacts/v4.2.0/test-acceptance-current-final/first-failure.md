@@ -1,41 +1,32 @@
 # v3.9.0 Acceptance First Failure
 
 schema: media-server.v390-acceptance-first-failure.v1
-recordedAt: 2026-10-03T03:15:31.013Z
-runId: v390-test-acceptance-20261003031351-77404
-sourceCommitSha: 8a422a26d5c55f5a5c69856a7471166a24de943c
+recordedAt: 2026-10-03T03:38:13.732Z
+runId: v390-test-acceptance-20261003033811-81290
+sourceCommitSha: f99eeda950194f76fc01e056cadbd61d32b617d6
 failedStage: feature-gates
-testcaseId: v390-deferred-product-owner-signoff
-error: [fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1
-logPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log
-failedCommand: ./server.sh verify-v390-deferred-product-owner-signoff
+testcaseId: code-comments
+error: [fail] 상단 용도 주석 누락 |   - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0
+logPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log
+failedCommand: ./server.sh verify-code-comments
 reproductionCommand: ./test_release.sh
-context: [fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1
+context: [fail] 상단 용도 주석 누락 |   - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0
 childFailurePhase: not-recorded
 childFailureCase: not-recorded
 childCleanupStatus: not-recorded
 
 ## Diagnostic artifact snapshots
 
-### /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log
+### /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log
 
-bytes: 1028
-sha256: 20b6e95396c0849338dbcd5e6656a25cf548fd3f9a8099786dc607ee9f799e0c
+bytes: 216
+sha256: ae81e08b683bbe9b990d955a727a476c209a29311af1cbe510f324c31ff040bf
 
 ```text
-[pass] 현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)
-[pass] v3 decision record binds the effective repository owner and current goal attestation
-[pass] exact five decisions preserve truthful capability and execution status
-[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp
-[pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims
-[pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS
-[pass] server dispatch and script inventory expose the verifier
-== v3.9.0 REVIEW4-63 accountable deferred product owner sign-off ==
-- accountableSubject: @dhseo90 (repository-code-owner)
-- decisions: 5
-- followupAssignment: post-v3.9-unassigned / scheduled=false
-- externalFieldSmoke: separate conditional-not-run
-- implementation/field/release/UI/longrun PASS claimed: false
-- pass: 6
-- fail: 1
+[fail] 상단 용도 주석 누락
+  - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs
+== Code comment policy summary ==
+- files: 1330
+- missing headers: 1
+- english-only comments: 0
 ```

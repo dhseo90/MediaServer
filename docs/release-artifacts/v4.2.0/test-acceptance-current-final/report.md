@@ -4,12 +4,12 @@ schema: media-server.v390-test-acceptance-bundle.v1
 result: FAIL
 executionMode: actual
 dryRun: false
-sourceCommitSha: 8a422a26d5c55f5a5c69856a7471166a24de943c
+sourceCommitSha: f99eeda950194f76fc01e056cadbd61d32b617d6
 sourceBranch: v4.2.0
 sourceWorktreeClean: true
 failedStage: feature-gates
-firstFailureCommand: ./server.sh verify-v390-deferred-product-owner-signoff
-firstFailureContext: [fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1
+firstFailureCommand: ./server.sh verify-code-comments
+firstFailureContext: [fail] 상단 용도 주석 누락 |   - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0
 reproductionCommand: ./test_release.sh
 automatedAcceptanceStatus: failed
 evidenceBoundary: actual automated acceptance is not Codex in-app manual UI fulltest, published metadata, or release-action evidence
@@ -17,19 +17,19 @@ exactUiCoverage: not-run
 
 | stage | status | command | log/summary |
 | --- | --- | --- | --- |
-| preflight | PASS | validate actual bundle inputs | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/preflight.log |
-| build | PASS | ./server.sh build | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/build.log |
+| preflight | PASS | validate actual bundle inputs | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/preflight.log |
+| build | PASS | ./server.sh build | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/build.log |
 | feature-gates | FAIL | 36 current feature commands |  |
 | server-longrun-30 | not-run |  | not run after feature-gates failure |
 | ui-environment-bootstrap | not-run |  | not run after feature-gates failure |
 | ui-exact-424 | not-run |  | not run after feature-gates failure |
-| ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/ui-server-cleanup.log |
+| ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/ui-server-cleanup.log |
 | ui-fulltest-qualification | not-run |  | not run after feature-gates failure |
 | longrun-120-decision | not-run |  | not run after feature-gates failure |
 | server-longrun-120 | not-run |  | not run after feature-gates failure |
-| cleanup | PASS | validate child cleanup and preserved evidence | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/cleanup.log |
+| cleanup | PASS | validate child cleanup and preserved evidence | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/cleanup.log |
 | ui-final-integrity | not-run |  | not selected by release suite |
-| report | PASS | write acceptance summary/report | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/report.log |
+| report | PASS | write acceptance summary/report | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/report.log |
 | final-integrity | FAIL | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/summary.json | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/summary.json |
 
 ## Known UI closure blockers
@@ -58,26 +58,26 @@ exactUiCoverage: not-run
 
 | stage | id | status | command | exit | log |
 | --- | --- | --- | --- | ---: | --- |
-| preflight | preflight | PASS | validate actual bundle inputs | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/preflight.log |
-| build | build | PASS | ./server.sh build | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/build.log |
+| preflight | preflight | PASS | validate actual bundle inputs | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/preflight.log |
+| build | build | PASS | ./server.sh build | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/build.log |
 | feature-gates | feature-gates | FAIL | 36 current feature commands | 1 |  |
-| feature-gates | code-comments | PASS | ./server.sh verify-code-comments | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-01-code-comments.log |
-| feature-gates | v390-ui-native-exact-cases-contract | PASS | ./server.sh verify-v390-ui-native-exact-cases-contract | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-02-v390-ui-native-exact-cases-contract.log |
-| feature-gates | v390-stabilization-release-readiness | PASS | ./server.sh verify-v390-stabilization-release-readiness | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-03-v390-stabilization-release-readiness.log |
-| feature-gates | v390-entry-baseline | PASS | ./server.sh verify-v390-entry-baseline | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-04-v390-entry-baseline.log |
-| feature-gates | v390-feature-completion-inventory | PASS | ./server.sh verify-v390-feature-completion-inventory | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-05-v390-feature-completion-inventory.log |
-| feature-gates | v390-user-review-gate | PASS | ./server.sh verify-v390-user-review-gate | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-06-v390-user-review-gate.log |
-| feature-gates | manual-ui-evidence | PASS | ./server.sh verify-manual-ui-evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-07-manual-ui-evidence.log |
-| feature-gates | v390-evidence-test-gate-prep | PASS | ./server.sh verify-v390-evidence-test-gate-prep | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-08-v390-evidence-test-gate-prep.log |
-| feature-gates | v390-onvif-credential-provider-status | PASS | ./server.sh verify-v390-onvif-credential-provider-status | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-09-v390-onvif-credential-provider-status.log |
-| feature-gates | v390-onvif-live-import-persist-decision | PASS | ./server.sh verify-v390-onvif-live-import-persist-decision | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-10-v390-onvif-live-import-persist-decision.log |
-| feature-gates | v390-vlm-rule-suggestion-draft-bridge | PASS | ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-11-v390-vlm-rule-suggestion-draft-bridge.log |
-| feature-gates | v390-vlm-incident-rule-provenance | PASS | ./server.sh verify-v390-vlm-incident-rule-provenance | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-12-v390-vlm-incident-rule-provenance.log |
-| feature-gates | v390-vlm-evaluation-promotion-guard | PASS | ./server.sh verify-v390-vlm-evaluation-promotion-guard | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-13-v390-vlm-evaluation-promotion-guard.log |
-| feature-gates | v390-vlm-promotion-trust-boundary | PASS | ./server.sh verify-v390-vlm-promotion-trust-boundary | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-14-v390-vlm-promotion-trust-boundary.log |
-| feature-gates | v390-backup-recovery-handoff-validation | PASS | ./server.sh verify-v390-backup-recovery-handoff-validation | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-15-v390-backup-recovery-handoff-validation.log |
-| feature-gates | v390-action-execution-deferral-decision | PASS | ./server.sh verify-v390-action-execution-deferral-decision | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-16-v390-action-execution-deferral-decision.log |
-| feature-gates | v390-deferred-product-owner-signoff | FAIL | ./server.sh verify-v390-deferred-product-owner-signoff | 1 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log |
+| feature-gates | code-comments | FAIL | ./server.sh verify-code-comments | 1 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log |
+| feature-gates | v390-ui-native-exact-cases-contract | not-run | ./server.sh verify-v390-ui-native-exact-cases-contract |  |  |
+| feature-gates | v390-stabilization-release-readiness | not-run | ./server.sh verify-v390-stabilization-release-readiness |  |  |
+| feature-gates | v390-entry-baseline | not-run | ./server.sh verify-v390-entry-baseline |  |  |
+| feature-gates | v390-feature-completion-inventory | not-run | ./server.sh verify-v390-feature-completion-inventory |  |  |
+| feature-gates | v390-user-review-gate | not-run | ./server.sh verify-v390-user-review-gate |  |  |
+| feature-gates | manual-ui-evidence | not-run | ./server.sh verify-manual-ui-evidence |  |  |
+| feature-gates | v390-evidence-test-gate-prep | not-run | ./server.sh verify-v390-evidence-test-gate-prep |  |  |
+| feature-gates | v390-onvif-credential-provider-status | not-run | ./server.sh verify-v390-onvif-credential-provider-status |  |  |
+| feature-gates | v390-onvif-live-import-persist-decision | not-run | ./server.sh verify-v390-onvif-live-import-persist-decision |  |  |
+| feature-gates | v390-vlm-rule-suggestion-draft-bridge | not-run | ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge |  |  |
+| feature-gates | v390-vlm-incident-rule-provenance | not-run | ./server.sh verify-v390-vlm-incident-rule-provenance |  |  |
+| feature-gates | v390-vlm-evaluation-promotion-guard | not-run | ./server.sh verify-v390-vlm-evaluation-promotion-guard |  |  |
+| feature-gates | v390-vlm-promotion-trust-boundary | not-run | ./server.sh verify-v390-vlm-promotion-trust-boundary |  |  |
+| feature-gates | v390-backup-recovery-handoff-validation | not-run | ./server.sh verify-v390-backup-recovery-handoff-validation |  |  |
+| feature-gates | v390-action-execution-deferral-decision | not-run | ./server.sh verify-v390-action-execution-deferral-decision |  |  |
+| feature-gates | v390-deferred-product-owner-signoff | not-run | ./server.sh verify-v390-deferred-product-owner-signoff |  |  |
 | feature-gates | v390-conditional-field-ai-decisions | not-run | ./server.sh verify-v390-conditional-field-ai-decisions |  |  |
 | feature-gates | v390-reid-readiness-consistency | not-run | ./server.sh verify-v390-reid-readiness-consistency |  |  |
 | feature-gates | v390-onvif-source-view-atomicity | not-run | ./server.sh verify-v390-onvif-source-view-atomicity |  |  |
@@ -97,7 +97,7 @@ exactUiCoverage: not-run
 | feature-gates | release-evidence-index | not-run | ./server.sh verify-release-evidence-index |  |  |
 | feature-gates | script-inventory | not-run | ./server.sh verify-script-inventory |  |  |
 | feature-gates | git-diff-check | not-run | git diff --check |  |  |
-| ui-server-cleanup | ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/ui-server-cleanup.log |
-| cleanup | cleanup | PASS | validate child cleanup and preserved evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/cleanup.log |
-| report | report | PASS | write acceptance summary/report | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/report.log |
-| final-integrity | final-integrity | FAIL | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/summary.json | 1 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/final-integrity.log |
+| ui-server-cleanup | ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/ui-server-cleanup.log |
+| cleanup | cleanup | PASS | validate child cleanup and preserved evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/cleanup.log |
+| report | report | PASS | write acceptance summary/report | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/report.log |
+| final-integrity | final-integrity | FAIL | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/summary.json | 1 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/final-integrity.log |

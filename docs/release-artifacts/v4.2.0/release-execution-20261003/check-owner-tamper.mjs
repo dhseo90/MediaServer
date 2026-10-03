@@ -1,3 +1,4 @@
+// 파일 용도: 릴리즈 owner 결속의 본문 변조 반례를 격리 복사본에서 재현하고 정리한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';

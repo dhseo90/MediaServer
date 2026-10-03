@@ -4889,3 +4889,13 @@ source-region contract 8개도 통과했다. 해당 반례의 임시 복사본�
 [이번 실행 증거](release-execution-20261003/review-notes.md)에 보존한다.
 첫 release 실패 원출력은 같은 보존 커밋의 `test-acceptance-current-final/`에 있으며,
 재실행 시 기존 wrapper가 이를 교체하므로 먼저 원격 보존한 후 재실행한다.
+
+2차 `./test_release.sh`는 `f99eeda950194f76fc01e056cadbd61d32b617d6`에서 실행됐다.
+preflight/build는 PASS, feature-gates 첫 명령 `verify-code-comments`는 보존한
+`check-owner-tamper.mjs`의 상단 용도 주석 누락으로 exit1이었다.
+실행 가능한 증거 파일을 추가한 뒤 해당 정책 검사를 빠뜨린 준비 오류다.
+용도 주석 1행 추가 후 이 반례 스크립트를 다시 실행해 exit0/변조 거부/cleanup을 확인했고,
+`verify-code-comments` exit0(1330파일, 누락0/영문전용0)을 확인했다.
+2차도 장시간/UI는 미실행, cleanup PASS이며 final-integrity는 미실행 child로 파생 실패했다.
+첫 실행 원본은 원격 보존 commit `f99eeda9`에 남아 있고, 이번 커밋은 2차 원출력을 보존한다.
+feature-gates는 현재 2차 실패까지이며 3차 실패 시 후속 작업 전면 중단 조건을 유지한다.
