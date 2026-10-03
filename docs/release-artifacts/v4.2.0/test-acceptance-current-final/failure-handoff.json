@@ -1,185 +1,30 @@
 {
   "schema": "media-server.user-test-failure-handoff.v1",
-  "generatedAt": "2026-10-03T03:38:13.788Z",
+  "generatedAt": "2026-10-03T03:45:08.584Z",
   "suite": "release",
   "userCommand": "./test_release.sh",
   "result": "fail",
   "source": {
-    "commitSha": "f99eeda950194f76fc01e056cadbd61d32b617d6",
+    "commitSha": "4ad2fe20ae03dd676cab1c4c8bf3e1f0f71238e3",
     "branch": "v4.2.0",
     "worktreeClean": true
   },
   "counts": {
     "total": 50,
-    "pass": 5,
+    "pass": 36,
     "fail": 3,
-    "notRun": 42
+    "notRun": 11
   },
   "firstFailure": {
     "stage": "feature-gates",
-    "testcaseId": "code-comments",
-    "command": "./server.sh verify-code-comments",
+    "testcaseId": "project-inventory",
+    "command": "./server.sh verify-project-inventory",
     "exitCode": 1,
-    "errorSummary": "[fail] 상단 용도 주석 누락 | - docs/release-artifacts/v4.2.0/release-execution-20261003/check-owner-tamper.mjs | == Code comment policy summary == | - files: 1330 | - missing headers: 1 | - english-only comments: 0",
-    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033811-81290/feature-gates-01-code-comments.log",
+    "errorSummary": "[pass] manual UI seed tracker Re-ID pair bytetrack/off | [pass] manual UI seed tracker Re-ID pair lite/assist | [pass] manual UI seed tracker Re-ID pair kalman-lite/assist | [pass] manual UI seed tracker Re-ID pair bytetrack/assist | [pass] manual UI seed invalid policy tracker none Re-ID assist | [pass] manual UI seed final state minimum vaRules | [pass] manual UI VA seed matrix covers required current release cases | == Project feature/test inventory summary == | - featureRows: 986 | - seedFixture: test/fixtures/manual_ui_fulltest_va_seed_matrix.json | - pass: 17 | - fail: 1",
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003033950-82694/feature-gates-32-project-inventory.log",
     "reproductionCommand": "./test_release.sh"
   },
   "laterNotRun": [
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-ui-native-exact-cases-contract",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-stabilization-release-readiness",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-entry-baseline",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-feature-completion-inventory",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-user-review-gate",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/manual-ui-evidence",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-evidence-test-gate-prep",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-onvif-credential-provider-status",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-onvif-live-import-persist-decision",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-vlm-rule-suggestion-draft-bridge",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-vlm-incident-rule-provenance",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-vlm-evaluation-promotion-guard",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-vlm-promotion-trust-boundary",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-backup-recovery-handoff-validation",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-action-execution-deferral-decision",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-deferred-product-owner-signoff",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-conditional-field-ai-decisions",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-reid-readiness-consistency",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-onvif-source-view-atomicity",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-structure-stabilization-handoff",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-structure-stabilization-readiness",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-external-field-smoke-no-device-closure",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-truthfulness-status-vocabulary",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-analysis-registry-durable-write",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-ui-policy-v4-producer-contract",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/v390-ui-visual-evidence-contract",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/release-metadata",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/docs-links",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/docs-ui-assets",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/feature-implementation-evidence",
-      "reason": ""
-    },
-    {
-      "scope": "check",
-      "id": "feature-gates/project-inventory",
-      "reason": ""
-    },
     {
       "scope": "check",
       "id": "feature-gates/feature-inventory-coverage",

@@ -4899,3 +4899,20 @@ preflight/build는 PASS, feature-gates 첫 명령 `verify-code-comments`는 보�
 2차도 장시간/UI는 미실행, cleanup PASS이며 final-integrity는 미실행 child로 파생 실패했다.
 첫 실행 원본은 원격 보존 commit `f99eeda9`에 남아 있고, 이번 커밋은 2차 원출력을 보존한다.
 feature-gates는 현재 2차 실패까지이며 3차 실패 시 후속 작업 전면 중단 조건을 유지한다.
+
+3차 `./test_release.sh`는 `4ad2fe20ae03dd676cab1c4c8bf3e1f0f71238e3`에서 실행했고
+exit1로 종료됐다. feature-gates의 앞선 31개 명령은 통과했지만 32번째
+`./server.sh verify-project-inventory`가 `inventory does not pin v4.2.0`으로 실패했다
+(해당 명령 17pass/1fail). 같은 단계의 세 번째 실패이므로 사용자 조건에 따라
+추가 수정·검증·릴리즈 작업을 전면 중단했다. 이 실패를 문서 한 줄 수정으로 계속 진행하지 않는다.
+
+세 시도의 직접 원인: (1) owner 검사기의 현행 runtime 소스 결속 불일치,
+(2) 새 보존 반례 스크립트의 용도 주석 누락, (3) inventory 현행 v4.2.0 scope pin 누락.
+1차와 2차 원본은 각각 원격 `f99eeda9`, `4ad2fe20`에 보존됐고 3차 원본은
+현재 `test-acceptance-current-final/`에 보존한다. 첫 두 원인은 수정 후 직접 검사와
+3차 동일 경로에서 통과했다. 제품 코드는 이번 세 실행 동안 바뀌지 않았다.
+세 번 모두 30분·실제 UI·일반120분에 진입하지 않았으며 녹화 UI/V420 UI/녹화120분도
+미실행이다. final-integrity의 미실행 child 관련 실패는 각 선행 실패의 파생 결과다.
+3차 cleanup은 PASS이고 실행 프로세스 종료(exit1)를 확인했다.
+최종 기록 보존 외 새 검사·수정·위임은 하지 않았다. PR·병합·tag·Release도 수행하지 않았다.
+재개에는 세 번째 실패 후 중단 조건을 해소하는 명시적 지시가 필요하다.
