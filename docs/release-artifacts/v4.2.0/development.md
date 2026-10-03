@@ -5093,3 +5093,62 @@ canonical, 기존 Linux·개발·녹화 UI 증거는 각 실제 범위에서 유
 커밋 뒤에도 실행 대상 소스 hash는 모두 같았고, canonical 대상 대비 `src/include` diff는 없다.
 미완료5파일(검색 driver·wrapper·두 연결 단위검사·UI 실행 문서)은 작업 트리에 보존한다.
 새 실행 patch의 context 빈 줄은 원본 바이트 보존을 위해 편집하지 않으며 공백 검사 예외로 구분한다.
+
+### C02·작업 공간 예산 보완 및 검색 UI·녹화120분 완료
+
+진입 로컬/원격은 `debfe085e359a736e8a067186f287e01629f0ac4`로 일치했다.
+남은5파일은 직전 보존 소스와 같은 바이트였으며 patch 재적용·stash/reset·제품 수정은 없었다.
+[이번 실행 결속](release-execution-20261003/c02-budget-final/execution-binding.json)과
+[단기 명령·최초 실패·수정 결과](release-execution-20261003/c02-budget-final/short-execution.json)에
+실제 대상과 재사용 범위를 남겼다. 과거 검색 UI/119분 실패 원출력·실패 root는 그대로 유지한다.
+
+- C02는 재시작의 새 MAC 키 거부 **400/search-invalid-cursor**와 같은 pool의 실제300초
+  만료 **410/search-snapshot-expired**를 구분한다. 제품 키·검증 순서는 불변이다.
+  정확한 오류 본문·조건 오류 안내·이전 목록/재생 제거·동일 권한 새 검색/새 cursor를 확인했다.
+  console은 action·route·상태·정확한 오류 코드와 결속하며 모든400을 허용하지 않는다.
+- 단기검사: cursor34, 비동기 UI11, driver10, root 예산21, 복제21 통과.
+  실제 app-observe는30.142초/73pass/0fail과 세 복제·재기동·정리를 통과했다.
+  최초 소스 문자열 기대 실패와 fake video/비동기 flush 실패를 보존했다. auth 준비21은
+  직전 실행의 동일 바이트 근거를 재사용했다. 구문·주석·분류13·기능 연결986/negative15·
+  문서 링크·변경 소스 공백도 통과했다. 검사 횟수와 기능 수를 합산하지 않는다.
+- 검색 UI 최종1회는 **38action/30기능 ID, 38pass/0fail/0notRun, exit0**이다.
+  C03의 동일 includeUnplaced 질의·전체 페이지·독립 unknown timeline 판정을 유지했다.
+  [별도 UI 검토](release-execution-20261003/c02-budget-final/search-ui-review.json)는106개
+  캡처 전체와390/1440 light/dark·키보드 초점·label/geometry·권한·정보 비노출·console8개의
+  정확한 오류 상관·재생 완료·cleanup을 확인했다. 원본 visualReviewRequired/uiFulltestPass는
+  편집하지 않았다. 검색 추가 대상의 hybrid 검토 완료이며 기본424/녹화31 재실행이나
+  표시 frame hash 정확성 증명이 아니다. JSON/text는 Git, PNG106개는 검토 기록의 로컬 경로에 보존한다.
+- 예산은 허용된 고정5파일의 소유·canonical 경로·identity·초기 hash/크기를 실행 전 고정하고,
+  나머지 전부를 R로 센다. 교체/증가/누락·새 미분류 파일·등호/초과·copy·감시 실패/자식 실패를
+  단기 반례로 확인했다. 기본 호출자의 전체448MiB 및 입력별96MiB, entry4096, native journal,
+  관측ID/byte·로그 제한은 유지한다. 복사 전/쓰기 누적 admission과 native 비동기 실행 중100ms
+  감시를 연결했다. 짧은 실행 receipt3개는 당시 기본 v4.1 경로에 생긴 새 소유 파일만 이 실행
+  위치로 옮겼고 기존 receipt는 바꾸지 않았다.120분 receipt는 처음부터 이번 위치에 기록했다.
+
+`./server.sh verify-v410-recording-longrun --duration-minutes 120`은 코드 커밋
+`b6ad8df65d1e194504c7a650bf3208e72d05e15d`에서 **1회, exit0**이다.
+[원본 결과](release-execution-20261003/c02-budget-final/recording120-result.json)와
+[자원·예산·정리 검토](release-execution-20261003/c02-budget-final/recording120-review.json)를 보존했다.
+실제 관측7,200,398.439ms, 전체7,270,004ms, 표본1,440개, assertion10,098pass/0fail이다.
+채널별 확정3,592/삭제3,590, 총7,184개를 관측했고 disable·종료·복제3회·disabled restart·
+정확한 catalog 상태·reenable·최종 cleanup이 통과했다. 제품3개 프로세스 exit0/포트 종료,
+복제 process group 종료, 원본/복제 root 부재를 확인했다. 채널2·segment2초·quota·입력·부하는 유지했다.
+
+이번 F=135,130,173바이트, root 한도604,892,221, 동시 한도1,074,654,269바이트다.
+표본 최고 R=334,915,306, root=470,045,479, copy=319,243,570,
+원본+copy=760,805,050바이트로 각 경계를 충족했다. 정상 표본 최대 간격5,015.139ms,
+복제 감시3회104/104/103표본의 최대 간격102.854ms다. 비원자적 논리 파일 크기이며
+표본 사이의 순간 최고점을 강제 제한한 디스크 quota라고 주장하지 않는다.
+6,147,114바이트 원로그는342,823바이트 gzip으로 무손실 보존·해제 바이트 대조했으며 로컬 원본도 유지한다.
+
+자원 표본 검토는 완료했지만 **RSS 안정성은 승인하지 않는다**. RSS88.53→522.48MiB,
+최고562.67MiB, warmup 이후 약172.75MiB 증가/1.502MiB·분이다.
+원본 resourceTrendPass=false/reviewRequired=true를 유지한다. 기존 Catalog 누적 RAM·
+지원 동시 부하 한계는 남으며 새 메모리 조사나 지원 규모 확대를 시작하지 않았다.
+약148ms는 기존 별도 검색 준비 잠금 대기 관측으로만 유지한다.
+
+검색 테스트 코드는 `3b56a1de`와 예산 코드는 위 `b6ad8df6`로 분리 커밋했다.
+검색 UI는 base `debfe085`+보존 patch에서 실행했고 커밋 후13개 파일 hash 일치를 확인했다.
+canonical `ce163652` 대비 src/include diff가 없어 기존 canonical/Linux/개발/녹화 UI 증거를
+각 실제 실행 범위에서 유지한다. 일반 acceptance·기본424·일반30/120·Linux는 반복하지 않았다.
+PR·병합·tag·Release·버전 전체 증거 삭제는 수행하지 않았다.

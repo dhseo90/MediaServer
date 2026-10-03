@@ -1,0 +1,44 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791030600000",
+    "endTimeMs": "1791030660000",
+    "limit": "50",
+    "includeUnplaced": "false",
+    "object": "event-combination",
+    "event": "ui-release-event-0",
+    "behaviour": "scenario:loitering"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791030600000,
+    "endTimeMs": 1791030660000,
+    "includeUnplaced": false,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "event-combination"
+      ],
+      "track": [],
+      "event": [
+        "ui-release-event-0"
+      ],
+      "zone": [],
+      "rule": [],
+      "behaviour": [
+        "scenario:loitering"
+      ]
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "ef1e03a2743530d169d6033e6e3c2d87",
+    "nextCursor": null,
+    "knownCount": 0,
+    "unplacedCount": 0,
+    "items": []
+  }
+}

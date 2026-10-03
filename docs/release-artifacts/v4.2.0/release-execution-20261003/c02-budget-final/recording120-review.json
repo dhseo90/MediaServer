@@ -1,0 +1,724 @@
+{
+  "scope": "one recording120 execution; not unrestricted memory/scale certification",
+  "command": "./server.sh verify-v410-recording-longrun --duration-minutes 120",
+  "exit": 0,
+  "sourceCommit": "b6ad8df65d1e194504c7a650bf3208e72d05e15d",
+  "productSha256": "253810c36869096349c05ad68caacfc21b569e6d6aba13b5223d13c01d84969b",
+  "environment": {
+    "os": "27.0.1",
+    "architecture": "arm64",
+    "node": "v24.13.0"
+  },
+  "rawLog": {
+    "file": "recording120-command.log.gz",
+    "compression": "gzip lossless; decompressed bytes compared with retained original",
+    "originalBytes": 6147114,
+    "compressedBytes": 342823,
+    "originalSha256": "6fe98c16f24b8ea01056b67f3dc147aa52c3a32b86816b65877ca18412d45f6d",
+    "retainedLocalOriginal": "/tmp/v420-recording120-budget-final.log"
+  },
+  "fixedBaseline": {
+    "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-DSNNdl",
+    "dev": 16777232,
+    "ino": 166298958,
+    "uid": 501,
+    "capBytes": 469762048,
+    "fixedBytes": 135130173,
+    "files": [
+      {
+        "name": "input/retention-9101.mp4",
+        "dev": 16777232,
+        "ino": 166299269,
+        "uid": 501,
+        "mode": 33188,
+        "size": 62334405,
+        "mtimeMs": 1791031213674.7942,
+        "ctimeMs": 1791031213674.7942,
+        "sha256": "23cb89204bb29f549cb67b9639817c1a12683a03dc3c3da462db101ec4729f91"
+      },
+      {
+        "name": "input/retention-9201.mp4",
+        "dev": 16777232,
+        "ino": 166299270,
+        "uid": 501,
+        "mode": 33188,
+        "size": 62334405,
+        "mtimeMs": 1791031213703.5112,
+        "ctimeMs": 1791031213703.5112,
+        "sha256": "23cb89204bb29f549cb67b9639817c1a12683a03dc3c3da462db101ec4729f91"
+      },
+      {
+        "name": "normalize",
+        "dev": 16777232,
+        "ino": 166299253,
+        "uid": 501,
+        "mode": 33261,
+        "size": 10092072,
+        "mtimeMs": 1791031212015.2185,
+        "ctimeMs": 1791031212015.2185,
+        "sha256": "fb69bb3a7e59352b946727723120371deef2aef069b35873aaeae538f145f8c8"
+      },
+      {
+        "name": "process-metrics",
+        "dev": 16777232,
+        "ino": 166299256,
+        "uid": 501,
+        "mode": 33261,
+        "size": 82880,
+        "mtimeMs": 1791031212269.8362,
+        "ctimeMs": 1791031212269.8362,
+        "sha256": "e35370a1e56df52b556e7aa493789039cabf9011192ed0591bcef58c6b382e19"
+      },
+      {
+        "name": "catalog-instrumented.cpp",
+        "dev": 16777232,
+        "ino": 166299247,
+        "uid": 501,
+        "mode": 33152,
+        "size": 286411,
+        "mtimeMs": 1791031209680.6414,
+        "ctimeMs": 1791031209680.6414,
+        "sha256": "3e22fc779594229e7e889460cbb3156b650214027c15249d215d29715d1b36fc"
+      }
+    ]
+  },
+  "workspaceReview": {
+    "decision": "approved F/R/copy policy satisfied in observed samples and copy write admission",
+    "C": 469762048,
+    "rootLimit": 604892221,
+    "combinedLimit": 1074654269,
+    "observedRootPeak": 470045479,
+    "observedVariablePeak": 334915306,
+    "observedCopyPeak": 319243570,
+    "observedCombinedPeak": 760805050,
+    "rootSampleMaxGapMs": 5015.139250000007,
+    "copyMonitoring": [
+      {
+        "failure": null,
+        "samples": 104,
+        "intervalMs": 100,
+        "maxGapMs": 102.8507079994306,
+        "elapsedMs": 10495.820875000209,
+        "peak": {
+          "totalBytes": 441559468,
+          "capBytes": 604892221,
+          "capExceeded": false,
+          "entries": 494,
+          "categories": {
+            "input": {
+              "bytes": 124668810,
+              "files": 2
+            },
+            "media": {
+              "bytes": 158432850,
+              "files": 6
+            },
+            "mediaPartial": {
+              "bytes": 0,
+              "files": 0
+            },
+            "journal": {
+              "bytes": 92288017,
+              "files": 89
+            },
+            "checkpoint": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationSnapshot": {
+              "bytes": 13300902,
+              "files": 1
+            },
+            "generationIdentity": {
+              "bytes": 12992607,
+              "files": 88
+            },
+            "generationEvidence": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationManifest": {
+              "bytes": 403,
+              "files": 1
+            },
+            "generationTransaction": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqlite": {
+              "bytes": 26251264,
+              "files": 1
+            },
+            "wal": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqliteAux": {
+              "bytes": 0,
+              "files": 0
+            },
+            "tmp": {
+              "bytes": 0,
+              "files": 0
+            },
+            "log": {
+              "bytes": 12303,
+              "files": 1
+            },
+            "state": {
+              "bytes": 4657,
+              "files": 2
+            },
+            "events": {
+              "bytes": 0,
+              "files": 0
+            },
+            "cache": {
+              "bytes": 3146149,
+              "files": 280
+            },
+            "tools": {
+              "bytes": 10174952,
+              "files": 2
+            },
+            "recordingsOther": {
+              "bytes": 143,
+              "files": 3
+            },
+            "other": {
+              "bytes": 286411,
+              "files": 1
+            }
+          },
+          "ownership": {
+            "productRecording": {
+              "bytes": 303266186,
+              "files": 189
+            },
+            "fixtureInput": {
+              "bytes": 124668810,
+              "files": 2
+            },
+            "observerTools": {
+              "bytes": 10174952,
+              "files": 2
+            },
+            "cache": {
+              "bytes": 3146149,
+              "files": 280
+            },
+            "temporary": {
+              "bytes": 0,
+              "files": 0
+            },
+            "runtimeSupport": {
+              "bytes": 16960,
+              "files": 3
+            },
+            "other": {
+              "bytes": 286411,
+              "files": 1
+            }
+          },
+          "transientJournalMisses": 0,
+          "measurement": "logical-file-bytes-nonatomic",
+          "rawPathsPublished": false,
+          "transientTreeRetries": 0,
+          "fixedBytes": 135130173,
+          "variableBytes": 306429295,
+          "copyBytes": 318923458,
+          "combinedBytes": 760482926,
+          "rootCapBytes": 604892221,
+          "combinedCapBytes": 1074654269,
+          "copyEntries": 195,
+          "workspacePolicy": "fixed-plus-variable-v1"
+        },
+        "continuousEnforcement": false
+      },
+      {
+        "failure": null,
+        "samples": 104,
+        "intervalMs": 100,
+        "maxGapMs": 102.85350000020117,
+        "elapsedMs": 10586.686459000222,
+        "peak": {
+          "totalBytes": 441561480,
+          "capBytes": 604892221,
+          "capExceeded": false,
+          "entries": 495,
+          "categories": {
+            "input": {
+              "bytes": 124668810,
+              "files": 2
+            },
+            "media": {
+              "bytes": 158432850,
+              "files": 6
+            },
+            "mediaPartial": {
+              "bytes": 0,
+              "files": 0
+            },
+            "journal": {
+              "bytes": 92288017,
+              "files": 89
+            },
+            "checkpoint": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationSnapshot": {
+              "bytes": 13300902,
+              "files": 1
+            },
+            "generationIdentity": {
+              "bytes": 12992607,
+              "files": 88
+            },
+            "generationEvidence": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationManifest": {
+              "bytes": 403,
+              "files": 1
+            },
+            "generationTransaction": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqlite": {
+              "bytes": 26251264,
+              "files": 1
+            },
+            "wal": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqliteAux": {
+              "bytes": 0,
+              "files": 0
+            },
+            "tmp": {
+              "bytes": 0,
+              "files": 0
+            },
+            "log": {
+              "bytes": 14068,
+              "files": 2
+            },
+            "state": {
+              "bytes": 4657,
+              "files": 2
+            },
+            "events": {
+              "bytes": 0,
+              "files": 0
+            },
+            "cache": {
+              "bytes": 3146396,
+              "files": 280
+            },
+            "tools": {
+              "bytes": 10174952,
+              "files": 2
+            },
+            "recordingsOther": {
+              "bytes": 143,
+              "files": 3
+            },
+            "other": {
+              "bytes": 286411,
+              "files": 1
+            }
+          },
+          "ownership": {
+            "productRecording": {
+              "bytes": 303266186,
+              "files": 189
+            },
+            "fixtureInput": {
+              "bytes": 124668810,
+              "files": 2
+            },
+            "observerTools": {
+              "bytes": 10174952,
+              "files": 2
+            },
+            "cache": {
+              "bytes": 3146396,
+              "files": 280
+            },
+            "temporary": {
+              "bytes": 0,
+              "files": 0
+            },
+            "runtimeSupport": {
+              "bytes": 18725,
+              "files": 4
+            },
+            "other": {
+              "bytes": 286411,
+              "files": 1
+            }
+          },
+          "transientJournalMisses": 0,
+          "measurement": "logical-file-bytes-nonatomic",
+          "rawPathsPublished": false,
+          "transientTreeRetries": 0,
+          "fixedBytes": 135130173,
+          "variableBytes": 306431307,
+          "copyBytes": 319243570,
+          "combinedBytes": 760805050,
+          "rootCapBytes": 604892221,
+          "combinedCapBytes": 1074654269,
+          "copyEntries": 195,
+          "workspacePolicy": "fixed-plus-variable-v1"
+        },
+        "continuousEnforcement": false
+      },
+      {
+        "failure": null,
+        "samples": 103,
+        "intervalMs": 100,
+        "maxGapMs": 102.83137500006706,
+        "elapsedMs": 10483.893874999136,
+        "peak": {
+          "totalBytes": 413058610,
+          "capBytes": 604892221,
+          "capExceeded": false,
+          "entries": 496,
+          "categories": {
+            "input": {
+              "bytes": 124668810,
+              "files": 2
+            },
+            "media": {
+              "bytes": 129866611,
+              "files": 6
+            },
+            "mediaPartial": {
+              "bytes": 0,
+              "files": 0
+            },
+            "journal": {
+              "bytes": 92347934,
+              "files": 89
+            },
+            "checkpoint": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationSnapshot": {
+              "bytes": 13300902,
+              "files": 1
+            },
+            "generationIdentity": {
+              "bytes": 12992607,
+              "files": 88
+            },
+            "generationEvidence": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationManifest": {
+              "bytes": 403,
+              "files": 1
+            },
+            "generationTransaction": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqlite": {
+              "bytes": 26251264,
+              "files": 1
+            },
+            "wal": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqliteAux": {
+              "bytes": 0,
+              "files": 0
+            },
+            "tmp": {
+              "bytes": 0,
+              "files": 0
+            },
+            "log": {
+              "bytes": 17762,
+              "files": 3
+            },
+            "state": {
+              "bytes": 4655,
+              "files": 2
+            },
+            "events": {
+              "bytes": 0,
+              "files": 0
+            },
+            "cache": {
+              "bytes": 3146156,
+              "files": 280
+            },
+            "tools": {
+              "bytes": 10174952,
+              "files": 2
+            },
+            "recordingsOther": {
+              "bytes": 143,
+              "files": 3
+            },
+            "other": {
+              "bytes": 286411,
+              "files": 1
+            }
+          },
+          "ownership": {
+            "productRecording": {
+              "bytes": 274759864,
+              "files": 189
+            },
+            "fixtureInput": {
+              "bytes": 124668810,
+              "files": 2
+            },
+            "observerTools": {
+              "bytes": 10174952,
+              "files": 2
+            },
+            "cache": {
+              "bytes": 3146156,
+              "files": 280
+            },
+            "temporary": {
+              "bytes": 0,
+              "files": 0
+            },
+            "runtimeSupport": {
+              "bytes": 22417,
+              "files": 5
+            },
+            "other": {
+              "bytes": 286411,
+              "files": 1
+            }
+          },
+          "transientJournalMisses": 0,
+          "measurement": "logical-file-bytes-nonatomic",
+          "rawPathsPublished": false,
+          "transientTreeRetries": 0,
+          "fixedBytes": 135130173,
+          "variableBytes": 277928437,
+          "copyBytes": 296844000,
+          "combinedBytes": 709902610,
+          "rootCapBytes": 604892221,
+          "combinedCapBytes": 1074654269,
+          "copyEntries": 195,
+          "workspacePolicy": "fixed-plus-variable-v1"
+        },
+        "continuousEnforcement": false
+      }
+    ],
+    "limitation": "logical non-atomic file sizes; normal samples roughly 5s, native copy execution 100ms (observed max gap below103ms). No claim of hard enforcement between samples. Product quota unchanged."
+  },
+  "resourceReview": {
+    "reviewCompleted": true,
+    "stabilityApproved": false,
+    "rawResourceTrendPass": false,
+    "rawReviewRequired": true,
+    "finding": "RSS increases over this execution and after warmup; not a plateau or bounded long-term RSS proof. Existing Catalog accumulated RAM and supported concurrent load limits remain. No new memory investigation or automatic release approval.",
+    "samples": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 1440,
+      "groups": [
+        {
+          "pid": 83278,
+          "startIdentity": "macos:1791031213:762799",
+          "sampleCount": 1440,
+          "first": {
+            "phaseAt": 3140.61025,
+            "sampledAt": 1791031215435,
+            "rssBytes": 92831744,
+            "threadCount": 28,
+            "fdCount": 29,
+            "mutationCount": 2
+          },
+          "last": {
+            "phaseAt": 7202841.0185,
+            "sampledAt": 1791038415185,
+            "rssBytes": 547864576,
+            "threadCount": 25,
+            "fdCount": 23,
+            "mutationCount": 28730
+          },
+          "max": {
+            "rssBytes": 590004224,
+            "threadCount": 28,
+            "fdCount": 30
+          },
+          "delta": {
+            "rssBytes": 455032832,
+            "threadCount": -3,
+            "fdCount": -6,
+            "mutationCount": 28728
+          },
+          "elapsedMs": 7199700.40825,
+          "maxGapMs": 5015.139250000007,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 1380,
+            "delta": {
+              "rssBytes": 181141504,
+              "threadCount": 0,
+              "fdCount": 4,
+              "mutationCount": 27560
+            },
+            "elapsedMs": 6899501.016083,
+            "rssMiBPerMinute": 1.5022825528743005
+          }
+        }
+      ]
+    },
+    "approximately148msPriorObservation": "separate historical search preparation lock wait; not all-request latency or a new performance threshold"
+  },
+  "postprocessing": {
+    "processes": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 83278,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 59411,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 59412,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 87783,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 62536,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 62537,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 87849,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 62649,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 62650,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "copies": [
+      {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-oVuXJI",
+        "bytes": 303266186,
+        "copied": true,
+        "absent": true,
+        "reason": null,
+        "receiptPreserved": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      },
+      {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-VpcYCX",
+        "bytes": 303266186,
+        "copied": true,
+        "absent": true,
+        "reason": null,
+        "receiptPreserved": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      },
+      {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-ZJJLUH",
+        "bytes": 274759864,
+        "copied": true,
+        "absent": true,
+        "reason": null,
+        "receiptPreserved": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      }
+    ],
+    "root": [
+      {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-DSNNdl",
+        "bytes": 413058850,
+        "absent": true
+      }
+    ],
+    "udpClosed": true,
+    "allOwnedRootsIndependentlyAbsent": true
+  },
+  "preservation": "Previous failed roots and outputs were neither opened as products nor modified/deleted; fresh successful owned roots removed by existing verified cleanup."
+}

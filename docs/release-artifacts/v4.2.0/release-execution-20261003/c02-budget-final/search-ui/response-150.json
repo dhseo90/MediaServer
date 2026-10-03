@@ -1,0 +1,34 @@
+{
+  "status": 410,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791030600000",
+    "endTimeMs": "1791030840000",
+    "limit": "20",
+    "includeUnplaced": "false",
+    "object": "paging",
+    "cursor": "v1.f37d94a64b415eb2c743e8a514e8511e.20.2d5eca8804ff6f226bcf37ac83354e0a6f8408bbb6f39c457585017421a3076b"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791030600000,
+    "endTimeMs": 1791030840000,
+    "includeUnplaced": false,
+    "limit": 20,
+    "filters": {
+      "object": [
+        "paging"
+      ],
+      "track": [],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "error": "search-snapshot-expired"
+  }
+}

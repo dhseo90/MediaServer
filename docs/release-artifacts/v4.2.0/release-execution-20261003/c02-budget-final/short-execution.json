@@ -1,0 +1,95 @@
+{
+  "scope": "test preparation and direct regressions only",
+  "commands": [
+    {
+      "command": "node scripts/internal/recording_current_root_storage.test.mjs",
+      "runs": [
+        {
+          "log": "v420-budget-short-1.log",
+          "exit": 1,
+          "reason": "old source-string expectation did not match storageNow integration; not product RED"
+        },
+        {
+          "log": "v420-budget-short-2.log",
+          "exit": 0,
+          "passed": 21
+        }
+      ]
+    },
+    {
+      "command": "node scripts/internal/recording_search_ui_state.test.mjs",
+      "runs": [
+        {
+          "log": "v420-c02-state.log",
+          "exit": 1,
+          "reason": "blank fake video paused property undefined"
+        },
+        {
+          "log": "v420-c02-state-fixed.log",
+          "exit": 1,
+          "reason": "fake asynchronous render not flushed before next-page assertion"
+        },
+        {
+          "log": "v420-c02-state-final.log",
+          "exit": 0,
+          "passed": 11
+        }
+      ]
+    },
+    {
+      "command": "c++ -std=c++17 -Wall -Wextra -Werror -O2 -Iinclude -DMEDIA_SERVER_USE_OPENSSL=1 $(pkg-config --cflags openssl) src/recording/recording_search_model.cpp src/recording/recording_search_snapshots.cpp scripts/internal/recording_search_cursor_smoke.cpp $(pkg-config --libs openssl) -o /tmp/v420-c02-cursor && /tmp/v420-c02-cursor",
+      "exit": 0,
+      "passed": 34,
+      "log": "v420-c02-cursor.log"
+    },
+    {
+      "command": "node scripts/internal/recording_archive_diagnostic_profile.test.mjs",
+      "exit": 0,
+      "passed": 21,
+      "log": "v420-budget-copy-final.log",
+      "earlier20PassLog": "v420-budget-copy-regression.log"
+    },
+    {
+      "command": "node scripts/internal/recording_ui_acceptance.test.mjs",
+      "exit": 0,
+      "passed": 10,
+      "log": "v420-c02-driver-unit.log"
+    },
+    {
+      "command": "bash scripts/internal/verify_recording_current_observer.sh --app-observe",
+      "exit": 0,
+      "passed": 73,
+      "log": "v420-budget-app-short.log",
+      "actualObservationMs": 30141.975,
+      "notLongrun": true
+    },
+    {
+      "command": "node scripts/internal/verify_docs_links.mjs",
+      "exit": 0,
+      "log": "v420-c02-verify_docs_links.mjs.log"
+    },
+    {
+      "command": "node scripts/internal/verify_code_comments.mjs",
+      "exit": 0,
+      "log": "v420-c02-verify_code_comments.mjs.log"
+    },
+    {
+      "command": "node scripts/internal/verify_script_inventory.mjs",
+      "exit": 0,
+      "log": "v420-c02-verify_script_inventory.mjs.log"
+    },
+    {
+      "command": "node scripts/internal/verify_feature_implementation_evidence.mjs",
+      "exit": 0,
+      "log": "v420-c02-verify_feature_implementation_evidence.mjs.log"
+    }
+  ],
+  "syntax": "Changed JS node --check and shell bash -n passed. Initial observer line458 extra closing parenthesis caused node --check SyntaxError and was corrected before behavior tests; tool output observed, no standalone original log retained.",
+  "whitespace": "git diff --check -- scripts docs/manual-ui-fulltest.md and both code commits staged diff --check passed. Evidence patch context whitespace preserved separately.",
+  "reused": {
+    "uiAuthPrep": "21/21 from c03-budget-followup; exact SHA256 unchanged b47e8ba5e82738c9fa9b14032252279eef987539a82cd77ffdecf5d0d4b9a6a2; same wrapper bytes as prior execution",
+    "canonical": "ce163652d3c4b976cb263a4569331529595f55c5 product source unchanged; no general/basic424/Linux rerun"
+  },
+  "cleanup": "Short async child/copy fixtures cleaned and process groups closed; app-observe root and three recovery copies absent, three product processes/ports and UDP closed. Owned cursor executable remains /tmp/v420-c02-cursor for evidence, no process running.",
+  "sourceBinding": "tested-source.json/patch and execution-binding.json; tests ran in working tree, not rerun at later evidence HEAD"
+}

@@ -1,0 +1,19 @@
+✔ late search response cannot replace newer query or revive invalidated results (9.119292ms)
+✔ late seek and metadata cannot move a newer selected file (0.814125ms)
+✔ expired snapshot asks for new search and never loads a file (0.585667ms)
+✔ setting currentTime is seeking, only current media completion succeeds (0.54675ms)
+✔ same URL new selection rejects old metadata seeked and error events (0.6895ms)
+✔ completion requires data, no pending seek, no media error, and target within frame tolerance (0.521667ms)
+✔ same current position waits for current data without needing seeked (0.836209ms)
+✔ bounds invalid response unsupported position and media failure remain distinct (0.452375ms)
+✔ incomplete evidence is not empty success (0.386125ms)
+✔ seeked before current data stays pending until loadeddata (0.41ms)
+✔ restart MAC error400 and same-pool expiry410 clear results with distinct guidance (0.921375ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45.200458

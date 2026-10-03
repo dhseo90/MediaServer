@@ -1,0 +1,81 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791030600000",
+    "endTimeMs": "1791030840000",
+    "limit": "200",
+    "includeUnplaced": "false",
+    "object": "event-search"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791030600000,
+    "endTimeMs": 1791030840000,
+    "includeUnplaced": false,
+    "limit": 200,
+    "filters": {
+      "object": [
+        "event-search"
+      ],
+      "track": [],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "6adb7e0be746cb0e45f7f4d83b30d2f6",
+    "nextCursor": null,
+    "knownCount": 2,
+    "unplacedCount": 0,
+    "items": [
+      {
+        "id": "or:21:ui-release-derived-20",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "57ad1261-8676-409f-adee-8604cd289f51",
+        "observationId": "ui-release-derived-20",
+        "startTimeNs": "1791030602000000000",
+        "endTimeNs": "1791030602000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "event-search",
+        "track": "track-8",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/57ad1261-8676-409f-adee-8604cd289f51",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:20:ui-release-derived-0",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "85b10b37-8d80-4393-b6a9-3f0dc284054d",
+        "observationId": "ui-release-derived-0",
+        "startTimeNs": "1791030600000000000",
+        "endTimeNs": "1791030600000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "event-search",
+        "track": "track-8",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/dj-5703ba4a05c0c2529a05feab49c1fadc8335598a8c8e211ce10663b7a906a15a-o0",
+        "preferredEventId": "ui-full-event",
+        "selectionReason": "event-priority",
+        "unavailableReason": ""
+      }
+    ]
+  }
+}

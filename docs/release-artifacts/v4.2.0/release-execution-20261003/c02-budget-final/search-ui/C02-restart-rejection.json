@@ -1,0 +1,539 @@
+{
+  "initial": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "a20e0456134f0b70c5804997a5782d98",
+    "nextCursor": "v1.a20e0456134f0b70c5804997a5782d98.20.6820e6316c5ed7cdb4c15837a34e8f01bc39077686dc7b8452b7e1355765bf58",
+    "knownCount": 25,
+    "unplacedCount": 0,
+    "items": [
+      {
+        "id": "or:12:ui-release-4",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-4",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:12:ui-release-5",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-5",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:12:ui-release-6",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-6",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:12:ui-release-7",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-7",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:12:ui-release-8",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-8",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:12:ui-release-9",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-9",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-10",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-10",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-11",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-11",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-12",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-12",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-13",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-13",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-14",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-14",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-15",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-15",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-16",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-16",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-17",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-17",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-18",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-18",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-19",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-19",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-20",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-20",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-21",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-21",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-22",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-22",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:13:ui-release-23",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "observationId": "ui-release-23",
+        "startTimeNs": "1791030601000000000",
+        "endTimeNs": "1791030601000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "paging",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/4ced3a3e-1ecb-406a-b789-cbdca46d34fa",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      }
+    ]
+  },
+  "lifecycle": {
+    "action": "restart",
+    "previousStop": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "ready": true
+  },
+  "response": {
+    "error": "search-invalid-cursor"
+  },
+  "text": "검색 조건이 올바르지 않습니다.",
+  "state": {
+    "src": null,
+    "paused": true
+  },
+  "principal": {
+    "requestedRole": "admin",
+    "requestedScopes": [
+      "*"
+    ],
+    "role": "admin",
+    "scopes": [
+      "*"
+    ]
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "mode": "current-recording-120",
+  "passed": 10098,
+  "failed": 0,
+  "elapsedMs": 7270004,
+  "verifiedDurationMs": 7200398.438541,
+  "longrunObservationCompleted": true,
+  "shortPreparationPass": false,
+  "statusCumulativePass": false,
+  "resourceTrendPass": false,
+  "reviewRequired": true,
+  "uiFulltestPass": false,
+  "phase": {
+    "elapsedMs": 7200398.438541,
+    "channels": {
+      "9101": {
+        "finalized": 3592,
+        "deleted": 3590,
+        "lastAt": 7202841.0185,
+        "order": "7183",
+        "store": "2a688ac86974c5cce1e8a5be58b0c7fa340cac7cbfe7924972492195748047f3",
+        "knownMappings": 2536,
+        "unknownMappings": 128102
+      },
+      "9201": {
+        "finalized": 3592,
+        "deleted": 3590,
+        "lastAt": 7202841.0185,
+        "order": "7184",
+        "store": "2a688ac86974c5cce1e8a5be58b0c7fa340cac7cbfe7924972492195748047f3",
+        "knownMappings": 2541,
+        "unknownMappings": 125628
+      }
+    },
+    "records": 7184,
+    "logicalBytes": 4312752
+  },
+  "resources": {
+    "status": "observed",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "sampleCount": 1440,
+    "groups": [
+      {
+        "pid": 83278,
+        "startIdentity": "macos:1791031213:762799",
+        "sampleCount": 1440,
+        "first": {
+          "phaseAt": 3140.61025,
+          "sampledAt": 1791031215435,
+          "rssBytes": 92831744,
+          "threadCount": 28,
+          "fdCount": 29,
+          "mutationCount": 2
+        },
+        "last": {
+          "phaseAt": 7202841.0185,
+          "sampledAt": 1791038415185,
+          "rssBytes": 547864576,
+          "threadCount": 25,
+          "fdCount": 23,
+          "mutationCount": 28730
+        },
+        "max": {
+          "rssBytes": 590004224,
+          "threadCount": 28,
+          "fdCount": 30
+        },
+        "delta": {
+          "rssBytes": 455032832,
+          "threadCount": -3,
+          "fdCount": -6,
+          "mutationCount": 28728
+        },
+        "elapsedMs": 7199700.40825,
+        "maxGapMs": 5015.139250000007,
+        "warmupMs": 300000,
+        "postWarmup": {
+          "status": "observed",
+          "sampleCount": 1380,
+          "delta": {
+            "rssBytes": 181141504,
+            "threadCount": 0,
+            "fdCount": 4,
+            "mutationCount": 27560
+          },
+          "elapsedMs": 6899501.016083,
+          "rssMiBPerMinute": 1.5022825528743005
+        }
+      }
+    ]
+  },
+  "processCount": 3,
+  "processesClosed": true,
+  "udpClosed": true,
+  "tokenStart": null,
+  "tokenEnd": null,
+  "tokenConsumed": null,
+  "tokenSource": "전용 집계 없음"
+}
