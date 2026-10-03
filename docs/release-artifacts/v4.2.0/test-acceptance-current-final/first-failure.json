@@ -1,0 +1,116 @@
+{
+  "schema": "media-server.v390-acceptance-first-failure.v1",
+  "recordedAt": "2026-10-03T03:15:31.013Z",
+  "invocationId": "v390-test-acceptance-20261003031351-77404",
+  "runId": "v390-test-acceptance-20261003031351-77404",
+  "sourceProvenance": {
+    "commitSha": "8a422a26d5c55f5a5c69856a7471166a24de943c",
+    "branch": "v4.2.0",
+    "worktreeClean": false,
+    "sourceWorktreeClean": true,
+    "dirtyPaths": [
+      "docs/release-artifacts/v4.2.0/test-acceptance-current-final/ai-asset-bootstrap.log",
+      "docs/release-artifacts/v4.2.0/test-acceptance-current-final/launcher-contract.log"
+    ],
+    "allowedArtifactPaths": [
+      "docs/release-artifacts/v4.2.0/test-acceptance-current-final/ai-asset-bootstrap.log",
+      "docs/release-artifacts/v4.2.0/test-acceptance-current-final/launcher-contract.log"
+    ],
+    "unapprovedDirtyPaths": [],
+    "allowedArtifactRoot": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final",
+    "worktreeStatusSha256": "1da87ade967ba216d29d0d15e4422c08dbad8265d4dc37e56c88c7e2a218d749",
+    "sourcePatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "capturedAt": "2026-10-03T03:13:51.808Z"
+  },
+  "acceptanceCommand": "./test_release.sh",
+  "failedStage": "feature-gates",
+  "failedCommand": "./server.sh verify-v390-deferred-product-owner-signoff",
+  "firstFailure": {
+    "stage": "feature-gates",
+    "testcaseId": "v390-deferred-product-owner-signoff",
+    "command": "./server.sh verify-v390-deferred-product-owner-signoff",
+    "context": "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1",
+    "error": "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp | [pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims | [pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS | [pass] server dispatch and script inventory expose the verifier | == v3.9.0 REVIEW4-63 accountable deferred product owner sign-off == | - accountableSubject: @dhseo90 (repository-code-owner) | - decisions: 5 | - followupAssignment: post-v3.9-unassigned / scheduled=false | - externalFieldSmoke: separate conditional-not-run | - implementation/field/release/UI/longrun PASS claimed: false | - pass: 6 | - fail: 1",
+    "exitCode": 1,
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log",
+    "stderrTail": [
+      "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp",
+      "[pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims",
+      "[pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS",
+      "[pass] server dispatch and script inventory expose the verifier",
+      "== v3.9.0 REVIEW4-63 accountable deferred product owner sign-off ==",
+      "- accountableSubject: @dhseo90 (repository-code-owner)",
+      "- decisions: 5",
+      "- followupAssignment: post-v3.9-unassigned / scheduled=false",
+      "- externalFieldSmoke: separate conditional-not-run",
+      "- implementation/field/release/UI/longrun PASS claimed: false",
+      "- pass: 6",
+      "- fail: 1"
+    ],
+    "reproductionCommand": "./test_release.sh"
+  },
+  "childFailure": null,
+  "cleanup": {
+    "acceptance": {
+      "status": "PASS",
+      "verificationSource": "child-summary-and-filesystem",
+      "childCleanupVerified": true,
+      "temporaryArtifactsRemoved": true,
+      "placeholderVideoFilesAbsent": true,
+      "duplicateScreenshotFilesAbsent": true,
+      "preservedArtifacts": [
+        "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/summary.json",
+        "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/report.md"
+      ],
+      "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
+      "checks": [
+        {
+          "check": "child-cleanup-validation",
+          "status": "PASS",
+          "observed": true
+        },
+        {
+          "check": "temporary-run-paths-absent",
+          "status": "PASS",
+          "paths": []
+        },
+        {
+          "check": "placeholder-video-files-absent",
+          "status": "PASS",
+          "paths": []
+        },
+        {
+          "check": "duplicate-screenshot-files-absent",
+          "status": "PASS",
+          "groups": []
+        }
+      ]
+    },
+    "child": null
+  },
+  "diagnosticArtifacts": [
+    {
+      "originalPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003031351-77404/feature-gates-17-v390-deferred-product-owner-signoff.log",
+      "bytes": 1028,
+      "sha256": "20b6e95396c0849338dbcd5e6656a25cf548fd3f9a8099786dc607ee9f799e0c",
+      "tail": [
+        "[pass] 현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)",
+        "[pass] v3 decision record binds the effective repository owner and current goal attestation",
+        "[pass] exact five decisions preserve truthful capability and execution status",
+        "[fail] decision evidence resolves to current source, route, UI, boundary, and verifier owners: reviewed current source digest drift at src/ingress/webrtc_http_server_runtime.cpp",
+        "[pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims",
+        "[pass] roadmap, inventory, evidence, and plan record REVIEW4-63 without false PASS",
+        "[pass] server dispatch and script inventory expose the verifier",
+        "== v3.9.0 REVIEW4-63 accountable deferred product owner sign-off ==",
+        "- accountableSubject: @dhseo90 (repository-code-owner)",
+        "- decisions: 5",
+        "- followupAssignment: post-v3.9-unassigned / scheduled=false",
+        "- externalFieldSmoke: separate conditional-not-run",
+        "- implementation/field/release/UI/longrun PASS claimed: false",
+        "- pass: 6",
+        "- fail: 1"
+      ]
+    }
+  ],
+  "priorFirstFailure": null
+}

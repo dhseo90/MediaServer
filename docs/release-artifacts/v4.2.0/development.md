@@ -4858,3 +4858,34 @@ Node 코드를 실행했다. 외부 네트워크·호스트 포트 publish 없�
 
 Linux 보완 증거 보존 후 docs links exit0(297문서/9235링크/15이미지/365anchor/0fail),
 공백 검사 exit0. 이 절까지의 기록은 제품 코드 커밋 이후의 증거 보존이다.
+
+## 2026-10-03 승인된 릴리즈 검증 첫 실행과 owner 연결 보완
+
+`./test_release.sh` 첫 실행 대상은 `8a422a26d5c55f5a5c69856a7471166a24de943c`의
+제품 변경 없는 clean source였다. preflight/build 통과 후 feature-gates의 17번째 명령
+`./server.sh verify-v390-deferred-product-owner-signoff`가 exit1로 중단됐다.
+원인은 runtime.cpp의 검색 GET 17행 추가에 따른 기존 현행 whole-file 결속 불일치다.
+30분·실제 UI·일반120분은 시작하지 않았고 cleanup은 통과했다.
+최종 integrity의 빈 child 경로 오류는 선행 실패에 따른 파생 실패이며 보호 조건은 바꾸지 않았다.
+
+역사 owner 결정과 기대 hash를 유지하고, 기존 producer가 승인한 OPS-174의 envelope와
+실제 source body/dispatch 결속을 함께 검증하도록 검사기만 보완했다.
+초기 안은 non-hard trackedBlobSha256만 소비해 독립 검토에서 거부됐다.
+실제 본문 재대조를 추가한 뒤 격리 복사본의 action 변조+blob 필드 변경 반례를 거부했고,
+source-region contract 8개도 통과했다. 해당 반례의 임시 복사본은 삭제·부재 확인했다.
+검증은 이 base의 미커밋 diff에서 실행했으며 frozen patch/package로 바이트를 식별한다.
+제품 개발 세 후속 항목의 완료 상태와 과거 개발 증거 범위는 그대로 유지한다.
+
+동일 단계 실패 횟수는 feature-gates 1회(최종 integrity 1회 파생 실패)이며 다음 실행에도
+이어 관리한다. 도구 자동 승인 거절은 실제 테스트 실행/실패 횟수에 넣지 않는다.
+
+독립 재검토 승인 후 기존 producer exit0으로 984행 재사용/2행 승인 연결을 원자 적용했다.
+`./server.sh verify-v390-deferred-product-owner-signoff`: exit0, 7pass/0fail.
+`./server.sh verify-feature-implementation-evidence`: exit0, 986행 정합/negative15/15,
+실행 증거가 아닌 정적 연결 확인이다. 앞서 잘못 입력한
+`verify-feature-implementation-coverage` 호출은 unknown command exit1이며 검사는 실행되지 않았다.
+`node --check`와 `git diff --check`도 통과했다. 보완 코드 commit은 `095d91cf`다.
+최초 거부·최종 독립 판정·동결 diff·명령 로그는
+[이번 실행 증거](release-execution-20261003/review-notes.md)에 보존한다.
+첫 release 실패 원출력은 같은 보존 커밋의 `test-acceptance-current-final/`에 있으며,
+재실행 시 기존 wrapper가 이를 교체하므로 먼저 원격 보존한 후 재실행한다.

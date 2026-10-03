@@ -1,0 +1,46 @@
+diff --git a/scripts/internal/verify_v390_deferred_product_owner_signoff.mjs b/scripts/internal/verify_v390_deferred_product_owner_signoff.mjs
+index d1ee1bc0..8c5ece36 100755
+--- a/scripts/internal/verify_v390_deferred_product_owner_signoff.mjs
++++ b/scripts/internal/verify_v390_deferred_product_owner_signoff.mjs
+@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
+ import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+ 
+ import { validateCurrentGateDocumentation } from "./documentation_contract_lib.mjs";
++import { parseFeatureRows } from "./feature_implementation_manifest_lib.mjs";
++import { parseVerifiedReview4Dispatch, validateReview4ApprovalEnvelope, validateReview4TrustBindings } from "./feature_semantic_review4_trust_lib.mjs";
+ 
+ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+ const rootDir = path.resolve(scriptDir, "../..");
+@@ -640,7 +642,31 @@ function loadFixture() {
+ function validateCurrentFileBinding(anchor, source) {
+   const reviewed = reviewedCurrentFiles[anchor.file];
+   assert(anchor.sourceFileSha256 === (reviewed?.[0] ?? sha256(source)), `historical source digest drift at ${anchor.file}`);
+-  if (reviewed) assert(sha256(source) === reviewed[1], `reviewed current source digest drift at ${anchor.file}`);
++  if (reviewed) {
++    // 복구 보류 결정은 그대로 두고, 기존 producer가 독립 검토한 해당 기능의 현행 결속을 소비한다.
++    const currentDigest = anchor.file === "src/ingress/webrtc_http_server_runtime.cpp"
++      ? approvedRestoreSourceDigest() : reviewed[1];
++    assert(sha256(source) === currentDigest, `reviewed current source digest drift at ${anchor.file}`);
++  }
++}
++
++function approvedRestoreSourceDigest() {
++  const audit = JSON.parse(read("test/fixtures/v390_review4_feature_semantic_source_audit.json"));
++  const approvals = JSON.parse(read("test/fixtures/v390_review4_feature_semantic_source_approvals.json"));
++  const rows = parseFeatureRows(read("docs/project-feature-test-inventory.md"));
++  const errors = validateReview4ApprovalEnvelope({ audit, approvals, rows, orderedIds: rows.map(row => row.id) });
++  assert(errors.length === 0, `reviewed restore source approval invalid: ${errors.join("; ")}`);
++  const item = audit.items.find(item => item.id === "OPS-174");
++  const binding = item?.trustBindings?.roles?.owner;
++  assert(item?.verifier?.command === "verify-ops-source-registry-api" &&
++    item.evidenceToken === "productionRestorePerformed" &&
++    item.roles?.action?.symbol === "OpsV390StagingRestoreValidationHandoffJson" &&
++    binding?.file === "src/ingress/webrtc_http_server_runtime.cpp" &&
++    /^[a-f0-9]{64}$/.test(binding.trackedBlobSha256), "reviewed restore source owner binding mismatch");
++  // 전체 파일 hash는 승인 digest에서 제외되므로 실제 본문/dispatch를 별도로 재검증한다.
++  const trustErrors = validateReview4TrustBindings(rootDir, item, parseVerifiedReview4Dispatch(rootDir));
++  assert(trustErrors.length === 0, `reviewed restore source trust invalid: ${trustErrors.join("; ")}`);
++  return binding.trackedBlobSha256;
+ }
+ 
+ function expectRejected(fixture, label) {
